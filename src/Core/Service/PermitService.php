@@ -5,8 +5,8 @@
 /**
  * Service zur Verwaltung des Genehmigungsprozesses.
  *
- * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung
- * für neue Einfahrgenehmigungen.
+ * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
+ * Inklusive Schutz gegen doppelte Verarbeitungen (Mail-Kaskaden).
  *
  * @file      src/Core/Service/PermitService.php
  *
@@ -20,6 +20,7 @@
  * @since     0.1.0
  * - feat(core): Initialer PermitService zur Workflow-Steuerung.
  * - feat(payment): Methode completePayment zur sicheren Verifizierung hinzugefügt.
+ * - fix(logic): Status-Check hinzugefügt, um doppelte Mails zu verhindern.
  */
 
 declare(strict_types=1);
@@ -41,7 +42,8 @@ final class PermitService
         private readonly MailServiceInterface $mailService,
         private readonly PaymentProviderInterface $paymentProvider,
         private readonly Config $config
-    ) {}
+    ) {
+    }
 
     /**
      * Workflow: Neuer Antrag (Banküberweisung)
@@ -83,6 +85,11 @@ final class PermitService
             return false;
         }
 
+        // ROBUSTHEIT: Wenn bereits bezahlt, Prozess erfolgreich beenden (Idempotenz)
+        if ($permit->status === 'bezahlt') {
+            return true;
+        }
+
         // PayPal-Verifizierung
         if (!$this->paymentProvider->captureOrder($orderId)) {
             return false;
@@ -97,8 +104,8 @@ final class PermitService
     public function manualActivate(string $code): bool
     {
         $permit = $this->storage->findByHash($code);
-        if (!$permit) {
-            return false;
+        if (!$permit || $permit->status === 'bezahlt') {
+            return $permit !== null; // True wenn bereits bezahlt, false wenn nicht gefunden
         }
 
         return $this->updateStatus($permit, 'bezahlt');
@@ -121,9 +128,12 @@ final class PermitService
         );
 
         $success = $this->storage->save($updated);
+
+        // Mail nur senden, wenn der Status sich wirklich auf 'bezahlt' geändert hat
         if ($success && $newStatus === 'bezahlt') {
             $this->sendApprovalMail($updated);
         }
+
         return $success;
     }
 
