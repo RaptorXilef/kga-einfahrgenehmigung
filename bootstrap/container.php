@@ -28,9 +28,11 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
+use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
 
 class Container
@@ -55,6 +57,9 @@ class Container
 
         // Mail Service (Nutzt den Config-Service)
         $this->services[MailServiceInterface::class] = fn () => new SmtpMailService(
+            $this->get(Config::class)
+        );
+        $this->services[PaymentProviderInterface::class] = fn () => new PayPalService(
             $this->get(Config::class)
         );
     }
