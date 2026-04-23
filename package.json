@@ -1,7 +1,7 @@
 {
   "name": "@raptorxilef/kga-einfahrgenehmigung",
   "version": "0.1.0",
-  "description": "Automatische Verwaltung der KGA-Einfahrgenehmigungen",
+  "description": "OOP-basiertes System für Einfahrgenehmigungen",
   "type": "module",
   "author": "Felix Maywald",
   "license": "CC-BY-NC-SA-4.0",

@@ -12,11 +12,12 @@
 
 declare(strict_types=1);
 
-// ==========================================================
-// DIE EINZIGE VARIABLE FÜR PFADE:
-// Zeige hier auf den Ordner, der 'src', 'vendor' etc. enthält.
-// ==========================================================
+// --- ANKER-SYSTEM ---
 $appRoot = dirname(__DIR__, 1); // Standard: Eine Ebene höher als 'public'
+if (!file_exists($appRoot . '/vendor/autoload.php')) {
+    $appRoot = dirname(__DIR__);
+}
+// --------------------
 
 // Ab hier ist alles dynamisch:
 require_once $appRoot . '/vendor/autoload.php';

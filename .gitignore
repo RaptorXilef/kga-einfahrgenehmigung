@@ -181,9 +181,17 @@ logs/
 # ==============================================================================
 # PROJEKT SPEZIFISCH
 # ==============================================================================
-# Infrastruktur & Tools (werden via scripts/Setup.php verwaltet)
-/tools/*.phar
-/.build/
+
+# Composer-Abhängigkeiten
+/kga-core/vendor/
+
+# Sensible Daten & Konfiguration
+/kga-core/config/config.php
+/kga-core/storage/daten.json
+/kga-core/storage/*.json
+
+/public/assets/css/*.map
+/public/assets/js/*.map
 
 # Generierte Frontend-Assets (Build-Artefakte)
 # Wir vertrauen unserem Build-Prozess (npm run make)
@@ -191,6 +199,10 @@ logs/
 /public/assets/js/*
 !/public/assets/css/.gitkeep
 !/public/assets/js/.gitkeep
+
+# Infrastruktur & Tools (werden via scripts/Setup.php verwaltet)
+/tools/*.phar
+/.build/
 
 # Temporäre Zip-Archive & OS-Reste
 *.zip
