@@ -6,6 +6,7 @@
  * PayPal-Implementierung des PaymentProviders.
  *
  * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
+ * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
  *
  * @file      src/Infrastructure/Payment/PayPalService.php
  *
@@ -18,6 +19,7 @@
  *
  * @since     0.1.0
  * - feat(payment): Implementierung der sicheren Server-Side Capture Logik.
+ * - feat(security): Preis-Matching hinzugefügt, um Betrug zu verhindern.
  */
 
 declare(strict_types=1);
@@ -38,12 +40,18 @@ final class PayPalService implements PaymentProviderInterface
     ) {
     }
 
-    public function captureOrder(string $orderId): bool
+    /**
+     * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
+     *
+     * @param string $orderId
+     * @param float $expectedAmount Der serverseitig erwartete Betrag (z.B. 3.00 oder 10.00).
+     */
+    public function captureOrder(string $orderId, float $expectedAmount): bool
     {
         $accessToken = $this->getAccessToken();
-        $baseUrl = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
 
-    // 1. Capture ausführen
+        // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
         $ch = curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -56,25 +64,35 @@ final class PayPalService implements PaymentProviderInterface
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
+        // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
         if ($httpCode !== 201 && $httpCode !== 200) {
             return false;
         }
 
         $data = json_decode((string)$response, true);
 
-        // WICHTIG: Wir prüfen den Status UND den Betrag (Server-Side SSOT)
+        // 2. STATUS-PRÜFUNG
         $status = $data['status'] ?? '';
-        $amount = $data['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? '0';
-        $targetPrice = number_format((float)$this->config->get('preis', 3.00), 2, '.', '');
 
-        return $status === 'COMPLETED' && $amount === $targetPrice;
+        // 3. BETRAGS-PRÜFUNG (WICHTIG für Sicherheit!)
+        // PayPal liefert den Betrag als String im Deep-Array: purchase_units -> payments -> captures -> amount -> value
+        $capturedAmount = $data['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? '0.00';
+
+        // Wir formatieren deinen erwarteten Preis auf das PayPal-Format (String mit 2 Nachkommastellen)
+        $formattedExpected = number_format($expectedAmount, 2, '.', '');
+
+        // Nur wenn Status 'COMPLETED' UND der Preis exakt mit unserem System übereinstimmt:
+        return ($status === 'COMPLETED' && $capturedAmount === $formattedExpected);
     }
 
+    /**
+     * Holt den temporären OAuth2 Access Token von PayPal.
+     */
     private function getAccessToken(): string
     {
-        $baseUrl = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $baseUrl  = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
         $clientId = $this->config->get('paypal_client_id');
-        $secret = $this->config->get('paypal_secret');
+        $secret   = $this->config->get('paypal_secret');
 
         $ch = curl_init("$baseUrl/v1/oauth2/token");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -82,11 +100,11 @@ final class PayPalService implements PaymentProviderInterface
         curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
 
         $response = curl_exec($ch);
-        $data = json_decode((string)$response, true);
+        $data     = json_decode((string)$response, true);
         curl_close($ch);
 
         if (!isset($data['access_token'])) {
-            throw new RuntimeException("PayPal Authentifizierung fehlgeschlagen.");
+            throw new RuntimeException("PayPal Authentifizierung fehlgeschlagen. Bitte Client-ID und Secret prüfen.");
         }
 
         return (string)$data['access_token'];
