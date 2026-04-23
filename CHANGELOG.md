@@ -1,0 +1,27 @@
+
+
+## <small>0.3.1 (2026-04-23)</small>
+
+* feat(admin): implement admin view and idempotent service logic ([5f3adf0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5f3adf0))
+* feat(api): implement secure paypal capture endpoint ([2de5be7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2de5be7))
+* feat(arch): unify anchor-system across all entry points ([4f54c21](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4f54c21))
+* feat(check): upgrade to v0.2.0 and optimize check logic ([f0dbe43](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f0dbe43))
+* feat(core): implement permit entity and json storage provider ([ae9e23a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ae9e23a))
+* feat(core): implement permitservice for workflow orchestration ([d7a771a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d7a771a))
+* feat(infra): finalize directory anchoring and tool configurations ([ed60d12](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ed60d12))
+* feat(logic): implement multi-pricing and dual-view check system ([a1b7cb1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a1b7cb1))
+* feat(mail): finalize smtpmailservice and container registration ([d894a42](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d894a42))
+* feat(mail): implement template-based mail service ([3caadb6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3caadb6))
+* feat(mail): implement v0.3.0 permit design with security features ([224271b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/224271b))
+* feat(payment): implement secure server-side paypal capture ([46fa51c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/46fa51c))
+* feat(security): implement server-side price matching and dual check views ([8295df9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8295df9))
+* feat(security): implement strict server-side amount validation for paypal ([0429ed5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0429ed5))
+* feat(storage): implement mysqlstorage and admin migration logic ([1bda1eb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1bda1eb))
+* feat(upload): upload project-base ([6af8f8e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6af8f8e))
+* feat(view): finalize dual-check templates in bem style ([c84ff08](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c84ff08))
+* refactor(app): transition to container-based entry point ([8d3d437](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8d3d437))
+* refactor(arch): implement path anchoring for deployment flexibility ([fbe2777](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fbe2777))
+* refactor(infra): establish independent core composer configuration ([3a160ab](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a160ab))
+* fix: resolve phpcs standards registration and enable fixer ([a960442](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a960442))
+* chore: automate phpcs standards path registration ([8e8c5fa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8e8c5fa))
+* Add LICENSE file with CC BY-NC-ND 4.0 ([c5117e3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c5117e3))
