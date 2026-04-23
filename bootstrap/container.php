@@ -30,6 +30,7 @@ namespace App\Bootstrap;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Service\PermitService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Payment\PayPalService;
@@ -60,6 +61,11 @@ class Container
             $this->get(Config::class)
         );
         $this->services[PaymentProviderInterface::class] = fn () => new PayPalService(
+            $this->get(Config::class)
+        );
+        $this->services[PermitService::class] = fn () => new PermitService(
+            $this->get(StorageInterface::class),
+            $this->get(MailServiceInterface::class),
             $this->get(Config::class)
         );
     }
