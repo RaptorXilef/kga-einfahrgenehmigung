@@ -1,14 +1,69 @@
-<div class="c-card c-card--admin-view">
-    <div class="c-card__header">
-        <h2>Vollständige Details (Vorstand)</h2>
-    </div>
-    <table class="c-table">
-        <tr><th>Pächter:</th><td><?= htmlspecialchars($permit->name) ?></td></tr>
-        <tr><th>Parzelle:</th><td><?= htmlspecialchars($permit->parzelle) ?></td></tr>
-        <tr><th>Grund/Zweck:</th><td><?= htmlspecialchars($permit->zweck) ?></td></tr>
-        <tr><th>Fahrzeugtyp:</th><td><?= strtoupper($permit->typ) ?></td></tr>
-        <tr><th>Kennzeichen:</th><td><?= htmlspecialchars($permit->kennzeichen) ?></td></tr>
-        <tr><th>E-Mail:</th><td><?= htmlspecialchars($permit->email) ?></td></tr>
-        <tr><th>Status:</th><td><?= strtoupper($permit->status) ?></td></tr>
-    </table>
-</div>
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vorstands-Prüfung - <?= htmlspecialchars($permit->code) ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+</head>
+<body class="l-admin-check">
+    <main class="c-container">
+        <header class="c-page-header">
+            <a href="admin.php" class="c-button c-button--text">← Zur Übersicht</a>
+            <h1 class="c-page-header__title">Detailprüfung (Vorstand)</h1>
+        </header>
+
+        <section class="c-admin-card">
+            <header class="c-admin-card__header">
+                <span class="c-badge c-badge--<?= $permit->status === 'bezahlt' ? 'success' : 'warning' ?>">
+                    Status: <?= strtoupper($permit->status) ?>
+                </span>
+                <h2 class="c-admin-card__code">Code: <?= $permit->code ?></h2>
+            </header>
+
+            <div class="c-admin-card__body">
+                <table class="c-admin-table">
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">Pächter:</th>
+                        <td class="c-admin-table__data"><?= htmlspecialchars($permit->name) ?></td>
+                    </tr>
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">Parzelle:</th>
+                        <td class="c-admin-table__data"><?= htmlspecialchars($permit->parzelle) ?></td>
+                    </tr>
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">Grund/Zweck:</th>
+                        <td class="c-admin-table__data"><?= htmlspecialchars($permit->zweck) ?></td>
+                    </tr>
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">Fahrzeugtyp:</th>
+                        <td class="c-admin-table__data"><?= strtoupper($permit->typ) ?></td>
+                    </tr>
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">Kennzeichen:</th>
+                        <td class="c-admin-table__data"><?= htmlspecialchars($permit->kennzeichen) ?></td>
+                    </tr>
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">E-Mail:</th>
+                        <td class="c-admin-table__data"><?= htmlspecialchars($permit->email) ?></td>
+                    </tr>
+                    <tr class="c-admin-table__row">
+                        <th class="c-admin-table__header">Gültigkeitsraum:</th>
+                        <td class="c-admin-table__data">
+                            <?= $permit->von->format('d.m.Y') ?> bis <?= $permit->bis->format('d.m.Y') ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <?php if ($permit->status !== 'bezahlt'): ?>
+            <footer class="c-admin-card__actions">
+                <a href="admin.php?code=<?= $permit->code ?>&token=<?= $token ?>" class="c-button c-button--primary">
+                    Jetzt manuell freischalten
+                </a>
+            </footer>
+            <?php endif; ?>
+        </section>
+    </main>
+</body>
+</html>
