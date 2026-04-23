@@ -35,6 +35,8 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
 }
 // --------------------
 
+require_once $appRoot . '/vendor/autoload.php';
+
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
 use App\Core\Service\PermitService;

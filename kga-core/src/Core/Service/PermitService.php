@@ -32,7 +32,6 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
-use DateTimeImmutable;
 use RuntimeException;
 
 final class PermitService
@@ -53,11 +52,11 @@ final class PermitService
         $this->validateInput($data);
 
         $type = $data['typ'] ?? 'pkw';
-        $kennzeichen = $data['kennzeichen'];
+        $kennzeichen = (string) $data['kennzeichen'];
 
-    // Lieferanten-Logik: Prefix hinzufügen, falls kein PKW
+    // LKW / Lieferanten-Logik (Auftragserfüllung)
         if ($type === 'lkw') {
-            $firma = !empty($data['firma']) ? $data['firma'] : 'Unbekannt';
+            $firma = !empty($data['firma']) ? (string)$data['firma'] : 'Unbekannt';
             $kennzeichen = "LIEFERANT: " . $firma . " (" . $kennzeichen . ")";
         }
 
@@ -65,19 +64,19 @@ final class PermitService
 
         $permit = new Permit(
             code:        $this->generateSmartCode(),
-            name:        $data['name'],
-            email:       $data['email'],
+            name:        (string) $data['name'],
+            email:       (string) $data['email'],
             kennzeichen: $kennzeichen,
-            parzelle:    $data['parzelle'],
+            parzelle:    (string) $data['parzelle'],
             typ:         $type,
-            zweck:       $data['zweck'] ?? 'Privat',
-            von:         new DateTimeImmutable($data['datum_von']),
-            bis:         (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
+            zweck:       (string) ($data['zweck'] ?? 'Privat'),
+            von:         new \DateTimeImmutable($data['datum_von']),
+            bis:         (new \DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
             status:      'wartend'
         );
 
         if (!$this->storage->save($permit)) {
-            throw new RuntimeException("Speicherfehler.");
+            throw new \RuntimeException("Kritischer Speicherfehler in der Persistenz-Schicht.");
         }
 
         $this->notifyBoard($permit);
@@ -91,16 +90,15 @@ final class PermitService
     {
         // 1. Sicherheit: Existiert die Genehmigung überhaupt?
         $permit = $this->storage->findByHash($code);
-    if (!$permit || $permit->status === 'bezahlt') {
-        return $permit !== null;
+        if (!$permit || $permit->status === 'bezahlt') {
+            return $permit !== null;
         }
 
-    // WICHTIG: Den korrekten Preis für den Typ an den Provider übergeben
-    $expectedPrice = $this->config->getPriceForType($permit->typ);
+    // SICHERHEIT: Den korrekten Preis für diesen Fahrzeugtyp ermitteln
+        $expectedPrice = $this->config->getPriceForType($permit->typ);
 
-    // Hier muss das PayPalService Interface ggf. angepasst werden,
-    // um den Preis zu validieren (siehe unten).
-    if (!$this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
+    // Preis-Matching beim Capture (Verhindert Erschleichen von LKW-Einfahrten zum PKW-Preis)
+        if (!$this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
             return false;
         }
 

@@ -3,11 +3,22 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Einstiegspunkt zum Überprüfen der Gültigkeit der Einfahrgenemigung.
+ * Validierungsschnittstelle für Einfahrgenehmigungen.
  *
- * @file      check.php
+ * Prüft die Gültigkeit eines Codes und unterscheidet mittels Token-Validierung
+ * zwischen der öffentlichen Ansicht und der detaillierten Vorstandsansicht.
  *
- * @since     0.1.0
+ * @file      public/check.php
+ *
+ * @copyright (c) 2021-2026 Felix Maywald. All rights reserved.
+ * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE
+ *
+ * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
+ *
+ * @author    Felix Maywald (@RaptorXilef)
+ *
+ * @since     0.2.0 - Initiale Erstellung.
+ * @since     0.2.0 - Refactor(arch): Umstellung auf PermitService und Anker-Pfad-System.
  */
 
 declare(strict_types=1);
@@ -31,31 +42,33 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
 }
 // --------------------
 
+require_once $appRoot . '/vendor/autoload.php';
+
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
+use App\Core\Service\PermitService;
 use App\Contracts\Storage\StorageInterface;
 
 $settings = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
+
 $container = new Container(new Config($settings));
 
 /** @var StorageInterface $storage */
 $storage = $container->get(StorageInterface::class);
-$code = strtoupper(trim($_GET['code'] ?? ''));
-$permit = $storage->findByHash($code);
+$code    = strtoupper(trim($_GET['code'] ?? ''));
+$permit  = $storage->findByHash($code);
 
 if (!$permit) {
-    die("Genehmigung mit dem Code $code nicht gefunden.");
+    // Mentoring: Ein professionelles Error-Handling lädt auch hier ein Template
+    die("Genehmigung mit dem Code " . htmlspecialchars($code) . " wurde nicht gefunden.");
 }
 
-// Admin-Prüfung via Token
-$token = $_GET['token'] ?? '';
+// Admin-Prüfung via Token (Sicherheit: hash_equals gegen Timing-Attacks)
+$token         = (string) ($_GET['token'] ?? '');
 $expectedToken = hash('sha256', $permit->code . $settings['geheimnis']);
-$isAdmin = hash_equals($expectedToken, $token);
+$isAdmin       = hash_equals($expectedToken, $token);
 
 // Weiche: Welches Template laden?
-if ($isAdmin) {
-    include $appRoot . '/templates/pages/check_admin.phtml';
-} else {
-    include $appRoot . '/templates/pages/check_public.phtml';
-}
+$templatePath = $isAdmin ? 'check_admin' : 'check_public';
+include $appRoot . "/templates/pages/{$templatePath}.phtml";

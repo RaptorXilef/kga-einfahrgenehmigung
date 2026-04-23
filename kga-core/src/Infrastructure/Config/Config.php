@@ -51,7 +51,11 @@ final class Config
 
     public function getPriceForType(string $type): float
     {
-        $prices = $this->get('prices', ['pkw' => 3.00, 'lkw' => 3.00]);
+        $prices = $this->get('prices', [
+        'pkw' => 3.00,
+        'lkw' => 3.00, // Fallback
+        ]);
+
         return (float) ($prices[$type] ?? $prices['pkw']);
     }
 }
