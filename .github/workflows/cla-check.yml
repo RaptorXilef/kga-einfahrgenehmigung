@@ -1,0 +1,53 @@
+name: 'CLA Check'
+on:
+  pull_request_target:
+    types: [opened, edited, synchronized, reopened]
+
+jobs:
+  cla-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Check for CLA Agreement'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body;
+            const user = context.payload.pull_request.user.login;
+
+            // Sucht nach der Bestätigung im Text des Pull Requests
+            const agreed = prBody && prBody.includes("I accept the CLA");
+
+            if (agreed) {
+              console.log(`${user} has accepted the CLA.`);
+              return;
+            } else {
+              const message = `
+              English below | Deutsch unten
+
+              ---
+
+              Hello @${user}, thank you for your contribution!
+              Before we can merge your code, you must accept our [CLA](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CLA.md).
+
+              **Please edit your PR description and add the following sentence:**
+              > I accept the CLA
+
+              ---
+
+              Hallo @${user}, vielen Dank für deinen Beitrag!
+              Bevor wir deinen Code übernehmen können, musst du unser [CLA](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CLA.md) akzeptieren.
+
+              **Bitte editiere deine PR-Beschreibung und füge folgenden Satz hinzu:**
+              > I accept the CLA
+              `;
+
+              // Postet einen Kommentar, falls der Satz fehlt
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: message
+              });
+
+              core.setFailed("CLA not accepted / CLA nicht akzeptiert.");
+            }

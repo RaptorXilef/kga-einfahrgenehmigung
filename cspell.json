@@ -1,0 +1,45 @@
+{
+  "version": "0.2",
+  "language": "en,de",
+  "import": [
+    "@cspell/dict-de-de/cspell-ext.json"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "project-words",
+      "path": "./cspell-words.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": [
+    "en_US",
+    "de-de",
+    "softwareTerms",
+    "php",
+    "node",
+    "html",
+    "css",
+    "bash",
+    "npm",
+    "misc",
+    "project-words"
+  ],
+  "useGitignore": true,
+  "ignorePaths": [
+    "node_modules/**",
+    "vendor/**",
+    "public/assets/**",
+    "tests/**/*.php",
+    "CHANGELOG.md",
+    "**/TODO*.md"
+  ],
+  "files": [
+    "resources/js/**/*.js",
+    "resources/scss/**/*.scss",
+    "config/**/*.php",
+    "public/**/*.php",
+    "src/**/*.php",
+    "templates/**/*.php",
+    "**/*.md"
+  ]
+}
