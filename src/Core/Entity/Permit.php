@@ -27,6 +27,8 @@ final readonly class Permit
         public string $email,
         public string $kennzeichen,
         public string $parzelle,
+        public string $typ,   // PKW, Transporter, LKW
+        public string $zweck, // Grund der Einfahrt
         public DateTimeImmutable $von,
         public DateTimeImmutable $bis,
         public string $status = 'wartend',

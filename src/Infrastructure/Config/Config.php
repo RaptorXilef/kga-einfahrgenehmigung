@@ -42,4 +42,10 @@ final class Config
     {
         return (bool) $this->get('test_mode', true);
     }
+
+    public function getPermitDuration(): int
+    {
+    // Standardmäßig 5 Tage, falls nichts in der config.php steht
+        return (int) $this->get('permit_duration', 5);
+    }
 }

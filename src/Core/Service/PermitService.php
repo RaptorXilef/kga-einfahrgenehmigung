@@ -57,14 +57,19 @@ final class PermitService
         $code = $this->generateSmartCode();
 
         // 3. Entität erstellen
+        $duration = $this->config->getPermitDuration();
+        $bis = (new DateTimeImmutable($data['datum_von']))->modify("+$duration days");
+
         $permit = new Permit(
             code:        $code,
             name:        $data['name'],
             email:       $data['email'],
             kennzeichen: $data['kennzeichen'],
             parzelle:    $data['parzelle'],
+            typ:         $data['typ'] ?? 'pkw',
+            zweck:       $data['zweck'] ?? 'Privat',
             von:         new DateTimeImmutable($data['datum_von']),
-            bis:         (new DateTimeImmutable($data['datum_von']))->modify('+6 days'),
+            bis:         $bis,
             status:      'wartend'
         );
 
