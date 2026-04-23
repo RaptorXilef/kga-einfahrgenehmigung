@@ -23,7 +23,7 @@
     }
   },
   "config": {
-    "vendor-dir": "kga-core/vendor",
+    "vendor-dir": "vendor",
     "optimize-autoloader": true
   },
   "scripts": {
