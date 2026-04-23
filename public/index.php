@@ -16,14 +16,14 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
 use App\Core\Service\PermitService;
 
 // 1. Konfiguration laden (die alte config.php gibt nun einfach ein Array zurück)
-$settings = require_once __DIR__ . '/config.php';
+$settings = require_once __DIR__ . '/../config.php';
 $container = new Container(new Config($settings));
 
 /** @var PermitService $permitService */
@@ -47,4 +47,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['method'])) {
 
 // 3. View laden (PHTML-Template für das UI)
 // Wir trennen HTML von PHP -> Separation of Concerns
-include __DIR__ . '/templates/pages/formular.phtml';
+include __DIR__ . '/../templates/pages/formular.phtml';
