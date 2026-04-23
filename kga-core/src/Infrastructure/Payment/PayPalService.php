@@ -43,6 +43,7 @@ final class PayPalService implements PaymentProviderInterface
         $accessToken = $this->getAccessToken();
         $baseUrl = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
 
+    // 1. Capture ausführen
         $ch = curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);

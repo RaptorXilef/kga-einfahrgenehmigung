@@ -31,22 +31,29 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
 }
 // --------------------
 
-$code = $_GET['code'] ?? '';
-$token = $_GET['token'] ?? ''; // Admin-Token
+use App\Bootstrap\Container;
+use App\Infrastructure\Config\Config;
+use App\Contracts\Storage\StorageInterface;
 
-$permit = $permitService->getPermitByCode($code); // Neue Methode im Service
+$settings = require_once $appRoot . '/config/config.php';
+$settings['root_path'] = $appRoot;
+$container = new Container(new Config($settings));
+
+/** @var StorageInterface $storage */
+$storage = $container->get(StorageInterface::class);
+$code = strtoupper(trim($_GET['code'] ?? ''));
+$permit = $storage->findByHash($code);
 
 if (!$permit) {
-    die("Genehmigung nicht gefunden.");
+    die("Genehmigung mit dem Code $code nicht gefunden.");
 }
 
-// Prüfung: Ist es ein Admin?
-$isAdmin = false;
-if (!empty($token)) {
-    $expectedToken = hash('sha256', $permit->code . $settings['geheimnis']);
-    $isAdmin = hash_equals($expectedToken, $token);
-}
+// Admin-Prüfung via Token
+$token = $_GET['token'] ?? '';
+$expectedToken = hash('sha256', $permit->code . $settings['geheimnis']);
+$isAdmin = hash_equals($expectedToken, $token);
 
+// Weiche: Welches Template laden?
 if ($isAdmin) {
     include $appRoot . '/templates/pages/check_admin.phtml';
 } else {

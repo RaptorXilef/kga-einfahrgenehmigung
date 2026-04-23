@@ -1,10 +1,14 @@
-<div class="c-admin-detail">
-    <h1>Detail-Ansicht (Vorstand)</h1>
-    <table>
-        <tr><th>Name:</th><td><?= htmlspecialchars($permit->name) ?></td></tr>
+<div class="c-card c-card--admin-view">
+    <div class="c-card__header">
+        <h2>Vollständige Details (Vorstand)</h2>
+    </div>
+    <table class="c-table">
+        <tr><th>Pächter:</th><td><?= htmlspecialchars($permit->name) ?></td></tr>
         <tr><th>Parzelle:</th><td><?= htmlspecialchars($permit->parzelle) ?></td></tr>
-        <tr><th>Grund:</th><td><?= htmlspecialchars($permit->zweck) ?></td></tr>
+        <tr><th>Grund/Zweck:</th><td><?= htmlspecialchars($permit->zweck) ?></td></tr>
+        <tr><th>Fahrzeugtyp:</th><td><?= strtoupper($permit->typ) ?></td></tr>
+        <tr><th>Kennzeichen:</th><td><?= htmlspecialchars($permit->kennzeichen) ?></td></tr>
         <tr><th>E-Mail:</th><td><?= htmlspecialchars($permit->email) ?></td></tr>
-        <tr><th>Erstellt am:</th><td><?= $permit->erstellt->format('d.m.Y H:i') ?></td></tr>
+        <tr><th>Status:</th><td><?= strtoupper($permit->status) ?></td></tr>
     </table>
 </div>
