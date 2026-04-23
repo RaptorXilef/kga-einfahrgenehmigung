@@ -1,3 +1,10 @@
+
+
+## <small>0.3.3 (2026-04-23)</small>
+
+* chore(changelog): rebuild history and fix configuration immutability ([6c59f6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6c59f6f))
+* fix(changelog): rem old changelog ([79a258a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/79a258a))
+
 ## [0.3.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.1...v0.3.2) (2026-04-23)
 
 
@@ -80,6 +87,3 @@
 
 
 ## 0.0.1 (2026-04-23)
-
-
-
