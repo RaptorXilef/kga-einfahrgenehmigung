@@ -16,14 +16,25 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+// ==========================================================
+// DIE EINZIGE VARIABLE FÜR PFADE:
+// Zeige hier auf den Ordner, der 'src', 'vendor' etc. enthält.
+// ==========================================================
+$appRoot = dirname(__DIR__, 1); // Standard: Eine Ebene höher als 'public'
+
+// Ab hier ist alles dynamisch:
+require_once $appRoot . '/vendor/autoload.php';
 
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
 use App\Core\Service\PermitService;
 
 // 1. Konfiguration laden (die alte config.php gibt nun einfach ein Array zurück)
-$settings = require_once __DIR__ . '/../config.php';
+$settings = require_once $appRoot . '/config.php';
+
+// Wir injizieren den Root-Pfad in die Config, damit alle Services ihn kennen
+$settings['root_path'] = $appRoot;
+
 $container = new Container(new Config($settings));
 
 /** @var PermitService $permitService */
@@ -47,4 +58,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['method'])) {
 
 // 3. View laden (PHTML-Template für das UI)
 // Wir trennen HTML von PHP -> Separation of Concerns
-include __DIR__ . '/../templates/pages/formular.phtml';
+include $appRoot . '/templates/pages/formular.phtml';

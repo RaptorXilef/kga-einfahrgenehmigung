@@ -194,10 +194,12 @@ logs/
 
 # Temporäre Zip-Archive & OS-Reste
 *.zip
+*.7z
 *.ink
 *.url
 
 # Private Scripte & Notizen (Sicherheit geht vor)
+/.debug/*
 Combine-*.ps1
 Mein*Code*.*
 Refactored_PHP_Code_Part*

@@ -54,9 +54,12 @@ final class SmtpMailService implements MailServiceInterface
 
     private function render(string $templatePath, array $data): string
     {
-        $fullPath = "templates/emails/{$templatePath}.phtml";
+    // Wir holen den dynamischen Root-Pfad aus der Config
+        $root = $this->config->get('root_path');
+        $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
+
         if (!file_exists($fullPath)) {
-            throw new \RuntimeException("Mail-Template nicht gefunden: {$templatePath}");
+            throw new \RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
         }
 
         $content = file_get_contents($fullPath);

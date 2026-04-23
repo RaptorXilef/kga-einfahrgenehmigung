@@ -52,9 +52,15 @@ class Container
         $this->instances[Config::class] = $this->config;
 
         // Storage Engine (JSON Pfad aus Config)
-        $this->services[StorageInterface::class] = fn () => new JsonStorage(
-            $this->config->get('storage_path', 'daten.json')
-        );
+        $this->services[StorageInterface::class] = function () {
+            $root = $this->config->get('root_path');
+            $path = $this->config->get('storage_path', 'daten.json');
+
+    // Falls der Pfad nicht absolut ist, machen wir ihn absolut zum Root
+            $absolutePath = str_starts_with($path, '/') ? $path : $root . '/' . $path;
+
+            return new JsonStorage($absolutePath);
+        };
 
         // Mail Service (Nutzt den Config-Service)
         $this->services[MailServiceInterface::class] = fn () => new SmtpMailService(

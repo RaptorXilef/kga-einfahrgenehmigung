@@ -12,7 +12,14 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+// ==========================================================
+// DIE EINZIGE VARIABLE FÜR PFADE:
+// Zeige hier auf den Ordner, der 'src', 'vendor' etc. enthält.
+// ==========================================================
+$appRoot = dirname(__DIR__, 1); // Standard: Eine Ebene höher als 'public'
+
+// Ab hier ist alles dynamisch:
+require_once $appRoot . '/vendor/autoload.php';
 
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
@@ -21,7 +28,12 @@ use App\Contracts\Storage\StorageInterface;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\JsonStorage;
 
-$settings = require_once __DIR__ . '/../config.php';
+// 1. Konfiguration laden (die alte config.php gibt nun einfach ein Array zurück)
+$settings = require_once $appRoot . '/config.php';
+
+// Wir injizieren den Root-Pfad in die Config, damit alle Services ihn kennen
+$settings['root_path'] = $appRoot;
+
 $container = new Container(new Config($settings));
 $permitService = $container->get(PermitService::class);
 $storage = $container->get(StorageInterface::class); // Aktueller Standard-Speicher
@@ -51,4 +63,4 @@ if (isset($_POST['migrate'])) {
     $message = "Migration abgeschlossen. $count Datensätze übertragen.";
 }
 
-include __DIR__ . '/../templates/pages/admin_view.phtml';
+include $appRoot . '/templates/pages/admin_view.phtml';

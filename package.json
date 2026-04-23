@@ -6,6 +6,9 @@
   "author": "Felix Maywald",
   "license": "CC-BY-NC-SA-4.0",
   "scripts": {
+    "// --- PHASE X: Collect ---": "",
+    "collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
+    "collect-info": "powershell -Command \"Get-Location; Get-ChildItem scripts\"",
     "// --- PHASE 0: SETUP & DEV ---": "",
     "setup": "mkdir -p public/assets/css public/assets/js public/assets/img .build/reports",
     "clear": "rimraf public/assets/css/* public/assets/js/*",

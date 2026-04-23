@@ -74,6 +74,8 @@
       "@chk:style",
       "@chk:analyze"
     ],
+    "// --- PHASE X: Collect ---": "",
+    "collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
     "// --- PHASE 1: TESTS & MUTATION ---": "",
     "chk:test": "pest --parallel",
     "chk:test-full": "pest --parallel --display-deprecations",
