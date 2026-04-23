@@ -19,6 +19,7 @@
  *
  * @since     0.1.0
  * - feat(core): Initialer PermitService zur Workflow-Steuerung.
+ * - feat(payment): Methode completePayment zur sicheren Verifizierung hinzugefügt.
  */
 
 declare(strict_types=1);
@@ -26,6 +27,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
@@ -37,51 +39,92 @@ final class PermitService
     public function __construct(
         private readonly StorageInterface $storage,
         private readonly MailServiceInterface $mailService,
+        private readonly PaymentProviderInterface $paymentProvider,
         private readonly Config $config
-    ) {
-    }
+    ) {}
 
     /**
-     * Startet den Prozess für eine neue Genehmigung (Typ: Überweisung/Wartend).
-     *
-     * @param array $data Rohdaten aus dem Formular.
-     *
-     * @return Permit Die erstellte Entität.
+     * Workflow: Neuer Antrag (Banküberweisung)
      */
     public function createPendingPermit(array $data): Permit
     {
-        // 1. Validierung (vereinfacht)
         $this->validateInput($data);
-
-        // 2. Code generieren
-        $code = $this->generateSmartCode();
-
-        // 3. Entität erstellen
         $duration = $this->config->getPermitDuration();
-        $bis = (new DateTimeImmutable($data['datum_von']))->modify("+$duration days");
 
         $permit = new Permit(
-            code:        $code,
-            name:        $data['name'],
-            email:       $data['email'],
+            code: $this->generateSmartCode(),
+            name: $data['name'],
+            email: $data['email'],
             kennzeichen: $data['kennzeichen'],
-            parzelle:    $data['parzelle'],
-            typ:         $data['typ'] ?? 'pkw',
-            zweck:       $data['zweck'] ?? 'Privat',
-            von:         new DateTimeImmutable($data['datum_von']),
-            bis:         $bis,
-            status:      'wartend'
+            parzelle: $data['parzelle'],
+            typ: $data['typ'] ?? 'pkw',
+            zweck: $data['zweck'] ?? 'Privat',
+            von: new DateTimeImmutable($data['datum_von']),
+            bis: (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
+            status: 'wartend'
         );
 
-        // 4. Speichern
         if (!$this->storage->save($permit)) {
-            throw new RuntimeException("Fehler beim Speichern der Genehmigung.");
+            throw new RuntimeException("Speicherfehler.");
         }
 
-        // 5. Vorstand benachrichtigen (Optional via Config)
         $this->notifyBoard($permit);
-
         return $permit;
+    }
+
+    /**
+     * Workflow: Zahlung abschließen (PayPal Capture)
+     */
+    public function completePayment(string $code, string $orderId): bool
+    {
+        // 1. Sicherheit: Existiert die Genehmigung überhaupt?
+        $permit = $this->storage->findByHash($code);
+        if (!$permit) {
+            return false;
+        }
+
+        // PayPal-Verifizierung
+        if (!$this->paymentProvider->captureOrder($orderId)) {
+            return false;
+        }
+
+        return $this->updateStatus($permit, 'bezahlt');
+    }
+
+    /**
+     * Workflow: Manuelle Freischaltung (Admin)
+     */
+    public function manualActivate(string $code): bool
+    {
+        $permit = $this->storage->findByHash($code);
+        if (!$permit) {
+            return false;
+        }
+
+        return $this->updateStatus($permit, 'bezahlt');
+    }
+
+    private function updateStatus(Permit $p, string $newStatus): bool
+    {
+        $updated = new Permit(
+            $p->code,
+            $p->name,
+            $p->email,
+            $p->kennzeichen,
+            $p->parzelle,
+            $p->typ,
+            $p->zweck,
+            $p->von,
+            $p->bis,
+            $newStatus,
+            $p->erstellt
+        );
+
+        $success = $this->storage->save($updated);
+        if ($success && $newStatus === 'bezahlt') {
+            $this->sendApprovalMail($updated);
+        }
+        return $success;
     }
 
     private function validateInput(array $data): void
@@ -89,11 +132,8 @@ final class PermitService
         $required = ['name', 'email', 'kennzeichen', 'parzelle', 'datum_von'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                throw new RuntimeException("Pflichtfeld fehlt: $field");
+                throw new RuntimeException("Feld fehlt: $field");
             }
-        }
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new RuntimeException("Ungültige E-Mail-Adresse.");
         }
     }
 
@@ -109,19 +149,33 @@ final class PermitService
 
     private function notifyBoard(Permit $permit): void
     {
-        $adminToken = hash('sha256', $permit->code . $this->config->get('geheimnis'));
-        $adminLink = $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$adminToken}";
-
+        $token = hash('sha256', $permit->code . $this->config->get('geheimnis'));
         $this->mailService->sendTemplate(
             $this->config->get('vorstand_email'),
-            "Neuer Antrag: {$permit->code} ({$permit->kennzeichen})",
-            'admin_notification', // templates/emails/admin_notification.phtml
+            "Neuer Antrag: {$permit->code}",
+            'admin_notification',
             [
                 'code' => $permit->code,
                 'name' => $permit->name,
+                'adminLink' => $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$token}",
+            ]
+        );
+    }
+
+
+    private function sendApprovalMail(Permit $permit): void
+    {
+        $this->mailService->sendTemplate(
+            $permit->email,
+            "Ihre Einfahrgenehmigung {$permit->code} - {$this->config->get('vereins_name')}",
+            'permit_issued', // templates/emails/permit_issued.phtml
+            [
+                'name' => $permit->name,
+                'code' => $permit->code,
                 'kennzeichen' => $permit->kennzeichen,
-                'parzelle' => $permit->parzelle,
-                'adminLink' => $adminLink,
+                'von' => $permit->von->format('d.m.Y'),
+                'bis' => $permit->bis->format('d.m.Y'),
+                'checkUrl' => $this->config->get('base_url') . "check.php?code=" . $permit->code,
             ]
         );
     }
