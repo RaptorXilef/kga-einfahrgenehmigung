@@ -32,9 +32,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            vendor
-            node_modules
-            .cache
+            kga-core/vendor/
+            node_modules/
+            .cache/
           key: ${{ runner.os }}-conf-${{ hashFiles('**/composer.lock', '**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-conf-
@@ -49,7 +49,7 @@ jobs:
         with:
           name: all-dependencies
           path: |
-            vendor/
+            kga-core/vendor/
             node_modules/
             .cache/
           retention-days: 1
@@ -82,7 +82,7 @@ jobs:
         with: { name: all-dependencies }
       - name: Run Check
         run: |
-          chmod -R +x vendor/bin
+          chmod -R +x kga-core/vendor/bin
           # Hier nutzen wir cs2pr, um Fehler direkt in den PR zu schreiben!
           composer ${{ matrix.check }} -- --report=checkstyle | cs2pr || (exit ${PIPESTATUS[0]})
 
@@ -114,8 +114,8 @@ jobs:
         if: matrix.type == 'php'
         run: |
           mkdir -p .cache/phpunit
-          vendor/bin/phpunit --coverage-clover .cache/phpunit/clover.xml
-          vendor/bin/infection --threads=4 --logger-github --min-msi=30
+          kga-core/vendor/bin/phpunit --coverage-clover .cache/phpunit/clover.xml
+          kga-core/vendor/bin/infection --threads=4 --logger-github --min-msi=30
 
       - name: Run JS Tests
         if: matrix.type == 'js'

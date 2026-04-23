@@ -90,8 +90,8 @@
   // WICHTIG: Leer lassen oder auf null setzen, damit er die phpcs.xml.dist im Root findet!
   // Alternativ explizit: "${workspaceFolder}/phpcs.xml.dist"
   "phpsab.standard": "phpcs.xml.dist",
-  "phpsab.executablePathCS": "vendor/bin/phpcs.bat",
-  "phpsab.executablePathCBF": "vendor/bin/phpcbf.bat",
+  "phpsab.executablePathCS": "kga-core/vendor/bin/phpcs.bat",
+  "phpsab.executablePathCBF": "kga-core/vendor/bin/phpcbf.bat",
   // WICHTIG: Dynamischer Pfad statt C:\xampp...
   // Alternativ: Absoluter Pfad, da dieser bei dir nachweislich funktioniert
   //  "phpsab.executablePathCS": "${workspaceFolder}/vendor/bin/phpcs.bat", // Autoerkennung anktiviert

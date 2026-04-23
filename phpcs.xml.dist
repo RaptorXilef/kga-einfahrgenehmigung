@@ -84,6 +84,9 @@
     <config name="testVersion" value="8.3-8.5" />
     <rule ref="PHPCompatibility" />
 
+    <file>kga-core/src</file>
+    <file>kga-core/bootstrap</file>
+    <file>kga-core/config</file>
     <file>src</file>
     <file>tests</file>
     <file>public</file>

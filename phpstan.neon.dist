@@ -19,6 +19,9 @@ parameters:
 
     # Welche Ordner sollen analysiert werden?
     paths:
+        - kga-core/src
+        - kga-core/bootstrap
+        - kga-core/config
         - src
         - tests
         - public

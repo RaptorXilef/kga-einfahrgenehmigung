@@ -20,10 +20,20 @@ declare(strict_types=1);
 // DIE EINZIGE VARIABLE FÜR PFADE:
 // Zeige hier auf den Ordner, der 'src', 'vendor' etc. enthält.
 // ==========================================================
-$appRoot = dirname(__DIR__, 1); // Standard: Eine Ebene höher als 'public'
+// --- ANKER-SYSTEM ---
+// 1. Versuch: Wir sind in /public/ oder /public/api/ und suchen /kga-core/ im Root
+$appRoot = dirname(__DIR__, 1) . '/kga-core';
 
-// Ab hier ist alles dynamisch:
-require_once $appRoot . '/vendor/autoload.php';
+// 2. Versuch: Spezialfall Strato/Ionos (falls /public/ sehr tief verschachtelt ist)
+if (!file_exists($appRoot . '/vendor/autoload.php')) {
+    $appRoot = dirname(__DIR__, 2) . '/kga-core';
+}
+
+// 3. Letzter Rettungsanker: Direkte Suche (nur falls 1 & 2 fehlschlagen)
+if (!file_exists($appRoot . '/vendor/autoload.php')) {
+    $appRoot = __DIR__ . '/../kga-core';
+}
+// --------------------
 
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;

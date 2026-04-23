@@ -4,15 +4,15 @@
  */
 export default {
     content: [
-        "./public/**/*.php",
-        "./resources/js/**/*.js",
-        "./src/**/*.php",
-        "./templates/**/*.php",
+        './public/**/*.php',
+        './resources/js/**/*.js',
+        './kga-core/src/**/*.php',
+        './kga-core/templates/**/*.php',
     ],
-    css: ["./public/assets/css/main.min.css"],
+    css: ['./public/assets/css/main.min.css'],
     safelist: {
-        standard: ["active", "show", "is-visible", "is-loading", "theme-night"],
+        standard: ['active', 'show', 'is-visible', 'is-loading', 'theme-night'],
         greedy: [/js-/, /swiper-/, /lightbox-/, /summernote-/],
     },
-    output: "./public/assets/css/main.min.css",
+    output: './public/assets/css/main.min.css',
 };

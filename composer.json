@@ -96,10 +96,10 @@
       "@chk:md",
       "@chk:cpd"
     ],
-    "chk:stan": "phpstan analyse src/ public/",
-    "chk:cs": "phpcs src/",
-    "chk:md": "phpmd src/ text phpmd.xml",
-    "chk:cpd": "php tools/phpcpd.phar src/ --min-lines=5 --min-tokens=70",
+    "chk:stan": "phpstan analyse kga-core/src/ public/",
+    "chk:cs": "phpcs kga-core/src/",
+    "chk:md": "phpmd kga-core/src/ text phpmd.xml",
+    "chk:cpd": "php tools/phpcpd.phar kga-core/src/ --min-lines=5 --min-tokens=70",
     "// --- PHASE 5: MAINTENANCE & UTILS ---": "",
     "util:up": "@php scripts/Setup.php up",
     "util:dump": "composer dump-autoload -o",
@@ -112,8 +112,8 @@
     "build:clear": "@php scripts/Setup.php clear",
     "// --- PHASE 7: CI/CD (CONTINUOUS INTEGRATION) ---": "",
     "ci:qa": [
-      "phpstan analyse src/ public/ --error-format=checkstyle > .build/reports/phpstan.xml || true",
-      "phpcs --report=checkstyle --report-file=.build/reports/phpcs.xml src/ || true",
+      "phpstan analyse kga-core/src/ public/ --error-format=checkstyle > .build/reports/phpstan.xml || true",
+      "phpcs --report=checkstyle --report-file=.build/reports/phpcs.xml kga-core/src/ || true",
       "pest --ci --log-junit .build/reports/junit.xml"
     ]
   }

@@ -7,6 +7,9 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $finder = (new PhpCsFixer\Finder())
     ->in([
+        __DIR__ . '/kga-core/src',
+        __DIR__ . '/kga-core/bootstrap',
+        __DIR__ . '/kga-core/config',
         __DIR__ . '/src',
         __DIR__ . '/tests',
         __DIR__ . '/public',
