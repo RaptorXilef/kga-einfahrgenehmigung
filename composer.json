@@ -29,7 +29,8 @@
     "squizlabs/php_codesniffer": "^3.13",
     "phpcsstandards/phpcsutils": "^1.2",
     "slevomat/coding-standard": "^8.22",
-    "phpmd/phpmd": "^2.15"
+    "phpmd/phpmd": "^2.15",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.2"
   },
   "autoload": {
     "psr-4": {
