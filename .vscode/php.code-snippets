@@ -4,7 +4,7 @@
         "body": [
             "<?php",
             "",
-            "// SPDX-License-Identifier: PolyForm Noncommercial License 1.0.0",
+            "// SPDX-License-Identifier: CC BY-NC-SA 4.0",
             "",
             "/**",
             " * ${1:Kurzbeschreibung der Klasse/Funktionalität.}",
