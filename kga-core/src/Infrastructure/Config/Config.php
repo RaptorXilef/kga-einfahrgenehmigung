@@ -48,4 +48,10 @@ final class Config
     // Standardmäßig 5 Tage, falls nichts in der config.php steht
         return (int) $this->get('permit_duration', 5);
     }
+
+    public function getPriceForType(string $type): float
+    {
+        $prices = $this->get('prices', ['pkw' => 3.00, 'lkw' => 3.00]);
+        return (float) ($prices[$type] ?? $prices['pkw']);
+    }
 }

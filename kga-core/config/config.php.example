@@ -19,7 +19,10 @@ return [
     'vereins_name'      => 'KGA Märchenland e.V.',
     'base_url'          => 'https://deine-domain.de/', // Mit abschließendem Slash!
     'geheimnis'         => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // Für Admin-Token
-    'preis'             => 3.00,
+    'prices' => [
+        'pkw' => 3.00,
+        'lkw' => 10.00, // Beispielhafter LKW-Preis
+    ],
     'permit_duration'   => 5, // Dauer in Tagen
     'test_mode'         => true,
     'vorstand_email'    => 'vorstand@deine-kga.de',

@@ -1,0 +1,5 @@
+<div class="c-check-display <?= $permit->isValid() ? 'is-valid' : 'is-invalid' ?>">
+    <h2>Status: <?= $permit->status === 'bezahlt' ? 'GÜLTIG' : 'WARTEND/UNGÜLTIG' ?></h2>
+    <p>Kennzeichen: <?= htmlspecialchars($permit->kennzeichen) ?></p>
+    <p>Gültig bis: <?= $permit->bis->format('d.m.Y') ?></p>
+</div>

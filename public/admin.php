@@ -27,9 +27,6 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
 }
 // --------------------
 
-// Ab hier ist alles dynamisch:
-require_once $appRoot . '/vendor/autoload.php';
-
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
 use App\Core\Service\PermitService;

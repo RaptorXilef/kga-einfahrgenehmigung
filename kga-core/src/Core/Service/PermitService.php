@@ -51,19 +51,29 @@ final class PermitService
     public function createPendingPermit(array $data): Permit
     {
         $this->validateInput($data);
+
+        $type = $data['typ'] ?? 'pkw';
+        $kennzeichen = $data['kennzeichen'];
+
+    // Lieferanten-Logik: Prefix hinzufügen, falls kein PKW
+        if ($type === 'lkw') {
+            $firma = !empty($data['firma']) ? $data['firma'] : 'Unbekannt';
+            $kennzeichen = "LIEFERANT: " . $firma . " (" . $kennzeichen . ")";
+        }
+
         $duration = $this->config->getPermitDuration();
 
         $permit = new Permit(
-            code: $this->generateSmartCode(),
-            name: $data['name'],
-            email: $data['email'],
-            kennzeichen: $data['kennzeichen'],
-            parzelle: $data['parzelle'],
-            typ: $data['typ'] ?? 'pkw',
-            zweck: $data['zweck'] ?? 'Privat',
-            von: new DateTimeImmutable($data['datum_von']),
-            bis: (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
-            status: 'wartend'
+            code:        $this->generateSmartCode(),
+            name:        $data['name'],
+            email:       $data['email'],
+            kennzeichen: $kennzeichen,
+            parzelle:    $data['parzelle'],
+            typ:         $type,
+            zweck:       $data['zweck'] ?? 'Privat',
+            von:         new DateTimeImmutable($data['datum_von']),
+            bis:         (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
+            status:      'wartend'
         );
 
         if (!$this->storage->save($permit)) {
@@ -75,23 +85,22 @@ final class PermitService
     }
 
     /**
-     * Workflow: Zahlung abschließen (PayPal Capture)
+     * PayPal Capture mit dynamischer Preisprüfung
      */
     public function completePayment(string $code, string $orderId): bool
     {
         // 1. Sicherheit: Existiert die Genehmigung überhaupt?
         $permit = $this->storage->findByHash($code);
-        if (!$permit) {
-            return false;
+    if (!$permit || $permit->status === 'bezahlt') {
+        return $permit !== null;
         }
 
-        // ROBUSTHEIT: Wenn bereits bezahlt, Prozess erfolgreich beenden (Idempotenz)
-        if ($permit->status === 'bezahlt') {
-            return true;
-        }
+    // WICHTIG: Den korrekten Preis für den Typ an den Provider übergeben
+    $expectedPrice = $this->config->getPriceForType($permit->typ);
 
-        // PayPal-Verifizierung
-        if (!$this->paymentProvider->captureOrder($orderId)) {
+    // Hier muss das PayPalService Interface ggf. angepasst werden,
+    // um den Preis zu validieren (siehe unten).
+    if (!$this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
             return false;
         }
 

@@ -1,0 +1,10 @@
+<div class="c-admin-detail">
+    <h1>Detail-Ansicht (Vorstand)</h1>
+    <table>
+        <tr><th>Name:</th><td><?= htmlspecialchars($permit->name) ?></td></tr>
+        <tr><th>Parzelle:</th><td><?= htmlspecialchars($permit->parzelle) ?></td></tr>
+        <tr><th>Grund:</th><td><?= htmlspecialchars($permit->zweck) ?></td></tr>
+        <tr><th>E-Mail:</th><td><?= htmlspecialchars($permit->email) ?></td></tr>
+        <tr><th>Erstellt am:</th><td><?= $permit->erstellt->format('d.m.Y H:i') ?></td></tr>
+    </table>
+</div>
