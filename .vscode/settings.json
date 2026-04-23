@@ -89,16 +89,18 @@
   "phpsab.snifferEnable": true,
   // WICHTIG: Leer lassen oder auf null setzen, damit er die phpcs.xml.dist im Root findet!
   // Alternativ explizit: "${workspaceFolder}/phpcs.xml.dist"
-  "phpsab.standard": "",
+  "phpsab.standard": "phpcs.xml.dist",
+  "phpsab.executablePathCS": "vendor/bin/phpcs.bat",
+  "phpsab.executablePathCBF": "vendor/bin/phpcbf.bat",
   // WICHTIG: Dynamischer Pfad statt C:\xampp...
   // Alternativ: Absoluter Pfad, da dieser bei dir nachweislich funktioniert
   //  "phpsab.executablePathCS": "${workspaceFolder}/vendor/bin/phpcs.bat", // Autoerkennung anktiviert
   // FORMATTING (Fehler BEHEBEN mit phpcbf)
-  "phpsab.fixerEnable": false, // Deaktiviert, um Konflikte mit PHPCBF zu vermeiden
+  "phpsab.fixerEnable": true, // Deaktiviert, um Konflikte mit PHPCBF zu vermeiden
   "phpsab.fixer": "phpcbf",
-  "phpsab.fixerStandard": "", // Nutzt ebenfalls die phpcs.xml.dist
+  "phpsab.fixerStandard": "phpcs.xml.dist", // Nutzt ebenfalls die phpcs.xml.dist
   // PHP-spezifische Ergänzung für den Sniffer
-  "phpsab.autoRuleset": true,
+  "phpsab.autoRuleset": false,
   // WICHTIG: Dynamischer Pfad statt C:\xampp...
   //  "phpsab.executablePathCBF": "${workspaceFolder}/vendor/bin/phpcbf.bat", // Autoerkennung anktiviert
   "phpsab.debug": false,

@@ -30,7 +30,9 @@
     "phpcsstandards/phpcsutils": "^1.2",
     "slevomat/coding-standard": "^8.22",
     "phpmd/phpmd": "^2.15",
-    "dealerdirect/phpcodesniffer-composer-installer": "^1.2"
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
+    "phpcsstandards/phpcsextra": "^1.2",
+    "phpcompatibility/php-compatibility": "^9.3"
   },
   "autoload": {
     "psr-4": {
