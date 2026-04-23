@@ -179,20 +179,27 @@ final class PermitService
         );
     }
 
-
     private function sendApprovalMail(Permit $permit): void
     {
+        $checkUrl = $this->config->get('base_url') . "check.php?code=" . $permit->code;
+
         $this->mailService->sendTemplate(
             $permit->email,
             "Ihre Einfahrgenehmigung {$permit->code} - {$this->config->get('vereins_name')}",
-            'permit_issued', // templates/emails/permit_issued.phtml
+            'permit_issued',
             [
-                'name' => $permit->name,
-                'code' => $permit->code,
-                'kennzeichen' => $permit->kennzeichen,
-                'von' => $permit->von->format('d.m.Y'),
-                'bis' => $permit->bis->format('d.m.Y'),
-                'checkUrl' => $this->config->get('base_url') . "check.php?code=" . $permit->code,
+                'name'         => $permit->name,
+                'code'         => $permit->code,
+                'kennzeichen'  => $permit->kennzeichen,
+                'parzelle'     => $permit->parzelle,
+                'zweck'        => $permit->zweck,
+                'von'          => $permit->von->format('d.m.Y'),
+                'bis'          => $permit->bis->format('d.m.Y'),
+                'jahresFarbe'  => $this->config->get('jahresFarbe', '#2ecc71'),
+                'vereinsName'  => $this->config->get('vereins_name'),
+                'qrCodeUrl'    => "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="
+                    . urlencode($checkUrl),
+                'checkUrl'     => $checkUrl,
             ]
         );
     }
