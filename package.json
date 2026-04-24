@@ -54,6 +54,8 @@
     "rel:patch": "release-it --increment=patch --ci",
     "ci:rel:test": "release-it --dry-run --ci",
     "rel:init": "release-it --first-release",
+    "rel:repairchangelog": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0",
+    "rel:repairchangelog-cli": "npx conventional-changelog-cli --config changelog-config.cjs -r 0",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -69,6 +71,7 @@
     "autoprefixer": "^10.4.27",
     "chokidar-cli": "^3.0.0",
     "conventional-changelog-angular": "^8.3.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
     "conventional-commits-filter": "^5.0.0",
     "conventional-commits-parser": "^6.3.0",
     "cpx2": "^8.0.0",

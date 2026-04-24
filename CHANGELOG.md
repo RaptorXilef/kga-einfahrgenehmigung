@@ -1,35 +1,28 @@
+## [0.3.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.2...v0.3.3) (2026-04-23)
 
+### 🐛 Bug Fixes
 
-## <small>0.3.3 (2026-04-23)</small>
+* **changelog:** rem old changelog ([79a258a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/79a258ac2a5a18c377860459718c6fc2ff2b8745))
 
-* chore(changelog): rebuild history and fix configuration immutability ([6c59f6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6c59f6f))
-* fix(changelog): rem old changelog ([79a258a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/79a258a))
+### 🧹 Chore / Maintenance
 
+* **changelog:** rebuild history and fix configuration immutability ([6c59f6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6c59f6f07151023cef519a028d9baa0e6c60ecf7))
+* **release:** v0.3.3 ([ee2643f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ee2643fbe808b7d4c0e0845ae4ddf7b2b4a4705e))
 ## [0.3.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.1...v0.3.2) (2026-04-23)
-
 
 ### 🐛 Bug Fixes
 
 * **changelog:** rem old changelog ([90a1f06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/90a1f063022532a4e1b721b5c44aaeb2c9ad2324))
 
-
 ### 🧹 Chore / Maintenance
 
 * **release:** v0.3.2 ([2e65282](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2e652821cb7f4616d03ba42d9badf74e1917479c))
-
-
-
 ## [0.3.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.0...v0.3.1) (2026-04-23)
-
 
 ### 🧹 Chore / Maintenance
 
 * **release:** v0.3.1 ([a86a970](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a86a9706da7dcbd98cd9bca3a029a37a2ef4b2e9))
-
-
-
-# [0.3.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.2.0...v0.3.0) (2026-04-23)
-
+## [0.3.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.2.0...v0.3.0) (2026-04-23)
 
 ### 🚀 Features
 
@@ -38,11 +31,7 @@
 * **security:** implement server-side price matching and dual check views ([8295df9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8295df9ddedf360bd6298924a1405cd43d5dcc27))
 * **security:** implement strict server-side amount validation for paypal ([0429ed5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0429ed5a6dca00270f43f50781c65f775d6eb423))
 * **view:** finalize dual-check templates in bem style ([c84ff08](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c84ff0863c86fed7837b5b228763e0539cfd55b5))
-
-
-
-# [0.2.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.1.0...v0.2.0) (2026-04-23)
-
+## [0.2.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.1.0...v0.2.0) (2026-04-23)
 
 ### 🚀 Features
 
@@ -57,33 +46,23 @@
 * **payment:** implement secure server-side paypal capture ([46fa51c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/46fa51c61705bd15a8f6660aed2d2232dcc763b4))
 * **storage:** implement mysqlstorage and admin migration logic ([1bda1eb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1bda1eb88bd728323407b0fa9eb14083b1eda804))
 
-
 ### ⚙️ Refactoring
 
 * **app:** transition to container-based entry point ([8d3d437](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8d3d43761c92f79cc7b77ce59a255d917e39bdff))
 * **arch:** implement path anchoring for deployment flexibility ([fbe2777](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fbe2777ee2dda9eabdc34d556e7e8052ec336210))
 * **infra:** establish independent core composer configuration ([3a160ab](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a160abd26cfba11b07d3828954d70f58babd46f))
-
-
-
-# [0.1.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.0.1...v0.1.0) (2026-04-23)
-
+## [0.1.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.0.1...v0.1.0) (2026-04-23)
 
 ### 🚀 Features
 
 * **core:** implement permit entity and json storage provider ([ae9e23a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ae9e23a7a88fec23d08187e118a69a38766681a8))
 * **upload:** upload project-base ([6af8f8e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6af8f8e893e9f5632670b30b7eb229c71c49685d))
 
-
 ### 🐛 Bug Fixes
 
 * resolve phpcs standards registration and enable fixer ([a960442](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a960442e37f18ff070cd31e5abc5ddc582441e29))
 
-
 ### 🧹 Chore / Maintenance
 
 * automate phpcs standards path registration ([8e8c5fa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8e8c5fa2d63b0eda66203cfa8c5545826325e65a))
-
-
-
 ## 0.0.1 (2026-04-23)
