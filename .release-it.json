@@ -6,10 +6,10 @@
     "commit": true,
     "tag": true,
     "push": true,
-    "changelog": "npx conventional-changelog-cli --config changelog-config.cjs -r 1 -p conventionalcommits"
+    "changelog": "npx conventional-changelog-cli --config changelog-config.cjs -r 1"
   },
   "hooks": {
-    "before:release": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0 -p conventionalcommits"
+    "before:release": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0"
   },
   "npm": {
     "publish": false
