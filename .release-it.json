@@ -2,9 +2,27 @@
   "plugins": {
     "@release-it/conventional-changelog": {
       "infile": "CHANGELOG.md",
-      "configuration": "changelog-config.cjs",
       "ignoreRecommendedBump": true,
-      "strict": false
+      "strict": false,
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "🚀 Features" },
+          { "type": "fix", "section": "🐛 Bug Fixes" },
+          { "type": "perf", "section": "⚡ Performance" },
+          { "type": "refactor", "section": "⚙️ Refactoring" },
+          { "type": "build", "section": "🏗️ Build System" },
+          { "type": "ci", "section": "👷 CI/CD Configuration" },
+          { "type": "style", "section": "💎 Styling" },
+          { "type": "test", "section": "🧪 Tests" },
+          { "type": "docs", "section": "📚 Dokumentation" },
+          { "type": "chore", "section": "🧹 Chore / Maintenance" }
+        ]
+      },
+      "parserOpts": {
+        "headerPattern": "^(\\w*)(?:\\((.*)\\))?: (.*)$",
+        "headerCorrespondence": ["type", "scope", "subject"]
+      }
     }
   },
   "git": {
