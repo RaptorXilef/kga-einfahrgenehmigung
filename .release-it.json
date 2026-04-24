@@ -1,6 +1,7 @@
 {
   "plugins": {
     "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
       "preset": {
         "name": "conventionalcommits",
         "types": [
@@ -16,18 +17,16 @@
           { "type": "chore", "section": "🧹 Chore / Maintenance" }
         ]
       },
-      "infile": "CHANGELOG.md",
-      "ignoreRecommendedBump": true,
-      "strict": true
+      "configuration": "changelog-config.cjs"
     }
   },
   "git": {
     "commitMessage": "chore(release): v${version}",
     "tagName": "v${version}",
-    "requireCleanWorkingDir": true,
     "commit": true,
     "tag": true,
-    "push": true
+    "push": true,
+    "changelog": false
   },
   "github": { "release": false },
   "npm": { "publish": false }
