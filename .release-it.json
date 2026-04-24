@@ -3,18 +3,15 @@
   "git": {
     "commitMessage": "chore(release): v${version}",
     "tagName": "v${version}",
+    "requireCleanWorkingDir": true,
     "commit": true,
     "tag": true,
     "push": true,
-    "changelog": "npx conventional-changelog-cli --config changelog-config.cjs -r 1"
+    "changelog": "echo 'Changelog wird im Hintergrund generiert...'"
   },
   "hooks": {
     "before:release": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0"
   },
-  "npm": {
-    "publish": false
-  },
-  "github": {
-    "release": false
-  }
+  "npm": { "publish": false },
+  "github": { "release": false }
 }
