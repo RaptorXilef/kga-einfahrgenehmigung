@@ -2,8 +2,6 @@
   "plugins": {
     "@release-it/conventional-changelog": {
       "infile": "CHANGELOG.md",
-      "ignoreRecommendedBump": true,
-      "strict": false,
       "preset": {
         "name": "conventionalcommits",
         "types": [
@@ -18,20 +16,14 @@
           { "type": "docs", "section": "📚 Dokumentation" },
           { "type": "chore", "section": "🧹 Chore / Maintenance" }
         ]
-      },
-      "parserOpts": {
-        "headerPattern": "^(\\w*)(?:\\((.*)\\))?: (.*)$",
-        "headerCorrespondence": ["type", "scope", "subject"]
       }
     }
   },
   "git": {
     "commitMessage": "chore(release): v${version}",
     "tagName": "v${version}",
-    "commit": true,
-    "tag": true,
     "push": true,
-    "changelog": false
+    "changelog": "npx conventional-changelog -p conventionalcommits -r 1"
   },
   "github": { "release": false },
   "npm": { "publish": false }
