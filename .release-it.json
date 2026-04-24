@@ -10,5 +10,11 @@
   },
   "hooks": {
     "before:release": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0 -p conventionalcommits"
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": false
   }
 }
