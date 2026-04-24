@@ -1,9 +1,12 @@
+## [0.3.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.3...v0.3.4) (2026-04-24)
 
+### 🐛 Bug Fixes
 
-## <small>0.3.4 (2026-04-24)</small>
+* **changelog:** migrate to conventionalcommits preset and fix async config ([625ffe6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/625ffe6e25a4948806de75a9a0ee1f47a59b8505))
 
-* fix(changelog): migrate to conventionalcommits preset and fix async config ([625ffe6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/625ffe6))
+### 🧹 Chore / Maintenance
 
+* **release:** v0.3.4 ([4058d71](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4058d716bf8ccf14d3ea3dafa09020e166cad137))
 ## [0.3.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.2...v0.3.3) (2026-04-23)
 
 ### 🐛 Bug Fixes
