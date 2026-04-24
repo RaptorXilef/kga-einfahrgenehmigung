@@ -1,3 +1,8 @@
+## [0.3.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.5...v0.3.6) (2026-04-24)
+
+### 🧹 Chore / Maintenance
+
+* **release:** implement hook-based changelog generation and staging ([7e1479f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e1479f648967c4e84e808b0068f5dce61167acc))
 ## [0.3.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.4...v0.3.5) (2026-04-24)
 
 ### 🚀 Features
@@ -23,6 +28,10 @@
 * reset release-it ([ce72bca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ce72bca8314b333779d6724135678fe404105685))
 * test with script ([2923338](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2923338b32b63eb7a0726a709e49d0e4954dd637))
 * will this work? ([635ddb5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/635ddb50d05cb16904dacc23ab1003067c691a95))
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.3.5 ([aa8757e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aa8757e042b52ab93dc590b2cb9f9b771ab3e640))
 ## [0.3.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.3...v0.3.4) (2026-04-24)
 
 ### 🐛 Bug Fixes
