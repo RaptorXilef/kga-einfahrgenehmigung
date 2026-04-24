@@ -1,7 +1,6 @@
-/**
- * @file changelog-config.cjs
- * @description Konfiguration für das Mapping von Commits ins Changelog.
- */
+// changelog-config.js
+'use strict';
+
 module.exports = {
     parserOpts: {
         headerPattern: /^(\w*)(?:\((.*)\))?: (.*)$/,
@@ -21,10 +20,14 @@ module.exports = {
                 '🧪 Tests',
                 '📚 Dokumentation',
                 '🧹 Chore / Maintenance',
+                '⚡ Performance',
             ];
             return order.indexOf(a.title) - order.indexOf(b.title);
         },
-        transform: (commit) => {
+        commitsSort: ['scope', 'subject'],
+        transform: (commit, context) => {
+            let newCommit = { ...commit };
+
             const typeMap = {
                 feat: '🚀 Features',
                 fix: '🐛 Bug Fixes',
@@ -36,19 +39,32 @@ module.exports = {
                 test: '🧪 Tests',
                 docs: '📚 Dokumentation',
                 chore: '🧹 Chore / Maintenance',
+                perf: '⚡ Performance',
             };
 
-            if (!commit.type || !typeMap[commit.type.toLowerCase()]) {
+            if (!newCommit.type) return;
+
+            const typeKey = newCommit.type.toLowerCase();
+
+            if (typeMap[typeKey]) {
+                newCommit.type = typeMap[typeKey];
+            } else {
+                // Verhindert, dass unbekannte Typen das Changelog überladen.
+                // Prevents unknown types from cluttering the changelog.
                 return;
             }
 
-            commit.type = typeMap[commit.type.toLowerCase()];
-
-            if (typeof commit.hash === 'string') {
-                commit.shortHash = commit.hash.substring(0, 7);
+            // Hash kürzen für die Anzeige
+            if (typeof newCommit.hash === 'string') {
+                newCommit.shortHash = newCommit.hash.substring(0, 7);
             }
 
-            return commit;
+            // Scope-Formatierung (falls vorhanden)
+            if (newCommit.scope === '*') {
+                newCommit.scope = '';
+            }
+
+            return newCommit;
         },
     },
 };
