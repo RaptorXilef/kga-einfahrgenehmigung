@@ -1,8 +1,14 @@
+## [0.4.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.6...v0.4.0) (2026-04-24)
+
+### 🚀 Features
+
+* **workflow:** implement conditional bank transfer and v0.3.0 security enhancements ([4ee9ec1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4ee9ec15e54615fcaeba4d8818d2a15152d52c43))
 ## [0.3.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.5...v0.3.6) (2026-04-24)
 
 ### 🧹 Chore / Maintenance
 
 * **release:** implement hook-based changelog generation and staging ([7e1479f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e1479f648967c4e84e808b0068f5dce61167acc))
+* **release:** v0.3.6 ([b98ed1e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b98ed1e007786364d8faf2d85d0857fc8636a3be))
 ## [0.3.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.4...v0.3.5) (2026-04-24)
 
 ### 🚀 Features
