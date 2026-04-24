@@ -7,10 +7,11 @@
     "commit": true,
     "tag": true,
     "push": true,
-    "changelog": "echo 'Changelog wird im Hintergrund generiert...'"
+    "changelog": "echo 'Changelog wird generiert...'",
+    "addFiles": ["CHANGELOG.md", "package.json", "package-lock.json"]
   },
   "hooks": {
-    "before:release": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0"
+    "before:release": "npx conventional-changelog-cli --config changelog-config.cjs -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md"
   },
   "npm": { "publish": false },
   "github": { "release": false }

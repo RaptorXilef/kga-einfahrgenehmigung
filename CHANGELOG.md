@@ -1,3 +1,28 @@
+## [0.3.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.4...v0.3.5) (2026-04-24)
+
+### 🚀 Features
+
+* **test:** check if changelog formatting works ([ccd8765](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ccd8765b2a47fce92630945d46312925e4df22ff))
+* **test:** check if changelog formatting works 2 ([2501e81](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2501e8186d91dd13dbb1c741a3496c83884d7497))
+* **test:** check if changelog formatting works 3 ([459d985](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/459d98545b692066e44fb349bb0d5e4ce7c31133))
+
+### 🐛 Bug Fixes
+
+* **changelog:** implement hybrid sync/async config and inline release-it types ([933ad05](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/933ad05225d86aed1752361c0235fe059eba2402))
+* package-lock ([b823749](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b8237491d7148f5a656f85b21725b7d7bb66b4a6))
+* **release:** disable internal git-log and force conventional-changelog plugin ([655d4dd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/655d4dd31f54225611ed1fe6d7b7c24d4ddc8227))
+* **release:** inline changelog configuration ([5b791d8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5b791d8290f6d598bf5140ffb73fba37e1cb6004))
+
+### 🧪 Tests
+
+* ahhhhh ([458bca8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/458bca834d7159baa9a63b1e853323e4e5567165))
+* i hate it ([93b2f08](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/93b2f08aa1a4c23cf77647c5468ca284cd13250c))
+* ich will nicht mehr ([68f118a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/68f118a25d2bc396a2db5bd4b86bb35aabd41000))
+* other releaseit config ([4ece35e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4ece35e481c33e925557a679e67f7c681b3dfba3))
+* please work ([d4756d5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d4756d59551f8b2658904bb18582d8685d719960))
+* reset release-it ([ce72bca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ce72bca8314b333779d6724135678fe404105685))
+* test with script ([2923338](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2923338b32b63eb7a0726a709e49d0e4954dd637))
+* will this work? ([635ddb5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/635ddb50d05cb16904dacc23ab1003067c691a95))
 ## [0.3.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.3...v0.3.4) (2026-04-24)
 
 ### 🐛 Bug Fixes
