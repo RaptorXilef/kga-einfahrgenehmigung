@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Service zur Verwaltung des Genehmigungsprozesses.
+ * Service zur Verwaltung des Genehmigungsprozesses (v0.3.0).
  *
  * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
- * Inklusive Schutz gegen doppelte Verarbeitungen (Mail-Kaskaden).
+ * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
+ * mit konfigurierbaren Sicherheits-Features und dynamischem Pricing.
  *
  * @file      src/Core/Service/PermitService.php
  *
@@ -21,6 +22,7 @@
  * - feat(core): Initialer PermitService zur Workflow-Steuerung.
  * - feat(payment): Methode completePayment zur sicheren Verifizierung hinzugefügt.
  * - fix(logic): Status-Check hinzugefügt, um doppelte Mails zu verhindern.
+ * @since     0.3.6
  */
 
 declare(strict_types=1);
@@ -32,6 +34,7 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
+use DateTimeImmutable;
 use RuntimeException;
 
 final class PermitService
@@ -45,16 +48,24 @@ final class PermitService
     }
 
     /**
-     * Workflow: Neuer Antrag (Banküberweisung)
+     * Workflow: Neuer Antrag (Wartend / Banküberweisung)
+     *
+     * Erstellt eine Genehmigung im Status 'wartend' und versendet die
+     * farblich markierte (vorläufige) Bestätigung mit Bankdaten.
      */
     public function createPendingPermit(array $data): Permit
     {
+        // 1. Sicherheitsschalter: Überweisung erlaubt?
+        if (!$this->config->get('bank_transfer_allowed', true)) {
+            throw new RuntimeException("Zahlung per Überweisung ist aktuell nicht verfügbar.");
+        }
+
         $this->validateInput($data);
 
         $type = $data['typ'] ?? 'pkw';
         $kennzeichen = (string) $data['kennzeichen'];
 
-    // LKW / Lieferanten-Logik (Auftragserfüllung)
+        // LKW / Lieferanten-Logik
         if ($type === 'lkw') {
             $firma = !empty($data['firma']) ? (string)$data['firma'] : 'Unbekannt';
             $kennzeichen = "LIEFERANT: " . $firma . " (" . $kennzeichen . ")";
@@ -70,21 +81,27 @@ final class PermitService
             parzelle:    (string) $data['parzelle'],
             typ:         $type,
             zweck:       (string) ($data['zweck'] ?? 'Privat'),
-            von:         new \DateTimeImmutable($data['datum_von']),
-            bis:         (new \DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
+            von:         new DateTimeImmutable($data['datum_von']),
+            bis:         (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
             status:      'wartend'
         );
 
         if (!$this->storage->save($permit)) {
-            throw new \RuntimeException("Kritischer Speicherfehler in der Persistenz-Schicht.");
+            throw new RuntimeException("Kritischer Speicherfehler in der Persistenz-Schicht.");
         }
 
+        // Benachrichtigungen
         $this->notifyBoard($permit);
+        $this->sendPendingMail($permit);
+
         return $permit;
     }
 
     /**
-     * PayPal Capture mit dynamischer Preisprüfung
+     * Workflow: Zahlung abschließen (PayPal Capture)
+     *
+     * Verifiziert den Betrag serverseitig gegen den konfigurierten Preis
+     * des jeweiligen Fahrzeugtyps.
      */
     public function completePayment(string $code, string $orderId): bool
     {
@@ -97,7 +114,7 @@ final class PermitService
     // SICHERHEIT: Den korrekten Preis für diesen Fahrzeugtyp ermitteln
         $expectedPrice = $this->config->getPriceForType($permit->typ);
 
-    // Preis-Matching beim Capture (Verhindert Erschleichen von LKW-Einfahrten zum PKW-Preis)
+        // Preis-Matching beim Capture (Verhindert Preis-Manipulation)
         if (!$this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
             return false;
         }
@@ -106,7 +123,7 @@ final class PermitService
     }
 
     /**
-     * Workflow: Manuelle Freischaltung (Admin)
+     * Workflow: Manuelle Freischaltung (Admin/Vorstand)
      */
     public function manualActivate(string $code): bool
     {
@@ -118,6 +135,10 @@ final class PermitService
         return $this->updateStatus($permit, 'bezahlt');
     }
 
+    /**
+     * Interner Status-Updater. Versendet nur bei erfolgreichem
+     * Wechsel auf 'bezahlt' die finale Genehmigungs-E-Mail.
+     */
     private function updateStatus(Permit $p, string $newStatus): bool
     {
         $updated = new Permit(
@@ -149,7 +170,7 @@ final class PermitService
         $required = ['name', 'email', 'kennzeichen', 'parzelle', 'datum_von'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
-                throw new RuntimeException("Feld fehlt: $field");
+                throw new RuntimeException("Pflichtfeld fehlt: $field");
             }
         }
     }
@@ -164,21 +185,56 @@ final class PermitService
         return $code;
     }
 
+    /**
+     * Versendet Benachrichtigung an den Vorstand inkl. Aktivierungslink.
+     */
     private function notifyBoard(Permit $permit): void
     {
         $token = hash('sha256', $permit->code . $this->config->get('geheimnis'));
         $this->mailService->sendTemplate(
             $this->config->get('vorstand_email'),
-            "Neuer Antrag: {$permit->code}",
+            "Neuer Antrag: {$permit->code} ({$permit->kennzeichen})",
             'admin_notification',
             [
-                'code' => $permit->code,
-                'name' => $permit->name,
+                'code'      => $permit->code,
+                'name'      => $permit->name,
                 'adminLink' => $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$token}",
             ]
         );
     }
 
+    /**
+     * Versendet die vorläufige Genehmigung (Rot/Gelb Design) bei Überweisung.
+     */
+    private function sendPendingMail(Permit $permit): void
+    {
+        $checkUrl = $this->config->get('base_url') . "check.php?code=" . $permit->code;
+        $price = $this->config->getPriceForType($permit->typ);
+
+        $this->mailService->sendTemplate(
+            $permit->email,
+            "VORLÄUFIGE Genehmigung {$permit->code} - Bitte noch bezahlen",
+            'pending_permit',
+            [
+                'name'             => $permit->name,
+                'code'             => $permit->code,
+                'kennzeichen'      => $permit->kennzeichen,
+                'parzelle'         => $permit->parzelle,
+                'von'              => $permit->von->format('d.m.Y'),
+                'bis'              => $permit->bis->format('d.m.Y'),
+                'betrag'           => number_format($price, 2, ',', '.') . ' €',
+                'verwendungszweck' => "Einfahrt {$permit->code}, {$permit->kennzeichen}",
+                'vorlaeufigFarbe'  => $this->config->get('vorlaeufigFarbe', '#f8d7da'),
+                'iban'             => $this->config->get('iban', 'DE...'),
+                'kontoinhaber'     => $this->config->get('kontoinhaber', '...'),
+                'qrCodeUrl'        => "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode($checkUrl),
+            ]
+        );
+    }
+
+    /**
+     * Versendet die finale, gültige Genehmigung (Jahresfarbe/Grün Design).
+     */
     private function sendApprovalMail(Permit $permit): void
     {
         $checkUrl = $this->config->get('base_url') . "check.php?code=" . $permit->code;

@@ -43,4 +43,8 @@ return [
     // PayPal API (Sandbox für Test, Live für Produktion)
     'paypal_client_id'  => 'DEINE_CLIENT_ID',
     'paypal_secret'     => 'DEIN_SECRET',
+
+    'bank_transfer_allowed' => true, // Hier kannst du Überweisung global de- / aktivieren
+    'jahresFarbe'           => '#2ecc71',
+    'vorlaeufigFarbe'       => '#f8d7da',
 ];
