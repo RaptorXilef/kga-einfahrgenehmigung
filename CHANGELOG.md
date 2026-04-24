@@ -1,3 +1,9 @@
+
+
+## <small>0.3.4 (2026-04-24)</small>
+
+* fix(changelog): migrate to conventionalcommits preset and fix async config ([625ffe6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/625ffe6))
+
 ## [0.3.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.2...v0.3.3) (2026-04-23)
 
 ### 🐛 Bug Fixes
