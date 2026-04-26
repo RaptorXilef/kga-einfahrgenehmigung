@@ -128,13 +128,18 @@ final readonly class PermitService
         $dueDays = $this->config->get('payment_due_days', 14);
         $dueDate = (new DateTimeImmutable())->modify("+{$dueDays} days")->format('d.m.Y');
 
-        $this->mailService->sendTemplate($p->email, "Zahlungsaufforderung für Genehmigung {$p->code}", 'payment_request', [
-            'name'             => $p->name,
-            'betrag'           => \number_format($p->preisSnapshot, 2, ',', '.') . ' €',
-            'dueDate'          => $dueDate,
-            'iban'             => $this->config->get('iban'),
-            'verwendungszweck' => "Einfahrt {$p->code}, Parzelle {$p->parzelle}",
-        ]);
+        $this->mailService->sendTemplate(
+            $p->email,
+            "Zahlungsaufforderung für Genehmigung {$p->code}",
+            'payment_request',
+            [
+                'name'             => $p->name,
+                'betrag'           => \number_format($p->preisSnapshot, 2, ',', '.') . ' €',
+                'dueDate'          => $dueDate,
+                'iban'             => $this->config->get('iban'),
+                'verwendungszweck' => "Einfahrt {$p->code}, Parzelle {$p->parzelle}",
+            ],
+        );
 
         // 3. Mail an NUTZER (Die eigentliche Ausnahmegenehmigung - A4 Print)
         $subjectUser = 'Ausnahmegenehmigung zum Befahren der Anlage: ' . $this->config->get('vereins_name');
@@ -144,7 +149,7 @@ final readonly class PermitService
             'jahresFarbe' => $this->config->get('jahresFarbe'),
             'opening'     => "{$opening['earliest']} bis {$opening['latest']} Uhr",
             'qrUrl'       => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' .
-                             \urlencode($this->config->get('base_url') . 'check.php?code=' . $p->code),
+                \urlencode($this->config->get('base_url') . 'check.php?code=' . $p->code),
         ]);
     }
 

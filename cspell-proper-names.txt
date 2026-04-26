@@ -6,6 +6,7 @@ breadnaught
 ceintl
 codesniffer
 commitlint
+creativecommons
 davidanson
 dealerdirect
 deptrac
@@ -20,6 +21,7 @@ gruntfuggly
 htmlhint
 htmlpurifier
 intelephense
+Ionos
 janisdd
 javascriptsnippets
 junstyle
@@ -62,6 +64,7 @@ sqlite
 squizlabs
 stan
 stkb
+Strato
 stylelint
 tomoki
 usernamehw

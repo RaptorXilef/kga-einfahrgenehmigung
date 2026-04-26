@@ -76,7 +76,10 @@ final readonly class MySqlStorage implements StorageInterface
     {
         $stmt = $this->pdo->query('SELECT code FROM permits');
 
-        return \array_map(fn (array $row): ?Permit => $this->findByHash($row['code']), $stmt->fetchAll(PDO::FETCH_ASSOC));
+        return \array_map(
+            fn (array $row): ?Permit => $this->findByHash($row['code']),
+            $stmt->fetchAll(PDO::FETCH_ASSOC),
+        );
     }
 
     public function migrateTo(StorageInterface $target): int

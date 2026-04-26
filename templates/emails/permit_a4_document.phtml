@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none; }
+            .page-border { border: none !important; box-shadow: none !important; }
+        }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; line-height: 1.5; }
+        .page-border {
+            max-width: 800px;
+            margin: auto;
+            border: 2px solid #eee;
+            padding: 40px;
+            position: relative;
+            background: #fff;
+        }
+        .header-stripe {
+            height: 20px;
+            background-color: {{jahresFarbe}};
+            margin: -40px -40px 30px -40px;
+        }
+        .qr-box { float: right; text-align: center; border: 1px solid #ddd; padding: 10px; }
+        .main-title { font-size: 26px; font-weight: bold; margin-bottom: 5px; color: #000; }
+        .subtitle { font-size: 18px; color: #666; margin-bottom: 30px; }
+        .data-table { width: 100%; margin: 20px 0; border-collapse: collapse; }
+        .data-table td { padding: 12px 5px; border-bottom: 1px solid #eee; font-size: 16px; }
+        .label { color: #777; width: 30%; }
+        .value { font-weight: bold; }
+        .big-code { font-family: monospace; font-size: 24px; color: {{jahresFarbe}}; }
+        .rules-box { background: #f9f9f9; padding: 20px; font-size: 13px; margin-top: 30px; border-radius: 5px; }
+        .footer-note { text-align: center; font-size: 11px; color: #999; margin-top: 40px; }
+        .clear { clear: both; }
+    </style>
+</head>
+<body>
+    <div class="page-border">
+        <div class="header-stripe"></div>
+
+        <div class="qr-box">
+            <img src="{{qrUrl}}" width="130" height="130" alt="QR Code"><br>
+            <span style="font-size: 10px;">ID: {{permit.code}}</span>
+        </div>
+
+        <div class="main-title">AUSNAHMEGENEHMIGUNG</div>
+        <div class="subtitle">zum Befahren der Anlage: {{vereinsName}}</div>
+
+        <div class="clear"></div>
+
+        <table class="data-table">
+            <tr>
+                <td class="label">Pächter / Name:</td>
+                <td class="value">{{permit.name}}</td>
+            </tr>
+            <tr>
+                <td class="label">Parzelle Nr.:</td>
+                <td class="value">{{permit.parzelle}}</td>
+            </tr>
+            <tr>
+                <td class="label">Gültigkeitszeitraum:</td>
+                <td class="value" style="font-size: 18px;">{{permit.von.format('d.m.Y')}} bis {{permit.bis.format('d.m.Y')}}</td>
+            </tr>
+            <tr>
+                <td class="label">Amtl. Kennzeichen:</td>
+                <td class="value">{{permit.kennzeichen}}</td>
+            </tr>
+            <?php if ($permit->firma): ?>
+            <tr>
+                <td class="label">Firma / Lieferant:</td>
+                <td class="value">{{permit.firma}}</td>
+            </tr>
+            <?php endif; ?>
+            <tr>
+                <td class="label">Zweck der Einfahrt:</td>
+                <td class="value">{{permit.zweck}}</td>
+            </tr>
+            <tr>
+                <td class="label">Einfahrtszeiten:</td>
+                <td class="value">{{opening}}</td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <div style="font-size: 12px; color: #666;">SmartCode zum handschriftlichen Notieren (falls kein Drucker):</div>
+            <div class="big-code">{{permit.code}}</div>
+        </div>
+
+        <div class="rules-box">
+            <strong>Bedingungen & Sicherheitshinweise:</strong>
+            <ul style="margin-top: 5px;">
+                <li>Schritttempo: In der gesamten Anlage gilt **max. 10 km/h**.</li>
+                <li>Parkverbot: Diese Genehmigung berechtigt nur zum Be-/Entladen, nicht zum Parken.</li>
+                <li>Sonn- & Feiertage: Die Einfahrt an Sonn- und Feiertagen ist generell untersagt.</li>
+                <li>Zufahrt: Bitte nutzen Sie ausschließlich die zugelassenen Wege laut Gartenordnung.</li>
+            </ul>
+        </div>
+
+        <div class="footer-note">
+            Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig.<br>
+            Ausgestellt am: {{permit.erstellt.format('d.m.Y H:i')}} | &copy; {{vereinsName}}
+        </div>
+    </div>
+</body>
+</html>

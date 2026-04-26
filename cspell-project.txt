@@ -1,8 +1,10 @@
 ABCDEFGHJKLMNPQRSTUVWXYZ
+Amtl
 Andersenweg
 betrag
 CURLOPT
 EHLO
+Einfahrtszeiten
 esbenp
 geheimnis
 Hartcodierte
@@ -18,6 +20,7 @@ POSTFIELDS
 RETURNTRANSFER
 Rübezahlweg
 shivammathur
+Sonn
 Spezifität
 USERPWD
 vereins

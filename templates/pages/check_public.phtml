@@ -1,43 +1,48 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="light">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status-Prüfung - <?= htmlspecialchars($settings['vereins_name']) ?></title>
+    <title>Gültigkeitsprüfung</title>
     <link rel="stylesheet" href="assets/css/main.min.css">
 </head>
-<body class="l-check">
-    <main class="c-container u-text-center">
-        <header class="c-page-header">
-            <h1 class="c-page-header__title">Einfahrgenehmigung</h1>
-        </header>
+<body class="l-check u-bg-light">
+    <main class="c-container u-text-center u-padding-top-xl">
 
-        <section class="c-check-card <?= ($permit->status === 'bezahlt' && $permit->isValid()) ? 'c-check-card--valid' : 'c-check-card--invalid' ?>">
-            <div class="c-check-card__status">
-                <?php if ($permit->status === 'bezahlt' && $permit->isValid()): ?>
-                    <span class="c-icon c-icon--success">✅</span>
-                    <h2 class="c-check-card__title">GÜLTIG</h2>
-                <?php else: ?>
-                    <span class="c-icon c-icon--error">❌</span>
-                    <h2 class="c-check-card__title">UNGÜLTIG / WARTEND</h2>
-                <?php endif; ?>
-            </div>
-
-            <div class="c-check-card__details">
-                <div class="c-detail-row">
-                    <span class="c-detail-row__label">Gültig für Kennzeichen:</span>
-                    <span class="c-detail-row__value"><?= htmlspecialchars($permit->kennzeichen) ?></span>
+        <?php if ($permit->isValid()): ?>
+            <div class="c-card c-card--success u-margin-auto" style="max-width: 400px;">
+                <div class="c-card__header">
+                    <span class="u-font-xl">✅ GÜLTIG</span>
                 </div>
-                <div class="c-detail-row">
-                    <span class="c-detail-row__label">Gültig bis:</span>
-                    <span class="c-detail-row__value"><?= $permit->bis->format('d.m.Y') ?></span>
+                <div class="c-card__body">
+                    <div class="u-margin-bottom">
+                        <strong>Fahrzeug / Identifikation:</strong><br>
+                        <?php
+                            $display = [];
+                            if (!empty($permit->kennzeichen)) $display[] = htmlspecialchars($permit->kennzeichen);
+                            if (!empty($permit->firma)) $display[] = "Firma: " . htmlspecialchars($permit->firma);
+                            echo implode('<br>', $display);
+                        ?>
+                    </div>
+                    <div class="u-text-muted">
+                        Zeitraum: <?= $permit->von->format('d.m.Y') ?> bis <?= $permit->bis->format('d.m.Y') ?>
+                    </div>
                 </div>
             </div>
+        <?php else: ?>
+            <div class="c-card c-card--danger u-margin-auto" style="max-width: 400px;">
+                <div class="c-card__header">
+                    <span class="u-font-xl">❌ UNGÜLTIG</span>
+                </div>
+                <div class="c-card__body">
+                    <p>Diese Genehmigung ist abgelaufen, noch nicht gültig oder wurde gesperrt.</p>
+                </div>
+            </div>
+        <?php endif; ?>
 
-            <footer class="c-check-card__footer">
-                <p class="u-text-muted">ID: <?= htmlspecialchars($permit->code) ?></p>
-            </footer>
-        </section>
+        <footer class="u-margin-top-l">
+            <p class="u-text-small u-text-muted">Code: <?= htmlspecialchars($permit->code) ?></p>
+        </footer>
     </main>
 </body>
 </html>
