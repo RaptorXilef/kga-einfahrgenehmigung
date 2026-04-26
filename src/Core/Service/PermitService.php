@@ -19,10 +19,6 @@
  * @author    Felix Maywald (@RaptorXilef)
  *
  * @since     0.1.0
- * - feat(core): Initialer PermitService zur Workflow-Steuerung.
- * - feat(payment): Methode completePayment zur sicheren Verifizierung hinzugefügt.
- * - fix(logic): Status-Check hinzugefügt, um doppelte Mails zu verhindern.
- * @since     0.3.6
  */
 
 declare(strict_types=1);
@@ -30,235 +26,132 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
 use DateTimeImmutable;
 use RuntimeException;
 
+/**
+ * Zentraler Service für Ausnahmegenehmigungen (v0.4.0).
+ */
 final readonly class PermitService
 {
     public function __construct(
         private StorageInterface $storage,
         private MailServiceInterface $mailService,
-        private PaymentProviderInterface $paymentProvider,
         private Config $config,
+        private HolidayService $holidayService, // Neu injiziert
     ) {
     }
 
     /**
-     * Workflow: Neuer Antrag (Wartend / Banküberweisung)
-     *
-     * Erstellt eine Genehmigung im Status 'wartend' und versendet die
-     * farblich markierte (vorläufige) Bestätigung mit Bankdaten.
+     * Erstellt eine neue Genehmigung und triggert den 3-Mail-Workflow.
      */
-    public function createPendingPermit(array $data): Permit
+    public function createPermit(array $data): Permit
     {
-        // 1. Sicherheitsschalter: Überweisung erlaubt?
-        if (! $this->config->get('bank_transfer_allowed', true)) {
-            throw new RuntimeException('Zahlung per Überweisung ist aktuell nicht verfügbar.');
-        }
+        $this->validateEmail($data['email'] ?? '');
 
-        $this->validateInput($data);
-
-        $type        = $data['typ'] ?? 'pkw';
-        $kennzeichen = (string) $data['kennzeichen'];
-
-        // LKW / Lieferanten-Logik
-        if ($type === 'lkw') {
-            $firma       = empty($data['firma']) ? 'Unbekannt' : (string) $data['firma'];
-            $kennzeichen = 'LIEFERANT: ' . $firma . ' (' . $kennzeichen . ')';
-        }
-
-        $duration = $this->config->getPermitDuration();
+        $parzelle = \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', STR_PAD_LEFT);
+        $typ      = $data['typ'] ?? 'pkw';
+        $code     = $this->generateV4Code($parzelle);
 
         $permit = new Permit(
-            code: $this->generateSmartCode(),
+            code: $code,
             name: (string) $data['name'],
             email: (string) $data['email'],
-            kennzeichen: $kennzeichen,
-            parzelle: (string) $data['parzelle'],
-            typ: $type,
-            zweck: (string) ($data['zweck'] ?? 'Privat'),
+            parzelle: $parzelle,
+            typ: $typ,
+            kennzeichen: $this->formatLicensePlate((string) ($data['kennzeichen'] ?? '')),
+            firma: $data['firma'] ?? null,
+            zweck: (string) ($this->config->get('purposes')[$data['zweck']] ?? 'Privat'),
+            preisSnapshot: $this->config->getPriceForType($typ),
             von: new DateTimeImmutable($data['datum_von']),
-            bis: (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
+            bis: new DateTimeImmutable($data['datum_bis']),
             status: 'wartend',
         );
 
         if (! $this->storage->save($permit)) {
-            throw new RuntimeException('Kritischer Speicherfehler in der Persistenz-Schicht.');
+            throw new RuntimeException('Kritischer Fehler beim Speichern der Daten.');
         }
 
-        // Benachrichtigungen
-        $this->notifyBoard($permit);
-        $this->sendPendingMail($permit);
+        // 3-Mail-System
+        $this->dispatchMails($permit);
 
         return $permit;
     }
 
     /**
-     * Workflow: Zahlung abschließen (PayPal Capture)
-     *
-     * Verifiziert den Betrag serverseitig gegen den konfigurierten Preis
-     * des jeweiligen Fahrzeugtyps.
+     * Formatiert deutsche Kennzeichen (z.B. BHD7398 -> B-HD 7398).
      */
-    public function completePayment(string $code, string $orderId): bool
+    private function formatLicensePlate(string $plate): string
     {
-        // 1. Sicherheit: Existiert die Genehmigung überhaupt?
-        $permit = $this->storage->findByHash($code);
-        if (! $permit instanceof Permit || $permit->status === 'bezahlt') {
-            return $permit instanceof Permit;
-        }
+        $plate = \strtoupper((string) \preg_replace('/[^A-Za-z0-9]/', '', $plate));
 
-        // SICHERHEIT: Den korrekten Preis für diesen Fahrzeugtyp ermitteln
-        $expectedPrice = $this->config->getPriceForType($permit->typ);
-
-        // Preis-Matching beim Capture (Verhindert Preis-Manipulation)
-        if (! $this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
-            return false;
-        }
-
-        return $this->updateStatus($permit, 'bezahlt');
+        // Erkennt 1-3 Buchstaben (Stadt), dann 1-2 Buchstaben (Bezirk), dann Zahlen
+        return \preg_replace('/^([A-Z]{1,3})([A-Z]{1,2})(\d{1,4})$/', '$1-$2 $3', $plate) ?? $plate;
     }
 
     /**
-     * Workflow: Manuelle Freischaltung (Admin/Vorstand)
+     * Generiert den neuen v4 Code: [PREFIX]-[YY]-[0000]-[RAND]
      */
-    public function manualActivate(string $code): bool
+    private function generateV4Code(string $parzelle): string
     {
-        $permit = $this->storage->findByHash($code);
-        if (! $permit instanceof Permit || $permit->status === 'bezahlt') {
-            return $permit instanceof Permit; // True wenn bereits bezahlt, false wenn nicht gefunden
-        }
-
-        return $this->updateStatus($permit, 'bezahlt');
-    }
-
-    /**
-     * Interner Status-Updater. Versendet nur bei erfolgreichem
-     * Wechsel auf 'bezahlt' die finale Genehmigungs-E-Mail.
-     */
-    private function updateStatus(Permit $p, string $newStatus): bool
-    {
-        $updated = new Permit(
-            $p->code,
-            $p->name,
-            $p->email,
-            $p->kennzeichen,
-            $p->parzelle,
-            $p->typ,
-            $p->zweck,
-            $p->von,
-            $p->bis,
-            $newStatus,
-            $p->erstellt,
-        );
-
-        $success = $this->storage->save($updated);
-
-        // Mail nur senden, wenn der Status sich wirklich auf 'bezahlt' geändert hat
-        if ($success && $newStatus === 'bezahlt') {
-            $this->sendApprovalMail($updated);
-        }
-
-        return $success;
-    }
-
-    private function validateInput(array $data): void
-    {
-        $required = ['name', 'email', 'kennzeichen', 'parzelle', 'datum_von'];
-        foreach ($required as $field) {
-            if (empty($data[$field])) {
-                throw new RuntimeException("Pflichtfeld fehlt: $field");
-            }
-        }
-    }
-
-    private function generateSmartCode(): string
-    {
-        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        $code  = \date('y') . '-';
+        $prefix = $this->config->get('prefix', 'ML');
+        $chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $random = '';
         for ($i = 0; $i < 4; ++$i) {
-            $code .= $chars[\random_int(0, \strlen($chars) - 1)];
+            $random .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
 
-        return $code;
+        return \sprintf('%s-%s-%s-%s', $prefix, \date('y'), $parzelle, $random);
     }
 
     /**
-     * Versendet Benachrichtigung an den Vorstand inkl. Aktivierungslink.
+     * Orchestriert den Versand der drei unterschiedlichen E-Mails.
      */
-    private function notifyBoard(Permit $permit): void
+    private function dispatchMails(Permit $p): void
     {
-        $token = \hash('sha256', $permit->code . $this->config->get('geheimnis'));
-        $this->mailService->sendTemplate(
-            $this->config->get('vorstand_email'),
-            "Neuer Antrag: {$permit->code} ({$permit->kennzeichen})",
-            'admin_notification',
-            [
-                'code'      => $permit->code,
-                'name'      => $permit->name,
-                'adminLink' => $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$token}",
-            ],
-        );
+        $zeitraum = "{$p->von->format('d.m.Y')} bis {$p->bis->format('d.m.Y')}";
+        $opening  = $this->config->get('opening_hours');
+
+        // 1. Mail an VORSTAND
+        $token        = \hash('sha256', $p->code . $this->config->get('geheimnis'));
+        $subjectBoard = "[ML-{$p->parzelle}, {$p->kennzeichen}, {$p->code}] - {$zeitraum} - {$p->name}";
+
+        $this->mailService->sendTemplate($this->config->get('vorstand_email'), $subjectBoard, 'board_notification', [
+            'permit'    => $p,
+            'adminLink' => $this->config->get('base_url') . "admin.php?code={$p->code}&token={$token}",
+        ]);
+
+        // 2. Mail an NUTZER (Zahlung)
+        $dueDays = $this->config->get('payment_due_days', 14);
+        $dueDate = (new DateTimeImmutable())->modify("+{$dueDays} days")->format('d.m.Y');
+
+        $this->mailService->sendTemplate($p->email, "Zahlungsaufforderung für Genehmigung {$p->code}", 'payment_request', [
+            'name'             => $p->name,
+            'betrag'           => \number_format($p->preisSnapshot, 2, ',', '.') . ' €',
+            'dueDate'          => $dueDate,
+            'iban'             => $this->config->get('iban'),
+            'verwendungszweck' => "Einfahrt {$p->code}, Parzelle {$p->parzelle}",
+        ]);
+
+        // 3. Mail an NUTZER (Die eigentliche Ausnahmegenehmigung - A4 Print)
+        $subjectUser = 'Ausnahmegenehmigung zum Befahren der Anlage: ' . $this->config->get('vereins_name');
+
+        $this->mailService->sendTemplate($p->email, $subjectUser, 'permit_a4_document', [
+            'permit'      => $p,
+            'jahresFarbe' => $this->config->get('jahresFarbe'),
+            'opening'     => "{$opening['earliest']} bis {$opening['latest']} Uhr",
+            'qrUrl'       => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' .
+                             \urlencode($this->config->get('base_url') . 'check.php?code=' . $p->code),
+        ]);
     }
 
-    /**
-     * Versendet die vorläufige Genehmigung (Rot/Gelb Design) bei Überweisung.
-     */
-    private function sendPendingMail(Permit $permit): void
+    private function validateEmail(string $email): void
     {
-        $checkUrl = $this->config->get('base_url') . 'check.php?code=' . $permit->code;
-        $price    = $this->config->getPriceForType($permit->typ);
-
-        $this->mailService->sendTemplate(
-            $permit->email,
-            "VORLÄUFIGE Genehmigung {$permit->code} - Bitte noch bezahlen",
-            'pending_permit',
-            [
-                'name'             => $permit->name,
-                'code'             => $permit->code,
-                'kennzeichen'      => $permit->kennzeichen,
-                'parzelle'         => $permit->parzelle,
-                'von'              => $permit->von->format('d.m.Y'),
-                'bis'              => $permit->bis->format('d.m.Y'),
-                'betrag'           => \number_format($price, 2, ',', '.') . ' €',
-                'verwendungszweck' => "Einfahrt {$permit->code}, {$permit->kennzeichen}",
-                'vorlaeufigFarbe'  => $this->config->get('vorlaeufigFarbe', '#f8d7da'),
-                'iban'             => $this->config->get('iban', 'DE...'),
-                'kontoinhaber'     => $this->config->get('kontoinhaber', '...'),
-                'qrCodeUrl'        => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='
-                    . \urlencode($checkUrl),
-            ],
-        );
-    }
-
-    /**
-     * Versendet die finale, gültige Genehmigung (Jahresfarbe/Grün Design).
-     */
-    private function sendApprovalMail(Permit $permit): void
-    {
-        $checkUrl = $this->config->get('base_url') . 'check.php?code=' . $permit->code;
-
-        $this->mailService->sendTemplate(
-            $permit->email,
-            "Ihre Einfahrgenehmigung {$permit->code} - {$this->config->get('vereins_name')}",
-            'permit_issued',
-            [
-                'name'        => $permit->name,
-                'code'        => $permit->code,
-                'kennzeichen' => $permit->kennzeichen,
-                'parzelle'    => $permit->parzelle,
-                'zweck'       => $permit->zweck,
-                'von'         => $permit->von->format('d.m.Y'),
-                'bis'         => $permit->bis->format('d.m.Y'),
-                'jahresFarbe' => $this->config->get('jahresFarbe', '#2ecc71'),
-                'vereinsName' => $this->config->get('vereins_name'),
-                'qrCodeUrl'   => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='
-                    . \urlencode($checkUrl),
-                'checkUrl' => $checkUrl,
-            ],
-        );
+        if (! \filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
+        }
     }
 }

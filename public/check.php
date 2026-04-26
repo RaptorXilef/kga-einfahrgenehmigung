@@ -28,47 +28,50 @@ declare(strict_types=1);
  * FLEXIBLES ANKER-SYSTEM
  * Sucht den Projekt-Root (wo vendor/ liegt) ausgehend vom aktuellen Verzeichnis.
  */
-$appRoot = (function() {
+$appRoot = (function (): string {
     $dir = __DIR__;
     // Wir suchen nach oben, bis wir den Ordner finden, der 'vendor' oder 'src' enthält
-    while ($dir !== dirname($dir)) {
-        if (file_exists($dir . '/vendor/autoload.php')) return $dir;
-        $dir = dirname($dir);
+    while ($dir !== \dirname($dir)) {
+        if (\file_exists($dir . '/vendor/autoload.php')) {
+            return $dir;
+        }
+        $dir = \dirname($dir);
     }
+
     // Fallback: Falls nichts gefunden wurde, gehen wir eine Ebene hoch
-    return dirname(__DIR__);
+    return \dirname(__DIR__);
 })();
 
 require_once $appRoot . '/vendor/autoload.php';
 
 use App\Bootstrap\Container;
-use App\Infrastructure\Config\Config;
 use App\Contracts\Storage\StorageInterface;
+use App\Infrastructure\Config\Config;
 
 // Session starten für Admin-Check
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (\session_status() === PHP_SESSION_NONE) {
+    \session_start();
 }
 
-$settings = require_once $appRoot . '/config/config.php';
+$settings              = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
-$container = new Container(new Config($settings));
+$container             = new Container(new Config($settings));
 
 /** @var StorageInterface $storage */
 $storage = $container->get(StorageInterface::class);
-$code    = strtoupper(trim($_GET['code'] ?? ''));
+$code    = \strtoupper(\trim($_GET['code'] ?? ''));
 $permit  = $storage->findByHash($code);
 
-if (!$permit) {
+if (! $permit) {
     // Hier könnten wir später ein schönes 404-Template laden
-    exit('Genehmigung mit dem Code ' . htmlspecialchars($code) . ' wurde nicht gefunden.');
+    exit('Genehmigung mit dem Code ' . \htmlspecialchars($code) . ' wurde nicht gefunden.');
 }
 
 // ADMIN-CHECK
 // 1. Entweder über den Token im Link (Direkt-Link aus Mail)
 $token         = (string) ($_GET['token'] ?? '');
-$expectedToken = hash('sha256', $permit->code . $settings['geheimnis']);
-$isTokenAdmin  = hash_equals($expectedToken, $token);
+$expectedToken = \hash('sha256', $permit->code . $settings['geheimnis']);
+$isTokenAdmin  = \hash_equals($expectedToken, $token);
 
 // 2. Oder über eine aktive Session (Eingeloggt im Admin-Bereich)
 $isSessionAdmin = isset($_SESSION['admin_level']) && $_SESSION['admin_level'] <= 2;

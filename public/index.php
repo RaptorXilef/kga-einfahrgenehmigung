@@ -20,17 +20,18 @@ declare(strict_types=1);
  * FLEXIBLES ANKER-SYSTEM
  * Sucht den Projekt-Root (wo vendor/ liegt) ausgehend vom aktuellen Verzeichnis.
  */
-$appRoot = (function() {
+$appRoot = (function (): string {
     $dir = __DIR__;
     // Wir suchen nach oben, bis wir den Ordner finden, der 'vendor' oder 'src' enthält
-    while ($dir !== dirname($dir)) {
-        if (file_exists($dir . '/vendor/autoload.php')) {
+    while ($dir !== \dirname($dir)) {
+        if (\file_exists($dir . '/vendor/autoload.php')) {
             return $dir;
         }
-        $dir = dirname($dir);
+        $dir = \dirname($dir);
     }
+
     // Fallback: Falls nichts gefunden wurde, gehen wir eine Ebene hoch
-    return dirname(__DIR__);
+    return \dirname(__DIR__);
 })();
 
 require_once $appRoot . '/vendor/autoload.php';

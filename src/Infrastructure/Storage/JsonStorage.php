@@ -63,8 +63,8 @@ final readonly class JsonStorage implements StorageInterface
             code: $item['code'],
             name: $item['name'],
             email: $item['email'],
-            kennzeichen: $item['kennzeichen'],
             parzelle: $item['parzelle'],
+            kennzeichen: $item['kennzeichen'],
             von: new DateTimeImmutable($item['von']),
             bis: new DateTimeImmutable($item['bis']),
             status: $item['status'],
@@ -81,7 +81,7 @@ final readonly class JsonStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (!$target->save($permit)) {
+            if (! $target->save($permit)) {
                 continue;
             }
 

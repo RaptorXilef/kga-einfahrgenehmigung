@@ -6,6 +6,7 @@
  * Beispiel-Konfiguration für das Ausnahmegenehmigungs-System (v0.4.0).
  *
  * @file      config/config.php.example
+ *
  * @since     0.4.0
  */
 
@@ -13,21 +14,21 @@ declare(strict_types=1);
 
 return [
     // --- VEREIN & BASIC ---
-    'vereins_name'    => 'KGA e.V.',
-    'prefix'          => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
-    'base_url'        => 'https://deine-domain.de/',
-    'geheimnis'       => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
-    'test_mode'       => true,
+    'vereins_name' => 'KGA e.V.',
+    'prefix'       => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
+    'base_url'     => 'https://deine-domain.de/',
+    'geheimnis'    => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
+    'test_mode'    => true,
 
     // --- PREISE & ZAHLUNG ---
     'prices' => [
         'pkw' => 3.00,
         'lkw' => 10.00,
     ],
-    'iban'              => 'DE12 3456 7890 1234 5678 90',
-    'kontoinhaber'      => 'KGA e.V.',
-    'payment_due_days'  => 14, // Zahlungsziel in Tagen
-    'paypal_enabled'    => false, // Standardmäßig deaktiviert
+    'iban'                  => 'DE12 3456 7890 1234 5678 90',
+    'kontoinhaber'          => 'KGA e.V.',
+    'payment_due_days'      => 14, // Zahlungsziel in Tagen
+    'paypal_enabled'        => false, // Standardmäßig deaktiviert
     'bank_transfer_allowed' => true,
 
     // PayPal API (Optional)
@@ -35,8 +36,8 @@ return [
     'paypal_secret'    => 'DEIN_SECRET',
 
     // --- E-MAIL & DATENSPEICHER
-    'vorstand_email'  => 'vorstand@deine-kga.de',
-    'storage_path'    => 'storage/daten.json',
+    'vorstand_email' => 'vorstand@deine-kga.de',
+    'storage_path'   => 'storage/daten.json',
 
     // SMTP Einstellungen
     'mail' => [
@@ -54,7 +55,7 @@ return [
         'earliest' => '07:00',
         'latest'   => '20:00',
     ],
-    'holiday_check'   => 'Berlin', // Automatischer Check für Sonntage/Feiertage
+    'holiday_check' => 'Berlin', // Automatischer Check für Sonntage/Feiertage
 
     // --- AUSWAHLMENÜS ---
     'purposes' => [
