@@ -1,13 +1,15 @@
 /**
  * @file form-handler.js
  * Modulares Management des Antragsformulars (v0.4.0).
- * * Beinhaltet:
+ *
+ * Beinhaltet:
  * - Fahrzeugtyp-Umschaltung
  * - Echtzeit-Formatierung (Kennzeichen, Parzelle)
  * - Berliner Feiertags- und Sonntagsprüfung
  */
 
-class PermitFormHandler {
+export class PermitFormHandler {
+    // Export hinzugefügt
     constructor() {
         // DOM Elemente
         this.form = document.getElementById('permitForm');
@@ -29,16 +31,18 @@ class PermitFormHandler {
 
     init() {
         // Event-Listener registrieren
-        this.typSelect.addEventListener('change', (e) => this.toggleVehicleFields(e.target.value));
-        this.kennzeichenInput.addEventListener('blur', (e) => this.formatLicensePlate(e.target));
-        this.parzelleInput.addEventListener('blur', (e) => this.formatPlotNumber(e.target));
+        this.typSelect?.addEventListener('change', (e) => this.toggleVehicleFields(e.target.value));
+        this.kennzeichenInput?.addEventListener('blur', (e) => this.formatLicensePlate(e.target));
+        this.parzelleInput?.addEventListener('blur', (e) => this.formatPlotNumber(e.target));
 
         this.dateInputs.forEach((input) => {
-            input.addEventListener('change', () => this.validateBerlinRestrictions());
+            input?.addEventListener('change', () => this.validateBerlinRestrictions());
         });
 
         // Initialer Check
-        this.toggleVehicleFields(this.typSelect.value);
+        if (this.typSelect) {
+            this.toggleVehicleFields(this.typSelect.value);
+        }
     }
 
     /**
@@ -46,11 +50,13 @@ class PermitFormHandler {
      */
     toggleVehicleFields(type) {
         const isLkw = type === 'lkw';
-        this.groupFirma.classList.toggle('u-hidden', !isLkw);
-        this.labelKennzeichen.innerText = isLkw
-            ? 'Amtl. Kennzeichen (Optional)'
-            : '* Amtl. Kennzeichen';
-        this.kennzeichenInput.required = !isLkw;
+        if (this.groupFirma) this.groupFirma.classList.toggle('u-hidden', !isLkw);
+        if (this.labelKennzeichen) {
+            this.labelKennzeichen.innerText = isLkw
+                ? 'Amtl. Kennzeichen (Optional)'
+                : '* Amtl. Kennzeichen';
+        }
+        if (this.kennzeichenInput) this.kennzeichenInput.required = !isLkw;
     }
 
     /**
@@ -78,8 +84,10 @@ class PermitFormHandler {
     validateBerlinRestrictions() {
         const alerts = [];
         this.dateInputs.forEach((input) => {
+            if (!input.value) return;
             const date = new Date(input.value);
-            if (isNaN(date.getTime())) return;
+            // BIOME FIX: Number.isNaN statt isNaN
+            if (Number.isNaN(date.getTime())) return;
 
             if (this.isRestrictedDay(date)) {
                 alerts.push(
@@ -153,7 +161,9 @@ class PermitFormHandler {
     }
 }
 
-// Global instanziieren
-document.addEventListener('DOMContentLoaded', () => {
-    window.permitForm = new PermitFormHandler();
-});
+// Auto-Init für den Browser (wird im Test ignoriert, wenn wir die Klasse manuell instanziieren)
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.permitForm = new PermitFormHandler();
+    });
+}

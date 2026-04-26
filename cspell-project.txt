@@ -11,9 +11,11 @@ Hartcodierte
 hartcodierten
 HTTPHEADER
 iban
+karfreitag
 Muspelsteig
 Nachtalbenweg
 parzelle
+Parzellennummern
 paypal
 php-js-dev-env-blueprint
 POSTFIELDS
@@ -22,6 +24,7 @@ Rübezahlweg
 shivammathur
 Sonn
 Spezifität
+sunday
 USERPWD
 vereins
 vereins
