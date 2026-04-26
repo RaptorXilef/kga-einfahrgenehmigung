@@ -2,6 +2,12 @@
 
 
 
+## [0.6.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.5.0...v0.6.0) (2026-04-26)
+
+### 🚀 Features
+
+* **admin:** implement secure login and multi-level dashboard ([8131e7d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8131e7d26ee1f8aeb29e2efe642f2f65129a8d14))
+
 ## [0.5.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.4.1...v0.5.0) (2026-04-26)
 
 ### 🚀 Features
