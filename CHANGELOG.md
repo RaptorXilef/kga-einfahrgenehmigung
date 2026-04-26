@@ -1,3 +1,18 @@
+# Changelog
+
+
+
+## [0.4.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.4.0...v0.4.1) (2026-04-26)
+
+### ⚙️ Refactoring
+
+* **arch:** flatten directory structure and optimize path resolution ([ee40888](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ee408881bbeca8b206b8281b9dd80bf97882ee4e))
+* **arch:** flatten directory structure and optimize path resolution ([9954a46](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9954a46aa04b70d58bf51262446cf33157e9a8fb))
+
+### 🧹 Chore / Maintenance
+
+* **env:** initialize high-end dev-ecosystem via blueprint ([651eb8d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/651eb8db6f39386af3968e096a1cee977da3cb9d))
+
 ## [0.4.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.3.6...v0.4.0) (2026-04-24)
 
 ### 🚀 Features
