@@ -8,7 +8,7 @@
  * Initialisiert die Umgebung und delegiert Anfragen an den PermitService.
  * Trennt Request-Handling von der Geschäftslogik.
  *
- * @file      index.php
+ * @file      public/index.php
  *
  * @since     0.1.0 - refactor(app): Umstellung auf Container-basiertes Bootstrapping.
  * @since     0.4.0 - refactor(arch): Move to root structure and blueprint tools.
@@ -41,12 +41,10 @@ use App\Core\Service\PermitService;
 use App\Infrastructure\Config\Config;
 
 // 1. Konfiguration laden (die alte config.php gibt nun einfach ein Array zurück)
-$settings = require_once $appRoot . '/config.php';
-
-// Wir injizieren den Root-Pfad in die Config, damit alle Services ihn kennen
+// Wir injizieren darunter den Root-Pfad in die Config, damit alle Services ihn kennen
+$settings              = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
-
-$container = new Container(new Config($settings));
+$container             = new Container(new Config($settings));
 
 /** @var PermitService $permitService */
 $permitService = $container->get(PermitService::class);
@@ -55,18 +53,16 @@ $message = '';
 $success = false;
 
 // 2. Formular-Verarbeitung (POST)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['method'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        if ($_POST['method'] === 'bank') {
-            $permit  = $permitService->createPendingPermit($_POST);
-            $success = true;
-            $message = 'Antrag erfolgreich erstellt! Ihr Code lautet: ' . $permit->code;
-        }
+        $permit  = $permitService->createPermit($_POST);
+        $success = true;
+        $message = 'Antrag erfolgreich! Die Genehmigung wurde an ' . \htmlspecialchars((string) $permit->email) . ' gesendet.';
     } catch (Exception $e) {
         $message = 'Fehler: ' . $e->getMessage();
     }
 }
 
-// 3. View laden (PHTML-Template für das UI)
-// Wir trennen HTML von PHP -> Separation of Concerns
+// Config für das Template bereitstellen (Zwecke, Preise etc.)
+$config = $container->get(Config::class);
 include $appRoot . '/templates/pages/formular.phtml';
