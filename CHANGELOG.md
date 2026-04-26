@@ -2,6 +2,31 @@
 
 
 
+## [0.5.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.4.1...v0.5.0) (2026-04-26)
+
+### 🚀 Features
+
+* **config:** implement v0.4.0 configuration and session-aware check ([701f2c0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/701f2c0398105f1bcf1c4d510dc8b14fbe321e33))
+* **core:** implement unified identifier and EPC-QR payment integration ([b2b63b9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b2b63b9780edb198482b42e7cfdb6b528da2a94a))
+* **frontend:** implement v0.4.0 form with dynamic fields and JS logic ([d04f469](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d04f46975e583ce21e32a26d8b3b86386a66804c))
+* **mail:** implement professional 3-mail system with v0.5.0 standards ([597f622](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/597f622e82b9318760ed9e7b9146634421af39d5))
+* **view:** implement A4 print template and privacy-aware check logic ([8c94f95](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8c94f950dea1e1996da295bba9f7deb88022750f))
+
+### 🐛 Bug Fixes
+
+* **js:** correct license plate regex and resolve biome linting ([d640524](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d64052482b6f7ba8ffa0def6ffa22c8b1a594cfa))
+* **js:** prioritize Berlin city code in license plate formatting ([9e079c1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9e079c1b7770af28be739810f632b111eef6f140))
+* **view:** align check views with privacy and admin requirements ([a7e2cd3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a7e2cd3a80c6957359e6d572ba0a993533f82ca2))
+
+### ⚙️ Refactoring
+
+* **core:** migrate to v0.4.0 root-architecture and extended permit logic ([d43f83a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d43f83aed276dba5e65bc815561c8b3905b27bbc))
+* **js:** migrate form-handler to OOP and implement Berlin holiday logic ([947d742](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/947d742e3125dbcf2faff1bbb98a611ac84aaad4))
+
+### 🧪 Tests
+
+* **js:** implement comprehensive Vitest suite for PermitFormHandler ([9a2fb25](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9a2fb25bcf666aea0828bd1873f3abcf9c3800ca))
+
 ## [0.4.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.4.0...v0.4.1) (2026-04-26)
 
 ### ⚙️ Refactoring
