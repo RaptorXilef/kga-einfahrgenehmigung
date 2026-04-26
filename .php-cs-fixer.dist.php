@@ -1,15 +1,13 @@
 <?php
 
-declare(strict_types=1); // Auch die Config-Datei selbst sollte strikt sein
+// Auch die Config-Datei selbst sollte strikt sein
+declare(strict_types=1);
 
 // Der Autoloader ist zwingend für die Custom Fixers erforderlich
 require_once __DIR__ . '/vendor/autoload.php';
 
 $finder = (new PhpCsFixer\Finder())
     ->in([
-        __DIR__ . '/kga-core/src',
-        __DIR__ . '/kga-core/bootstrap',
-        __DIR__ . '/kga-core/config',
         __DIR__ . '/src',
         __DIR__ . '/tests',
         __DIR__ . '/public',
@@ -50,9 +48,9 @@ return (new PhpCsFixer\Config())
                 '=>' => 'align_single_space_minimal', // ERZWINGT DIE AUSRICHTUNG VON PFEILEN (für Match & Arrays)
             ],
         ],
-        'yoda_style'                             => [
-            'equal' => false,
-            'identical' => false,
+        'yoda_style' => [
+            'equal'            => false,
+            'identical'        => false,
             'less_and_greater' => false,
         ], // Deaktiviert den Yoda-Style (zwingt Variable auf die linke Seite)
         'concat_space'                           => ['spacing' => 'one'], // Erzwingt ' . ' statt '.'
@@ -71,8 +69,7 @@ return (new PhpCsFixer\Config())
         'global_namespace_import' => [
             'import_classes'   => true,   // Importiert Klassen wie RuntimeException
             'import_constants' => true,   // Importiert globale Konstanten
-            'import_functions' => false,  // WICHTIG: Funktionen (is_int etc.) lassen wir bei \,
-            // da wir das für die Performance so wollten!
+            'import_functions' => false,  // Performance: \is_int() bleibt // da wir das für die Performance so wollten!
         ],
 
         /**
@@ -87,8 +84,8 @@ return (new PhpCsFixer\Config())
         ],
 
         // --- CLEANUP & ORDNUNG ---
-        'array_syntax'                 => ['syntax' => 'short'],
-        'ordered_imports'              => [
+        'array_syntax'    => ['syntax' => 'short'],
+        'ordered_imports' => [
             'sort_algorithm' => 'alpha',
             'imports_order'  => ['class', 'function', 'const'], // Erzwingt die richtige Gruppen-Reihenfolge
         ],
@@ -111,7 +108,11 @@ return (new PhpCsFixer\Config())
         'phpdoc_align' => [
             'align' => 'vertical', // Das passt perfekt zu deinem Wunsch
             'tags'  => [
-                'param', 'return', 'throws', 'type', 'var',
+                'param',
+                'return',
+                'throws',
+                'type',
+                'var',
                 // 'file', 'copyright', 'license', 'link', 'author', 'since'
             ],
         ],
@@ -142,7 +143,7 @@ return (new PhpCsFixer\Config())
         'phpdoc_types' => true,
         'phpdoc_types_order' => [
             'null_adjustment' => 'always_last',
-            'sort_algorithm' => 'none', // WICHTIG: 'none' lässt die Reihenfolge und Form deines Types (Array Shape) in Ruhe
+            'sort_algorithm' => 'none', // 'none' lässt die Reihenfolge und Form deines Types (Array Shape) in Ruhe
         ],
 
         // --- PHPUNIT ---
@@ -157,4 +158,5 @@ return (new PhpCsFixer\Config())
         ],*/
     ])
     ->setFinder($finder)
+    // Zentraler Cache-Ordner
     ->setCacheFile(__DIR__ . '/.cache/php-cs-fixer/cache.json');

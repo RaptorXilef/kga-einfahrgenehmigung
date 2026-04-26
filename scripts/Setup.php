@@ -16,7 +16,7 @@ class Setup
         '.cache/phpunit',
         '.cache/php-cs-fixer',
         'tools',
-        '.build/reports'
+        '.build/reports',
     ];
 
     private const TOOLS = [
@@ -26,22 +26,44 @@ class Setup
 
     public static function init(): void
     {
+        self::initEnv();
         self::createDirectories();
         self::updateTools();
         echo "\n✅ Setup erfolgreich abgeschlossen.\n";
+    }
+
+    private static function initEnv(): void
+    {
+        echo "📄 Prüfe .env Datei...\n";
+
+        if (file_exists('.env')) {
+            echo "   [INFO] .env existiert bereits.\n";
+            return;
+        }
+
+        if (!file_exists('.env.example')) {
+            echo "   [HINWEIS] Keine .env.example gefunden. Bitte .env manuell erstellen.\n";
+            return;
+        }
+
+        copy('.env.example', '.env');
+        echo "   [OK] .env aus .env.example erstellt.\n";
     }
 
     public static function createDirectories(): void
     {
         echo "📁 Erstelle Verzeichnisstruktur...\n";
         foreach (self::DIRS as $dir) {
-            if (!is_dir($dir)) {
-                if (mkdir($dir, 0777, true)) {
-                    echo "   [OK] $dir\n";
-                } else {
-                    echo "   [FEHLER] Konnte $dir nicht erstellen!\n";
-                }
+            if (is_dir($dir)) {
+                continue;
             }
+
+            if (!mkdir($dir, 0777, true)) {
+                echo "   [FEHLER] Konnte $dir nicht erstellen!\n";
+                continue;
+            }
+
+            echo "   [OK] $dir\n";
         }
     }
 
@@ -62,7 +84,9 @@ class Setup
     {
         $path = 'public/dist';
         echo "🧹 Bereinige Build-Verzeichnis ($path)...\n";
-        if (!is_dir($path)) return;
+        if (!is_dir($path)) {
+            return;
+        }
 
         $files = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -75,18 +99,23 @@ class Setup
         }
         echo "   Fertig.\n";
     }
-}
 
-// Direkter Aufruf durch Composer
-if (php_sapi_name() === 'cli' && isset($argv[1])) {
-    $action = $argv[1];
+    /**
+     * Verarbeitet CLI-Argumente
+     *
+     * @param array<int, string> $argv
+     */
+    public static function runConsole(array $argv): void
+    {
+        if (php_sapi_name() !== 'cli' || !isset($argv[1])) {
+            return;
+        }
 
-    // Wir nutzen match, fangen das Ergebnis aber nicht ab,
-    // daher nutzen wir Funktionen/Methoden als Rückgabewerte.
-    match ($action) {
-        'init'  => Setup::init(),
-        'clear' => Setup::clearBuild(),
-        'up'    => Setup::updateTools(),
-        default => print("Unbekannter Befehl: $action\n")
-    };
+        match ($argv[1]) {
+            'init'  => self::init(),
+            'clear' => self::clearBuild(),
+            'up'    => self::updateTools(),
+            default => print("Unbekannter Befehl: {$argv[1]}\n")
+        };
+    }
 }

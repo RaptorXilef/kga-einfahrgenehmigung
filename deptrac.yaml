@@ -3,25 +3,26 @@
 
 deptrac:
   paths:
-    - kga-core/src
+    - src
+  cache_file: .cache/deptrac/.deptrac.cache
 
   layers:
     - name: Contracts
       collectors:
         - type: directory
-          value: kga-core/src/Contracts/.*
+          value: src/Contracts/.*
     - name: Core
       collectors:
         - type: directory
-          value: kga-core/src/Core/.*
+          value: src/Core/.*
     - name: Infrastructure
       collectors:
         - type: directory
-          value: kga-core/src/Infrastructure/.*
+          value: src/Infrastructure/.*
     - name: Application
       collectors:
         - type: directory
-          value: kga-core/src/Application/.*
+          value: src/Application/.*
 
   ruleset:
     # Contracts sind die Basis und dürfen von NIEMANDEM abhängen

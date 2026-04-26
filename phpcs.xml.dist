@@ -1,16 +1,26 @@
 <?xml version="1.0"?>
 <ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Project Standards">
-    <description>Unified Modern PHP 8.4+ High-End Standard</description>
+    <description>Unified Modern PHP 8.3-8.5+ High-End Standard</description>
+
+    <arg name="basepath" value="." />
+    <arg name="extensions" value="php" />
+    <arg name="parallel" value="16" />
+    <arg name="colors" />
+    <arg value="ps" />
+    <arg name="cache" value=".cache/phpcs/.phpcs.cache" />
+
+    <file>src</file>
+    <file>tests</file>
+    <file>public</file>
+    <file>bootstrap</file>
+    <file>config</file>
+
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>public/index.php</exclude-pattern>
+        <exclude-pattern>tests/Pest.php</exclude-pattern>
+    </rule>
 
     <rule ref="PSR12" />
-
-    <exclude-pattern>*/vendor/*</exclude-pattern>
-    <exclude-pattern>*/node_modules/*</exclude-pattern>
-    <exclude-pattern>*/.cache/*</exclude-pattern>
-    <exclude-pattern>*/.debug/*</exclude-pattern>
-    <exclude-pattern>*/tests/*</exclude-pattern>
-    <exclude-pattern>*/fixtures/*</exclude-pattern>
-    <exclude-pattern>*.js</exclude-pattern>
 
     <rule ref="Universal.Arrays.DuplicateArrayKey" />
     <rule ref="Universal.CodeAnalysis.ConstructorDestructorReturn" />
@@ -84,15 +94,6 @@
     <config name="testVersion" value="8.3-8.5" />
     <rule ref="PHPCompatibility" />
 
-    <file>kga-core/src</file>
-    <file>kga-core/bootstrap</file>
-    <file>kga-core/config</file>
-    <file>src</file>
-    <file>tests</file>
-    <file>public</file>
-    <file>bootstrap</file>
-    <file>config</file>
-
     <!-- DIE REGEL FÜR DIE ZEILENLÄNGE -->
     <rule ref="Generic.Files.LineLength">
         <properties>
@@ -100,10 +101,4 @@
             <property name="absoluteLineLimit" value="120" />
         </properties>
     </rule>
-
-    <arg value="p" />
-    <arg name="colors" />
-    <arg name="parallel" value="16" />
-    <arg name="cache" value=".cache/phpcs/.phpcs.cache" />
-    <arg name="extensions" value="php" />
 </ruleset>

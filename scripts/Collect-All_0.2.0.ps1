@@ -97,7 +97,7 @@ function Start-FileCollection {
 }
 
 # --- 3. Menü-Definitionen ---
-$commonDirs = @('*backup*', '*alt*', '*notizen*', 'notes', 'vendor', 'node_modules', '_Commites', '*- Kopie*', '*debug*', 'scripts')
+$commonDirs = @('*backup*', '*alt*', '*notizen*', 'notes', 'vendor', 'node_modules', '_Commits', '*- Kopie*', '*debug*', 'scripts')
 
 # --- 4. Menü-Schleife ---
 do {

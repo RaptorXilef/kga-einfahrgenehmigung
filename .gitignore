@@ -55,7 +55,7 @@ ehthumbs_vista.db
 # ==============================================================================
 # SICHERHEIT & LOKALE KONFIGURATION
 # ==============================================================================
-# WICHTIG: Niemals .env Dateien mit echten Zugangsdaten committen!
+# WICHTIG: Niemals .env Dateien mit echten Zugangsdaten commiten!
 .env
 .env.local
 .env.*.local
@@ -106,6 +106,8 @@ ehthumbs_vista.db
 
 .lighthouseci/*
 
+.deptrac.cache
+
 # Code Coverage Reports
 /coverage/
 /html-coverage/
@@ -130,7 +132,7 @@ yarn.lock
 #package-lock.json
 
 # Hinweis: package-lock.json / yarn.lock sollten ähnlich wie composer.lock
-# meistens committed werden, wenn es sich um eine Endanwendung handelt.
+# meistens commited werden, wenn es sich um eine Endanwendung handelt.
 
 
 # ------------------------------------------------------------------------------
@@ -218,7 +220,7 @@ Refactored_PHP_Code_Part*
 *Notizen*
 .*todo*
 ToDo*.md
-*Commites*
+*Commits*
 *.docx
 *.txt
 *.psd
@@ -228,4 +230,20 @@ ToDo*.md
 # AUSNAHMEN (Diese Dateien MÜSSEN im Repo bleiben)
 !composer.lock
 !package-lock.json
-!cspell-words.txt
+
+# ==============================================================================
+# CSPELL
+# ==============================================================================
+!cspell-project.txt
+!cspell-general.txt
+!cspell-denglisch.txt
+!cspell-proper-names.txt
+!cspell-technical.txt
+!cspell-folder-names.txt
+
+# ==============================================================================
+# TEST-FOLDER
+# ==============================================================================
+
+public/assets/img/test/*
+src/assets/images/test/*

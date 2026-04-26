@@ -13,7 +13,7 @@
             " *",
             " * @file      ${RELATIVE_FILEPATH}",
             " *",
-            " * @copyright (c) 2021-${CURRENT_YEAR} Felix Maywald. All rights reserved.",
+            " * @copyright (c) 2026-${CURRENT_YEAR} Felix Maywald. All rights reserved.",
             " * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE",
             " *",
             " * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/",
@@ -30,8 +30,8 @@
             "${5:interface} ${TM_FILENAME_BASE}",
             "{",
             "    $0",
-            "}",
+            "}"
         ],
-        "description": "Erstellt den projektspezifischen PHP-Header",
-    },
+        "description": "Erstellt den projektspezifischen PHP-Header"
+    }
 }

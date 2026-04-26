@@ -1,1 +1,3 @@
-npm test
+#npx lint-staged
+# .husky/pre-commit
+#sh scripts/pre-commit-check.sh

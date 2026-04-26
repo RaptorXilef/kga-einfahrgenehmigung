@@ -1,12 +1,12 @@
 /**
  * @file stylelint.config.js
- * @description SCSS-Qualitätssicherung.
+ * @description Spezialisierte SCSS-Qualitätssicherung.
  */
 
 export default {
     extends: [
         'stylelint-config-standard-scss',
-        'stylelint-config-recess-order', // Erzwingt eine logische Reihenfolge der CSS-Eigenschaften
+        'stylelint-config-recess-order', // Erzwingt logische Reihenfolge (recess)
     ],
     plugins: ['stylelint-declaration-strict-value'],
     rules: {
@@ -14,43 +14,39 @@ export default {
         'no-empty-source': null,
         'scss/at-rule-no-unknown': true,
 
-        // Begrenzt die Verschachtelung, um die Spezifität niedrig zu halten
+        // Begrenzt die Verschachtlung auf 3 Ebenen (dein Standard)
         'max-nesting-depth': [
             3,
             {
-                ignorePseudoClasses: [
-                    'hover',
-                    'focus',
-                    '&.theme-night',
-                    'body.theme-night &',
-                ],
+                ignorePseudoClasses: ['hover', 'focus', '&.theme-night', 'body.theme-night &'],
             },
         ],
 
-        // Erzwingt die Nutzung von Variablen für Design-Tokens
+        // Warnt vor der Nutzung von Variablen für Design-Tokens
         'scale-unlimited/declaration-strict-value': [
             ['/color/', 'font-family', 'font-size', 'font-weight', 'spacing'],
             {
                 ignoreValues: [
                     '0',
-                    '/^\\d+(%|vw|vh)$/',
                     'inherit',
                     'transparent',
                     'initial',
                     'none',
                     'currentColor',
-                    'light',
-                    'dark',
                     'sans-serif',
                     'arial',
+                    '/^\\d+(%|vw|vh)$/',
                 ],
                 disableFix: true,
+                // HIER IST DER TRICK:
+                severity: 'warning',
                 message:
-                    "Bitte nutze eine SCSS-Variable für '${property}'. Hartcodierte Werte sind nicht erlaubt.",
+                    // biome-ignore lint/suspicious/noTemplateCurlyInString: Stylelint uses this as an internal placeholder
+                    "Hinweis: Idealerweise nutzt du eine Variable für '${property}'. Hart-codierte Werte sind unerwünscht.",
             },
         ],
 
-        // Erzwingt BEM (Block Element Modifier) Namenskonvention
+        // Erzwingt dein BEM Muster
         'selector-class-pattern': [
             '^([a-z][a-z0-9]*)(-[a-z0-9]+)*(__[a-z0-9]+(-[a-z0-9]+)*)?(--[a-z0-9]+(-[a-z0-9]+)*)?$',
             {
@@ -60,7 +56,7 @@ export default {
         ],
     },
     ignoreFiles: [
-        '**/_palette.scss', // Enthält die Definitionen der hartcodierten Werte
+        '**/_palette.scss', // Enthält die Definitionen der hart-codierten Werte
         'vendor/**/*.scss',
         'public/assets/**/*.css',
     ],

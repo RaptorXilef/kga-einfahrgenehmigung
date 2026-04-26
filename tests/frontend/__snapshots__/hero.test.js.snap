@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Hero Component Snapshots > sollte das Hero-HTML korrekt rendern 1`] = `
+<section
+  class="hero"
+>
+  
+        
+  <div
+    class="hero__content"
+  >
+    
+            
+    <h1
+      class="hero__title"
+    >
+      Willkommen
+    </h1>
+    
+            
+    <p
+      class="hero__subtitle"
+    >
+      Dies ist ein Test
+    </p>
+    
+        
+  </div>
+  
+    
+</section>
+`;

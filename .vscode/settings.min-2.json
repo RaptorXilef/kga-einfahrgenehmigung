@@ -1,0 +1,120 @@
+{
+    // =========================================================================
+    // EDITOR & FORMATTING CORE
+    // =========================================================================
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.rulers": [120],
+    "editor.bracketPairColorization.enabled": true,
+    "editor.linkedEditing": true,
+    "files.eol": "\n", // Unix-Zeilenenden für Git-Konsistenz
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+
+    // =========================================================================
+    // SPRACH-SPEZIFISCHE EINSTELLUNGEN
+    // =========================================================================
+
+    // --- PHP & INTELEPHENSE ---
+    "[php]": {
+        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client", // Intelephense als Basis
+        "editor.wordWrap": "off",
+        "editor.renderWhitespace": "boundary"
+    },
+    "intelephense.format.enable": false, // CLI-Tools (PHP-CS-Fixer) haben Vorrang!
+    "php.suggest.basic": false,
+    "php-docblocker.gap": true,
+
+    // --- BIOME (JS, JSON, CSS/SCSS) ---
+    "[javascript]": { "editor.defaultFormatter": "biomejs.biome" },
+    "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+    "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },
+    "[scss]": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.codeActionsOnSave": { "source.fixAll.stylelint": "explicit" }
+    },
+
+    // --- HTML & MARKUPLINT ---
+    "[html]": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.codeActionsOnSave": { "source.fixAll.markuplint": "explicit" }
+    },
+
+    // --- MARKDOWN & REWRAP ---
+    "[markdown]": {
+        "editor.defaultFormatter": "davidanson.vscode-markdownlint",
+        "editor.wordWrap": "on"
+    },
+    "rewrap.wrappingColumn": 120,
+    "rewrap.wholeComment": true,
+
+    // =========================================================================
+    // EXPLORER, SEARCH & WATCHER (Performance & Ordnung)
+    // =========================================================================
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.DS_Store": true,
+        "**/node_modules": false, // Wir wollen sie sehen, aber...
+        "**/vendor": false, // ...unten in der Suche ausschließen
+        "**/.build": true,
+        "**/.cache": true,
+        "**/*.map": true,
+        ".phpcs.cache": true,
+        ".phpstan.cache": true,
+        ".phpunit.cache": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/.build": true,
+        "**/.cache": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/node_modules/**": true,
+        "**/vendor/**": true,
+        "**/.debug/**": true
+    },
+
+    // =========================================================================
+    // TOOLS & WORKFLOW (Deine persönlichen Favoriten)
+    // =========================================================================
+
+    // --- DIFF EDITOR ---
+    "diffEditor.ignoreTrimWhitespace": true,
+    "diffEditor.experimental.showMoves": true,
+    "diffEditor.codeLens": true,
+
+    // --- TODO TREE ---
+    "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "XXX", "[ ]", "[x]", "VOR_RELEASE"],
+    "todo-tree.highlights.useColourScheme": true,
+    "todo-tree.highlights.backgroundColourScheme": [
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "blue",
+        "indigo",
+        "violet",
+        "purple"
+    ],
+    "todo-tree.filtering.excludeGlobs": ["**/node_modules/**", "**/vendor/**", "**/*.pdf"],
+
+    // --- SPELL CHECK ---
+    "cSpell.language": "en,de",
+    "cSpell.diagnosticLevel": "Hint",
+
+    // --- TERMINAL ---
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+
+    // --- THEME ---
+    "workbench.colorTheme": "Monokai Pirokai - Beach Sunset",
+    "errorLens.onInlayHints": true
+}
