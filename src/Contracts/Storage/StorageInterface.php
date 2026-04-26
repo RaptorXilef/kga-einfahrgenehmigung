@@ -22,7 +22,10 @@ use App\Core\Entity\Permit;
 interface StorageInterface
 {
     public function save(Permit $permit): bool;
+
     public function findByHash(string $hash): ?Permit;
+
     public function getAll(): array;
+
     public function migrateTo(StorageInterface $target): int;
 }

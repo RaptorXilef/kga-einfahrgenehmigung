@@ -22,15 +22,15 @@ declare(strict_types=1);
 // ==========================================================
 // --- ANKER-SYSTEM ---
 // 1. Versuch: Wir sind in /public/ oder /public/api/ und suchen /kga-core/ im Root
-$appRoot = dirname(__DIR__, 1) . '/kga-core';
+$appRoot = \dirname(__DIR__, 1) . '/kga-core';
 
 // 2. Versuch: Spezialfall Strato/Ionos (falls /public/ sehr tief verschachtelt ist)
-if (!file_exists($appRoot . '/vendor/autoload.php')) {
-    $appRoot = dirname(__DIR__, 2) . '/kga-core';
+if (! \file_exists($appRoot . '/vendor/autoload.php')) {
+    $appRoot = \dirname(__DIR__, 2) . '/kga-core';
 }
 
 // 3. Letzter Rettungsanker: Direkte Suche (nur falls 1 & 2 fehlschlagen)
-if (!file_exists($appRoot . '/vendor/autoload.php')) {
+if (! \file_exists($appRoot . '/vendor/autoload.php')) {
     $appRoot = __DIR__ . '/../kga-core';
 }
 // --------------------
@@ -38,8 +38,8 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
 require_once $appRoot . '/vendor/autoload.php';
 
 use App\Bootstrap\Container;
-use App\Infrastructure\Config\Config;
 use App\Core\Service\PermitService;
+use App\Infrastructure\Config\Config;
 
 // 1. Konfiguration laden (die alte config.php gibt nun einfach ein Array zurück)
 $settings = require_once $appRoot . '/config.php';
@@ -59,12 +59,12 @@ $success = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['method'])) {
     try {
         if ($_POST['method'] === 'bank') {
-            $permit = $permitService->createPendingPermit($_POST);
+            $permit  = $permitService->createPendingPermit($_POST);
             $success = true;
-            $message = "Antrag erfolgreich erstellt! Ihr Code lautet: " . $permit->code;
+            $message = 'Antrag erfolgreich erstellt! Ihr Code lautet: ' . $permit->code;
         }
-    } catch (\Exception $e) {
-        $message = "Fehler: " . $e->getMessage();
+    } catch (Exception $e) {
+        $message = 'Fehler: ' . $e->getMessage();
     }
 }
 

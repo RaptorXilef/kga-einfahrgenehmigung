@@ -16,33 +16,33 @@
 declare(strict_types=1);
 
 return [
-    'vereins_name'      => 'KGA Märchenland e.V.',
-    'base_url'          => 'https://deine-domain.de/', // Mit abschließendem Slash!
-    'geheimnis'         => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // Für Admin-Token
-    'prices' => [
+    'vereins_name' => 'KGA Märchenland e.V.',
+    'base_url'     => 'https://deine-domain.de/', // Mit abschließendem Slash!
+    'geheimnis'    => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // Für Admin-Token
+    'prices'       => [
         'pkw' => 3.00,
         'lkw' => 10.00, // Beispielhafter LKW-Preis
     ],
-    'permit_duration'   => 5, // Dauer in Tagen
-    'test_mode'         => true,
-    'vorstand_email'    => 'vorstand@deine-kga.de',
+    'permit_duration' => 5, // Dauer in Tagen
+    'test_mode'       => true,
+    'vorstand_email'  => 'vorstand@deine-kga.de',
 
     // Pfade relativ zum kga-core Ordner
-    'storage_path'      => 'storage/daten.json',
+    'storage_path' => 'storage/daten.json',
 
     // SMTP Einstellungen
     'mail' => [
-        'host'              => 'smtp.dein-provider.de',
-        'port'              => 465,
-        'user'              => 'no-reply@deine-kga.de',
-        'pass'              => 'dein-passwort',
-        'from'              => 'no-reply@deine-kga.de',
-        'test_mail_active'  => false, // Auch im Testmodus Mails senden?
+        'host'             => 'smtp.dein-provider.de',
+        'port'             => 465,
+        'user'             => 'no-reply@deine-kga.de',
+        'pass'             => 'dein-passwort',
+        'from'             => 'no-reply@deine-kga.de',
+        'test_mail_active' => false, // Auch im Testmodus Mails senden?
     ],
 
     // PayPal API (Sandbox für Test, Live für Produktion)
-    'paypal_client_id'  => 'DEINE_CLIENT_ID',
-    'paypal_secret'     => 'DEIN_SECRET',
+    'paypal_client_id' => 'DEINE_CLIENT_ID',
+    'paypal_secret'    => 'DEIN_SECRET',
 
     'bank_transfer_allowed' => true, // Hier kannst du Überweisung global de- / aktivieren
     'jahresFarbe'           => '#2ecc71',

@@ -8,6 +8,7 @@
  * Verwaltet den Lese- und Schreibzugriff auf die lokale daten.json.
  *
  * @file      src/Infrastructure/Storage/JsonStorage.php
+ *
  * @since     0.1.0
  * - feat(storage): Implementierung der JSON-Persistenz.
  */
@@ -20,15 +21,16 @@ use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use DateTimeImmutable;
 
-final class JsonStorage implements StorageInterface
+final readonly class JsonStorage implements StorageInterface
 {
     public function __construct(
-        private readonly string $filePath
-    ) {}
+        private string $filePath,
+    ) {
+    }
 
     public function save(Permit $permit): bool
     {
-        $data = $this->loadRaw();
+        $data                = $this->loadRaw();
         $data[$permit->code] = [
             'code'        => $permit->code,
             'name'        => $permit->name,
@@ -41,51 +43,60 @@ final class JsonStorage implements StorageInterface
             'erstellt'    => $permit->erstellt?->format('Y-m-d H:i:s'),
         ];
 
-        return (bool) file_put_contents(
+        return (bool) \file_put_contents(
             $this->filePath,
-            json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-            LOCK_EX
+            \json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            LOCK_EX,
         );
     }
 
     public function findByHash(string $hash): ?Permit
     {
         $data = $this->loadRaw();
-        if (!isset($data[$hash])) {
+        if (! isset($data[$hash])) {
             return null;
         }
 
         $item = $data[$hash];
+
         return new Permit(
-            code:        $item['code'],
-            name:        $item['name'],
-            email:       $item['email'],
+            code: $item['code'],
+            name: $item['name'],
+            email: $item['email'],
             kennzeichen: $item['kennzeichen'],
-            parzelle:    $item['parzelle'],
-            von:         new DateTimeImmutable($item['von']),
-            bis:         new DateTimeImmutable($item['bis']),
-            status:      $item['status'],
-            erstellt:    new DateTimeImmutable($item['erstellt'] ?? 'now'),
+            parzelle: $item['parzelle'],
+            von: new DateTimeImmutable($item['von']),
+            bis: new DateTimeImmutable($item['bis']),
+            status: $item['status'],
+            erstellt: new DateTimeImmutable($item['erstellt'] ?? 'now'),
         );
     }
 
     public function getAll(): array
     {
-        return array_map(fn($item) => $this->findByHash($item['code']), $this->loadRaw());
+        return \array_map(fn (array $item): ?Permit => $this->findByHash($item['code']), $this->loadRaw());
     }
 
     public function migrateTo(StorageInterface $target): int
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if ($target->save($permit)) $count++;
+            if (!$target->save($permit)) {
+                continue;
+            }
+
+            ++$count;
         }
+
         return $count;
     }
 
     private function loadRaw(): array
     {
-        if (!file_exists($this->filePath)) return [];
-        return json_decode(file_get_contents($this->filePath), true) ?: [];
+        if (! \file_exists($this->filePath)) {
+            return [];
+        }
+
+        return \json_decode(\file_get_contents($this->filePath), true) ?: [];
     }
 }

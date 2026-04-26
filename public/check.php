@@ -29,15 +29,15 @@ declare(strict_types=1);
 // ==========================================================
 // --- ANKER-SYSTEM ---
 // 1. Versuch: Wir sind in /public/ oder /public/api/ und suchen /kga-core/ im Root
-$appRoot = dirname(__DIR__, 1) . '/kga-core';
+$appRoot = \dirname(__DIR__, 1) . '/kga-core';
 
 // 2. Versuch: Spezialfall Strato/Ionos (falls /public/ sehr tief verschachtelt ist)
-if (!file_exists($appRoot . '/vendor/autoload.php')) {
-    $appRoot = dirname(__DIR__, 2) . '/kga-core';
+if (! \file_exists($appRoot . '/vendor/autoload.php')) {
+    $appRoot = \dirname(__DIR__, 2) . '/kga-core';
 }
 
 // 3. Letzter Rettungsanker: Direkte Suche (nur falls 1 & 2 fehlschlagen)
-if (!file_exists($appRoot . '/vendor/autoload.php')) {
+if (! \file_exists($appRoot . '/vendor/autoload.php')) {
     $appRoot = __DIR__ . '/../kga-core';
 }
 // --------------------
@@ -45,29 +45,29 @@ if (!file_exists($appRoot . '/vendor/autoload.php')) {
 require_once $appRoot . '/vendor/autoload.php';
 
 use App\Bootstrap\Container;
-use App\Infrastructure\Config\Config;
-use App\Core\Service\PermitService;
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Service\PermitService;
+use App\Infrastructure\Config\Config;
 
-$settings = require_once $appRoot . '/config/config.php';
+$settings              = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
 
 $container = new Container(new Config($settings));
 
 /** @var StorageInterface $storage */
 $storage = $container->get(StorageInterface::class);
-$code    = strtoupper(trim($_GET['code'] ?? ''));
+$code    = \strtoupper(\trim($_GET['code'] ?? ''));
 $permit  = $storage->findByHash($code);
 
-if (!$permit) {
+if (! $permit) {
     // Mentoring: Ein professionelles Error-Handling lädt auch hier ein Template
-    die("Genehmigung mit dem Code " . htmlspecialchars($code) . " wurde nicht gefunden.");
+    exit('Genehmigung mit dem Code ' . \htmlspecialchars($code) . ' wurde nicht gefunden.');
 }
 
 // Admin-Prüfung via Token (Sicherheit: hash_equals gegen Timing-Attacks)
 $token         = (string) ($_GET['token'] ?? '');
-$expectedToken = hash('sha256', $permit->code . $settings['geheimnis']);
-$isAdmin       = hash_equals($expectedToken, $token);
+$expectedToken = \hash('sha256', $permit->code . $settings['geheimnis']);
+$isAdmin       = \hash_equals($expectedToken, $token);
 
 // Weiche: Welches Template laden?
 $templatePath = $isAdmin ? 'check_admin' : 'check_public';

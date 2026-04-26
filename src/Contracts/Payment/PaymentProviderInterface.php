@@ -29,8 +29,8 @@ interface PaymentProviderInterface
     /**
      * Verifiziert eine Zahlung beim Anbieter und schließt diese ab.
      *
-     * @param string $orderId Die vom Client übermittelte Order-ID.
-     * @param float $expectedAmount Der Betrag, der laut deiner Config gezahlt werden muss.
+     * @param string $orderId        Die vom Client übermittelte Order-ID.
+     * @param float  $expectedAmount Der Betrag, der laut deiner Config gezahlt werden muss.
      *
      * @return bool True, wenn die Zahlung erfolgreich verifiziert und abgeschlossen wurde.
      */

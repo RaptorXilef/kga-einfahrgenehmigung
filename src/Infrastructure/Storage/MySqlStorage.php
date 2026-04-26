@@ -19,18 +19,19 @@ use App\Core\Entity\Permit;
 use DateTimeImmutable;
 use PDO;
 
-final class MySqlStorage implements StorageInterface
+final readonly class MySqlStorage implements StorageInterface
 {
-    public function __construct(private readonly PDO $pdo)
+    public function __construct(private PDO $pdo)
     {
     }
 
     public function save(Permit $permit): bool
     {
-        $sql = "REPLACE INTO permits (code, name, email, kennzeichen, parzelle, typ, zweck, von, bis, status, erstellt)
-                VALUES (:code, :name, :email, :kennzeichen, :parzelle, :typ, :zweck, :von, :bis, :status, :erstellt)";
+        $sql = 'REPLACE INTO permits (code, name, email, kennzeichen, parzelle, typ, zweck, von, bis, status, erstellt)
+                VALUES (:code, :name, :email, :kennzeichen, :parzelle, :typ, :zweck, :von, :bis, :status, :erstellt)';
 
         $stmt = $this->pdo->prepare($sql);
+
         return $stmt->execute([
             'code'        => $permit->code,
             'name'        => $permit->name,
@@ -48,11 +49,11 @@ final class MySqlStorage implements StorageInterface
 
     public function findByHash(string $hash): ?Permit
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM permits WHERE code = ?");
+        $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = ?');
         $stmt->execute([$hash]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if (! $row) {
             return null;
         }
 
@@ -67,26 +68,28 @@ final class MySqlStorage implements StorageInterface
             new DateTimeImmutable($row['von']),
             new DateTimeImmutable($row['bis']),
             $row['status'],
-            new DateTimeImmutable($row['erstellt'])
+            new DateTimeImmutable($row['erstellt']),
         );
     }
 
     public function getAll(): array
     {
-        $stmt = $this->pdo->query("SELECT code FROM permits");
-        return array_map(fn($row) => $this->findByHash($row['code']), $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $stmt = $this->pdo->query('SELECT code FROM permits');
+
+        return \array_map(fn (array $row): ?Permit => $this->findByHash($row['code']), $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function migrateTo(StorageInterface $target): int
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (!$target->save($permit)) {
+            if (! $target->save($permit)) {
                 continue;
             }
 
-            $count++;
+            ++$count;
         }
+
         return $count;
     }
 }

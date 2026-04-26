@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Scripts;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
 /**
  * Setup-Zentrale
  * Übernimmt die Initialisierung der Umgebung und Tool-Pflege.
  */
 class Setup
 {
-    private const DIRS = [
+    private const array DIRS = [
         '.cache/phpstan',
         '.cache/phpcs',
         '.cache/phpunit',
@@ -19,7 +22,7 @@ class Setup
         '.build/reports',
     ];
 
-    private const TOOLS = [
+    private const array TOOLS = [
         'tools/infection.phar' => 'https://github.com/infection/infection/releases/latest/download/infection.phar',
         'tools/phpcpd.phar'    => 'https://phar.phpunit.de/phpcpd.phar',
     ];
@@ -36,17 +39,19 @@ class Setup
     {
         echo "📄 Prüfe .env Datei...\n";
 
-        if (file_exists('.env')) {
+        if (\file_exists('.env')) {
             echo "   [INFO] .env existiert bereits.\n";
+
             return;
         }
 
-        if (!file_exists('.env.example')) {
+        if (! \file_exists('.env.example')) {
             echo "   [HINWEIS] Keine .env.example gefunden. Bitte .env manuell erstellen.\n";
+
             return;
         }
 
-        copy('.env.example', '.env');
+        \copy('.env.example', '.env');
         echo "   [OK] .env aus .env.example erstellt.\n";
     }
 
@@ -54,12 +59,13 @@ class Setup
     {
         echo "📁 Erstelle Verzeichnisstruktur...\n";
         foreach (self::DIRS as $dir) {
-            if (is_dir($dir)) {
+            if (\is_dir($dir)) {
                 continue;
             }
 
-            if (!mkdir($dir, 0777, true)) {
+            if (! \mkdir($dir, 0o777, true)) {
                 echo "   [FEHLER] Konnte $dir nicht erstellen!\n";
+
                 continue;
             }
 
@@ -71,12 +77,15 @@ class Setup
     {
         echo "🛠️  Aktualisiere PHAR-Tools...\n";
         foreach (self::TOOLS as $path => $url) {
-            echo "   Lade " . basename($path) . "... ";
-            if (@copy($url, $path)) {
+            echo '   Lade ' . \basename($path) . '... ';
+
+            if (\copy($url, $path)) {
                 echo "Fertig.\n";
-            } else {
-                echo "Fehlgeschlagen! (Prüfe Internetverbindung)\n";
+
+                continue;
             }
+
+            echo "Fehlgeschlagen! (Prüfe Internetverbindung)\n";
         }
     }
 
@@ -84,17 +93,17 @@ class Setup
     {
         $path = 'public/dist';
         echo "🧹 Bereinige Build-Verzeichnis ($path)...\n";
-        if (!is_dir($path)) {
+        if (! \is_dir($path)) {
             return;
         }
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($files as $fileinfo) {
-            $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
+            $todo = $fileinfo->isDir() ? 'rmdir' : 'unlink';
             $todo($fileinfo->getRealPath());
         }
         echo "   Fertig.\n";
@@ -107,7 +116,7 @@ class Setup
      */
     public static function runConsole(array $argv): void
     {
-        if (php_sapi_name() !== 'cli' || !isset($argv[1])) {
+        if (\php_sapi_name() !== 'cli' || ! isset($argv[1])) {
             return;
         }
 
@@ -115,7 +124,7 @@ class Setup
             'init'  => self::init(),
             'clear' => self::clearBuild(),
             'up'    => self::updateTools(),
-            default => print("Unbekannter Befehl: {$argv[1]}\n")
+            default => print ("Unbekannter Befehl: {$argv[1]}\n")
         };
     }
 }

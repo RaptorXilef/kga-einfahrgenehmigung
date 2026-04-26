@@ -105,7 +105,7 @@
       "vendor/bin/phpstan analyze",
       "vendor/bin/phpmd analyze --format text --ruleset phpmd.xml.dist",
       "vendor/bin/rector process --dry-run",
-      "vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction"
+      "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff --no-interaction"
     ],
     "*.json": "biome check --write --no-errors-on-unmatched",
     "*.js": [

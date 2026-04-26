@@ -42,6 +42,7 @@ final readonly class Permit
     public function isValid(): bool
     {
         $now = new DateTimeImmutable('today');
+
         return $this->status === 'bezahlt'
             && $now >= $this->von
             && $now <= $this->bis;

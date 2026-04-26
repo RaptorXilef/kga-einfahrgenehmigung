@@ -27,11 +27,12 @@ namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
+use RuntimeException;
 
-final class SmtpMailService implements MailServiceInterface
+final readonly class SmtpMailService implements MailServiceInterface
 {
     public function __construct(
-        private readonly Config $config
+        private Config $config,
     ) {
     }
 
@@ -45,7 +46,7 @@ final class SmtpMailService implements MailServiceInterface
         // Testmodus-Logik
         // 2. SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
-        if ($this->config->isTestMode() && !($mailConfig['test_mail_active'] ?? false)) {
+        if ($this->config->isTestMode() && ! ($mailConfig['test_mail_active'] ?? false)) {
             return true;
         }
 
@@ -54,17 +55,17 @@ final class SmtpMailService implements MailServiceInterface
 
     private function render(string $templatePath, array $data): string
     {
-    // Wir holen den dynamischen Root-Pfad aus der Config
-        $root = $this->config->get('root_path');
+        // Wir holen den dynamischen Root-Pfad aus der Config
+        $root     = $this->config->get('root_path');
         $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
 
-        if (!file_exists($fullPath)) {
-            throw new \RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
+        if (! \file_exists($fullPath)) {
+            throw new RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
         }
 
-        $content = file_get_contents($fullPath);
+        $content = \file_get_contents($fullPath);
         foreach ($data as $key => $value) {
-            $content = str_replace("{{{$key}}}", (string)$value, $content);
+            $content = \str_replace("{{{$key}}}", (string) $value, $content);
         }
 
         return $content;
@@ -79,46 +80,46 @@ final class SmtpMailService implements MailServiceInterface
         $from = $c['from'] ?? '';
 
         $protocol = $port === 465 ? 'ssl://' : '';
-        $socket = @fsockopen($protocol . $host, $port, $errno, $errstr, 15);
+        $socket   = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);
 
-        if (!$socket) {
+        if (! $socket) {
             return "Verbindung fehlgeschlagen: $errstr ($errno)";
         }
 
         $this->getServerResponse($socket); // Begrüßung
 
-        fwrite($socket, "EHLO " . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n");
+        \fwrite($socket, 'EHLO ' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, "AUTH LOGIN\r\n");
+        \fwrite($socket, "AUTH LOGIN\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, base64_encode($user) . "\r\n");
+        \fwrite($socket, \base64_encode($user) . "\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, base64_encode($pass) . "\r\n");
+        \fwrite($socket, \base64_encode($pass) . "\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, "MAIL FROM: <$from>\r\n");
+        \fwrite($socket, "MAIL FROM: <$from>\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, "RCPT TO: <$to>\r\n");
+        \fwrite($socket, "RCPT TO: <$to>\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, "DATA\r\n");
+        \fwrite($socket, "DATA\r\n");
         $this->getServerResponse($socket);
 
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         $headers .= "From: <$from>\r\n";
         $headers .= "To: <$to>\r\n";
-        $headers .= "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=\r\n\r\n";
+        $headers .= 'Subject: =?UTF-8?B?' . \base64_encode($subject) . "?=\r\n\r\n";
 
-        fwrite($socket, $headers . $body . "\r\n.\r\n");
+        \fwrite($socket, $headers . $body . "\r\n.\r\n");
         $this->getServerResponse($socket);
 
-        fwrite($socket, "QUIT\r\n");
-        fclose($socket);
+        \fwrite($socket, "QUIT\r\n");
+        \fclose($socket);
 
         return true;
     }
@@ -126,12 +127,13 @@ final class SmtpMailService implements MailServiceInterface
     private function getServerResponse($socket): string
     {
         $response = '';
-        while ($str = fgets($socket, 515)) {
+        while ($str = \fgets($socket, 515)) {
             $response .= $str;
-            if (str_contains($str, ' ')) {
+            if (\str_contains($str, ' ')) {
                 break;
             }
         }
+
         return $response;
     }
 }

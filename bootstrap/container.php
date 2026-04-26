@@ -39,6 +39,7 @@ use App\Infrastructure\Storage\JsonStorage;
 class Container
 {
     private array $services = [];
+
     private array $instances = [];
 
     public function __construct(private readonly Config $config)
@@ -52,35 +53,36 @@ class Container
         $this->instances[Config::class] = $this->config;
 
         // Storage Engine (JSON Pfad aus Config)
-        $this->services[StorageInterface::class] = function () {
+        $this->services[StorageInterface::class] = function (): JsonStorage {
             $root = $this->config->get('root_path');
             $path = $this->config->get('storage_path', 'daten.json');
 
-    // Falls der Pfad nicht absolut ist, machen wir ihn absolut zum Root
-            $absolutePath = str_starts_with($path, '/') ? $path : $root . '/' . $path;
+            // Falls der Pfad nicht absolut ist, machen wir ihn absolut zum Root
+            $absolutePath = \str_starts_with($path, '/') ? $path : $root . '/' . $path;
 
             return new JsonStorage($absolutePath);
         };
 
         // Mail Service (Nutzt den Config-Service)
-        $this->services[MailServiceInterface::class] = fn () => new SmtpMailService(
-            $this->get(Config::class)
+        $this->services[MailServiceInterface::class] = fn (): SmtpMailService => new SmtpMailService(
+            $this->get(Config::class),
         );
-        $this->services[PaymentProviderInterface::class] = fn () => new PayPalService(
-            $this->get(Config::class)
+        $this->services[PaymentProviderInterface::class] = fn (): PayPalService => new PayPalService(
+            $this->get(Config::class),
         );
-        $this->services[PermitService::class] = fn () => new PermitService(
+        $this->services[PermitService::class] = fn (): PermitService => new PermitService(
             $this->get(StorageInterface::class),
             $this->get(MailServiceInterface::class),
-            $this->get(Config::class)
+            $this->get(Config::class),
         );
     }
 
     public function get(string $id): object
     {
-        if (!isset($this->instances[$id])) {
+        if (! isset($this->instances[$id])) {
             $this->instances[$id] = ($this->services[$id])();
         }
+
         return $this->instances[$id];
     }
 }

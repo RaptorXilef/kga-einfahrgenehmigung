@@ -30,20 +30,19 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Infrastructure\Config\Config;
 use RuntimeException;
 
-final class PayPalService implements PaymentProviderInterface
+final readonly class PayPalService implements PaymentProviderInterface
 {
-    private const API_BASE_SANDBOX = 'https://api-m.sandbox.paypal.com';
-    private const API_BASE_LIVE = 'https://api-m.paypal.com';
+    private const string API_BASE_SANDBOX = 'https://api-m.sandbox.paypal.com';
+    private const string API_BASE_LIVE    = 'https://api-m.paypal.com';
 
     public function __construct(
-        private readonly Config $config
+        private Config $config,
     ) {
     }
 
     /**
      * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
      *
-     * @param string $orderId
      * @param float $expectedAmount Der serverseitig erwartete Betrag (z.B. 3.00 oder 10.00).
      */
     public function captureOrder(string $orderId, float $expectedAmount): bool
@@ -52,24 +51,24 @@ final class PayPalService implements PaymentProviderInterface
         $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
 
         // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
-        $ch = curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json",
+        $ch = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($ch, CURLOPT_POST, true);
+        \curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
             "Authorization: Bearer $accessToken",
         ]);
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $response = \curl_exec($ch);
+        $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        \curl_close($ch);
 
         // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
         if ($httpCode !== 201 && $httpCode !== 200) {
             return false;
         }
 
-        $data = json_decode((string)$response, true);
+        $data = \json_decode((string) $response, true);
 
         // 2. STATUS-PRÜFUNG
         $status = $data['status'] ?? '';
@@ -79,10 +78,10 @@ final class PayPalService implements PaymentProviderInterface
         $capturedAmount = $data['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? '0.00';
 
         // Wir formatieren deinen erwarteten Preis auf das PayPal-Format (String mit 2 Nachkommastellen)
-        $formattedExpected = number_format($expectedAmount, 2, '.', '');
+        $formattedExpected = \number_format($expectedAmount, 2, '.', '');
 
         // Nur wenn Status 'COMPLETED' UND der Preis exakt mit unserem System übereinstimmt:
-        return ($status === 'COMPLETED' && $capturedAmount === $formattedExpected);
+        return $status === 'COMPLETED' && $capturedAmount === $formattedExpected;
     }
 
     /**
@@ -94,19 +93,19 @@ final class PayPalService implements PaymentProviderInterface
         $clientId = $this->config->get('paypal_client_id');
         $secret   = $this->config->get('paypal_secret');
 
-        $ch = curl_init("$baseUrl/v1/oauth2/token");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERPWD, "$clientId:$secret");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+        $ch = \curl_init("$baseUrl/v1/oauth2/token");
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($ch, CURLOPT_USERPWD, "$clientId:$secret");
+        \curl_setopt($ch, CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
 
-        $response = curl_exec($ch);
-        $data     = json_decode((string)$response, true);
-        curl_close($ch);
+        $response = \curl_exec($ch);
+        $data     = \json_decode((string) $response, true);
+        \curl_close($ch);
 
-        if (!isset($data['access_token'])) {
-            throw new RuntimeException("PayPal Authentifizierung fehlgeschlagen. Bitte Client-ID und Secret prüfen.");
+        if (! isset($data['access_token'])) {
+            throw new RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte Client-ID und Secret prüfen.');
         }
 
-        return (string)$data['access_token'];
+        return (string) $data['access_token'];
     }
 }

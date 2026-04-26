@@ -25,7 +25,8 @@
 
     // --- PHP & INTELEPHENSE ---
     "[php]": {
-        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client", // Intelephense als Basis
+        //"editor.defaultFormatter": "bmewburn.vscode-intelephense-client", // Intelephense als Basis
+        "editor.defaultFormatter": "junstyle.php-cs-fixer", // Intelephense als Basis
         "editor.wordWrap": "off",
         "editor.renderWhitespace": "boundary"
     },

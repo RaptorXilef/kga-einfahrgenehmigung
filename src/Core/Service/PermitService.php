@@ -37,14 +37,15 @@ use App\Infrastructure\Config\Config;
 use DateTimeImmutable;
 use RuntimeException;
 
-final class PermitService
+final readonly class PermitService
 {
     public function __construct(
-        private readonly StorageInterface $storage,
-        private readonly MailServiceInterface $mailService,
-        private readonly PaymentProviderInterface $paymentProvider,
-        private readonly Config $config
-    ) {}
+        private StorageInterface $storage,
+        private MailServiceInterface $mailService,
+        private PaymentProviderInterface $paymentProvider,
+        private Config $config,
+    ) {
+    }
 
     /**
      * Workflow: Neuer Antrag (Wartend / Banküberweisung)
@@ -55,19 +56,19 @@ final class PermitService
     public function createPendingPermit(array $data): Permit
     {
         // 1. Sicherheitsschalter: Überweisung erlaubt?
-        if (!$this->config->get('bank_transfer_allowed', true)) {
-            throw new RuntimeException("Zahlung per Überweisung ist aktuell nicht verfügbar.");
+        if (! $this->config->get('bank_transfer_allowed', true)) {
+            throw new RuntimeException('Zahlung per Überweisung ist aktuell nicht verfügbar.');
         }
 
         $this->validateInput($data);
 
-        $type = $data['typ'] ?? 'pkw';
+        $type        = $data['typ'] ?? 'pkw';
         $kennzeichen = (string) $data['kennzeichen'];
 
         // LKW / Lieferanten-Logik
         if ($type === 'lkw') {
-            $firma = !empty($data['firma']) ? (string)$data['firma'] : 'Unbekannt';
-            $kennzeichen = "LIEFERANT: " . $firma . " (" . $kennzeichen . ")";
+            $firma       = empty($data['firma']) ? 'Unbekannt' : (string) $data['firma'];
+            $kennzeichen = 'LIEFERANT: ' . $firma . ' (' . $kennzeichen . ')';
         }
 
         $duration = $this->config->getPermitDuration();
@@ -82,11 +83,11 @@ final class PermitService
             zweck: (string) ($data['zweck'] ?? 'Privat'),
             von: new DateTimeImmutable($data['datum_von']),
             bis: (new DateTimeImmutable($data['datum_von']))->modify("+$duration days"),
-            status: 'wartend'
+            status: 'wartend',
         );
 
-        if (!$this->storage->save($permit)) {
-            throw new RuntimeException("Kritischer Speicherfehler in der Persistenz-Schicht.");
+        if (! $this->storage->save($permit)) {
+            throw new RuntimeException('Kritischer Speicherfehler in der Persistenz-Schicht.');
         }
 
         // Benachrichtigungen
@@ -106,15 +107,15 @@ final class PermitService
     {
         // 1. Sicherheit: Existiert die Genehmigung überhaupt?
         $permit = $this->storage->findByHash($code);
-        if (!$permit || $permit->status === 'bezahlt') {
-            return $permit !== null;
+        if (! $permit instanceof Permit || $permit->status === 'bezahlt') {
+            return $permit instanceof Permit;
         }
 
         // SICHERHEIT: Den korrekten Preis für diesen Fahrzeugtyp ermitteln
         $expectedPrice = $this->config->getPriceForType($permit->typ);
 
         // Preis-Matching beim Capture (Verhindert Preis-Manipulation)
-        if (!$this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
+        if (! $this->paymentProvider->captureOrder($orderId, $expectedPrice)) {
             return false;
         }
 
@@ -127,8 +128,8 @@ final class PermitService
     public function manualActivate(string $code): bool
     {
         $permit = $this->storage->findByHash($code);
-        if (!$permit || $permit->status === 'bezahlt') {
-            return $permit !== null; // True wenn bereits bezahlt, false wenn nicht gefunden
+        if (! $permit instanceof Permit || $permit->status === 'bezahlt') {
+            return $permit instanceof Permit; // True wenn bereits bezahlt, false wenn nicht gefunden
         }
 
         return $this->updateStatus($permit, 'bezahlt');
@@ -151,7 +152,7 @@ final class PermitService
             $p->von,
             $p->bis,
             $newStatus,
-            $p->erstellt
+            $p->erstellt,
         );
 
         $success = $this->storage->save($updated);
@@ -176,11 +177,12 @@ final class PermitService
 
     private function generateSmartCode(): string
     {
-        $chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        $code = date('y') . "-";
-        for ($i = 0; $i < 4; $i++) {
-            $code .= $chars[random_int(0, strlen($chars) - 1)];
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $code  = \date('y') . '-';
+        for ($i = 0; $i < 4; ++$i) {
+            $code .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
+
         return $code;
     }
 
@@ -189,7 +191,7 @@ final class PermitService
      */
     private function notifyBoard(Permit $permit): void
     {
-        $token = hash('sha256', $permit->code . $this->config->get('geheimnis'));
+        $token = \hash('sha256', $permit->code . $this->config->get('geheimnis'));
         $this->mailService->sendTemplate(
             $this->config->get('vorstand_email'),
             "Neuer Antrag: {$permit->code} ({$permit->kennzeichen})",
@@ -198,7 +200,7 @@ final class PermitService
                 'code'      => $permit->code,
                 'name'      => $permit->name,
                 'adminLink' => $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$token}",
-            ]
+            ],
         );
     }
 
@@ -207,8 +209,8 @@ final class PermitService
      */
     private function sendPendingMail(Permit $permit): void
     {
-        $checkUrl = $this->config->get('base_url') . "check.php?code=" . $permit->code;
-        $price = $this->config->getPriceForType($permit->typ);
+        $checkUrl = $this->config->get('base_url') . 'check.php?code=' . $permit->code;
+        $price    = $this->config->getPriceForType($permit->typ);
 
         $this->mailService->sendTemplate(
             $permit->email,
@@ -221,14 +223,14 @@ final class PermitService
                 'parzelle'         => $permit->parzelle,
                 'von'              => $permit->von->format('d.m.Y'),
                 'bis'              => $permit->bis->format('d.m.Y'),
-                'betrag'           => number_format($price, 2, ',', '.') . ' €',
+                'betrag'           => \number_format($price, 2, ',', '.') . ' €',
                 'verwendungszweck' => "Einfahrt {$permit->code}, {$permit->kennzeichen}",
                 'vorlaeufigFarbe'  => $this->config->get('vorlaeufigFarbe', '#f8d7da'),
                 'iban'             => $this->config->get('iban', 'DE...'),
                 'kontoinhaber'     => $this->config->get('kontoinhaber', '...'),
-                'qrCodeUrl'        => "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="
-                    . urlencode($checkUrl),
-            ]
+                'qrCodeUrl'        => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='
+                    . \urlencode($checkUrl),
+            ],
         );
     }
 
@@ -237,26 +239,26 @@ final class PermitService
      */
     private function sendApprovalMail(Permit $permit): void
     {
-        $checkUrl = $this->config->get('base_url') . "check.php?code=" . $permit->code;
+        $checkUrl = $this->config->get('base_url') . 'check.php?code=' . $permit->code;
 
         $this->mailService->sendTemplate(
             $permit->email,
             "Ihre Einfahrgenehmigung {$permit->code} - {$this->config->get('vereins_name')}",
             'permit_issued',
             [
-                'name'         => $permit->name,
-                'code'         => $permit->code,
-                'kennzeichen'  => $permit->kennzeichen,
-                'parzelle'     => $permit->parzelle,
-                'zweck'        => $permit->zweck,
-                'von'          => $permit->von->format('d.m.Y'),
-                'bis'          => $permit->bis->format('d.m.Y'),
-                'jahresFarbe'  => $this->config->get('jahresFarbe', '#2ecc71'),
-                'vereinsName'  => $this->config->get('vereins_name'),
-                'qrCodeUrl'    => "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="
-                    . urlencode($checkUrl),
-                'checkUrl'     => $checkUrl,
-            ]
+                'name'        => $permit->name,
+                'code'        => $permit->code,
+                'kennzeichen' => $permit->kennzeichen,
+                'parzelle'    => $permit->parzelle,
+                'zweck'       => $permit->zweck,
+                'von'         => $permit->von->format('d.m.Y'),
+                'bis'         => $permit->bis->format('d.m.Y'),
+                'jahresFarbe' => $this->config->get('jahresFarbe', '#2ecc71'),
+                'vereinsName' => $this->config->get('vereins_name'),
+                'qrCodeUrl'   => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='
+                    . \urlencode($checkUrl),
+                'checkUrl' => $checkUrl,
+            ],
         );
     }
 }

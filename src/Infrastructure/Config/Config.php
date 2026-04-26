@@ -21,10 +21,10 @@ namespace App\Infrastructure\Config;
 /**
  * @immutable
  */
-final class Config
+final readonly class Config
 {
     public function __construct(
-        private readonly array $settings
+        private array $settings,
     ) {
     }
 
@@ -45,15 +45,15 @@ final class Config
 
     public function getPermitDuration(): int
     {
-    // Standardmäßig 5 Tage, falls nichts in der config.php steht
+        // Standardmäßig 5 Tage, falls nichts in der config.php steht
         return (int) $this->get('permit_duration', 5);
     }
 
     public function getPriceForType(string $type): float
     {
         $prices = $this->get('prices', [
-        'pkw' => 3.00,
-        'lkw' => 3.00, // Fallback
+            'pkw' => 3.00,
+            'lkw' => 3.00, // Fallback
         ]);
 
         return (float) ($prices[$type] ?? $prices['pkw']);

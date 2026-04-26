@@ -3,10 +3,14 @@
 // Auch die Config-Datei selbst sollte strikt sein
 declare(strict_types=1);
 
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+use PhpCsFixerCustomFixers\Fixers;
+
 // Der Autoloader ist zwingend für die Custom Fixers erforderlich
 require_once __DIR__ . '/vendor/autoload.php';
 
-$finder = (new PhpCsFixer\Finder())
+$finder = (new Finder())
     ->in([
         __DIR__ . '/src',
         __DIR__ . '/tests',
@@ -18,9 +22,9 @@ $finder = (new PhpCsFixer\Finder())
     ->ignoreDotFiles(true)
     ->ignoreVCS(true);
 
-return (new PhpCsFixer\Config())
+return (new Config())
     ->setRiskyAllowed(true) // Erlaubt strengere Regeln (wie strict_types)
-    ->registerCustomFixers(new PhpCsFixerCustomFixers\Fixers()) // Registriert das installierte Zusatz-Paket
+    ->registerCustomFixers(new Fixers()) // Registriert das installierte Zusatz-Paket
     ->setRules([
         // --- BASIS-STANDARDS ---
         '@PER-CS'         => true, // Der aktuelle Standard (Nachfolger von PSR-12)
@@ -41,7 +45,7 @@ return (new PhpCsFixer\Config())
         'PhpCsFixerCustomFixers/trim_key'               => true,    // Säubert Array-Schlüssel
 
         // --- STRUKTUR & LESBARKEIT ---
-        'binary_operator_spaces'                 => [
+        'binary_operator_spaces' => [
             'default'   => 'single_space', // Standard bleibt ein einfaches Leerzeichen
             'operators' => [
                 '='  => 'align_single_space_minimal', // NEU: Zuweisungen ausrichten
@@ -104,17 +108,11 @@ return (new PhpCsFixer\Config())
         ],
 
         // --- PHPDOC ---
-        //'phpdoc_align' => ['align' => 'left'],
+        // 'phpdoc_align' => ['align' => 'left'],
         'phpdoc_align' => [
-            'align' => 'vertical', // Das passt perfekt zu deinem Wunsch
-            'tags'  => [
-                'param',
-                'return',
-                'throws',
-                'type',
-                'var',
-                // 'file', 'copyright', 'license', 'link', 'author', 'since'
-            ],
+            'align' => 'vertical',
+            'tags'  => ['param', 'return', 'throws', 'type', 'var'],
+            // 'file', 'copyright', 'license', 'link', 'author', 'since'
         ],
 
         // Wandelt einzeilige DocBlocks (wie @var) in mehrzeilige um
@@ -133,17 +131,17 @@ return (new PhpCsFixer\Config())
         'phpdoc_single_line_var_spacing' => true,
         'phpdoc_var_without_name'        => true,
 
-        'phpdoc_no_alias_tag'            => [
+        'phpdoc_no_alias_tag' => [
             'replacements' => [
                 'type' => 'var', // Standard-Ersetzung (wichtig!)
                 'link' => 'link', // Hier zwinge ich, link als link zu belassen (kein Replace zu see)
             ],
         ],
 
-        'phpdoc_types' => true,
+        'phpdoc_types'       => true,
         'phpdoc_types_order' => [
             'null_adjustment' => 'always_last',
-            'sort_algorithm' => 'none', // 'none' lässt die Reihenfolge und Form deines Types (Array Shape) in Ruhe
+            'sort_algorithm'  => 'none', // 'none' lässt die Reihenfolge und Form deines Types (Array Shape) in Ruhe
         ],
 
         // --- PHPUNIT ---
