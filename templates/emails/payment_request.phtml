@@ -1,0 +1,25 @@
+<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 30px; border-radius: 10px;">
+    <h2 style="color: #2c3e50;">Zahlungsinformationen</h2>
+    <p>Sehr geehrte(r) <strong>{{name}}</strong>,</p>
+    <p>vielen Dank für Ihren Antrag auf eine Ausnahmegenehmigung (Kennung: <code>{{fullIdentifier}}</code>).</p>
+
+    <div style="background: #fff8e1; border-left: 5px solid #ffc107; padding: 15px; margin: 20px 0;">
+        <strong>Zahlungsziel:</strong> Bitte überweisen Sie den Betrag bis spätestens <strong>{{dueDate}}</strong>.
+    </div>
+
+    <table style="width: 100%; margin-bottom: 20px;">
+        <tr><td><strong>Betrag:</strong></td><td style="text-align: right; font-size: 18px; font-weight: bold;">{{betrag}}</td></tr>
+        <tr><td><strong>Empfänger:</strong></td><td style="text-align: right;">{{kontoinhaber}}</td></tr>
+        <tr><td><strong>IBAN:</strong></td><td style="text-align: right;"><code>{{iban}}</code></td></tr>
+        <tr><td><strong>Verwendungszweck:</strong></td><td style="text-align: right; color: #d32f2f; font-weight: bold;"><code>{{usage}}</code></td></tr>
+    </table>
+
+    <div style="text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+        <p style="font-size: 14px; color: #666;">Scannen Sie diesen Code mit Ihrer Banking-App für eine automatische Überweisung:</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{epcData}}" alt="BezahlCode" style="border: 1px solid #ccc; padding: 5px;">
+    </div>
+
+    <p style="font-size: 13px; color: #7f8c8d; margin-top: 30px;">
+        <em>Hinweis: Ihre Genehmigung wurde Ihnen bereits in einer separaten E-Mail zugestellt und ist ab sofort gültig. Bitte begleichen Sie die Gebühr zeitnah.</em>
+    </p>
+</div>

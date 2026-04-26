@@ -1,0 +1,31 @@
+<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px;">
+    <h2 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+        Neuer Antrag auf Ausnahmegenehmigung
+    </h2>
+
+    <p>Hallo Vorstand/Verwaltung,</p>
+    <p>es wurde ein neuer Antrag gestellt. Hier sind die Details im Überblick:</p>
+
+    <table style="width: 100%; border-collapse: collapse; background: #f9f9f9;">
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Eindeutige Kennung:</td><td style="padding: 8px; border: 1px solid #ddd;">{{fullIdentifier}}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Name:</td><td style="padding: 8px; border: 1px solid #ddd;">{{name}}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">E-Mail:</td><td style="padding: 8px; border: 1px solid #ddd;">{{email}}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Parzelle:</td><td style="padding: 8px; border: 1px solid #ddd;">{{parzelle}}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Fahrzeug-Typ:</td><td style="padding: 8px; border: 1px solid #ddd;">{{typLabel}}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Kennzeichen:</td><td style="padding: 8px; border: 1px solid #ddd;">{{kennzeichen}}</td></tr>
+        <?php if (!empty($firma)): ?>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Firma/Lieferant:</td><td style="padding: 8px; border: 1px solid #ddd;">{{firma}}</td></tr>
+        <?php endif; ?>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zeitraum:</td><td style="padding: 8px; border: 1px solid #ddd;">{{von}} bis {{bis}}</td></tr>
+        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zweck:</td><td style="padding: 8px; border: 1px solid #ddd;">{{zweck}}</td></tr>
+    </table>
+
+    <p style="margin-top: 25px;">
+        <a href="{{adminLink}}" style="background: #3498db; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            Direkt zur Admin-Übersicht
+        </a>
+    </p>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;">
+    <p style="font-size: 12px; color: #999;">Automatisierte Benachrichtigung - {{vereinsName}}</p>
+</div>
