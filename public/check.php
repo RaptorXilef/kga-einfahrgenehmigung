@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Validierungsschnittstelle für Einfahrgenehmigungen.
+ * Validierungsschnittstelle für Ausnahmegenehmigungen (v0.4.0).
  *
  * Prüft die Gültigkeit eines Codes und unterscheidet mittels Token-Validierung
  * zwischen der öffentlichen Ansicht und der detaillierten Vorstandsansicht.
@@ -32,9 +32,7 @@ $appRoot = (function() {
     $dir = __DIR__;
     // Wir suchen nach oben, bis wir den Ordner finden, der 'vendor' oder 'src' enthält
     while ($dir !== dirname($dir)) {
-        if (file_exists($dir . '/vendor/autoload.php')) {
-            return $dir;
-        }
+        if (file_exists($dir . '/vendor/autoload.php')) return $dir;
         $dir = dirname($dir);
     }
     // Fallback: Falls nichts gefunden wurde, gehen wir eine Ebene hoch
@@ -44,30 +42,39 @@ $appRoot = (function() {
 require_once $appRoot . '/vendor/autoload.php';
 
 use App\Bootstrap\Container;
-use App\Contracts\Storage\StorageInterface;
-use App\Core\Service\PermitService;
 use App\Infrastructure\Config\Config;
+use App\Contracts\Storage\StorageInterface;
 
-$settings              = require_once $appRoot . '/config/config.php';
+// Session starten für Admin-Check
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$settings = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
-
 $container = new Container(new Config($settings));
 
 /** @var StorageInterface $storage */
 $storage = $container->get(StorageInterface::class);
-$code    = \strtoupper(\trim($_GET['code'] ?? ''));
+$code    = strtoupper(trim($_GET['code'] ?? ''));
 $permit  = $storage->findByHash($code);
 
-if (! $permit) {
-    // Mentoring: Ein professionelles Error-Handling lädt auch hier ein Template
-    exit('Genehmigung mit dem Code ' . \htmlspecialchars($code) . ' wurde nicht gefunden.');
+if (!$permit) {
+    // Hier könnten wir später ein schönes 404-Template laden
+    exit('Genehmigung mit dem Code ' . htmlspecialchars($code) . ' wurde nicht gefunden.');
 }
 
-// Admin-Prüfung via Token (Sicherheit: hash_equals gegen Timing-Attacks)
+// ADMIN-CHECK
+// 1. Entweder über den Token im Link (Direkt-Link aus Mail)
 $token         = (string) ($_GET['token'] ?? '');
-$expectedToken = \hash('sha256', $permit->code . $settings['geheimnis']);
-$isAdmin       = \hash_equals($expectedToken, $token);
+$expectedToken = hash('sha256', $permit->code . $settings['geheimnis']);
+$isTokenAdmin  = hash_equals($expectedToken, $token);
+
+// 2. Oder über eine aktive Session (Eingeloggt im Admin-Bereich)
+$isSessionAdmin = isset($_SESSION['admin_level']) && $_SESSION['admin_level'] <= 2;
+
+$showAdminView = $isTokenAdmin || $isSessionAdmin;
 
 // Weiche: Welches Template laden?
-$templatePath = $isAdmin ? 'check_admin' : 'check_public';
+$templatePath = $showAdminView ? 'check_admin' : 'check_public';
 include $appRoot . "/templates/pages/{$templatePath}.phtml";

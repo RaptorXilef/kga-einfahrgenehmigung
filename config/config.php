@@ -3,32 +3,40 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Zentrale Anwendungskonfiguration.
+ * Beispiel-Konfiguration für das Ausnahmegenehmigungs-System (v0.4.0).
  *
- * Enthält alle Parameter für Mail, Payment, Pfade und Sicherheit.
- * Diese Datei sollte niemals im Git-Repository versioniert werden (Eintrag in .gitignore).
- *
- * @file      kga-core/config/config.php
- *
- * @since     0.1.0
+ * @file      config/config.php.example
+ * @since     0.4.0
  */
 
 declare(strict_types=1);
 
 return [
-    'vereins_name' => 'KGA Märchenland e.V.',
-    'base_url'     => 'https://deine-domain.de/', // Mit abschließendem Slash!
-    'geheimnis'    => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // Für Admin-Token
-    'prices'       => [
-        'pkw' => 3.00,
-        'lkw' => 10.00, // Beispielhafter LKW-Preis
-    ],
-    'permit_duration' => 5, // Dauer in Tagen
+    // --- VEREIN & BASIC ---
+    'vereins_name'    => 'KGA e.V.',
+    'prefix'          => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
+    'base_url'        => 'https://deine-domain.de/',
+    'geheimnis'       => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
     'test_mode'       => true,
-    'vorstand_email'  => 'vorstand@deine-kga.de',
 
-    // Pfade relativ zum kga-core Ordner
-    'storage_path' => 'storage/daten.json',
+    // --- PREISE & ZAHLUNG ---
+    'prices' => [
+        'pkw' => 3.00,
+        'lkw' => 10.00,
+    ],
+    'iban'              => 'DE12 3456 7890 1234 5678 90',
+    'kontoinhaber'      => 'KGA e.V.',
+    'payment_due_days'  => 14, // Zahlungsziel in Tagen
+    'paypal_enabled'    => false, // Standardmäßig deaktiviert
+    'bank_transfer_allowed' => true,
+
+    // PayPal API (Optional)
+    'paypal_client_id' => 'DEINE_CLIENT_ID',
+    'paypal_secret'    => 'DEIN_SECRET',
+
+    // --- E-MAIL & DATENSPEICHER
+    'vorstand_email'  => 'vorstand@deine-kga.de',
+    'storage_path'    => 'storage/daten.json',
 
     // SMTP Einstellungen
     'mail' => [
@@ -40,11 +48,39 @@ return [
         'test_mail_active' => false, // Auch im Testmodus Mails senden?
     ],
 
-    // PayPal API (Sandbox für Test, Live für Produktion)
-    'paypal_client_id' => 'DEINE_CLIENT_ID',
-    'paypal_secret'    => 'DEIN_SECRET',
+    // --- LOGIK & ZEITRÄUME ---
+    'permit_duration' => 7, // Standard-Zeitraum (1 Woche)
+    'opening_hours'   => [
+        'earliest' => '07:00',
+        'latest'   => '20:00',
+    ],
+    'holiday_check'   => 'Berlin', // Automatischer Check für Sonntage/Feiertage
 
-    'bank_transfer_allowed' => true, // Hier kannst du Überweisung global de- / aktivieren
-    'jahresFarbe'           => '#2ecc71',
-    'vorlaeufigFarbe'       => '#f8d7da',
+    // --- AUSWAHLMENÜS ---
+    'purposes' => [
+        'bau'     => 'Baumaßnahmen (genehmigt)',
+        'abriss'  => 'Abriss',
+        'liefer'  => 'Lieferung',
+        'entsorg' => 'Entsorgung/Abfuhr',
+    ],
+    'vehicle_types' => [
+        'pkw' => 'Privat PKW',
+        'lkw' => 'LKW / Lieferant / Firma',
+    ],
+
+    // --- ADMIN & SICHERHEIT ---
+    'admin_users' => [
+        'admin' => [
+            'pass'  => '$2y$10$xyz...', // Password-Hash
+            'level' => 1, // Vollzugriff
+        ],
+        'vorstand' => [
+            'pass'  => '$2y$10$abc...',
+            'level' => 2, // Nur Einsicht
+        ],
+    ],
+
+    // --- DESIGN ---
+    'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail
+    'vorlaeufigFarbe' => '#f1c40f', // Gelb für "Wartend" (Verwaltungsintern)
 ];
