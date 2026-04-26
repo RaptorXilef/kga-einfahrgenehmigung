@@ -60,21 +60,26 @@ export class PermitFormHandler {
     }
 
     /**
-     * Formatiert Kennzeichen in deutsches Standard-Format (B-HD 7398).
+     * Intelligente Kennzeichen-Formatierung (v0.4.1)
+     * Berücksichtigt die Priorität für Berlin-Kennzeichen.
      */
     formatLicensePlate(input) {
         const val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (val.length > 3) {
-            // Prüfung: 1-3 Buchstaben (Stadt) + 1-2 Buchstaben (Unterscheidung) + 1-4 Zahlen
-            const complexPlate = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
-            // Prüfung: 1-3 Buchstaben (Stadt) + 1-4 Zahlen (ohne Unterscheidungszeichen)
-            const simplePlate = /^([A-Z]{1,3})([0-9]{1,4})$/;
+        if (val.length <= 3) return;
 
-            if (complexPlate.test(val)) {
-                input.value = val.replace(complexPlate, '$1-$2 $3');
-            } else if (simplePlate.test(val)) {
-                input.value = val.replace(simplePlate, '$1 $2');
-            }
+        // 1. Spezialfall Berlin: Falls es mit B beginnt und 3 Buchstaben hat (B-XX 123)
+        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4})$/;
+        // 2. Standard Komplex: Stadt (1-3) + Zeichen (1-2) + Zahlen (1-4)
+        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
+        // 3. Standard Simpel: Stadt (1-3) + Zahlen (1-4)
+        const simplePattern = /^([A-Z]{1,3})([0-9]{1,4})$/;
+
+        if (berlinPattern.test(val)) {
+            input.value = val.replace(berlinPattern, '$1-$2 $3');
+        } else if (complexPattern.test(val)) {
+            input.value = val.replace(complexPattern, '$1-$2 $3');
+        } else if (simplePattern.test(val)) {
+            input.value = val.replace(simplePattern, '$1 $2');
         }
     }
 
@@ -95,8 +100,6 @@ export class PermitFormHandler {
         this.dateInputs.forEach((input) => {
             if (!input.value) return;
             const date = new Date(input.value);
-
-            // BIOME FIX: Sicherer Check via Number.isNaN
             if (Number.isNaN(date.getTime())) return;
 
             if (this.isRestrictedDay(date)) {
@@ -116,12 +119,16 @@ export class PermitFormHandler {
      * Logik zur Erkennung von Sperrtagen in Berlin.
      */
     isRestrictedDay(date) {
+        // Zeit auf 0 setzen für sauberen Vergleich
         // 1. Sonntag?
-        if (date.getDay() === 0) return true;
+        const checkDate = new Date(date);
+        checkDate.setHours(0, 0, 0, 0);
 
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
+        if (checkDate.getDay() === 0) return true;
+
+        const year = checkDate.getFullYear();
+        const month = checkDate.getMonth() + 1;
+        const day = checkDate.getDate();
         const dateStr = `${month}-${day}`;
 
         // 2. Feste Berliner Feiertage
@@ -137,10 +144,9 @@ export class PermitFormHandler {
 
         // 3. Bewegliche Feiertage (Ostern-basiert)
         const easter = this.getEaster(year);
-        const diffDays = Math.round(
-            (date.setHours(0, 0, 0, 0) - easter.setHours(0, 0, 0, 0)) / (24 * 60 * 60 * 1000)
-        );
+        easter.setHours(0, 0, 0, 0);
 
+        const diffDays = Math.round((checkDate - easter) / (24 * 60 * 60 * 1000));
         const relativeHolidays = [
             -2, // Karfreitag
             1, // Ostermontag
