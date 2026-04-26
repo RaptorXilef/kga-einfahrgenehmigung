@@ -2,61 +2,90 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - <?= htmlspecialchars($settings['vereins_name']) ?></title>
+    <title>Admin Dashboard - <?= htmlspecialchars($settings['vereins_name']) ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
 </head>
 <body class="l-admin">
     <nav class="c-admin-nav">
         <div class="c-container">
-            <span>Eingeloggt als: <strong><?= htmlspecialchars($_SESSION['admin_user']) ?></strong> (Stufe <?= $_SESSION['admin_level'] ?>)</span>
+            <span>Eingeloggt: <strong><?= htmlspecialchars($_SESSION['admin_user']) ?></strong> (Lvl <?= $_SESSION['admin_level'] ?>)</span>
             <a href="?action=logout" class="u-float-right">Abmelden</a>
         </div>
     </nav>
 
     <main class="c-container u-padding-y-l">
-        <h1>Verwaltung der Ausnahmegenehmigungen</h1>
+        <?php if ($message): ?>
+            <div class="c-alert c-alert--success u-margin-bottom"><?= $message ?></div>
+        <?php endif; ?>
 
-        <section class="c-stats-grid u-margin-bottom-l">
-            <div class="c-card c-card--info">Aktiv: <?= count($groups['active']) ?></div>
-            <div class="c-card">Zukünftig: <?= count($groups['future']) ?></div>
+        <h1>Dashboard & Statistiken</h1>
+
+        <section class="c-card u-margin-bottom-l">
+            <form method="GET" class="c-form--inline">
+                <div class="c-form-group">
+                    <label>Zeitraum von:</label>
+                    <input type="date" name="start" value="<?= $filterStart ?>" class="c-form-input">
+                </div>
+                <div class="c-form-group">
+                    <label>bis:</label>
+                    <input type="date" name="end" value="<?= $filterEnd ?>" class="c-form-input">
+                </div>
+                <button type="submit" class="c-button">Zeitraum filtern</button>
+                <div class="u-margin-left-auto">
+                    <a href="?export=csv&start=<?= $filterStart ?>&end=<?= $filterEnd ?>" class="c-button c-button--secondary">CSV</a>
+                    <a href="?export=json&start=<?= $filterStart ?>&end=<?= $filterEnd ?>" class="c-button c-button--secondary">JSON</a>
+                </div>
+            </form>
         </section>
 
-        <section class="c-card">
-            <header class="c-card__header"><h3>Aktuelle Genehmigungen</h3></header>
-            <table class="c-table">
-                <thead>
-                    <tr>
-                        <th>Kennung</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Aktion</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($groups['active'] as $p): ?>
-                    <tr>
-                        <td><code><?= $p->code ?></code></td>
-                        <td><?= htmlspecialchars($p->name) ?></td>
-                        <td>
-                            <span class="c-badge c-badge--<?= $p->status === 'bezahlt' ? 'success' : 'warning' ?>">
-                                <?= strtoupper($p->status) ?>
-                            </span>
-                        </td>
-                        <td>
-                            <?php if ($p->status !== 'bezahlt'): ?>
-                            <form method="POST" style="display:inline;">
-                                <input type="hidden" name="action" value="mark_as_paid">
-                                <input type="hidden" name="code" value="<?= $p->code ?>">
-                                <button type="submit" class="c-button c-button--success c-button--small">Zahlung eingegangen</button>
-                            </form>
-                            <?php endif; ?>
-                            <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">Details</a>
-                        </td>
-                    </tr>
+        <div class="c-stats-grid u-margin-bottom-l">
+            <div class="c-card">
+                <small>Einnahmen (Zeitraum)</small>
+                <div class="u-font-xl u-font-bold"><?= \number_format($stats['total_revenue'], 2, ',', '.') ?> €</div>
+            </div>
+            <div class="c-card">
+                <small>Anträge / PKW / LKW</small>
+                <div><?= $stats['total_count'] ?> (<?= $stats['types']['pkw'] ?>/<?= $stats['types']['lkw'] ?>)</div>
+            </div>
+        </div>
+
+        <div class="c-grid-2">
+            <section class="c-card">
+                <header class="c-card__header"><h3>Aktive Genehmigungen (<?= count($groups['active']) ?>)</h3></header>
+                <table class="c-table">
+                    <thead><tr><th>Kennung</th><th>Status</th><th>Aktion</th></tr></thead>
+                    <tbody>
+                        <?php foreach ($groups['active'] as $p): ?>
+                        <tr>
+                            <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                            <td><span class="c-badge c-badge--<?= $p->status === 'bezahlt' ? 'success' : 'warning' ?>"><?= $p->status ?></span></td>
+                            <td>
+                                <div class="u-flex u-gap-xs">
+                                    <?php if ($p->status !== 'bezahlt'): ?>
+                                    <form method="POST">
+                                        <input type="hidden" name="action" value="mark_as_paid">
+                                        <input type="hidden" name="code" value="<?= $p->code ?>">
+                                        <button type="submit" class="c-button c-button--success c-button--small">✔</button>
+                                    </form>
+                                    <?php endif; ?>
+                                    <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="c-card">
+                <header class="c-card__header"><h3>Top Parzellen (Zeitraum)</h3></header>
+                <table class="c-table">
+                    <?php foreach (\array_slice($stats['plots'], 0, 8, true) as $plot => $count): ?>
+                        <tr><td>Nr. <?= $plot ?></td><td class="u-text-right"><?= $count ?>x</td></tr>
                     <?php endforeach; ?>
-                </tbody>
-            </table>
-        </section>
+                </table>
+            </section>
+        </div>
     </main>
 </body>
 </html>
