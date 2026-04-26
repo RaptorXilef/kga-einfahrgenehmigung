@@ -14,11 +14,12 @@ declare(strict_types=1);
 
 return [
     // --- VEREIN & BASIC ---
-    'vereins_name' => 'KGA e.V.',
-    'prefix'       => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
-    'base_url'     => 'https://deine-domain.de/',
-    'geheimnis'    => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
-    'test_mode'    => true,
+    'vereins_name'       => 'KGA e.V.',
+    'prefix'             => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
+    'base_url'           => 'https://deine-domain.de/',
+    'geheimnis'          => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
+    'test_mode'          => true,
+    'terminkalender_url' => 'https://deine-kga.de/termine', // Sprechzeiten
 
     // --- PREISE & ZAHLUNG ---
     'prices' => [
@@ -26,16 +27,18 @@ return [
         'lkw' => 10.00,
     ],
     'iban'                  => 'DE12 3456 7890 1234 5678 90',
+    'bic'                   => 'GENODES1M00', // Wichtig für EPC-QR-Code
     'kontoinhaber'          => 'KGA e.V.',
     'payment_due_days'      => 14, // Zahlungsziel in Tagen
-    'paypal_enabled'        => false, // Standardmäßig deaktiviert
+    'usage_pattern'         => 'EFG-{{nachname}}-{{vorname}}-{{code}}', // Dynamisches Muster
     'bank_transfer_allowed' => true,
 
     // PayPal API (Optional)
+    'paypal_enabled'   => false, // Standardmäßig deaktiviert
     'paypal_client_id' => 'DEINE_CLIENT_ID',
     'paypal_secret'    => 'DEIN_SECRET',
 
-    // --- E-MAIL & DATENSPEICHER
+    // --- E-MAIL & DATENSPEICHER ---
     'vorstand_email' => 'vorstand@deine-kga.de',
     'storage_path'   => 'storage/daten.json',
 
