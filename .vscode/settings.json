@@ -86,6 +86,8 @@
         "**/vendor/**": true,
         "**/.debug/**": true
     },
+    "intelephense.diagnostics.undefinedTypes": true,
+    "intelephense.files.exclude": ["**/.cache/**", "**/.build/**", "**/.php-cs-fixer.dist.php"],
 
     // =========================================================================
     // TOOLS & WORKFLOW (Deine persönlichen Favoriten)

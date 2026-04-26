@@ -19,28 +19,27 @@
  *
  * @since     0.2.0 - Initiale Erstellung.
  * @since     0.2.0 - Refactor(arch): Umstellung auf PermitService und Anker-Pfad-System.
+ * @since     0.4.0 - refactor(arch): Move to root structure and blueprint tools.
  */
 
 declare(strict_types=1);
 
-// ==========================================================
-// DIE EINZIGE VARIABLE FÜR PFADE:
-// Zeige hier auf den Ordner, der 'src', 'vendor' etc. enthält.
-// ==========================================================
-// --- ANKER-SYSTEM ---
-// 1. Versuch: Wir sind in /public/ oder /public/api/ und suchen /kga-core/ im Root
-$appRoot = \dirname(__DIR__, 1) . '/kga-core';
-
-// 2. Versuch: Spezialfall Strato/Ionos (falls /public/ sehr tief verschachtelt ist)
-if (! \file_exists($appRoot . '/vendor/autoload.php')) {
-    $appRoot = \dirname(__DIR__, 2) . '/kga-core';
-}
-
-// 3. Letzter Rettungsanker: Direkte Suche (nur falls 1 & 2 fehlschlagen)
-if (! \file_exists($appRoot . '/vendor/autoload.php')) {
-    $appRoot = __DIR__ . '/../kga-core';
-}
-// --------------------
+/**
+ * FLEXIBLES ANKER-SYSTEM
+ * Sucht den Projekt-Root (wo vendor/ liegt) ausgehend vom aktuellen Verzeichnis.
+ */
+$appRoot = (function() {
+    $dir = __DIR__;
+    // Wir suchen nach oben, bis wir den Ordner finden, der 'vendor' oder 'src' enthält
+    while ($dir !== dirname($dir)) {
+        if (file_exists($dir . '/vendor/autoload.php')) {
+            return $dir;
+        }
+        $dir = dirname($dir);
+    }
+    // Fallback: Falls nichts gefunden wurde, gehen wir eine Ebene hoch
+    return dirname(__DIR__);
+})();
 
 require_once $appRoot . '/vendor/autoload.php';
 
