@@ -65,7 +65,16 @@ export class PermitFormHandler {
     formatLicensePlate(input) {
         const val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (val.length > 3) {
-            input.value = val.replace(/^([A-Z]{1,3})([A-Z]{0,2})([0-9]{1,4})$/, '$1-$2 $3').trim();
+            // Prüfung: 1-3 Buchstaben (Stadt) + 1-2 Buchstaben (Unterscheidung) + 1-4 Zahlen
+            const complexPlate = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
+            // Prüfung: 1-3 Buchstaben (Stadt) + 1-4 Zahlen (ohne Unterscheidungszeichen)
+            const simplePlate = /^([A-Z]{1,3})([0-9]{1,4})$/;
+
+            if (complexPlate.test(val)) {
+                input.value = val.replace(complexPlate, '$1-$2 $3');
+            } else if (simplePlate.test(val)) {
+                input.value = val.replace(simplePlate, '$1 $2');
+            }
         }
     }
 
@@ -86,7 +95,8 @@ export class PermitFormHandler {
         this.dateInputs.forEach((input) => {
             if (!input.value) return;
             const date = new Date(input.value);
-            // BIOME FIX: Number.isNaN statt isNaN
+
+            // BIOME FIX: Sicherer Check via Number.isNaN
             if (Number.isNaN(date.getTime())) return;
 
             if (this.isRestrictedDay(date)) {
@@ -127,7 +137,9 @@ export class PermitFormHandler {
 
         // 3. Bewegliche Feiertage (Ostern-basiert)
         const easter = this.getEaster(year);
-        const diffDays = Math.floor((date - easter) / (24 * 60 * 60 * 1000));
+        const diffDays = Math.round(
+            (date.setHours(0, 0, 0, 0) - easter.setHours(0, 0, 0, 0)) / (24 * 60 * 60 * 1000)
+        );
 
         const relativeHolidays = [
             -2, // Karfreitag
