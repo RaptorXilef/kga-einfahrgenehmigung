@@ -3,16 +3,13 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Admin-Zentrale für den Vorstand (v0.6.1).
+ * Admin-Zentrale für den Vorstand (v0.6.5).
  *
  * @file      public/admin.php
  */
 
 declare(strict_types=1);
 
-/**
- * FLEXIBLES ANKER-SYSTEM
- */
 $appRoot = (function (): string {
     $dir = __DIR__;
     while ($dir !== \dirname($dir)) {
@@ -70,6 +67,16 @@ if (! $auth->isLoggedIn()) {
     exit;
 }
 
+// --- 2. PRINT PREVIEW (Vor den Dashboard-Daten) ---
+if (isset($_GET['action']) && $_GET['action'] === 'print' && isset($_GET['code'])) {
+    $permit = $storage->findByHash((string) $_GET['code']);
+    if ($permit) {
+        include $appRoot . '/templates/pages/admin_print_view.phtml';
+        exit;
+    }
+    $message = 'Genehmigung nicht gefunden.';
+}
+
 // --- 3. LOGGED-IN ACTIONS ---
 
 // Zahlung markieren (Level 1 & 2)
@@ -82,8 +89,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'mark_as_paid' && $permitSer
 
 $filterStart = $_GET['start'] ?? \date('Y-01-01');
 $filterEnd   = $_GET['end'] ?? \date('Y-12-31');
-
-$allPermits = $storage->getAll();
+$allPermits  = $storage->getAll();
 
 // Statistik-Filter (Basierend auf Erstellungsdatum)
 $filtered = \array_filter($allPermits, function ($p) use ($filterStart, $filterEnd): bool {
@@ -95,45 +101,43 @@ $filtered = \array_filter($allPermits, function ($p) use ($filterStart, $filterE
 // Export-Logik (unverändert wie zuvor)
 if (isset($_GET['export'])) {
     $format   = $_GET['export'];
-    $filename = "export_kga_einfahrt_{$filterStart}_bis_{$filterEnd}";
+    $filename = "export_kga_{$filterStart}_bis_{$filterEnd}";
 
     if ($format === 'csv') {
         \header('Content-Type: text/csv; charset=utf-8');
         \header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
-
         $output = \fopen('php://output', 'w');
 
         // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
-        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
+        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // BOM
 
-        // Spalten-Mapping für bessere Lesbarkeit
-        $headers = [
-            'Kennung', 'Name', 'E-Mail', 'Parzelle', 'Typ',
-            'Kennzeichen', 'Firma/Lieferant', 'Zweck',
-            'Einnahme (€)', 'Status', 'Erstellt am'
-        ];
-
-        // 2. FEINHEIT: Semicolon als Trenner (für deutsches Excel)
-        \fputcsv($output, $headers, ';');
-
+        // Spalten-Mapping für bessere Lesbarkeit & FEINHEIT: Semicolon als Trenner (für deutsches Excel)
+        \fputcsv($output, [
+            'Kennung',
+            'Name',
+            'E-Mail',
+            'Parzelle',
+            'Typ',
+            'Kennzeichen',
+            'Firma/Lieferant',
+            'Zweck',
+            'Einnahme (€)',
+            'Status',
+            'Erstellt am',
+        ], ';');
         foreach ($filtered as $p) {
-            // 3. FEINHEIT: Daten aufbereiten (Keys zu Labels, Zahlen zu Komma-Format)
-            $typLabel   = $settings['vehicle_types'][$p->typ] ?? $p->typ;
-            $zweckLabel = $settings['purposes'][$p->zweck] ?? $p->zweck;
-            $preis      = \number_format($p->preisSnapshot, 2, ',', ''); // Komma-Format für Excel
-
             \fputcsv($output, [
                 $p->code,
                 $p->name,
                 $p->email,
                 $p->parzelle,
-                $typLabel,
+                $settings['vehicle_types'][$p->typ] ?? $p->typ,
                 $p->kennzeichen,
                 $p->firma ?? '',
-                $zweckLabel,
-                $preis,
-                \strtoupper($p->status),
-                $p->erstellt->format('d.m.Y H:i')
+                $settings['purposes'][$p->zweck] ?? $p->zweck,
+                \number_format($p->preisSnapshot, 2, ',', ''),
+                \strtoupper((string) $p->status),
+                $p->erstellt->format('d.m.Y H:i'),
             ], ';');
         }
 
@@ -147,33 +151,9 @@ if (isset($_GET['export'])) {
         echo \json_encode(\array_values($filtered), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         exit;
     }
-
-    if ($format === 'csv') {
-        \header('Content-Type: text/csv; charset=utf-8');
-        \header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
-        $output = \fopen('php://output', 'w');
-        // UTF-8 BOM für Excel
-        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
-        \fputcsv($output, ['Kennung', 'Name', 'Parzelle', 'Kennzeichen', 'Typ', 'Einnahme', 'Status', 'Erstellt'], ';');
-        foreach ($filtered as $p) {
-            \fputcsv($output, [
-                $p->code,
-                $p->name,
-                $p->parzelle,
-                $p->kennzeichen,
-                $p->typ,
-                \number_format($p->preisSnapshot, 2, ',', ''),
-                $p->status,
-                $p->erstellt->format('Y-m-d H:i'),
-            ], ';');
-        }
-        \fclose($output);
-        exit;
-    }
 }
 
-// --- 5. STATISTIKEN ---
-
+// --- 5. STATISTIKEN & GRUPPIERUNG ---
 $stats = [
     'total_count'   => \count($filtered),
     'total_revenue' => \array_reduce($filtered, fn ($sum, $p): float|int|array => $sum + $p->preisSnapshot, 0.0),

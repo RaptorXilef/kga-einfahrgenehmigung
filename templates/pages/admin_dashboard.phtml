@@ -1,18 +1,60 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - <?= htmlspecialchars($settings['vereins_name']) ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
     <style>
         /* Einfaches Tab-Styling (kann später in die main.scss) */
-        .c-tabs__nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .c-tabs__btn { padding: 10px 20px; border: none; background: #f0f0f0; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .c-tabs__btn--active { background: var(--color-primary, #3498db); color: white; }
-        .c-tabs__content { display: none; }
-        .c-tabs__content--active { display: block; }
+        .c-tabs__nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .c-tabs__btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .c-tabs__btn:hover {
+            background: #e0e0e0;
+        }
+
+        .c-tabs__btn--active {
+            background: var(--color-primary, #3498db);
+            color: white;
+        }
+
+        .c-tabs__content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .c-tabs__content--active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
+
 <body class="l-admin">
     <nav class="c-admin-nav">
         <div class="c-container">
@@ -63,25 +105,32 @@
                     <div id="tab-active" class="c-tabs__content c-tabs__content--active">
                         <section class="c-card">
                             <table class="c-table">
-                                <thead><tr><th>Kennung</th><th>Status</th><th>Aktion</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Kennung / Name</th>
+                                        <th>Status</th>
+                                        <th>Aktion</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <?php foreach ($groups['active'] as $p): ?>
-                                    <tr>
-                                        <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
-                                        <td><span class="c-badge c-badge--<?= $p->status === 'bezahlt' ? 'success' : 'warning' ?>"><?= $p->status ?></span></td>
-                                        <td>
-                                            <div class="u-flex u-gap-xs">
-                                                <?php if ($p->status !== 'bezahlt' && $_SESSION['admin_level'] === 1): ?>
-                                                    <form method="POST">
-                                                        <input type="hidden" name="action" value="mark_as_paid">
-                                                        <input type="hidden" name="code" value="<?= $p->code ?>">
-                                                        <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
-                                                    </form>
-                                                <?php endif; ?>
-                                                <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                                            <td><span class="c-badge c-badge--<?= $p->status === 'bezahlt' ? 'success' : 'warning' ?>"><?= strtoupper($p->status) ?></span></td>
+                                            <td>
+                                                <div class="u-flex u-gap-xs">
+                                                    <a href="?action=print&code=<?= $p->code ?>" class="c-button c-button--secondary c-button--small" title="Drucken">🖨</a>
+                                                    <?php if ($p->status !== 'bezahlt' && $_SESSION['admin_level'] === 1): ?>
+                                                        <form method="POST" style="margin:0;">
+                                                            <input type="hidden" name="action" value="mark_as_paid">
+                                                            <input type="hidden" name="code" value="<?= $p->code ?>">
+                                                            <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                    <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small" title="Prüfen">👁</a>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -91,14 +140,25 @@
                     <div id="tab-future" class="c-tabs__content">
                         <section class="c-card">
                             <table class="c-table">
-                                <thead><tr><th>Kennung</th><th>Datum von</th><th>Aktion</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Kennung / Name</th>
+                                        <th>Datum von</th>
+                                        <th>Aktion</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <?php foreach ($groups['future'] as $p): ?>
-                                    <tr>
-                                        <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
-                                        <td><?= $p->von->format('d.m.Y') ?></td>
-                                        <td><a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a></td>
-                                    </tr>
+                                        <tr>
+                                            <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                                            <td><?= $p->von->format('d.m.Y') ?></td>
+                                            <td>
+                                                <div class="u-flex u-gap-xs">
+                                                    <a href="?action=print&code=<?= $p->code ?>" class="c-button c-button--secondary c-button--small">🖨</a>
+                                                    <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -108,14 +168,20 @@
                     <div id="tab-expired" class="c-tabs__content">
                         <section class="c-card">
                             <table class="c-table">
-                                <thead><tr><th>Kennung</th><th>Datum bis</th><th>Aktion</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Kennung / Name</th>
+                                        <th>Datum bis</th>
+                                        <th>Aktion</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <?php foreach ($groups['expired'] as $p): ?>
-                                    <tr class="u-opacity-50">
-                                        <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
-                                        <td><?= $p->bis->format('d.m.Y') ?></td>
-                                        <td><a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a></td>
-                                    </tr>
+                                        <tr class="u-opacity-50">
+                                            <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                                            <td><?= $p->bis->format('d.m.Y') ?></td>
+                                            <td><a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -126,10 +192,15 @@
 
             <aside>
                 <section class="c-card">
-                    <header class="c-card__header"><h3>Top Parzellen (Zeitraum)</h3></header>
+                    <header class="c-card__header">
+                        <h3>Top Parzellen</h3>
+                    </header>
                     <table class="c-table">
                         <?php foreach (\array_slice($stats['plots'], 0, 10, true) as $plot => $count): ?>
-                            <tr><td>Nr. <?= $plot ?></td><td class="u-text-right"><?= $count ?>x</td></tr>
+                            <tr>
+                                <td>Nr. <?= $plot ?></td>
+                                <td class="u-text-right"><strong><?= $count ?>x</strong></td>
+                            </tr>
                         <?php endforeach; ?>
                     </table>
                 </section>
@@ -140,14 +211,17 @@
     <script>
         function openTab(evt, tabId) {
             const contents = document.getElementsByClassName("c-tabs__content");
-            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("c-tabs__content--active");
-
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].classList.remove("c-tabs__content--active");
+            }
             const buttons = document.getElementsByClassName("c-tabs__btn");
-            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("c-tabs__btn--active");
-
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("c-tabs__btn--active");
+            }
             document.getElementById(tabId).classList.add("c-tabs__content--active");
             evt.currentTarget.classList.add("c-tabs__btn--active");
         }
     </script>
 </body>
+
 </html>
