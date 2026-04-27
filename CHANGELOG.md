@@ -2,6 +2,13 @@
 
 
 
+## [0.9.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.1...v0.9.2) (2026-04-27)
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.9.2 - resolve linter issues and prepare paypal testing ([7677efa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7677efa2ac5037650174e1712c67fcb800108dfe))
+* **release:** v0.9.2 - satisfy phpcs requirements and modernize payment service ([0a45822](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0a458229ea6513e9fdf569566c97aff94be1484a))
+
 ## [0.9.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.0...v0.9.1) (2026-04-27)
 
 ### 🧹 Chore / Maintenance
