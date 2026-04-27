@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Service Container (Dependency Injector).
+ * Service Container (Dependency Injector). v0.9.4
  *
  * Zentraler Bootstrapping-Punkt der Anwendung. Erstellt Instanzen
  * und verwaltet Abhängigkeiten (DI).
@@ -16,18 +16,13 @@
  * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
  *
  * @author    Felix Maywald (@RaptorXilef)
- *
- * @since     0.1.0
- * - feat(arch): Initialer Aufbau der OOP-Struktur basierend auf Referenz-Projekt.
- * - feat(storage): Vorbereitung für Interface-basierte Speicherlogik (JSON/MySQL).
- * - feat(arch): Registrierung von MailServiceInterface und StorageInterface.
- * @since     0.4.0 - refactor(arch): Injection von HolidayService hinzugefügt.
  */
 
 declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Contracts\Config\ConfigInterface; // NEU
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -38,6 +33,9 @@ use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
 
+/**
+ * Service Container (Dependency Injector)
+ */
 class Container
 {
     private array $services = [];
@@ -52,7 +50,9 @@ class Container
     private function setup(): void
     {
         // 1. Konfiguration
-        $this->instances[Config::class] = $this->config;
+        // Wir registrieren die Config sowohl unter ihrer Klasse als auch unter dem Interface
+        $this->instances[Config::class]          = $this->config;
+        $this->instances[ConfigInterface::class] = $this->config; // WICHTIG für Entkopplung
 
         // 2. Hilfs-Services (Stateless)
         $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService();
@@ -66,22 +66,23 @@ class Container
             return new JsonStorage($absolutePath);
         };
 
-        // Mail Service (Nutzt den Config-Service)
+        // Mail Service (Nutzt das Config-Interface)
         $this->services[MailServiceInterface::class] = fn (): SmtpMailService => new SmtpMailService(
-            $this->get(Config::class),
+            $this->get(ConfigInterface::class),
         );
 
+        // PayPal Service (Nutzt das Config-Interface)
         $this->services[PaymentProviderInterface::class] = fn (): PayPalService => new PayPalService(
-            $this->get(Config::class),
+            $this->get(ConfigInterface::class),
         );
 
         // 4. Kern-Logik (Orchestratoren)
         $this->services[PermitService::class] = fn (): PermitService => new PermitService(
             $this->get(StorageInterface::class),
             $this->get(MailServiceInterface::class),
-            $this->get(Config::class),
+            $this->get(ConfigInterface::class), // Nutzt jetzt das Interface!
             $this->get(HolidayService::class),
-            $this->get(PaymentProviderInterface::class), // NEU: Zahlungsanbieter hinzufügen
+            $this->get(PaymentProviderInterface::class),
         );
     }
 
