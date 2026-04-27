@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+</head>
+<body class="u-bg-light">
+    <div class="c-container u-padding-y-xl">
+        <div class="c-card u-margin-auto" style="max-width: 400px;">
+            <header class="c-card__header u-text-center">
+                <h2>Vorstands-Login</h2>
+                <p class="u-text-muted"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
+            </header>
+            <div class="c-card__body">
+                <?php if (! empty($message)) { ?>
+                    <div class="c-alert c-alert--danger u-margin-bottom"><?php echo \htmlspecialchars($message); ?></div>
+                <?php } ?>
+
+                <form method="POST" class="c-form">
+                    <div class="c-form-group">
+                        <label class="c-form-label">Benutzername</label>
+                        <input type="text" name="user" class="c-form-input" required autofocus>
+                    </div>
+                    <div class="c-form-group">
+                        <label class="c-form-label">Passwort</label>
+                        <input type="password" name="pass" class="c-form-input" required>
+                    </div>
+                    <button type="submit" name="login" class="c-button c-button--primary u-width-100 u-margin-top-m">
+                        Anmelden
+                    </button>
+                </form>
+            </div>
+            <footer class="c-card__footer u-text-center">
+                <a href="index.php" class="u-text-small"> zurück zum Formular</a>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

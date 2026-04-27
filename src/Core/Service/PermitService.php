@@ -217,4 +217,34 @@ final readonly class PermitService
             throw new \RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
     }
+
+    /**
+     * Aktiviert eine Genehmigung manuell (Zahlungseingang bestätigt).
+     */
+    public function manualActivate(string $code): bool
+    {
+        $permit = $this->storage->findByHash($code);
+        if (! $permit instanceof Permit) {
+            return false;
+        }
+
+        // Wir erstellen eine Kopie der Entität mit neuem Status
+        $updatedPermit = new Permit(
+            code: $permit->code,
+            name: $permit->name,
+            email: $permit->email,
+            parzelle: $permit->parzelle,
+            typ: $permit->typ,
+            kennzeichen: $permit->kennzeichen,
+            firma: $permit->firma,
+            zweck: $permit->zweck,
+            preisSnapshot: $permit->preisSnapshot,
+            von: $permit->von,
+            bis: $permit->bis,
+            status: 'bezahlt', // Status-Update
+            erstellt: $permit->erstellt,
+        );
+
+        return $this->storage->save($updatedPermit);
+    }
 }

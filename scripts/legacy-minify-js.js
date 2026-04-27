@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const config = [
-    { src: 'src/js', dest: 'public/assets/js' },
+    { src: 'src/assets/js', dest: 'public/assets/js' },
     // Hier man weitere Ordner hinzufügen, wie früher in PS1
     // { src: 'src/js/admin', dest: 'public/assets/js/admin' }
 ];
@@ -13,6 +13,11 @@ console.log('🚀 Starte Legacy-JS-Minifizierung...');
 for (const entry of config) {
     if (!fs.existsSync(entry.dest)) {
         fs.mkdirSync(entry.dest, { recursive: true });
+    }
+
+    if (!fs.existsSync(entry.src)) {
+        console.warn(`⚠️ Warnung: Quellverzeichnis ${entry.src} nicht gefunden. Überspringe...`);
+        continue;
     }
 
     const files = fs

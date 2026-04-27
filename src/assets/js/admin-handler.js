@@ -14,7 +14,7 @@ export class AdminDashboardHandler {
     }
 
     init() {
-        // Event Listener für die Suche
+        // Echtzeit-Suche bei Tastendruck
         this.searchInput.addEventListener('input', (e) => this.filterTables(e.target.value));
     }
 
@@ -48,13 +48,13 @@ export class AdminDashboardHandler {
     }
 }
 
-// Initialisierung
+// Initialisierung beim Laden der Seite
 document.addEventListener('DOMContentLoaded', () => {
     window.adminHandler = new AdminDashboardHandler();
 });
 
 /**
- * Tab-Logik (Global verfügbar halten für onclick in HTML)
+ * Tab-Logik (Global verfügbar halten für onclick-Events im HTML)
  */
 window.openTab = (evt, tabId) => {
     const contents = document.getElementsByClassName('c-tabs__content');
