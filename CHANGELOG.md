@@ -2,6 +2,16 @@
 
 
 
+## [0.8.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.7.1...v0.8.0) (2026-04-27)
+
+### 🚀 Features
+
+* **core:** implement environment-aware architecture and paypal integration ([e7883ca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e7883ca55d2b1d332767800dd22210a96e592ab4))
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.8.0 - finalize payment architecture and fix template scope ([b966713](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b9667136c0b217d1dcf5c3963a2e91c3e8ed20b1))
+
 ## [0.7.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.7.0...v0.7.1) (2026-04-27)
 
 ### 🧹 Chore / Maintenance
