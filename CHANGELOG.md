@@ -2,6 +2,12 @@
 
 
 
+## [0.7.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.7.0...v0.7.1) (2026-04-27)
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.8.0 - architecture refactoring, dev-mode and paypal integration ([e34d90c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e34d90ca1573e84fb1435c909ca8a6b135f003d1))
+
 ## [0.7.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.6.0...v0.7.0) (2026-04-27)
 
 ### 🚀 Features
