@@ -73,17 +73,11 @@ if (! $auth->isLoggedIn()) {
     exit;
 }
 
-/**
- * @var string $adminUser
- *
- * phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
- */
+// @var string $adminUser
+// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 $adminUser = $_SESSION['admin_user'] ?? 'Admin';
-/**
- * @var int $adminLevel
- *
- * phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
- */
+// @var int $adminLevel
+// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 $adminLevel = (int) ($_SESSION['admin_level'] ?? 1);
 
 // --- 2. PRINT PREVIEW (Vor den Dashboard-Daten) ---
@@ -105,7 +99,8 @@ if (
     && $_POST['action'] === 'mark_as_paid'
     && $permitService->manualActivate((string) $_POST['code'])
 ) {
-    /** @var string $message phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable */
+    // @var string $message
+    // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
     $message = "Zahlung für {$_POST['code']} bestätigt.";
 }
 
@@ -204,10 +199,7 @@ foreach ($allPermits as $p) {
     }
 }
 
-/**
- * @var Config $config
- *
- * phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
- */
+// @var Config $config
+// phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 $config = $container->get(Config::class);
 include $appRoot . '/templates/pages/admin_dashboard.phtml';
