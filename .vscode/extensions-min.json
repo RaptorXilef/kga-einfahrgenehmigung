@@ -33,7 +33,7 @@
         "todo-tree",
         "oderwat.indent-rainbow",
         "aaron-bond.better-comments",
-        "junstyle.php-cs-fixer",
+        "muuvmuuv.vscode-just-php-cs-fixer",
 
         // UTILS
         "mechatroner.rainbow-csv",

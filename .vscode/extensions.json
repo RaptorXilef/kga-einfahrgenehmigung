@@ -45,7 +45,7 @@
         "streetsidesoftware.code-spell-checker",
         "usernamehw.errorlens", // Genial, um Fehler direkt in der Zeile zu sehen!
         "usernamehw.todo-md", // Aufgaben in Markdown
-        "junstyle.php-cs-fixer",
+        "muuvmuuv.vscode-just-php-cs-fixer",
 
         // UTILS
         "eriklynd.json-tools",

@@ -30,7 +30,8 @@
     // --- PHP & INTELEPHENSE ---
     "[php]": {
         //"editor.defaultFormatter": "bmewburn.vscode-intelephense-client", // Intelephense als Basis
-        "editor.defaultFormatter": "junstyle.php-cs-fixer",
+        //"editor.defaultFormatter": "junstyle.php-cs-fixer",
+        "editor.defaultFormatter": "muuvmuuv.vscode-just-php-cs-fixer",
         "editor.wordWrap": "off",
         "editor.renderWhitespace": "boundary"
     },
@@ -101,12 +102,6 @@
     // =========================================================================
     // TOOLS & WORKFLOW (Meine persönlichen Favoriten)
     // =========================================================================
-
-    // --- PHP-CS-Fixer ---
-    "php-cs-fixer.executablePath": "${workspaceFolder}/vendor/bin/php-cs-fixer",
-    "php-cs-fixer.config": ".php-cs-fixer.dist.php",
-    "php-cs-fixer.allowRisky": true,
-    "php-cs-fixer.onsave": true,
 
     // --- DIFF EDITOR ---
     "diffEditor.ignoreTrimWhitespace": true,
