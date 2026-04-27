@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <title>Admin Dashboard - <?= htmlspecialchars($settings['vereins_name']) ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
+    <style>
+        /* Einfaches Tab-Styling (kann später in die main.scss) */
+        .c-tabs__nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .c-tabs__btn { padding: 10px 20px; border: none; background: #f0f0f0; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .c-tabs__btn--active { background: var(--color-primary, #3498db); color: white; }
+        .c-tabs__content { display: none; }
+        .c-tabs__content--active { display: block; }
+    </style>
 </head>
 <body class="l-admin">
     <nav class="c-admin-nav">
@@ -22,18 +30,12 @@
 
         <section class="c-card u-margin-bottom-l">
             <form method="GET" class="c-form--inline">
-                <div class="c-form-group">
-                    <label>Zeitraum von:</label>
-                    <input type="date" name="start" value="<?= $filterStart ?>" class="c-form-input">
-                </div>
-                <div class="c-form-group">
-                    <label>bis:</label>
-                    <input type="date" name="end" value="<?= $filterEnd ?>" class="c-form-input">
-                </div>
+                <input type="date" name="start" value="<?= $filterStart ?>" class="c-form-input">
+                <input type="date" name="end" value="<?= $filterEnd ?>" class="c-form-input">
                 <button type="submit" class="c-button">Zeitraum filtern</button>
                 <div class="u-margin-left-auto">
-                    <a href="?export=csv&start=<?= $filterStart ?>&end=<?= $filterEnd ?>" class="c-button c-button--secondary">CSV</a>
-                    <a href="?export=json&start=<?= $filterStart ?>&end=<?= $filterEnd ?>" class="c-button c-button--secondary">JSON</a>
+                    <a href="?export=csv&start=<?= $filterStart ?>&end=<?= $filterEnd ?>" class="c-button c-button--secondary">CSV Export</a>
+                    <a href="?export=json&start=<?= $filterStart ?>&end=<?= $filterEnd ?>" class="c-button c-button--secondary">JSON Backup</a>
                 </div>
             </form>
         </section>
@@ -45,47 +47,107 @@
             </div>
             <div class="c-card">
                 <small>Anträge / PKW / LKW</small>
-                <div><?= $stats['total_count'] ?> (<?= $stats['types']['pkw'] ?>/<?= $stats['types']['lkw'] ?>)</div>
+                <div><?= $stats['total_count'] ?> (<?= $stats['types']['pkw'] ?> / <?= $stats['types']['lkw'] ?>)</div>
             </div>
         </div>
 
-        <div class="c-grid-2">
-            <section class="c-card">
-                <header class="c-card__header"><h3>Aktive Genehmigungen (<?= count($groups['active']) ?>)</h3></header>
-                <table class="c-table">
-                    <thead><tr><th>Kennung</th><th>Status</th><th>Aktion</th></tr></thead>
-                    <tbody>
-                        <?php foreach ($groups['active'] as $p): ?>
-                        <tr>
-                            <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
-                            <td><span class="c-badge c-badge--<?= $p->status === 'bezahlt' ? 'success' : 'warning' ?>"><?= $p->status ?></span></td>
-                            <td>
-                                <div class="u-flex u-gap-xs">
-                                    <?php if ($p->status !== 'bezahlt'): ?>
-                                    <form method="POST">
-                                        <input type="hidden" name="action" value="mark_as_paid">
-                                        <input type="hidden" name="code" value="<?= $p->code ?>">
-                                        <button type="submit" class="c-button c-button--success c-button--small">✔</button>
-                                    </form>
-                                    <?php endif; ?>
-                                    <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </section>
+        <div class="c-grid-dashboard">
+            <div class="u-col-span-2">
+                <div class="c-tabs">
+                    <div class="c-tabs__nav">
+                        <button class="c-tabs__btn c-tabs__btn--active" onclick="openTab(event, 'tab-active')">Aktiv (<?= count($groups['active']) ?>)</button>
+                        <button class="c-tabs__btn" onclick="openTab(event, 'tab-future')">Zukünftig (<?= count($groups['future']) ?>)</button>
+                        <button class="c-tabs__btn" onclick="openTab(event, 'tab-expired')">Abgelaufen (<?= count($groups['expired']) ?>)</button>
+                    </div>
 
-            <section class="c-card">
-                <header class="c-card__header"><h3>Top Parzellen (Zeitraum)</h3></header>
-                <table class="c-table">
-                    <?php foreach (\array_slice($stats['plots'], 0, 8, true) as $plot => $count): ?>
-                        <tr><td>Nr. <?= $plot ?></td><td class="u-text-right"><?= $count ?>x</td></tr>
-                    <?php endforeach; ?>
-                </table>
-            </section>
+                    <div id="tab-active" class="c-tabs__content c-tabs__content--active">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead><tr><th>Kennung</th><th>Status</th><th>Aktion</th></tr></thead>
+                                <tbody>
+                                    <?php foreach ($groups['active'] as $p): ?>
+                                    <tr>
+                                        <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                                        <td><span class="c-badge c-badge--<?= $p->status === 'bezahlt' ? 'success' : 'warning' ?>"><?= $p->status ?></span></td>
+                                        <td>
+                                            <div class="u-flex u-gap-xs">
+                                                <?php if ($p->status !== 'bezahlt' && $_SESSION['admin_level'] === 1): ?>
+                                                    <form method="POST">
+                                                        <input type="hidden" name="action" value="mark_as_paid">
+                                                        <input type="hidden" name="code" value="<?= $p->code ?>">
+                                                        <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
+                                                    </form>
+                                                <?php endif; ?>
+                                                <a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+
+                    <div id="tab-future" class="c-tabs__content">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead><tr><th>Kennung</th><th>Datum von</th><th>Aktion</th></tr></thead>
+                                <tbody>
+                                    <?php foreach ($groups['future'] as $p): ?>
+                                    <tr>
+                                        <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                                        <td><?= $p->von->format('d.m.Y') ?></td>
+                                        <td><a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+
+                    <div id="tab-expired" class="c-tabs__content">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead><tr><th>Kennung</th><th>Datum bis</th><th>Aktion</th></tr></thead>
+                                <tbody>
+                                    <?php foreach ($groups['expired'] as $p): ?>
+                                    <tr class="u-opacity-50">
+                                        <td><code><?= $p->code ?></code><br><small><?= htmlspecialchars($p->name) ?></small></td>
+                                        <td><?= $p->bis->format('d.m.Y') ?></td>
+                                        <td><a href="check.php?code=<?= $p->code ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <aside>
+                <section class="c-card">
+                    <header class="c-card__header"><h3>Top Parzellen (Zeitraum)</h3></header>
+                    <table class="c-table">
+                        <?php foreach (\array_slice($stats['plots'], 0, 10, true) as $plot => $count): ?>
+                            <tr><td>Nr. <?= $plot ?></td><td class="u-text-right"><?= $count ?>x</td></tr>
+                        <?php endforeach; ?>
+                    </table>
+                </section>
+            </aside>
         </div>
     </main>
+
+    <script>
+        function openTab(evt, tabId) {
+            const contents = document.getElementsByClassName("c-tabs__content");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("c-tabs__content--active");
+
+            const buttons = document.getElementsByClassName("c-tabs__btn");
+            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("c-tabs__btn--active");
+
+            document.getElementById(tabId).classList.add("c-tabs__content--active");
+            evt.currentTarget.classList.add("c-tabs__btn--active");
+        }
+    </script>
 </body>
 </html>

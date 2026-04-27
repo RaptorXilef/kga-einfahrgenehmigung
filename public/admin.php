@@ -37,7 +37,6 @@ $settings              = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
 $container             = new Container(new Config($settings));
 
-/** @var AuthService $auth */
 $auth = new AuthService($container->get(Config::class));
 /** @var StorageInterface $storage */
 $storage = $container->get(StorageInterface::class);
