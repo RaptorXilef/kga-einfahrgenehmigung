@@ -15,7 +15,6 @@ $finder = (new Finder())
         __DIR__ . '/src',
         __DIR__ . '/tests',
         __DIR__ . '/public',
-        __DIR__ . '/bootstrap',
         __DIR__ . '/config',
     ])
     ->name('*.php')
@@ -71,9 +70,9 @@ return (new Config())
 
         // NEU: Der Friedensvertrag zwischen PHPMD und PHP-CS-Fixer
         'global_namespace_import' => [
-            'import_classes'   => true,   // Importiert Klassen wie RuntimeException
-            'import_constants' => true,   // Importiert globale Konstanten
-            'import_functions' => false,  // Performance: \is_int() bleibt // da wir das für die Performance so wollten!
+            'import_classes'   => false,  // Klassen NICHT importieren -> \Exception bleibt inline
+            'import_constants' => false,  // Konstanten NICHT importieren -> \PHP_VERSION bleibt inline
+            'import_functions' => false,  // Funktionen NICHT importieren -> \is_int() bleibt inline (Performance)
         ],
 
         /**
