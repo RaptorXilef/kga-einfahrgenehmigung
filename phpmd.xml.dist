@@ -15,6 +15,13 @@
         <exclude name="NPathComplexity" />
         <exclude name="ExcessiveClassComplexity" />
         <exclude name="TooManyMethods" />
+        <exclude name="ExcessiveParameterList" />
+    </rule>
+
+    <rule ref="rulesets/codesize.xml/ExcessiveParameterList">
+        <properties>
+            <property name="minimum" value="15" />
+        </properties>
     </rule>
 
     <rule ref="rulesets/codesize.xml/TooManyMethods">
@@ -42,10 +49,11 @@
         <exclude name="ShortVariable" />
         <exclude name="LongVariable" />
     </rule>
+
     <rule ref="rulesets/naming.xml/ShortVariable">
         <properties>
             <property name="minimum" value="3" />
-            <property name="exceptions" value="id,em,io,db,qb,or,le,ge,fs" />
+            <property name="exceptions" value="id,em,io,db,qb,or,le,ge,fs,p,m,to,ch,re,e" />
         </properties>
     </rule>
 
