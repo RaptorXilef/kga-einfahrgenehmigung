@@ -2,6 +2,25 @@
 
 
 
+## [0.9.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.8.0...v0.9.0) (2026-04-27)
+
+### 🚀 Features
+
+* **api:** implement create_pending endpoint and PayPal order generation ([99ecb37](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/99ecb3754be0fac8aed1fe31f2cb76e7fce7ce61))
+* **security:** implement double opt-in for bank transfers and paypal flow ([0906c90](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0906c9002dd24afadb759fe52f35297ea7aa259d))
+
+### 🐛 Bug Fixes
+
+* **core:** resolve variable scope issues and modernize curl usage ([1a21067](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1a2106750bb3b23ce793d55e809cc2d4f0aeb947))
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.9.0 - implement double opt-in and live paypal flow ([703dd41](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/703dd413deb486342bd6ce85d4700e9f99a994eb))
+
+# Changelog
+
+
+
 ## [0.8.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.7.1...v0.8.0) (2026-04-27)
 
 ### 🚀 Features
