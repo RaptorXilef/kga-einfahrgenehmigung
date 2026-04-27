@@ -2,6 +2,13 @@
 
 
 
+## [0.9.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.3...v0.9.4) (2026-04-27)
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.9.4 - enforce clean architecture and decouple configuration ([216f55c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/216f55cc68d35f79747695531d30186d0534aa6e))
+* **release:** v0.9.4 - finalize dependency inversion in service container ([c9ca4fb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c9ca4fba4ebd0faed653533cb3c44ac01412ded0))
+
 ## [0.9.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.2...v0.9.3) (2026-04-27)
 
 ### 🧹 Chore / Maintenance
