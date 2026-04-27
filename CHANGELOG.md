@@ -2,6 +2,12 @@
 
 
 
+## [0.9.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.0...v0.9.1) (2026-04-27)
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.9.1 - externalize user auth and fix critical API paths ([1e4ee42](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1e4ee42a106948b2566eb29befb6f305ecd9b8e6))
+
 ## [0.9.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.8.0...v0.9.0) (2026-04-27)
 
 ### 🚀 Features
