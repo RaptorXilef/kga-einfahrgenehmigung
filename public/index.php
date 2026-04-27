@@ -55,10 +55,11 @@ $success = false;
 // 2. Formular-Verarbeitung (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $permit  = $permitService->createPermit($_POST);
+        // Wir erstellen jetzt NUR die Verifizierungs-Anfrage
+        $permitService->createPendingVerification($_POST);
         $success = true;
         // Wichtig: (string) Cast nur wenn email ein Objekt wäre, hier ist es ein String
-        $message = 'Antrag erfolgreich! Die Genehmigung wurde an ' . \htmlspecialchars((string) $permit->email) . ' gesendet.';
+        $message = 'Antrag fast fertig! Bitte prüfen Sie Ihr E-Mail-Postfach und bestätigen Sie Ihre Adresse.';
     } catch (\Exception $e) { // Backslash vor Exception, da globaler PHP-Namespace
         $message = 'Fehler: ' . $e->getMessage();
     }

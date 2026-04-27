@@ -92,9 +92,73 @@ final readonly class PermitService
         }
 
         // 3-Mail-System
-        $this->dispatchMails($permit, $randomId);
+        if ($sendMails) {
+            $this->dispatchMails($permit, $randomId);
+        }
 
         return $permit;
+
+    }
+
+    /**
+     * Erstellt einen temporären Antrag, der erst bestätigt werden muss.
+     */
+    public function createPendingVerification(array $data): string
+    {
+        $token                      = \bin2hex(\random_bytes(32));
+        $data['verification_token'] = $token;
+        $data['expires']            = \time() + (3600 * 24); // 24h gültig
+
+        // Wir speichern das in einer separaten Datei via JsonStorage (separater Pfad)
+        $tempStorage = new \App\Infrastructure\Storage\JsonStorage(
+            $this->config->get('root_path') . '/storage/pending_verification.json',
+        );
+
+        // Wir nutzen hier ein einfaches Array-Speichern für den Temp-Speicher
+        $allPending         = $this->loadJson($this->config->get('root_path') . '/storage/pending_verification.json');
+        $allPending[$token] = $data;
+        \file_put_contents(
+            $this->config->get('root_path') . '/storage/pending_verification.json',
+            \json_encode($allPending),
+        );
+
+        // Verifizierungs-Mail senden
+        $verifyUrl = $this->config->getBaseUrl() . 'verify.php?token=' . $token;
+        $this->mailService->sendTemplate($data['email'], 'E-Mail bestätigen: Ausnahmegenehmigung', 'verify_email', [
+            'name'      => $data['name'],
+            'verifyUrl' => $verifyUrl,
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Bestätigt den Antrag und verschiebt ihn in den Hauptspeicher.
+     */
+    public function confirmEmail(string $token): ?Permit
+    {
+        $path       = $this->config->get('root_path') . '/storage/pending_verification.json';
+        $allPending = $this->loadJson($path);
+
+        if (! isset($allPending[$token])) {
+            return null;
+        }
+
+        $data = $allPending[$token];
+        unset($allPending[$token]);
+        \file_put_contents($path, \json_encode($allPending));
+
+        // Jetzt erst die echte Genehmigung erstellen UND Mails senden
+        return $this->createPermit($data, true);
+    }
+
+    private function loadJson(string $path): array
+    {
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        return \json_decode(\file_get_contents($path), true) ?: [];
     }
 
     /**
