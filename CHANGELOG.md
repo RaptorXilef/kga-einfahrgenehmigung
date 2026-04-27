@@ -2,6 +2,13 @@
 
 
 
+## [0.9.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.2...v0.9.3) (2026-04-27)
+
+### 🧹 Chore / Maintenance
+
+* **qa:** adjust PHPMD rules for architectural requirements ([04fc6bb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/04fc6bb4932ba164c7227f66827b02a416977c03))
+* **release:** v0.9.3 - global FQCN support and file-based authentication ([a10bfdd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a10bfdda4e41047d9b55e043e1da3bd06dd8e99c))
+
 ## [0.9.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.1...v0.9.2) (2026-04-27)
 
 ### 🧹 Chore / Maintenance
