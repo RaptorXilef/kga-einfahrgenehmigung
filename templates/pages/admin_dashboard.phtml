@@ -58,14 +58,14 @@
 <body class="l-admin">
     <nav class="c-admin-nav">
         <div class="c-container">
-            <span>Eingeloggt: <strong><?php echo \htmlspecialchars($_SESSION['admin_user']); ?></strong> (Lvl <?php echo $_SESSION['admin_level']; ?>)</span>
+            <span>Eingeloggt: <strong><?php echo \htmlspecialchars($adminUser); ?></strong> (Lvl <?php echo $adminLevel; ?>)</span>
             <a href="?action=logout" class="u-float-right">Abmelden</a>
         </div>
     </nav>
 
     <main class="c-container u-padding-y-l">
         <?php if ($message) { ?>
-            <div class="c-alert c-alert--success u-margin-bottom"><?php echo $message; ?></div>
+            <div class="c-alert c-alert--info u-margin-bottom"><?php echo $message; ?></div>
         <?php } ?>
 
         <h1>Dashboard & Statistiken</h1>
@@ -79,7 +79,7 @@
                 </form>
 
                 <div class="c-form-group" style="width: 300px;">
-                    <input type="text" id="adminSearch" placeholder="🔍 Schnellsuche (Name, Kennung, KFZ...)" class="c-form-input">
+                    <input type="text" id="adminSearch" placeholder="🔍 Schnellsuche..." class="c-form-input">
                 </div>
 
                 <div class="u-margin-left-auto">
@@ -126,15 +126,15 @@
                                             <td><span class="c-badge c-badge--<?php echo $p->status === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($p->status); ?></span></td>
                                             <td>
                                                 <div class="u-flex u-gap-xs">
-                                                    <a href="?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small" title="Drucken">🖨</a>
-                                                    <?php if ($p->status !== 'bezahlt' && $_SESSION['admin_level'] === 1) { ?>
+                                                    <a href="?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
+                                                    <?php if ($p->status !== 'bezahlt' && $adminLevel === 1) { ?>
                                                         <form method="POST" style="margin:0;">
                                                             <input type="hidden" name="action" value="mark_as_paid">
                                                             <input type="hidden" name="code" value="<?php echo $p->code; ?>">
-                                                            <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
+                                                            <button type="submit" class="c-button c-button--success c-button--small">✔</button>
                                                         </form>
                                                     <?php } ?>
-                                                    <a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small" title="Prüfen">👁</a>
+                                                    <a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -219,13 +219,11 @@
     <script>
         function openTab(evt, tabId) {
             const contents = document.getElementsByClassName("c-tabs__content");
-            for (let i = 0; i < contents.length; i++) {
+            for (let i = 0; i < contents.length; i++)
                 contents[i].classList.remove("c-tabs__content--active");
-            }
             const buttons = document.getElementsByClassName("c-tabs__btn");
-            for (let i = 0; i < buttons.length; i++) {
+            for (let i = 0; i < buttons.length; i++)
                 buttons[i].classList.remove("c-tabs__btn--active");
-            }
             document.getElementById(tabId).classList.add("c-tabs__content--active");
             evt.currentTarget.classList.add("c-tabs__btn--active");
         }

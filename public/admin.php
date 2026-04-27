@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Admin-Zentrale für den Vorstand (v0.6.5).
+ * Admin-Zentrale für den Vorstand (v0.7.0).
  *
  * @file      public/admin.php
  */
@@ -57,15 +57,23 @@ if (isset($_POST['login'])) {
         \header('Location: admin.php');
         exit;
     }
-    $message = 'Ungültige Anmeldedaten.';
+    // Setze die Fehlermeldung nur, wenn wir danach NICHT eingeloggt sind
+    // (verhindert die Meldung im admin_dev_mode)
+    if (! $auth->isLoggedIn()) {
+        $message = 'Ungültige Anmeldedaten.';
+    }
 }
 
-// --- 2. AUTH-GATEKEEPER ---
+// --- AUTH-GATEKEEPER ---
 
 if (! $auth->isLoggedIn()) {
     include $appRoot . '/templates/pages/admin_login.phtml';
     exit;
 }
+
+// Variablen für das Dashboard sicher extrahieren (verhindert Warnings)
+$adminUser  = $_SESSION['admin_user'] ?? 'Admin';
+$adminLevel = $_SESSION['admin_level'] ?? 1;
 
 // --- 2. PRINT PREVIEW (Vor den Dashboard-Daten) ---
 if (isset($_GET['action']) && $_GET['action'] === 'print' && isset($_GET['code'])) {
@@ -109,22 +117,27 @@ if (isset($_GET['export'])) {
         $output = \fopen('php://output', 'w');
 
         // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
-        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // BOM
-
-        // Spalten-Mapping für bessere Lesbarkeit & FEINHEIT: Semicolon als Trenner (für deutsches Excel)
-        \fputcsv($output, [
-            'Kennung',
-            'Name',
-            'E-Mail',
-            'Parzelle',
-            'Typ',
-            'Kennzeichen',
-            'Firma/Lieferant',
-            'Zweck',
-            'Einnahme (€)',
-            'Status',
-            'Erstellt am',
-        ], ';');
+        \fprintf(
+            $output,
+            \chr(0xEF) . \chr(0xBB) . \chr(0xBF),
+        ); // BOM
+        \fputcsv(
+            $output,
+            [
+                'Kennung',
+                'Name',
+                'E-Mail',
+                'Parzelle',
+                'Typ',
+                'Kennzeichen',
+                'Firma/Lieferant',
+                'Zweck',
+                'Einnahme (€)',
+                'Status',
+                'Erstellt am',
+            ],
+            ';',
+        );
         foreach ($filtered as $p) {
             \fputcsv($output, [
                 $p->code,

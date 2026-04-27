@@ -61,10 +61,10 @@ $container             = new Container(new Config($settings));
 $storage = $container->get(StorageInterface::class);
 
 $code   = \strtoupper(\trim($_GET['code'] ?? ''));
-$permit = $code ? $storage->findByHash($code) : null;
+$permit = $code !== '' && $code !== '0' ? $storage->findByHash($code) : null;
 
 // Fehler setzen, wenn Suche erfolglos
-$error = ($code && ! $permit) ? "Der Code '{$code}' wurde nicht gefunden." : null;
+$error = $code && ! $permit ? "Der Code '{$code}' wurde nicht gefunden." : null;
 
 // --- ADMIN-CHECK LOGIK (v0.8.0) ---
 

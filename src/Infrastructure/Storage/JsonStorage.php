@@ -61,7 +61,7 @@ final readonly class JsonStorage implements StorageInterface
 
         // 2. Teil-Match (Suche nach der 4-stelligen Zufalls-ID am Ende)
         foreach ($data as $item) {
-            if (\str_ends_with($item['code'], $hash)) {
+            if (\str_ends_with((string) $item['code'], $hash)) {
                 return $this->mapToEntity($item);
             }
         }
