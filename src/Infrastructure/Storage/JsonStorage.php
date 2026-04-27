@@ -72,14 +72,18 @@ final readonly class JsonStorage implements StorageInterface
     private function mapToEntity(array $item): Permit
     {
         return new Permit(
-            code: $item['code'],
-            name: $item['name'],
-            email: $item['email'],
-            parzelle: $item['parzelle'],
-            kennzeichen: $item['kennzeichen'],
+            code: (string) $item['code'],
+            name: (string) $item['name'],
+            email: (string) $item['email'],
+            parzelle: (string) $item['parzelle'],
+            typ: (string) ($item['typ'] ?? 'pkw'), // Neu
+            kennzeichen: (string) $item['kennzeichen'],
+            firma: $item['firma'] ?? null,           // Neu
+            zweck: (string) ($item['zweck'] ?? 'Privat'), // Neu
+            preisSnapshot: (float) ($item['preisSnapshot'] ?? 0.0), // Neu
             von: new \DateTimeImmutable($item['von']),
             bis: new \DateTimeImmutable($item['bis']),
-            status: $item['status'],
+            status: (string) $item['status'],
             erstellt: new \DateTimeImmutable($item['erstellt'] ?? 'now'),
         );
     }
