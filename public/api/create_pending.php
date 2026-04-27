@@ -34,15 +34,14 @@ try {
     /** @var PaymentProviderInterface $paypal */
     $paypal = $container->get(PaymentProviderInterface::class);
 
-    // 1. Genehmigung in der Datenbank erstellen (Status: wartend)
-    // Wir nutzen die bestehende createPermit Logik
-    $permit = $permitService->createPermit($_POST);
+    // 1. Genehmigung erstellen, aber E-Mails NOCH NICHT senden (Parameter false) (Status: wartend)
+    $permit = $permitService->createPermit($_POST, false);
 
-    // 2. PayPal Order erstellen
+    // 2. PayPal Order reservieren
     $paypalOrderId = $paypal->createOrder($permit->preisSnapshot);
 
     if (! $paypalOrderId) {
-        throw new \Exception('PayPal konnte keine Order-ID generieren.');
+        throw new \Exception('PayPal-Schnittstelle antwortet nicht.');
     }
 
     echo \json_encode([

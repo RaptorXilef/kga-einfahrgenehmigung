@@ -109,19 +109,22 @@ final readonly class PermitService
         $data['verification_token'] = $token;
         $data['expires']            = \time() + (3600 * 24); // 24h gültig
 
-        // Wir speichern das in einer separaten Datei
+        // Wir speichern das in einer separaten Datei (storage/pending_verification.json)
         $storagePath = $this->config->get('root_path') . '/storage/pending_verification.json';
 
         $allPending         = $this->loadJson($storagePath);
         $allPending[$token] = $data;
 
-        \file_put_contents($storagePath, \json_encode($allPending, \JSON_UNESCAPED_UNICODE));
+        // JSON_PRETTY_PRINT für Debugging, falls ich mal reinschauen will
+        \file_put_contents($storagePath, \json_encode($allPending, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
 
         // Verifizierungs-Mail senden
         $verifyUrl = $this->config->getBaseUrl() . 'verify.php?token=' . $token;
+
         $this->mailService->sendTemplate($data['email'], 'E-Mail bestätigen: Ausnahmegenehmigung', 'verify_email', [
-            'name'      => $data['name'],
-            'verifyUrl' => $verifyUrl,
+            'name'        => $data['name'],
+            'verifyUrl'   => $verifyUrl,
+            'vereinsName' => $this->config->get('vereins_name'),
         ]);
 
         return $token;
