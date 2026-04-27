@@ -19,7 +19,6 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
-use DateTimeImmutable;
 
 final readonly class JsonStorage implements StorageInterface
 {
@@ -45,8 +44,8 @@ final readonly class JsonStorage implements StorageInterface
 
         return (bool) \file_put_contents(
             $this->filePath,
-            \json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-            LOCK_EX,
+            \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            \LOCK_EX,
         );
     }
 
@@ -65,10 +64,10 @@ final readonly class JsonStorage implements StorageInterface
             email: $item['email'],
             parzelle: $item['parzelle'],
             kennzeichen: $item['kennzeichen'],
-            von: new DateTimeImmutable($item['von']),
-            bis: new DateTimeImmutable($item['bis']),
+            von: new \DateTimeImmutable($item['von']),
+            bis: new \DateTimeImmutable($item['bis']),
             status: $item['status'],
-            erstellt: new DateTimeImmutable($item['erstellt'] ?? 'now'),
+            erstellt: new \DateTimeImmutable($item['erstellt'] ?? 'now'),
         );
     }
 

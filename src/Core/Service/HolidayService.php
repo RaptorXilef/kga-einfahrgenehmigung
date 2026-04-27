@@ -6,8 +6,6 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
-use DateTimeImmutable;
-
 /**
  * Service zur Prüfung von Berliner Feiertagen und Sperrzeiten.
  */
@@ -16,7 +14,7 @@ final readonly class HolidayService
     /**
      * Prüft, ob ein Datum ein Sonntag oder ein Berliner Feiertag ist.
      */
-    public function isRestrictedDay(DateTimeImmutable $date): bool
+    public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
         // 1. Sonntage (0 = Sonntag)
         if ($date->format('w') === '0') {
@@ -34,7 +32,7 @@ final readonly class HolidayService
      */
     private function getBerlinHolidays(int $year): array
     {
-        $easter = DateTimeImmutable::createFromFormat('U', (string) \easter_date($year));
+        $easter = \DateTimeImmutable::createFromFormat('U', (string) \easter_date($year));
 
         return [
             $year . '-01-01', // Neujahr

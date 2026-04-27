@@ -44,7 +44,7 @@ try {
     $data = \json_decode($json, true);
 
     if (! isset($data['orderID'], $data['permitCode'])) {
-        throw new Exception('Fehlende Parameter.');
+        throw new \Exception('Fehlende Parameter.');
     }
 
     $success = $permitService->completePayment(
@@ -56,7 +56,7 @@ try {
         'success' => $success,
         'message' => $success ? 'Zahlung verarbeitet' : 'Fehler bei Verifizierung',
     ]);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     \http_response_code(400);
     echo \json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

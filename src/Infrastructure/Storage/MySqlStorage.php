@@ -16,12 +16,10 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
-use DateTimeImmutable;
-use PDO;
 
 final readonly class MySqlStorage implements StorageInterface
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private \PDO $pdo)
     {
     }
 
@@ -51,7 +49,7 @@ final readonly class MySqlStorage implements StorageInterface
     {
         $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = ?');
         $stmt->execute([$hash]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if (! $row) {
             return null;
@@ -65,10 +63,10 @@ final readonly class MySqlStorage implements StorageInterface
             $row['parzelle'],
             $row['typ'],
             $row['zweck'],
-            new DateTimeImmutable($row['von']),
-            new DateTimeImmutable($row['bis']),
+            new \DateTimeImmutable($row['von']),
+            new \DateTimeImmutable($row['bis']),
             $row['status'],
-            new DateTimeImmutable($row['erstellt']),
+            new \DateTimeImmutable($row['erstellt']),
         );
     }
 
@@ -78,7 +76,7 @@ final readonly class MySqlStorage implements StorageInterface
 
         return \array_map(
             fn (array $row): ?Permit => $this->findByHash($row['code']),
-            $stmt->fetchAll(PDO::FETCH_ASSOC),
+            $stmt->fetchAll(\PDO::FETCH_ASSOC),
         );
     }
 

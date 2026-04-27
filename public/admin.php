@@ -148,7 +148,7 @@ if (isset($_GET['export'])) {
     if ($format === 'json') {
         \header('Content-Type: application/json');
         \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
-        echo \json_encode(\array_values($filtered), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
         exit;
     }
 }
@@ -167,7 +167,7 @@ foreach ($filtered as $p) {
 \arsort($stats['plots']);
 
 // Dashboard-Gruppen (Basierend auf Gültigkeit von/bis)
-$now    = new DateTimeImmutable('today');
+$now    = new \DateTimeImmutable('today');
 $groups = ['active' => [], 'future' => [], 'expired' => []];
 foreach ($allPermits as $p) {
     if ($p->bis < $now) {

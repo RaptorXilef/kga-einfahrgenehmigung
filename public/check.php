@@ -49,7 +49,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Infrastructure\Config\Config;
 
 // Session starten für Admin-Check
-if (\session_status() === PHP_SESSION_NONE) {
+if (\session_status() === \PHP_SESSION_NONE) {
     \session_start();
 }
 

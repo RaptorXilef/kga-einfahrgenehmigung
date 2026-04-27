@@ -27,7 +27,6 @@ namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
-use RuntimeException;
 
 final readonly class SmtpMailService implements MailServiceInterface
 {
@@ -60,7 +59,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
 
         if (! \file_exists($fullPath)) {
-            throw new RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
+            throw new \RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
         }
 
         $content = \file_get_contents($fullPath);

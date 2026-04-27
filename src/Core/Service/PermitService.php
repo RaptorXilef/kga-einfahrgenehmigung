@@ -30,8 +30,6 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
-use DateTimeImmutable;
-use RuntimeException;
 
 /**
  * Zentraler Service für Ausnahmegenehmigungen (v0.5.0).
@@ -53,7 +51,7 @@ final readonly class PermitService
     {
         $this->validateEmail($data['email'] ?? '');
 
-        $parzelle = \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', STR_PAD_LEFT);
+        $parzelle = \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT);
         $typ      = $data['typ'] ?? 'pkw';
         $randomId = $this->generateV4Suffix();
 
@@ -82,13 +80,13 @@ final readonly class PermitService
             firma: $data['firma'] ?? null,
             zweck: (string) ($this->config->get('purposes')[$data['zweck']] ?? 'Privat'),
             preisSnapshot: $this->config->getPriceForType($typ),
-            von: new DateTimeImmutable($data['datum_von']),
-            bis: new DateTimeImmutable($data['datum_bis']),
+            von: new \DateTimeImmutable($data['datum_von']),
+            bis: new \DateTimeImmutable($data['datum_bis']),
             status: 'wartend',
         );
 
         if (! $this->storage->save($permit)) {
-            throw new RuntimeException('Kritischer Fehler beim Speichern der Daten.');
+            throw new \RuntimeException('Kritischer Fehler beim Speichern der Daten.');
         }
 
         // 3-Mail-System
@@ -131,7 +129,7 @@ final readonly class PermitService
             'name'           => $p->name,
             'fullIdentifier' => $p->code,
             'betrag'         => \number_format($p->preisSnapshot, 2, ',', '.') . ' €',
-            'dueDate'        => (new DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
+            'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
             'kontoinhaber'   => $this->config->get('kontoinhaber'),
             'iban'           => $this->config->get('iban'),
             'usage'          => $usage,
@@ -215,8 +213,8 @@ final readonly class PermitService
 
     private function validateEmail(string $email): void
     {
-        if (! \filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
+        if (! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+            throw new \RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
     }
 }

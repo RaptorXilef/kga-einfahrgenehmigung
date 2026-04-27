@@ -16,7 +16,7 @@ final readonly class AuthService
     public function __construct(
         private Config $config,
     ) {
-        if (\session_status() !== PHP_SESSION_NONE) {
+        if (\session_status() !== \PHP_SESSION_NONE) {
             return;
         }
 

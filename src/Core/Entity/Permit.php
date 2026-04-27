@@ -17,8 +17,6 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
-use DateTimeImmutable;
-
 /**
  * Kern-Entität für eine Ausnahmegenehmigung (v0.4.0).
  */
@@ -34,10 +32,10 @@ final readonly class Permit
         public ?string $firma,        // Optional für LKW
         public string $zweck,
         public float $preisSnapshot, // Der Preis zum Zeitpunkt der Buchung / Wichtig für die Finanzstatistik
-        public DateTimeImmutable $von,
-        public DateTimeImmutable $bis,
+        public \DateTimeImmutable $von,
+        public \DateTimeImmutable $bis,
         public string $status = 'wartend',
-        public ?DateTimeImmutable $erstellt = new DateTimeImmutable(),
+        public ?\DateTimeImmutable $erstellt = new \DateTimeImmutable(),
     ) {
     }
 
@@ -46,7 +44,7 @@ final readonly class Permit
      */
     public function isValid(): bool
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
 
         // v0.4.0: Genehmigung ist sofort gültig, unabhängig vom Zahlungsstatus (Verwaltungsintern)
         return $now >= $this->von && $now <= $this->bis;
