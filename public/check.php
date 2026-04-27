@@ -63,7 +63,11 @@ $storage = $container->get(StorageInterface::class);
 $code   = \strtoupper(\trim($_GET['code'] ?? ''));
 $permit = $code !== '' && $code !== '0' ? $storage->findByHash($code) : null;
 
-// Fehler setzen, wenn Suche erfolglos
+/**
+ * Fehler setzen, wenn Suche erfolglos
+ *
+ * @var string|null $error phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+ */
 $error = $code && ! $permit ? "Der Code '{$code}' wurde nicht gefunden." : null;
 
 // --- ADMIN-CHECK LOGIK (v0.8.0) ---
@@ -82,6 +86,7 @@ $isTokenAdmin = $permit && \hash_equals(\hash('sha256', $permit->code . $setting
 // Zusammenführung: Wenn einer der drei Punkte wahr ist, zeige die Admin-Ansicht
 $showAdminView = $isDevAdmin || $isSessionAdmin || $isTokenAdmin;
 
+/** @var Config $config phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable */
 $config = $container->get(Config::class);
 
 // Falls kein Permit gefunden wurde oder die Seite ohne Parameter aufgerufen wird

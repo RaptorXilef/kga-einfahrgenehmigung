@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Admin-Zentrale für den Vorstand (v0.7.0).
+ * Admin-Zentrale für den Vorstand (v0.9.2).
  *
  * @file      public/admin.php
  */
@@ -67,13 +67,24 @@ if (isset($_POST['login'])) {
 // --- AUTH-GATEKEEPER ---
 
 if (! $auth->isLoggedIn()) {
+    // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+    $msg = $message; // Hilfsvariable für Linter, da in Template genutzt
     include $appRoot . '/templates/pages/admin_login.phtml';
     exit;
 }
 
-// Variablen für das Dashboard sicher extrahieren (verhindert Warnings)
-$adminUser  = $_SESSION['admin_user'] ?? 'Admin';
-$adminLevel = $_SESSION['admin_level'] ?? 1;
+/**
+ * @var string $adminUser
+ *
+ * phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+ */
+$adminUser = $_SESSION['admin_user'] ?? 'Admin';
+/**
+ * @var int $adminLevel
+ *
+ * phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+ */
+$adminLevel = (int) ($_SESSION['admin_level'] ?? 1);
 
 // --- 2. PRINT PREVIEW (Vor den Dashboard-Daten) ---
 if (isset($_GET['action']) && $_GET['action'] === 'print' && isset($_GET['code'])) {
@@ -89,7 +100,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'print' && isset($_GET['code']
 
 // Zahlung markieren (Level 1 & 2)
 // Da wir die ID jetzt in $p->code speichern (der ML-... String):
-if (isset($_POST['action']) && $_POST['action'] === 'mark_as_paid' && $permitService->manualActivate((string) $_POST['code'])) {
+if (
+    isset($_POST['action'])
+    && $_POST['action'] === 'mark_as_paid'
+    && $permitService->manualActivate((string) $_POST['code'])
+) {
+    /** @var string $message phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable */
     $message = "Zahlung für {$_POST['code']} bestätigt.";
 }
 
@@ -117,27 +133,23 @@ if (isset($_GET['export'])) {
         $output = \fopen('php://output', 'w');
 
         // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
-        \fprintf(
-            $output,
-            \chr(0xEF) . \chr(0xBB) . \chr(0xBF),
-        ); // BOM
-        \fputcsv(
-            $output,
-            [
-                'Kennung',
-                'Name',
-                'E-Mail',
-                'Parzelle',
-                'Typ',
-                'Kennzeichen',
-                'Firma/Lieferant',
-                'Zweck',
-                'Einnahme (€)',
-                'Status',
-                'Erstellt am',
-            ],
-            ';',
-        );
+        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // BOM
+
+        // FIX: Hinzufügen der Parameter für Umschließung und Escape (verhindert Warning)
+        \fputcsv($output, [
+            'Kennung',
+            'Name',
+            'E-Mail',
+            'Parzelle',
+            'Typ',
+            'Kennzeichen',
+            'Firma/Lieferant',
+            'Zweck',
+            'Einnahme (€)',
+            'Status',
+            'Erstellt am',
+        ], ';', '"', '\\');
+
         foreach ($filtered as $p) {
             \fputcsv($output, [
                 $p->code,
@@ -151,7 +163,7 @@ if (isset($_GET['export'])) {
                 \number_format($p->preisSnapshot, 2, ',', ''),
                 \strtoupper((string) $p->status),
                 $p->erstellt->format('d.m.Y H:i'),
-            ], ';');
+            ], ';', '"', '\\');
         }
 
         \fclose($output);
@@ -192,5 +204,10 @@ foreach ($allPermits as $p) {
     }
 }
 
+/**
+ * @var Config $config
+ *
+ * phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+ */
 $config = $container->get(Config::class);
 include $appRoot . '/templates/pages/admin_dashboard.phtml';

@@ -97,7 +97,6 @@ final readonly class PermitService
         }
 
         return $permit;
-
     }
 
     /**
@@ -171,19 +170,24 @@ final readonly class PermitService
         $subjectBoard = "[{$p->code}] - {$zeitraum} - {$p->name}";
 
         // Mail an VORSTAND
-        $this->mailService->sendTemplate($this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'], $subjectBoard, 'board_notification', [
-            'fullIdentifier' => $p->code,
-            'name'           => $p->name,
-            'email'          => $p->email,
-            'parzelle'       => $p->parzelle,
-            'typLabel'       => $this->config->get('vehicle_types')[$p->typ] ?? $p->typ,
-            'kennzeichen'    => $p->kennzeichen,
-            'firma'          => $p->firma,
-            'von'            => $p->von->format('d.m.Y'),
-            'bis'            => $p->bis->format('d.m.Y'),
-            'zweck'          => $p->zweck,
-            'adminLink'      => $this->config->get('base_url') . "admin.php?code={$p->code}&token={$token}",
-        ]);
+        $this->mailService->sendTemplate(
+            $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
+            $subjectBoard,
+            'board_notification',
+            [
+                'fullIdentifier' => $p->code,
+                'name'           => $p->name,
+                'email'          => $p->email,
+                'parzelle'       => $p->parzelle,
+                'typLabel'       => $this->config->get('vehicle_types')[$p->typ] ?? $p->typ,
+                'kennzeichen'    => $p->kennzeichen,
+                'firma'          => $p->firma,
+                'von'            => $p->von->format('d.m.Y'),
+                'bis'            => $p->bis->format('d.m.Y'),
+                'zweck'          => $p->zweck,
+                'adminLink'      => $this->config->get('base_url') . "admin.php?code={$p->code}&token={$token}",
+            ],
+        );
 
         // Mail an NUTZER (Zahlung mit EPC-QR)
         $usage     = $this->generateUsageText($p, $shortCode);
@@ -201,21 +205,26 @@ final readonly class PermitService
         ]);
 
         // Mail an NUTZER (A4 Dokument)
-        $this->mailService->sendTemplate($p->email, 'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'), 'permit_a4_document', [
-            'fullIdentifier'    => $p->code,
-            'von'               => $p->von->format('d.m.Y'),
-            'bis'               => $p->bis->format('d.m.Y'),
-            'kennzeichen'       => $p->kennzeichen,
-            'firma'             => $p->firma,
-            'parzelle'          => $p->parzelle,
-            'zweck'             => $p->zweck,
-            'vereinsName'       => $this->config->get('vereins_name'),
-            'jahresFarbe'       => $this->config->get('jahresFarbe'),
-            'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
-            'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-            'erstellt'          => $p->erstellt?->format('d.m.Y H:i') ?? 'Sofort',
-            'checkUrl'          => \urlencode($this->config->get('base_url') . 'check.php?code=' . $p->code),
-        ]);
+        $this->mailService->sendTemplate(
+            $p->email,
+            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
+            'permit_a4_document',
+            [
+                'fullIdentifier'    => $p->code,
+                'von'               => $p->von->format('d.m.Y'),
+                'bis'               => $p->bis->format('d.m.Y'),
+                'kennzeichen'       => $p->kennzeichen,
+                'firma'             => $p->firma,
+                'parzelle'          => $p->parzelle,
+                'zweck'             => $p->zweck,
+                'vereinsName'       => $this->config->get('vereins_name'),
+                'jahresFarbe'       => $this->config->get('jahresFarbe'),
+                'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
+                'terminkalenderUrl' => $this->config->get('terminkalender_url'),
+                'erstellt'          => $p->erstellt?->format('d.m.Y H:i') ?? 'Sofort',
+                'checkUrl'          => \urlencode($this->config->get('base_url') . 'check.php?code=' . $p->code),
+            ],
+        );
     }
 
     private function generateUsageText(Permit $p, string $shortCode): string

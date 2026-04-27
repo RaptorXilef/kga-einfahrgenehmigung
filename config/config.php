@@ -18,7 +18,8 @@ return [
     'prefix'             => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
     'external_home_url'  => 'https://deine-kga-homepage.de', // Für den "Zurück"-Button
     'terminkalender_url' => 'https://deine-kga.de/termine', // Sprechzeiten
-    'geheimnis'          => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // fungiert als "Salt" für die Sicherheit des token in der Zugriffs-URL die per E-Mail versandt wird
+    // fungiert als "Salt" für die Sicherheit des token in der Zugriffs-URL die per E-Mail versandt wird
+    'geheimnis' => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
 
     // --- PREISE & ZAHLUNG ---
     'prices' => [

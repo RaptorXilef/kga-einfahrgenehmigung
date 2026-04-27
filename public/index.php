@@ -57,14 +57,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Wir erstellen jetzt NUR die Verifizierungs-Anfrage
         $permitService->createPendingVerification($_POST);
+        /** @var bool $success phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable */
         $success = true;
-        // Wichtig: (string) Cast nur wenn email ein Objekt wäre, hier ist es ein String
+        /**
+         * Wichtig: (string) Cast nur wenn email ein Objekt wäre, hier ist es ein String
+         *
+         * @var string $message phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+         */
         $message = 'Antrag fast fertig! Bitte prüfen Sie Ihr E-Mail-Postfach und bestätigen Sie Ihre Adresse.';
     } catch (\Exception $e) { // Backslash vor Exception, da globaler PHP-Namespace
         $message = 'Fehler: ' . $e->getMessage();
     }
 }
 
-// Config für das Template bereitstellen (Zwecke, Preise etc.)
+/**
+ * Config für das Template bereitstellen (Zwecke, Preise etc.)
+ *
+ * @var Config $config phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
+ */
 $config = $container->get(Config::class);
 include $appRoot . '/templates/pages/formular.phtml';
