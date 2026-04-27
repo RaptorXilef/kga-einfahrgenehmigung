@@ -80,7 +80,8 @@ class Container
             $this->get(StorageInterface::class),
             $this->get(MailServiceInterface::class),
             $this->get(Config::class),
-            $this->get(HolidayService::class), // NEU: Injektion des Feiertags-Prüfers
+            $this->get(HolidayService::class),
+            $this->get(PaymentProviderInterface::class), // NEU: Zahlungsanbieter hinzufügen
         );
     }
 

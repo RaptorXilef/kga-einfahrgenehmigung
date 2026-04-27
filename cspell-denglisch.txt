@@ -2,6 +2,7 @@ analyse
 autoloader
 committen
 denglisch
+gemappt
 Minifiziere
 Minifizierte
 Minifizierung

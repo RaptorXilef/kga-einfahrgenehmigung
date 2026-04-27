@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
@@ -41,6 +42,7 @@ final readonly class PermitService
         private MailServiceInterface $mailService,
         private Config $config,
         private HolidayService $holidayService,
+        private PaymentProviderInterface $paymentProvider,
     ) {
     }
 
@@ -246,5 +248,26 @@ final readonly class PermitService
         );
 
         return $this->storage->save($updatedPermit);
+    }
+
+    /**
+     * Schließt eine PayPal-Zahlung ab und aktiviert die Genehmigung.
+     * Wird von public/api/capture.php aufgerufen.
+     */
+    public function completePayment(string $permitCode, string $orderId): bool
+    {
+        // 1. Genehmigung laden
+        $permit = $this->storage->findByHash($permitCode);
+        if (! $permit instanceof Permit) {
+            return false;
+        }
+
+        // 2. Zahlung bei PayPal verifizieren (Nutzt den preisSnapshot für Sicherheit!)
+        if ($this->paymentProvider->captureOrder($orderId, $permit->preisSnapshot)) {
+            // 3. Wenn erfolgreich, Status auf 'bezahlt' setzen
+            return $this->manualActivate($permit->code);
+        }
+
+        return false;
     }
 }

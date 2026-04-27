@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Validierungsschnittstelle für Ausnahmegenehmigungen (v0.7.0).
+ * Validierungsschnittstelle für Ausnahmegenehmigungen (v0.8.0).
  *
  * Prüft die Gültigkeit eines Codes und unterscheidet mittels Token-Validierung
  * zwischen der öffentlichen Ansicht und der detaillierten Vorstandsansicht.
@@ -73,27 +73,21 @@ $isDevAdmin = (bool) ($settings['admin_dev_mode'] ?? false);
 
 // 2. Über eine aktive Session (Eingeloggt im Admin-Bereich)
 // Wir prüfen auf Level 1 oder 2, wie in deinem ALT-Stand
-$isSessionAdmin = isset($_SESSION['admin_level']) && $_SESSION['admin_level'] <= 2;
+$isSessionAdmin = isset($_SESSION['admin_level']);
 
 // 3. Über den Token im Link (Direkt-Link aus der Vorstands-E-Mail)
 $token        = (string) ($_GET['token'] ?? '');
-$isTokenAdmin = false;
-if ($permit) {
-    $expectedToken = \hash('sha256', $permit->code . $settings['geheimnis']);
-    $isTokenAdmin  = \hash_equals($expectedToken, $token);
-}
+$isTokenAdmin = $permit && \hash_equals(\hash('sha256', $permit->code . $settings['geheimnis']), $token);
 
 // Zusammenführung: Wenn einer der drei Punkte wahr ist, zeige die Admin-Ansicht
 $showAdminView = $isDevAdmin || $isSessionAdmin || $isTokenAdmin;
 
-// Weiche: Welches Template laden?
-$templatePath = $showAdminView ? 'check_admin' : 'check_public';
-
-// Wenn kein Permit da ist (entweder erster Aufruf oder nichts gefunden) -> Zeige Suchmaske
+// Falls kein Permit gefunden wurde oder die Seite ohne Parameter aufgerufen wird
 if (! $permit) {
     include $appRoot . '/templates/pages/check_search.phtml';
     exit;
 }
 
-// DAS HIER FEHLTE NOCH:
+// Wenn gefunden, wähle Template
+$templatePath = $showAdminView ? 'check_admin' : 'check_public';
 include $appRoot . "/templates/pages/{$templatePath}.phtml";
