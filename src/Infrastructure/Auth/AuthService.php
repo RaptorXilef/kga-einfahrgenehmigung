@@ -48,11 +48,21 @@ final readonly class AuthService
 
     public function isLoggedIn(): bool
     {
+        // NEU: Wenn Dev-Mode aktiv, immer "eingeloggt"
+        if ($this->config->get('admin_dev_mode', false)) {
+            return true;
+        }
+
         return isset($_SESSION['admin_level']);
     }
 
     public function getLevel(): int
     {
+        // NEU: Wenn Dev-Mode aktiv, immer Level 1 (Vollzugriff)
+        if ($this->config->get('admin_dev_mode', false)) {
+            return 1;
+        }
+
         return (int) ($_SESSION['admin_level'] ?? 0);
     }
 }

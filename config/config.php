@@ -83,6 +83,7 @@ return [
             'level' => 2, // Nur Einsicht
         ],
     ],
+    'admin_dev_mode' => true, // Default: false | Wenn true, ist kein Login für /admin.php nötig (Vollzugriff)
 
     // --- DESIGN ---
     'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail

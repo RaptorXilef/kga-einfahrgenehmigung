@@ -52,12 +52,25 @@ final readonly class JsonStorage implements StorageInterface
     public function findByHash(string $hash): ?Permit
     {
         $data = $this->loadRaw();
-        if (! isset($data[$hash])) {
-            return null;
+        $hash = \strtoupper(\trim($hash));
+
+        // 1. Exakter Match (ML-0020-B-HD-123-6Y5C)
+        if (isset($data[$hash])) {
+            return $this->mapToEntity($data[$hash]);
         }
 
-        $item = $data[$hash];
+        // 2. Teil-Match (Suche nach der 4-stelligen Zufalls-ID am Ende)
+        foreach ($data as $item) {
+            if (\str_ends_with($item['code'], $hash)) {
+                return $this->mapToEntity($item);
+            }
+        }
 
+        return null;
+    }
+
+    private function mapToEntity(array $item): Permit
+    {
         return new Permit(
             code: $item['code'],
             name: $item['name'],
