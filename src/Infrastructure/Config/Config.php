@@ -58,4 +58,22 @@ final readonly class Config
 
         return (float) ($prices[$type] ?? $prices['pkw']);
     }
+
+    public function getBaseUrl(): string
+    {
+        // Falls in Config gesetzt, nimm die, sonst erkenne sie automatisch
+        $configured = $this->get('base_url');
+        if ($configured) {
+            return \rtrim($configured, '/') . '/';
+        }
+
+        $protocol = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host     = $_SERVER['HTTP_HOST'];
+        $path     = \rtrim(\dirname($_SERVER['SCRIPT_NAME']), '/\\');
+
+        // Fix für API-Aufrufe (wenn wir im Unterordner /api/ sind)
+        $path = \str_replace('/api', '', $path);
+
+        return $protocol . $host . $path . '/';
+    }
 }

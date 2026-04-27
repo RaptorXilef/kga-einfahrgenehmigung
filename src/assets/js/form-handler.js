@@ -1,11 +1,13 @@
 /**
  * @file form-handler.js
- * Modulares Management des Antragsformulars (v0.4.0).
+ * Modulares Management des Antragsformulars (v0.8.0).
  *
  * Beinhaltet:
  * - Fahrzeugtyp-Umschaltung
  * - Echtzeit-Formatierung (Kennzeichen, Parzelle)
  * - Berliner Feiertags- und Sonntagsprüfung
+ * - Paypal Logik
+ */
  */
 
 export class PermitFormHandler {
@@ -22,6 +24,7 @@ export class PermitFormHandler {
             document.getElementById('datum_von'),
             document.getElementById('datum_bis'),
         ];
+        this.currentPermitCode = null;
 
         // Initialisierung
         if (this.form) {
@@ -43,6 +46,57 @@ export class PermitFormHandler {
         if (this.typSelect) {
             this.toggleVehicleFields(this.typSelect.value);
         }
+
+        // PayPal initialisieren, falls SDK geladen
+        if (window.paypal) {
+            this.initPayPal();
+        }
+    }
+
+    initPayPal() {
+        window.paypal
+            .Buttons({
+                createOrder: async () => {
+                    if (!this.form.checkValidity()) {
+                        this.form.reportValidity();
+                        return;
+                    }
+
+                    const formData = new FormData(this.form);
+                    const response = await fetch('api/create_pending.php', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        alert('Fehler: ' + result.error);
+                        return;
+                    }
+
+                    this.currentPermitCode = result.code;
+                    return result.paypalOrderId;
+                },
+                onApprove: async (data) => {
+                    const response = await fetch('api/capture.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderID: data.orderID,
+                            permitCode: this.currentPermitCode,
+                        }),
+                    });
+
+                    const captureResult = await response.json();
+                    if (captureResult.success) {
+                        window.location.href =
+                            'check.php?code=' + this.currentPermitCode + '&success=1';
+                    } else {
+                        alert('Zahlung fehlgeschlagen oder verweigert.');
+                    }
+                },
+            })
+            .render('#paypal-button-container');
     }
 
     /**
@@ -96,15 +150,14 @@ export class PermitFormHandler {
      * Prüft auf Sonntage und Berliner Feiertage.
      */
     validateBerlinRestrictions() {
-        const alerts = [];
         this.dateInputs.forEach((input) => {
             if (!input.value) return;
             const date = new Date(input.value);
             if (Number.isNaN(date.getTime())) return;
 
             if (this.isRestrictedDay(date)) {
-                alerts.push(
-                    `Hinweis: Der ${date.toLocaleDateString('de-DE')} ist ein Sonn- oder Feiertag. Die Einfahrt ist an diesem Tag untersagt.`
+                alert(
+                    `Hinweis: Der ${date.toLocaleDateString('de-DE')} ist ein Sonn- oder Feiertag. Die Einfahrt ist untersagt.`
                 );
             }
         });

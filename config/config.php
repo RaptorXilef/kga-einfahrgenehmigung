@@ -7,49 +7,56 @@
  *
  * @file      config/config.php.example
  *
- * @since     0.4.0
+ * @since     0.8.0
  */
 
 declare(strict_types=1);
 
 return [
-    // --- VEREIN & BASIC ---
+    // --- BASIC ---
     'vereins_name'       => 'KGA e.V.',
     'prefix'             => 'ML', // Präfix für den Code (z.B. ML-26-0020-X8Y1)
-    'base_url'           => 'https://deine-domain.de/',
-    'geheimnis'          => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
-    'test_mode'          => true,
+    'external_home_url'  => 'https://deine-kga-homepage.de', // Für den "Zurück"-Button
     'terminkalender_url' => 'https://deine-kga.de/termine', // Sprechzeiten
+    'geheimnis'          => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // fungiert als "Salt" für die Sicherheit der Zugriffs-URL
 
     // --- PREISE & ZAHLUNG ---
     'prices' => [
         'pkw' => 3.00,
         'lkw' => 10.00,
     ],
+    // Bankangaben noch aufbauen wie Paypal (Überpunkt ueberweisung oder bank oder ähnliches)
+    'bank_transfer_allowed' => true, // AUF TRUE SETZEN für die Nutzung von Überweisung
     'iban'                  => 'DE12 3456 7890 1234 5678 90',
     'bic'                   => 'GENODES1M00', // Wichtig für EPC-QR-Code
     'kontoinhaber'          => 'KGA e.V.',
     'payment_due_days'      => 14, // Zahlungsziel in Tagen
     'usage_pattern'         => 'EFG-{{nachname}}-{{vorname}}-{{code}}', // Dynamisches Muster
-    'bank_transfer_allowed' => true,
 
-    // PayPal API (Optional)
-    'paypal_enabled'   => false, // Standardmäßig deaktiviert
-    'paypal_client_id' => 'DEINE_CLIENT_ID',
-    'paypal_secret'    => 'DEIN_SECRET',
+    // --- PAYPAL (Zwei Welten System) (Optional, wenn Paypal genutzt wird) ---
+    'paypal' => [
+        'enabled' => false, // AUF TRUE SETZEN für die Nutzung von Paypal
+        'sandbox' => [
+            'client_id' => 'SANDBOX_ID_HIER', // Hier ID aus dem PayPal Developer Portal
+            'secret'    => 'SANDBOX_SECRET_HIER', // Hier Secret aus dem PayPal Developer Portal
+        ],
+        'live' => [
+            'client_id' => 'LIVE_ID_HIER', // Hier ID aus dem PayPal Business Portal
+            'secret'    => 'LIVE_SECRET_HIER', // Hier Secret aus dem PayPal Business Portal
+        ],
+    ],
 
-    // --- E-MAIL & DATENSPEICHER ---
-    'vorstand_email' => 'vorstand@deine-kga.de',
-    'storage_path'   => 'storage/daten.json',
-
-    // SMTP Einstellungen
+    // --- E-MAIL (Zwei Welten System) ---
     'mail' => [
-        'host'             => 'smtp.dein-provider.de',
-        'port'             => 465,
-        'user'             => 'no-reply@deine-kga.de',
-        'pass'             => 'dein-passwort',
-        'from'             => 'no-reply@deine-kga.de',
-        'test_mail_active' => false, // Auch im Testmodus Mails senden?
+        'host'       => 'smtp.dein-provider.de',
+        'port'       => 465,
+        'user'       => 'no-reply@deine-kga.de',
+        'pass'       => 'dein-passwort',
+        'from'       => 'no-reply@deine-kga.de',
+        'recipients' => [
+            'live' => 'vorstand@echte-domain.de', // Hier landen alle Vorstand-Mails im Live-Modus
+            'test' => 'deine-private-mail@test.de', // Hier landen alle Vorstand-Mails im Testmodus
+        ],
     ],
 
     // --- LOGIK & ZEITRÄUME ---
@@ -72,7 +79,7 @@ return [
         'lkw' => 'LKW / Lieferant / Firma',
     ],
 
-    // --- ADMIN & SICHERHEIT ---
+    // --- ADMIN & SICHERHEIT --- WERDEN NOCH IN storage/users.json ausgelagert
     'admin_users' => [
         'admin' => [
             'pass'  => '$2y$10$xyz...', // Password-Hash
@@ -83,7 +90,21 @@ return [
             'level' => 2, // Nur Einsicht
         ],
     ],
-    'admin_dev_mode' => true, // Default: false | Wenn true, ist kein Login für /admin.php nötig (Vollzugriff)
+
+    // --- UMGEBUNGSSTEUERUNG ---
+
+    /**
+     * GLOBALER TEST-MODUS
+     * true  => PayPal Sandbox & Kein echter Mailversand (wenn test_mail_active = false)
+     * false => PayPal LIVE & Echter Mailversand
+     */
+    'test_mode' => true,  // TRUE = Sandbox & Test-Mails | FALSE = Live & Echt-Mails
+    /**
+     * ADMIN DEV MODE
+     * true  => Überspringt den Login in /admin.php (Vollzugriff für Entwicklung)
+     * false => Login zwingend erforderlich
+     */
+    'admin_dev_mode' => true,  // TRUE = Kein Admin-Login nötig
 
     // --- DESIGN ---
     'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail

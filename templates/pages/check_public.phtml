@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gültigkeitsprüfung - <?= htmlspecialchars($settings['vereins_name']) ?></title>
+    <title>Gültigkeitsprüfung - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
 </head>
 <body class="l-check u-bg-light">
+
+    <?php include $appRoot . '/templates/partials/test_mode_indicator.phtml'; ?>
+
     <main class="c-container u-text-center u-padding-top-xl">
 
-        <?php if ($permit->isValid()): ?>
+        <?php if ($permit->isValid()) { ?>
             <div class="c-card c-card--success u-margin-auto" style="max-width: 450px;">
                 <div class="c-card__header">
                     <span class="u-font-xl">✅ GENEHMIGUNG GÜLTIG</span>
@@ -19,18 +22,22 @@
                         <strong>Identifikation:</strong><br>
                         <?php
                             $info = [];
-                            if (!empty($permit->kennzeichen)) $info[] = htmlspecialchars($permit->kennzeichen);
-                            if (!empty($permit->firma)) $info[] = "Firma: " . htmlspecialchars($permit->firma);
-                            echo implode(' / ', $info);
-                        ?>
+            if (! empty($permit->kennzeichen)) {
+                $info[] = \htmlspecialchars($permit->kennzeichen);
+            }
+            if (! empty($permit->firma)) {
+                $info[] = 'Firma: ' . \htmlspecialchars($permit->firma);
+            }
+            echo \implode(' / ', $info);
+            ?>
                     </div>
                     <div class="u-text-muted">
                         Gültigkeitszeitraum:<br>
-                        <strong><?= $permit->von->format('d.m.Y') ?></strong> bis <strong><?= $permit->bis->format('d.m.Y') ?></strong>
+                        <strong><?php echo $permit->von->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->bis->format('d.m.Y'); ?></strong>
                     </div>
                 </div>
             </div>
-        <?php else: ?>
+        <?php } else { ?>
             <div class="c-card c-card--danger u-margin-auto" style="max-width: 400px;">
                 <div class="c-card__header">
                     <span class="u-font-xl">❌ UNGÜLTIG</span>
@@ -39,16 +46,16 @@
                     <p>Diese Genehmigung ist abgelaufen, noch nicht gültig oder gesperrt.</p>
                 </div>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if (!$showAdminView): ?>
+        <?php if (! $showAdminView) { ?>
             <div class="u-margin-top-l">
-                <a href="admin.php?redirect_to_code=<?= $permit->code ?>" class="u-text-small">Vorstands-Login für Details</a>
+                <a href="admin.php?redirect_to_code=<?php echo $permit->code; ?>" class="u-text-small">Vorstands-Login für Details</a>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <footer class="u-margin-top-l">
-            <p class="u-text-muted">SmartCode: <?= htmlspecialchars($permit->code) ?></p>
+            <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
         </footer>
     </main>
 </body>

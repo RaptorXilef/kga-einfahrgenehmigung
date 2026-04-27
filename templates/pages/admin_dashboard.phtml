@@ -56,6 +56,9 @@
 </head>
 
 <body class="l-admin">
+
+    <?php include $appRoot . '/templates/partials/test_mode_indicator.phtml'; ?>
+
     <nav class="c-admin-nav">
         <div class="c-container">
             <span>Eingeloggt: <strong><?php echo \htmlspecialchars($adminUser); ?></strong> (Lvl <?php echo $adminLevel; ?>)</span>
