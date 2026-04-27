@@ -192,4 +192,5 @@ foreach ($allPermits as $p) {
     }
 }
 
+$config = $container->get(Config::class);
 include $appRoot . '/templates/pages/admin_dashboard.phtml';

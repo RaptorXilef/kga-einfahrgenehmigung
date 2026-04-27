@@ -8,7 +8,6 @@
  * - Berliner Feiertags- und Sonntagsprüfung
  * - Paypal Logik
  */
- */
 
 export class PermitFormHandler {
     // Export hinzugefügt
@@ -47,7 +46,7 @@ export class PermitFormHandler {
             this.toggleVehicleFields(this.typSelect.value);
         }
 
-        // PayPal initialisieren, falls SDK geladen
+        // PayPal initialisieren, falls vorhanden
         if (window.paypal) {
             this.initPayPal();
         }
@@ -70,7 +69,7 @@ export class PermitFormHandler {
                     const result = await response.json();
 
                     if (!result.success) {
-                        alert('Fehler: ' + result.error);
+                        alert(`Fehler beim Erstellen des Antrags: ${result.error}`);
                         return;
                     }
 
@@ -89,10 +88,9 @@ export class PermitFormHandler {
 
                     const captureResult = await response.json();
                     if (captureResult.success) {
-                        window.location.href =
-                            'check.php?code=' + this.currentPermitCode + '&success=1';
+                        window.location.href = `check.php?code=${this.currentPermitCode}&success=1`;
                     } else {
-                        alert('Zahlung fehlgeschlagen oder verweigert.');
+                        alert('Zahlung konnte nicht verifiziert werden.');
                     }
                 },
             })

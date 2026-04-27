@@ -82,6 +82,8 @@ $isTokenAdmin = $permit && \hash_equals(\hash('sha256', $permit->code . $setting
 // Zusammenführung: Wenn einer der drei Punkte wahr ist, zeige die Admin-Ansicht
 $showAdminView = $isDevAdmin || $isSessionAdmin || $isTokenAdmin;
 
+$config = $container->get(Config::class);
+
 // Falls kein Permit gefunden wurde oder die Seite ohne Parameter aufgerufen wird
 if (! $permit) {
     include $appRoot . '/templates/pages/check_search.phtml';
