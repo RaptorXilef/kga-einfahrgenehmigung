@@ -95,7 +95,51 @@ $filtered = \array_filter($allPermits, function ($p) use ($filterStart, $filterE
 // Export-Logik (unverändert wie zuvor)
 if (isset($_GET['export'])) {
     $format   = $_GET['export'];
-    $filename = "export_kga_{$filterStart}_bis_{$filterEnd}";
+    $filename = "export_kga_einfahrt_{$filterStart}_bis_{$filterEnd}";
+
+    if ($format === 'csv') {
+        \header('Content-Type: text/csv; charset=utf-8');
+        \header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+
+        $output = \fopen('php://output', 'w');
+
+        // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
+        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
+
+        // Spalten-Mapping für bessere Lesbarkeit
+        $headers = [
+            'Kennung', 'Name', 'E-Mail', 'Parzelle', 'Typ',
+            'Kennzeichen', 'Firma/Lieferant', 'Zweck',
+            'Einnahme (€)', 'Status', 'Erstellt am'
+        ];
+
+        // 2. FEINHEIT: Semicolon als Trenner (für deutsches Excel)
+        \fputcsv($output, $headers, ';');
+
+        foreach ($filtered as $p) {
+            // 3. FEINHEIT: Daten aufbereiten (Keys zu Labels, Zahlen zu Komma-Format)
+            $typLabel   = $settings['vehicle_types'][$p->typ] ?? $p->typ;
+            $zweckLabel = $settings['purposes'][$p->zweck] ?? $p->zweck;
+            $preis      = \number_format($p->preisSnapshot, 2, ',', ''); // Komma-Format für Excel
+
+            \fputcsv($output, [
+                $p->code,
+                $p->name,
+                $p->email,
+                $p->parzelle,
+                $typLabel,
+                $p->kennzeichen,
+                $p->firma ?? '',
+                $zweckLabel,
+                $preis,
+                \strtoupper($p->status),
+                $p->erstellt->format('d.m.Y H:i')
+            ], ';');
+        }
+
+        \fclose($output);
+        exit;
+    }
 
     if ($format === 'json') {
         \header('Content-Type: application/json');
