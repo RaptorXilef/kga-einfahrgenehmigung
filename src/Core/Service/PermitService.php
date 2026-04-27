@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Service zur Verwaltung des Genehmigungsprozesses (v0.5.0).
+ * Service zur Verwaltung des Genehmigungsprozesses (v0.9.0).
  *
  * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
  * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
@@ -17,9 +17,6 @@
  * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
  *
  * @author    Felix Maywald (@RaptorXilef)
- *
- * @since     0.1.0
- * @since     0.5.0 - feat(core): Eindeutige Kennung und EPC-QR-Code Integration.
  */
 
 declare(strict_types=1);
@@ -33,7 +30,7 @@ use App\Core\Entity\Permit;
 use App\Infrastructure\Config\Config;
 
 /**
- * Zentraler Service für Ausnahmegenehmigungen (v0.5.0).
+ * Zentraler Service für Ausnahmegenehmigungen
  */
 final readonly class PermitService
 {
@@ -48,8 +45,10 @@ final readonly class PermitService
 
     /**
      * Erstellt eine neue Genehmigung und triggert den 3-Mail-Workflow.
+     *
+     * @param bool $sendMails Steuert, ob die 3 Standard-Mails sofort rausgehen.
      */
-    public function createPermit(array $data): Permit
+    public function createPermit(array $data, bool $sendMails = true): Permit
     {
         $this->validateEmail($data['email'] ?? '');
 
@@ -92,6 +91,7 @@ final readonly class PermitService
         }
 
         // 3-Mail-System
+        // FIX: Hier nutzen wir jetzt den Parameter $sendMails
         if ($sendMails) {
             $this->dispatchMails($permit, $randomId);
         }
@@ -109,18 +109,13 @@ final readonly class PermitService
         $data['verification_token'] = $token;
         $data['expires']            = \time() + (3600 * 24); // 24h gültig
 
-        // Wir speichern das in einer separaten Datei via JsonStorage (separater Pfad)
-        $tempStorage = new \App\Infrastructure\Storage\JsonStorage(
-            $this->config->get('root_path') . '/storage/pending_verification.json',
-        );
+        // Wir speichern das in einer separaten Datei
+        $storagePath = $this->config->get('root_path') . '/storage/pending_verification.json';
 
-        // Wir nutzen hier ein einfaches Array-Speichern für den Temp-Speicher
-        $allPending         = $this->loadJson($this->config->get('root_path') . '/storage/pending_verification.json');
+        $allPending         = $this->loadJson($storagePath);
         $allPending[$token] = $data;
-        \file_put_contents(
-            $this->config->get('root_path') . '/storage/pending_verification.json',
-            \json_encode($allPending),
-        );
+
+        \file_put_contents($storagePath, \json_encode($allPending, \JSON_UNESCAPED_UNICODE));
 
         // Verifizierungs-Mail senden
         $verifyUrl = $this->config->getBaseUrl() . 'verify.php?token=' . $token;
@@ -148,7 +143,7 @@ final readonly class PermitService
         unset($allPending[$token]);
         \file_put_contents($path, \json_encode($allPending));
 
-        // Jetzt erst die echte Genehmigung erstellen UND Mails senden
+        // Hier wird die echte Genehmigung erstellt und Mails versendet
         return $this->createPermit($data, true);
     }
 
@@ -169,11 +164,11 @@ final readonly class PermitService
         $zeitraum = "{$p->von->format('d.m.Y')} bis {$p->bis->format('d.m.Y')}";
         $opening  = $this->config->get('opening_hours');
 
-        // 1. Mail an VORSTAND
         $token        = \hash('sha256', $p->code . $this->config->get('geheimnis'));
         $subjectBoard = "[{$p->code}] - {$zeitraum} - {$p->name}";
 
-        $this->mailService->sendTemplate($this->config->get('vorstand_email'), $subjectBoard, 'board_notification', [
+        // Mail an VORSTAND
+        $this->mailService->sendTemplate($this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'], $subjectBoard, 'board_notification', [
             'fullIdentifier' => $p->code,
             'name'           => $p->name,
             'email'          => $p->email,
@@ -187,7 +182,7 @@ final readonly class PermitService
             'adminLink'      => $this->config->get('base_url') . "admin.php?code={$p->code}&token={$token}",
         ]);
 
-        // 2. Mail an NUTZER (Zahlung mit EPC-QR)
+        // Mail an NUTZER (Zahlung mit EPC-QR)
         $usage     = $this->generateUsageText($p, $shortCode);
         $epcQrData = $this->generateEpcData($p->preisSnapshot, $usage);
 
@@ -202,7 +197,7 @@ final readonly class PermitService
             'epcData'        => \urlencode($epcQrData),
         ]);
 
-        // 3. Mail an NUTZER (A4 Dokument)
+        // Mail an NUTZER (A4 Dokument)
         $this->mailService->sendTemplate($p->email, 'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'), 'permit_a4_document', [
             'fullIdentifier'    => $p->code,
             'von'               => $p->von->format('d.m.Y'),
@@ -233,13 +228,13 @@ final readonly class PermitService
     {
         // SEPA EPC-QR-Code (BezahlCode) Standard
         return "BCD\n001\n1\nSCT\n" .
-               $this->config->get('bic') . "\n" .
-               $this->config->get('kontoinhaber') . "\n" .
-               $this->config->get('iban') . "\n" .
-               'EUR' . \number_format($amount, 2, '.', '') . "\n" .
-               "\n" . // Purpose Code leer
-               "\n" . // Structured Reference leer
-               $reference;
+                $this->config->get('bic') . "\n" .
+                $this->config->get('kontoinhaber') . "\n" .
+                $this->config->get('iban') . "\n" .
+                'EUR' . \number_format($amount, 2, '.', '') . "\n" .
+                "\n" . // Purpose Code leer
+                "\n" . // Structured Reference leer
+                $reference;
     }
 
     /**

@@ -16,10 +16,6 @@
  * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
  *
  * @author    Felix Maywald (@RaptorXilef)
- *
- * @since     0.1.0
- * - feat(payment): Implementierung der sicheren Server-Side Capture Logik.
- * - feat(security): Preis-Matching hinzugefügt, um Betrug zu verhindern.
  */
 
 declare(strict_types=1);
@@ -65,7 +61,7 @@ final readonly class PayPalService implements PaymentProviderInterface
         \curl_setopt($ch, \CURLOPT_POSTFIELDS, \json_encode($payload));
         $response = \curl_exec($ch);
         $data     = \json_decode((string) $response, true);
-        \curl_close($ch);
+        // curl_close entfernt (deprecated in IDE)
 
         return $data['id'] ?? false;
     }
@@ -91,7 +87,7 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         $response = \curl_exec($ch);
         $httpCode = \curl_getinfo($ch, \CURLINFO_HTTP_CODE);
-        \curl_close($ch);
+        // curl_close entfernt (deprecated in IDE)
 
         // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
         if ($httpCode !== 201 && $httpCode !== 200) {
@@ -119,9 +115,13 @@ final readonly class PayPalService implements PaymentProviderInterface
      */
     private function getAccessToken(): string
     {
-        $baseUrl  = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
-        $clientId = $this->config->get('paypal_client_id');
-        $secret   = $this->config->get('paypal_secret');
+        $baseUrl = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+
+        // Dynamische Auswahl der Credentials basierend auf dem Modus
+        $ppCfg    = $this->config->get('paypal');
+        $mode     = $this->config->isTestMode() ? 'sandbox' : 'live';
+        $clientId = $ppCfg[$mode]['client_id'];
+        $secret   = $ppCfg[$mode]['secret'];
 
         $ch = \curl_init("$baseUrl/v1/oauth2/token");
         \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
@@ -130,10 +130,10 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         $response = \curl_exec($ch);
         $data     = \json_decode((string) $response, true);
-        \curl_close($ch);
+        // curl_close entfernt (deprecated in IDE)
 
         if (! isset($data['access_token'])) {
-            throw new \RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte Client-ID und Secret prüfen.');
+            throw new \RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte API-Daten prüfen.');
         }
 
         return (string) $data['access_token'];
