@@ -2,6 +2,38 @@
 
 
 
+## [0.7.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.6.0...v0.7.0) (2026-04-27)
+
+### 🚀 Features
+
+* **admin/check:** implement dev-mode, manual search, and partial ID matching ([dc5f38c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dc5f38cd6ed817b1e9677dadd51d551757749e20))
+* **admin:** add real-time dashboard search and refactor JS handler ([0c75ccb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0c75ccb15eb4a07102667cef19b5a5ef7102b46f))
+* **admin:** complete association dashboard with tabs and print preview ([cde7513](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cde75133298827a38fa30da652d82a6ddd82c65d))
+* **admin:** implement login template, dashboard search and manual activation ([18dfa00](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/18dfa005e3708c18c18dfb92077cadcf236e5cfc))
+* **admin:** implement tabbed dashboard view for permit grouping ([67855b9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/67855b9d345653bf4850fda6a9feb5c094b3b598))
+
+### 🐛 Bug Fixes
+
+* **storage:** update JsonStorage mapping for expanded Permit entity ([7bc0651](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7bc0651fab053ae519524b257b902eec5e5470d2))
+
+### ⚙️ Refactoring
+
+* **admin:** optimize CSV export for German Excel compatibility ([dc64d46](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dc64d4648716e69cd16c7836469cd285c64299e1))
+
+### 💎 Styling
+
+* enforce global namespace backslashes for classes ([34be12d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/34be12dd9cb7f62431819d93728012b4e98d782d))
+
+### 🧹 Chore / Maintenance
+
+* finalize IDE environment and rector modernization ([6cbad2b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6cbad2bfc9a1d6cac281ff7afa86791006afcbd1))
+* **release:** v0.7.0 - administrative dashboard with search and tabs ([dde15c7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dde15c7129b351602bc81f7ef46cfe2ed2f40912))
+* **style:** synchronize php-cs-fixer rules with rector and optimize performance ([13bc68c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/13bc68c5fb8939820492e289dd3ccab6a34361c6))
+
+# Changelog
+
+
+
 ## [0.6.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.5.0...v0.6.0) (2026-04-26)
 
 ### 🚀 Features
