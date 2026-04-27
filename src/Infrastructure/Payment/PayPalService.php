@@ -40,10 +40,10 @@ final readonly class PayPalService implements PaymentProviderInterface
         $accessToken = $this->getAccessToken();
         $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
 
-        $ch = \curl_init("$baseUrl/v2/checkout/orders");
-        \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($ch, \CURLOPT_POST, true);
-        \curl_setopt($ch, \CURLOPT_HTTPHEADER, [
+        $curlHandle = \curl_init("$baseUrl/v2/checkout/orders");
+        \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($curlHandle, \CURLOPT_POST, true);
+        \curl_setopt($curlHandle, \CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
             "Authorization: Bearer $accessToken",
         ]);
@@ -58,8 +58,8 @@ final readonly class PayPalService implements PaymentProviderInterface
             ]],
         ];
 
-        \curl_setopt($ch, \CURLOPT_POSTFIELDS, \json_encode($payload));
-        $response = \curl_exec($ch);
+        \curl_setopt($curlHandle, \CURLOPT_POSTFIELDS, \json_encode($payload));
+        $response = \curl_exec($curlHandle);
         $data     = \json_decode((string) $response, true);
         // curl_close entfernt (deprecated in IDE)
 
@@ -77,16 +77,16 @@ final readonly class PayPalService implements PaymentProviderInterface
         $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
 
         // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
-        $ch = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
-        \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($ch, \CURLOPT_POST, true);
-        \curl_setopt($ch, \CURLOPT_HTTPHEADER, [
+        $curlHandle = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
+        \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($curlHandle, \CURLOPT_POST, true);
+        \curl_setopt($curlHandle, \CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
             "Authorization: Bearer $accessToken",
         ]);
 
-        $response = \curl_exec($ch);
-        $httpCode = \curl_getinfo($ch, \CURLINFO_HTTP_CODE);
+        $response = \curl_exec($curlHandle);
+        $httpCode = \curl_getinfo($curlHandle, \CURLINFO_HTTP_CODE);
         // curl_close entfernt (deprecated in IDE)
 
         // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
@@ -123,12 +123,12 @@ final readonly class PayPalService implements PaymentProviderInterface
         $clientId = $ppCfg[$mode]['client_id'];
         $secret   = $ppCfg[$mode]['secret'];
 
-        $ch = \curl_init("$baseUrl/v1/oauth2/token");
-        \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($ch, \CURLOPT_USERPWD, "$clientId:$secret");
-        \curl_setopt($ch, \CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
+        $curlHandle = \curl_init("$baseUrl/v1/oauth2/token");
+        \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($curlHandle, \CURLOPT_USERPWD, "$clientId:$secret");
+        \curl_setopt($curlHandle, \CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
 
-        $response = \curl_exec($ch);
+        $response = \curl_exec($curlHandle);
         $data     = \json_decode((string) $response, true);
         // curl_close entfernt (deprecated in IDE)
 

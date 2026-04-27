@@ -161,13 +161,13 @@ final readonly class PermitService
     /**
      * Orchestriert den Versand der drei unterschiedlichen E-Mails.
      */
-    private function dispatchMails(Permit $p, string $shortCode): void
+    private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        $zeitraum = "{$p->von->format('d.m.Y')} bis {$p->bis->format('d.m.Y')}";
+        $zeitraum = "{$permit->von->format('d.m.Y')} bis {$permit->bis->format('d.m.Y')}";
         $opening  = $this->config->get('opening_hours');
 
-        $token        = \hash('sha256', $p->code . $this->config->get('geheimnis'));
-        $subjectBoard = "[{$p->code}] - {$zeitraum} - {$p->name}";
+        $token        = \hash('sha256', $permit->code . $this->config->get('geheimnis'));
+        $subjectBoard = "[{$permit->code}] - {$zeitraum} - {$permit->name}";
 
         // Mail an VORSTAND
         $this->mailService->sendTemplate(
@@ -175,28 +175,28 @@ final readonly class PermitService
             $subjectBoard,
             'board_notification',
             [
-                'fullIdentifier' => $p->code,
-                'name'           => $p->name,
-                'email'          => $p->email,
-                'parzelle'       => $p->parzelle,
-                'typLabel'       => $this->config->get('vehicle_types')[$p->typ] ?? $p->typ,
-                'kennzeichen'    => $p->kennzeichen,
-                'firma'          => $p->firma,
-                'von'            => $p->von->format('d.m.Y'),
-                'bis'            => $p->bis->format('d.m.Y'),
-                'zweck'          => $p->zweck,
-                'adminLink'      => $this->config->get('base_url') . "admin.php?code={$p->code}&token={$token}",
+                'fullIdentifier' => $permit->code,
+                'name'           => $permit->name,
+                'email'          => $permit->email,
+                'parzelle'       => $permit->parzelle,
+                'typLabel'       => $this->config->get('vehicle_types')[$permit->typ] ?? $permit->typ,
+                'kennzeichen'    => $permit->kennzeichen,
+                'firma'          => $permit->firma,
+                'von'            => $permit->von->format('d.m.Y'),
+                'bis'            => $permit->bis->format('d.m.Y'),
+                'zweck'          => $permit->zweck,
+                'adminLink'      => $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$token}",
             ],
         );
 
         // Mail an NUTZER (Zahlung mit EPC-QR)
-        $usage     = $this->generateUsageText($p, $shortCode);
-        $epcQrData = $this->generateEpcData($p->preisSnapshot, $usage);
+        $usage     = $this->generateUsageText($permit, $shortCode);
+        $epcQrData = $this->generateEpcData($permit->preisSnapshot, $usage);
 
-        $this->mailService->sendTemplate($p->email, "Zahlung erforderlich: {$p->code}", 'payment_request', [
-            'name'           => $p->name,
-            'fullIdentifier' => $p->code,
-            'betrag'         => \number_format($p->preisSnapshot, 2, ',', '.') . ' €',
+        $this->mailService->sendTemplate($permit->email, "Zahlung erforderlich: {$permit->code}", 'payment_request', [
+            'name'           => $permit->name,
+            'fullIdentifier' => $permit->code,
+            'betrag'         => \number_format($permit->preisSnapshot, 2, ',', '.') . ' €',
             'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
             'kontoinhaber'   => $this->config->get('kontoinhaber'),
             'iban'           => $this->config->get('iban'),
@@ -206,30 +206,30 @@ final readonly class PermitService
 
         // Mail an NUTZER (A4 Dokument)
         $this->mailService->sendTemplate(
-            $p->email,
+            $permit->email,
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
             'permit_a4_document',
             [
-                'fullIdentifier'    => $p->code,
-                'von'               => $p->von->format('d.m.Y'),
-                'bis'               => $p->bis->format('d.m.Y'),
-                'kennzeichen'       => $p->kennzeichen,
-                'firma'             => $p->firma,
-                'parzelle'          => $p->parzelle,
-                'zweck'             => $p->zweck,
+                'fullIdentifier'    => $permit->code,
+                'von'               => $permit->von->format('d.m.Y'),
+                'bis'               => $permit->bis->format('d.m.Y'),
+                'kennzeichen'       => $permit->kennzeichen,
+                'firma'             => $permit->firma,
+                'parzelle'          => $permit->parzelle,
+                'zweck'             => $permit->zweck,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-                'erstellt'          => $p->erstellt?->format('d.m.Y H:i') ?? 'Sofort',
-                'checkUrl'          => \urlencode($this->config->get('base_url') . 'check.php?code=' . $p->code),
+                'erstellt'          => $permit->erstellt?->format('d.m.Y H:i') ?? 'Sofort',
+                'checkUrl'          => \urlencode($this->config->get('base_url') . 'check.php?code=' . $permit->code),
             ],
         );
     }
 
-    private function generateUsageText(Permit $p, string $shortCode): string
+    private function generateUsageText(Permit $permit, string $shortCode): string
     {
-        $nameParts = \explode(' ', $p->name);
+        $nameParts = \explode(' ', $permit->name);
         $vorname   = $nameParts[0] ?? 'Unbekannt';
         $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
 
@@ -260,11 +260,11 @@ final readonly class PermitService
         }
 
         // Berlin-Priorität (Regex-Strings korrekt in PHP-Syntax)
-        if (\preg_match('/^(B)([A-Z]{1,2})(\d{1,4})$/', $val, $m)) {
-            return "{$m[1]}-{$m[2]} {$m[3]}";
+        if (\preg_match('/^(B)([A-Z]{1,2})(\d{1,4})$/', $val, $matches)) {
+            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
-        if (\preg_match('/^([A-Z]{1,3})([A-Z]{1,2})(\d{1,4})$/', $val, $m)) {
-            return "{$m[1]}-{$m[2]} {$m[3]}";
+        if (\preg_match('/^([A-Z]{1,3})([A-Z]{1,2})(\d{1,4})$/', $val, $matches)) {
+            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
         return (string) \preg_replace('/^([A-Z]{1,3})(\d{1,4})$/', '$1 $2', $val);

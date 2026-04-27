@@ -35,7 +35,7 @@ final readonly class SmtpMailService implements MailServiceInterface
     ) {
     }
 
-    public function sendTemplate(string $to, string $subject, string $template, array $data): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
         $mailConfig = $this->config->getMailSettings();
 
@@ -49,7 +49,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             return true;
         }
 
-        return $this->dispatch($to, $subject, $body, $mailConfig);
+        return $this->dispatch($recipient, $subject, $body, $mailConfig);
     }
 
     private function render(string $templatePath, array $data): string
@@ -70,16 +70,16 @@ final readonly class SmtpMailService implements MailServiceInterface
         return $content;
     }
 
-    private function dispatch(string $to, string $subject, string $body, array $c): bool|string
+    private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig): bool|string
     {
-        $host = $c['host'] ?? '';
-        $port = (int) ($c['port'] ?? 465);
-        $user = $c['user'] ?? '';
-        $pass = $c['pass'] ?? '';
-        $from = $c['from'] ?? '';
+        $host = $smtpConfig['host'] ?? '';
+        $port = (int) ($smtpConfig['port'] ?? 465);
+        $user = $smtpConfig['user'] ?? '';
+        $pass = $smtpConfig['pass'] ?? '';
+        $from = $smtpConfig['from'] ?? '';
 
         $protocol = $port === 465 ? 'ssl://' : '';
-        $socket   = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);
+        $socket   = \fsockopen($protocol . $host, $port, $errno, $errstr, 15);
 
         if (! $socket) {
             return "Verbindung fehlgeschlagen: $errstr ($errno)";
@@ -102,7 +102,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         \fwrite($socket, "MAIL FROM: <$from>\r\n");
         $this->getServerResponse($socket);
 
-        \fwrite($socket, "RCPT TO: <$to>\r\n");
+        \fwrite($socket, "RCPT TO: <$recipient>\r\n");
         $this->getServerResponse($socket);
 
         \fwrite($socket, "DATA\r\n");
@@ -111,7 +111,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         $headers .= "From: <$from>\r\n";
-        $headers .= "To: <$to>\r\n";
+        $headers .= "To: <$recipient>\r\n";
         $headers .= 'Subject: =?UTF-8?B?' . \base64_encode($subject) . "?=\r\n\r\n";
 
         \fwrite($socket, $headers . $body . "\r\n.\r\n");

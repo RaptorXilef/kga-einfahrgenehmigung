@@ -8,9 +8,6 @@
  * Repräsentiert eine einzelne Genehmigung mit allen relevanten Daten.
  *
  * @file      src/Core/Entity/Permit.php
- *
- * @since     0.1.0
- * - feat(core): Initiale Erstellung der Permit-Entität.
  */
 
 declare(strict_types=1);
@@ -18,7 +15,7 @@ declare(strict_types=1);
 namespace App\Core\Entity;
 
 /**
- * Kern-Entität für eine Ausnahmegenehmigung (v0.4.0).
+ * Kern-Entität für eine Ausnahmegenehmigung.
  */
 final readonly class Permit
 {
