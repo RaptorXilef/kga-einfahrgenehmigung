@@ -57,8 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $permit  = $permitService->createPermit($_POST);
         $success = true;
-        $message = 'Antrag erfolgreich! Die Genehmigung wurde an ' . \htmlspecialchars((string) $permit->email) . ' gesendet.';
-    } catch (Exception $e) {
+        // Wichtig: (string) Cast nur wenn email ein Objekt wäre, hier ist es ein String
+        $message = 'Antrag erfolgreich! Die Genehmigung wurde an ' . \htmlspecialchars($permit->email) . ' gesendet.';
+    } catch (\Exception $e) { // Backslash vor Exception, da globaler PHP-Namespace
         $message = 'Fehler: ' . $e->getMessage();
     }
 }

@@ -8,7 +8,7 @@
  * Zentraler Bootstrapping-Punkt der Anwendung. Erstellt Instanzen
  * und verwaltet Abhängigkeiten (DI).
  *
- * @file      bootstrap/container.php
+ * @file      src/Bootstrap/Container.php
  *
  * @copyright (c) 2026 Felix Maywald. All rights reserved.
  * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE

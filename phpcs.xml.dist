@@ -12,7 +12,6 @@
     <file>src</file>
     <file>tests</file>
     <file>public</file>
-    <file>bootstrap</file>
     <file>config</file>
 
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">

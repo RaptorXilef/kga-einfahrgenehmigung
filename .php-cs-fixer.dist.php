@@ -69,6 +69,19 @@ return (new Config())
         'modernize_types_casting' => true,
 
         // NEU: Der Friedensvertrag zwischen PHPMD und PHP-CS-Fixer
+        // 1. Das hier zwingt PHP-CS-Fixer, den Backslash bei globalen Klassen zu lassen/hinzuzufügen
+        'fully_qualified_strict_types' => [
+            'leading_backslash_in_global_namespace' => true,
+        ],
+
+        // 2. Das hier sorgt dafür, dass auch Konstanten wie \PHP_VERSION oder \JSON_THROW_ON_ERROR Backslashes bekommen
+        'native_constant_invocation' => [
+            'fix_built_in' => true,
+            'include'      => ['@all'],
+            'scope'        => 'all',
+        ],
+
+        // 3. Dein bereits korrekter Block (muss so bleiben)
         'global_namespace_import' => [
             'import_classes'   => false,  // Klassen NICHT importieren -> \Exception bleibt inline
             'import_constants' => false,  // Konstanten NICHT importieren -> \PHP_VERSION bleibt inline
@@ -92,12 +105,11 @@ return (new Config())
             'sort_algorithm' => 'alpha',
             'imports_order'  => ['class', 'function', 'const'], // Erzwingt die richtige Gruppen-Reihenfolge
         ],
-        'no_unused_imports'            => true,
-        'fully_qualified_strict_types' => true, // Verhindert unnötige FQCNs (nutzt lieber use)
-        'combine_consecutive_issets'   => true,
-        'combine_consecutive_unsets'   => true,
-        'class_attributes_separation'  => ['elements' => ['method' => 'one', 'property' => 'one']],
-        'blank_line_before_statement'  => ['statements' => ['break', 'continue', 'declare', 'return', 'throw', 'try']],
+        'no_unused_imports'           => true,
+        'combine_consecutive_issets'  => true,
+        'combine_consecutive_unsets'  => true,
+        'class_attributes_separation' => ['elements' => ['method' => 'one', 'property' => 'one']],
+        'blank_line_before_statement' => ['statements' => ['break', 'continue', 'declare', 'return', 'throw', 'try']],
 
         // --- PARAMETER & KOMMAS ---
         'trailing_comma_in_multiline' => ['elements' => ['arrays', 'arguments', 'parameters']],

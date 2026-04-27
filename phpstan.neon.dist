@@ -22,7 +22,6 @@ parameters:
         - src
         - tests
         - public
-        - bootstrap
         - config
 
     # Exklusionen (Vendor und Node_Modules sollten ignoriert werden)

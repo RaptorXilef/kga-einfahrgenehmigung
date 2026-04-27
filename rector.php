@@ -14,7 +14,11 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPromotedPropertyRector;
+use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
+use Rector\PostRector\Rector\NameImportingPostRector;
+use Rector\PostRector\Rector\UnusedImportRemovingPostRector;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRector;
@@ -26,7 +30,6 @@ return static function (RectorConfig $rectorConfig): void {
         __DIR__ . '/src',
         __DIR__ . '/tests',
         __DIR__ . '/public',
-        __DIR__ . '/bootstrap',
         __DIR__ . '/config',
     ]);
 
@@ -66,16 +69,16 @@ return static function (RectorConfig $rectorConfig): void {
     // 6. Sicherheits-Skips (Deine "Battle-Scars" Schutzregeln)
     $rectorConfig->skip([
         // Korrekter Pfad für PHPUnit Regeln (verhindert Konflikte mit $this vs static)
-        'Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector',
+        PreferPHPUnitThisCallRector::class,
 
         // Verhindert das Löschen der Konstruktor-Parameter (Named Arguments Fix)
-        \Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPromotedPropertyRector::class,
+        RemoveUnusedPromotedPropertyRector::class,
 
         // Verhindert das "Narrowing" (Löschen) von Properties in Tests
         // 'Rector\Php80\Rector\Class_\NarrowUnusedSetUpDefinedPropertyRector',
 
         // Verhindert das Löschen von eigentlich benötigten Imports
-        \Rector\PostRector\Rector\UnusedImportRemovingPostRector::class,
+        UnusedImportRemovingPostRector::class,
 
         // SHADOWING-MOCKING SCHUTZ:
 
@@ -85,7 +88,7 @@ return static function (RectorConfig $rectorConfig): void {
 
         // Verhindert, dass Rector 'use function' einfügt und damit Mocks hebelt.
         // Trage hier Dateien ein, in denen du Funktionen mockst:
-        \Rector\PostRector\Rector\NameImportingPostRector::class => [
+        NameImportingPostRector::class => [
             // Beispiel: __DIR__ . '/src/Security/MyService.php',
         ],
     ]);

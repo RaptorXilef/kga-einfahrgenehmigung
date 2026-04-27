@@ -15,7 +15,7 @@
     "editor.linkedEditing": true,
     "files.eol": "\n", // Unix-Zeilenenden für Git-Konsistenz
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 1000,
+    "files.autoSaveDelay": 1000, // Wenn CPU Last zu hoch auf 3000 oder 5000 erhöhen
 
     "gremlins.showInProblemPane": true,
 
@@ -30,7 +30,6 @@
     // --- PHP & INTELEPHENSE ---
     "[php]": {
         //"editor.defaultFormatter": "bmewburn.vscode-intelephense-client", // Intelephense als Basis
-        //"editor.defaultFormatter": "junstyle.php-cs-fixer",
         "editor.defaultFormatter": "muuvmuuv.vscode-just-php-cs-fixer",
         "editor.wordWrap": "off",
         "editor.renderWhitespace": "boundary"
@@ -97,7 +96,21 @@
         "**/.debug/**": true
     },
     "intelephense.diagnostics.undefinedTypes": true,
-    "intelephense.files.exclude": ["**/.cache/**", "**/.build/**", "**/.php-cs-fixer.dist.php"],
+    "intelephense.diagnostics.exclude": ["**/.cache/**", "**/temp/**"],
+    "intelephense.files.exclude": [
+        "**/.cache/**",
+        "**/.build/**",
+        "**/.php-cs-fixer.dist.php",
+        "**/.git/**",
+        "**/.svn/**",
+        "**/.hg/**",
+        "**/CVS/**",
+        "**/.DS_Store/**",
+        "**/node_modules/**",
+        "**/bower_components/**"
+    ],
+    // Das hier hilft, wenn Intelephense hängen bleibt
+    "intelephense.completion.fullyQualifyImportNames": true,
 
     // =========================================================================
     // TOOLS & WORKFLOW (Meine persönlichen Favoriten)
@@ -134,4 +147,7 @@
     // --- THEME ---
     "workbench.colorTheme": "Monokai Pirokai - Beach Sunset",
     "errorLens.onInlayHints": true
+
+    // -- HINWEISE ---
+    // vscode://settings/php-cs-fixer.allow-risky muss auf true gesetzt werden! Also Haken rein!
 }
