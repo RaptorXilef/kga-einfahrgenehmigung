@@ -23,11 +23,11 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
-use App\Infrastructure\Config\Config;
 
 /**
  * Zentraler Service für Ausnahmegenehmigungen
@@ -37,7 +37,7 @@ final readonly class PermitService
     public function __construct(
         private StorageInterface $storage,
         private MailServiceInterface $mailService,
-        private Config $config,
+        private ConfigInterface $config,
         private HolidayService $holidayService,
         private PaymentProviderInterface $paymentProvider,
     ) {

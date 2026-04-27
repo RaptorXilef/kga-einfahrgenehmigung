@@ -7,38 +7,38 @@ deptrac:
   cache_file: .cache/deptrac/.deptrac.cache
 
   layers:
+    - name: Domain # NEU: Die Entitäten sind die Basis
+      collectors:
+        - type: directory
+          value: src/Core/Entity/.*
     - name: Contracts
       collectors:
         - type: directory
           value: src/Contracts/.*
-    - name: Core
+    - name: Core # Jetzt nur noch die Services
       collectors:
         - type: directory
-          value: src/Core/.*
+          value: src/Core/Service/.*
     - name: Infrastructure
       collectors:
         - type: directory
           value: src/Infrastructure/.*
-    - name: Application
-      collectors:
-        - type: directory
-          value: src/Application/.*
 
   ruleset:
-    # Contracts sind die Basis und dürfen von NIEMANDEM abhängen
-    Contracts: ~
+    # Domain (Permit) ist völlig unabhängig
+    Domain: ~
 
-    # Der Core darf nur Contracts kennen (Interfaces)
+    # Contracts dürfen Domain-Objekte (Permit) kennen
+    Contracts:
+      - Domain
+
+    # Core nutzt Interfaces und Domain
     Core:
       - Contracts
+      - Domain
 
-    # Infrastructure (DB, Mail, etc.) darf Core und Contracts nutzen
+    # Infrastructure implementiert Interfaces
     Infrastructure:
       - Core
       - Contracts
-
-    # Die Application-Schicht orchestriert alles
-    Application:
-      - Core
-      - Infrastructure
-      - Contracts
+      - Domain

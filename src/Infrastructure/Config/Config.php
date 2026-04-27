@@ -18,10 +18,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config;
 
+use App\Contracts\Config\ConfigInterface;
+
 /**
  * @immutable
  */
-final readonly class Config
+final readonly class Config implements ConfigInterface
 {
     public function __construct(
         private array $settings,
