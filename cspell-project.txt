@@ -1,3 +1,4 @@
+
 ABCDEFGHJKLMNPQRSTUVWXYZ
 Amtl
 Andersenweg
@@ -32,5 +33,6 @@ sunday
 USERPWD
 vereins
 vereins
+Verifizierungs
 Verschachtelung
 zweck

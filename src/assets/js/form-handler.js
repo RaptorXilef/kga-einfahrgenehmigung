@@ -154,16 +154,12 @@ export class PermitFormHandler {
             if (Number.isNaN(date.getTime())) return;
 
             if (this.isRestrictedDay(date)) {
+                // Wir feuern den Alert sofort pro Feld
                 alert(
                     `Hinweis: Der ${date.toLocaleDateString('de-DE')} ist ein Sonn- oder Feiertag. Die Einfahrt ist untersagt.`
                 );
             }
         });
-
-        if (alerts.length > 0) {
-            // Hier könnte man ein schöneres UI-Element nutzen, vorerst Standard-Alert
-            alert(alerts.join('\n'));
-        }
     }
 
     /**

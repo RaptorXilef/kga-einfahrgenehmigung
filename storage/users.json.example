@@ -1,0 +1,10 @@
+{
+    "admin": {
+        "pass": "$2y$10$xyz...",
+        "level": 1
+    },
+    "vorstand": {
+        "pass": "$2y$10$abc...",
+        "level": 2
+    }
+}

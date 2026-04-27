@@ -28,7 +28,12 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
-        $users = $this->config->get('admin_users', []);
+        $usersPath = $this->config->get('root_path') . '/storage/users.json';
+        if (! \file_exists($usersPath)) {
+            return false;
+        }
+
+        $users = \json_decode(\file_get_contents($usersPath), true) ?: [];
 
         if (isset($users[$username]) && \password_verify($password, (string) $users[$username]['pass'])) {
             $_SESSION['admin_user']  = $username;

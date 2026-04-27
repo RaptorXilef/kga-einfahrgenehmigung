@@ -59,6 +59,10 @@ return [
         ],
     ],
 
+    // --- DESIGN ---
+    'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail
+    'vorlaeufigFarbe' => '#f1c40f', // Gelb für "Wartend" (Verwaltungsintern)
+
     // --- LOGIK & ZEITRÄUME ---
     'permit_duration' => 7, // Standard-Zeitraum (1 Woche)
     'opening_hours'   => [
@@ -79,18 +83,6 @@ return [
         'lkw' => 'LKW / Lieferant / Firma',
     ],
 
-    // --- ADMIN & SICHERHEIT --- WERDEN NOCH IN storage/users.json ausgelagert
-    'admin_users' => [
-        'admin' => [
-            'pass'  => '$2y$10$xyz...', // Password-Hash
-            'level' => 1, // Vollzugriff
-        ],
-        'vorstand' => [
-            'pass'  => '$2y$10$abc...',
-            'level' => 2, // Nur Einsicht
-        ],
-    ],
-
     // --- UMGEBUNGSSTEUERUNG ---
 
     /**
@@ -105,8 +97,4 @@ return [
      * false => Login zwingend erforderlich
      */
     'admin_dev_mode' => true,  // TRUE = Kein Admin-Login nötig
-
-    // --- DESIGN ---
-    'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail
-    'vorlaeufigFarbe' => '#f1c40f', // Gelb für "Wartend" (Verwaltungsintern)
 ];

@@ -34,7 +34,7 @@ use App\Core\Service\PermitService;
 use App\Infrastructure\Config\Config;
 
 try {
-    $settings              = require_once $appRoot . '/config.php';
+    $settings              = require_once $appRoot . '/config/config.php';
     $settings['root_path'] = $appRoot; // Pfad injizieren
 
     $container     = new Container(new Config($settings));

@@ -162,7 +162,7 @@ yarn.lock
 # Secret configuration (contains passwords/keys)
 # ------------------------------------------------------------------------------
 /config/secret.php
-/storage/
+/storage/*.json
 
 
 # ------------------------------------------------------------------------------
@@ -184,13 +184,8 @@ logs/
 # PROJEKT SPEZIFISCH
 # ==============================================================================
 
-# Composer-Abhängigkeiten
-/kga-core/vendor/
-
 # Sensible Daten & Konfiguration
-/kga-core/config/config.php
-/kga-core/storage/daten.json
-/kga-core/storage/*.json
+/config/config.php
 
 /public/assets/css/*.map
 /public/assets/js/*.map
