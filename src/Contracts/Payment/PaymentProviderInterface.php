@@ -27,6 +27,11 @@ namespace App\Contracts\Payment;
 interface PaymentProviderInterface
 {
     /**
+     * Erstellt eine Bestellung beim Anbieter und gibt die Order-ID zurück.
+     */
+    public function createOrder(float $amount): string|false;
+
+    /**
      * Verifiziert eine Zahlung beim Anbieter und schließt diese ab.
      *
      * @param string $orderId        Die vom Client übermittelte Order-ID.

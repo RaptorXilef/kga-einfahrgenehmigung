@@ -39,6 +39,37 @@ final readonly class PayPalService implements PaymentProviderInterface
     ) {
     }
 
+    public function createOrder(float $amount): string|false
+    {
+        $accessToken = $this->getAccessToken();
+        $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+
+        $ch = \curl_init("$baseUrl/v2/checkout/orders");
+        \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($ch, \CURLOPT_POST, true);
+        \curl_setopt($ch, \CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            "Authorization: Bearer $accessToken",
+        ]);
+
+        $payload = [
+            'intent'         => 'CAPTURE',
+            'purchase_units' => [[
+                'amount' => [
+                    'currency_code' => 'EUR',
+                    'value'         => \number_format($amount, 2, '.', ''),
+                ],
+            ]],
+        ];
+
+        \curl_setopt($ch, \CURLOPT_POSTFIELDS, \json_encode($payload));
+        $response = \curl_exec($ch);
+        $data     = \json_decode((string) $response, true);
+        \curl_close($ch);
+
+        return $data['id'] ?? false;
+    }
+
     /**
      * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
      *
