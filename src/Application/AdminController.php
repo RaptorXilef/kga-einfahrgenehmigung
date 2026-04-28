@@ -109,12 +109,15 @@ final readonly class AdminController
         }
 
         // --- 5. STATISTIKEN & GRUPPIERUNG ---
-        $stats    = $this->calculateStats($filtered);
-        $groups   = $this->groupPermits($allPermits);
-        $settings = $this->getSettingsArray();
-        $config   = $this->config;
-
-        include $appRoot . '/templates/pages/admin_dashboard.phtml';
+        $this->render('admin_dashboard', [
+            'stats'      => $this->calculateStats($filtered),
+            'groups'     => $this->groupPermits($allPermits),
+            'settings'   => $this->getSettingsArray(),
+            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
+            'message'    => $message,
+            'config'     => $this->config,
+        ]);
     }
 
     /**
@@ -241,5 +244,14 @@ final readonly class AdminController
             'base_url'           => $this->config->getBaseUrl(),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
         ];
+    }
+
+    private function render(string $templatePath, array $data = []): void
+    {
+        // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
+        \extract($data);
+
+        $appRoot = $this->config->get('root_path');
+        include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 }
