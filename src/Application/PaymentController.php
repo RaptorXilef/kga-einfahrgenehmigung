@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -13,11 +14,46 @@ final readonly class PaymentController
 {
     public function __construct(
         private PermitService $permitService,
+        private PaymentProviderInterface $paymentProvider,
     ) {
     }
 
     /**
-     * Verarbeitet das Capture von PayPal-Bestellungen.
+     * Erstellt eine vorläufige Genehmigung und reserviert eine PayPal-Order.
+     *
+     * @param array<string, mixed> $post Entspricht $_POST
+     */
+    public function handleCreatePending(array $post): void
+    {
+        \header('Content-Type: application/json');
+
+        try {
+            // 1. Genehmigung erstellen (Status: wartend, noch keine Mails)
+            $permit = $this->permitService->createPermit($post, false);
+
+            // 2. PayPal Order reservieren
+            $paypalOrderId = $this->paymentProvider->createOrder($permit->preisSnapshot);
+
+            if (! $paypalOrderId) {
+                throw new \Exception('PayPal-Schnittstelle antwortet nicht.');
+            }
+
+            $this->jsonResponse([
+                'success'       => true,
+                'code'          => $permit->code,
+                'paypalOrderId' => $paypalOrderId,
+            ]);
+        } catch (\Exception $exception) {
+            \http_response_code(400);
+            $this->jsonResponse([
+                'success' => false,
+                'error'   => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Verarbeitet das Capture (Geldeinzug) von PayPal-Bestellungen.
      */
     public function handleCapture(): void
     {
@@ -40,7 +76,6 @@ final readonly class PaymentController
                 'success' => $success,
                 'message' => $success ? 'Zahlung verarbeitet' : 'Fehler bei Verifizierung',
             ]);
-
         } catch (\Exception $exception) {
             \http_response_code(400);
             $this->jsonResponse([
@@ -51,7 +86,7 @@ final readonly class PaymentController
     }
 
     /**
-     * Hilfsmethode für saubere JSON-Ausgabe ohne exit.
+     * Hilfsmethode für saubere JSON-Ausgabe.
      *
      * @param array<string, mixed> $data
      */

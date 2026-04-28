@@ -7,6 +7,7 @@ declare(strict_types=1);
 /**
  * API-Endpunkt für PayPal Capture v0.9.5
  */
+
 $appRoot = (function (): string {
     $dir = __DIR__;
     // Suche nach oben, bis vendor/autoload.php gefunden wird
