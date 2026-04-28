@@ -29,6 +29,8 @@ final readonly class HolidayService
 
     /**
      * Berechnet alle gesetzlichen Feiertage für Berlin.
+     *
+     * @return string[]
      */
     private function getBerlinHolidays(int $year): array
     {

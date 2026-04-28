@@ -25,6 +25,9 @@ interface StorageInterface
 
     public function findByHash(string $hash): ?Permit;
 
+    /**
+     * @return Permit[]
+     */
     public function getAll(): array;
 
     public function migrateTo(StorageInterface $target): int;

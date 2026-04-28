@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Service Container (Dependency Injector). v0.9.4
+ * Service Container (Dependency Injector).
  *
  * Zentraler Bootstrapping-Punkt der Anwendung. Erstellt Instanzen
  * und verwaltet Abhängigkeiten (DI).
@@ -40,14 +40,20 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
 
 /**
- * Service Container (Dependency Injector)
+ * Service Container (Dependency Injector) v0.9.6.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Container
 {
+    /**
+     * @var array<string, \Closure>
+     */
     private array $services = [];
 
+    /**
+     * @var array<string, object>
+     */
     private array $instances = [];
 
     public function __construct(private readonly Config $config)
@@ -62,13 +68,13 @@ class Container
         $this->instances[Config::class]          = $this->config;
         $this->instances[ConfigInterface::class] = $this->config; // WICHTIG für Entkopplung
 
-        // 2. Hilfs-Services (Stateless)
+        // --- 2. HILFS-SERVICES (Stateless) ---
         $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService();
 
-        // 3. Infrastruktur-Services
+        // --- 3. INFRASTRUKTUR (Storage, Mail, Payment, Auth) ---
         $this->services[StorageInterface::class] = function (): JsonStorage {
-            $root         = $this->config->get('root_path');
-            $path         = $this->config->get('storage_path', 'storage/daten.json');
+            $root         = (string) $this->config->get('root_path');
+            $path         = (string) $this->config->get('storage_path', 'storage/daten.json');
             $absolutePath = \str_starts_with($path, '/') ? $path : $root . '/' . $path;
 
             return new JsonStorage($absolutePath);
@@ -84,19 +90,21 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
-        // 4. Kern-Logik (Orchestratoren)
-        $this->services[PermitService::class] = fn (): PermitService => new PermitService(
-            $this->get(StorageInterface::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(ConfigInterface::class), // Nutzt jetzt das Interface!
-            $this->get(HolidayService::class),
-            $this->get(PaymentProviderInterface::class),
-        );
-
         // AuthService registrieren
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
             $this->get(Config::class),
         );
+
+        // --- 4. CORE LOGIC (Orchestratoren) ---
+        $this->services[PermitService::class] = fn (): PermitService => new PermitService(
+            $this->get(StorageInterface::class),
+            $this->get(MailServiceInterface::class),
+            $this->get(ConfigInterface::class),
+            $this->get(HolidayService::class),
+            $this->get(PaymentProviderInterface::class),
+        );
+
+        // --- 5. APPLICATION LAYER (Controller) ---
 
         // Admin Controller
         $this->services[AdminController::class] = fn (): AdminController => new AdminController(

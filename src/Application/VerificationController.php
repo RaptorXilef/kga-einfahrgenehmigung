@@ -49,6 +49,9 @@ final readonly class VerificationController
         ]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getSettingsArray(): array
     {
         return [
@@ -57,6 +60,9 @@ final readonly class VerificationController
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function render(string $templatePath, array $data = []): void
     {
         $appRoot = (string) $this->config->get('root_path');

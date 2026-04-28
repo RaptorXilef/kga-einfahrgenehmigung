@@ -56,6 +56,9 @@ final readonly class PermitController
         ]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getSettingsArray(): array
     {
         return [
@@ -66,6 +69,9 @@ final readonly class PermitController
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function render(string $templatePath, array $data = []): void
     {
         $appRoot = (string) $this->config->get('root_path');

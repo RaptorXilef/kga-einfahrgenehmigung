@@ -66,6 +66,8 @@ final readonly class CheckController
 
     /**
      * Prüft, ob der Nutzer erweiterte Details sehen darf.
+     *
+     * @param array<string, mixed> $get
      */
     private function determineViewPrivileges(Permit $permit, array $get): bool
     {
@@ -87,6 +89,9 @@ final readonly class CheckController
         return \hash_equals($expected, $token);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getSettingsArray(): array
     {
         return [
@@ -98,6 +103,9 @@ final readonly class CheckController
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function render(string $templatePath, array $data = []): void
     {
         $appRoot = (string) $this->config->get('root_path');
