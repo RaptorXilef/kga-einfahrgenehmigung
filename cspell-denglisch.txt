@@ -1,8 +1,10 @@
 analyse
 autoloader
+casten
 committen
 denglisch
 gemappt
+mappen
 Minifiziere
 Minifizierte
 Minifizierung

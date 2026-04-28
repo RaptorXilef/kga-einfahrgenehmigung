@@ -45,13 +45,16 @@ final readonly class SmtpMailService implements MailServiceInterface
         // Testmodus-Logik
         // 2. SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
-        if ($this->config->isTestMode() && ! ($mailConfig['test_mail_active'] ?? false)) {
+        if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
             return true;
         }
 
         return $this->dispatch($recipient, $subject, $body, $mailConfig);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function render(string $templatePath, array $data): string
     {
         // Wir holen den dynamischen Root-Pfad aus der Config
@@ -70,6 +73,9 @@ final readonly class SmtpMailService implements MailServiceInterface
         return $content;
     }
 
+    /**
+     * @param array<string, mixed> $smtpConfig
+     */
     private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig): bool|string
     {
         $host = $smtpConfig['host'] ?? '';
@@ -93,7 +99,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         \fwrite($socket, "AUTH LOGIN\r\n");
         $this->getServerResponse($socket);
 
-        \fwrite($socket, \base64_encode($user) . "\r\n");
+        \fwrite($socket, \base64_encode((string) $user) . "\r\n");
         $this->getServerResponse($socket);
 
         \fwrite($socket, \base64_encode($pass) . "\r\n");
@@ -123,6 +129,9 @@ final readonly class SmtpMailService implements MailServiceInterface
         return true;
     }
 
+    /**
+     * @param resource $socket
+     */
     private function getServerResponse($socket): string
     {
         $response = '';

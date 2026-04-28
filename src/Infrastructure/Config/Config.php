@@ -9,9 +9,6 @@
  * Mail-Templates und Provider-Daten.
  *
  * @file      src/Infrastructure/Config/Config.php
- *
- * @since     0.1.0
- * - feat(config): Initialer Aufbau des Config-Service für OOP-Migration.
  */
 
 declare(strict_types=1);
@@ -25,6 +22,9 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class Config implements ConfigInterface
 {
+    /**
+     * @param array<string, mixed> $settings
+     */
     public function __construct(
         private array $settings,
     ) {
@@ -35,9 +35,13 @@ final readonly class Config implements ConfigInterface
         return $this->settings[$key] ?? $default;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getMailSettings(): array
     {
-        return $this->get('mail', []);
+        // Wir casten auf array, damit PHPStan sicher ist, dass wir das Interface erfüllen
+        return (array) $this->get('mail', []);
     }
 
     public function isTestMode(): bool
@@ -53,6 +57,7 @@ final readonly class Config implements ConfigInterface
 
     public function getPriceForType(string $type): float
     {
+        /** @var array<string, float> $prices */
         $prices = $this->get('prices', [
             'pkw' => 3.00,
             'lkw' => 3.00, // Fallback
@@ -65,13 +70,14 @@ final readonly class Config implements ConfigInterface
     {
         // Falls in Config gesetzt, nimm die, sonst erkenne sie automatisch
         $configured = $this->get('base_url');
-        if ($configured) {
+        if ($configured !== null && $configured !== '') {
             return \rtrim((string) $configured, '/') . '/';
         }
 
-        $protocol = ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
-        $host     = $_SERVER['HTTP_HOST'];
-        $path     = \rtrim(\dirname((string) $_SERVER['SCRIPT_NAME']), '/\\');
+        // Fallback für CLI/Cron-Jobs, wo $_SERVER['HTTPS'] fehlt
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
+        $host     = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $path     = \rtrim(\dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/\\');
 
         // Fix für API-Aufrufe (wenn wir im Unterordner /api/ sind)
         $path = \str_replace('/api', '', $path);

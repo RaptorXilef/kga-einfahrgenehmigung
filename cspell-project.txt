@@ -31,8 +31,10 @@ Sonn
 Spezifität
 sunday
 USERPWD
+Validierungs
 vereins
 vereins
 Verifizierungs
+Verifizierungsprozess
 Verschachtelung
 zweck

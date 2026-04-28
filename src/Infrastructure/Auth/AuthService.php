@@ -33,7 +33,7 @@ final readonly class AuthService
             return false;
         }
 
-        $users = \json_decode(\file_get_contents($usersPath), true) ?: [];
+        $users = \json_decode(\file_get_contents($usersPath), true) ?? [];
 
         if (isset($users[$username]) && \password_verify($password, (string) $users[$username]['pass'])) {
             $_SESSION['admin_user']  = $username;
@@ -54,7 +54,7 @@ final readonly class AuthService
     public function isLoggedIn(): bool
     {
         // NEU: Wenn Dev-Mode aktiv, immer "eingeloggt"
-        if ($this->config->get('admin_dev_mode', false)) {
+        if ($this->config->get('admin_dev_mode', false) === true) {
             return true;
         }
 
@@ -64,7 +64,7 @@ final readonly class AuthService
     public function getLevel(): int
     {
         // NEU: Wenn Dev-Mode aktiv, immer Level 1 (Vollzugriff)
-        if ($this->config->get('admin_dev_mode', false)) {
+        if ($this->config->get('admin_dev_mode', false) === true) {
             return 1;
         }
 

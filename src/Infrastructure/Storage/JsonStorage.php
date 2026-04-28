@@ -69,6 +69,9 @@ final readonly class JsonStorage implements StorageInterface
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $item
+     */
     private function mapToEntity(array $item): Permit
     {
         return new Permit(
@@ -107,12 +110,15 @@ final readonly class JsonStorage implements StorageInterface
         return $count;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function loadRaw(): array
     {
         if (! \file_exists($this->filePath)) {
             return [];
         }
 
-        return \json_decode(\file_get_contents($this->filePath), true) ?: [];
+        return \json_decode(\file_get_contents($this->filePath), true) ?? [];
     }
 }

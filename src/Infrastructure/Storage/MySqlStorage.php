@@ -6,8 +6,6 @@
  * MySQL-Implementierung des Storage-Interfaces.
  *
  * @file      src/Infrastructure/Storage/MySqlStorage.php
- *
- * @since     0.1.0
  */
 
 declare(strict_types=1);
@@ -25,23 +23,31 @@ final readonly class MySqlStorage implements StorageInterface
 
     public function save(Permit $permit): bool
     {
-        $sql = 'REPLACE INTO permits (code, name, email, kennzeichen, parzelle, typ, zweck, von, bis, status, erstellt)
-                VALUES (:code, :name, :email, :kennzeichen, :parzelle, :typ, :zweck, :von, :bis, :status, :erstellt)';
+        // FIX: firma und preisSnapshot im SQL hinzugefügt
+        $sql = 'REPLACE INTO permits (
+            code, name, email, kennzeichen, parzelle, typ,
+            firma, zweck, preisSnapshot, von, bis, status, erstellt
+        ) VALUES (
+            :code, :name, :email, :kennzeichen, :parzelle, :typ,
+            :firma, :zweck, :preisSnapshot, :von, :bis, :status, :erstellt
+        )';
 
         $stmt = $this->pdo->prepare($sql);
 
         return $stmt->execute([
-            'code'        => $permit->code,
-            'name'        => $permit->name,
-            'email'       => $permit->email,
-            'kennzeichen' => $permit->kennzeichen,
-            'parzelle'    => $permit->parzelle,
-            'typ'         => $permit->typ,
-            'zweck'       => $permit->zweck,
-            'von'         => $permit->von->format('Y-m-d'),
-            'bis'         => $permit->bis->format('Y-m-d'),
-            'status'      => $permit->status,
-            'erstellt'    => $permit->erstellt?->format('Y-m-d H:i:s'),
+            'code'          => $permit->code,
+            'name'          => $permit->name,
+            'email'         => $permit->email,
+            'kennzeichen'   => $permit->kennzeichen,
+            'parzelle'      => $permit->parzelle,
+            'typ'           => $permit->typ,
+            'firma'         => $permit->firma,
+            'zweck'         => $permit->zweck,
+            'preisSnapshot' => $permit->preisSnapshot,
+            'von'           => $permit->von->format('Y-m-d'),
+            'bis'           => $permit->bis->format('Y-m-d'),
+            'status'        => $permit->status,
+            'erstellt'      => $permit->erstellt?->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -51,32 +57,40 @@ final readonly class MySqlStorage implements StorageInterface
         $stmt->execute([$hash]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        if (! $row) {
+        if ($row === false || $row === null) {
             return null;
         }
 
         return new Permit(
-            $row['code'],
-            $row['name'],
-            $row['email'],
-            $row['kennzeichen'],
-            $row['parzelle'],
-            $row['typ'],
-            $row['zweck'],
-            new \DateTimeImmutable($row['von']),
-            new \DateTimeImmutable($row['bis']),
-            $row['status'],
-            new \DateTimeImmutable($row['erstellt']),
+            code: (string) $row['code'],
+            name: (string) $row['name'],
+            email: (string) $row['email'],
+            parzelle: (string) $row['parzelle'],
+            typ: (string) ($row['typ'] ?? 'pkw'),
+            kennzeichen: (string) $row['kennzeichen'],
+            firma: isset($row['firma']) ? (string) $row['firma'] : null,
+            zweck: (string) ($row['zweck'] ?? 'Privat'),
+            preisSnapshot: (float) ($row['preisSnapshot'] ?? 0.0),
+            von: new \DateTimeImmutable((string) $row['von']),
+            bis: new \DateTimeImmutable((string) $row['bis']),
+            status: (string) $row['status'],
+            erstellt: new \DateTimeImmutable((string) $row['erstellt']),
         );
     }
 
+    /**
+     * @return Permit[]
+     */
     public function getAll(): array
     {
         $stmt = $this->pdo->query('SELECT code FROM permits');
 
+        // Wir nutzen fetchAll und mappen dann, um PHPStan Typsicherheit zu geben
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         return \array_map(
-            fn (array $row): ?Permit => $this->findByHash($row['code']),
-            $stmt->fetchAll(\PDO::FETCH_ASSOC),
+            fn (array $row): ?Permit => $this->findByHash((string) $row['code']),
+            $rows,
         );
     }
 
@@ -84,7 +98,7 @@ final readonly class MySqlStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (! $target->save($permit)) {
+            if (! ($permit instanceof Permit) || ! $target->save($permit)) {
                 continue;
             }
 
