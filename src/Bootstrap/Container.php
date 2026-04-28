@@ -22,12 +22,14 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
-use App\Contracts\Config\ConfigInterface; // NEU
+use App\Application\AdminController;
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
+use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Payment\PayPalService;
@@ -83,6 +85,14 @@ class Container
             $this->get(ConfigInterface::class), // Nutzt jetzt das Interface!
             $this->get(HolidayService::class),
             $this->get(PaymentProviderInterface::class),
+        );
+
+        // Admin Controler
+        $this->services[AdminController::class] = fn (): AdminController => new AdminController(
+            $this->get(ConfigInterface::class),
+            $this->get(AuthService::class),
+            $this->get(StorageInterface::class),
+            $this->get(PermitService::class),
         );
     }
 

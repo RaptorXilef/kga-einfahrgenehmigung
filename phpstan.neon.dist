@@ -24,6 +24,11 @@ parameters:
         - public
         - config
 
+    scanDirectories:
+        - src
+    bootstrapFiles:
+        - vendor/autoload.php
+
     # Exklusionen (Vendor und Node_Modules sollten ignoriert werden)
     excludePaths:
         analyse:
