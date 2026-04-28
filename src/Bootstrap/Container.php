@@ -87,6 +87,11 @@ class Container
             $this->get(PaymentProviderInterface::class),
         );
 
+        // AuthService registrieren
+        $this->services[AuthService::class] = fn (): AuthService => new AuthService(
+            $this->get(Config::class),
+        );
+
         // Admin Controler
         $this->services[AdminController::class] = fn (): AdminController => new AdminController(
             $this->get(ConfigInterface::class),

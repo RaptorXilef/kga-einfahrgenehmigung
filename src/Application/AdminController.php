@@ -59,6 +59,7 @@ final readonly class AdminController
 
         // --- AUTH-GATEKEEPER ---
         if (! $this->auth->isLoggedIn()) {
+            $settings = $this->getSettingsArray(); // Für Namen im Header
             include $appRoot . '/templates/pages/admin_login.phtml';
             exit;
         }
@@ -69,7 +70,7 @@ final readonly class AdminController
         // --- 2. PRINT PREVIEW ---
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
             $permit = $this->storage->findByHash((string) $get['code']);
-            if ($permit) {
+            if ($permit instanceof Permit) {
                 // Settings für das Template bereitstellen
                 $settings = $this->getSettingsArray();
                 include $appRoot . '/templates/pages/admin_print_view.phtml';
@@ -81,10 +82,11 @@ final readonly class AdminController
         // --- 3. LOGGED-IN ACTIONS ---
 
         // Zahlung markieren (Level 1 & 2)
-        if (isset($post['action']) && $post['action'] === 'mark_as_paid') {
-            if ($this->permitService->manualActivate((string) ($post['code'] ?? ''))) {
-                $message = 'Zahlung für ' . (string) $post['code'] . ' bestätigt.';
-            }
+        if (
+            isset($post['action']) && $post['action'] === 'mark_as_paid'
+            && $this->permitService->manualActivate((string) ($post['code'] ?? ''))
+        ) {
+            $message = 'Zahlung für ' . $post['code'] . ' bestätigt.';
         }
 
         // --- 4. FILTER & EXPORT ---
@@ -123,13 +125,13 @@ final readonly class AdminController
     private function handleExport(string $format, array $filtered, string $start, string $end): void
     {
         $filename = "export_kga_{$start}_bis_{$end}";
+        $settings = $this->getSettingsArray();
 
         if ($format === 'csv') {
             \header('Content-Type: text/csv; charset=utf-8');
             \header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
             $output = \fopen('php://output', 'w');
             if ($output) {
-
                 // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
                 \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // BOM
 
@@ -148,7 +150,6 @@ final readonly class AdminController
                     'Erstellt am',
                 ], ';', '"', '\\');
 
-                $settings = $this->getSettingsArray();
                 foreach ($filtered as $permit) {
                     \fputcsv($output, [
                         $permit->code,
@@ -166,12 +167,14 @@ final readonly class AdminController
                 }
                 \fclose($output);
             }
+            exit;
         }
 
         if ($format === 'json') {
             \header('Content-Type: application/json');
             \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
             echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+            exit;
         }
     }
 
@@ -184,9 +187,13 @@ final readonly class AdminController
     {
         $stats = [
             'total_count'   => \count($filtered),
-            'total_revenue' => \array_reduce($filtered, fn (float $sum, Permit $p) => $sum + $p->preisSnapshot, 0.0),
-            'types'         => ['pkw' => 0, 'lkw' => 0],
-            'plots'         => [],
+            'total_revenue' => \array_reduce(
+                $filtered,
+                fn (float $sum, Permit $p): float => $sum + $p->preisSnapshot,
+                0.0,
+            ),
+            'types' => ['pkw' => 0, 'lkw' => 0],
+            'plots' => [],
         ];
 
         foreach ($filtered as $permit) {
@@ -201,13 +208,13 @@ final readonly class AdminController
     /**
      * Gruppiert Genehmigungen nach Zeitstatus.
      *
-     * @param Permit[] $all
+     * @param Permit[] $allPermits
      */
-    private function groupPermits(array $all): array
+    private function groupPermits(array $allPermits): array
     {
         $now    = new \DateTimeImmutable('today');
         $groups = ['active' => [], 'future' => [], 'expired' => []];
-        foreach ($all as $permit) {
+        foreach ($allPermits as $permit) {
             if ($permit->bis < $now) {
                 $groups['expired'][] = $permit;
             } elseif ($permit->von > $now) {
