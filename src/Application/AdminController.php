@@ -37,7 +37,6 @@ final readonly class AdminController
      */
     public function handleRequest(array $get, array $post): void
     {
-        $appRoot = (string) $this->config->get('root_path');
         $message = '';
 
         // --- 1. GLOBAL ACTIONS ---
@@ -59,11 +58,15 @@ final readonly class AdminController
 
         // --- AUTH-GATEKEEPER ---
         if (! $this->auth->isLoggedIn()) {
-            $settings = $this->getSettingsArray(); // Für Namen im Header
-            include $appRoot . '/templates/pages/admin_login.phtml';
+            // FIX: Auch hier die render-Methode nutzen!
+            $this->render('admin_login', [
+                'message'  => $message,
+                'settings' => $this->getSettingsArray(),
+            ]);
             exit;
         }
 
+        // Variablen einmal definieren
         $adminUser  = (string) ($_SESSION['admin_user'] ?? 'Admin');
         $adminLevel = (int) ($_SESSION['admin_level'] ?? 1);
 
@@ -71,9 +74,11 @@ final readonly class AdminController
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
             $permit = $this->storage->findByHash((string) $get['code']);
             if ($permit instanceof Permit) {
-                // Settings für das Template bereitstellen
-                $settings = $this->getSettingsArray();
-                include $appRoot . '/templates/pages/admin_print_view.phtml';
+                // FIX: render() statt include nutzen!
+                $this->render('admin_print_view', [
+                    'permit'   => $permit,
+                    'settings' => $this->getSettingsArray(),
+                ]);
                 exit;
             }
             $message = 'Genehmigung nicht gefunden.';
@@ -86,7 +91,7 @@ final readonly class AdminController
             isset($post['action']) && $post['action'] === 'mark_as_paid'
             && $this->permitService->manualActivate((string) ($post['code'] ?? ''))
         ) {
-            $message = 'Zahlung für ' . $post['code'] . ' bestätigt.';
+            $message = 'Zahlung für ' . (string) ($post['code'] ?? '') . ' bestätigt.';
         }
 
         // --- 4. FILTER & EXPORT ---
@@ -109,12 +114,13 @@ final readonly class AdminController
         }
 
         // --- 5. STATISTIKEN & GRUPPIERUNG ---
+        // FIX: Wir übergeben die oben definierten Variablen $adminUser und $adminLevel!
         $this->render('admin_dashboard', [
             'stats'      => $this->calculateStats($filtered),
             'groups'     => $this->groupPermits($allPermits),
             'settings'   => $this->getSettingsArray(),
-            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
+            'adminUser'  => $adminUser, // Hier wird die Variable jetzt "gelesen"
+            'adminLevel' => $adminLevel, // Hier wird die Variable jetzt "gelesen"
             'message'    => $message,
             'config'     => $this->config,
         ]);
@@ -192,7 +198,7 @@ final readonly class AdminController
             'total_count'   => \count($filtered),
             'total_revenue' => \array_reduce(
                 $filtered,
-                fn (float $sum, Permit $p): float => $sum + $p->preisSnapshot,
+                fn (float $sum, Permit $permit): float => $sum + $permit->preisSnapshot,
                 0.0,
             ),
             'types' => ['pkw' => 0, 'lkw' => 0],
@@ -248,10 +254,11 @@ final readonly class AdminController
 
     private function render(string $templatePath, array $data = []): void
     {
+        /** @var string $appRoot */
+        $appRoot = $this->config->get('root_path');
+
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
         \extract($data);
-
-        $appRoot = $this->config->get('root_path');
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 }
