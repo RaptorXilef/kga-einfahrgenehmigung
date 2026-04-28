@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Fehler - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+</head>
+<body class="u-padding-y-xl">
+    <div class="c-container u-text-center">
+        <div class="c-card">
+            <h1 class="u-color-error">Hoppla!</h1>
+            <p><?php echo $message; ?></p>
+            <a href="index.php" class="c-button">Zurück zum Antrag</a>
+        </div>
+    </div>
+</body>
+</html>

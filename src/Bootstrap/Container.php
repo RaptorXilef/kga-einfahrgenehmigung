@@ -25,6 +25,7 @@ namespace App\Bootstrap;
 use App\Application\AdminController;
 use App\Application\CheckController;
 use App\Application\PermitController;
+use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
@@ -113,6 +114,11 @@ class Container
 
         // PermitController für index.php
         $this->services[PermitController::class] = fn (): PermitController => new PermitController(
+            $this->get(ConfigInterface::class),
+            $this->get(PermitService::class),
+        );
+
+        $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(
             $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
         );
