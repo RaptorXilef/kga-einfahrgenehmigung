@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Verarbeitet Zahlungs-relevante API-Anfragen v0.9.5
+ *
+ * @file src/Application/PaymentController.php
+ */
+
 declare(strict_types=1);
 
 namespace App\Application;

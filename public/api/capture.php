@@ -2,12 +2,17 @@
 
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
+/**
+ * API-Endpunkt für PayPal Capture v0.9.5
+ *
+ * @file public/api/capture.php
+ */
+
 declare(strict_types=1);
 
 /**
  * API-Endpunkt für PayPal Capture v0.9.5
  */
-
 $appRoot = (function (): string {
     $dir = __DIR__;
     // Suche nach oben, bis vendor/autoload.php gefunden wird

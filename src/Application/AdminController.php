@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
+ * Orchestriert die Admin-Logik für den Vorstand.
+ *
  * @file src/Application/AdminController.php
  */
 
@@ -66,6 +68,10 @@ final readonly class AdminController
         $this->renderDashboard($get, $message);
     }
 
+    /**
+     * @param array<string, mixed> $get
+     * @param array<string, mixed> $post
+     */
     private function handleAuthActions(array $get, array $post): bool
     {
         if (isset($get['action']) && $get['action'] === 'logout') {
@@ -88,7 +94,9 @@ final readonly class AdminController
         return false;
     }
 
-    // FIX: Signatur geändert (nur noch $post)
+    /**
+     * @param array<string, mixed> $post
+     */
     private function handleDataActions(array $post): string
     {
         if (isset($post['action']) && $post['action'] === 'mark_as_paid') {
@@ -101,6 +109,9 @@ final readonly class AdminController
         return '';
     }
 
+    /**
+     * @param array<string, mixed> $get
+     */
     private function shouldStopRequest(array $get): bool
     {
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
@@ -118,12 +129,16 @@ final readonly class AdminController
         return false;
     }
 
+    /**
+     * @param array<string, mixed> $get
+     */
     private function renderDashboard(array $get, string $message): void
     {
         $filterStart = (string) ($get['start'] ?? \date('Y-01-01'));
         $filterEnd   = (string) ($get['end'] ?? \date('Y-12-31'));
         $allPermits  = $this->storage->getAll();
 
+        /** @var Permit[] $filtered */
         $filtered = \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd): bool {
             $date = $permit->erstellt?->format('Y-m-d') ?? '';
 
@@ -216,6 +231,8 @@ final readonly class AdminController
      * Berechnet die Statistiken inklusive Typen und Top-Parzellen.
      *
      * @param Permit[] $filtered
+     *
+     * @return array<string, mixed>
      */
     private function calculateStats(array $filtered): array
     {
@@ -243,6 +260,8 @@ final readonly class AdminController
      * Gruppiert Genehmigungen nach Zeitstatus.
      *
      * @param Permit[] $allPermits
+     *
+     * @return array<string, array<Permit>>
      */
     private function groupPermits(array $allPermits): array
     {
@@ -268,6 +287,8 @@ final readonly class AdminController
 
     /**
      * Hilfsmethode, um das $settings-Array für Templates zu bauen.
+     *
+     * @return array<string, mixed>
      */
     private function getSettingsArray(): array
     {
@@ -282,6 +303,9 @@ final readonly class AdminController
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function render(string $templatePath, array $data = []): void
     {
         /** @var Config $config */
