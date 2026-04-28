@@ -15,6 +15,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\PermitService;
 use App\Infrastructure\Auth\AuthService;
+use App\Infrastructure\Config\Config;
 
 /**
  * Orchestriert die Admin-Logik für den Vorstand.
@@ -52,14 +53,16 @@ final readonly class AdminController
             return;
         }
 
-        // 2. Daten-Aktionen (Markieren, Drucken, Export)
-        $message = $this->handleDataActions($get, $post);
+        // 2. Daten-Aktionen (Markieren)
+        // $get entfernt, da es in handleDataActions nicht gebraucht wird
+        $message = $this->handleDataActions($post);
 
+        // 3. Print Preview abfangen
         if ($this->shouldStopRequest($get)) {
             return;
         }
 
-        // 3. View-Logik (Dashboard)
+        // 4. View-Logik (Dashboard & Export)
         $this->renderDashboard($get, $message);
     }
 
@@ -85,7 +88,8 @@ final readonly class AdminController
         return false;
     }
 
-    private function handleDataActions(array $get, array $post): string
+    // FIX: Signatur geändert (nur noch $post)
+    private function handleDataActions(array $post): string
     {
         if (isset($post['action']) && $post['action'] === 'mark_as_paid') {
             $code = (string) ($post['code'] ?? '');
@@ -133,13 +137,15 @@ final readonly class AdminController
         }
 
         $this->render('admin_dashboard', [
-            'stats'      => $this->calculateStats($filtered),
-            'groups'     => $this->groupPermits($allPermits),
-            'settings'   => $this->getSettingsArray(),
-            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
-            'message'    => $message,
-            'config'     => $this->config,
+            'stats'       => $this->calculateStats($filtered),
+            'groups'      => $this->groupPermits($allPermits),
+            'settings'    => $this->getSettingsArray(),
+            'adminUser'   => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel'  => (int) ($_SESSION['admin_level'] ?? 1),
+            'message'     => $message,
+            'filterStart' => $filterStart,
+            'filterEnd'   => $filterEnd,
+            'config'      => $this->config,
         ]);
     }
 
@@ -197,13 +203,13 @@ final readonly class AdminController
             return;
         }
 
-        if ($format === 'json') {
-            \header('Content-Type: application/json');
-            \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
-            echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-
+        if ($format !== 'json') {
             return;
         }
+
+        \header('Content-Type: application/json');
+        \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
+        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -249,13 +255,11 @@ final readonly class AdminController
 
                 continue;
             }
-
             if ($permit->von > $now) {
                 $groups['future'][] = $permit;
 
                 continue;
             }
-
             $groups['active'][] = $permit;
         }
 
@@ -280,8 +284,9 @@ final readonly class AdminController
 
     private function render(string $templatePath, array $data = []): void
     {
-        /** @var string $appRoot */
-        $appRoot = $this->config->get('root_path');
+        /** @var Config $config */
+        $config  = $this->config;
+        $appRoot = (string) $config->get('root_path');
 
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
         \extract($data);
