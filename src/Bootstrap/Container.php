@@ -24,6 +24,7 @@ namespace App\Bootstrap;
 
 use App\Application\AdminController;
 use App\Application\CheckController;
+use App\Application\PermitController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
@@ -95,7 +96,7 @@ class Container
             $this->get(Config::class),
         );
 
-        // Admin Controler
+        // Admin Controller
         $this->services[AdminController::class] = fn (): AdminController => new AdminController(
             $this->get(ConfigInterface::class),
             $this->get(AuthService::class),
@@ -103,10 +104,17 @@ class Container
             $this->get(PermitService::class),
         );
 
+        // Check Controller
         $this->services[CheckController::class] = fn (): CheckController => new CheckController(
             $this->get(ConfigInterface::class),
             $this->get(StorageInterface::class),
             $this->get(AuthService::class),
+        );
+
+        // PermitController für index.php
+        $this->services[PermitController::class] = fn (): PermitController => new PermitController(
+            $this->get(ConfigInterface::class),
+            $this->get(PermitService::class),
         );
     }
 
