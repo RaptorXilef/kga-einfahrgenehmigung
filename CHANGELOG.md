@@ -2,6 +2,25 @@
 
 
 
+## [0.9.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.4...v0.9.5) (2026-04-28)
+
+### 🐛 Bug Fixes
+
+* **arch:** register AuthService in container and restore full admin logic ([efa35b1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/efa35b1d963a3023d25bf2b205de00b305f359bd))
+* **release:** v0.9.5 - fix template scope and unused controller parameters ([e8a4eff](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e8a4eff78caca526525fae0434e9878691019512))
+
+### 🧹 Chore / Maintenance
+
+* **arch:** harmonize view rendering and eliminate unused variable warnings ([4afb686](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4afb686ea9c0d0bcec19ace37a8cdfacde7ca50d))
+* **arch:** implement view-render pattern to eliminate linter noise ([ecfb009](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ecfb0092cd568e8a3fb6a7605712504051c0f00e))
+* **release:** v0.9.5 - complete application migration to controller-based architecture ([fd13bfc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fd13bfccb11bde9b0c97d9967f0a49e3740af798))
+* **release:** v0.9.5 - complete public directory logic migration ([a84e30a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a84e30a4bb941d9f594d2d490af7a619dda15e28))
+* **release:** v0.9.5 - eliminate exit expressions and reduce complexity ([11ce95a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/11ce95acb0fefeb64866e3a19f75fc905f84d9eb))
+* **release:** v0.9.5 - migrate admin logic to namespaced controller ([2f9d30a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2f9d30ab43a5a9cd0dbd66e1d2072592e523a012))
+* **release:** v0.9.5 - migrate email verification to VerificationController ([dd0bcfd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dd0bcfd1efbc7949a14253228cc1e845164c62d0))
+* **release:** v0.9.5 - migrate payment api to PaymentController ([9e69043](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9e690433739ec795fda64a1ccc20e93708ad7309))
+* **release:** v0.9.5 - migrate permit validation to CheckController ([d39ff60](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d39ff60cb4c1a83f6b9be64151d0b2e25f490b26))
+
 ## [0.9.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.3...v0.9.4) (2026-04-27)
 
 ### 🧹 Chore / Maintenance
