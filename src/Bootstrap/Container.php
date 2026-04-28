@@ -24,6 +24,7 @@ namespace App\Bootstrap;
 
 use App\Application\AdminController;
 use App\Application\CheckController;
+use App\Application\PaymentController;
 use App\Application\PermitController;
 use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
@@ -120,6 +121,10 @@ class Container
 
         $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(
             $this->get(ConfigInterface::class),
+            $this->get(PermitService::class),
+        );
+
+        $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
             $this->get(PermitService::class),
         );
     }
