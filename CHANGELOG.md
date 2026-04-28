@@ -2,6 +2,14 @@
 
 
 
+## [0.9.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.5...v0.9.6) (2026-04-28)
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.9.6 - achieve zero PHPStan violations on level 6 ([521a5c0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/521a5c0e744b8e7cc769468dc4008b6ae83041ca))
+* **release:** v0.9.6 - complete generic type coverage and fix container parsing ([666958b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/666958b7463a98d21d6758f9b801d7abad7f0442))
+* **release:** v0.9.6 - implement PHPDoc generics for array types ([18863e8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/18863e888abaa9cb35762283b8da8683ca5f185c))
+
 ## [0.9.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.4...v0.9.5) (2026-04-28)
 
 ### 🐛 Bug Fixes
