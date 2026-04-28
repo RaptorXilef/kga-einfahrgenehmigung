@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use App\Application\AdminController;
+use App\Application\CheckController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
@@ -100,6 +101,12 @@ class Container
             $this->get(AuthService::class),
             $this->get(StorageInterface::class),
             $this->get(PermitService::class),
+        );
+
+        $this->services[CheckController::class] = fn (): CheckController => new CheckController(
+            $this->get(ConfigInterface::class),
+            $this->get(StorageInterface::class),
+            $this->get(AuthService::class),
         );
     }
 
