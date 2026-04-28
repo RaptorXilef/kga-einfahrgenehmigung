@@ -37,90 +37,107 @@ final readonly class AdminController
      */
     public function handleRequest(array $get, array $post): void
     {
-        $message = '';
-
-        // --- 1. GLOBAL ACTIONS ---
-        if (isset($get['action']) && $get['action'] === 'logout') {
-            $this->auth->logout();
-            \header('Location: admin.php');
-            exit;
-        }
-
-        if (isset($post['login'])) {
-            if ($this->auth->login((string) ($post['user'] ?? ''), (string) ($post['pass'] ?? ''))) {
-                \header('Location: admin.php');
-                exit;
-            }
-            if (! $this->auth->isLoggedIn()) {
-                $message = 'Ungültige Anmeldedaten.';
-            }
+        // 1. Authentifizierung & Globale Aktionen
+        if ($this->handleAuthActions($get, $post)) {
+            return; // Beendet den Request nach Redirect
         }
 
         // --- AUTH-GATEKEEPER ---
         if (! $this->auth->isLoggedIn()) {
-            // FIX: Auch hier die render-Methode nutzen!
             $this->render('admin_login', [
-                'message'  => $message,
+                'message'  => '',
                 'settings' => $this->getSettingsArray(),
             ]);
-            exit;
+
+            return;
         }
 
-        // Variablen einmal definieren
-        $adminUser  = (string) ($_SESSION['admin_user'] ?? 'Admin');
-        $adminLevel = (int) ($_SESSION['admin_level'] ?? 1);
+        // 2. Daten-Aktionen (Markieren, Drucken, Export)
+        $message = $this->handleDataActions($get, $post);
 
-        // --- 2. PRINT PREVIEW ---
+        if ($this->shouldStopRequest($get)) {
+            return;
+        }
+
+        // 3. View-Logik (Dashboard)
+        $this->renderDashboard($get, $message);
+    }
+
+    private function handleAuthActions(array $get, array $post): bool
+    {
+        if (isset($get['action']) && $get['action'] === 'logout') {
+            $this->auth->logout();
+            \header('Location: admin.php');
+
+            return true;
+        }
+
+        if (isset($post['login'])) {
+            $user = (string) ($post['user'] ?? '');
+            $pass = (string) ($post['pass'] ?? '');
+            if ($this->auth->login($user, $pass)) {
+                \header('Location: admin.php');
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function handleDataActions(array $get, array $post): string
+    {
+        if (isset($post['action']) && $post['action'] === 'mark_as_paid') {
+            $code = (string) ($post['code'] ?? '');
+            if ($this->permitService->manualActivate($code)) {
+                return 'Zahlung für ' . $code . ' bestätigt.';
+            }
+        }
+
+        return '';
+    }
+
+    private function shouldStopRequest(array $get): bool
+    {
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
             $permit = $this->storage->findByHash((string) $get['code']);
             if ($permit instanceof Permit) {
-                // FIX: render() statt include nutzen!
                 $this->render('admin_print_view', [
                     'permit'   => $permit,
                     'settings' => $this->getSettingsArray(),
                 ]);
-                exit;
+
+                return true;
             }
-            $message = 'Genehmigung nicht gefunden.';
         }
 
-        // --- 3. LOGGED-IN ACTIONS ---
+        return false;
+    }
 
-        // Zahlung markieren (Level 1 & 2)
-        if (
-            isset($post['action']) && $post['action'] === 'mark_as_paid'
-            && $this->permitService->manualActivate((string) ($post['code'] ?? ''))
-        ) {
-            $message = 'Zahlung für ' . (string) ($post['code'] ?? '') . ' bestätigt.';
-        }
-
-        // --- 4. FILTER & EXPORT ---
+    private function renderDashboard(array $get, string $message): void
+    {
         $filterStart = (string) ($get['start'] ?? \date('Y-01-01'));
         $filterEnd   = (string) ($get['end'] ?? \date('Y-12-31'));
         $allPermits  = $this->storage->getAll();
 
-        // Statistik-Filter (Basierend auf Erstellungsdatum)
-        /** @var Permit[] $filtered */
         $filtered = \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd): bool {
             $date = $permit->erstellt?->format('Y-m-d') ?? '';
 
             return $date >= $filterStart && $date <= $filterEnd;
         });
 
-        // Export-Logik
         if (isset($get['export'])) {
             $this->handleExport((string) $get['export'], $filtered, $filterStart, $filterEnd);
-            exit;
+
+            return;
         }
 
-        // --- 5. STATISTIKEN & GRUPPIERUNG ---
-        // FIX: Wir übergeben die oben definierten Variablen $adminUser und $adminLevel!
         $this->render('admin_dashboard', [
             'stats'      => $this->calculateStats($filtered),
             'groups'     => $this->groupPermits($allPermits),
             'settings'   => $this->getSettingsArray(),
-            'adminUser'  => $adminUser, // Hier wird die Variable jetzt "gelesen"
-            'adminLevel' => $adminLevel, // Hier wird die Variable jetzt "gelesen"
+            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
             'message'    => $message,
             'config'     => $this->config,
         ]);
@@ -176,14 +193,16 @@ final readonly class AdminController
                 }
                 \fclose($output);
             }
-            exit;
+
+            return;
         }
 
         if ($format === 'json') {
             \header('Content-Type: application/json');
             \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
             echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-            exit;
+
+            return;
         }
     }
 
@@ -224,13 +243,20 @@ final readonly class AdminController
         $now    = new \DateTimeImmutable('today');
         $groups = ['active' => [], 'future' => [], 'expired' => []];
         foreach ($allPermits as $permit) {
+            // Early Return / Flache Logik statt ELSE
             if ($permit->bis < $now) {
                 $groups['expired'][] = $permit;
-            } elseif ($permit->von > $now) {
-                $groups['future'][] = $permit;
-            } else {
-                $groups['active'][] = $permit;
+
+                continue;
             }
+
+            if ($permit->von > $now) {
+                $groups['future'][] = $permit;
+
+                continue;
+            }
+
+            $groups['active'][] = $permit;
         }
 
         return $groups;

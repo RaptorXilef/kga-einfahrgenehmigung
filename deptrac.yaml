@@ -7,7 +7,7 @@ deptrac:
   cache_file: .cache/deptrac/.deptrac.cache
 
   layers:
-    - name: Domain # NEU: Die Entitäten sind die Basis
+    - name: Domain # Die Entitäten sind die Basis
       collectors:
         - type: directory
           value: src/Core/Entity/.*
@@ -23,6 +23,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Infrastructure/.*
+    - name: Application # Hier wohnen die Controller
+      collectors:
+        - type: directory
+          value: src/Application/.*
 
   ruleset:
     # Domain (Permit) ist völlig unabhängig
@@ -42,3 +46,8 @@ deptrac:
       - Core
       - Contracts
       - Domain
+    Application: # Controller dürfen ALLES nutzen, um den Request zu bedienen
+      - Core
+      - Contracts
+      - Domain
+      - Infrastructure

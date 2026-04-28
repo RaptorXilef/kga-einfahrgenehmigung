@@ -37,6 +37,8 @@ use App\Infrastructure\Storage\JsonStorage;
 
 /**
  * Service Container (Dependency Injector)
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Container
 {
