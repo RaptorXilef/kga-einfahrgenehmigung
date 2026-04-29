@@ -151,6 +151,12 @@ final readonly class AdminController
             return;
         }
 
+        // E-Mail Logs laden
+        $logPath  = $this->config->get('root_path') . '/storage/mail_log.json';
+        $mailLogs = \file_exists($logPath)
+            ? \json_decode((string) \file_get_contents($logPath), true)
+            : [];
+
         $this->render('admin_dashboard', [
             'stats'       => $this->calculateStats($filtered),
             'groups'      => $this->groupPermits($allPermits),
@@ -162,6 +168,7 @@ final readonly class AdminController
             'filterEnd'   => $filterEnd,
             'config'      => $this->config, // WICHTIG für den Indikator
             'appRoot'     => $this->config->get('root_path'), // WICHTIG für Includes
+            'mailLogs'    => $mailLogs,
         ]);
     }
 

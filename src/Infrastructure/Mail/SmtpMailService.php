@@ -15,10 +15,6 @@
  * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
  *
  * @author    Felix Maywald (@RaptorXilef)
- *
- * @since     0.1.0
- * - feat(mail): Implementierung mit Template-Rendering und SMTP-Socket-Logik.
- * - feat(mail): Integration der Socket-Logik aus smtp.php in die Service-Struktur.
  */
 
 declare(strict_types=1);
@@ -46,10 +42,16 @@ final readonly class SmtpMailService implements MailServiceInterface
         // 2. SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
         if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
+            $this->logEmail($recipient, $subject, $template, 'Testmodus (kein Versand)');
+
             return true;
         }
 
-        return $this->dispatch($recipient, $subject, $body, $mailConfig);
+        // 3. Versand und Logging
+        $status = $this->dispatch($recipient, $subject, $body, $mailConfig);
+        $this->logEmail($recipient, $subject, $template, $status);
+
+        return $status;
     }
 
     /**
@@ -143,5 +145,23 @@ final readonly class SmtpMailService implements MailServiceInterface
         }
 
         return $response;
+    }
+
+    private function logEmail(string $recipient, string $subject, string $template, bool|string $status): void
+    {
+        $logPath = $this->config->get('root_path') . '/storage/mail_log.json';
+        $logs    = \file_exists($logPath) ? \json_decode((string) \file_get_contents($logPath), true) : [];
+
+        $entry = [
+            'timestamp' => \date('Y-m-d H:i:s'),
+            'recipient' => $recipient,
+            'subject'   => $subject,
+            'template'  => $template,
+            'status'    => $status === true ? 'Erfolg' : 'Fehler: ' . $status,
+        ];
+
+        \array_unshift($logs, $entry);
+        $logs = \array_slice($logs, 0, 200); // Max 200 Einträge
+        \file_put_contents($logPath, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 }

@@ -163,7 +163,10 @@ final readonly class PermitService
 
         // 1. Check im Hauptspeicher (Storage)
         foreach ($this->storage->getAll() as $permit) {
-            if ($permit->parzelle === $parzelleFormatted && $this->datesOverlap($permit->von, $permit->bis, $start, $end)) {
+            if (
+                $permit->parzelle === $parzelleFormatted
+                && $this->datesOverlap($permit->von, $permit->bis, $start, $end)
+            ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
                     $permit->von->format('d.m.Y') . ' bis ' . $permit->bis->format('d.m.Y') . '.',
@@ -181,13 +184,15 @@ final readonly class PermitService
             $pPlot  = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
 
             // Nur prüfen, wenn die ausstehende Anfrage noch nicht abgelaufen ist
-            if ($pPlot === $parzelleFormatted && (int) ($pending['expires'] ?? 0) > \time()) {
-                if ($this->datesOverlap($pStart, $pEnd, $start, $end)) {
-                    throw new \RuntimeException(
-                        "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
-                        'Bitte warten Sie 24h oder wählen Sie andere Daten.',
-                    );
-                }
+            if (
+                $pPlot === $parzelleFormatted
+                && (int) ($pending['expires'] ?? 0) > \time()
+                && $this->datesOverlap($pStart, $pEnd, $start, $end)
+            ) {
+                throw new \RuntimeException(
+                    "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
+                    'Bitte warten Sie 24h oder wählen Sie andere Daten.',
+                );
             }
         }
     }

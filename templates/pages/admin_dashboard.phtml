@@ -11,6 +11,7 @@
  * @var string                                        $filterEnd
  * @var array<string, mixed>                          $stats
  * @var array<string, array<\App\Core\Entity\Permit>> $groups
+ * @var array<int, array<string, mixed>>              $mailLogs
  */
 ?>
 <!DOCTYPE html>
@@ -130,6 +131,7 @@
                         <button class="c-tabs__btn c-tabs__btn--active" onclick="openTab(event, 'tab-active')">Aktiv (<?php echo \count($groups['active']); ?>)</button>
                         <button class="c-tabs__btn" onclick="openTab(event, 'tab-future')">Zukünftig (<?php echo \count($groups['future']); ?>)</button>
                         <button class="c-tabs__btn" onclick="openTab(event, 'tab-expired')">Abgelaufen (<?php echo \count($groups['expired']); ?>)</button>
+                        <button class="c-tabs__btn" onclick="openTab(event, 'tab-logs')">E-Mail Log</button>
                     </div>
 
                     <div id="tab-active" class="c-tabs__content c-tabs__content--active">
@@ -219,6 +221,38 @@
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
                                             <td><?php echo $p->bis->format('d.m.Y'); ?></td>
                                             <td><a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+
+                    <div id="tab-logs" class="c-tabs__content">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Zeitpunkt</th>
+                                        <th>Empfänger</th>
+                                        <th>Betreff / Template</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($mailLogs as $log) { ?>
+                                        <tr>
+                                            <td><small><?php echo $log['timestamp']; ?></small></td>
+                                            <td><?php echo \htmlspecialchars($log['recipient']); ?></td>
+                                            <td>
+                                                <strong><?php echo \htmlspecialchars($log['subject']); ?></strong><br>
+                                                <small class="u-text-muted">Template: <?php echo $log['template']; ?></small>
+                                            </td>
+                                            <td>
+                                                <span class="c-badge c-badge--<?php echo $log['status'] === 'Erfolg' ? 'success' : 'danger'; ?>">
+                                                    <?php echo $log['status']; ?>
+                                                </span>
+                                            </td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
