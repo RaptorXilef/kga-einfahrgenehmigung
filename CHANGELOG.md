@@ -2,6 +2,25 @@
 
 
 
+## [0.11.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.10.0...v0.11.0) (2026-04-29)
+
+### 🚀 Features
+
+* **admin:** implement email logging and dashboard history tab ([b4aff46](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b4aff46ba425b6305e815e99e90745566fc80f62))
+* **check:** add granular validity states for rest periods ([df10c15](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/df10c15d85dc2e78ad6a2532be0537af873c9cd6))
+* **logic:** implement overdue tracking and granular opening hours matrix ([cf7fb59](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cf7fb5920efcf1fc6cc46afeae3f82ba3131e578))
+* **logic:** implement temporal overlap validation for parcel permits ([e492366](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e492366204ad0a5a5ae722062f4a42addbfbbe12))
+* **logic:** implement two-stage overdue escalation and matrix-based holiday check ([5f0670d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5f0670d5dda82bcef9be6c56c7f431bbc31b0353))
+
+### 🐛 Bug Fixes
+
+* **container:** resolve dependency mismatches for HolidayService and CheckController ([566207e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/566207e35068c8acea1167ae07a72652d78a0b61))
+* **qa:** resolve static analysis violations and stabilize template context ([1fed181](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1fed18150bd681e3ad5ba53de72a61500d1ddc68))
+
+### ⚙️ Refactoring
+
+* **storage:** enforce immutable request timestamp across all layers ([6d4d943](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6d4d9432286c8c307885b63280c18456c31b6b2b))
+
 ## [0.10.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.6...v0.10.0) (2026-04-29)
 
 ### 🚀 Features
