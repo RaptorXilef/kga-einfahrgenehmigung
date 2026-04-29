@@ -10,6 +10,7 @@ Minifizierte
 Minifizierung
 superadmin
 Superadmin
+Superadmins
 versionieren
 versioniert
 wegetrimmt

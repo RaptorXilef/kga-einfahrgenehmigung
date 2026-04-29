@@ -71,16 +71,16 @@ final readonly class UserController
         // Admin darf nur sich selbst oder User mit Level > 1 (also 2 und 3).
         $canManage = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
 
-        if (! $canManage) {
-            return 'Fehler: Unzureichende Berechtigung.';
+        if (! $canManage && $targetLevel !== 99) {
+            return 'Fehler: Keine Berechtigung für diesen Benutzer.';
         }
 
         if ($action === 'save') {
-            $newLevel = (int) ($post['level'] ?? $targetLevel);
+            $newLevel = (int) ($post['level'] ?? ($targetLevel === 99 ? 3 : $targetLevel));
 
-            // Sicherheits-Sperre: Admin (1) kann niemanden auf Level 0 oder 1 hieven
+            // Sicherheits-Sperre für Admin (1): Darf nur Level 2 oder 3 vergeben
             if ($myLevel === 1 && $newLevel <= 1 && ! $isSelf) {
-                $newLevel = $targetLevel === 99 ? 3 : $targetLevel;
+                $newLevel = 3;
             }
 
             $userData = [
@@ -88,14 +88,13 @@ final readonly class UserController
                 'label' => \trim((string) ($post['label'] ?? '')),
             ];
 
-            // Passwort-Handling (Passwort nur überschreiben, wenn eines eingegeben wurde)
             $password = (string) ($post['password'] ?? '');
             if ($password !== '') {
                 $userData['pass'] = \password_hash($password, \PASSWORD_DEFAULT);
             } elseif (isset($users[$targetUser])) {
                 $userData['pass'] = $users[$targetUser]['pass'];
             } else {
-                return 'Fehler: Passwort für neuen Benutzer erforderlich.';
+                return 'Fehler: Passwort erforderlich.';
             }
 
             $users[$targetUser] = $userData;
@@ -104,7 +103,7 @@ final readonly class UserController
             return "Benutzer '{$targetUser}' gespeichert.";
         }
 
-        if ($action === 'delete' && ! $isSelf) {
+        if ($action === 'delete' && ! $isSelf && $canManage) {
             unset($users[$targetUser]);
             $this->auth->saveUsers($users);
 
@@ -133,7 +132,6 @@ final readonly class UserController
         /** @var Config $config */
         $config  = $this->config;
         $appRoot = (string) $config->get('root_path');
-
         \extract($data);
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }

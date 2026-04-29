@@ -160,7 +160,8 @@ final readonly class AdminController
             'message'     => $message,
             'filterStart' => $filterStart,
             'filterEnd'   => $filterEnd,
-            'config'      => $this->config,
+            'config'      => $this->config, // WICHTIG für den Indikator
+            'appRoot'     => $this->config->get('root_path'), // WICHTIG für Includes
         ]);
     }
 

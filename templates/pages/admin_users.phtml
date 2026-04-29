@@ -1,3 +1,15 @@
+<?php
+/**
+ * @var array<string, mixed>                $settings
+ * @var \App\Infrastructure\Config\Config   $config
+ * @var string                              $appRoot
+ * @var string                              $message
+ * @var int                                 $myLevel
+ * @var string                              $myUsername
+ * @var array<string, array<string, mixed>> $users
+ * @var array<int, string>                  $roles
+ */
+?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -113,7 +125,7 @@
                             // Admin (1) darf nur Level 2 und 3 erstellen
                             if ($myLevel === 1 && $lvl <= 1) {
                                 continue;
-                            }
+                            } // Admin darf keine Admins/Superadmins bauen
                             ?>
                             <option value="<?php echo $lvl; ?>"><?php echo $lvl; ?>: <?php echo $rName; ?></option>
                         <?php } ?>

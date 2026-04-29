@@ -1,3 +1,18 @@
+<?php
+
+/**
+ * @var array<string, mixed>                          $settings
+ * @var \App\Infrastructure\Config\Config             $config
+ * @var string                                        $appRoot
+ * @var string                                        $adminUser
+ * @var int                                           $adminLevel
+ * @var string                                        $message
+ * @var string                                        $filterStart
+ * @var string                                        $filterEnd
+ * @var array<string, mixed>                          $stats
+ * @var array<string, array<\App\Core\Entity\Permit>> $groups
+ */
+?>
 <!DOCTYPE html>
 <html lang="de">
 
@@ -62,6 +77,9 @@
     <nav class="c-admin-nav">
         <div class="c-container">
             <span>Eingeloggt: <strong><?php echo \htmlspecialchars($adminUser); ?></strong> (Lvl <?php echo $adminLevel; ?>)</span>
+            <?php if ($adminLevel <= 1) { ?>
+                <a href="users.php" class="u-margin-left-m">👤 Benutzerverwaltung</a>
+            <?php } ?>
             <a href="?action=logout" class="u-float-right">Abmelden</a>
         </div>
     </nav>
@@ -93,10 +111,12 @@
         </section>
 
         <div class="c-stats-grid u-margin-bottom-l">
-            <div class="c-card">
-                <small>Einnahmen (Zeitraum)</small>
-                <div class="u-font-xl u-font-bold"><?php echo \number_format($stats['total_revenue'], 2, ',', '.'); ?> €</div>
-            </div>
+            <?php if ($adminLevel < 3) { ?>
+                <div class="c-card">
+                    <small>Einnahmen (Zeitraum)</small>
+                    <div class="u-font-xl u-font-bold"><?php echo \number_format($stats['total_revenue'], 2, ',', '.'); ?> €</div>
+                </div>
+            <?php } ?>
             <div class="c-card">
                 <small>Anträge / PKW / LKW</small>
                 <div><?php echo $stats['total_count']; ?> (<?php echo $stats['types']['pkw']; ?> / <?php echo $stats['types']['lkw']; ?>)</div>
@@ -119,6 +139,7 @@
                                     <tr>
                                         <th>Kennung / Name</th>
                                         <th>Status</th>
+                                        <?php if ($adminLevel < 3) { ?><th>Betrag</th><?php } ?>
                                         <th>Aktion</th>
                                     </tr>
                                 </thead>
@@ -127,14 +148,17 @@
                                         <tr>
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
                                             <td><span class="c-badge c-badge--<?php echo $p->status === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($p->status); ?></span></td>
+                                            <?php if ($adminLevel < 3) { ?>
+                                                <td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td>
+                                            <?php } ?>
                                             <td>
                                                 <div class="u-flex u-gap-xs">
                                                     <a href="?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
-                                                    <?php if ($p->status !== 'bezahlt' && $adminLevel === 1) { ?>
+                                                    <?php if ($p->status !== 'bezahlt' && $adminLevel <= 1) { ?>
                                                         <form method="POST" style="margin:0;">
                                                             <input type="hidden" name="action" value="mark_as_paid">
                                                             <input type="hidden" name="code" value="<?php echo $p->code; ?>">
-                                                            <button type="submit" class="c-button c-button--success c-button--small">✔</button>
+                                                            <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
                                                         </form>
                                                     <?php } ?>
                                                     <a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a>
@@ -154,6 +178,7 @@
                                     <tr>
                                         <th>Kennung / Name</th>
                                         <th>Datum von</th>
+                                        <?php if ($adminLevel < 3) { ?><th>Betrag</th><?php } ?>
                                         <th>Aktion</th>
                                     </tr>
                                 </thead>
@@ -162,6 +187,9 @@
                                         <tr>
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
                                             <td><?php echo $p->von->format('d.m.Y'); ?></td>
+                                            <?php if ($adminLevel < 3) { ?>
+                                                <td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td>
+                                            <?php } ?>
                                             <td>
                                                 <div class="u-flex u-gap-xs">
                                                     <a href="?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
@@ -222,11 +250,9 @@
     <script>
         function openTab(evt, tabId) {
             const contents = document.getElementsByClassName("c-tabs__content");
-            for (let i = 0; i < contents.length; i++)
-                contents[i].classList.remove("c-tabs__content--active");
+            for (let i = 0; i < contents.length; i++) contents[i].classList.remove("c-tabs__content--active");
             const buttons = document.getElementsByClassName("c-tabs__btn");
-            for (let i = 0; i < buttons.length; i++)
-                buttons[i].classList.remove("c-tabs__btn--active");
+            for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("c-tabs__btn--active");
             document.getElementById(tabId).classList.add("c-tabs__content--active");
             evt.currentTarget.classList.add("c-tabs__btn--active");
         }
