@@ -103,9 +103,9 @@ final readonly class PermitService
             zweck: $zweck,
             preisSnapshot: $this->config->getPriceForType($typ),
             von: $startDate,
-            bis: $endDate,
+            bis: new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
             status: 'wartend',
-            erstellt: new \DateTimeImmutable(), // FIX: Garantiert den Antragszeitpunkt
+            erstellt: new \DateTimeImmutable(), // FIX: Der Moment der Antragstellung
         );
 
         if (! $this->storage->save($permit)) {

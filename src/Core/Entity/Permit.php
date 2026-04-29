@@ -32,7 +32,7 @@ final readonly class Permit
         public \DateTimeImmutable $von,
         public \DateTimeImmutable $bis,
         public string $status = 'wartend',
-        public ?\DateTimeImmutable $erstellt = new \DateTimeImmutable(),
+        public \DateTimeImmutable $erstellt = new \DateTimeImmutable(), // FIX: Pflichtfeld
     ) {
     }
 

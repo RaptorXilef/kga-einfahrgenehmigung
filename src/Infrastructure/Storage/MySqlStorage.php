@@ -47,7 +47,7 @@ final readonly class MySqlStorage implements StorageInterface
             'von'           => $permit->von->format('Y-m-d'),
             'bis'           => $permit->bis->format('Y-m-d'),
             'status'        => $permit->status,
-            'erstellt'      => $permit->erstellt?->format('Y-m-d H:i:s'),
+            'erstellt'      => $permit->erstellt->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -74,7 +74,7 @@ final readonly class MySqlStorage implements StorageInterface
             von: new \DateTimeImmutable((string) $row['von']),
             bis: new \DateTimeImmutable((string) $row['bis']),
             status: (string) $row['status'],
-            erstellt: new \DateTimeImmutable((string) $row['erstellt']),
+            erstellt: new \DateTimeImmutable((string) ($row['erstellt'] ?? 'now')),
         );
     }
 

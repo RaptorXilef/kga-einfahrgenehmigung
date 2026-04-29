@@ -31,15 +31,16 @@ final readonly class JsonStorage implements StorageInterface
     {
         $data                = $this->loadRaw();
         $data[$permit->code] = [
-            'code'        => $permit->code,
-            'name'        => $permit->name,
-            'email'       => $permit->email,
-            'kennzeichen' => $permit->kennzeichen,
-            'parzelle'    => $permit->parzelle,
-            'von'         => $permit->von->format('Y-m-d'),
-            'bis'         => $permit->bis->format('Y-m-d'),
-            'status'      => $permit->status,
-            'erstellt'    => $permit->erstellt?->format('Y-m-d H:i:s'),
+            'code'          => $permit->code,
+            'name'          => $permit->name,
+            'email'         => $permit->email,
+            'kennzeichen'   => $permit->kennzeichen,
+            'parzelle'      => $permit->parzelle,
+            'von'           => $permit->von->format('Y-m-d'),
+            'bis'           => $permit->bis->format('Y-m-d'),
+            'status'        => $permit->status,
+            'erstellt'      => $permit->erstellt->format('Y-m-d H:i:s'), // FIX: Konsistentes Format
+            'preisSnapshot' => $permit->preisSnapshot, // Sicherstellen, dass das mitgespeichert wird
         ];
 
         return (bool) \file_put_contents(
