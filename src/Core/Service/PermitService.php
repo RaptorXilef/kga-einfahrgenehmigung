@@ -428,16 +428,33 @@ final readonly class PermitService
         return false;
     }
 
-    // Hilfsmethode, um den Overdue-Status zu prüfen
-    public function isOverdue(Permit $permit): bool
+    /**
+     * Ermittelt den Überfälligkeits-Status.
+     * 0 = Pünktlich
+     * 1 = Zahlungsziel überschritten (Gelbe Warnung)
+     * 2 = Benachrichtigungs-Zeitraum überschritten (Roter Alarm für Buchhaltung)
+     */
+    public function getOverdueLevel(Permit $permit): int
     {
-        if ($permit->status === 'bezahlt') {
-            return false;
+        if ($permit->status === 'bezahlt' || ! $permit->erstellt) {
+            return 0;
         }
 
-        $dueDays  = (int) $this->config->get('payment_due_days', 14);
-        $deadline = $permit->erstellt?->modify("+{$dueDays} days");
+        $now        = new \DateTimeImmutable();
+        $dueDays    = (int) $this->config->get('payment_due_days', 14);
+        $notifyDays = (int) $this->config->get('payment_due_days_notify', 2);
 
-        return $deadline !== null && $deadline < new \DateTimeImmutable();
+        $userDeadline        = $permit->erstellt->modify("+{$dueDays} days");
+        $staffAlertThreshold = $userDeadline->modify("+{$notifyDays} days");
+
+        if ($now > $staffAlertThreshold) {
+            return 2; // Stufe: Buchhaltung informieren
+        }
+
+        if ($now > $userDeadline) {
+            return 1; // Stufe: Zahlungsziel überschritten
+        }
+
+        return 0;
     }
 }

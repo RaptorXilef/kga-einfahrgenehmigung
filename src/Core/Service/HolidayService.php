@@ -42,13 +42,20 @@ final readonly class HolidayService
         return $conflicts;
     }
 
+    /**
+     * Prüft, ob ein kompletter Tag gesperrt ist (z.B. Sonntag).
+     */
     public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
-        // 1. Sonntage (0 = Sonntag)
-        if ($date->format('w') === '0') {
+        $dayKey       = \strtolower($date->format('D')); // 'mon', 'sun', etc.
+        $openingHours = $this->config->get('opening_hours', []);
+
+        // Wenn für diesen Tag leere Arrays definiert sind (wie bei 'sun'), ist er gesperrt
+        if (empty($openingHours[$dayKey])) {
             return true;
         }
 
+        // Feiertags-Check (Berlin)
         return \in_array(
             $date->format('Y-m-d'),
             $this->getBerlinHolidays((int) $date->format('Y')),

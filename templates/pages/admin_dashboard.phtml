@@ -12,12 +12,9 @@
  * @var array<string, mixed>                          $stats
  * @var array<string, array<\App\Core\Entity\Permit>> $groups
  * @var array<int, array<string, mixed>>              $mailLogs
+ * @var \App\Core\Service\PermitService               $permitService
  */
-
-// Hilfsvariablen für die Überfälligkeit vorbereiten
-$dueDays    = (int) $config->get('payment_due_days', 14);
-$notifyDays = (int) $config->get('payment_due_days_notify', 2);
-$now        = new \DateTimeImmutable();
+$now = new \DateTimeImmutable();
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -27,7 +24,6 @@ $now        = new \DateTimeImmutable();
     <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
     <style>
-        /* Einfaches Tab-Styling (kann später in die main.scss) */
         .c-tabs__nav {
             display: flex;
             gap: 10px;
@@ -151,7 +147,9 @@ $now        = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($groups['active'] as $p) { ?>
+                                    <?php foreach ($groups['active'] as $p) {
+                                        $overdueLevel = $permitService->getOverdueLevel($p);
+                                        ?>
                                         <tr>
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
                                             <td>
@@ -159,16 +157,11 @@ $now        = new \DateTimeImmutable();
                                                     <?php echo \strtoupper($p->status); ?>
                                                 </span>
 
-                                                <?php if ($p->status !== 'bezahlt' && $p->erstellt) {
-                                                    $userDeadline   = $p->erstellt->modify("+$dueDays days");
-                                                    $alarmThreshold = $userDeadline->modify("+$notifyDays days");
-
-                                                    if ($now > $alarmThreshold) { ?>
-                                                        <span class="c-badge c-badge--danger" title="Kritisch überfällig!">🚨 ALARM</span>
-                                                    <?php } elseif ($now > $userDeadline) { ?>
-                                                        <span class="c-badge" style="background: #e67e22; color: white;" title="Zahlungsziel überschritten">ÜBERFÄLLIG</span>
-                                                <?php }
-                                                    } ?>
+                                                <?php if ($overdueLevel === 1) { ?>
+                                                    <span class="c-badge" style="background: #e67e22; color: white;" title="Zahlungsziel überschritten">ÜBERFÄLLIG</span>
+                                                <?php } elseif ($overdueLevel === 2) { ?>
+                                                    <span class="c-badge c-badge--danger" title="Sofortige Prüfung erforderlich!">🚨 ALARM</span>
+                                                <?php } ?>
                                             </td>
                                             <?php if ($adminLevel < 3) { ?>
                                                 <td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td>
@@ -205,20 +198,18 @@ $now        = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($groups['future'] as $p) { ?>
+                                    <?php foreach ($groups['future'] as $p) {
+                                        $overdueLevel = $permitService->getOverdueLevel($p);
+                                        ?>
                                         <tr>
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
                                             <td>
                                                 <?php echo $p->von->format('d.m.Y'); ?>
-                                                <?php if ($p->status !== 'bezahlt' && $p->erstellt) {
-                                                    $userDeadline   = $p->erstellt->modify("+$dueDays days");
-                                                    $alarmThreshold = $userDeadline->modify("+$notifyDays days");
-                                                    if ($now > $alarmThreshold) {
-                                                        echo ' <span class="c-badge c-badge--danger">🚨</span>';
-                                                    } elseif ($now > $userDeadline) {
-                                                        echo ' <span class="c-badge" style="background: #e67e22; color: white; padding: 2px 5px; font-size: 10px;">!</span>';
-                                                    }
-                                                } ?>
+                                                <?php if ($overdueLevel === 2) { ?>
+                                                    <span class="c-badge c-badge--danger">🚨</span>
+                                                <?php } elseif ($overdueLevel === 1) { ?>
+                                                    <span class="c-badge" style="background: #e67e22; color: white; padding: 2px 5px; font-size: 10px;">!</span>
+                                                <?php } ?>
                                             </td>
                                             <?php if ($adminLevel < 3) { ?>
                                                 <td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td>
@@ -280,7 +271,7 @@ $now        = new \DateTimeImmutable();
                                                 <small class="u-text-muted">Template: <?php echo $log['template']; ?></small>
                                             </td>
                                             <td>
-                                                <span class="c-badge c-badge--<?php echo $log['status'] === 'Erfolg' ? 'success' : 'danger'; ?>">
+                                                <span class="c-badge c-badge--<?php echo $log['status'] === 'Erfolg' ? 'success' : 'warning'; ?>">
                                                     <?php echo $log['status']; ?>
                                                 </span>
                                             </td>

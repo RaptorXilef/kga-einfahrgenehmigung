@@ -158,17 +158,18 @@ final readonly class AdminController
             : [];
 
         $this->render('admin_dashboard', [
-            'stats'       => $this->calculateStats($filtered),
-            'groups'      => $this->groupPermits($allPermits),
-            'settings'    => $this->getSettingsArray(),
-            'adminUser'   => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel'  => (int) ($_SESSION['admin_level'] ?? 1),
-            'message'     => $message,
-            'filterStart' => $filterStart,
-            'filterEnd'   => $filterEnd,
-            'config'      => $this->config, // WICHTIG für den Indikator
-            'appRoot'     => $this->config->get('root_path'), // WICHTIG für Includes
-            'mailLogs'    => $mailLogs,
+            'stats'         => $this->calculateStats($filtered),
+            'groups'        => $this->groupPermits($allPermits),
+            'settings'      => $this->getSettingsArray(),
+            'adminUser'     => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel'    => (int) ($_SESSION['admin_level'] ?? 1),
+            'message'       => $message,
+            'filterStart'   => $filterStart,
+            'filterEnd'     => $filterEnd,
+            'config'        => $this->config, // WICHTIG für den Indikator
+            'appRoot'       => $this->config->get('root_path'), // WICHTIG für Includes
+            'mailLogs'      => $mailLogs,
+            'permitService' => $this->permitService,
         ]);
     }
 
