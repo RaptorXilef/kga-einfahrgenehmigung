@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Service zur Verwaltung des Genehmigungsprozesses (v0.9.0).
+ * Service zur Verwaltung des Genehmigungsprozesses
  *
  * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
  * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
@@ -121,6 +121,13 @@ final readonly class PermitService
      */
     public function createPendingVerification(array $data): string
     {
+        // --- NEU: KOLLISIONSPRÜFUNG ---
+        $this->validateNoCollisions(
+            (string) ($data['parzelle'] ?? ''),
+            new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now')),
+            new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
+        );
+
         $token                      = \bin2hex(\random_bytes(32));
         $data['verification_token'] = $token;
         $data['expires']            = \time() + (3600 * 24); // 24h gültig
@@ -144,6 +151,57 @@ final readonly class PermitService
         ]);
 
         return $token;
+    }
+
+    /**
+     * Prüft, ob für eine Parzelle bereits Genehmigungen im Zeitraum vorliegen.
+     * Wir prüfen bestätigte Genehmigungen UND offene Verifizierungen.
+     */
+    private function validateNoCollisions(string $parzelle, \DateTimeImmutable $start, \DateTimeImmutable $end): void
+    {
+        $parzelleFormatted = \str_pad($parzelle, 4, '0', \STR_PAD_LEFT);
+
+        // 1. Check im Hauptspeicher (Storage)
+        foreach ($this->storage->getAll() as $permit) {
+            if ($permit->parzelle === $parzelleFormatted && $this->datesOverlap($permit->von, $permit->bis, $start, $end)) {
+                throw new \RuntimeException(
+                    "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
+                    $permit->von->format('d.m.Y') . ' bis ' . $permit->bis->format('d.m.Y') . '.',
+                );
+            }
+        }
+
+        // 2. Check in den ausstehenden E-Mail-Bestätigungen (Pending)
+        $path       = $this->config->get('root_path') . '/storage/pending_verification.json';
+        $allPending = $this->loadJson($path);
+
+        foreach ($allPending as $pending) {
+            $pStart = new \DateTimeImmutable((string) ($pending['datum_von'] ?? 'now'));
+            $pEnd   = new \DateTimeImmutable((string) ($pending['datum_bis'] ?? 'now'));
+            $pPlot  = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
+
+            // Nur prüfen, wenn die ausstehende Anfrage noch nicht abgelaufen ist
+            if ($pPlot === $parzelleFormatted && (int) ($pending['expires'] ?? 0) > \time()) {
+                if ($this->datesOverlap($pStart, $pEnd, $start, $end)) {
+                    throw new \RuntimeException(
+                        "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
+                        'Bitte warten Sie 24h oder wählen Sie andere Daten.',
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Die mathematische Formel für Zeit-Überschneidungen.
+     */
+    private function datesOverlap(
+        \DateTimeImmutable $startA,
+        \DateTimeImmutable $endA,
+        \DateTimeImmutable $startB,
+        \DateTimeImmutable $endB,
+    ): bool {
+        return $startA <= $endB && $endA >= $startB;
     }
 
     /**
