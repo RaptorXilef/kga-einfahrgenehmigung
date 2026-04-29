@@ -2,6 +2,26 @@
 
 
 
+## [0.10.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.6...v0.10.0) (2026-04-29)
+
+### 🚀 Features
+
+* **auth:** enable user creation for admins and fix template variable scope ([060a5c0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/060a5c05bd1ffee42fb54d6c5279872e24875662))
+* **auth:** implement hierarchical user management and permission matrix ([d8fb652](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d8fb652fd8816e092633177c801e0fd49126d591))
+
+### 🐛 Bug Fixes
+
+* **ui:** finalize v0.9.7 identity system and eliminate template warnings ([c164e68](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c164e68a12a99a7c80c6c3d5c9ca614c418e594e))
+
+### ⚙️ Refactoring
+
+* **user:** reduce cyclomatic complexity and eliminate else expressions ([86ababc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/86ababcebb01f22624b1ce665ce20e3be17838f4))
+
+### 🧹 Chore / Maintenance
+
+* **release:** v0.9.7 - implement user management system and 4-tier RBAC ([37519e7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/37519e73549de28579b68357aebd7024865da9d1))
+* **update:** update php-js-dev-env-blueprint to version 0.25.1 ([d690b7f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d690b7f6c58db6dc645e052c8d46256ca6bed309))
+
 ## [0.9.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.9.5...v0.9.6) (2026-04-28)
 
 ### 🧹 Chore / Maintenance
