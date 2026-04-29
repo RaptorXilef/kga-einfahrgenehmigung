@@ -18,7 +18,7 @@ final readonly class HolidayService
     /**
      * Prüft, ob der gewählte Zeitraum (von-bis) eine Ruhezeit verletzt.
      *
-     * @return array<string> Liste der gefundenen Zeit-Verletzungen (leer wenn alles okay)
+     * @return array<string> Liste der gefundenen Zeit-Verletzungen
      */
     public function checkTimeConflicts(\DateTimeImmutable $start, \DateTimeImmutable $end): array
     {
@@ -30,7 +30,8 @@ final readonly class HolidayService
             $dayKey       = \strtolower($current->format('D'));
             $allowedSlots = $this->config->get('opening_hours')[$dayKey] ?? [];
 
-            if (empty($allowedSlots)) {
+            // FIX: empty() durch strikten Vergleich ersetzt
+            if ($allowedSlots === []) {
                 $conflicts[] = $current->format('d.m.Y') . ' (Sonntag/Feiertag gesperrt)';
             }
 
@@ -51,7 +52,8 @@ final readonly class HolidayService
         $openingHours = $this->config->get('opening_hours', []);
 
         // Wenn für diesen Tag leere Arrays definiert sind (wie bei 'sun'), ist er gesperrt
-        if (empty($openingHours[$dayKey])) {
+        // FIX: empty() durch strikten Vergleich ersetzt
+        if (($openingHours[$dayKey] ?? []) === []) {
             return true;
         }
 
@@ -61,6 +63,50 @@ final readonly class HolidayService
             $this->getBerlinHolidays((int) $date->format('Y')),
             true,
         );
+    }
+
+    /**
+     * Prüft, ob die aktuelle Uhrzeit laut Matrix erlaubt ist.
+     */
+    public function isTimeAllowedNow(): bool
+    {
+        $now = new \DateTimeImmutable();
+        if ($this->isRestrictedDay($now)) {
+            return false;
+        }
+
+        $dayKey      = \strtolower($now->format('D'));
+        $slots       = $this->config->get('opening_hours')[$dayKey] ?? [];
+        $currentTime = $now->format('H:i');
+
+        foreach ($slots as $slot) {
+            if ($currentTime >= $slot[0] && $currentTime <= $slot[1]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Gibt die erlaubten Zeiten für heute als Text zurück (für die Anzeige)
+     */
+    public function getTodayAllowedSlots(): string
+    {
+        $dayKey = \strtolower((new \DateTimeImmutable())->format('D'));
+        $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
+
+        // FIX: empty() durch strikten Vergleich ersetzt
+        if ($slots === []) {
+            return 'Heute keine Einfahrt erlaubt.';
+        }
+
+        $text = [];
+        foreach ($slots as $slot) {
+            $text[] = $slot[0] . ' - ' . $slot[1] . ' Uhr';
+        }
+
+        return \implode(' & ', $text);
     }
 
     /**
@@ -85,51 +131,5 @@ final readonly class HolidayService
             $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
             $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
         ];
-    }
-
-    /**
-     * Prüft, ob die aktuelle Uhrzeit laut Matrix erlaubt ist.
-     */
-    public function isTimeAllowedNow(): bool
-    {
-        $now = new \DateTimeImmutable();
-
-        // Wenn heute Feiertag oder Sonntag (laut isRestrictedDay), dann generell nein
-        if ($this->isRestrictedDay($now)) {
-            return false;
-        }
-
-        $dayKey      = \strtolower($now->format('D')); // 'mon', 'tue'...
-        $slots       = $this->config->get('opening_hours')[$dayKey] ?? [];
-        $currentTime = $now->format('H:i');
-
-        foreach ($slots as $slot) {
-            // Prüfen ob aktuelle Zeit zwischen Start [0] und Ende [1] liegt
-            if ($currentTime >= $slot[0] && $currentTime <= $slot[1]) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Gibt die erlaubten Zeiten für heute als Text zurück (für die Anzeige)
-     */
-    public function getTodayAllowedSlots(): string
-    {
-        $dayKey = \strtolower((new \DateTimeImmutable())->format('D'));
-        $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
-
-        if (empty($slots)) {
-            return 'Heute keine Einfahrt erlaubt.';
-        }
-
-        $text = [];
-        foreach ($slots as $slot) {
-            $text[] = $slot[0] . ' - ' . $slot[1] . ' Uhr';
-        }
-
-        return \implode(' & ', $text);
     }
 }

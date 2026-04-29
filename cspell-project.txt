@@ -2,6 +2,7 @@
 ABCDEFGHJKLMNPQRSTUVWXYZ
 Amtl
 Andersenweg
+Benachrichtigungs
 betrag
 Bezahl
 CURLOPT
@@ -10,6 +11,7 @@ Einfahrtszeiten
 esbenp
 geheimnis
 GENODES
+Granulare
 Hartcodierte
 hartcodierten
 HTTPHEADER

@@ -72,6 +72,7 @@ final readonly class CheckController
             'isTimeAllowed' => $isTimeAllowed,
             'allowedToday'  => $allowedToday,
             'showAdminView' => $showAdminView, // Wichtig für das Template
+            'appRoot'       => $this->config->get('root_path'),
         ]);
     }
 

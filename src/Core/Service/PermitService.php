@@ -60,7 +60,7 @@ final readonly class PermitService
 
         // 1. Ruhezeiten-Check (Matrix)
         $conflicts = $this->holidayService->checkTimeConflicts($startDate, $endDate);
-        if (! empty($conflicts)) {
+        if ($conflicts !== []) {
             // Wir werfen hier keine Exception, sondern loggen es evtl. oder lassen es zu,
             // da die PDF-Regeln (Handzettel) darauf hinweisen.
             // Falls es blockieren soll: throw new \RuntimeException("Zeitkonflikt: " . implode(', ', $conflicts));
@@ -307,7 +307,7 @@ final readonly class PermitService
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-                'erstellt'          => $permit->erstellt?->format('d.m.Y H:i') ?? 'Sofort',
+                'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->get('base_url') . 'check.php?code=' . $permit->code),
             ],
         );
@@ -436,7 +436,7 @@ final readonly class PermitService
      */
     public function getOverdueLevel(Permit $permit): int
     {
-        if ($permit->status === 'bezahlt' || ! $permit->erstellt) {
+        if ($permit->status === 'bezahlt') {
             return 0;
         }
 

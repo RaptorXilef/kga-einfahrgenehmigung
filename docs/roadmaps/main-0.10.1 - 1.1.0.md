@@ -8,19 +8,19 @@
 | **v1.0.0** | **Dokumente** | PDF-Integration (Dompdf), Browser-Vorschau & E-Mail-Anhang. |
 | **v1.1.0** | **Finanzen** | PayPal Live-Schaltung & Finaler Audit. |
 
-## v0.10.3 - Zeitmanagement & Datenpräzision
+## v0.11.0 - Zeitmanagement & Datenpräzision
 
-- [?] Feld `erstelltAm` in Permit-Entität und Storage (JSON/MySQL) fixieren.
+- [x] Feld `erstelltAm` in Permit-Entität und Storage (JSON/MySQL) fixieren.
 - [x] Implementierung der dynamischen Ruhezeiten-Matrix (Mo-So, individuelle Slots).
 - [x] Anzeige überfälliger Zahlungen im Admin-Dashboard (basiert auf Antragsdatum).
 
-## v0.11.0 - Manuelle Buchungen & Gutscheine
+## v0.12.0 - Manuelle Buchungen & Gutscheine
 
 - [ ] Admin-UI: Formular zur manuellen Erstellung kostenloser Genehmigungen (Lvl 0-3).
 - [ ] Gutschein-System: Generierung von Einmal-Codes für kostenlose Buchungen durch Pächter.
 - [ ] Validierung: Integration der Gutschein-Logik in den Bezahlprozess.
 
-## v0.12.0 - Pächter-Verlauf (Self-Service)
+## v0.13.0 - Pächter-Verlauf (Self-Service)
 
 - [ ] Neuer Controller für den Antragsverlauf.
 - [ ] "Magic Link" System: 15 Minuten gültiger Token per E-Mail zur Identifikation.

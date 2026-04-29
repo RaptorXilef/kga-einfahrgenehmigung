@@ -140,7 +140,8 @@ final readonly class AdminController
 
         /** @var Permit[] $filtered */
         $filtered = \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd): bool {
-            $date = $permit->erstellt?->format('Y-m-d') ?? '';
+            // FIX: nullsafe entfernt, da erstellt non-nullable ist
+            $date = $permit->erstellt->format('Y-m-d');
 
             return $date >= $filterStart && $date <= $filterEnd;
         });
@@ -218,7 +219,7 @@ final readonly class AdminController
                         $settings['purposes'][$permit->zweck] ?? $permit->zweck,
                         \number_format($permit->preisSnapshot, 2, ',', ''),
                         \strtoupper((string) $permit->status),
-                        $permit->erstellt?->format('d.m.Y H:i') ?? '',
+                        $permit->erstellt->format('d.m.Y H:i') ?? '',
                     ], ';', '"', '\\');
                 }
                 \fclose($output);
