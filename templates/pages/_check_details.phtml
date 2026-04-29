@@ -1,0 +1,17 @@
+<div class="u-margin-bottom u-margin-top">
+    <strong>Identifikation:</strong><br>
+    <?php
+    $info = [];
+    if (! empty($permit->kennzeichen)) {
+        $info[] = \htmlspecialchars($permit->kennzeichen);
+    }
+    if (! empty($permit->firma)) {
+        $info[] = 'Firma: ' . \htmlspecialchars($permit->firma);
+    }
+    echo \implode(' / ', $info);
+    ?>
+</div>
+<div class="u-text-muted">
+    Gültigkeitszeitraum:<br>
+    <strong><?php echo $permit->von->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->bis->format('d.m.Y'); ?></strong>
+</div>

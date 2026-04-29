@@ -15,6 +15,7 @@ namespace App\Application;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\HolidayService;
 use App\Infrastructure\Auth\AuthService;
 
 /**
@@ -26,6 +27,7 @@ final readonly class CheckController
         private ConfigInterface $config,
         private StorageInterface $storage,
         private AuthService $auth,
+        private HolidayService $holidayService,
     ) {
     }
 
@@ -53,14 +55,23 @@ final readonly class CheckController
             return;
         }
 
-        // 3. Fall: Permit gefunden -> Admin-Check
+        // 3. Fall: Permit gefunden -> Analyse der Gültigkeit
         $showAdminView = $this->determineViewPrivileges($permit, $get);
         $template      = $showAdminView ? 'check_admin' : 'check_public';
 
+        // Granulare Prüfung für v0.10.4
+        $isDateValid   = $permit->isValid();
+        $isTimeAllowed = $this->holidayService->isTimeAllowedNow();
+        $allowedToday  = $this->holidayService->getTodayAllowedSlots();
+
         $this->render($template, [
-            'permit'   => $permit,
-            'config'   => $this->config,
-            'settings' => $this->getSettingsArray(),
+            'permit'        => $permit,
+            'config'        => $this->config,
+            'settings'      => $this->getSettingsArray(),
+            'isDateValid'   => $isDateValid,
+            'isTimeAllowed' => $isTimeAllowed,
+            'allowedToday'  => $allowedToday,
+            'showAdminView' => $showAdminView, // Wichtig für das Template
         ]);
     }
 

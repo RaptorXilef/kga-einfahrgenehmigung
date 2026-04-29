@@ -86,4 +86,50 @@ final readonly class HolidayService
             $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
         ];
     }
+
+    /**
+     * Prüft, ob die aktuelle Uhrzeit laut Matrix erlaubt ist.
+     */
+    public function isTimeAllowedNow(): bool
+    {
+        $now = new \DateTimeImmutable();
+
+        // Wenn heute Feiertag oder Sonntag (laut isRestrictedDay), dann generell nein
+        if ($this->isRestrictedDay($now)) {
+            return false;
+        }
+
+        $dayKey      = \strtolower($now->format('D')); // 'mon', 'tue'...
+        $slots       = $this->config->get('opening_hours')[$dayKey] ?? [];
+        $currentTime = $now->format('H:i');
+
+        foreach ($slots as $slot) {
+            // Prüfen ob aktuelle Zeit zwischen Start [0] und Ende [1] liegt
+            if ($currentTime >= $slot[0] && $currentTime <= $slot[1]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Gibt die erlaubten Zeiten für heute als Text zurück (für die Anzeige)
+     */
+    public function getTodayAllowedSlots(): string
+    {
+        $dayKey = \strtolower((new \DateTimeImmutable())->format('D'));
+        $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
+
+        if (empty($slots)) {
+            return 'Heute keine Einfahrt erlaubt.';
+        }
+
+        $text = [];
+        foreach ($slots as $slot) {
+            $text[] = $slot[0] . ' - ' . $slot[1] . ' Uhr';
+        }
+
+        return \implode(' & ', $text);
+    }
 }

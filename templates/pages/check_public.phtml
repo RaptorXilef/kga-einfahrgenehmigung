@@ -23,51 +23,53 @@
                 💳 Zahlung erfolgreich erhalten! Ihre Genehmigung ist ab sofort gültig.
             </div>
         <?php } ?>
-        <?php if ($permit->isValid()) { ?>
+
+        <?php if ($isDateValid && $isTimeAllowed) { ?>
             <div class="c-card c-card--success u-margin-auto" style="max-width: 450px;">
                 <div class="c-card__header">
                     <span class="u-font-xl">✅ GENEHMIGUNG GÜLTIG</span>
                 </div>
                 <div class="c-card__body">
-                    <div class="u-margin-bottom">
-                        <strong>Identifikation:</strong><br>
-                        <?php
-                            $info = [];
-            if (! empty($permit->kennzeichen)) {
-                $info[] = \htmlspecialchars($permit->kennzeichen);
-            }
-            if (! empty($permit->firma)) {
-                $info[] = 'Firma: ' . \htmlspecialchars($permit->firma);
-            }
-            echo \implode(' / ', $info);
-            ?>
-                    </div>
-                    <div class="u-text-muted">
-                        Gültigkeitszeitraum:<br>
-                        <strong><?php echo $permit->von->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->bis->format('d.m.Y'); ?></strong>
-                    </div>
+                    <p>Gute Fahrt!</p>
+                    <?php include '_check_details.phtml'; // Wir lagern die Details aus, um Code-Duplikate zu vermeiden?>
                 </div>
             </div>
+
+        <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
+            <div class="c-card u-margin-auto" style="max-width: 450px; border: 5px solid #e67e22; background: #fff5e6;">
+                <div class="c-card__header">
+                    <span class="u-font-xl" style="color: #d35400;">⏳ RUHEZEIT BEACHTEN</span>
+                </div>
+                <div class="c-card__body">
+                    <p>Die Genehmigung ist für den heutigen Tag <strong>gültig</strong>, aber Sie befinden sich außerhalb der erlaubten Fahrzeiten.</p>
+                    <p>Erlaubt heute: <strong><?php echo $allowedToday; ?></strong></p>
+                    <hr style="border: 0; border-top: 1px solid #e67e22; opacity: 0.3; margin: 15px 0;">
+                    <?php include '_check_details.phtml'; ?>
+                </div>
+            </div>
+
         <?php } else { ?>
             <div class="c-card c-card--danger u-margin-auto" style="max-width: 400px;">
                 <div class="c-card__header">
                     <span class="u-font-xl">❌ UNGÜLTIG</span>
                 </div>
                 <div class="c-card__body">
-                    <p>Diese Genehmigung ist abgelaufen, noch nicht gültig oder gesperrt.</p>
+                    <p>Keine gültige Genehmigung für den heutigen Tag gefunden oder die Genehmigung ist gesperrt.</p>
                 </div>
             </div>
         <?php } ?>
 
-        <?php if (! $showAdminView) { ?>
+        <?php if (! $showAdminView && isset($permit)) { ?>
             <div class="u-margin-top-l">
                 <a href="admin.php?redirect_to_code=<?php echo $permit->code; ?>" class="u-text-small">Vorstands-Login für Details</a>
             </div>
         <?php } ?>
 
-        <footer class="u-margin-top-l">
-            <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
-        </footer>
+        <?php if (isset($permit)) { ?>
+            <footer class="u-margin-top-l">
+                <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
+            </footer>
+        <?php } ?>
     </main>
 </body>
 </html>
