@@ -56,9 +56,14 @@ final readonly class PermitService
         // Property-Read Fix: Validierung gegen Feiertage/Sonntage
         // Dies stellt sicher, dass holidayService für PHPStan "benutzt" wird.
         $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
-        if ($this->holidayService->isRestrictedDay($startDate)) {
-            // Hinweis: Hier könnte man später eine Exception werfen,
-            // wenn an Sonntagen generell nicht gefahren werden darf.
+        $endDate   = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
+
+        // 1. Ruhezeiten-Check (Matrix)
+        $conflicts = $this->holidayService->checkTimeConflicts($startDate, $endDate);
+        if (! empty($conflicts)) {
+            // Wir werfen hier keine Exception, sondern loggen es evtl. oder lassen es zu,
+            // da die PDF-Regeln (Handzettel) darauf hinweisen.
+            // Falls es blockieren soll: throw new \RuntimeException("Zeitkonflikt: " . implode(', ', $conflicts));
         }
 
         $parzelle = \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT);
@@ -98,12 +103,13 @@ final readonly class PermitService
             zweck: $zweck,
             preisSnapshot: $this->config->getPriceForType($typ),
             von: $startDate,
-            bis: new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
+            bis: $endDate,
             status: 'wartend',
+            erstellt: new \DateTimeImmutable(), // FIX: Garantiert den Antragszeitpunkt
         );
 
         if (! $this->storage->save($permit)) {
-            throw new \RuntimeException('Kritischer Fehler beim Speichern der Daten.');
+            throw new \RuntimeException('Fehler beim Speichern der Daten.');
         }
 
         // 3-Mail-System
@@ -121,7 +127,7 @@ final readonly class PermitService
      */
     public function createPendingVerification(array $data): string
     {
-        // --- NEU: KOLLISIONSPRÜFUNG ---
+        // 2. Kollisionsprüfung (Gleichzeitige Buchung der selben Parzelle)
         $this->validateNoCollisions(
             (string) ($data['parzelle'] ?? ''),
             new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now')),
@@ -130,7 +136,7 @@ final readonly class PermitService
 
         $token                      = \bin2hex(\random_bytes(32));
         $data['verification_token'] = $token;
-        $data['expires']            = \time() + (3600 * 24); // 24h gültig
+        $data['expires']            = \time() + (3600 * 24);
 
         // Wir speichern das in einer separaten Datei (storage/pending_verification.json)
         $storagePath = $this->config->get('root_path') . '/storage/pending_verification.json';
@@ -141,12 +147,9 @@ final readonly class PermitService
         // JSON_PRETTY_PRINT für Debugging, falls ich mal reinschauen will
         \file_put_contents($storagePath, \json_encode($allPending, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
 
-        // Verifizierungs-Mail senden
-        $verifyUrl = $this->config->getBaseUrl() . 'verify.php?token=' . $token;
-
-        $this->mailService->sendTemplate($data['email'], 'E-Mail bestätigen: Ausnahmegenehmigung', 'verify_email', [
+        $this->mailService->sendTemplate($data['email'], 'E-Mail bestätigen', 'verify_email', [
             'name'        => $data['name'],
-            'verifyUrl'   => $verifyUrl,
+            'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
             'vereinsName' => $this->config->get('vereins_name'),
         ]);
 
@@ -423,5 +426,18 @@ final readonly class PermitService
         }
 
         return false;
+    }
+
+    // Hilfsmethode, um den Overdue-Status zu prüfen
+    public function isOverdue(Permit $permit): bool
+    {
+        if ($permit->status === 'bezahlt') {
+            return false;
+        }
+
+        $dueDays  = (int) $this->config->get('payment_due_days', 14);
+        $deadline = $permit->erstellt?->modify("+{$dueDays} days");
+
+        return $deadline !== null && $deadline < new \DateTimeImmutable();
     }
 }

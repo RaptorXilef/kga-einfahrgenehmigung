@@ -13,6 +13,11 @@
  * @var array<string, array<\App\Core\Entity\Permit>> $groups
  * @var array<int, array<string, mixed>>              $mailLogs
  */
+
+// Hilfsvariablen für die Überfälligkeit vorbereiten
+$dueDays    = (int) $config->get('payment_due_days', 14);
+$notifyDays = (int) $config->get('payment_due_days_notify', 2);
+$now        = new \DateTimeImmutable();
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -149,7 +154,22 @@
                                     <?php foreach ($groups['active'] as $p) { ?>
                                         <tr>
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
-                                            <td><span class="c-badge c-badge--<?php echo $p->status === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($p->status); ?></span></td>
+                                            <td>
+                                                <span class="c-badge c-badge--<?php echo $p->status === 'bezahlt' ? 'success' : 'warning'; ?>">
+                                                    <?php echo \strtoupper($p->status); ?>
+                                                </span>
+
+                                                <?php if ($p->status !== 'bezahlt' && $p->erstellt) {
+                                                    $userDeadline   = $p->erstellt->modify("+$dueDays days");
+                                                    $alarmThreshold = $userDeadline->modify("+$notifyDays days");
+
+                                                    if ($now > $alarmThreshold) { ?>
+                                                        <span class="c-badge c-badge--danger" title="Kritisch überfällig!">🚨 ALARM</span>
+                                                    <?php } elseif ($now > $userDeadline) { ?>
+                                                        <span class="c-badge" style="background: #e67e22; color: white;" title="Zahlungsziel überschritten">ÜBERFÄLLIG</span>
+                                                <?php }
+                                                    } ?>
+                                            </td>
                                             <?php if ($adminLevel < 3) { ?>
                                                 <td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td>
                                             <?php } ?>
@@ -188,7 +208,18 @@
                                     <?php foreach ($groups['future'] as $p) { ?>
                                         <tr>
                                             <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
-                                            <td><?php echo $p->von->format('d.m.Y'); ?></td>
+                                            <td>
+                                                <?php echo $p->von->format('d.m.Y'); ?>
+                                                <?php if ($p->status !== 'bezahlt' && $p->erstellt) {
+                                                    $userDeadline   = $p->erstellt->modify("+$dueDays days");
+                                                    $alarmThreshold = $userDeadline->modify("+$notifyDays days");
+                                                    if ($now > $alarmThreshold) {
+                                                        echo ' <span class="c-badge c-badge--danger">🚨</span>';
+                                                    } elseif ($now > $userDeadline) {
+                                                        echo ' <span class="c-badge" style="background: #e67e22; color: white; padding: 2px 5px; font-size: 10px;">!</span>';
+                                                    }
+                                                } ?>
+                                            </td>
                                             <?php if ($adminLevel < 3) { ?>
                                                 <td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td>
                                             <?php } ?>

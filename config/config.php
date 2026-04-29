@@ -21,6 +21,55 @@ return [
     // fungiert als "Salt" für die Sicherheit des token in der Zugriffs-URL die per E-Mail versandt wird
     'geheimnis' => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
 
+    // --- DESIGN ---
+    'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail
+    'vorlaeufigFarbe' => '#f1c40f', // Gelb für "Wartend" (Verwaltungsintern)
+
+    // --- AUSWAHLMENÜS ---
+    'purposes' => [
+        'bau'     => 'Baumaßnahmen (genehmigt)',
+        'abriss'  => 'Abriss',
+        'liefer'  => 'Lieferung',
+        'entsorg' => 'Entsorgung/Abfuhr',
+    ],
+    'vehicle_types' => [
+        'pkw' => 'Privat PKW',
+        'lkw' => 'LKW / Lieferant / Firma',
+    ],
+
+    // --- LOGIK & ZEITRÄUME ---
+    /**
+     * Erlaubte Einfahrzeiten pro Wochentag.
+     * Alles außerhalb dieser Zeiten gilt als "Ruhezeit".
+     * Format: 'tag' => [['Start', 'Ende'], ['Start', 'Ende']]
+     */
+    'opening_hours' => [
+        'mon' => [['08:00', '12:00'], ['15:00', '20:00']],
+        'tue' => [['08:00', '12:00'], ['15:00', '20:00']],
+        'wed' => [['08:00', '12:00'], ['15:00', '20:00']],
+        'thu' => [['08:00', '12:00'], ['15:00', '20:00']],
+        'fri' => [['08:00', '12:00'], ['15:00', '20:00']],
+        'sat' => [['08:00', '13:00'], ['15:00', '20:00']], // Samstag Mittagspause früher
+        'sun' => [], // Sonntag generell keine Einfahrt erlaubt
+    ],
+
+    // Automatischer Check für Sonntage/Feiertage
+    'holiday_check' => 'Berlin',
+
+    // Standard-Zeitraum (1 Woche)
+    'permit_duration' => 7,
+
+    /**
+     * Zahlungsziel für Überfälligkeit
+     * Ist der Zeitraum, den der Nutezr hat, um die Überweisung zu tätigen (Steht in E-Mail als Stichtag mit Datum)
+     */
+    'payment_due_days' => 14,
+    /**
+     * Nach überschreitung dieser Zeit (payment_due_days +2 Tage)
+     * werden die Buchhalter im System über die Überfälligkeit informeirt.
+     */
+    'payment_due_days_notify' => 2,
+
     // --- PREISE & ZAHLUNG ---
     'prices' => [
         'pkw' => 3.00,
@@ -31,7 +80,6 @@ return [
     'iban'                  => 'DE12 3456 7890 1234 5678 90',
     'bic'                   => 'GENODES1M00', // Wichtig für EPC-QR-Code
     'kontoinhaber'          => 'KGA e.V.',
-    'payment_due_days'      => 14, // Zahlungsziel in Tagen
     'usage_pattern'         => 'EFG-{{nachname}}-{{vorname}}-{{code}}', // Dynamisches Muster
 
     // --- PAYPAL (Zwei Welten System) (Optional, wenn Paypal genutzt wird) ---
@@ -58,30 +106,6 @@ return [
             'live' => 'vorstand@echte-domain.de', // Hier landen alle Vorstand-Mails im Live-Modus
             'test' => 'deine-private-mail@test.de', // Hier landen alle Vorstand-Mails im Testmodus
         ],
-    ],
-
-    // --- DESIGN ---
-    'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail
-    'vorlaeufigFarbe' => '#f1c40f', // Gelb für "Wartend" (Verwaltungsintern)
-
-    // --- LOGIK & ZEITRÄUME ---
-    'permit_duration' => 7, // Standard-Zeitraum (1 Woche)
-    'opening_hours'   => [
-        'earliest' => '07:00',
-        'latest'   => '20:00',
-    ],
-    'holiday_check' => 'Berlin', // Automatischer Check für Sonntage/Feiertage
-
-    // --- AUSWAHLMENÜS ---
-    'purposes' => [
-        'bau'     => 'Baumaßnahmen (genehmigt)',
-        'abriss'  => 'Abriss',
-        'liefer'  => 'Lieferung',
-        'entsorg' => 'Entsorgung/Abfuhr',
-    ],
-    'vehicle_types' => [
-        'pkw' => 'Privat PKW',
-        'lkw' => 'LKW / Lieferant / Firma',
     ],
 
     // --- AUTH & USER MANAGEMENT ---

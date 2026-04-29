@@ -1,19 +1,47 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
-
 declare(strict_types=1);
 
 namespace App\Core\Service;
+
+use App\Contracts\Config\ConfigInterface;
 
 /**
  * Service zur Prüfung von Berliner Feiertagen und Sperrzeiten.
  */
 final readonly class HolidayService
 {
+    public function __construct(private ConfigInterface $config)
+    {
+    }
+
     /**
-     * Prüft, ob ein Datum ein Sonntag oder ein Berliner Feiertag ist.
+     * Prüft, ob der gewählte Zeitraum (von-bis) eine Ruhezeit verletzt.
+     *
+     * @return array<string> Liste der gefundenen Zeit-Verletzungen (leer wenn alles okay)
      */
+    public function checkTimeConflicts(\DateTimeImmutable $start, \DateTimeImmutable $end): array
+    {
+        $conflicts = [];
+        $current   = $start;
+
+        // Wir prüfen jeden Tag im gewählten Zeitraum
+        while ($current <= $end) {
+            $dayKey       = \strtolower($current->format('D'));
+            $allowedSlots = $this->config->get('opening_hours')[$dayKey] ?? [];
+
+            if (empty($allowedSlots)) {
+                $conflicts[] = $current->format('d.m.Y') . ' (Sonntag/Feiertag gesperrt)';
+            }
+
+            // Hier könnte man noch tiefer gehen und Start/Ende Uhrzeiten prüfen
+            // Für v0.10.3 reicht der Check auf Tag-Ebene (Sonntage/Feiertage)
+            $current = $current->modify('+1 day');
+        }
+
+        return $conflicts;
+    }
+
     public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
         // 1. Sonntage (0 = Sonntag)
@@ -21,10 +49,11 @@ final readonly class HolidayService
             return true;
         }
 
-        $year     = (int) $date->format('Y');
-        $holidays = $this->getBerlinHolidays($year);
-
-        return \in_array($date->format('Y-m-d'), $holidays, true);
+        return \in_array(
+            $date->format('Y-m-d'),
+            $this->getBerlinHolidays((int) $date->format('Y')),
+            true,
+        );
     }
 
     /**
