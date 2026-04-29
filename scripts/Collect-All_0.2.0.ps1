@@ -93,7 +93,7 @@ function Start-FileCollection {
     }
 
     $contentArray | Set-Content -Path $outputFilePath -Encoding UTF8
-    Write-Host "ERFOLG: $outputFileName erstellt ($($filteredFiles.Count) Dateien)." -ForegroundColor Green
+    Write-Host "ERFOLG: $outputFilePath erstellt ($($filteredFiles.Count) Dateien)." -ForegroundColor Green
 }
 
 # --- 3. Menü-Definitionen ---

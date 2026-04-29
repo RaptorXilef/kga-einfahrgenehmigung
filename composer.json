@@ -58,7 +58,7 @@
   },
   "scripts": {
     "// --- PHASE 0: SETUP & LIFECYCLE ---": "Initialisierung und Bereinigung",
-    "collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
+    "legacy:collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
     "setup": "@php scripts/console.php init",
     "clear": "@php scripts/console.php clear",
     "//post-install-cmd": "@setup",

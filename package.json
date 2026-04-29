@@ -12,7 +12,8 @@
   "scripts": {
     "// --- PHASE 0: SETUP & LIFECYCLE ---": "",
     "prepare": "husky",
-    "collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
+    "collect": "node scripts/collect-all.js",
+    "legacy:collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
     "collect-info": "pwsh.exe -Command \"Get-Location; Get-ChildItem scripts\"",
     "// --- PHASE 1: DEVELOPMENT (CURRENT: SASS/LEGACY) ---": "Priorität auf Sass-Watch",
     "dev": "npm run legacy:css:watch",
