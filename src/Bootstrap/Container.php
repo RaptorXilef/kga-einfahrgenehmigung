@@ -41,7 +41,7 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
 
 /**
- * Service Container (Dependency Injector) v0.9.6.
+ * Service Container (Dependency Injector) v0.10.4.
  *
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
@@ -70,7 +70,10 @@ class Container
         $this->instances[ConfigInterface::class] = $this->config; // WICHTIG für Entkopplung
 
         // --- 2. HILFS-SERVICES (Stateless) ---
-        $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService();
+        // FIX: HolidayService benötigt jetzt das Config-Interface
+        $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService(
+            $this->get(ConfigInterface::class),
+        );
 
         // --- 3. INFRASTRUKTUR (Storage, Mail, Payment, Auth) ---
         $this->services[StorageInterface::class] = function (): JsonStorage {
@@ -121,11 +124,12 @@ class Container
             $this->get(AuthService::class),
         );
 
-        // Check Controller
+        // FIX: CheckController benötigt jetzt den HolidayService für die Live-Prüfung
         $this->services[CheckController::class] = fn (): CheckController => new CheckController(
             $this->get(ConfigInterface::class),
             $this->get(StorageInterface::class),
             $this->get(AuthService::class),
+            $this->get(HolidayService::class),
         );
 
         // PermitController für index.php

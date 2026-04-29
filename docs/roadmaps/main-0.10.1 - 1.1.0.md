@@ -10,9 +10,9 @@
 
 ## v0.10.3 - Zeitmanagement & Datenpräzision
 
-- [ ] Feld `erstelltAm` in Permit-Entität und Storage (JSON/MySQL) fixieren.
-- [ ] Implementierung der dynamischen Ruhezeiten-Matrix (Mo-So, individuelle Slots).
-- [ ] Anzeige überfälliger Zahlungen im Admin-Dashboard (basiert auf Antragsdatum).
+- [?] Feld `erstelltAm` in Permit-Entität und Storage (JSON/MySQL) fixieren.
+- [x] Implementierung der dynamischen Ruhezeiten-Matrix (Mo-So, individuelle Slots).
+- [x] Anzeige überfälliger Zahlungen im Admin-Dashboard (basiert auf Antragsdatum).
 
 ## v0.11.0 - Manuelle Buchungen & Gutscheine
 
