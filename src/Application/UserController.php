@@ -23,8 +23,10 @@ final readonly class UserController
      */
     public function handleRequest(array $post): void
     {
-        // Sicherheits-Check: Nur eingeloggt und nur Level 0 (Superadmin)
-        if (! $this->auth->isLoggedIn() || $this->auth->getLevel() !== 0) {
+        $myLevel = $this->auth->getLevel();
+
+        // NEU: Zugriff für Superadmin (0) UND Admin (1)
+        if (! $this->auth->isLoggedIn() || $myLevel > 1) {
             \header('Location: admin.php');
 
             return;
@@ -32,49 +34,74 @@ final readonly class UserController
 
         $message = '';
         if (isset($post['action'])) {
-            $message = $this->handleAdminActions($post);
+            $message = $this->handleAdminActions($post, $myLevel);
         }
 
-        // Wir holen die Rollen aus der Config (Stelle sicher, dass diese in der config.php stehen!)
-        /** @var array<int, string> $roles */
-        $roles = $this->config->get('roles', []);
-
         $this->render('admin_users', [
-            'users'            => $this->auth->loadUsers(),
-            'roles'            => $roles,
-            'currentUserLevel' => $this->auth->getLevel(),
-            'message'          => $message,
-            'settings'         => $this->getSettingsArray(),
-            'config'           => $this->config, // FIX: Wichtig für den Test-Mode-Indikator!
-            'appRoot'          => $this->config->get('root_path'), // FIX: Wichtig für Includes im Template!
+            'users'      => $this->auth->loadUsers(),
+            'roles'      => $this->config->get('roles', []),
+            'myLevel'    => $myLevel,
+            'myUsername' => (string) ($_SESSION['admin_user'] ?? ''),
+            'message'    => $message,
+            'settings'   => $this->getSettingsArray(),
+            'config'     => $this->config,
+            'appRoot'    => $this->config->get('root_path'),
         ]);
     }
 
     /**
      * @param array<string, mixed> $post
      */
-    private function handleAdminActions(array $post): string
+    private function handleAdminActions(array $post, int $myLevel): string
     {
-        $users    = $this->auth->loadUsers();
-        $action   = (string) ($post['action'] ?? '');
-        $username = \trim((string) ($post['username'] ?? ''));
+        $users       = $this->auth->loadUsers();
+        $action      = (string) ($post['action'] ?? '');
+        $targetUser  = \trim((string) ($post['username'] ?? ''));
+        $targetLevel = isset($users[$targetUser]) ? (int) $users[$targetUser]['level'] : 99;
 
-        if ($action === 'create' || $action === 'update') {
-            $users[$username] = [
-                'pass'  => \password_hash((string) ($post['password'] ?? ''), \PASSWORD_DEFAULT),
-                'level' => (int) ($post['level'] ?? 3),
-                'label' => \trim((string) ($post['label'] ?? '')),
-            ];
-            $this->auth->saveUsers($users);
+        // --- SICHERHEITS-CHECK ---
+        // Superadmin (0) darf alles.
+        // Admin (1) darf nur sich selbst (PW/Label) oder User mit Level > 1.
+        $isSelf    = $targetUser === ($_SESSION['admin_user'] ?? '');
+        $canManage = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
 
-            return "Benutzer '{$username}' wurde gespeichert.";
+        if (! $canManage) {
+            return 'Fehler: Unzureichende Berechtigung für diesen Benutzer.';
         }
 
-        if ($action === 'delete') {
-            unset($users[$username]);
+        if ($action === 'save') {
+            $password = (string) ($post['password'] ?? '');
+            $newLevel = (int) ($post['level'] ?? $targetLevel);
+
+            // Sicherheits-Sperre: Admin (1) kann niemanden zum Superadmin (0) machen
+            if ($myLevel === 1 && $newLevel === 0) {
+                $newLevel = $targetLevel;
+            }
+
+            // User-Daten bauen
+            $userData = [
+                'level' => $newLevel,
+                'label' => \trim((string) ($post['label'] ?? '')),
+            ];
+
+            // Passwort nur überschreiben, wenn eines eingegeben wurde
+            if ($password !== '') {
+                $userData['pass'] = \password_hash($password, \PASSWORD_DEFAULT);
+            } else {
+                $userData['pass'] = $users[$targetUser]['pass'];
+            }
+
+            $users[$targetUser] = $userData;
             $this->auth->saveUsers($users);
 
-            return "Benutzer '{$username}' gelöscht.";
+            return "Benutzer '{$targetUser}' aktualisiert.";
+        }
+
+        if ($action === 'delete' && ! $isSelf) {
+            unset($users[$targetUser]);
+            $this->auth->saveUsers($users);
+
+            return "Benutzer '{$targetUser}' gelöscht.";
         }
 
         return '';

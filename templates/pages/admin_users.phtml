@@ -16,96 +16,109 @@
     </nav>
 
     <main class="c-container u-padding-y-l">
+        <h1>Benutzerverwaltung</h1>
+
         <?php if ($message) { ?>
-            <div class="c-alert c-alert--info u-margin-bottom"><?php echo \htmlspecialchars($message); ?></div>
+            <div class="c-alert c-alert--info"><?php echo \htmlspecialchars($message); ?></div>
         <?php } ?>
 
-        <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 350px;">
+        <section class="c-card">
+            <table class="c-table">
+                <thead>
+                    <tr>
+                        <th>Benutzername</th>
+                        <th>Rolle / Level</th>
+                        <th>Interne Bezeichnung</th>
+                        <th>Neues Passwort</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($users as $name => $u) {
+                        $targetLevel = (int) $u['level'];
+                        $isSelf      = $name === $myUsername;
+                        // Logik: Darf ich diesen User bearbeiten?
+                        $canEdit = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
+                        ?>
+                    <tr>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="save">
+                            <input type="hidden" name="username" value="<?php echo \htmlspecialchars($name); ?>">
 
-            <section class="c-card">
-                <header class="c-card__header">
-                    <h3>Registrierte Benutzer</h3>
-                </header>
-                <table class="c-table">
-                    <thead>
-                        <tr>
-                            <th>Benutzername</th>
-                            <th>Berechtigung</th>
-                            <th>Bezeichnung (Label)</th>
-                            <th>Aktionen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($users as $name => $u) { ?>
-                            <tr>
-                                <td><strong><?php echo \htmlspecialchars($name); ?></strong></td>
-                                <td><span class="c-badge"><?php echo $roles[$u['level']] ?? 'Unbekannt'; ?></span></td>
-                                <td><?php echo \htmlspecialchars($u['label'] ?? '-'); ?></td>
-                                <td>
-                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Nutzer wirklich löschen?');">
-                                        <input type="hidden" name="action" value="delete">
-                                        <input type="hidden" name="username" value="<?php echo \htmlspecialchars($name); ?>">
-                                        <button type="submit" class="c-button c-button--small c-button--danger">Löschen</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </section>
+                            <td>
+                                <strong><?php echo \htmlspecialchars($name); ?></strong>
+                                <?php echo $isSelf ? '<br><small class="u-color-primary">(Das sind Sie)</small>' : ''; ?>
+                            </td>
 
-            <aside>
-                <section class="c-card">
-                    <header class="c-card__header">
-                        <h3>Nutzer anlegen / ändern</h3>
-                    </header>
-                    <form method="POST" class="c-form">
-                        <input type="hidden" name="action" value="create">
-
-                        <div class="c-form-group">
-                            <label class="c-form-label">Benutzername</label>
-                            <input type="text" name="username" class="c-form-input" required placeholder="z.B. otto.m">
-                        </div>
-
-                        <div class="c-form-group">
-                            <label class="c-form-label">Passwort</label>
-                            <input type="password" name="password" class="c-form-input" required placeholder="Neu oder Reset">
-                        </div>
-
-                        <div class="c-form-group">
-                            <label class="c-form-label">Berechtigungs-Stufe</label>
-                            <select name="level" class="c-form-select">
-                                <?php foreach ($roles as $lvl => $label) { ?>
-                                    <option value="<?php echo $lvl; ?>"><?php echo $lvl . ': ' . $label; ?></option>
+                            <td>
+                                <?php if ($myLevel === 0 && ! $isSelf) { ?>
+                                    <select name="level" class="c-form-select c-form-select--small">
+                                        <?php foreach ($roles as $lvl => $rName) { ?>
+                                            <option value="<?php echo $lvl; ?>" <?php echo $lvl === $targetLevel ? 'selected' : ''; ?>>
+                                                <?php echo $lvl; ?>: <?php echo $rName; ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                <?php } else { ?>
+                                    <span class="c-badge"><?php echo $roles[$targetLevel] ?? $targetLevel; ?></span>
+                                    <input type="hidden" name="level" value="<?php echo $targetLevel; ?>">
                                 <?php } ?>
-                            </select>
-                        </div>
+                            </td>
 
-                        <div class="c-form-group">
-                            <label class="c-form-label">Interne Bezeichnung</label>
-                            <input type="text" name="label" id="labelInput" list="labelHistory" class="c-form-input" placeholder="z.B. Buchhaltung">
-                            <datalist id="labelHistory">
-                                <?php
-                                    // Dynamische Historie aus bestehenden Labels
-                                    $existingLabels = \array_unique(\array_column($users, 'label'));
-    foreach ($existingLabels as $l) {
-        if ($l) {
-            echo '<option value="' . \htmlspecialchars($l) . '">';
-        }
-    }
-    ?>
-                            </datalist>
-                        </div>
+                            <td>
+                                <input type="text" name="label" value="<?php echo \htmlspecialchars($u['label'] ?? ''); ?>"
+                                    class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
+                            </td>
 
-                        <button type="submit" class="c-button c-button--primary u-width-100">Speichern / Aktualisieren</button>
-                    </form>
-                    <p class="u-text-small u-text-muted u-margin-top-s">
-                        * Hinweis: Existierende Benutzernamen werden überschrieben (Update-Funktion).
-                    </p>
-                </section>
-            </aside>
+                            <td>
+                                <input type="password" name="password" placeholder="Nur zum Ändern füllen"
+                                    class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
+                            </td>
 
-        </div>
+                            <td>
+                                <?php if ($canEdit) { ?>
+                                    <button type="submit" class="c-button c-button--small">💾</button>
+                                    <?php if (! $isSelf) { ?>
+                                        <button type="submit" name="action" value="delete"
+                                                class="c-button c-button--small c-button--danger"
+                                                onclick="return confirm('Löschen?')">🗑</button>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <span class="u-text-muted">Gesperrt</span>
+                                <?php } ?>
+                            </td>
+                        </form>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </section>
+
+        <?php if ($myLevel === 0) { ?>
+        <section class="c-card u-margin-top-l">
+            <header class="c-card__header"><h3>Neuen Benutzer anlegen</h3></header>
+            <form method="POST" class="u-flex u-gap-s u-align-end">
+                <input type="hidden" name="action" value="save">
+                <div class="c-form-group">
+                    <label class="c-form-label">Username</label>
+                    <input type="text" name="username" class="c-form-input" required>
+                </div>
+                <div class="c-form-group">
+                    <label class="c-form-label">Passwort</label>
+                    <input type="password" name="password" class="c-form-input" required>
+                </div>
+                <div class="c-form-group">
+                    <label class="c-form-label">Rolle</label>
+                    <select name="level" class="c-form-select">
+                        <?php foreach ($roles as $lvl => $rName) { ?>
+                            <option value="<?php echo $lvl; ?>"><?php echo $lvl; ?>: <?php echo $rName; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <button type="submit" class="c-button">Benutzer erstellen</button>
+            </form>
+        </section>
+        <?php } ?>
     </main>
 </body>
 </html>
