@@ -26,6 +26,7 @@ use App\Application\AdminController;
 use App\Application\CheckController;
 use App\Application\PaymentController;
 use App\Application\PermitController;
+use App\Application\UserController;
 use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -112,6 +113,12 @@ class Container
             $this->get(AuthService::class),
             $this->get(StorageInterface::class),
             $this->get(PermitService::class),
+        );
+
+        // User Controller (Neu für v0.9.7)
+        $this->services[UserController::class] = fn (): UserController => new UserController(
+            $this->get(ConfigInterface::class),
+            $this->get(AuthService::class),
         );
 
         // Check Controller

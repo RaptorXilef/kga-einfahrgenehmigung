@@ -8,6 +8,8 @@ mappen
 Minifiziere
 Minifizierte
 Minifizierung
+superadmin
+Superadmin
 versionieren
 versioniert
 wegetrimmt

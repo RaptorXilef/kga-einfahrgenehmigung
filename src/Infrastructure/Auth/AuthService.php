@@ -9,7 +9,7 @@ namespace App\Infrastructure\Auth;
 use App\Infrastructure\Config\Config;
 
 /**
- * Service für die Admin-Authentifizierung (v0.6.0).
+ * Service für die Admin-Authentifizierung
  */
 final readonly class AuthService
 {
@@ -28,16 +28,18 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
-        $usersPath = $this->config->get('root_path') . '/storage/users.json';
-        if (! \file_exists($usersPath)) {
-            return false;
+        // 1. Check Hardcoded Superadmin (Level 0)
+        $superCfg = $this->config->get('superadmin');
+        if ($username === $superCfg['user'] && $password === $superCfg['pass']) {
+            $this->setSession($username, 0, 'System-Eigentümer');
+
+            return true;
         }
 
-        $users = \json_decode(\file_get_contents($usersPath), true) ?? [];
-
+        // 2. Check JSON Users
+        $users = $this->loadUsers();
         if (isset($users[$username]) && \password_verify($password, (string) $users[$username]['pass'])) {
-            $_SESSION['admin_user']  = $username;
-            $_SESSION['admin_level'] = $users[$username]['level'];
+            $this->setSession($username, (int) $users[$username]['level'], (string) ($users[$username]['label'] ?? ''));
 
             return true;
         }
@@ -45,10 +47,33 @@ final readonly class AuthService
         return false;
     }
 
-    public function logout(): void
+    private function setSession(string $user, int $level, string $label): void
     {
-        unset($_SESSION['admin_user'], $_SESSION['admin_level']);
-        \session_destroy();
+        $_SESSION['admin_user']  = $user;
+        $_SESSION['admin_level'] = $level;
+        $_SESSION['admin_label'] = $label;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function loadUsers(): array
+    {
+        $path = $this->config->get('root_path') . '/storage/users.json';
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        return \json_decode((string) \file_get_contents($path), true) ?? [];
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $users
+     */
+    public function saveUsers(array $users): void
+    {
+        $path = $this->config->get('root_path') . '/storage/users.json';
+        \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT));
     }
 
     public function isLoggedIn(): bool
@@ -63,11 +88,16 @@ final readonly class AuthService
 
     public function getLevel(): int
     {
-        // NEU: Wenn Dev-Mode aktiv, immer Level 1 (Vollzugriff)
+        // Wenn Dev-Mode aktiv, immer Level 0 (Vollzugriff)
         if ($this->config->get('admin_dev_mode', false) === true) {
-            return 1;
+            return 0; // Im Dev-Mode immer Superadmin
         }
 
-        return (int) ($_SESSION['admin_level'] ?? 0);
+        return (int) ($_SESSION['admin_level'] ?? 3);
+    }
+
+    public function logout(): void
+    {
+        \session_destroy();
     }
 }

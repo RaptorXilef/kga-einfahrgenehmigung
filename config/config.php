@@ -84,6 +84,18 @@ return [
         'lkw' => 'LKW / Lieferant / Firma',
     ],
 
+    // --- AUTH & USER MANAGEMENT ---
+    'superadmin' => [
+        'user' => 'superadmin',
+        'pass' => 'passwort1234', // In Produktion sofort ändern!
+    ],
+    'roles' => [
+        0 => 'Superadmin',
+        1 => 'Vorstand/Admin',
+        2 => 'Finanzen/Buchhaltung',
+        3 => 'Aufsicht/User',
+    ],
+
     // --- UMGEBUNGSSTEUERUNG ---
 
     /**
