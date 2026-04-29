@@ -33,10 +33,9 @@ final readonly class UserController
             return;
         }
 
-        $message = '';
-        if (isset($post['action'])) {
-            $message = $this->handleAdminActions($post, $myLevel);
-        }
+        $message = isset($post['action'])
+            ? $this->handleAdminActions($post, $myLevel)
+            : '';
 
         /** @var array<int, string> $roles */
         $roles = $this->config->get('roles', []);
@@ -44,8 +43,8 @@ final readonly class UserController
         $this->render('admin_users', [
             'users'      => $this->auth->loadUsers(),
             'roles'      => $roles,
-            'myLevel'    => $myLevel, // FIX: Wurde im Template erwartet
-            'myUsername' => (string) ($_SESSION['admin_user'] ?? 'Unbekannt'), // FIX: Wurde im Template erwartet
+            'myLevel'    => $myLevel,
+            'myUsername' => (string) ($_SESSION['admin_user'] ?? 'Unbekannt'),
             'message'    => $message,
             'settings'   => $this->getSettingsArray(),
             'config'     => $this->config,
@@ -58,52 +57,25 @@ final readonly class UserController
      */
     private function handleAdminActions(array $post, int $myLevel): string
     {
-        $users      = $this->auth->loadUsers();
-        $action     = (string) ($post['action'] ?? '');
-        $targetUser = \trim((string) ($post['username'] ?? ''));
-
-        // Level des Ziel-Users ermitteln (99 falls neu)
-        $targetLevel = isset($users[$targetUser]) ? (int) $users[$targetUser]['level'] : 99;
+        $users       = $this->auth->loadUsers();
+        $action      = (string) ($post['action'] ?? '');
+        $targetUser  = \trim((string) ($post['username'] ?? ''));
+        $targetLevel = isset($users[$targetUser]) ? (int) $users[$targetUser]['level'] : 99; // Level des Ziel-Users
         $isSelf      = $targetUser === ($_SESSION['admin_user'] ?? '');
 
-        // --- BERECHTIGUNGSPRÜFUNG ---
+        // 1. Berechtigungs-Check (Guard Clause)
         // Superadmin darf alles.
         // Admin darf nur sich selbst oder User mit Level > 1 (also 2 und 3).
-        $canManage = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
-
-        if (! $canManage && $targetLevel !== 99) {
+        if (! $this->canManage($myLevel, $targetLevel, $isSelf)) {
             return 'Fehler: Keine Berechtigung für diesen Benutzer.';
         }
 
+        // 2. Action-Routing
         if ($action === 'save') {
-            $newLevel = (int) ($post['level'] ?? ($targetLevel === 99 ? 3 : $targetLevel));
-
-            // Sicherheits-Sperre für Admin (1): Darf nur Level 2 oder 3 vergeben
-            if ($myLevel === 1 && $newLevel <= 1 && ! $isSelf) {
-                $newLevel = 3;
-            }
-
-            $userData = [
-                'level' => $newLevel,
-                'label' => \trim((string) ($post['label'] ?? '')),
-            ];
-
-            $password = (string) ($post['password'] ?? '');
-            if ($password !== '') {
-                $userData['pass'] = \password_hash($password, \PASSWORD_DEFAULT);
-            } elseif (isset($users[$targetUser])) {
-                $userData['pass'] = $users[$targetUser]['pass'];
-            } else {
-                return 'Fehler: Passwort erforderlich.';
-            }
-
-            $users[$targetUser] = $userData;
-            $this->auth->saveUsers($users);
-
-            return "Benutzer '{$targetUser}' gespeichert.";
+            return $this->performSave($users, $targetUser, $post, $myLevel, $isSelf);
         }
 
-        if ($action === 'delete' && ! $isSelf && $canManage) {
+        if ($action === 'delete' && ! $isSelf) {
             unset($users[$targetUser]);
             $this->auth->saveUsers($users);
 
@@ -111,6 +83,77 @@ final readonly class UserController
         }
 
         return '';
+    }
+
+    private function canManage(int $myLevel, int $targetLevel, bool $isSelf): bool
+    {
+        if ($myLevel === 0) {
+            return true;
+        }
+
+        // Admin (1) darf nur >= 2 verwalten oder sich selbst
+        return $myLevel === 1 && ($targetLevel > 1 || $isSelf);
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $users
+     * @param array<string, mixed>                $post
+     */
+    private function performSave(array $users, string $targetUser, array $post, int $myLevel, bool $isSelf): string
+    {
+        $targetData   = $users[$targetUser] ?? null;
+        $currentLevel = isset($targetData) ? (int) $targetData['level'] : 99;
+
+        // Level-Logik extrahieren
+        $newLevel = $this->determineNewLevel((int) ($post['level'] ?? $currentLevel), $myLevel, $isSelf);
+
+        // Passwort-Logik extrahieren
+        $passHash = $this->determinePasswordHash((string) ($post['password'] ?? ''), $targetData);
+
+        if ($passHash === null) {
+            return 'Fehler: Passwort erforderlich.';
+        }
+
+        $users[$targetUser] = [
+            'level' => $newLevel,
+            'label' => \trim((string) ($post['label'] ?? '')),
+            'pass'  => $passHash,
+        ];
+
+        $this->auth->saveUsers($users);
+
+        return "Benutzer '{$targetUser}' gespeichert.";
+    }
+
+    private function determineNewLevel(int $requestedLevel, int $myLevel, bool $isSelf): int
+    {
+        // Superadmin (0) darf jedes Level setzen
+        if ($myLevel === 0) {
+            return $requestedLevel;
+        }
+
+        // Admin (1) darf bei anderen nur Level 2 oder 3 vergeben
+        if (! $isSelf && $requestedLevel <= 1) {
+            return 3;
+        }
+
+        return $requestedLevel;
+    }
+
+    /**
+     * @param array<string, mixed>|null $targetData
+     */
+    private function determinePasswordHash(string $newPassword, ?array $targetData): ?string
+    {
+        if ($newPassword !== '') {
+            return \password_hash($newPassword, \PASSWORD_DEFAULT);
+        }
+
+        if ($targetData !== null) {
+            return (string) $targetData['pass'];
+        }
+
+        return null;
     }
 
     /**
