@@ -11,7 +11,7 @@
     <nav class="c-admin-nav">
         <div class="c-container">
             <a href="admin.php">← Zurück zum Dashboard</a>
-            <span class="u-float-right">Angemeldet als: <strong>Superadmin</strong></span>
+            <span class="u-float-right">Angemeldet als: <strong><?php echo $roles[$myLevel] ?? 'User'; ?></strong></span>
         </div>
     </nav>
 
@@ -37,7 +37,7 @@
                     <?php foreach ($users as $name => $u) {
                         $targetLevel = (int) $u['level'];
                         $isSelf      = $name === $myUsername;
-                        // Logik: Darf ich diesen User bearbeiten?
+                        // Darf ich editieren? (Superadmin darf alles, Admin darf >= Level 2 oder sich selbst)
                         $canEdit = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
                         ?>
                     <tr>
@@ -67,12 +67,12 @@
 
                             <td>
                                 <input type="text" name="label" value="<?php echo \htmlspecialchars($u['label'] ?? ''); ?>"
-                                    class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
+                                       class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
                             </td>
 
                             <td>
                                 <input type="password" name="password" placeholder="Nur zum Ändern füllen"
-                                    class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
+                                       class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
                             </td>
 
                             <td>
@@ -94,7 +94,6 @@
             </table>
         </section>
 
-        <?php if ($myLevel === 0) { ?>
         <section class="c-card u-margin-top-l">
             <header class="c-card__header"><h3>Neuen Benutzer anlegen</h3></header>
             <form method="POST" class="u-flex u-gap-s u-align-end">
@@ -110,7 +109,12 @@
                 <div class="c-form-group">
                     <label class="c-form-label">Rolle</label>
                     <select name="level" class="c-form-select">
-                        <?php foreach ($roles as $lvl => $rName) { ?>
+                        <?php foreach ($roles as $lvl => $rName) {
+                            // Admin (1) darf nur Level 2 und 3 erstellen
+                            if ($myLevel === 1 && $lvl <= 1) {
+                                continue;
+                            }
+                            ?>
                             <option value="<?php echo $lvl; ?>"><?php echo $lvl; ?>: <?php echo $rName; ?></option>
                         <?php } ?>
                     </select>
@@ -118,7 +122,6 @@
                 <button type="submit" class="c-button">Benutzer erstellen</button>
             </form>
         </section>
-        <?php } ?>
     </main>
 </body>
 </html>

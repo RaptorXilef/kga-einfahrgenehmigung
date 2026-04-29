@@ -6,6 +6,7 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Auth\AuthService;
+use App\Infrastructure\Config\Config;
 
 /**
  * Orchestriert die Benutzerverwaltung für v0.9.7.
@@ -25,7 +26,7 @@ final readonly class UserController
     {
         $myLevel = $this->auth->getLevel();
 
-        // NEU: Zugriff für Superadmin (0) UND Admin (1)
+        // Zugriff für Superadmin (0) UND Admin (1)
         if (! $this->auth->isLoggedIn() || $myLevel > 1) {
             \header('Location: admin.php');
 
@@ -37,11 +38,14 @@ final readonly class UserController
             $message = $this->handleAdminActions($post, $myLevel);
         }
 
+        /** @var array<int, string> $roles */
+        $roles = $this->config->get('roles', []);
+
         $this->render('admin_users', [
             'users'      => $this->auth->loadUsers(),
-            'roles'      => $this->config->get('roles', []),
-            'myLevel'    => $myLevel,
-            'myUsername' => (string) ($_SESSION['admin_user'] ?? ''),
+            'roles'      => $roles,
+            'myLevel'    => $myLevel, // FIX: Wurde im Template erwartet
+            'myUsername' => (string) ($_SESSION['admin_user'] ?? 'Unbekannt'), // FIX: Wurde im Template erwartet
             'message'    => $message,
             'settings'   => $this->getSettingsArray(),
             'config'     => $this->config,
@@ -54,47 +58,50 @@ final readonly class UserController
      */
     private function handleAdminActions(array $post, int $myLevel): string
     {
-        $users       = $this->auth->loadUsers();
-        $action      = (string) ($post['action'] ?? '');
-        $targetUser  = \trim((string) ($post['username'] ?? ''));
-        $targetLevel = isset($users[$targetUser]) ? (int) $users[$targetUser]['level'] : 99;
+        $users      = $this->auth->loadUsers();
+        $action     = (string) ($post['action'] ?? '');
+        $targetUser = \trim((string) ($post['username'] ?? ''));
 
-        // --- SICHERHEITS-CHECK ---
-        // Superadmin (0) darf alles.
-        // Admin (1) darf nur sich selbst (PW/Label) oder User mit Level > 1.
-        $isSelf    = $targetUser === ($_SESSION['admin_user'] ?? '');
+        // Level des Ziel-Users ermitteln (99 falls neu)
+        $targetLevel = isset($users[$targetUser]) ? (int) $users[$targetUser]['level'] : 99;
+        $isSelf      = $targetUser === ($_SESSION['admin_user'] ?? '');
+
+        // --- BERECHTIGUNGSPRÜFUNG ---
+        // Superadmin darf alles.
+        // Admin darf nur sich selbst oder User mit Level > 1 (also 2 und 3).
         $canManage = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
 
         if (! $canManage) {
-            return 'Fehler: Unzureichende Berechtigung für diesen Benutzer.';
+            return 'Fehler: Unzureichende Berechtigung.';
         }
 
         if ($action === 'save') {
-            $password = (string) ($post['password'] ?? '');
             $newLevel = (int) ($post['level'] ?? $targetLevel);
 
-            // Sicherheits-Sperre: Admin (1) kann niemanden zum Superadmin (0) machen
-            if ($myLevel === 1 && $newLevel === 0) {
-                $newLevel = $targetLevel;
+            // Sicherheits-Sperre: Admin (1) kann niemanden auf Level 0 oder 1 hieven
+            if ($myLevel === 1 && $newLevel <= 1 && ! $isSelf) {
+                $newLevel = $targetLevel === 99 ? 3 : $targetLevel;
             }
 
-            // User-Daten bauen
             $userData = [
                 'level' => $newLevel,
                 'label' => \trim((string) ($post['label'] ?? '')),
             ];
 
-            // Passwort nur überschreiben, wenn eines eingegeben wurde
+            // Passwort-Handling (Passwort nur überschreiben, wenn eines eingegeben wurde)
+            $password = (string) ($post['password'] ?? '');
             if ($password !== '') {
                 $userData['pass'] = \password_hash($password, \PASSWORD_DEFAULT);
-            } else {
+            } elseif (isset($users[$targetUser])) {
                 $userData['pass'] = $users[$targetUser]['pass'];
+            } else {
+                return 'Fehler: Passwort für neuen Benutzer erforderlich.';
             }
 
             $users[$targetUser] = $userData;
             $this->auth->saveUsers($users);
 
-            return "Benutzer '{$targetUser}' aktualisiert.";
+            return "Benutzer '{$targetUser}' gespeichert.";
         }
 
         if ($action === 'delete' && ! $isSelf) {
@@ -123,7 +130,10 @@ final readonly class UserController
      */
     private function render(string $templatePath, array $data = []): void
     {
-        $appRoot = (string) $this->config->get('root_path');
+        /** @var Config $config */
+        $config  = $this->config;
+        $appRoot = (string) $config->get('root_path');
+
         \extract($data);
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
