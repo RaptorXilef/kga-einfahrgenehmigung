@@ -381,7 +381,7 @@ final readonly class PermitService
     /**
      * Aktiviert eine Genehmigung manuell (Zahlungseingang bestätigt).
      */
-    public function manualActivate(string $code): bool
+    public function manualActivate(string $code, ?string $grund = null): bool
     {
         $permit = $this->storage->findByHash($code);
         if (! $permit instanceof Permit) {
@@ -403,6 +403,7 @@ final readonly class PermitService
             bis: $permit->bis,
             status: 'bezahlt', // Status-Update
             erstellt: $permit->erstellt,
+            internerKommentar: $grund ?? $permit->internerKommentar, // Grund übernehmen
         );
 
         return $this->storage->save($updatedPermit);
@@ -457,5 +458,10 @@ final readonly class PermitService
         }
 
         return 0;
+    }
+
+    public function getVoucherService(): VoucherService
+    {
+        return $this->voucherService;
     }
 }

@@ -110,7 +110,7 @@ final readonly class AdminController
 
         // 2. Gutschein erstellen
         if (isset($post['action']) && $post['action'] === 'create_voucher') {
-            /** @var \App\Core\Service\VoucherService $vs */
+            /** @var VoucherService $vs */
             $vs     = $this->config->get('voucher_service'); // Wir holen ihn später über den Container
             $reason = (string) ($post['reason'] === 'other' ? $post['custom_reason'] : $post['reason']);
             $code   = $this->permitService->getVoucherService()->createVoucher($reason, (string) $_SESSION['admin_user']);
@@ -184,7 +184,7 @@ final readonly class AdminController
             ? \json_decode((string) \file_get_contents($logPath), true)
             : [];
 
-        /** @var \App\Core\Service\VoucherService $voucherService */
+        /** @var VoucherService $voucherService */
         $voucherService = $this->permitService->getVoucherService();
 
         $this->render('admin_dashboard', [
@@ -209,8 +209,6 @@ final readonly class AdminController
             'permitService' => $this->permitService,
         ]);
     }
-
-    public function getVoucherService(): VoucherService
 
     /**
      * Export-Weiche (CSV / JSON).

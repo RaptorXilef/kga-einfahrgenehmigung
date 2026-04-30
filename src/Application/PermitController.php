@@ -37,11 +37,31 @@ final readonly class PermitController
         // Formular-Verarbeitung (nur bei POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                // Verifizierungs-Anfrage (Double-Opt-In) erstellen
-                $this->permitService->createPendingVerification($post);
+                $voucherCode = \trim((string) ($post['voucher'] ?? ''));
 
-                $success = true;
-                $message = 'Antrag fast fertig! Bitte prüfen Sie Ihr E-Mail-Postfach und bestätigen Sie Ihre Adresse.';
+                // FALL A: Gutschein wurde eingegeben
+                if ($voucherCode !== '') {
+                    $voucher = $this->permitService->getVoucherService()->useVoucher($voucherCode);
+
+                    if (! $voucher) {
+                        throw new \Exception('Dieser Gutscheincode ist ungültig oder wurde bereits verwendet.');
+                    }
+
+                    // Gutschein gültig! Wir erstellen die Genehmigung direkt als 'bezahlt'
+                    $post['status']            = 'bezahlt';
+                    $post['internerKommentar'] = 'Eingelöster Gutschein: ' . $voucherCode . ' (Grund: ' . $voucher['reason'] . ')';
+
+                    $permit = $this->permitService->createPermit($post, true);
+
+                    $success = true;
+                    $message = "Gutschein erfolgreich eingelöst! Ihre Genehmigung {$permit->code} wurde aktiviert und versandt.";
+                }
+                // FALL B: Normaler Ablauf (Überweisung/E-Mail-Verifikation)
+                else {
+                    $this->permitService->createPendingVerification($post);
+                    $success = true;
+                    $message = 'Antrag fast fertig! Bitte prüfen Sie Ihr E-Mail-Postfach und bestätigen Sie Ihre E-Mail-Adresse.';
+                }
             } catch (\Exception $exception) {
                 $message = 'Fehler: ' . $exception->getMessage();
             }
@@ -53,6 +73,7 @@ final readonly class PermitController
             'success'  => $success,
             'config'   => $this->config,
             'settings' => $this->getSettingsArray(),
+            'appRoot'  => $this->config->get('root_path'),
         ]);
     }
 

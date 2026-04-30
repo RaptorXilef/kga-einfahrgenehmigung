@@ -80,6 +80,12 @@
                         </select>
                     </div>
 
+                    <div class="c-form-group u-margin-top-l" style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #ccc;">
+                        <label class="c-form-label">Haben Sie einen Gutscheincode? (Optional)</label>
+                        <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
+                        <small class="u-text-muted">Bei Verwendung eines gültigen Codes entfällt die Gebühr und die Verifizierung.</small>
+                    </div>
+
                     <?php if ($config->get('paypal')['enabled']) { ?>
                         <div style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 2rem;" id="paypal-container-wrapper">
                             <p class="u-text-small u-text-center u-margin-bottom-s">Direkt sicher bezahlen (Sofortige Freischaltung):</p>
