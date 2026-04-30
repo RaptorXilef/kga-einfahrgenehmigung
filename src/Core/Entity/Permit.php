@@ -32,7 +32,8 @@ final readonly class Permit
         public \DateTimeImmutable $von,
         public \DateTimeImmutable $bis,
         public string $status = 'wartend',
-        public \DateTimeImmutable $erstellt = new \DateTimeImmutable(), // FIX: Pflichtfeld
+        public \DateTimeImmutable $erstellt = new \DateTimeImmutable(), // Pflichtfeld
+        public ?string $internerKommentar = null, // Für manuelle Buchung
     ) {
     }
 

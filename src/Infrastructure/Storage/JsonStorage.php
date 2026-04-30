@@ -31,16 +31,20 @@ final readonly class JsonStorage implements StorageInterface
     {
         $data                = $this->loadRaw();
         $data[$permit->code] = [
-            'code'          => $permit->code,
-            'name'          => $permit->name,
-            'email'         => $permit->email,
-            'kennzeichen'   => $permit->kennzeichen,
-            'parzelle'      => $permit->parzelle,
-            'von'           => $permit->von->format('Y-m-d'),
-            'bis'           => $permit->bis->format('Y-m-d'),
-            'status'        => $permit->status,
-            'erstellt'      => $permit->erstellt->format('Y-m-d H:i:s'), // FIX: Konsistentes Format
-            'preisSnapshot' => $permit->preisSnapshot, // Sicherstellen, dass das mitgespeichert wird
+            'code'              => $permit->code,
+            'name'              => $permit->name,
+            'email'             => $permit->email,
+            'kennzeichen'       => $permit->kennzeichen,
+            'parzelle'          => $permit->parzelle,
+            'typ'               => $permit->typ, // Sicherstellen dass Typ da ist
+            'firma'             => $permit->firma,
+            'zweck'             => $permit->zweck,
+            'von'               => $permit->von->format('Y-m-d'),
+            'bis'               => $permit->bis->format('Y-m-d'),
+            'status'            => $permit->status,
+            'erstellt'          => $permit->erstellt->format('Y-m-d H:i:s'),
+            'preisSnapshot'     => $permit->preisSnapshot,
+            'internerKommentar' => $permit->internerKommentar,
         ];
 
         return (bool) \file_put_contents(
@@ -80,15 +84,16 @@ final readonly class JsonStorage implements StorageInterface
             name: (string) $item['name'],
             email: (string) $item['email'],
             parzelle: (string) $item['parzelle'],
-            typ: (string) ($item['typ'] ?? 'pkw'), // Neu
+            typ: (string) ($item['typ'] ?? 'pkw'),
             kennzeichen: (string) $item['kennzeichen'],
-            firma: $item['firma'] ?? null,           // Neu
-            zweck: (string) ($item['zweck'] ?? 'Privat'), // Neu
-            preisSnapshot: (float) ($item['preisSnapshot'] ?? 0.0), // Neu
-            von: new \DateTimeImmutable($item['von']),
-            bis: new \DateTimeImmutable($item['bis']),
+            firma: isset($item['firma']) ? (string) $item['firma'] : null,
+            zweck: (string) ($item['zweck'] ?? 'Privat'),
+            preisSnapshot: (float) ($item['preisSnapshot'] ?? 0.0),
+            von: new \DateTimeImmutable((string) $item['von']),
+            bis: new \DateTimeImmutable((string) $item['bis']),
             status: (string) $item['status'],
-            erstellt: new \DateTimeImmutable($item['erstellt'] ?? 'now'),
+            erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
+            internerKommentar: isset($item['internerKommentar']) ? (string) $item['internerKommentar'] : null, // NEU
         );
     }
 

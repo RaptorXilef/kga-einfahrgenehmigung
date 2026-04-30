@@ -34,6 +34,7 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
+use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
@@ -75,6 +76,11 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        // Service für Gutscheine
+        $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
+            $this->get(ConfigInterface::class),
+        );
+
         // --- 3. INFRASTRUKTUR (Storage, Mail, Payment, Auth) ---
         $this->services[StorageInterface::class] = function (): JsonStorage {
             $root         = (string) $this->config->get('root_path');
@@ -106,6 +112,7 @@ class Container
             $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
             $this->get(PaymentProviderInterface::class),
+            $this->get(VoucherService::class),
         );
 
         // --- 5. APPLICATION LAYER (Controller) ---
