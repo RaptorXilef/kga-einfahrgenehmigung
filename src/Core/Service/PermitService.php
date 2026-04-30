@@ -40,6 +40,7 @@ final readonly class PermitService
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private PaymentProviderInterface $paymentProvider,
+        private VoucherService $voucherService,
     ) {
     }
 

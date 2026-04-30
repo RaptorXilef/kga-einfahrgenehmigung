@@ -13,6 +13,8 @@
  * @var array<string, array<\App\Core\Entity\Permit>> $groups
  * @var array<int, array<string, mixed>>              $mailLogs
  * @var \App\Core\Service\PermitService               $permitService
+ * @var array<string, array<string, mixed>>           $vouchers
+ * @var array<int, string>                            $reasons
  */
 $now = new \DateTimeImmutable();
 ?>
@@ -133,6 +135,7 @@ $now = new \DateTimeImmutable();
                         <button class="c-tabs__btn" onclick="openTab(event, 'tab-future')">Zukünftig (<?php echo \count($groups['future']); ?>)</button>
                         <button class="c-tabs__btn" onclick="openTab(event, 'tab-expired')">Abgelaufen (<?php echo \count($groups['expired']); ?>)</button>
                         <button class="c-tabs__btn" onclick="openTab(event, 'tab-logs')">E-Mail Log</button>
+                        <button class="c-tabs__btn" onclick="openTab(event, 'tab-tools')">🛠 Werkzeuge</button>
                     </div>
 
                     <div id="tab-active" class="c-tabs__content c-tabs__content--active">
@@ -271,7 +274,7 @@ $now = new \DateTimeImmutable();
                                                 <small class="u-text-muted">Template: <?php echo $log['template']; ?></small>
                                             </td>
                                             <td>
-                                                <span class="c-badge c-badge--<?php echo $log['status'] === 'Erfolg' ? 'success' : 'warning'; ?>">
+                                                <span class="c-badge c-badge--<?php echo $log['status'] === 'Erfolg' ? 'success' : 'danger'; ?>">
                                                     <?php echo $log['status']; ?>
                                                 </span>
                                             </td>
@@ -281,6 +284,72 @@ $now = new \DateTimeImmutable();
                             </table>
                         </section>
                     </div>
+
+                    <div id="tab-tools" class="c-tabs__content">
+                        <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
+
+                            <section class="c-card">
+                                <header class="c-card__header"><h3>Gutschein generieren</h3></header>
+                                <form method="POST" class="c-form">
+                                    <input type="hidden" name="action" value="create_voucher">
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Grund für Gutschein</label>
+                                        <select name="reason" class="c-form-select" onchange="this.value==='other' ? document.getElementById('custom_v').classList.remove('u-hidden') : document.getElementById('custom_v').classList.add('u-hidden')">
+                                            <?php foreach ($reasons as $r) {
+                                                echo "<option value='" . \htmlspecialchars($r) . "'>" . \htmlspecialchars($r) . '</option>';
+                                            } ?>
+                                            <option value="other">Anderer Grund...</option>
+                                        </select>
+                                        <input type="text" name="custom_reason" id="custom_v" class="c-form-input u-margin-top-s u-hidden" placeholder="Manueller Grund">
+                                    </div>
+                                    <button type="submit" class="c-button u-width-100">Code erzeugen</button>
+                                </form>
+
+                                <h4 class="u-margin-top-l">Offene Gutscheine</h4>
+                                <table class="c-table c-table--small">
+                                    <?php foreach ($vouchers as $v) {
+                                        if ($v['used']) {
+                                            continue;
+                                        } ?>
+                                        <tr>
+                                            <td><code><?php echo $v['code']; ?></code></td>
+                                            <td><small><?php echo \htmlspecialchars($v['reason']); ?></small></td>
+                                        </tr>
+                                    <?php } ?>
+                                </table>
+                            </section>
+
+                            <section class="c-card">
+                                <header class="c-card__header"><h3>Direkt-Genehmigung (Barzahlung/Gratis)</h3></header>
+                                <form method="POST" class="c-form">
+                                    <input type="hidden" name="action" value="create_manual">
+                                    <div class="u-flex u-gap-s">
+                                        <input type="text" name="name" class="c-form-input" placeholder="Name" required>
+                                        <input type="text" name="parzelle" class="c-form-input" style="width:80px" placeholder="Parz." required>
+                                    </div>
+                                    <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail für Dokumentenversand" required>
+                                    <div class="u-flex u-gap-s u-margin-top-s">
+                                        <input type="text" name="kennzeichen" class="c-form-input" placeholder="Kennzeichen">
+                                        <select name="typ" class="c-form-select">
+                                            <?php foreach ($settings['vehicle_types'] as $k => $v) {
+                                                echo "<option value='" . \htmlspecialchars($k) . "'>" . \htmlspecialchars($v) . '</option>';
+                                            } ?>
+                                        </select>
+                                    </div>
+                                    <div class="c-form-group u-margin-top-s">
+                                        <label class="c-form-label">Grund der Freischaltung</label>
+                                        <select name="reason" class="c-form-select">
+                                            <?php foreach ($reasons as $r) {
+                                                echo "<option value='" . \htmlspecialchars($r) . "'>" . \htmlspecialchars($r) . '</option>';
+                                            } ?>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-s">Kostenlos/Bar anlegen</button>
+                                </form>
+                            </section>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

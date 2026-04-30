@@ -16,6 +16,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\PermitService;
+use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 
@@ -99,10 +100,35 @@ final readonly class AdminController
      */
     private function handleDataActions(array $post): string
     {
+        // 1. Bestehende Logik: Zahlung markieren
         if (isset($post['action']) && $post['action'] === 'mark_as_paid') {
             $code = (string) ($post['code'] ?? '');
             if ($this->permitService->manualActivate($code)) {
                 return 'Zahlung für ' . $code . ' bestätigt.';
+            }
+        }
+
+        // 2. Gutschein erstellen
+        if (isset($post['action']) && $post['action'] === 'create_voucher') {
+            /** @var \App\Core\Service\VoucherService $vs */
+            $vs     = $this->config->get('voucher_service'); // Wir holen ihn später über den Container
+            $reason = (string) ($post['reason'] === 'other' ? $post['custom_reason'] : $post['reason']);
+            $code   = $this->permitService->getVoucherService()->createVoucher($reason, (string) $_SESSION['admin_user']);
+
+            return "Gutschein erstellt: <strong>{$code}</strong> (Grund: {$reason})";
+        }
+
+        // 3. Manuelle Buchung (Kostenlos/Bar)
+        if (isset($post['action']) && $post['action'] === 'create_manual') {
+            $post['status']            = 'bezahlt'; // Direkt freigeschaltet
+            $post['internerKommentar'] = (string) ($post['reason'] === 'other' ? $post['custom_reason'] : $post['reason']);
+
+            try {
+                $permit = $this->permitService->createPermit($post, true);
+
+                return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
+            } catch (\Exception $e) {
+                return 'Fehler: ' . $e->getMessage();
             }
         }
 
@@ -158,21 +184,33 @@ final readonly class AdminController
             ? \json_decode((string) \file_get_contents($logPath), true)
             : [];
 
+        /** @var \App\Core\Service\VoucherService $voucherService */
+        $voucherService = $this->permitService->getVoucherService();
+
         $this->render('admin_dashboard', [
-            'stats'         => $this->calculateStats($filtered),
-            'groups'        => $this->groupPermits($allPermits),
-            'settings'      => $this->getSettingsArray(),
-            'adminUser'     => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel'    => (int) ($_SESSION['admin_level'] ?? 1),
-            'message'       => $message,
-            'filterStart'   => $filterStart,
-            'filterEnd'     => $filterEnd,
-            'config'        => $this->config, // WICHTIG für den Indikator
-            'appRoot'       => $this->config->get('root_path'), // WICHTIG für Includes
+            'stats'       => $this->calculateStats($filtered),
+            'groups'      => $this->groupPermits($allPermits),
+            'settings'    => $this->getSettingsArray(),
+            'adminUser'   => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel'  => (int) ($_SESSION['admin_level'] ?? 1),
+            'message'     => $message,
+            'filterStart' => $filterStart,
+            'filterEnd'   => $filterEnd,
+            'config'      => $this->config, // WICHTIG für den Indikator
+            'appRoot'     => $this->config->get('root_path'), // WICHTIG für Includes
+            'vouchers'    => $voucherService->loadVouchers(),
+            'reasons'     => [
+                'Bargeldzahlung vor Ort',
+                'Vorstandsbeschluss',
+                'Härtefall-Regelung',
+                'Gartenarbeit-Kompensation',
+            ],
             'mailLogs'      => $mailLogs,
             'permitService' => $this->permitService,
         ]);
     }
+
+    public function getVoucherService(): VoucherService
 
     /**
      * Export-Weiche (CSV / JSON).
