@@ -479,21 +479,26 @@ final readonly class PermitService
     }
 
     /**
-     * Schließt eine PayPal-Zahlung ab und aktiviert die Genehmigung.
-     * Wird von public/api/capture.php aufgerufen.
+     * Schließt eine PayPal-Zahlung ab und finalisiert den Antrag.
+     * NEU in v0.12.0: Nutzt das Token, um im Warteraum 2 zu suchen.
      */
-    public function completePayment(string $permitCode, string $orderId): bool
+    public function completePayment(string $token, string $orderId): bool
     {
-        // 1. Genehmigung laden
-        $permit = $this->storage->findByHash($permitCode);
-        if (! $permit instanceof Permit) {
+        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $allVerified  = $this->loadJson($verifiedPath);
+
+        if (! isset($allVerified[$token])) {
             return false;
         }
 
-        // 2. Zahlung bei PayPal verifizieren (Nutzt den preisSnapshot für Sicherheit!)
-        if ($this->paymentProvider->captureOrder($orderId, $permit->preisSnapshot)) {
-            // 3. Wenn erfolgreich, Status auf 'bezahlt' setzen
-            return $this->manualActivate($permit->code);
+        $data = $allVerified[$token];
+
+        // Zahlung bei PayPal verifizieren
+        if ($this->paymentProvider->captureOrder($orderId, (float) $data['preisSnapshot'])) {
+            // Wenn erfolgreich -> In die echte Datenbank verschieben
+            $this->finaliseRequest($token, 'bezahlt', 'Bezahlt via PayPal');
+
+            return true;
         }
 
         return false;

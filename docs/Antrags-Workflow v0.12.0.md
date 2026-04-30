@@ -1,6 +1,6 @@
 # 📄 Dokumentation: Antrags-Workflow v0.12.0
 
-Dieser Workflow stellt sicher, dass nur verifizierte und bezahlte Anträge in der Hauptdatenbank landen und den Vorstand benachrichtigen.
+Dieser Workflow stellt sicher, dass nur verifizierte und abgeschlossene Anträge in der Hauptdatenbank landen und den Vorstand benachrichtigen.
 
 ## 1. Phase: Antragstellung (Warteraum 1)
 
@@ -13,13 +13,13 @@ Dieser Workflow stellt sicher, dass nur verifizierte und bezahlte Anträge in de
 
 - **Aktion:** Nutzer klickt auf den Link in der Bestätigungs-Mail.
 - **Verschiebung:** Daten wandern von `pending_verification.json` nach `verified_pending.json`.
-- **Status:** Die E-Mail ist nun als "echt" verifiziert.
-- **Gültigkeit:** 48 Stunden. In dieser Zeit kann der Link aus der Mail immer wieder aufgerufen werden, um zur Bezahlseite zu gelangen.
+- **Status:** Die E-Mail ist nun verifiziert. Der Antrag ist noch NICHT in der Hauptliste.
+- **Gültigkeit:** 48 Stunden. Der Link führt nun zur Bezahlseite (`check.php?token=...`). In dieser Zeit kann der Link aus der Mail immer wieder aufgerufen werden, um zur Bezahlseite zu gelangen.
 - **Vorstand:** Wird noch NICHT benachrichtigt.
 
 ## 3. Phase: Finaler Abschluss (Datenbank)
 
-Diese Phase wird durch drei mögliche Ereignisse ausgelöst:
+Der Umzug in die Hauptdatenbank (`daten.json`) und der Versand der Mails an den Vorstand erfolgt erst durch:
 
 1. **Gutschein:** Ein gültiger Code wird erkannt (entweder sofort beim Verifizieren oder durch Eingabe auf der Bezahlseite).
 2. **PayPal:** Die Zahlung wurde über die API erfolgreich bestätigt.
@@ -33,3 +33,5 @@ Diese Phase wird durch drei mögliche Ereignisse ausgelöst:
   - Mail A: Vorstand erhält Infos über neuen (bezahlten/ausstehenden) Antrag.
   - Mail B: Nutzer erhält die offizielle Genehmigung (A4-Dokument).
   - Mail C: Nutzer erhält (nur bei Überweisung) die Zahlungsaufforderung.
+
+**Ergebnis:** Der Vorstand erhält erst dann eine Nachricht, wenn der Nutzer sich für einen Bezahlweg entschieden hat oder der Gutschein gültig war.

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Verarbeitet Zahlungs-relevante API-Anfragen v0.9.5
+ * Verarbeitet Zahlungs-relevante API-Anfragen v0.12.1
  *
  * @file src/Application/PaymentController.php
  */
@@ -25,12 +25,13 @@ final readonly class PaymentController
     }
 
     /**
-     * Erstellt eine vorläufige Genehmigung und reserviert eine PayPal-Order.
-     *
-     * @param array<string, mixed> $post Entspricht $_POST
+     * Veraltet: handleCreatePending wird im neuen Email-First Workflow
+     * durch PermitService::createPendingVerification ersetzt.
      */
-    public function handleCreatePending(array $post): void
+    public function handleCreatePending(array $post): void // TODO REMOVE
     {
+        // ... (kann theoretisch entfernt werden, wenn v0.12.1 stabil läuft)
+
         \header('Content-Type: application/json');
 
         try {
@@ -60,6 +61,7 @@ final readonly class PaymentController
 
     /**
      * Verarbeitet das Capture (Geldeinzug) von PayPal-Bestellungen.
+     * Nutzt jetzt das 'token' zur Identifizierung im Warteraum.
      */
     public function handleCapture(): void
     {
@@ -69,22 +71,25 @@ final readonly class PaymentController
             $input = \file_get_contents('php://input');
             $data  = \json_decode((string) $input, true);
 
-            if (! isset($data['orderID'], $data['permitCode'])) {
-                throw new \Exception('Fehlende Parameter.');
+            // NEU: Wir erwarten 'token' statt 'permitCode'
+            if (! isset($data['orderID'], $data['token'])) {
+                throw new \Exception('Fehlende Parameter (orderID oder token).');
             }
 
+            // PermitService::completePayment verschiebt den Antrag bei Erfolg
+            // von verified_pending.json in die finale daten.json
             $success = $this->permitService->completePayment(
-                (string) $data['permitCode'],
+                (string) $data['token'],
                 (string) $data['orderID'],
             );
 
-            $this->jsonResponse([
+            echo \json_encode([
                 'success' => $success,
-                'message' => $success ? 'Zahlung verarbeitet' : 'Fehler bei Verifizierung',
+                'message' => $success ? 'Zahlung verarbeitet und Antrag finalisiert' : 'Fehler bei Verifizierung',
             ]);
         } catch (\Exception $exception) {
             \http_response_code(400);
-            $this->jsonResponse([
+            echo \json_encode([
                 'success' => false,
                 'error'   => $exception->getMessage(),
             ]);

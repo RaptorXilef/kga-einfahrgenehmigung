@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var array<string, mixed>              $settings
  * @var string                            $appRoot
@@ -6,18 +7,22 @@
  * @var bool                              $isTimeAllowed
  * @var string                            $allowedToday
  * @var bool                              $showAdminView
- * @var \App\Core\Entity\Permit           $permit
+ * @var \App\Core\Entity\Permit|null      $permit
+ * @var array<string, mixed>|null         $tempData
+ * @var string|null                       $token
  * @var \App\Infrastructure\Config\Config $config
  */
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
 </head>
+
 <body class="l-check u-bg-light">
 
     <?php include $appRoot . '/templates/partials/test_mode_indicator.phtml'; ?>
@@ -30,88 +35,125 @@
             </div>
         <?php } ?>
 
-        <?php if ($isDateValid && $isTimeAllowed) { ?>
-            <div class="c-card c-card--success u-margin-auto" style="max-width: 450px;">
-                <div class="c-card__header">
-                <span class="u-font-xl">✅ GENEHMIGUNG GÜLTIG</span>
-                </div>
-                <div class="c-card__body">
-                    <p>Gute Fahrt!</p>
-                    <?php include '_check_details.phtml'; // Wir lagern die Details aus, um Code-Duplikate zu vermeiden?>
-                </div>
-            </div>
-
-        <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
-            <div class="c-card u-margin-auto" style="max-width: 450px; border: 5px solid #e67e22; background: #fff5e6;">
-                <div class="c-card__header">
-                <span class="u-font-xl" style="color: #d35400;">⏳ RUHEZEIT BEACHTEN</span>
-                </div>
-                <div class="c-card__body">
-                    <p>Die Genehmigung ist für den heutigen Tag <strong>gültig</strong>, aber befindet sich außerhalb der erlaubten Fahrzeiten.</p>
-                    <p>Erlaubt heute: <strong><?php echo $allowedToday; ?></strong></p>
-                    <hr style="border: 0; border-top: 1px solid #e67e22; opacity: 0.3; margin: 15px 0;">
-                    <?php include '_check_details.phtml'; ?>
-                </div>
-            </div>
-
-        <?php } else { ?>
-            <div class="c-card c-card--danger u-margin-auto" style="max-width: 400px;">
-                <div class="c-card__header">
-                <span class="u-font-xl">❌ UNGÜLTIG</span>
-                </div>
-                <div class="c-card__body">
-                    <p>Keine gültige Genehmigung für den heutigen Tag gefunden oder die Genehmigung ist gesperrt.</p>
-                </div>
+        <?php if (isset($_GET['wire'])) { ?>
+            <div class="c-alert c-alert--info u-margin-bottom-l">
+                📩 Antrag eingereicht! Bitte überweisen Sie den Betrag zeitnah.
             </div>
         <?php } ?>
 
-        <?php if ($permit->status === 'wartend' && $isDateValid) { ?>
+        <?php if ($permit) { ?>
+            <?php if ($isDateValid && $isTimeAllowed) { ?>
+                <div class="c-card c-card--success u-margin-auto" style="max-width: 450px;">
+                    <div class="c-card__header">
+                        <span class="u-font-xl">✅ GENEHMIGUNG GÜLTIG</span>
+                    </div>
+                    <div class="c-card__body">
+                        <?php include '_check_details.phtml'; ?>
+                    </div>
+                </div>
+            <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
+                <div class="c-card u-margin-auto" style="max-width: 450px; border: 5px solid #e67e22; background: #fff5e6;">
+                    <div class="c-card__header">
+                        <span class="u-font-xl" style="color: #d35400;">⏳ RUHEZEIT BEACHTEN</span>
+                    </div>
+                    <div class="c-card__body">
+                        <p>Die Genehmigung ist für den heutigen Tag <strong>gültig</strong>, aber befindet sich außerhalb der erlaubten Fahrzeiten.</p>
+                        <p>Erlaubt heute: <strong><?php echo $allowedToday; ?></strong></p>
+                        <hr style="border: 0; border-top: 1px solid #e67e22; opacity: 0.3; margin: 15px 0;">
+                        <?php include '_check_details.phtml'; ?>
+                    </div>
+                </div>
+
+            <?php } else { ?>
+                <div class="c-card c-card--danger u-margin-auto" style="max-width: 400px;">
+                    <div class="c-card__header">
+                        <span class="u-font-xl">❌ UNGÜLTIG</span>
+                    </div>
+                    <div class="c-card__body">
+                        <p>Keine gültige Genehmigung für den heutigen Tag gefunden oder die Genehmigung ist gesperrt.</p>
+                    </div>
+                </div>
+            <?php } ?>
+
+        <?php } elseif ($tempData && $token) { ?>
             <section class="c-card u-margin-top-l u-margin-auto" style="max-width: 450px; border-top: 4px solid #3498db;">
                 <header class="c-card__header">
                     <h3>Zahlung abschließen</h3>
-                    <p class="u-text-small">Wählen Sie eine Zahlungsart zur sofortigen Aktivierung:</p>
+                    <p class="u-text-small">Wählen Sie eine Zahlungsart zur Aktivierung:</p>
                 </header>
 
-                <?php if ($config->get('paypal')['enabled']) { ?>
-                    <div id="paypal-button-container" class="u-padding-y-m"></div>
-                    <?php
-                    $ppCfg    = $config->get('paypal');
-                    $clientId = $config->isTestMode() ? $ppCfg['sandbox']['client_id'] : $ppCfg['live']['client_id'];
-                    ?>
-                    <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $clientId; ?>&currency=EUR"></script>
-                    <script>
-                        paypal.Buttons({
-                            createOrder: function() {
-                                return fetch('api/create_order_for_code.php?code=<?php echo $permit->code; ?>').then(r => r.json()).then(data => data.id);
-                            },
-                            onApprove: function(data) {
-                                return fetch('api/capture.php', {
-                                    method: 'POST',
-                                    body: JSON.stringify({ orderID: data.orderID, permitCode: '<?php echo $permit->code; ?>' })
-                                }).then(() => window.location.reload());
-                            }
-                        }).render('#paypal-button-container');
-                    </script>
-                <?php } ?>
+                <div class="c-card__body">
+                    <?php if ($config->get('paypal')['enabled']) { ?>
+                        <div id="paypal-button-container" class="u-padding-y-m"></div>
+                        <?php
+                        $ppCfg    = $config->get('paypal');
+                        $clientId = $config->isTestMode() ? $ppCfg['sandbox']['client_id'] : $ppCfg['live']['client_id'];
+                        ?>
+                        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $clientId; ?>&currency=EUR"></script>
+                        <script>
+                            paypal.Buttons({
+                                createOrder: function() {
+                                    return fetch('api/create_order_for_token.php?token=<?php echo $token; ?>')
+                                        .then(r => r.json()).then(data => data.id);
+                                },
+                                onApprove: function(data) {
+                                    return fetch('api/capture.php', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            orderID: data.orderID,
+                                            token: '<?php echo $token; ?>'
+                                        })
+                                    }).then(r => r.json()).then(res => {
+                                        if (res.success) window.location.href = 'check.php?token=<?php echo $token; ?>&success=1';
+                                        else alert('Fehler: ' + res.message);
+                                    });
+                                }
+                            }).render('#paypal-button-container');
+                        </script>
+                    <?php } ?>
 
-                <div class="u-text-center u-margin-top-s">
-                    <p class="u-text-small">Oder per Überweisung (Dauer 2-3 Tage)</p>
-                    <small class="u-text-muted">Bankdaten finden Sie in der Bestätigungs-E-Mail.</small>
+                    <div class="u-margin-top-l u-text-center">
+                        <p class="u-text-small">Oder per Überweisung (Dauer 2-3 Tage)</p>
+                        <button onclick="finalizeWire()" class="c-button c-button--secondary c-button--small">
+                            Zahlung per Überweisung verbindlich abschließen
+                        </button>
+                    </div>
                 </div>
             </section>
+
+            <script>
+                function finalizeWire() {
+                    if (!confirm('Hiermit bestätigen Sie, dass Sie den Betrag zeitnah überweisen werden.')) return;
+                    fetch('api/finalize_wire.php?token=<?php echo $token; ?>')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) window.location.href = 'check.php?code=' + data.code + '&wire=1';
+                            else alert('Fehler: ' + data.error);
+                        });
+                }
+            </script>
+
+        <?php } else { ?>
+            <div class="c-card c-card--danger u-margin-auto">
+                <p>Ungültiger Zugriff oder Sitzung abgelaufen.</p>
+            </div>
         <?php } ?>
 
-        <?php if (! $showAdminView && isset($permit)) { ?>
+        <?php if (! $showAdminView && $permit) { ?>
             <div class="u-margin-top-l">
                 <a href="admin.php?redirect_to_code=<?php echo $permit->code; ?>" class="u-text-small">Vorstands-Login für Details</a>
             </div>
         <?php } ?>
 
-        <?php if (isset($permit)) { ?>
-        <footer class="u-margin-top-l">
-            <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
-        </footer>
+        <?php if ($permit) { ?>
+            <footer class="u-margin-top-l">
+                <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
+            </footer>
         <?php } ?>
     </main>
 </body>
+
 </html>
