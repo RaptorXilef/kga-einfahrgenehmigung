@@ -214,46 +214,74 @@ final readonly class PermitService
     }
 
     /**
-     * Bestätigt den Antrag und verarbeitet Gutscheine erst JETZT.
+     * Schritt 2: Verschiebt von unbestätigt (24h) nach verifiziert (48h).
      */
-    public function confirmEmail(string $token): ?Permit
+    public function confirmEmail(string $token): ?array
     {
-        $path       = $this->config->get('root_path') . '/storage/pending_verification.json';
-        $allPending = $this->loadJson($path);
+        $pendingPath  = $this->config->get('root_path') . '/storage/pending_verification.json';
+        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
 
+        $allPending = $this->loadJson($pendingPath);
         if (! isset($allPending[$token])) {
-            return null;
+            // Falls der User den Link nochmal klickt, schauen wir, ob er schon in verified_pending liegt
+            $allVerified = $this->loadJson($verifiedPath);
+
+            return $allVerified[$token] ?? null;
         }
 
         $data = $allPending[$token];
         unset($allPending[$token]);
-        \file_put_contents($path, \json_encode($allPending));
+        $this->saveJson($pendingPath, $allPending);
 
-        // --- GUTSCHEIN-LOGIK BEI VERIFIZIERUNG ---
+        // In Warteraum 2 (48h) schieben
+        $data['verified_at'] = \time();
+        $data['expires']     = \time() + (3600 * 48);
+
+        $allVerified         = $this->loadJson($verifiedPath);
+        $allVerified[$token] = $data;
+        $this->saveJson($verifiedPath, $allVerified);
+
+        // Sofort-Check: Falls ein Gutschein dabei war, direkt finalisieren
         $voucherCode = \trim((string) ($data['voucher'] ?? ''));
-        $isPaid      = false;
-        $kommentar   = null;
-
         if ($voucherCode !== '') {
             $voucher = $this->voucherService->useVoucher($voucherCode);
             if ($voucher) {
-                $isPaid    = true;
-                $kommentar = 'Gutschein eingelöst: ' . $voucherCode . ' (Grund: ' . $voucher['reason'] . ')';
+                return ['finalised' => $this->finaliseRequest($token, 'bezahlt', 'Gutschein: ' . $voucherCode)];
             }
         }
 
-        // Falls kein Gutschein, erstellen wir es als 'wartend'
-        $permit = $this->createPermit($data, true);
+        return $data;
+    }
 
-        if ($isPaid) {
-            // Wenn Gutschein gültig war, sofort aktivieren
-            $this->manualActivate($permit->code, $kommentar);
+    /**
+     * Schritt 3: Der eigentliche Umzug in die Datenbank und Mail-Versand.
+     */
+    public function finaliseRequest(string $token, string $status = 'wartend', ?string $kommentar = null): Permit
+    {
+        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $allVerified  = $this->loadJson($verifiedPath);
 
-            // Wir laden das Objekt neu, damit der Status 'bezahlt' drin ist
-            return $this->storage->findByHash($permit->code);
+        if (! isset($allVerified[$token])) {
+            throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
         }
 
+        $data                      = $allVerified[$token];
+        $data['status']            = $status;
+        $data['internerKommentar'] = $kommentar;
+
+        // Echte Permit erstellen
+        $permit = $this->createPermit($data, true);
+
+        // Aus Warteraum löschen
+        unset($allVerified[$token]);
+        $this->saveJson($verifiedPath, $allVerified);
+
         return $permit;
+    }
+
+    private function saveJson(string $path, array $data): void
+    {
+        \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     /**
@@ -265,7 +293,25 @@ final readonly class PermitService
             return [];
         }
 
-        return \json_decode(\file_get_contents($path), true) ?? [];
+        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+
+        // --- NEU: AUTO-CLEANUP für Pending-Files ---
+        if (\str_contains($path, 'pending_verification')) {
+            $now           = \time();
+            $originalCount = \count($data);
+
+            // Entferne alle abgelaufenen Einträge
+            $data = \array_filter($data, function ($item) use ($now) {
+                return isset($item['expires']) && (int) $item['expires'] > $now;
+            });
+
+            // Wenn etwas gelöscht wurde, Datei direkt bereinigen
+            if (\count($data) !== $originalCount) {
+                \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT));
+            }
+        }
+
+        return $data;
     }
 
     /**

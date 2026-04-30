@@ -36,44 +36,36 @@ final readonly class CheckController
      */
     public function handleRequest(array $get): void
     {
-        $code   = \strtoupper(\trim((string) ($get['code'] ?? '')));
-        $permit = $code !== '' && $code !== '0' ? $this->storage->findByHash($code) : null;
+        $code  = \strtoupper(\trim((string) ($get['code'] ?? '')));
+        $token = (string) ($get['token'] ?? ''); // Wir brauchen das Token aus der E-Mail
 
-        // 1. Fall: Kein Code eingegeben oder Seite direkt aufgerufen
-        if ($code === '') {
+        // 1. Suche in echten Permits
+        $permit = $code !== '' ? $this->storage->findByHash($code) : null;
+
+        // 2. Suche in verifizierten Anträgen (Warteraum 2)
+        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $allVerified  = $this->holidayService->loadJson($verifiedPath); // Methode ggf. in HolidayService public machen oder im Controller loadJson einbauen
+        $tempRequest  = $allVerified[$token] ?? null;
+
+        if ($code === '' && ! $tempRequest) {
             $this->render('check_search', ['error' => null]);
 
             return;
         }
 
-        // 2. Fall: Code wurde nicht gefunden
-        if (! $permit instanceof Permit) {
-            $this->render('check_search', [
-                'error' => "Der Code '{$code}' wurde nicht gefunden.",
+        // Wenn wir im Warteraum 2 sind, rendern wir die Bezahlseite
+        if ($tempRequest && ! $permit) {
+            $this->render('check_public', [
+                'isWaitingForPayment' => true,
+                'tempData'            => $tempRequest,
+                'token'               => $token,
+                'config'              => $this->config,
+                'settings'            => $this->getSettingsArray(),
+                'appRoot'             => $this->config->get('root_path'),
             ]);
 
             return;
         }
-
-        // 3. Fall: Permit gefunden -> Analyse der Gültigkeit
-        $showAdminView = $this->determineViewPrivileges($permit, $get);
-        $template      = $showAdminView ? 'check_admin' : 'check_public';
-
-        // Granulare Prüfung für v0.10.4
-        $isDateValid   = $permit->isValid();
-        $isTimeAllowed = $this->holidayService->isTimeAllowedNow();
-        $allowedToday  = $this->holidayService->getTodayAllowedSlots();
-
-        $this->render($template, [
-            'permit'        => $permit,
-            'config'        => $this->config,
-            'settings'      => $this->getSettingsArray(),
-            'isDateValid'   => $isDateValid,
-            'isTimeAllowed' => $isTimeAllowed,
-            'allowedToday'  => $allowedToday,
-            'showAdminView' => $showAdminView, // Wichtig für das Template
-            'appRoot'       => $this->config->get('root_path'),
-        ]);
     }
 
     /**
