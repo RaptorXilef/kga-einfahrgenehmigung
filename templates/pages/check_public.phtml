@@ -15,7 +15,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gültigkeitsprüfung - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <title>Status - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
 </head>
 <body class="l-check u-bg-light">
@@ -26,20 +26,14 @@
 
         <?php if (isset($_GET['verified'])) { ?>
             <div class="c-alert c-alert--success u-margin-bottom-l">
-                ✅ E-Mail erfolgreich bestätigt! Ihr Antrag wurde an den Vorstand übermittelt und die Unterlagen an Sie versandt.
-            </div>
-        <?php } ?>
-
-        <?php if (isset($_GET['success'])) { ?>
-            <div class="c-alert c-alert--success u-margin-bottom-l">
-                💳 Zahlung erfolgreich erhalten! Ihre Genehmigung ist ab sofort gültig.
+                ✅ E-Mail erfolgreich bestätigt!
             </div>
         <?php } ?>
 
         <?php if ($isDateValid && $isTimeAllowed) { ?>
             <div class="c-card c-card--success u-margin-auto" style="max-width: 450px;">
                 <div class="c-card__header">
-                    <span class="u-font-xl">✅ GENEHMIGUNG GÜLTIG</span>
+                <span class="u-font-xl">✅ GENEHMIGUNG GÜLTIG</span>
                 </div>
                 <div class="c-card__body">
                     <p>Gute Fahrt!</p>
@@ -50,10 +44,10 @@
         <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
             <div class="c-card u-margin-auto" style="max-width: 450px; border: 5px solid #e67e22; background: #fff5e6;">
                 <div class="c-card__header">
-                    <span class="u-font-xl" style="color: #d35400;">⏳ RUHEZEIT BEACHTEN</span>
+                <span class="u-font-xl" style="color: #d35400;">⏳ RUHEZEIT BEACHTEN</span>
                 </div>
                 <div class="c-card__body">
-                    <p>Die Genehmigung ist für den heutigen Tag <strong>gültig</strong>, aber Sie befinden sich außerhalb der erlaubten Fahrzeiten.</p>
+                    <p>Die Genehmigung ist für den heutigen Tag <strong>gültig</strong>, aber befindet sich außerhalb der erlaubten Fahrzeiten.</p>
                     <p>Erlaubt heute: <strong><?php echo $allowedToday; ?></strong></p>
                     <hr style="border: 0; border-top: 1px solid #e67e22; opacity: 0.3; margin: 15px 0;">
                     <?php include '_check_details.phtml'; ?>
@@ -63,12 +57,48 @@
         <?php } else { ?>
             <div class="c-card c-card--danger u-margin-auto" style="max-width: 400px;">
                 <div class="c-card__header">
-                    <span class="u-font-xl">❌ UNGÜLTIG</span>
+                <span class="u-font-xl">❌ UNGÜLTIG</span>
                 </div>
                 <div class="c-card__body">
                     <p>Keine gültige Genehmigung für den heutigen Tag gefunden oder die Genehmigung ist gesperrt.</p>
                 </div>
             </div>
+        <?php } ?>
+
+        <?php if ($permit->status === 'wartend' && $isDateValid) { ?>
+            <section class="c-card u-margin-top-l u-margin-auto" style="max-width: 450px; border-top: 4px solid #3498db;">
+                <header class="c-card__header">
+                    <h3>Zahlung abschließen</h3>
+                    <p class="u-text-small">Wählen Sie eine Zahlungsart zur sofortigen Aktivierung:</p>
+                </header>
+
+                <?php if ($config->get('paypal')['enabled']) { ?>
+                    <div id="paypal-button-container" class="u-padding-y-m"></div>
+                    <?php
+                    $ppCfg    = $config->get('paypal');
+                    $clientId = $config->isTestMode() ? $ppCfg['sandbox']['client_id'] : $ppCfg['live']['client_id'];
+                    ?>
+                    <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $clientId; ?>&currency=EUR"></script>
+                    <script>
+                        paypal.Buttons({
+                            createOrder: function() {
+                                return fetch('api/create_order_for_code.php?code=<?php echo $permit->code; ?>').then(r => r.json()).then(data => data.id);
+                            },
+                            onApprove: function(data) {
+                                return fetch('api/capture.php', {
+                                    method: 'POST',
+                                    body: JSON.stringify({ orderID: data.orderID, permitCode: '<?php echo $permit->code; ?>' })
+                                }).then(() => window.location.reload());
+                            }
+                        }).render('#paypal-button-container');
+                    </script>
+                <?php } ?>
+
+                <div class="u-text-center u-margin-top-s">
+                    <p class="u-text-small">Oder per Überweisung (Dauer 2-3 Tage)</p>
+                    <small class="u-text-muted">Bankdaten finden Sie in der Bestätigungs-E-Mail.</small>
+                </div>
+            </section>
         <?php } ?>
 
         <?php if (! $showAdminView && isset($permit)) { ?>
@@ -78,9 +108,9 @@
         <?php } ?>
 
         <?php if (isset($permit)) { ?>
-            <footer class="u-margin-top-l">
-                <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
-            </footer>
+        <footer class="u-margin-top-l">
+            <p class="u-text-muted">SmartCode: <?php echo \htmlspecialchars($permit->code); ?></p>
+        </footer>
         <?php } ?>
     </main>
 </body>

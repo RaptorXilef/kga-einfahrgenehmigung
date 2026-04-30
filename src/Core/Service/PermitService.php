@@ -214,7 +214,7 @@ final readonly class PermitService
     }
 
     /**
-     * Bestätigt den Antrag und verschiebt ihn in den Hauptspeicher.
+     * Bestätigt den Antrag und verarbeitet Gutscheine erst JETZT.
      */
     public function confirmEmail(string $token): ?Permit
     {
@@ -229,8 +229,31 @@ final readonly class PermitService
         unset($allPending[$token]);
         \file_put_contents($path, \json_encode($allPending));
 
-        // Hier wird die echte Genehmigung erstellt und Mails versendet
-        return $this->createPermit($data, true);
+        // --- GUTSCHEIN-LOGIK BEI VERIFIZIERUNG ---
+        $voucherCode = \trim((string) ($data['voucher'] ?? ''));
+        $isPaid      = false;
+        $kommentar   = null;
+
+        if ($voucherCode !== '') {
+            $voucher = $this->voucherService->useVoucher($voucherCode);
+            if ($voucher) {
+                $isPaid    = true;
+                $kommentar = 'Gutschein eingelöst: ' . $voucherCode . ' (Grund: ' . $voucher['reason'] . ')';
+            }
+        }
+
+        // Falls kein Gutschein, erstellen wir es als 'wartend'
+        $permit = $this->createPermit($data, true);
+
+        if ($isPaid) {
+            // Wenn Gutschein gültig war, sofort aktivieren
+            $this->manualActivate($permit->code, $kommentar);
+
+            // Wir laden das Objekt neu, damit der Status 'bezahlt' drin ist
+            return $this->storage->findByHash($permit->code);
+        }
+
+        return $permit;
     }
 
     /**

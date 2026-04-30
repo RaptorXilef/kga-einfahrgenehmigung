@@ -83,26 +83,14 @@
                     <div class="c-form-group u-margin-top-l" style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #ccc;">
                         <label class="c-form-label">Haben Sie einen Gutscheincode? (Optional)</label>
                         <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
-                        <small class="u-text-muted">Bei Verwendung eines gültigen Codes entfällt die Gebühr und die Verifizierung.</small>
+                        <small class="u-text-muted">Der Code wird nach der E-Mail-Bestätigung automatisch geprüft.</small>
                     </div>
 
-                    <?php if ($config->get('paypal')['enabled']) { ?>
-                        <div style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 2rem;" id="paypal-container-wrapper">
-                            <p class="u-text-small u-text-center u-margin-bottom-s">Direkt sicher bezahlen (Sofortige Freischaltung):</p>
-                            <div id="paypal-button-container"></div>
-                        </div>
-
-                        <?php
-                        $ppCfg    = $config->get('paypal');
-                        $clientId = $config->isTestMode() ? $ppCfg['sandbox']['client_id'] : $ppCfg['live']['client_id'];
-                        ?>
-                        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $clientId; ?>&currency=EUR"></script>
-                    <?php } ?>
-
-                    <div style="text-align: center; margin-top: 1.5rem;">
-                        <button type="submit" id="submit-btn-bank" class="c-button c-button--text u-width-100">
-                            Zahlungspflichtig beantragen (Überweisung)
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button type="submit" class="c-button c-button--primary u-width-100 u-font-bold">
+                            E-Mail bestätigen & Antrag stellen
                         </button>
+                        <p class="u-text-small u-margin-top-s">Die Bezahlung erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
                     </div>
                 </form>
             </div>

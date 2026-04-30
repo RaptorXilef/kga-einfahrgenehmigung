@@ -37,31 +37,12 @@ final readonly class PermitController
         // Formular-Verarbeitung (nur bei POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
-                $voucherCode = \trim((string) ($post['voucher'] ?? ''));
+                // Wir speichern den Antrag nur zwischen und senden die Bestätigungsmail.
+                // Erst nach Klick auf den Link wird der Gutschein oder die Zahlung relevant.
+                $this->permitService->createPendingVerification($post);
 
-                // FALL A: Gutschein wurde eingegeben
-                if ($voucherCode !== '') {
-                    $voucher = $this->permitService->getVoucherService()->useVoucher($voucherCode);
-
-                    if (! $voucher) {
-                        throw new \Exception('Dieser Gutscheincode ist ungültig oder wurde bereits verwendet.');
-                    }
-
-                    // Gutschein gültig! Wir erstellen die Genehmigung direkt als 'bezahlt'
-                    $post['status']            = 'bezahlt';
-                    $post['internerKommentar'] = 'Eingelöster Gutschein: ' . $voucherCode . ' (Grund: ' . $voucher['reason'] . ')';
-
-                    $permit = $this->permitService->createPermit($post, true);
-
-                    $success = true;
-                    $message = "Gutschein erfolgreich eingelöst! Ihre Genehmigung {$permit->code} wurde aktiviert und versandt.";
-                }
-                // FALL B: Normaler Ablauf (Überweisung/E-Mail-Verifikation)
-                else {
-                    $this->permitService->createPendingVerification($post);
-                    $success = true;
-                    $message = 'Antrag fast fertig! Bitte prüfen Sie Ihr E-Mail-Postfach und bestätigen Sie Ihre E-Mail-Adresse.';
-                }
+                $success = true;
+                $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag (und ggf. Gutschein) zu aktivieren.';
             } catch (\Exception $exception) {
                 $message = 'Fehler: ' . $exception->getMessage();
             }
@@ -86,7 +67,6 @@ final readonly class PermitController
             'vereins_name'  => $this->config->get('vereins_name'),
             'vehicle_types' => $this->config->get('vehicle_types'),
             'purposes'      => $this->config->get('purposes'),
-            'jahresFarbe'   => $this->config->get('jahresFarbe'),
         ];
     }
 
