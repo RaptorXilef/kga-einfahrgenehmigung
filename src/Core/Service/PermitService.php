@@ -649,7 +649,7 @@ final readonly class PermitService
     public function toggleSuspension(string $code, bool $status, ?string $reason = null): bool
     {
         $permit = $this->storage->findByHash($code);
-        if (! $permit) {
+        if (! $permit instanceof Permit) {
             return false;
         }
 

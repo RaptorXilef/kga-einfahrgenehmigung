@@ -35,30 +35,22 @@ if ($token === '') {
     exit;
 }
 
-$settings              = require_once $appRoot . '/config/config.php';
+$settings              = require $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
 $container             = new Container(new Config($settings));
 
 // Warteraum laden
 $verifiedPath = $appRoot . '/storage/verified_pending.json';
-// FIX: Das @-Zeichen zur Fehlerunterdrückung ohne Backslash nutzen
-// FIX: Long Ternary statt Short Ternary
-$content     = \file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}';
-$allVerified = \json_decode($content, true) ?? [];
-$tempRequest = $allVerified[$token] ?? null;
+$allVerified  = \json_decode(\file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}', true) ?? [];
+$tempRequest  = $allVerified[$token] ?? null;
 
 if (! $tempRequest) {
-    echo \json_encode(['success' => false, 'error' => 'Antragssitzung nicht gefunden']);
+    echo \json_encode(['success' => false, 'error' => 'Sitzung nicht gefunden']);
     exit;
 }
 
-// FIX: Preis zwingend aus dem Snapshot nehmen
+// ZIEHT PREIS AUS SNAPSHOT
 $payment = $container->get(PaymentProviderInterface::class);
 $orderId = $payment->createOrder((float) $tempRequest['preisSnapshot']);
 
-if (! $orderId) {
-    echo \json_encode(['success' => false, 'error' => 'PayPal API Fehler']);
-    exit;
-}
-
-echo \json_encode(['id' => $orderId]);
+echo \json_encode($orderId ? ['id' => $orderId] : ['success' => false, 'error' => 'PayPal Error']);

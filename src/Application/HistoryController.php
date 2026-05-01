@@ -67,7 +67,7 @@ final readonly class HistoryController
         }
 
         // 5. View-Auswahl
-        $this->renderView($emailInSession, $message);
+        $this->renderView($emailInSession, $message, $get); // $get muss mitgegeben werden!
     }
 
     /**

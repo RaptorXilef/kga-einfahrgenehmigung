@@ -109,14 +109,22 @@ final readonly class AdminController
 
         // 2. Gutschein erstellen
         if (isset($post['action']) && $post['action'] === 'create_voucher') {
-            // FIX für PHPCS: Ungenutzte Variable $vs gelöscht
-            $reason = (string) ($post['reason'] === 'other' ? $post['custom_reason'] : $post['reason']);
-            $code   = $this->permitService->getVoucherService()->createVoucher(
+            // Korrektur: Nutze 'reason_internal' (wie im HTML) und füge TemplateKey hinzu
+            $reason = (string) ($post['reason_internal'] ?? 'Gutschein');
+            $tplKey = (string) ($post['template_key'] ?? 'std_7');
+
+            $code = $this->permitService->getVoucherService()->createVoucher(
                 $reason,
                 (string) $_SESSION['admin_user'],
+                $tplKey, // Das fehlte!
+                [
+                    'name'        => $post['pre_name'] ?? '',
+                    'parzelle'    => $post['pre_parzelle'] ?? '',
+                    'kennzeichen' => $post['pre_kennzeichen'] ?? '',
+                ],
             );
 
-            return "Gutschein erstellt: <strong>{$code}</strong> (Grund: {$reason})";
+            return "Gutschein erstellt: <strong>{$code}</strong>";
         }
 
         // 3. Manuelle Buchung (Kostenlos/Bar)
@@ -136,25 +144,34 @@ final readonly class AdminController
             }
         }
 
-        // Gutschein deaktivieren
-        if (isset($post['action']) && $post['action'] === 'deactivate_voucher') {
-            $this->permitService->getVoucherService()->deactivateVoucher(
-                (string) $post['code'],
-                (string) ($post['reason'] ?? 'Manuelle Deaktivierung'),
-            );
+        // Gutschein aktivieren (neu)
+        if (isset($post['action']) && $post['action'] === 'activate_voucher') {
+            $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], 'aktiv');
 
-            return 'Gutschein wurde auf ungültig gesetzt.';
+            return 'Gutschein wurde reaktiviert.';
         }
 
-        // Genehmigung sperren
-        if (isset($post['action']) && $post['action'] === 'suspend_permit') {
-            $this->permitService->toggleSuspension(
-                (string) $post['code'],
-                true,
-                (string) $post['reason'],
-            );
+        // Gutschein sperren (neu)
+        if (isset($post['action']) && $post['action'] === 'deactivate_voucher') {
+            $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], 'deaktiviert');
 
-            return "Genehmigung {$post['code']} wurde gesperrt.";
+            return 'Gutschein wurde gesperrt.';
+        }
+
+        // Genehmigung entsperren (neu)
+        if (isset($post['action']) && $post['action'] === 'unsuspend_permit') {
+            $this->permitService->toggleSuspension((string) $post['code'], false);
+
+            return 'Genehmigung wurde wieder freigegeben.';
+        }
+
+        // Logik zum Sperren hinzufügen!
+        if (isset($post['action']) && $post['action'] === 'suspend_permit') {
+            $code   = (string) $post['code'];
+            $reason = (string) $post['reason'];
+            $this->permitService->toggleSuspension($code, true, $reason);
+
+            return "Genehmigung {$code} wurde gesperrt.";
         }
 
         return '';
@@ -212,18 +229,19 @@ final readonly class AdminController
         $voucherService = $this->permitService->getVoucherService();
 
         $this->render('admin_dashboard', [
-            'stats'       => $this->calculateStats($filtered),
-            'groups'      => $this->groupPermits($allPermits),
-            'settings'    => $this->getSettingsArray(),
-            'adminUser'   => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel'  => (int) ($_SESSION['admin_level'] ?? 1),
-            'message'     => $message,
-            'filterStart' => $filterStart,
-            'filterEnd'   => $filterEnd,
-            'config'      => $this->config, // WICHTIG für den Indikator
-            'appRoot'     => $this->config->get('root_path'), // WICHTIG für Includes
-            'vouchers'    => $voucherService->loadVouchers(),
-            'reasons'     => [
+            'stats'          => $this->calculateStats($filtered),
+            'groups'         => $this->groupPermits($allPermits),
+            'settings'       => $this->getSettingsArray(),
+            'adminUser'      => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel'     => (int) ($_SESSION['admin_level'] ?? 1),
+            'message'        => $message,
+            'filterStart'    => $filterStart,
+            'filterEnd'      => $filterEnd,
+            'config'         => $this->config, // WICHTIG für den Indikator
+            'appRoot'        => $this->config->get('root_path'), // WICHTIG für den Indikator
+            'vouchers'       => $voucherService->loadVouchers(),
+            'voucherService' => $voucherService, // DIESE ZEILE MUSS REIN!
+            'reasons'        => [
                 'Bargeldzahlung vor Ort',
                 'Vorstandsbeschluss',
                 'Härtefall-Regelung',

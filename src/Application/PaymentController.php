@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -17,10 +18,9 @@ use App\Core\Service\PermitService;
  */
 final readonly class PaymentController
 {
-    public $config;
-
     public function __construct(
         private PermitService $permitService,
+        private ConfigInterface $config,
     ) {
     }
 
