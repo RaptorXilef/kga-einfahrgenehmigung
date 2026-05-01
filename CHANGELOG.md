@@ -2,6 +2,19 @@
 
 
 
+## [0.13.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.12.0...v0.13.0) (2026-05-01)
+
+### 🚀 Features
+
+* **history:** implement document re-print for verified tenants ([3bcc65b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3bcc65b89c522f662aede6949337c7ce0a14e4d8))
+* **history:** implement Magic Link service for tenant access ([08d4cfb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/08d4cfb7ca23bb9c87fbc9f2ddef7596a1eff303))
+* **history:** implement tenant portal with passwordless magic links ([f3b76c2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f3b76c2b4fb4943b4938d4897a6502652765d22c))
+
+### 🐛 Bug Fixes
+
+* **qa:** resolve complexity and type-hinting issues in history portal ([4aa553c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4aa553c80786322727829319af5de15171a13497))
+* **qa:** resolve final PHPMD ElseExpression in HistoryController ([ea9609f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ea9609fcba7ff85a885f3824b5ab9d663d169bab))
+
 ## [0.12.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.11.0...v0.12.0) (2026-05-01)
 
 ### 🚀 Features
