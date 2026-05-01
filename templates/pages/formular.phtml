@@ -5,99 +5,142 @@
  * @var string                            $message
  * @var bool                              $success
  * @var array                             $settings
+ * @var array|null                        $prefill
  */
+
+// Hilfsfunktion: Prüft ob ein Feld durch Gutschein gesperrt ist
+$isLocked = function ($fieldName) use ($prefill) {
+    if (! $prefill || ! isset($prefill['data'])) {
+        return '';
+    }
+
+    return (isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
+};
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ausnahmegenehmigung - <?php echo \htmlspecialchars($config->get('vereins_name')); ?></title>
+    <title>Antrag - <?php echo \htmlspecialchars($config->get('vereins_name')); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
+    <style>
+        input[readonly], select[readonly], select[disabled] { background-color: #f1f1f1; cursor: not-allowed; pointer-events: none; opacity: 0.7; }
+        .c-voucher-alert { background: #27ae60; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 5px solid #2ecc71; }
+    </style>
 </head>
 <body class="u-bg-light">
 
     <?php include $appRoot . '/templates/partials/test_mode_indicator.phtml'; ?>
 
     <div class="c-container u-padding-y-xl">
-        <div class="c-card u-margin-auto" style="max-width: 600px;">
+        <div class="c-card u-margin-auto" style="max-width: 650px;">
             <header class="c-card__header u-text-center">
                 <h1>Antrag auf Ausnahmegenehmigung zum befahrend der Anlage</h1>
                 <p class="u-text-muted"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
             </header>
 
             <div class="c-card__body">
-                <?php if ($message) { ?>
-                    <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom">
-                        <?php echo $message; ?>
+                <?php if ($prefill) { ?>
+                    <div class="c-voucher-alert">
+                        <strong>🎟️ Gutschein aktiv: <?php echo $prefill['code']; ?></strong><br>
+                        <small>Vorgabe: <?php echo \htmlspecialchars($prefill['reason']); ?></small>
                     </div>
                 <?php } ?>
 
+                <?php if ($message) { ?>
+                    <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom"><?php echo $message; ?></div>
+                <?php } ?>
+
                 <form action="index.php" method="POST" id="permitForm" class="c-form">
+                    <input type="hidden" name="voucher" value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
+
                     <div class="c-form-group">
                         <label class="c-form-label">* Ihr Name</label>
-                        <input type="text" name="name" class="c-form-input" required placeholder="Vorname Nachname">
+                        <input type="text" name="name" class="c-form-input" required placeholder="Vorname Nachname"
+                               value="<?php echo $prefill['data']['name'] ?? ''; ?>" <?php echo $isLocked('name'); ?>>
                     </div>
 
                     <div class="c-form-group">
                         <label class="c-form-label">* E-Mail-Adresse</label>
-                        <input type="email" name="email" class="c-form-input" required placeholder="beispiel@mail.de">
+                        <input type="email" name="email" class="c-form-input" required placeholder="beispiel@mail.de"
+                               value="<?php echo $prefill['data']['email'] ?? ''; ?>" <?php echo $isLocked('email'); ?>>
                     </div>
 
                     <div class="c-form-row">
                         <div class="c-form-group">
                             <label class="c-form-label">* Parzelle Nr.</label>
-                            <input type="number" name="parzelle" id="parzelle" class="c-form-input" required placeholder="z.B. 20">
+                            <input type="number" name="parzelle" id="parzelle" class="c-form-input" required placeholder="z.B. 20"
+                                   value="<?php echo $prefill['data']['parzelle'] ?? ''; ?>" <?php echo $isLocked('parzelle'); ?>>
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">* Fahrzeug-Typ</label>
-                            <select name="typ" id="typ" class="c-form-select">
+                            <?php $vTyp = $prefill['data']['typ'] ?? ''; ?>
+                            <select name="typ" id="typ" class="c-form-select" <?php echo $vTyp ? 'readonly' : ''; ?>>
                                 <?php foreach ($config->get('vehicle_types') as $val => $label) { ?>
-                                    <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                    <option value="<?php echo $val; ?>" <?php echo $vTyp === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
                                 <?php } ?>
                             </select>
                         </div>
                     </div>
 
+                    <div class="c-form-group">
+                        <label class="c-form-label">* Gewünschte Dauer</label>
+                        <?php $vTpl = $prefill['template_key'] ?? ''; ?>
+                        <select name="template_key" id="template_key" class="c-form-select" <?php echo $vTpl ? 'readonly' : ''; ?>>
+                            <?php foreach ($settings['public_templates'] as $key => $tpl) { ?>
+                                <option value="<?php echo $key; ?>" <?php echo ($vTpl === $key || (empty($vTpl) && $key === 'std_7')) ? 'selected' : ''; ?>><?php echo $tpl['label']; ?></option>
+                            <?php } ?>
+                        </select>
+                        <div id="price-display" class="u-text-right u-font-bold u-margin-top-xs u-color-primary"></div>
+                    </div>
+
                     <div class="c-form-group" id="group_kennzeichen">
                         <label class="c-form-label" id="label_kennzeichen">* Amtl. Kennzeichen</label>
-                        <input type="text" name="kennzeichen" id="kennzeichen" class="c-form-input" placeholder="B HD 7398">
+                        <input type="text" name="kennzeichen" id="kennzeichen" class="c-form-input" placeholder="B HD 7398"
+                               value="<?php echo $prefill['data']['kennzeichen'] ?? ''; ?>" <?php echo $isLocked('kennzeichen'); ?>>
                     </div>
 
                     <div class="c-form-group u-hidden" id="group_firma">
                         <label class="c-form-label">Firma / Lieferant (Optional)</label>
-                        <input type="text" name="firma" class="c-form-input" placeholder="Müller Gartenbau">
+                        <input type="text" name="firma" class="c-form-input" placeholder="Müller Gartenbau"
+                               value="<?php echo $prefill['data']['firma'] ?? ''; ?>" <?php echo $isLocked('firma'); ?>>
                     </div>
 
                     <div class="c-form-row">
                         <div class="c-form-group">
                             <label class="c-form-label">* Einfahrt Von</label>
-                            <input type="date" name="datum_von" id="datum_von" class="c-form-input" required value="<?php echo \date('Y-m-d'); ?>">
+                            <input type="date" name="datum_von" id="datum_von" class="c-form-input" required
+                                   value="<?php echo $prefill['data']['datum_von'] ?? \date('Y-m-d'); ?>" <?php echo $isLocked('datum_von'); ?>>
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">* Einfahrt Bis</label>
-                            <input type="date" name="datum_bis" id="datum_bis" class="c-form-input" required value="<?php echo \date('Y-m-d', \strtotime('+7 days')); ?>">
+                            <input type="date" name="datum_bis" id="datum_bis" class="c-form-input" required
+                                   value="<?php echo $prefill['data']['datum_bis'] ?? \date('Y-m-d', \strtotime('+7 days')); ?>" <?php echo $isLocked('datum_bis'); ?>>
                         </div>
                     </div>
 
                     <div class="c-form-group">
                         <label class="c-form-label">* Zweck der Einfahrt</label>
-                        <select name="zweck" class="c-form-select">
+                        <?php $vZweck = $prefill['data']['zweck'] ?? ''; ?>
+                        <select name="zweck" class="c-form-select" <?php echo $vZweck ? 'readonly' : ''; ?>>
                             <?php foreach ($config->get('purposes') as $val => $label) { ?>
-                                <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                <option value="<?php echo $val; ?>" <?php echo $vZweck === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
                             <?php } ?>
                         </select>
                     </div>
 
-                    <div class="c-form-group u-margin-top-l" style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #ccc;">
-                        <label class="c-form-label">Haben Sie einen Gutscheincode? (Optional)</label>
-                        <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
+                    <?php if (! $prefill) { ?>
+                        <div class="c-form-group u-margin-top-l" style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px dashed #ccc;">
+                            <label class="c-form-label">Haben Sie einen Gutscheincode erhalten?</label>
+                            <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
                         <small class="u-text-muted">Der Code wird nach der E-Mail-Bestätigung automatisch geprüft.</small>
-                    </div>
+                        </div>
+                    <?php } ?>
 
                     <div style="text-align: center; margin-top: 2rem;">
                         <button type="submit" class="c-button c-button--primary u-width-100 u-font-bold">
-                            E-Mail bestätigen & Antrag stellen
+                            <?php echo $prefill ? 'Kostenlose Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                         </button>
                         <p class="u-text-small u-margin-top-s">Die Bezahlung erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
                     </div>
@@ -105,7 +148,6 @@
             </div>
         </div>
     </div>
-
     <script src="assets/js/init-form.js" type="module"></script>
 </body>
 </html>

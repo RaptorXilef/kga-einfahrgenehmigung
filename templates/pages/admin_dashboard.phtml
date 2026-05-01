@@ -322,10 +322,17 @@ $now = new \DateTimeImmutable();
                                     <?php foreach ($vouchers as $v) {
                                         if ($v['used']) {
                                             continue;
-                                        } ?>
+                                        }
+                                        $directUrl = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+                                        $qrUrl     = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' . \urlencode($directUrl);
+                                        ?>
                                         <tr>
-                                            <td><code><?php echo $v['code']; ?></code></td>
-                                            <td><small><?php echo \htmlspecialchars($v['reason']); ?></small></td>
+                                            <td style="width: 110px;"><img src="<?php echo $qrUrl; ?>" alt="QR" style="border:1px solid #ccc;"></td>
+                                            <td>
+                                                <code><?php echo $v['code']; ?></code><br>
+                                                <small><?php echo \htmlspecialchars($v['reason']); ?></small><br>
+                                                <a href="<?php echo $directUrl; ?>" target="_blank" style="font-size: 10px;">Direkt-Link öffnen</a>
+                                            </td>
                                         </tr>
                                     <?php } ?>
                                 </table>

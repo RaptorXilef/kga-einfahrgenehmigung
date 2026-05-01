@@ -59,17 +59,51 @@ final readonly class PaymentController
         }
     }
 
-    private function getSettingsArray(): array
+    private function getSettingsArray(?array $prefill = null): array
     {
+        $templates = $this->config->get('permit_templates', []);
+        $public    = \array_filter($templates, fn ($t) => ($t['public'] ?? false) === true);
+
+        // Falls der Gutschein ein privates Template nutzt, fügen wir es für diesen User hinzu
+        if ($prefill && isset($prefill['template_key']) && ! isset($public[$prefill['template_key']])) {
+            $public[$prefill['template_key']] = $templates[$prefill['template_key']];
+        }
+
         return [
-            'vereins_name'  => $this->config->get('vereins_name'),
-            'vehicle_types' => $this->config->get('vehicle_types'),
-            'purposes'      => $this->config->get('purposes'),
-            // NEU: Nur die Vorlagen übergeben, die als 'public' markiert sind
-            'public_templates' => \array_filter(
-                $this->config->get('permit_templates', []),
-                fn ($t) => ($t['public'] ?? false) === true,
-            ),
+            'vereins_name'     => $this->config->get('vereins_name'),
+            'vehicle_types'    => $this->config->get('vehicle_types'),
+            'purposes'         => $this->config->get('purposes'),
+            'public_templates' => $public,
         ];
+    }
+
+    public function handleRequest(array $post): void
+    {
+        $message = '';
+        $success = false;
+
+        // NEU: Vorbefüllung durch Gutschein prüfen (GET)
+        $voucherCode = (string) ($_GET['voucher'] ?? '');
+        $prefill     = null;
+
+        if ($voucherCode !== '') {
+            $voucher = $this->permitService->getVoucherService()->getVoucherDetails($voucherCode);
+            if ($voucher && ! $voucher['used']) {
+                $prefill = $voucher; // Enthält vordefinierte Daten
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // ... (Bestandslogik bleibt gleich)
+        }
+
+        $this->render('formular', [
+            'message'  => $message,
+            'success'  => $success,
+            'config'   => $this->config,
+            'settings' => $this->getSettingsArray($prefill), // Prefill mitgeben
+            'appRoot'  => $this->config->get('root_path'),
+            'prefill'  => $prefill,
+        ]);
     }
 }
