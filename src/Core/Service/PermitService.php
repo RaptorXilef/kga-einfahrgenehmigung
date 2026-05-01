@@ -38,33 +38,37 @@ final readonly class PermitService
     }
 
     /**
-     * Erstellt eine neue Genehmigung und triggert den 3-Mail-Workflow.
+     * Erstellt eine neue Genehmigung basierend auf Vorlagen. v0.14.0
      *
      * @param array<string, mixed> $data
-     * @param bool                 $sendMails Steuert, ob die 3 Standard-Mails sofort rausgehen.
+     * @param bool                 $sendMails Steuert den sofortigen Mailversand.
      */
     public function createPermit(array $data, bool $sendMails = true): Permit
     {
         $this->validateEmail((string) ($data['email'] ?? ''));
 
-        // Property-Read Fix: Validierung gegen Feiertage/Sonntage
-        // Dies stellt sicher, dass holidayService für PHPStan "benutzt" wird.
-        $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
-        $endDate   = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
+        // Vorlagen-Logik laden
+        $tKey      = (string) ($data['template_key'] ?? 'std_7');
+        $templates = $this->config->get('permit_templates', []);
+        $template  = $templates[$tKey] ?? $templates['std_7'];
 
-        // 1. Ruhezeiten-Check (Matrix)
-        $conflicts = $this->holidayService->checkTimeConflicts($startDate, $endDate);
-        if ($conflicts !== []) {
-            // Wir werfen hier keine Exception, sondern loggen es evtl. oder lassen es zu,
-            // da die PDF-Regeln (Handzettel) darauf hinweisen.
-            // Falls es später doch blockieren soll:
-            // throw new \RuntimeException("Zeitkonflikt: " . implode(', ', $conflicts));
+        // 1. Zeiträume bestimmen
+        $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
+
+        if ($template['days'] === 'custom') {
+            $endDate = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
+        } else {
+            // Automatische Berechnung der Tage aus der Vorlage
+            $endDate = $startDate->modify('+' . $template['days'] . ' days');
         }
 
-        $parzelle = \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT);
-        $typ      = (string) ($data['typ'] ?? 'pkw');
+        // 2. Preis bestimmen (Template-Preis oder Admin-Override)
+        $typ   = (string) ($data['typ'] ?? 'pkw');
+        $preis = isset($data['manual_price'])
+            ? (float) $data['manual_price']
+            : (float) ($template['prices'][$typ] ?? 0.0);
 
-        // --- NEU: KOLLISIONS-CHECK FÜR DIE EINDEUTIGKEIT ---
+        // --- KOLLISIONS-CHECK FÜR DIE EINDEUTIGKEIT ---
         do {
             $randomId = $this->generateV4Suffix();
 
@@ -81,7 +85,7 @@ final readonly class PermitService
             $fullIdentifier = \sprintf(
                 '%s-%s-%s-%s',
                 $this->config->get('prefix', 'ML'),
-                $parzelle,
+                \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
                 $platePart,
                 $randomId,
             );
@@ -96,17 +100,18 @@ final readonly class PermitService
             code: $fullIdentifier,
             name: (string) $data['name'],
             email: (string) $data['email'],
-            parzelle: $parzelle,
+            parzelle: \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
             typ: $typ,
             kennzeichen: $displayPlate,
             firma: isset($data['firma']) ? (string) $data['firma'] : null,
             zweck: $zweck,
-            preisSnapshot: $this->config->getPriceForType($typ),
+            preisSnapshot: $preis,
             von: $startDate,
             bis: $endDate,
             status: (string) ($data['status'] ?? 'wartend'),
             erstellt: new \DateTimeImmutable(),
             internerKommentar: isset($data['internerKommentar']) ? (string) $data['internerKommentar'] : null,
+            templateKey: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
         );
 
         if (! $this->storage->save($permit)) {
@@ -582,5 +587,19 @@ final readonly class PermitService
     public function getStorage(): StorageInterface
     {
         return $this->storage;
+    }
+
+    /**
+     * Prüft, welche Quartale (1-4) vom Zeitraum der Genehmigung berührt werden.
+     * @return array<int>
+     */
+    public function getCoveredQuarters(Permit $permit): array
+    {
+        $startQ = (int) \ceil((int) $permit->von->format('n') / 3);
+        $endQ   = (int) \ceil((int) $permit->bis->format('n') / 3);
+
+        // Wenn es über ein Jahr hinausgeht, müssten wir mehr tun,
+        // aber für Dauerkarten innerhalb eines Kalenderjahres reicht:
+        return \range($startQ, $endQ);
     }
 }

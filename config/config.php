@@ -24,6 +24,8 @@ return [
     // --- DESIGN ---
     'jahresFarbe'     => '#2ecc71', // Die Farbe für die gültige PDF/Mail
     'vorlaeufigFarbe' => '#f1c40f', // Gelb für "Wartend" (Verwaltungsintern)
+    // Design für Dauerkarten
+    'permanent_color' => '#3498db', // Blau statt Grün
 
     // --- AUSWAHLMENÜS ---
     'purposes' => [
@@ -56,8 +58,65 @@ return [
     // Automatischer Check für Sonntage/Feiertage
     'holiday_check' => 'Berlin',
 
-    // Standard-Zeitraum (1 Woche)
-    'permit_duration' => 7,
+    // --- TEMPLATES FÜR GENEHMIGUNGEN ---
+    'permit_templates' => [
+        'std_7' => [
+            'type'   => 'standard',
+            'label'  => 'Ausnahmegenehmigung 7 Tage',
+            'days'   => 7,
+            'prices' => ['pkw' => 3.00, 'lkw' => 10.00],
+            'public' => true, // Im öffentlichen Formular sichtbar
+        ],
+        'std_14' => [
+            'type'   => 'standard',
+            'label'  => 'Ausnahmegenehmigung 14 Tage',
+            'days'   => 14,
+            'prices' => ['pkw' => 5.00, 'lkw' => 15.00],
+            'public' => false, // Nur Admin oder via Gutschein
+        ],
+        'std_30' => [
+            'type'   => 'standard',
+            'label'  => 'Ausnahmegenehmigung 1 Monat',
+            'days'   => 30,
+            'prices' => ['pkw' => 10.00, 'lkw' => 25.00],
+            'public' => false,
+        ],
+        'perm_3' => [
+            'type'   => 'permanent',
+            'label'  => 'Dauereinfahrgenehmigung (1 Quartal)',
+            'days'   => 90,
+            'prices' => ['pkw' => 20.00, 'lkw' => 50.00],
+            'public' => false,
+        ],
+        'perm_6' => [
+            'type'   => 'permanent',
+            'label'  => 'Dauereinfahrgenehmigung (2 Quartale)',
+            'days'   => 180,
+            'prices' => ['pkw' => 35.00, 'lkw' => 80.00],
+            'public' => false,
+        ],
+        'perm_12' => [
+            'type'   => 'permanent',
+            'label'  => 'Dauereinfahrgenehmigung (Gesamtjahr)',
+            'days'   => 365,
+            'prices' => ['pkw' => 60.00, 'lkw' => 150.00],
+            'public' => false,
+        ],
+        'custom_std' => [
+            'type'   => 'standard',
+            'label'  => 'Spezialzeitraum (Standard)',
+            'days'   => 'custom',
+            'prices' => ['pkw' => 0.00, 'lkw' => 0.00], // Manuelle Preisabsprache
+            'public' => false,
+        ],
+        'custom_perm' => [
+            'type'   => 'permanent',
+            'label'  => 'Spezialzeitraum (Dauer)',
+            'days'   => 'custom',
+            'prices' => ['pkw' => 0.00, 'lkw' => 0.00],
+            'public' => false,
+        ],
+    ],
 
     /**
      * Zahlungsziel für Überfälligkeit
@@ -70,11 +129,6 @@ return [
      */
     'payment_due_days_notify' => 2,
 
-    // --- PREISE & ZAHLUNG ---
-    'prices' => [
-        'pkw' => 3.00,
-        'lkw' => 10.00,
-    ],
     // Bankangaben noch aufbauen wie Paypal (Überpunkt ueberweisung oder bank oder ähnliches)
     'bank_transfer_allowed' => true, // AUF TRUE SETZEN für die Nutzung von Überweisung
     'iban'                  => 'DE12 3456 7890 1234 5678 90',

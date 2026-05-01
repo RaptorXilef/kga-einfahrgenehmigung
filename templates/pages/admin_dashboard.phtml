@@ -289,10 +289,22 @@ $now = new \DateTimeImmutable();
                         <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
 
                             <section class="c-card">
-                                <header class="c-card__header"><h3>Gutschein generieren</h3></header>
+                                <header class="c-card__header">
+                                    <h3>Gutschein-Code erzeugen</h3>
+                                </header>
                                 <form method="POST" class="c-form">
                                     <input type="hidden" name="action" value="create_voucher">
+
                                     <div class="c-form-group">
+                                        <label class="c-form-label">Genehmigungs-Typ für diesen Code</label>
+                                        <select name="template_key" class="c-form-select">
+                                            <?php foreach ($config->get('permit_templates') as $key => $tpl) {
+                                                echo "<option value='$key'>{$tpl['label']}</option>";
+                                            } ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="c-form-group u-margin-top-s">
                                         <label class="c-form-label">Grund für Gutschein</label>
                                         <select name="reason" class="c-form-select" onchange="this.value==='other' ? document.getElementById('custom_v').classList.remove('u-hidden') : document.getElementById('custom_v').classList.add('u-hidden')">
                                             <?php foreach ($reasons as $r) {
@@ -302,7 +314,7 @@ $now = new \DateTimeImmutable();
                                         </select>
                                         <input type="text" name="custom_reason" id="custom_v" class="c-form-input u-margin-top-s u-hidden" placeholder="Manueller Grund">
                                     </div>
-                                    <button type="submit" class="c-button u-width-100">Code erzeugen</button>
+                                    <button type="submit" class="c-button u-width-100 u-margin-top-m">Code für Vorlage erzeugen</button>
                                 </form>
 
                                 <h4 class="u-margin-top-l">Offene Gutscheine</h4>
@@ -320,14 +332,37 @@ $now = new \DateTimeImmutable();
                             </section>
 
                             <section class="c-card">
-                                <header class="c-card__header"><h3>Direkt-Genehmigung (Barzahlung/Gratis)</h3></header>
+                                <header class="c-card__header">
+                                    <h3>Spezial-Genehmigung erstellen (Bar/Gratis)</h3>
+                                </header>
                                 <form method="POST" class="c-form">
                                     <input type="hidden" name="action" value="create_manual">
-                                    <div class="u-flex u-gap-s">
-                                        <input type="text" name="name" class="c-form-input" placeholder="Name" required>
-                                        <input type="text" name="parzelle" class="c-form-input" style="width:80px" placeholder="Parz." required>
+
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Vorlage / Zeitraum</label>
+                                        <select name="template_key" id="manual_template_key" class="c-form-select" onchange="toggleCustomDates(this.value)">
+                                            <?php foreach ($config->get('permit_templates') as $key => $tpl) {
+                                                echo "<option value='$key'>{$tpl['label']}</option>";
+                                            } ?>
+                                        </select>
                                     </div>
-                                    <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail für Dokumentenversand" required>
+
+                                    <div class="u-flex u-gap-s u-margin-top-s">
+                                        <div style="flex:1">
+                                            <label class="c-form-label">Startdatum</label>
+                                            <input type="date" name="datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
+                                        </div>
+                                        <div style="flex:1; display:none;" id="custom_end_wrapper">
+                                            <label class="c-form-label">Enddatum (Spezial)</label>
+                                            <input type="date" name="datum_bis" class="c-form-input" value="<?php echo \date('Y-m-d', \strtotime('+1 year')); ?>">
+                                        </div>
+                                    </div>
+
+                                    <div class="u-flex u-gap-s u-margin-top-m">
+                                        <input type="text" name="name" class="c-form-input" placeholder="Name des Pächters" required>
+                                        <input type="text" name="parzelle" class="c-form-input" style="width:80px" placeholder="Parz.">
+                                    </div>
+
                                     <div class="u-flex u-gap-s u-margin-top-s">
                                         <input type="text" name="kennzeichen" class="c-form-input" placeholder="Kennzeichen">
                                         <select name="typ" class="c-form-select">
@@ -336,15 +371,21 @@ $now = new \DateTimeImmutable();
                                             } ?>
                                         </select>
                                     </div>
+
+                                    <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail (für Versand des Dokuments)">
+
                                     <div class="c-form-group u-margin-top-s">
-                                        <label class="c-form-label">Grund der Freischaltung</label>
+                                        <label class="c-form-label">Interner Grund / Vermerk</label>
                                         <select name="reason" class="c-form-select">
                                             <?php foreach ($reasons as $r) {
                                                 echo "<option value='" . \htmlspecialchars($r) . "'>" . \htmlspecialchars($r) . '</option>';
                                             } ?>
                                         </select>
                                     </div>
-                                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-s">Kostenlos/Bar anlegen</button>
+
+                                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">
+                                        Sofort erstellen & E-Mail senden
+                                    </button>
                                 </form>
                             </section>
                         </div>
@@ -380,6 +421,18 @@ $now = new \DateTimeImmutable();
             for (let i = 0; i < buttons.length; i++) buttons[i].classList.remove("c-tabs__btn--active");
             document.getElementById(tabId).classList.add("c-tabs__content--active");
             evt.currentTarget.classList.add("c-tabs__btn--active");
+        }
+
+        /**
+         * Schaltet das manuelle Enddatum-Feld frei, wenn eine "Custom" Vorlage gewählt wurde.
+         */
+        function toggleCustomDates(val) {
+            const wrapper = document.getElementById('custom_end_wrapper');
+            if (val && val.includes('custom')) {
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
         }
     </script>
 </body>
