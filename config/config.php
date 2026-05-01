@@ -108,6 +108,10 @@ return [
         ],
     ],
 
+    // --- TIMEOUTS (in Stunden) ---
+    'hours_pending_verify'   => 24, // Zeit für E-Mail Bestätigung
+    'hours_pending_finalize' => 48, // Zeit für Bezahlung oder Überweisungsantrag nach Verifizierung
+
     // --- AUTH & USER MANAGEMENT ---
     'superadmin' => [
         'user' => 'superadmin',

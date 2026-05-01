@@ -1,12 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
- * PayPal Order Erstellung für verifizierte, aber noch nicht finale Anträge v0.12.1
+ * PayPal Order Erstellung für verifizierte, aber noch nicht finale Anträge v0.12.0
  *
  * @file public/api/create_order_for_token.php
  */
+
+declare(strict_types=1);
+
 $appRoot = (function (): string {
     $dir = __DIR__;
     while ($dir !== \dirname($dir)) {

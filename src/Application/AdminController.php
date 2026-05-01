@@ -110,10 +110,12 @@ final readonly class AdminController
 
         // 2. Gutschein erstellen
         if (isset($post['action']) && $post['action'] === 'create_voucher') {
-            /** @var VoucherService $vs */
-            $vs     = $this->config->get('voucher_service'); // Wir holen ihn später über den Container
+            // FIX für PHPCS: Ungenutzte Variable $vs gelöscht
             $reason = (string) ($post['reason'] === 'other' ? $post['custom_reason'] : $post['reason']);
-            $code   = $this->permitService->getVoucherService()->createVoucher($reason, (string) $_SESSION['admin_user']);
+            $code   = $this->permitService->getVoucherService()->createVoucher(
+                $reason,
+                (string) $_SESSION['admin_user'],
+            );
 
             return "Gutschein erstellt: <strong>{$code}</strong> (Grund: {$reason})";
         }
@@ -121,7 +123,9 @@ final readonly class AdminController
         // 3. Manuelle Buchung (Kostenlos/Bar)
         if (isset($post['action']) && $post['action'] === 'create_manual') {
             $post['status']            = 'bezahlt'; // Direkt freigeschaltet
-            $post['internerKommentar'] = (string) ($post['reason'] === 'other' ? $post['custom_reason'] : $post['reason']);
+            $post['internerKommentar'] = (string) ($post['reason'] === 'other'
+                ? $post['custom_reason']
+                : $post['reason']);
 
             try {
                 $permit = $this->permitService->createPermit($post, true);

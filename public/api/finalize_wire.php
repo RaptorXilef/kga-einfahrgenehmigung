@@ -1,11 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * API: Abschluss für Überweisungen v0.12.0
  * Überführt den Antrag in die Hauptdatenbank (Status: wartend).
+ *
+ * @file public/api/finalize_wire.php
  */
+
+declare(strict_types=1);
+
 $appRoot = (function (): string {
     $dir = __DIR__;
     while ($dir !== \dirname($dir)) {

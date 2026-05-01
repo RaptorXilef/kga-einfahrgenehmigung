@@ -42,7 +42,8 @@ final readonly class PermitController
                 $this->permitService->createPendingVerification($post);
 
                 $success = true;
-                $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag (und ggf. Gutschein) zu aktivieren.';
+                $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. '
+                    . 'Bitte klicken Sie auf den Link darin, um Ihren Antrag (und ggf. Gutschein) zu aktivieren.';
             } catch (\Exception $exception) {
                 $message = 'Fehler: ' . $exception->getMessage();
             }

@@ -29,7 +29,7 @@ final readonly class CheckController
         private StorageInterface $storage,
         private AuthService $auth,
         private HolidayService $holidayService,
-        private PermitService $permitService, // FIX: PermitService hinzugefügt
+        private PermitService $permitService,
     ) {
     }
 
@@ -45,7 +45,7 @@ final readonly class CheckController
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
 
         // 2. Suche in verifizierten Anträgen (Warteraum 2) via PermitService
-        // FIX: Wir nutzen nun die saubere Service-Methode statt loadJson
+        // FIX: Wir nutzen den PermitService, um den Warteraum zu prüfen
         $tempRequest = $this->permitService->getVerifiedRequest($token);
 
         if ($code === '' && ! $tempRequest) {
@@ -63,12 +63,11 @@ final readonly class CheckController
                 'config'              => $this->config,
                 'settings'            => $this->getSettingsArray(),
                 'appRoot'             => $this->config->get('root_path'),
-                // Diese Flags werden für das Template benötigt:
-                'isDateValid'   => true,
-                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                'allowedToday'  => $this->holidayService->getTodayAllowedSlots(),
-                'showAdminView' => false,
-                'permit'        => null,
+                'isDateValid'         => true,
+                'isTimeAllowed'       => $this->holidayService->isTimeAllowedNow(),
+                'allowedToday'        => $this->holidayService->getTodayAllowedSlots(),
+                'showAdminView'       => false,
+                'permit'              => null,
             ]);
 
             return;

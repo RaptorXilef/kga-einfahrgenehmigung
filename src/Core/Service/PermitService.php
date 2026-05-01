@@ -137,7 +137,9 @@ final readonly class PermitService
 
         $token                      = \bin2hex(\random_bytes(32));
         $data['verification_token'] = $token;
-        $data['expires']            = \time() + (3600 * 24);
+        // FIX: Timeout aus Config laden (Standard 24h)
+        $hours           = (int) $this->config->get('hours_pending_verify', 24);
+        $data['expires'] = \time() + (3600 * $hours);
 
         // Wir speichern das in einer separaten Datei (storage/pending_verification.json)
         $storagePath = $this->config->get('root_path') . '/storage/pending_verification.json';
@@ -173,7 +175,7 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                    $permit->von->format('d.m.Y') . ' bis ' . $permit->bis->format('d.m.Y') . '.',
+                        $permit->von->format('d.m.Y') . ' bis ' . $permit->bis->format('d.m.Y') . '.',
                 );
             }
         }
@@ -195,7 +197,7 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
-                    'Bitte warten Sie 24h oder wählen Sie andere Daten.',
+                        'Bitte warten Sie 24h oder wählen Sie andere Daten.',
                 );
             }
         }
@@ -235,7 +237,9 @@ final readonly class PermitService
 
         // In Warteraum 2 (48h) schieben
         $data['verified_at'] = \time();
-        $data['expires']     = \time() + (3600 * 48);
+        // FIX: Timeout aus Config laden (Standard 48h)
+        $hours           = (int) $this->config->get('hours_pending_finalize', 48);
+        $data['expires'] = \time() + (3600 * $hours);
 
         $allVerified         = $this->loadJson($verifiedPath);
         $allVerified[$token] = $data;
@@ -301,9 +305,10 @@ final readonly class PermitService
             $originalCount = \count($data);
 
             // Entferne alle abgelaufenen Einträge
-            $data = \array_filter($data, function ($item) use ($now) {
-                return isset($item['expires']) && (int) $item['expires'] > $now;
-            });
+            $data = \array_filter(
+                $data,
+                fn ($item) => isset($item['expires']) && (int) $item['expires'] > $now,
+            );
 
             // Wenn etwas gelöscht wurde, Datei direkt bereinigen
             if (\count($data) !== $originalCount) {
@@ -396,13 +401,13 @@ final readonly class PermitService
     {
         // SEPA EPC-QR-Code (BezahlCode) Standard
         return "BCD\n001\n1\nSCT\n" .
-                $this->config->get('bic') . "\n" .
-                $this->config->get('kontoinhaber') . "\n" .
-                $this->config->get('iban') . "\n" .
-                'EUR' . \number_format($amount, 2, '.', '') . "\n" .
-                "\n" . // Purpose Code leer
-                "\n" . // Structured Reference leer
-                $reference;
+            $this->config->get('bic') . "\n" .
+            $this->config->get('kontoinhaber') . "\n" .
+            $this->config->get('iban') . "\n" .
+            'EUR' . \number_format($amount, 2, '.', '') . "\n" .
+            "\n" . // Purpose Code leer
+            "\n" . // Structured Reference leer
+            $reference;
     }
 
     /**
@@ -433,7 +438,8 @@ final readonly class PermitService
     {
         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         $res   = '';
-        for ($i = 0; $i < 4; ++$i) {
+        // FIX: Von 4 auf 6 Zeichen erhöht für 1400 Parzellen / 10 Jahre Sicherheit
+        for ($i = 0; $i < 6; ++$i) {
             $res .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
 
