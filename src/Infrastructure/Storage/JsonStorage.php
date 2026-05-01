@@ -8,9 +8,6 @@
  * Verwaltet den Lese- und Schreibzugriff auf die lokale daten.json.
  *
  * @file      src/Infrastructure/Storage/JsonStorage.php
- *
- * @since     0.1.0
- * - feat(storage): Implementierung der JSON-Persistenz.
  */
 
 declare(strict_types=1);

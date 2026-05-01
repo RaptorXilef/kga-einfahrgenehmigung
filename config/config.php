@@ -111,6 +111,7 @@ return [
     // --- TIMEOUTS (in Stunden) ---
     'hours_pending_verify'   => 24, // Zeit für E-Mail Bestätigung
     'hours_pending_finalize' => 48, // Zeit für Bezahlung oder Überweisungsantrag nach Verifizierung
+    'magic_link_duration'    => 15, // Minuten, die ein Login-Link gültig ist
 
     // --- AUTH & USER MANAGEMENT ---
     'superadmin' => [

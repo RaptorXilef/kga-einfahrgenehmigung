@@ -33,6 +33,7 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
+use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
@@ -78,6 +79,11 @@ class Container
 
         // Service für Gutscheine
         $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
+            $this->get(ConfigInterface::class),
+        );
+
+        // Servive verwaltet die temporären Token für den Login
+        $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
             $this->get(ConfigInterface::class),
         );
 

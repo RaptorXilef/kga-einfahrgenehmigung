@@ -566,4 +566,16 @@ final readonly class PermitService
 
         return $all[$token] ?? null;
     }
+
+    /**
+     * Findet alle finalisierten Genehmigungen einer E-Mail-Adresse.
+     *
+     * @return Permit[]
+     */
+    public function getHistoryByEmail(string $email): array
+    {
+        $all = $this->storage->getAll();
+
+        return \array_filter($all, fn (Permit $p) => \strtolower($p->email) === \strtolower($email));
+    }
 }
