@@ -290,13 +290,18 @@ $now = new \DateTimeImmutable();
 
                             <section class="c-card">
                                 <header class="c-card__header">
-                                    <h3>Gutschein-Code erzeugen</h3>
+                                    <h3>Gutschein-Code erstellen</h3>
                                 </header>
                                 <form method="POST" class="c-form">
                                     <input type="hidden" name="action" value="create_voucher">
 
                                     <div class="c-form-group">
-                                        <label class="c-form-label">Genehmigungs-Typ für diesen Code</label>
+                                        <label class="c-form-label">Interne Bezeichnung (z.B. Bar bezahlt für ML-123)</label>
+                                        <input type="text" name="reason_internal" class="c-form-input" required placeholder="Garten ML-0412 / Barzahlung">
+                                    </div>
+
+                                    <div class="c-form-group u-margin-top-s">
+                                        <label class="c-form-label">Vorlage</label>
                                         <select name="template_key" class="c-form-select">
                                             <?php foreach ($config->get('permit_templates') as $key => $tpl) {
                                                 echo "<option value='$key'>{$tpl['label']}</option>";
@@ -304,38 +309,46 @@ $now = new \DateTimeImmutable();
                                         </select>
                                     </div>
 
-                                    <div class="c-form-group u-margin-top-s">
-                                        <label class="c-form-label">Grund für Gutschein</label>
-                                        <select name="reason" class="c-form-select" onchange="this.value==='other' ? document.getElementById('custom_v').classList.remove('u-hidden') : document.getElementById('custom_v').classList.add('u-hidden')">
-                                            <?php foreach ($reasons as $r) {
-                                                echo "<option value='" . \htmlspecialchars($r) . "'>" . \htmlspecialchars($r) . '</option>';
-                                            } ?>
-                                            <option value="other">Anderer Grund...</option>
-                                        </select>
-                                        <input type="text" name="custom_reason" id="custom_v" class="c-form-input u-margin-top-s u-hidden" placeholder="Manueller Grund">
+                                    <div class="u-margin-top-m u-padding-s" style="background:#f9f9f9; border:1px solid #ddd; border-radius:5px;">
+                                        <p class="u-font-bold u-margin-bottom-s">Vorbefüllung / Sperrung (Optional)</p>
+                                        <div class="u-flex u-gap-s">
+                                            <input type="text" name="pre_name" class="c-form-input" placeholder="Name">
+                                            <input type="text" name="pre_parzelle" class="c-form-input" style="width:80px" placeholder="Parz.">
+                                        </div>
+                                        <input type="text" name="pre_kennzeichen" class="c-form-input u-margin-top-s" placeholder="Kennzeichen">
                                     </div>
-                                    <button type="submit" class="c-button u-width-100 u-margin-top-m">Code für Vorlage erzeugen</button>
+
+                                    <button type="submit" class="c-button u-width-100 u-margin-top-m">Gutschein & QR erzeugen</button>
                                 </form>
 
                                 <h4 class="u-margin-top-l">Offene Gutscheine</h4>
-                                <table class="c-table c-table--small">
-                                    <?php foreach ($vouchers as $v) {
-                                        if ($v['used']) {
-                                            continue;
-                                        }
-                                        $directUrl = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
-                                        $qrUrl     = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' . \urlencode($directUrl);
-                                        ?>
-                                        <tr>
-                                            <td style="width: 110px;"><img src="<?php echo $qrUrl; ?>" alt="QR" style="border:1px solid #ccc;"></td>
-                                            <td>
-                                                <code><?php echo $v['code']; ?></code><br>
-                                                <small><?php echo \htmlspecialchars($v['reason']); ?></small><br>
-                                                <a href="<?php echo $directUrl; ?>" target="_blank" style="font-size: 10px;">Direkt-Link öffnen</a>
-                                            </td>
-                                        </tr>
-                                    <?php } ?>
-                                </table>
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    <table class="c-table c-table--small">
+                                        <?php foreach ($vouchers as $v) {
+                                            if ($v['used']) {
+                                                continue;
+                                            }
+                                            $url = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+                                            $qr  = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' . \urlencode($url);
+                                            ?>
+                                            <tr>
+                                                <td><img src="<?php echo $qr; ?>" alt="QR" style="border:1px solid #ccc;"></td>
+                                                <td>
+                                                    <strong><?php echo $v['reason']; ?></strong><br>
+                                                    <code><?php echo $v['code']; ?></code><br>
+                                                    <a href="<?php echo $url; ?>" target="_blank" style="font-size:10px;">Vorschau Link</a>
+                                                </td>
+                                                <td>
+                                                    <form method="POST" onsubmit="return confirm('Gutschein wirklich löschen?')">
+                                                        <input type="hidden" name="action" value="delete_voucher">
+                                                        <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                                        <button type="submit" class="c-button c-button--danger c-button--small">🗑</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
+                                    </table>
+                                </div>
                             </section>
 
                             <section class="c-card">

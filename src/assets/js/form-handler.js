@@ -39,10 +39,19 @@ export class PermitFormHandler {
             input?.addEventListener('change', () => this.validateBerlinRestrictions());
         });
 
-        // Initialer Check für die Ansicht
         if (this.typSelect) {
+            // Initialer Check für die Ansicht
             this.toggleVehicleFields(this.typSelect.value);
         }
+
+        this.tplSelect = document.getElementById('template_key');
+        this.priceDisplay = document.getElementById('price-display');
+
+        this.tplSelect?.addEventListener('change', () => this.updatePrice());
+        this.typSelect?.addEventListener('change', () => this.updatePrice());
+
+        // Initialer Preisaufruf
+        this.updatePrice();
     }
 
     /**
@@ -171,6 +180,19 @@ export class PermitFormHandler {
             month = Math.floor((h + l - 7 * m + 114) / 31),
             day = ((h + l - 7 * m + 114) % 31) + 1;
         return new Date(year, month - 1, day);
+    }
+
+    async updatePrice() {
+        if (!this.tplSelect || !this.typSelect) return;
+
+        const response = await fetch(
+            `api/get_template_price.php?key=${this.tplSelect.value}&typ=${this.typSelect.value}`
+        );
+        const data = await response.json();
+
+        if (this.priceDisplay) {
+            this.priceDisplay.innerText = `Gebühr: ${data.formatted}`;
+        }
     }
 }
 

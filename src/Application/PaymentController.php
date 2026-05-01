@@ -82,19 +82,25 @@ final readonly class PaymentController
         $message = '';
         $success = false;
 
-        // NEU: Vorbefüllung durch Gutschein prüfen (GET)
+        // Gutschein via URL-Parameter prüfen
         $voucherCode = (string) ($_GET['voucher'] ?? '');
         $prefill     = null;
 
         if ($voucherCode !== '') {
-            $voucher = $this->permitService->getVoucherService()->getVoucherDetails($voucherCode);
-            if ($voucher && ! $voucher['used']) {
-                $prefill = $voucher; // Enthält vordefinierte Daten
+            $prefill = $this->permitService->getVoucherService()->loadVouchers()[$voucherCode] ?? null;
+            if ($prefill && $prefill['used']) {
+                $prefill = null;
             }
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // ... (Bestandslogik bleibt gleich)
+            try {
+                $this->permitService->createPendingVerification($post);
+                $success = true;
+                $message = 'E-Mail wurde versandt. Bitte bestätigen Sie den Link.';
+            } catch (\Exception $e) {
+                $message = 'Fehler: ' . $e->getMessage();
+            }
         }
 
         $this->render('formular', [
