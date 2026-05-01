@@ -2,6 +2,28 @@
 
 
 
+## [0.12.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.11.0...v0.12.0) (2026-05-01)
+
+### 🚀 Features
+
+* **admin:** implement tools tab for manual bookings and vouchers ([2b740b6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2b740b68773a409d08419eb1b9417f21ec4b2002))
+* **api:** complete 2-stage verification and payment finalization ([e30ff96](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e30ff962c1b7e81d9fffad2eabe6292435490877))
+* **api:** implement paypal order creation for verified permits ([58c9971](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/58c99715db0cb92e49883c0e5a076795e758924b))
+* **core:** implement voucher service and internal comment persistence ([11bc186](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/11bc186fdb940f9d272929050659f2006a5fd3d5))
+* **logic:** implement public voucher redemption and fix service access ([c81e99a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c81e99a571f97f629cc3575cf36ff0ba79447062))
+* **workflow:** enforce email verification before payment or voucher usage ([f54cfb8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f54cfb8f352c745f084da0210e03bf083d8dcb70))
+* **workflow:** implement 2-stage pending system for improved data quality ([7e12daa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e12daa20804c03e172d6eeb1ea68731c4e0e1b3))
+
+### 🐛 Bug Fixes
+
+* **controller:** resolve dependency errors and refactor verified request access ([bc4a534](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bc4a5342cb727cd027e32e76af3f3f710dbf6674))
+* **qa:** ensure identifier uniqueness and resolve PHPMD/PHPStan violations ([8976bea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8976bea7d2008b9b581fcaf62ea3eb7057cc97da))
+* **qa:** resolve phpcs violations and scale identifier for 1400 plots ([339a826](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/339a82642d5720732e67e21eddb994d466ac782f))
+
+### 🧹 Chore / Maintenance
+
+* **cleanup:** remove legacy paypal logic and unused dependencies ([66f37ec](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/66f37ecb2ee350788004907dc7e577c25326e9ca))
+
 ## [0.11.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.10.0...v0.11.0) (2026-04-29)
 
 ### 🚀 Features
