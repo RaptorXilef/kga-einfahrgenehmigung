@@ -23,6 +23,7 @@ final readonly class VoucherService
 
     /**
      * Erstellt einen Gutschein mit optionalen Vorbefüllungs-Daten v0.15.0
+     *
      * @param array<string, mixed> $prefillData Felder wie 'name', 'parzelle', 'kennzeichen'
      */
     public function createVoucher(string $reason, string $createdBy, string $templateKey, array $prefillData = []): string
@@ -45,22 +46,40 @@ final readonly class VoucherService
     }
 
     /**
-     * Prüft einen Code und entwertet ihn, wenn er gültig ist.
+     * Löst einen Gutschein ein und archiviert ihn v0.16.0
      *
-     * @return array<string, mixed>|null
+     * @param array<string, mixed> $userData Daten des Pächters (Name, Email, Parzelle)
      */
-    public function useVoucher(string $code): ?array
+    public function useVoucher(string $code, array $userData = []): ?array
     {
         $vouchers = $this->loadVouchers();
         if (! isset($vouchers[$code])) {
             return null;
         }
 
-        $data = $vouchers[$code];
-        unset($vouchers[$code]); // Aus der Datei entfernen
+        $voucher = $vouchers[$code];
+
+        // Archiv-Eintrag erstellen
+        $archivePath = $this->config->get('root_path') . '/storage/vouchers_archive.json';
+        $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
+
+        $archive[] = [
+            'code'        => $code,
+            'reason'      => $voucher['reason'],
+            'template'    => $voucher['template_key'],
+            'redeemed_at' => \date('Y-m-d H:i:s'),
+            'user_name'   => $userData['name'] ?? 'Unbekannt',
+            'user_plot'   => $userData['parzelle'] ?? '?',
+            'user_email'  => $userData['email'] ?? '?',
+        ];
+
+        \file_put_contents($archivePath, \json_encode($archive, \JSON_PRETTY_PRINT));
+
+        // Aus aktiven Gutscheinen löschen
+        unset($vouchers[$code]);
         $this->saveVouchers($vouchers);
 
-        return $data;
+        return $voucher;
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PayPal Order Erstellung für verifizierte, aber noch nicht finale Anträge v0.12.0
+ * PayPal Order Erstellung v0.14.0 - Nutzt den Preis-Snapshot
  *
  * @file public/api/create_order_for_token.php
  */
@@ -37,27 +37,23 @@ if ($token === '') {
 
 $settings              = require_once $appRoot . '/config/config.php';
 $settings['root_path'] = $appRoot;
+$container             = new Container(new Config($settings));
 
-$container = new Container(new Config($settings));
-$payment   = $container->get(PaymentProviderInterface::class);
-
-// Wir suchen im Warteraum 2 (verified_pending)
+// Warteraum laden
 $verifiedPath = $appRoot . '/storage/verified_pending.json';
 // FIX: Das @-Zeichen zur Fehlerunterdrückung ohne Backslash nutzen
 // FIX: Long Ternary statt Short Ternary
 $content     = \file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}';
-$allVerified = \json_decode($content, true);
-// FIX: Sicherstellen dass es ein Array ist
-$allVerified = \is_array($allVerified) ? $allVerified : [];
-
+$allVerified = \json_decode($content, true) ?? [];
 $tempRequest = $allVerified[$token] ?? null;
 
-if ($tempRequest === null) {
-    echo \json_encode(['success' => false, 'error' => 'Antragssitzung nicht gefunden oder abgelaufen']);
+if (! $tempRequest) {
+    echo \json_encode(['success' => false, 'error' => 'Antragssitzung nicht gefunden']);
     exit;
 }
 
-// PayPal Order mit dem im Warteraum gespeicherten Preis erstellen
+// FIX: Preis zwingend aus dem Snapshot nehmen
+$payment = $container->get(PaymentProviderInterface::class);
 $orderId = $payment->createOrder((float) $tempRequest['preisSnapshot']);
 
 if (! $orderId) {

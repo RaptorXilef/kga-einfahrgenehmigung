@@ -4,6 +4,7 @@
  * @var \App\Core\Entity\Permit[] $permits
  * @var string                    $email
  * @var array                     $settings
+ * @var int                       $currentArchiveYear
  */
 ?>
 <!DOCTYPE html>
@@ -65,6 +66,19 @@
                     </tbody>
                 </table>
             <?php } ?>
+
+            <div class="u-padding-around-m u-border-top u-text-center">
+                <?php
+                $lastYear = (int) \date('Y') - 1;
+if ($currentArchiveYear !== $lastYear) {
+    ?>
+                    <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--text">
+                        📥 Daten aus dem Jahr <?php echo $lastYear; ?> laden
+                    </a>
+                <?php } else { ?>
+                    <p class="u-text-small u-text-muted">Archiv <?php echo $lastYear; ?> ist geladen.</p>
+                <?php } ?>
+            </div>
         </section>
 
         <div class="u-margin-top-l u-text-center">

@@ -3,6 +3,7 @@
 /**
  * API: Liefert den Preis für ein Template und Fahrzeugtyp v0.15.0
  */
+
 declare(strict_types=1);
 
 $appRoot = (function (): string {

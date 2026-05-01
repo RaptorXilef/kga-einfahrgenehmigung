@@ -591,6 +591,7 @@ final readonly class PermitService
 
     /**
      * Prüft, welche Quartale (1-4) vom Zeitraum der Genehmigung berührt werden.
+     *
      * @return array<int>
      */
     public function getCoveredQuarters(Permit $permit): array
@@ -601,5 +602,44 @@ final readonly class PermitService
         // Wenn es über ein Jahr hinausgeht, müssten wir mehr tun,
         // aber für Dauerkarten innerhalb eines Kalenderjahres reicht:
         return \range($startQ, $endQ);
+    }
+
+    /**
+     * Prüft und führt die Jahres-Archivierung durch v0.16.0
+     */
+    public function checkAndArchive(): void
+    {
+        $archiveDeadline = (string) $this->config->get('archive_deadline', '02-01'); // Standard 1. Feb
+        if (\date('m-d') < $archiveDeadline) {
+            return;
+        }
+
+        $lastYear = (int) \date('Y') - 1;
+        $mainPath = $this->config->get('root_path') . '/storage/daten.json';
+        $all      = $this->loadJson($mainPath);
+
+        $toArchive  = [];
+        $stayInMain = [];
+
+        foreach ($all as $code => $data) {
+            $year = (int) \substr((string) $data['erstellt'], 0, 4);
+            if ($year <= $lastYear) {
+                $toArchive[$code] = $data;
+            } else {
+                $stayInMain[$code] = $data;
+            }
+        }
+
+        if ($toArchive === []) {
+            return;
+        }
+
+        $yearPath = $this->config->get('root_path') . "/storage/daten_{$lastYear}.json";
+        // Bestehendes Archiv laden oder neu erstellen
+        $existingYear = \file_exists($yearPath) ? \json_decode((string) \file_get_contents($yearPath), true) : [];
+        $newYearData  = \array_merge($existingYear, $toArchive);
+
+        \file_put_contents($yearPath, \json_encode($newYearData, \JSON_PRETTY_PRINT));
+        \file_put_contents($mainPath, \json_encode($stayInMain, \JSON_PRETTY_PRINT));
     }
 }

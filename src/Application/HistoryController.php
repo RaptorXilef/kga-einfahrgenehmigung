@@ -126,21 +126,42 @@ final readonly class HistoryController
             . ' Min).';
     }
 
-    private function renderView(string $email, string $message): void
+    private function renderView(string $email, string $message, array $get): void
     {
-        if ($email !== '') {
-            $this->render('history_list', [
-                'permits'  => $this->permitService->getHistoryByEmail($email),
-                'email'    => $email,
+        if ($email === '') {
+            $this->render('history_login', [
+                'message'  => $message,
                 'settings' => $this->getSettingsArray(),
             ]);
 
             return;
         }
 
-        $this->render('history_login', [
-            'message'  => $message,
-            'settings' => $this->getSettingsArray(),
+        // 1. Aktuelle Daten laden
+        $permits = $this->permitService->getHistoryByEmail($email);
+
+        // 2. Archive laden, falls angefordert (?load_archive=2025)
+        $loadedYear = (int) ($get['load_archive'] ?? 0);
+        if ($loadedYear > 0) {
+            $archivePath = $this->config->get('root_path') . "/storage/daten_{$loadedYear}.json";
+            if (\file_exists($archivePath)) {
+                $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+                // Filter für E-Mail im Archiv
+                foreach ($archiveData as $item) {
+                    if (\strtolower((string) $item['email']) !== \strtolower($email)) {
+                        continue;
+                    }
+
+                    $permits[] = $this->permitService->getStorage()->mapToEntity($item);
+                }
+            }
+        }
+
+        $this->render('history_list', [
+            'permits'            => $permits,
+            'email'              => $email,
+            'settings'           => $this->getSettingsArray(),
+            'currentArchiveYear' => $loadedYear,
         ]);
     }
 

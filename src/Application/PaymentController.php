@@ -17,6 +17,8 @@ use App\Core\Service\PermitService;
  */
 final readonly class PaymentController
 {
+    public $config;
+
     public function __construct(
         private PermitService $permitService,
     ) {
@@ -62,7 +64,7 @@ final readonly class PaymentController
     private function getSettingsArray(?array $prefill = null): array
     {
         $templates = $this->config->get('permit_templates', []);
-        $public    = \array_filter($templates, fn ($t) => ($t['public'] ?? false) === true);
+        $public    = \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true);
 
         // Falls der Gutschein ein privates Template nutzt, fügen wir es für diesen User hinzu
         if ($prefill && isset($prefill['template_key']) && ! isset($public[$prefill['template_key']])) {
