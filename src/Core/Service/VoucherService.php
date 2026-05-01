@@ -26,8 +26,12 @@ final readonly class VoucherService
      *
      * @param array<string, mixed> $prefillData Felder wie 'name', 'parzelle', 'kennzeichen'
      */
-    public function createVoucher(string $reason, string $createdBy, string $templateKey, array $prefillData = []): string
-    {
+    public function createVoucher(
+        string $reason,
+        string $createdBy,
+        string $templateKey,
+        array $prefillData = [],
+    ): string {
         $code     = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
         $vouchers = $this->loadVouchers();
 
@@ -131,5 +135,21 @@ final readonly class VoucherService
         }
 
         return \json_decode((string) \file_get_contents($path), true) ?? [];
+    }
+
+    /**
+     * Ändert den Status eines Gutscheins (z.B. aktiv/deaktiviert)
+     */
+    public function toggleStatus(string $code, string $status): bool
+    {
+        $vouchers = $this->loadVouchers();
+        if (! isset($vouchers[$code])) {
+            return false;
+        }
+
+        $vouchers[$code]['status'] = $status;
+        $this->saveVouchers($vouchers);
+
+        return true;
     }
 }

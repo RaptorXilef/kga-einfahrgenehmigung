@@ -41,8 +41,11 @@ $container             = new Container(new Config($settings));
 
 // Warteraum laden
 $verifiedPath = $appRoot . '/storage/verified_pending.json';
-$allVerified  = \json_decode(\file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}', true) ?? [];
-$tempRequest  = $allVerified[$token] ?? null;
+$allVerified  = \json_decode(
+    \file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}',
+    true,
+) ?? [];
+$tempRequest = $allVerified[$token] ?? null;
 
 if (! $tempRequest) {
     echo \json_encode(['success' => false, 'error' => 'Sitzung nicht gefunden']);

@@ -8,6 +8,9 @@
  * @var array|null                        $prefill
  */
 
+// Initialisierung der Variable, falls sie vom Controller vergessen wurde
+$prefill ??= null;
+
 // Hilfsfunktion: Prüft ob ein Feld durch Gutschein gesperrt ist
 $isLocked = function ($fieldName) use ($prefill) {
     if (! $prefill || ! isset($prefill['data'])) {

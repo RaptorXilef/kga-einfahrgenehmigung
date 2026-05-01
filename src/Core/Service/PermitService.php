@@ -675,4 +675,14 @@ final readonly class PermitService
 
         return $this->storage->save($updated);
     }
+
+    /**
+     * Hilfsmethode für Controller, um Rohdaten in eine Entität zu wandeln
+     */
+    public function arrayToEntity(array $data): Permit
+    {
+        // Wir nutzen den Storage, um die Konvertierung durchzuführen
+        // (Wir müssen mapToEntity dort public machen oder hier nachbauen)
+        return $this->storage->mapToEntity($data);
+    }
 }

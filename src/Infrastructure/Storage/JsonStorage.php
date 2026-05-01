@@ -76,7 +76,7 @@ final readonly class JsonStorage implements StorageInterface
     /**
      * @param array<string, mixed> $item
      */
-    private function mapToEntity(array $item): Permit
+    public function mapToEntity(array $item): Permit
     {
         return new Permit(
             code: (string) $item['code'],

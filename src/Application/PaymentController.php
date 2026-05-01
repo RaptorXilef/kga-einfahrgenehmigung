@@ -114,4 +114,14 @@ final readonly class PaymentController
             'prefill'  => $prefill,
         ]);
     }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function render(string $templatePath, array $data = []): void
+    {
+        $appRoot = (string) $this->config->get('root_path');
+        \extract($data);
+        include $appRoot . "/templates/pages/{$templatePath}.phtml";
+    }
 }
