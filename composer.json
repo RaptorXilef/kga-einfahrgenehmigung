@@ -66,8 +66,9 @@
     "post-autoload-dump": "@setup",
 
     "// --- PHASE 1: STATIC ANALYSIS (CHECKING) ---": "Read-Only Qualitätsprüfungen",
+    "chk:stan-create-baseline": "phpstan analyse --generate-baseline",
+    "// ------": "",
     "chk:stan": "phpstan analyse --memory-limit=2G",
-    "chk:stan-baseline": "phpstan analyse --generate-baseline",
     "chk:cs": "phpcs",
     "chk:style": "php-cs-fixer fix --dry-run --diff --no-interaction",
     "chk:md": "phpmd analyze src --format text --ruleset phpmd.xml.dist",

@@ -1,5 +1,11 @@
 <?php
 
+// SPDX-License-Identifier: CC BY-NC-SA 4.0
+
+/**
+ * @file src/Core/Service/VoucherService.php
+ */
+
 declare(strict_types=1);
 
 namespace App\Core\Service;
@@ -38,6 +44,8 @@ final readonly class VoucherService
 
     /**
      * Prüft einen Code und entwertet ihn, wenn er gültig ist.
+     *
+     * @return array<string, mixed>|null
      */
     public function useVoucher(string $code): ?array
     {

@@ -45,17 +45,18 @@ final readonly class CheckController
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
 
         // 2. Suche in verifizierten Anträgen (Warteraum 2) via PermitService
-        // FIX: Wir nutzen den PermitService, um den Warteraum zu prüfen
+        // Wir nutzen den PermitService, um den Warteraum zu prüfen
         $tempRequest = $this->permitService->getVerifiedRequest($token);
 
-        if ($code === '' && ! $tempRequest) {
+        // Guard: Nichts eingegeben
+        if ($code === '' && $tempRequest === null) {
             $this->render('check_search', ['error' => null]);
 
             return;
         }
 
-        // Wenn wir im Warteraum 2 sind, rendern wir die Bezahlseite
-        if ($tempRequest && ! $permit) {
+        // Weiche 1: Warteraum (Bezahlseite)
+        if ($tempRequest !== null && ! $permit instanceof Permit) {
             $this->render('check_public', [
                 'isWaitingForPayment' => true,
                 'tempData'            => $tempRequest,
@@ -73,8 +74,8 @@ final readonly class CheckController
             return;
         }
 
-        // Normaler Fall: Genehmigung prüfen
-        if ($permit) {
+        // Weiche 2: Genehmigung gefunden
+        if ($permit instanceof Permit) {
             $showAdminView = $this->determineViewPrivileges($permit, $get);
             $this->render($showAdminView ? 'check_admin' : 'check_public', [
                 'permit'        => $permit,
@@ -87,9 +88,12 @@ final readonly class CheckController
                 'appRoot'       => $this->config->get('root_path'),
                 'tempData'      => null,
             ]);
-        } else {
-            $this->render('check_search', ['error' => "Code '{$code}' nicht gefunden."]);
+
+            return;
         }
+
+        // Letzter Fall: Code nicht gefunden
+        $this->render('check_search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 
     /**

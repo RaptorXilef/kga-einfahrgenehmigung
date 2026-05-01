@@ -10,13 +10,6 @@
  * mit konfigurierbaren Sicherheits-Features und dynamischem Pricing.
  *
  * @file      src/Core/Service/PermitService.php
- *
- * @copyright (c) 2026 Felix Maywald. All rights reserved.
- * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE
- *
- * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
- *
- * @author    Felix Maywald (@RaptorXilef)
  */
 
 declare(strict_types=1);
@@ -64,30 +57,36 @@ final readonly class PermitService
         if ($conflicts !== []) {
             // Wir werfen hier keine Exception, sondern loggen es evtl. oder lassen es zu,
             // da die PDF-Regeln (Handzettel) darauf hinweisen.
-            // Falls es blockieren soll: throw new \RuntimeException("Zeitkonflikt: " . implode(', ', $conflicts));
+            // Falls es später doch blockieren soll:
+            // throw new \RuntimeException("Zeitkonflikt: " . implode(', ', $conflicts));
         }
 
         $parzelle = \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT);
         $typ      = (string) ($data['typ'] ?? 'pkw');
-        $randomId = $this->generateV4Suffix();
 
-        // 1. Kennzeichen formatieren für die Anzeige (B-HD 7398)
-        $displayPlate = $this->formatLicensePlate((string) ($data['kennzeichen'] ?? ''));
+        // --- NEU: KOLLISIONS-CHECK FÜR DIE EINDEUTIGKEIT ---
+        do {
+            $randomId = $this->generateV4Suffix();
 
-        // 2. Identifier-Plate: Leerzeichen durch Bindestriche ersetzen (B-HD-7398)
-        $identifierPlate = \str_replace(' ', '-', $displayPlate);
+            // 1. Kennzeichen formatieren für die Anzeige (B-HD 7398)
+            $displayPlate = $this->formatLicensePlate((string) ($data['kennzeichen'] ?? ''));
 
-        // 3. Eindeutige Kennung bauen: ML-0371-B-HD-7398-6Y5C
-        // FIX: Short Ternary ersetzt durch expliziten Check für PHPStan Level 6
-        $platePart = $identifierPlate !== '' ? $identifierPlate : 'LKW';
+            // 2. Identifier-Plate: Leerzeichen durch Bindestriche ersetzen (B-HD-7398)
+            $identifierPlate = \str_replace(' ', '-', $displayPlate);
 
-        $fullIdentifier = \sprintf(
-            '%s-%s-%s-%s',
-            $this->config->get('prefix', 'ML'),
-            $parzelle,
-            $platePart,
-            $randomId,
-        );
+            // 3. Eindeutige Kennung bauen: ML-0371-B-HD-7398-6Y5C
+            // FIX: Short Ternary ersetzt durch expliziten Check für PHPStan Level 6
+            $platePart = $identifierPlate !== '' ? $identifierPlate : 'LKW';
+
+            $fullIdentifier = \sprintf(
+                '%s-%s-%s-%s',
+                $this->config->get('prefix', 'ML'),
+                $parzelle,
+                $platePart,
+                $randomId,
+            );
+            // Wir prüfen, ob der Code bereits existiert (Storage oder Warteräume)
+        } while ($this->storage->findByHash($fullIdentifier) instanceof Permit);
 
         /** @var array<string, string> $purposes */
         $purposes = $this->config->get('purposes', []);
@@ -104,9 +103,10 @@ final readonly class PermitService
             zweck: $zweck,
             preisSnapshot: $this->config->getPriceForType($typ),
             von: $startDate,
-            bis: new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
-            status: 'wartend',
-            erstellt: new \DateTimeImmutable(), // FIX: Der Moment der Antragstellung
+            bis: $endDate,
+            status: (string) ($data['status'] ?? 'wartend'),
+            erstellt: new \DateTimeImmutable(),
+            internerKommentar: isset($data['internerKommentar']) ? (string) $data['internerKommentar'] : null,
         );
 
         if (! $this->storage->save($permit)) {
@@ -217,6 +217,8 @@ final readonly class PermitService
 
     /**
      * Schritt 2: Verschiebt von unbestätigt (24h) nach verifiziert (48h).
+     *
+     * @return array<string, mixed>|null
      */
     public function confirmEmail(string $token): ?array
     {
@@ -227,8 +229,10 @@ final readonly class PermitService
         if (! isset($allPending[$token])) {
             // Falls der User den Link nochmal klickt, schauen wir, ob er schon in verified_pending liegt
             $allVerified = $this->loadJson($verifiedPath);
+            /** @var array<string, mixed>|null $res */
+            $res = $allVerified[$token] ?? null;
 
-            return $allVerified[$token] ?? null;
+            return $res;
         }
 
         $data = $allPending[$token];
@@ -236,10 +240,9 @@ final readonly class PermitService
         $this->saveJson($pendingPath, $allPending);
 
         // In Warteraum 2 (48h) schieben
+        $hours               = (int) $this->config->get('hours_pending_finalize', 48);
         $data['verified_at'] = \time();
-        // FIX: Timeout aus Config laden (Standard 48h)
-        $hours           = (int) $this->config->get('hours_pending_finalize', 48);
-        $data['expires'] = \time() + (3600 * $hours);
+        $data['expires']     = \time() + (3600 * $hours);
 
         $allVerified         = $this->loadJson($verifiedPath);
         $allVerified[$token] = $data;
@@ -249,7 +252,7 @@ final readonly class PermitService
         $voucherCode = \trim((string) ($data['voucher'] ?? ''));
         if ($voucherCode !== '') {
             $voucher = $this->voucherService->useVoucher($voucherCode);
-            if ($voucher) {
+            if ($voucher !== null) { // PHPStan Fix: Expliziter Check
                 return ['finalised' => $this->finaliseRequest($token, 'bezahlt', 'Gutschein: ' . $voucherCode)];
             }
         }
@@ -283,6 +286,9 @@ final readonly class PermitService
         return $permit;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function saveJson(string $path, array $data): void
     {
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
@@ -307,7 +313,7 @@ final readonly class PermitService
             // Entferne alle abgelaufenen Einträge
             $data = \array_filter(
                 $data,
-                fn ($item) => isset($item['expires']) && (int) $item['expires'] > $now,
+                fn (array $item): bool => isset($item['expires']) && (int) $item['expires'] > $now,
             );
 
             // Wenn etwas gelöscht wurde, Datei direkt bereinigen

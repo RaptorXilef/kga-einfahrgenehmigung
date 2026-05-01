@@ -25,41 +25,6 @@ final readonly class PaymentController
     }
 
     /**
-     * Veraltet: handleCreatePending wird im neuen Email-First Workflow
-     * durch PermitService::createPendingVerification ersetzt.
-     */
-    public function handleCreatePending(array $post): void // TODO REMOVE
-    {
-        // ... (kann theoretisch entfernt werden, wenn v0.12.1 stabil läuft)
-
-        \header('Content-Type: application/json');
-
-        try {
-            // 1. Genehmigung erstellen (Status: wartend, noch keine Mails)
-            $permit = $this->permitService->createPermit($post, false);
-
-            // 2. PayPal Order reservieren
-            $paypalOrderId = $this->paymentProvider->createOrder($permit->preisSnapshot);
-
-            if (! $paypalOrderId) {
-                throw new \Exception('PayPal-Schnittstelle antwortet nicht.');
-            }
-
-            $this->jsonResponse([
-                'success'       => true,
-                'code'          => $permit->code,
-                'paypalOrderId' => $paypalOrderId,
-            ]);
-        } catch (\Exception $exception) {
-            \http_response_code(400);
-            $this->jsonResponse([
-                'success' => false,
-                'error'   => $exception->getMessage(),
-            ]);
-        }
-    }
-
-    /**
      * Verarbeitet das Capture (Geldeinzug) von PayPal-Bestellungen.
      * Nutzt jetzt das 'token' zur Identifizierung im Warteraum.
      */
@@ -94,15 +59,5 @@ final readonly class PaymentController
                 'error'   => $exception->getMessage(),
             ]);
         }
-    }
-
-    /**
-     * Hilfsmethode für saubere JSON-Ausgabe.
-     *
-     * @param array<string, mixed> $data
-     */
-    private function jsonResponse(array $data): void
-    {
-        echo \json_encode($data, \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT);
     }
 }

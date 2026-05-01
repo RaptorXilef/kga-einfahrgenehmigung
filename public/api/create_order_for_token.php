@@ -44,11 +44,15 @@ $payment   = $container->get(PaymentProviderInterface::class);
 // Wir suchen im Warteraum 2 (verified_pending)
 $verifiedPath = $appRoot . '/storage/verified_pending.json';
 // FIX: Das @-Zeichen zur Fehlerunterdrückung ohne Backslash nutzen
-$content     = @\file_get_contents($verifiedPath);
-$allVerified = \json_decode($content ?: '{}', true) ?? [];
+// FIX: Long Ternary statt Short Ternary
+$content     = \file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}';
+$allVerified = \json_decode($content, true);
+// FIX: Sicherstellen dass es ein Array ist
+$allVerified = \is_array($allVerified) ? $allVerified : [];
+
 $tempRequest = $allVerified[$token] ?? null;
 
-if (! $tempRequest) {
+if ($tempRequest === null) {
     echo \json_encode(['success' => false, 'error' => 'Antragssitzung nicht gefunden oder abgelaufen']);
     exit;
 }

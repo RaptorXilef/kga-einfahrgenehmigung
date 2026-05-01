@@ -33,11 +33,21 @@ final readonly class VerificationController
     public function handleRequest(array $get): void
     {
         $token  = (string) ($get['token'] ?? '');
-        $permit = $this->permitService->confirmEmail($token);
+        $result = $this->permitService->confirmEmail($token);
 
-        if ($permit instanceof Permit) {
+        // Fall A: Sofort finalisiert (z.B. durch Gutschein)
+        if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
+            $permit = $result['finalised'];
+
             // Erfolg: Weiterleitung zur Check-Seite mit Flag für Erfolgsmeldung
             \header('Location: check.php?code=' . $permit->code . '&verified=1');
+
+            return;
+        }
+
+        // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung (Array vorhanden)
+        if (\is_array($result)) {
+            \header('Location: check.php?token=' . $token . '&verified=1');
 
             return;
         }

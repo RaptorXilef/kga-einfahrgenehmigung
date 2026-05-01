@@ -16,7 +16,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\PermitService;
-use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 
@@ -188,7 +187,6 @@ final readonly class AdminController
             ? \json_decode((string) \file_get_contents($logPath), true)
             : [];
 
-        /** @var VoucherService $voucherService */
         $voucherService = $this->permitService->getVoucherService();
 
         $this->render('admin_dashboard', [
