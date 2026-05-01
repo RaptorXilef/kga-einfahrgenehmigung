@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Druckansicht - <?php echo \htmlspecialchars($permit->code); ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+    <style>
+        @media print { .u-no-print { display: none !important; } body { background: white; padding: 0; } }
+        .print-toolbar { background: #2c3e50; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+    <div class="print-toolbar u-no-print">
+        <a href="history.php" class="c-button c-button--secondary">← Zurück zur Übersicht</a>
+        <div class="u-font-bold">Ausnahmegenehmigung: <?php echo \htmlspecialchars($permit->code); ?></div>
+        <button onclick="window.print()" class="c-button c-button--primary">Jetzt drucken / Als PDF speichern</button>
+    </div>
+
+    <?php
+        // Daten-Mapping für das A4-Template
+        $opening = $settings['opening_hours'];
+    $data        = [
+        'fullIdentifier'    => $permit->code,
+        'von'               => $permit->von->format('d.m.Y'),
+        'bis'               => $permit->bis->format('d.m.Y'),
+        'kennzeichen'       => $permit->kennzeichen,
+        'firma'             => $permit->firma,
+        'parzelle'          => $permit->parzelle,
+        'zweck'             => $permit->zweck,
+        'vereinsName'       => $settings['vereins_name'],
+        'jahresFarbe'       => $settings['jahresFarbe'],
+        'opening'           => "{$opening['mon'][0][0]} bis {$opening['mon'][1][1]} Uhr", // Vereinfacht
+        'terminkalenderUrl' => $settings['terminkalender_url'],
+        'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+        'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
+    ];
+
+    \extract($data);
+    include $appRoot . '/templates/emails/permit_a4_document.phtml';
+    ?>
+</body>
+</html>

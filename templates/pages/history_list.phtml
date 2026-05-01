@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var \App\Core\Entity\Permit[] $permits
  * @var string                    $email
@@ -7,11 +8,13 @@
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
 </head>
+
 <body class="u-bg-light">
     <div class="c-container u-padding-y-l">
         <header class="u-flex u-justify-between u-align-center u-margin-bottom-l">
@@ -48,7 +51,14 @@
                                     </span>
                                 </td>
                                 <td class="u-text-right">
-                                    <a href="check.php?code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small">Details / Drucken</a>
+                                    <div class="u-flex u-gap-xs u-justify-end">
+                                        <a href="history.php?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--primary c-button--small">
+                                            🖨 Dokument laden
+                                        </a>
+                                        <a href="check.php?code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small" title="Status prüfen">
+                                            👁
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -62,4 +72,5 @@
         </div>
     </div>
 </body>
+
 </html>

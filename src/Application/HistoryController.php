@@ -37,6 +37,28 @@ final readonly class HistoryController
             return;
         }
 
+        // PDF/Druck-Ansicht für Pächter
+        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
+            if (! $emailInSession) {
+                \header('Location: history.php');
+
+                return;
+            }
+
+            $permit = $this->permitService->getStorage()->findByHash((string) $get['code']);
+
+            // SECURITY CHECK: Gehört die Genehmigung dem User?
+            if ($permit && \strtolower($permit->email) === \strtolower($emailInSession)) {
+                $this->render('history_print_view', [
+                    'permit'   => $permit,
+                    'settings' => $this->getSettingsArray(),
+                    'appRoot'  => $this->config->get('root_path'),
+                ]);
+
+                return; // Beendet den Request hier, damit nur das Dokument geladen wird
+            }
+        }
+
         $message        = '';
         $emailInSession = $_SESSION['user_history_email'] ?? null;
 
