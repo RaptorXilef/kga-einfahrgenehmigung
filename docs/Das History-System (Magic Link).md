@@ -1,31 +1,40 @@
-# 🛡️ Dokumentation: Pächter-Verlauf & Self-Service Portal (v0.13.x)
+# 📁 Dokumentation: Pächter-Verlauf (Self-Service Portal)
 
-Das History-System ermöglicht es Pächtern, alle ihre beantragten Genehmigungen ohne klassisches Passwort-Konto einzusehen und Dokumente erneut zu drucken.
+Das Verlaufsportal ermöglicht Pächtern den Zugriff auf alle ihre bisherigen Genehmigungen und bietet eine bequeme Nachdruck-Funktion.
 
-## 1. Login-Verfahren (Magic Link)
+## 1. Authentifizierung (Magic Link)
 
-Da Pächter das System nur selten nutzen, wurde auf Passwörter verzichtet. Stattdessen kommt das **Magic Link** Verfahren zum Einsatz:
+Um die Hürden niedrig zu halten, nutzt das System keine Passwörter, sondern **Magic Links**:
 
-1. Der Pächter gibt auf `history.php` seine E-Mail-Adresse ein.
-2. Das System prüft, ob für diese E-Mail bereits Genehmigungen in `daten.json` existieren.
-3. Falls ja, wird ein kryptographisch sicheres Einmal-Token generiert und per E-Mail versandt.
-4. Der Link ist standardmäßig **15 Minuten** gültig (`magic_link_duration` in der Config).
-5. Nach dem Klick wird eine Session gesetzt und das Token sofort ungültig gemacht.
+1. Der Nutzer gibt seine E-Mail-Adresse auf der Login-Seite an.
+2. Das System validiert die Existenz von Datensätzen zu dieser E-Mail.
+3. Ein temporärer, kryptographischer Token wird generiert und per E-Mail versandt.
+4. Nach Klick auf den Link wird eine Session für den Browser des Nutzers erstellt.
 
-## 2. Funktionsumfang
+**Sicherheitsparameter:**
 
-Eingeloggte Pächter sehen eine tabellarische Übersicht mit:
+- **Gültigkeit:** Standardmäßig 15 Minuten (einstellbar via `magic_link_duration`).
+- **Einmal-Nutzung:** Der Token wird sofort nach der ersten erfolgreichen Verifizierung gelöscht.
 
-- **SmartCode:** Eindeutige Identifikation.
-- **Zeitraum:** Von-Bis Datum der Gültigkeit.
-- **Status:** Anzeige ob `WARTEND` (Überweisung offen) oder `BEZAHLT`.
-- **Self-Service Druck:** Über den Button "Dokument laden" kann das offizielle A4-PDF/Dokument jederzeit neu generiert werden.
+## 2. Funktionsübersicht
 
-## 3. Sicherheitsaspekte
+Nach dem Login erhält der Pächter eine tabellarische Übersicht seiner Genehmigungen:
 
-- **Besitzprüfung:** Beim Aufruf der Druckfunktion wird serverseitig erneut geprüft, ob die Genehmigung tatsächlich zur E-Mail der aktuellen Sitzung gehört.
-- **Session-basiert:** Der Zugriff erlischt beim Schließen des Browsers oder nach Klick auf "Abmelden".
-- **Token-Schutz:** Token werden in `storage/magic_links.json` mit Ablaufdatum gespeichert und automatisch bereinigt.
+- **Status-Check:** Anzeige, ob die Genehmigung bereits bezahlt wurde oder noch auf Zahlung wartet.
+- **SmartCode:** Anzeige der eindeutigen Kennung für die Windschutzscheibe.
+- **Zeitraum:** Historische und zukünftige Gültigkeitsdaten.
+
+## 3. Self-Service Druckfunktion
+
+Pächter können über den Button **"Dokument laden"** das offizielle Genehmigungs-Dokument (A4-Format) jederzeit neu generieren.
+
+- Dies verhindert Rückfragen beim Vorstand, falls die ursprüngliche E-Mail verloren ging.
+- Die Druckansicht entspricht exakt dem offiziellen Dokument, das auch beim Erstantrag versandt wird.
+
+## 4. Datenschutz & Sicherheit
+
+- **Strict Ownership:** Beim Abruf eines Dokuments prüft der Server, ob die E-Mail-Adresse der aktiven Session exakt mit der E-Mail-Adresse in der Genehmigung übereinstimmt.
+- **Session-Timeout:** Die Anmeldung ist an die PHP-Session gebunden und erlischt beim Schließen des Browsers oder manuellem Logout.
 
 ## 4. Konfiguration
 

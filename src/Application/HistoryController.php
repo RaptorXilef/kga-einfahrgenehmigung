@@ -34,19 +34,16 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // 1. Session & Logout prüfen
-        if (isset($get['action']) && $get['action'] === 'logout') {
-            unset($_SESSION['user_history_email']);
-            \header('Location: history.php');
-
+        // 1. Session & Logout prüfen (Early Return)
+        if ($this->processLogout($get)) {
             return;
         }
 
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
         $message        = '';
 
-        // 2. Druck-Aktion (Guard-Pattern statt Else)
-        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
+        // 2. Druck-Aktion
+        if (isset($get['action'], $get['code']) && $get['action'] === 'print') {
             $this->handlePrintAction((string) $get['code'], $emailInSession);
 
             return;
@@ -57,19 +54,35 @@ final readonly class HistoryController
             $message = $this->handleLinkRequest((string) ($post['email'] ?? ''));
         }
 
-        // 4. Token-Verifizierung
+        // 4. Token-Verifizierung (Begradigt ohne Else)
         if (isset($get['token'])) {
-            $email = $this->magicLinkService->verifyToken((string) $get['token']);
-            if ($email !== null) {
-                $_SESSION['user_history_email'] = $email;
-                $emailInSession                 = $email;
-            } else {
-                $message = 'Der Link ist ungültig oder abgelaufen.';
+            $verifiedEmail = $this->magicLinkService->verifyToken((string) $get['token']);
+            $message       = 'Der Link ist ungültig oder abgelaufen.';
+
+            if ($verifiedEmail !== null) {
+                $_SESSION['user_history_email'] = $verifiedEmail;
+                $emailInSession                 = $verifiedEmail;
+                $message                        = '';
             }
         }
 
         // 5. View-Auswahl
         $this->renderView($emailInSession, $message);
+    }
+
+    /**
+     * @param array<string, mixed> $get
+     */
+    private function processLogout(array $get): bool
+    {
+        if (isset($get['action']) && $get['action'] === 'logout') {
+            unset($_SESSION['user_history_email']);
+            \header('Location: history.php');
+
+            return true;
+        }
+
+        return false;
     }
 
     private function handlePrintAction(string $code, string $emailInSession): void
@@ -81,13 +94,15 @@ final readonly class HistoryController
         }
 
         $permit = $this->permitService->getStorage()->findByHash($code);
-        if ($permit instanceof Permit && \strtolower($permit->email) === \strtolower($emailInSession)) {
-            $this->render('history_print_view', [
-                'permit'   => $permit,
-                'settings' => $this->getSettingsArray(),
-                'appRoot'  => $this->config->get('root_path'),
-            ]);
+        if (! ($permit instanceof Permit) || \strtolower($permit->email) !== \strtolower($emailInSession)) {
+            return;
         }
+
+        $this->render('history_print_view', [
+            'permit'   => $permit,
+            'settings' => $this->getSettingsArray(),
+            'appRoot'  => $this->config->get('root_path'),
+        ]);
     }
 
     private function handleLinkRequest(string $email): string
@@ -106,7 +121,9 @@ final readonly class HistoryController
             'vereinsName' => $this->config->get('vereins_name'),
         ]);
 
-        return 'Ein Login-Link wurde an Ihre E-Mail gesendet (gültig für ' . $this->config->get('magic_link_duration') . ' Min).';
+        return 'Ein Login-Link wurde an Ihre E-Mail gesendet (gültig für '
+            . $this->config->get('magic_link_duration')
+            . ' Min).';
     }
 
     private function renderView(string $email, string $message): void

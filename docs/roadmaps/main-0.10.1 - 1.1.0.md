@@ -22,9 +22,9 @@
 
 ## v0.13.0 - Pächter-Verlauf (Self-Service)
 
-- [ ] Neuer Controller für den Antragsverlauf.
-- [ ] "Magic Link" System: 15 Minuten gültiger Token per E-Mail zur Identifikation.
-- [ ] Übersicht aller aktiven und vergangenen Genehmigungen für den Pächter.
+- [x] Neuer Controller für den Antragsverlauf.
+- [x] "Magic Link" System: 15 Minuten gültiger Token per E-Mail zur Identifikation.
+- [x] Übersicht aller aktiven und vergangenen Genehmigungen für den Pächter.
 
 ## v1.0.0 - PDF & Dokumenten-Automatisierung
 
