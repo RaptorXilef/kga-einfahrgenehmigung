@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Verarbeitet Zahlungs-relevante API-Anfragen v0.12.1
+ * Verarbeitet Zahlungs-relevante API-Anfragen v0.12.0
  *
  * @file src/Application/PaymentController.php
  */
@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -20,13 +19,12 @@ final readonly class PaymentController
 {
     public function __construct(
         private PermitService $permitService,
-        private PaymentProviderInterface $paymentProvider,
     ) {
     }
 
     /**
      * Verarbeitet das Capture (Geldeinzug) von PayPal-Bestellungen.
-     * Nutzt jetzt das 'token' zur Identifizierung im Warteraum.
+     * Nutzt das 'token' zur Identifizierung im Warteraum.
      */
     public function handleCapture(): void
     {
@@ -36,13 +34,13 @@ final readonly class PaymentController
             $input = \file_get_contents('php://input');
             $data  = \json_decode((string) $input, true);
 
-            // NEU: Wir erwarten 'token' statt 'permitCode'
+            // Wir erwarten 'token' statt 'permitCode'
             if (! isset($data['orderID'], $data['token'])) {
                 throw new \Exception('Fehlende Parameter (orderID oder token).');
             }
 
-            // PermitService::completePayment verschiebt den Antrag bei Erfolg
-            // von verified_pending.json in die finale daten.json
+            // Der PermitService kümmert sich um die Verifizierung beim Provider
+            // und die Finalisierung des Antrags.
             $success = $this->permitService->completePayment(
                 (string) $data['token'],
                 (string) $data['orderID'],

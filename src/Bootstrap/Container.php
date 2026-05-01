@@ -153,7 +153,6 @@ class Container
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
             $this->get(PermitService::class),
-            $this->get(PaymentProviderInterface::class), // PayPal-Provider injizieren
         );
     }
 

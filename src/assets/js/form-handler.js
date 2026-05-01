@@ -1,12 +1,11 @@
 /**
  * @file form-handler.js
- * Modulares Management des Antragsformulars (v0.8.0).
+ * Modulares Management des Antragsformulars (v0.12.0).
  *
  * Beinhaltet:
  * - Fahrzeugtyp-Umschaltung
  * - Echtzeit-Formatierung (Kennzeichen, Parzelle)
  * - Berliner Feiertags- und Sonntagsprüfung
- * - Paypal Logik
  */
 
 export class PermitFormHandler {
@@ -23,7 +22,6 @@ export class PermitFormHandler {
             document.getElementById('datum_von'),
             document.getElementById('datum_bis'),
         ];
-        this.currentPermitCode = null;
 
         // Initialisierung
         if (this.form) {
@@ -41,61 +39,10 @@ export class PermitFormHandler {
             input?.addEventListener('change', () => this.validateBerlinRestrictions());
         });
 
-        // Initialer Check
+        // Initialer Check für die Ansicht
         if (this.typSelect) {
             this.toggleVehicleFields(this.typSelect.value);
         }
-
-        // PayPal initialisieren, falls vorhanden
-        if (window.paypal) {
-            this.initPayPal();
-        }
-    }
-
-    initPayPal() {
-        // TODO REMOVE Methode
-        window.paypal
-            .Buttons({
-                createOrder: async () => {
-                    if (!this.form.checkValidity()) {
-                        this.form.reportValidity();
-                        return;
-                    }
-
-                    const formData = new FormData(this.form);
-                    const response = await fetch('api/create_pending.php', {
-                        method: 'POST',
-                        body: formData,
-                    });
-                    const result = await response.json();
-
-                    if (!result.success) {
-                        alert(`Fehler beim Erstellen des Antrags: ${result.error}`);
-                        return;
-                    }
-
-                    this.currentPermitCode = result.code;
-                    return result.paypalOrderId;
-                },
-                onApprove: async (data) => {
-                    const response = await fetch('api/capture.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            orderID: data.orderID,
-                            permitCode: this.currentPermitCode,
-                        }),
-                    });
-
-                    const captureResult = await response.json();
-                    if (captureResult.success) {
-                        window.location.href = `check.php?code=${this.currentPermitCode}&success=1`;
-                    } else {
-                        alert('Zahlung konnte nicht verifiziert werden.');
-                    }
-                },
-            })
-            .render('#paypal-button-container');
     }
 
     /**

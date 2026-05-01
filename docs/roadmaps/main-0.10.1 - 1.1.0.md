@@ -16,9 +16,9 @@
 
 ## v0.12.0 - Manuelle Buchungen & Gutscheine
 
-- [ ] Admin-UI: Formular zur manuellen Erstellung kostenloser Genehmigungen (Lvl 0-3).
-- [ ] Gutschein-System: Generierung von Einmal-Codes für kostenlose Buchungen durch Pächter.
-- [ ] Validierung: Integration der Gutschein-Logik in den Bezahlprozess.
+- [x] Admin-UI: Formular zur manuellen Erstellung kostenloser Genehmigungen (Lvl 0-3).
+- [x] Gutschein-System: Generierung von Einmal-Codes für kostenlose Buchungen durch Pächter.
+- [x] Validierung: Integration der Gutschein-Logik in den Bezahlprozess.
 
 ## v0.13.0 - Pächter-Verlauf (Self-Service)
 
