@@ -169,6 +169,7 @@ class Container
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
             $this->get(PermitService::class),
+            $this->get(ConfigInterface::class),
         );
 
         // History Controller für Pächter-Verlauf NEU mit v0.13.0:

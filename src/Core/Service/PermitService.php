@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC BY-NC-SA 4.0
 
 /**
- * Service zur Verwaltung des Genehmigungsprozesses
+ * Service zur Verwaltung des Genehmigungsprozesses.
  *
  * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
  * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
@@ -23,7 +23,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 
 /**
- * Zentraler Service für Ausnahmegenehmigungen
+ * Zentraler Service für Ausnahmegenehmigungen.
  */
 final readonly class PermitService
 {
@@ -49,17 +49,17 @@ final readonly class PermitService
 
         // Vorlagen-Logik laden
         $tKey      = (string) ($data['template_key'] ?? 'std_7');
-        $templates = $this->config->get('permit_templates', []);
-        $template  = $templates[$tKey] ?? $templates['std_7'];
+        $templates = (array) $this->config->get('permit_templates', []);
+        $template  = (array) ($templates[$tKey] ?? $templates['std_7']);
 
         // 1. Zeiträume bestimmen
         $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
 
+        // Fix: Else-Expression entfernt
+        // Automatische Berechnung der Tage aus der Vorlage
+        $endDate = $startDate->modify('+' . $template['days'] . ' days');
         if ($template['days'] === 'custom') {
             $endDate = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
-        } else {
-            // Automatische Berechnung der Tage aus der Vorlage
-            $endDate = $startDate->modify('+' . $template['days'] . ' days');
         }
 
         // 2. Preis bestimmen (Template-Preis oder Admin-Override)
@@ -79,7 +79,6 @@ final readonly class PermitService
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
 
             // 3. Eindeutige Kennung bauen: ML-0371-B-HD-7398-6Y5C
-            // FIX: Short Ternary ersetzt durch expliziten Check für PHPStan Level 6
             $platePart = $identifierPlate !== '' ? $identifierPlate : 'LKW';
 
             $fullIdentifier = \sprintf(
@@ -93,7 +92,7 @@ final readonly class PermitService
         } while ($this->storage->findByHash($fullIdentifier) instanceof Permit);
 
         /** @var array<string, string> $purposes */
-        $purposes = $this->config->get('purposes', []);
+        $purposes = (array) $this->config->get('purposes', []);
         $zweck    = (string) ($purposes[(string) ($data['zweck'] ?? '')] ?? 'Privat');
 
         $permit = new Permit(
@@ -142,21 +141,19 @@ final readonly class PermitService
 
         $token                      = \bin2hex(\random_bytes(32));
         $data['verification_token'] = $token;
-        // FIX: Timeout aus Config laden (Standard 24h)
+        // Timeout aus Config laden (Standard 24h)
         $hours           = (int) $this->config->get('hours_pending_verify', 24);
         $data['expires'] = \time() + (3600 * $hours);
 
         // Wir speichern das in einer separaten Datei (storage/pending_verification.json)
-        $storagePath = $this->config->get('root_path') . '/storage/pending_verification.json';
-
+        $storagePath        = $this->config->get('root_path') . '/storage/pending_verification.json';
         $allPending         = $this->loadJson($storagePath);
         $allPending[$token] = $data;
 
-        // JSON_PRETTY_PRINT für Debugging, falls ich mal reinschauen will
-        \file_put_contents($storagePath, \json_encode($allPending, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        $this->saveJson($storagePath, $allPending);
 
-        $this->mailService->sendTemplate($data['email'], 'E-Mail bestätigen', 'verify_email', [
-            'name'        => $data['name'],
+        $this->mailService->sendTemplate((string) $data['email'], 'E-Mail bestätigen', 'verify_email', [
+            'name'        => (string) $data['name'],
             'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
             'vereinsName' => $this->config->get('vereins_name'),
         ]);
@@ -240,7 +237,7 @@ final readonly class PermitService
             return $res;
         }
 
-        $data = $allPending[$token];
+        $data = (array) $allPending[$token];
         unset($allPending[$token]);
         $this->saveJson($pendingPath, $allPending);
 
@@ -256,7 +253,7 @@ final readonly class PermitService
         // Sofort-Check: Falls ein Gutschein dabei war, direkt finalisieren
         $voucherCode = \trim((string) ($data['voucher'] ?? ''));
         if ($voucherCode !== '') {
-            $voucher = $this->voucherService->useVoucher($voucherCode);
+            $voucher = $this->voucherService->useVoucher($voucherCode, $data);
             if ($voucher !== null) { // PHPStan Fix: Expliziter Check
                 return ['finalised' => $this->finaliseRequest($token, 'bezahlt', 'Gutschein: ' . $voucherCode)];
             }
@@ -277,7 +274,7 @@ final readonly class PermitService
             throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
         }
 
-        $data                      = $allVerified[$token];
+        $data                      = (array) $allVerified[$token];
         $data['status']            = $status;
         $data['internerKommentar'] = $kommentar;
 
@@ -308,9 +305,9 @@ final readonly class PermitService
             return [];
         }
 
-        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+        $data = (array) \json_decode((string) \file_get_contents($path), true) ?? [];
 
-        // --- NEU: AUTO-CLEANUP für Pending-Files ---
+        // --- AUTO-CLEANUP für Pending-Files ---
         if (\str_contains($path, 'pending_verification')) {
             $now           = \time();
             $originalCount = \count($data);
@@ -323,7 +320,7 @@ final readonly class PermitService
 
             // Wenn etwas gelöscht wurde, Datei direkt bereinigen
             if (\count($data) !== $originalCount) {
-                \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT));
+                $this->saveJson($path, $data);
             }
         }
 
@@ -335,16 +332,17 @@ final readonly class PermitService
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        $zeitraum = "{$permit->von->format('d.m.Y')} bis {$permit->bis->format('d.m.Y')}";
-        $opening  = $this->config->get('opening_hours');
-
-        $token        = \hash('sha256', $permit->code . $this->config->get('geheimnis'));
-        $subjectBoard = "[{$permit->code}] - {$zeitraum} - {$permit->name}";
+        $zeitraum  = "{$permit->von->format('d.m.Y')} bis {$permit->bis->format('d.m.Y')}";
+        $geheimnis = (string) $this->config->get('geheimnis', '');
+        $token     = \hash('sha256', $permit->code . $geheimnis);
 
         // Mail an VORSTAND
+        $mailConfig = (array) $this->config->get('mail', []);
+        $recipient  = (string) ($mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'] ?? '');
+
         $this->mailService->sendTemplate(
-            $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
-            $subjectBoard,
+            $recipient,
+            "[{$permit->code}] - {$zeitraum} - {$permit->name}",
             'board_notification',
             [
                 'fullIdentifier' => $permit->code,
@@ -353,11 +351,12 @@ final readonly class PermitService
                 'parzelle'       => $permit->parzelle,
                 'typLabel'       => $this->config->get('vehicle_types')[$permit->typ] ?? $permit->typ,
                 'kennzeichen'    => $permit->kennzeichen,
-                'firma'          => $permit->firma,
+                'firma'          => $permit->firma ?? '',
                 'von'            => $permit->von->format('d.m.Y'),
                 'bis'            => $permit->bis->format('d.m.Y'),
                 'zweck'          => $permit->zweck,
-                'adminLink'      => $this->config->get('base_url') . "admin.php?code={$permit->code}&token={$token}",
+                'adminLink'      => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
+                'vereinsName'    => $this->config->get('vereins_name'),
             ],
         );
 
@@ -383,18 +382,19 @@ final readonly class PermitService
             'permit_a4_document',
             [
                 'fullIdentifier'    => $permit->code,
-                'von'               => $permit->von->format('d.m.Y'),
-                'bis'               => $permit->bis->format('d.m.Y'),
+                'von'               => $permit->von, // Objekt für das Template
+                'bis'               => $permit->bis, // Objekt für das Template
                 'kennzeichen'       => $permit->kennzeichen,
-                'firma'             => $permit->firma,
+                'firma'             => $permit->firma ?? '',
                 'parzelle'          => $permit->parzelle,
                 'zweck'             => $permit->zweck,
+                'templateKey'       => $permit->templateKey,
+                'config'            => $this->config,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
-                'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
-                'checkUrl'          => \urlencode($this->config->get('base_url') . 'check.php?code=' . $permit->code),
+                'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
             ],
         );
     }
@@ -435,6 +435,7 @@ final readonly class PermitService
         if (\preg_match('/^(B)([A-Z]{1,2})(\d{1,4})$/', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
+
         if (\preg_match('/^([A-Z]{1,3})([A-Z]{1,2})(\d{1,4})$/', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
@@ -449,7 +450,7 @@ final readonly class PermitService
     {
         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         $res   = '';
-        // FIX: Von 4 auf 6 Zeichen erhöht für 1400 Parzellen / 10 Jahre Sicherheit
+        // Von 4 auf 6 Zeichen erhöht für 1400 Parzellen / 10 Jahre Sicherheit
         for ($i = 0; $i < 6; ++$i) {
             $res .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
@@ -490,6 +491,7 @@ final readonly class PermitService
             status: 'bezahlt', // Status-Update
             erstellt: $permit->erstellt,
             internerKommentar: $grund ?? $permit->internerKommentar, // Grund übernehmen
+            templateKey: $permit->templateKey,
         );
 
         return $this->storage->save($updatedPermit);
@@ -508,7 +510,7 @@ final readonly class PermitService
             return false;
         }
 
-        $data = $allVerified[$token];
+        $data = (array) $allVerified[$token];
 
         // Zahlung bei PayPal verifizieren
         if ($this->paymentProvider->captureOrder($orderId, (float) $data['preisSnapshot'])) {
@@ -569,7 +571,7 @@ final readonly class PermitService
         $path = $this->config->get('root_path') . '/storage/verified_pending.json';
         $all  = $this->loadJson($path);
 
-        return $all[$token] ?? null;
+        return (array) ($all[$token] ?? null) ?: null;
     }
 
     /**
@@ -625,9 +627,10 @@ final readonly class PermitService
             $year = (int) \substr((string) $data['erstellt'], 0, 4);
             if ($year <= $lastYear) {
                 $toArchive[$code] = $data;
-            } else {
-                $stayInMain[$code] = $data;
+
+                continue;
             }
+            $stayInMain[$code] = $data;
         }
 
         if ($toArchive === []) {
@@ -636,11 +639,11 @@ final readonly class PermitService
 
         $yearPath = $this->config->get('root_path') . "/storage/daten_{$lastYear}.json";
         // Bestehendes Archiv laden oder neu erstellen
-        $existingYear = \file_exists($yearPath) ? \json_decode((string) \file_get_contents($yearPath), true) : [];
+        $existingYear = \file_exists($yearPath) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
         $newYearData  = \array_merge($existingYear, $toArchive);
 
-        \file_put_contents($yearPath, \json_encode($newYearData, \JSON_PRETTY_PRINT));
-        \file_put_contents($mainPath, \json_encode($stayInMain, \JSON_PRETTY_PRINT));
+        $this->saveJson($yearPath, $newYearData);
+        $this->saveJson($mainPath, $stayInMain);
     }
 
     /**
@@ -678,11 +681,11 @@ final readonly class PermitService
 
     /**
      * Hilfsmethode für Controller, um Rohdaten in eine Entität zu wandeln
+     *
+     * @param array<string, mixed> $data
      */
     public function arrayToEntity(array $data): Permit
     {
-        // Wir nutzen den Storage, um die Konvertierung durchzuführen
-        // (Wir müssen mapToEntity dort public machen oder hier nachbauen)
         return $this->storage->mapToEntity($data);
     }
 }

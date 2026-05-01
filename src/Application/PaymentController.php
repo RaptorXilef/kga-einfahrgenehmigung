@@ -61,14 +61,21 @@ final readonly class PaymentController
         }
     }
 
+    /**
+     * @param  array<string, mixed>|null $prefill
+     * @return array<string, mixed>
+     */
     private function getSettingsArray(?array $prefill = null): array
     {
         $templates = $this->config->get('permit_templates', []);
-        $public    = \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true);
+        // PHPStan Fix: Expliziter Typ-Check
+        $public = \array_filter((array) $templates, fn ($t) => ($t['public'] ?? false) === true);
 
-        // Falls der Gutschein ein privates Template nutzt, fügen wir es für diesen User hinzu
-        if ($prefill && isset($prefill['template_key']) && ! isset($public[$prefill['template_key']])) {
-            $public[$prefill['template_key']] = $templates[$prefill['template_key']];
+        if ($prefill !== null && isset($prefill['template_key'])) {
+            $key = (string) $prefill['template_key'];
+            if (! isset($public[$key]) && isset($templates[$key])) {
+                $public[$key] = $templates[$key];
+            }
         }
 
         return [

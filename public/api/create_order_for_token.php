@@ -47,7 +47,7 @@ $allVerified  = \json_decode(
 ) ?? [];
 $tempRequest = $allVerified[$token] ?? null;
 
-if (! $tempRequest) {
+if ($tempRequest === null) { // Expliziter Check statt if (!$tempRequest)
     echo \json_encode(['success' => false, 'error' => 'Sitzung nicht gefunden']);
     exit;
 }

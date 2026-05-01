@@ -31,4 +31,11 @@ interface StorageInterface
     public function getAll(): array;
 
     public function migrateTo(StorageInterface $target): int;
+
+    /**
+     * Wandelt ein Roh-Array (aus JSON/DB) in ein Permit-Objekt um.
+     *
+     * @param array<string, mixed> $item
+     */
+    public function mapToEntity(array $item): Permit;
 }

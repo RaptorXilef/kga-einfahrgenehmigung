@@ -13,7 +13,7 @@ $prefill ??= null;
 
 // Hilfsfunktion: Prüft ob ein Feld durch Gutschein gesperrt ist
 $isLocked = function ($fieldName) use ($prefill) {
-    if (! $prefill || ! isset($prefill['data'])) {
+    if ($prefill === null || ! isset($prefill['data'])) {
         return '';
     }
 

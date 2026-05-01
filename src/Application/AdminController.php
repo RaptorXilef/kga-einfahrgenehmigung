@@ -99,82 +99,79 @@ final readonly class AdminController
      */
     private function handleDataActions(array $post): string
     {
-        // 1. Bestehende Logik: Zahlung markieren
-        if (isset($post['action']) && $post['action'] === 'mark_as_paid') {
-            $code = (string) ($post['code'] ?? '');
-            if ($this->permitService->manualActivate($code)) {
-                return 'Zahlung für ' . $code . ' bestätigt.';
-            }
+        // Bestehende Logik: Zahlung markieren
+        $action = (string) ($post['action'] ?? '');
+        if ($action === '') {
+            return '';
         }
 
-        // 2. Gutschein erstellen
-        if (isset($post['action']) && $post['action'] === 'create_voucher') {
-            // Korrektur: Nutze 'reason_internal' (wie im HTML) und füge TemplateKey hinzu
-            $reason = (string) ($post['reason_internal'] ?? 'Gutschein');
-            $tplKey = (string) ($post['template_key'] ?? 'std_7');
+        // Aufteilung in Unter-Methoden zur Senkung der Komplexität
+        return match ($action) {
+            'mark_as_paid'                           => $this->actionMarkAsPaid($post),
+            'create_voucher'                         => $this->actionCreateVoucher($post),
+            'create_manual'                          => $this->actionCreateManual($post),
+            'activate_voucher', 'deactivate_voucher' => $this->actionToggleVoucher($post),
+            'unsuspend_permit', 'suspend_permit'     => $this->actionToggleSuspension($post),
+            default                                  => '',
+        };
+    }
 
-            $code = $this->permitService->getVoucherService()->createVoucher(
-                $reason,
-                (string) $_SESSION['admin_user'],
-                $tplKey, // Das fehlte!
-                [
-                    'name'        => $post['pre_name'] ?? '',
-                    'parzelle'    => $post['pre_parzelle'] ?? '',
-                    'kennzeichen' => $post['pre_kennzeichen'] ?? '',
-                ],
-            );
+    private function actionMarkAsPaid(array $post): string
+    {
+        $code = (string) ($post['code'] ?? '');
 
-            return "Gutschein erstellt: <strong>{$code}</strong>";
+        return $this->permitService->manualActivate($code) ? "Zahlung für $code bestätigt." : '';
+    }
+
+    private function actionCreateVoucher(array $post): string
+    {
+        // Gutschein erstellen
+        // Korrektur: Nutze 'reason_internal' (wie im HTML) und füge TemplateKey hinzu
+        $reason = (string) ($post['reason_internal'] ?? 'Gutschein');
+        $tplKey = (string) ($post['template_key'] ?? 'std_7');
+        $code   = $this->permitService->getVoucherService()->createVoucher(
+            $reason,
+            (string) $_SESSION['admin_user'],
+            $tplKey, // Das fehlte!
+            [
+                'name'        => $post['pre_name'] ?? '',
+                'parzelle'    => $post['pre_parzelle'] ?? '',
+                'kennzeichen' => $post['pre_kennzeichen'] ?? '',
+            ],
+        );
+
+        return "Gutschein erstellt: <strong>$code</strong>";
+    }
+
+    private function actionCreateManual(array $post): string
+    {
+        // Manuelle Buchung (Kostenlos/Bar)
+        try {
+            $post['status'] = 'bezahlt';
+            $permit         = $this->permitService->createPermit($post, true);
+
+            return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
+        } catch (\Exception $e) {
+            return 'Fehler: ' . $e->getMessage();
         }
+    }
 
-        // 3. Manuelle Buchung (Kostenlos/Bar)
-        if (isset($post['action']) && $post['action'] === 'create_manual') {
-            $post['status']            = 'bezahlt'; // Direkt freigeschaltet
-            $post['internerKommentar'] = (string) ($post['reason'] ?? 'Manuelle Anlage');
+    private function actionToggleVoucher(array $post): string
+    {
+        // Gutschein sperren / aktivieren
+        $status = $post['action'] === 'activate_voucher' ? 'aktiv' : 'deaktiviert';
+        $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], $status);
 
-            // WICHTIG: template_key wird hier aus dem Select-Feld übernommen
-            // Falls custom gewählt wurde, werden datum_von/bis vom Service beachtet.
+        return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
+    }
 
-            try {
-                $permit = $this->permitService->createPermit($post, true);
+    private function actionToggleSuspension(array $post): string
+    {
+        // Genehmigung entsperren
+        $suspended = $post['action'] === 'suspend_permit';
+        $this->permitService->toggleSuspension((string) $post['code'], $suspended, (string) ($post['reason'] ?? ''));
 
-                return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
-            } catch (\Exception $e) {
-                return 'Fehler: ' . $e->getMessage();
-            }
-        }
-
-        // Gutschein aktivieren (neu)
-        if (isset($post['action']) && $post['action'] === 'activate_voucher') {
-            $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], 'aktiv');
-
-            return 'Gutschein wurde reaktiviert.';
-        }
-
-        // Gutschein sperren (neu)
-        if (isset($post['action']) && $post['action'] === 'deactivate_voucher') {
-            $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], 'deaktiviert');
-
-            return 'Gutschein wurde gesperrt.';
-        }
-
-        // Genehmigung entsperren (neu)
-        if (isset($post['action']) && $post['action'] === 'unsuspend_permit') {
-            $this->permitService->toggleSuspension((string) $post['code'], false);
-
-            return 'Genehmigung wurde wieder freigegeben.';
-        }
-
-        // Logik zum Sperren hinzufügen!
-        if (isset($post['action']) && $post['action'] === 'suspend_permit') {
-            $code   = (string) $post['code'];
-            $reason = (string) $post['reason'];
-            $this->permitService->toggleSuspension($code, true, $reason);
-
-            return "Genehmigung {$code} wurde gesperrt.";
-        }
-
-        return '';
+        return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
     }
 
     /**
