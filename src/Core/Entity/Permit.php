@@ -34,7 +34,9 @@ final readonly class Permit
         public string $status = 'wartend',
         public \DateTimeImmutable $erstellt = new \DateTimeImmutable(), // Pflichtfeld
         public ?string $internerKommentar = null, // Für manuelle Buchung
-        public string $templateKey = 'std_7', // NEU: Welches Template wurde genutzt?
+        public string $templateKey = 'std_7', // Welches Template wurde genutzt?
+        public bool $isSuspended = false,        // Ist die Genehmigung gesperrt?
+        public ?string $suspensionReason = null, // Warum?
     ) {
     }
 

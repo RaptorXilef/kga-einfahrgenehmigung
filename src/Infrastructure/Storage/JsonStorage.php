@@ -43,6 +43,7 @@ final readonly class JsonStorage implements StorageInterface
             'preisSnapshot'     => $permit->preisSnapshot,
             'internerKommentar' => $permit->internerKommentar,
             'templateKey'       => $permit->templateKey,
+            'isSuspended'       => $permit->isSuspended, 'suspensionReason' => $permit->suspensionReason,
         ];
 
         return (bool) \file_put_contents(
@@ -93,6 +94,8 @@ final readonly class JsonStorage implements StorageInterface
             erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
             internerKommentar: isset($item['internerKommentar']) ? (string) $item['internerKommentar'] : null,
             templateKey: (string) ($item['templateKey'] ?? 'std_7'),
+            isSuspended: (bool) ($item['isSuspended'] ?? false),
+            suspensionReason: $item['suspensionReason'] ?? null,
         );
     }
 

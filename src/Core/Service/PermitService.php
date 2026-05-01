@@ -642,4 +642,37 @@ final readonly class PermitService
         \file_put_contents($yearPath, \json_encode($newYearData, \JSON_PRETTY_PRINT));
         \file_put_contents($mainPath, \json_encode($stayInMain, \JSON_PRETTY_PRINT));
     }
+
+    /**
+     * Sperrt oder entsperrt eine Genehmigung
+     */
+    public function toggleSuspension(string $code, bool $status, ?string $reason = null): bool
+    {
+        $permit = $this->storage->findByHash($code);
+        if (! $permit) {
+            return false;
+        }
+
+        $updated = new Permit(
+            code: $permit->code,
+            name: $permit->name,
+            email: $permit->email,
+            parzelle: $permit->parzelle,
+            typ: $permit->typ,
+            kennzeichen: $permit->kennzeichen,
+            firma: $permit->firma,
+            zweck: $permit->zweck,
+            preisSnapshot: $permit->preisSnapshot,
+            von: $permit->von,
+            bis: $permit->bis,
+            status: $permit->status,
+            erstellt: $permit->erstellt,
+            internerKommentar: $permit->internerKommentar,
+            templateKey: $permit->templateKey,
+            isSuspended: $status,
+            suspensionReason: $reason,
+        );
+
+        return $this->storage->save($updated);
+    }
 }

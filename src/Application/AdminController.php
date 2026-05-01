@@ -136,6 +136,27 @@ final readonly class AdminController
             }
         }
 
+        // Gutschein deaktivieren
+        if (isset($post['action']) && $post['action'] === 'deactivate_voucher') {
+            $this->permitService->getVoucherService()->deactivateVoucher(
+                (string) $post['code'],
+                (string) ($post['reason'] ?? 'Manuelle Deaktivierung'),
+            );
+
+            return 'Gutschein wurde auf ungültig gesetzt.';
+        }
+
+        // Genehmigung sperren
+        if (isset($post['action']) && $post['action'] === 'suspend_permit') {
+            $this->permitService->toggleSuspension(
+                (string) $post['code'],
+                true,
+                (string) $post['reason'],
+            );
+
+            return "Genehmigung {$post['code']} wurde gesperrt.";
+        }
+
         return '';
     }
 

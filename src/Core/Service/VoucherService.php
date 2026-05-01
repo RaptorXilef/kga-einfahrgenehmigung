@@ -101,4 +101,35 @@ final readonly class VoucherService
     {
         \file_put_contents($this->storagePath, \json_encode($vouchers, \JSON_PRETTY_PRINT));
     }
+
+    /**
+     * Deaktiviert einen Gutschein (setzt ihn auf 'deaktiviert' statt zu löschen)
+     */
+    public function deactivateVoucher(string $code, string $reason): bool
+    {
+        $vouchers = $this->loadVouchers();
+        if (! isset($vouchers[$code])) {
+            return false;
+        }
+
+        $vouchers[$code]['status'] = 'deaktiviert';
+        $vouchers[$code]['note']   = $reason;
+
+        $this->saveVouchers($vouchers);
+
+        return true;
+    }
+
+    /**
+     * Lädt das Archiv der eingelösten Gutscheine v0.17.0
+     */
+    public function loadArchive(): array
+    {
+        $path = $this->config->get('root_path') . '/storage/vouchers_archive.json';
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        return \json_decode((string) \file_get_contents($path), true) ?? [];
+    }
 }
