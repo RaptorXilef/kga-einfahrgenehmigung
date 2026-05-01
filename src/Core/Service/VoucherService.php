@@ -22,19 +22,21 @@ final readonly class VoucherService
     }
 
     /**
-     * Erstellt einen neuen Einmal-Gutschein.
+     * Erstellt einen Gutschein mit optionalen Vorbefüllungs-Daten v0.15.0
+     * @param array<string, mixed> $prefillData Felder wie 'name', 'parzelle', 'kennzeichen'
      */
-    public function createVoucher(string $reason, string $createdBy): string
+    public function createVoucher(string $reason, string $createdBy, string $templateKey, array $prefillData = []): string
     {
         $code     = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
         $vouchers = $this->loadVouchers();
 
         $vouchers[$code] = [
-            'code'       => $code,
-            'reason'     => $reason,
-            'created_by' => $createdBy,
-            'created_at' => \date('Y-m-d H:i:s'),
-            'used'       => false,
+            'code'         => $code,
+            'reason'       => $reason,
+            'template_key' => $templateKey,
+            'data'         => $prefillData, // Enthält die gesperrten Werte
+            'created_by'   => $createdBy,
+            'created_at'   => \date('Y-m-d H:i:s'),
         ];
 
         $this->saveVouchers($vouchers);
@@ -50,15 +52,15 @@ final readonly class VoucherService
     public function useVoucher(string $code): ?array
     {
         $vouchers = $this->loadVouchers();
-        if (! isset($vouchers[$code]) || $vouchers[$code]['used'] === true) {
+        if (! isset($vouchers[$code])) {
             return null;
         }
 
-        $vouchers[$code]['used']    = true;
-        $vouchers[$code]['used_at'] = \date('Y-m-d H:i:s');
+        $data = $vouchers[$code];
+        unset($vouchers[$code]); // Aus der Datei entfernen
         $this->saveVouchers($vouchers);
 
-        return $vouchers[$code];
+        return $data;
     }
 
     /**
