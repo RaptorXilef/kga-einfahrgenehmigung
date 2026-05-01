@@ -58,4 +58,18 @@ final readonly class PaymentController
             ]);
         }
     }
+
+    private function getSettingsArray(): array
+    {
+        return [
+            'vereins_name'  => $this->config->get('vereins_name'),
+            'vehicle_types' => $this->config->get('vehicle_types'),
+            'purposes'      => $this->config->get('purposes'),
+            // NEU: Nur die Vorlagen übergeben, die als 'public' markiert sind
+            'public_templates' => \array_filter(
+                $this->config->get('permit_templates', []),
+                fn ($t) => ($t['public'] ?? false) === true,
+            ),
+        ];
+    }
 }

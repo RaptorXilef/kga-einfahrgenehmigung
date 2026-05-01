@@ -122,9 +122,10 @@ final readonly class AdminController
         // 3. Manuelle Buchung (Kostenlos/Bar)
         if (isset($post['action']) && $post['action'] === 'create_manual') {
             $post['status']            = 'bezahlt'; // Direkt freigeschaltet
-            $post['internerKommentar'] = (string) ($post['reason'] === 'other'
-                ? $post['custom_reason']
-                : $post['reason']);
+            $post['internerKommentar'] = (string) ($post['reason'] ?? 'Manuelle Anlage');
+
+            // WICHTIG: template_key wird hier aus dem Select-Feld übernommen
+            // Falls custom gewählt wurde, werden datum_von/bis vom Service beachtet.
 
             try {
                 $permit = $this->permitService->createPermit($post, true);
