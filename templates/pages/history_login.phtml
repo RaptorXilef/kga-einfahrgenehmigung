@@ -1,0 +1,42 @@
+<?php
+/**
+ * @var string $message
+ * @var array  $settings
+ */
+?>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+</head>
+<body class="u-bg-light">
+    <div class="c-container u-padding-y-xl">
+        <div class="c-card u-margin-auto" style="max-width: 450px;">
+            <header class="c-card__header u-text-center">
+                <h2>Verlauf einsehen</h2>
+                <p class="u-text-small">Geben Sie Ihre E-Mail-Adresse ein, um einen Login-Link zu erhalten.</p>
+            </header>
+            <div class="c-card__body">
+                <?php if ($message) { ?>
+                    <div class="c-alert c-alert--info u-margin-bottom"><?php echo \htmlspecialchars($message); ?></div>
+                <?php } ?>
+
+                <form method="POST" class="c-form">
+                    <div class="c-form-group">
+                        <label class="c-form-label">E-Mail-Adresse</label>
+                        <input type="email" name="email" class="c-form-input" placeholder="ihre@mail.de" required autofocus>
+                    </div>
+                    <button type="submit" name="request_link" class="c-button c-button--primary u-width-100">
+                        Link anfordern
+                    </button>
+                </form>
+            </div>
+            <footer class="c-card__footer u-text-center">
+                <a href="index.php" class="u-text-small">← Zurück zum Antrag</a>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

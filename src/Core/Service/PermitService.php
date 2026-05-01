@@ -576,6 +576,6 @@ final readonly class PermitService
     {
         $all = $this->storage->getAll();
 
-        return \array_filter($all, fn (Permit $p) => \strtolower($p->email) === \strtolower($email));
+        return \array_filter($all, fn (Permit $p): bool => \strtolower($p->email) === \strtolower($email));
     }
 }

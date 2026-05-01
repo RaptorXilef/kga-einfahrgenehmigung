@@ -24,6 +24,7 @@ namespace App\Bootstrap;
 
 use App\Application\AdminController;
 use App\Application\CheckController;
+use App\Application\HistoryController;
 use App\Application\PaymentController;
 use App\Application\PermitController;
 use App\Application\UserController;
@@ -82,7 +83,7 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
-        // Servive verwaltet die temporären Token für den Login
+        // Service verwaltet die temporären Token für den Login
         $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
             $this->get(ConfigInterface::class),
         );
@@ -159,6 +160,14 @@ class Container
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
             $this->get(PermitService::class),
+        );
+
+        // History Controller für Pächter-Verlauf NEU mit v0.13.0:
+        $this->services[HistoryController::class] = fn (): HistoryController => new HistoryController(
+            $this->get(ConfigInterface::class),
+            $this->get(PermitService::class),
+            $this->get(MagicLinkService::class),
+            $this->get(MailServiceInterface::class),
         );
     }
 

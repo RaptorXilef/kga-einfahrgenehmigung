@@ -29,6 +29,14 @@ final readonly class HistoryController
 
     public function handleRequest(array $get, array $post): void
     {
+        // Logout-Logik
+        if (isset($get['action']) && $get['action'] === 'logout') {
+            unset($_SESSION['user_history_email']);
+            \header('Location: history.php');
+
+            return;
+        }
+
         $message        = '';
         $emailInSession = $_SESSION['user_history_email'] ?? null;
 
@@ -46,7 +54,9 @@ final readonly class HistoryController
                     'duration'    => $this->config->get('magic_link_duration'),
                     'vereinsName' => $this->config->get('vereins_name'),
                 ]);
-                $message = 'Ein Login-Link wurde an Ihre E-Mail gesendet (gültig für ' . $this->config->get('magic_link_duration') . ' Min).';
+                $message = 'Ein Login-Link wurde an Ihre E-Mail gesendet (gültig für '
+                    . $this->config->get('magic_link_duration')
+                    . ' Min).';
             } else {
                 $message = 'Zu dieser E-Mail wurden keine Genehmigungen gefunden.';
             }
