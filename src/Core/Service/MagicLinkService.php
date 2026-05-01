@@ -54,6 +54,9 @@ final readonly class MagicLinkService
         return $email;
     }
 
+    /**
+     * @return array<string, array{email: string, expires: int}>
+     */
     private function loadLinks(): array
     {
         if (! \file_exists($this->storagePath)) {
@@ -63,6 +66,9 @@ final readonly class MagicLinkService
         return \json_decode((string) \file_get_contents($this->storagePath), true) ?? [];
     }
 
+    /**
+     * @param array<string, array{email: string, expires: int}> $links
+     */
     private function saveLinks(array $links): void
     {
         \file_put_contents($this->storagePath, \json_encode($links, \JSON_PRETTY_PRINT));

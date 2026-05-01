@@ -14,6 +14,7 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Core\Entity\Permit;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
 
@@ -27,9 +28,13 @@ final readonly class HistoryController
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $get
+     * @param array<string, mixed> $post
+     */
     public function handleRequest(array $get, array $post): void
     {
-        // Logout-Logik
+        // 1. Session & Logout prüfen
         if (isset($get['action']) && $get['action'] === 'logout') {
             unset($_SESSION['user_history_email']);
             \header('Location: history.php');
@@ -37,57 +42,25 @@ final readonly class HistoryController
             return;
         }
 
-        // PDF/Druck-Ansicht für Pächter
-        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
-            if (! $emailInSession) {
-                \header('Location: history.php');
-
-                return;
-            }
-
-            $permit = $this->permitService->getStorage()->findByHash((string) $get['code']);
-
-            // SECURITY CHECK: Gehört die Genehmigung dem User?
-            if ($permit && \strtolower($permit->email) === \strtolower($emailInSession)) {
-                $this->render('history_print_view', [
-                    'permit'   => $permit,
-                    'settings' => $this->getSettingsArray(),
-                    'appRoot'  => $this->config->get('root_path'),
-                ]);
-
-                return; // Beendet den Request hier, damit nur das Dokument geladen wird
-            }
-        }
-
+        $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
         $message        = '';
-        $emailInSession = $_SESSION['user_history_email'] ?? null;
 
-        // 1. Login via E-Mail Formular
-        if (isset($post['request_link'])) {
-            $email   = \trim((string) ($post['email'] ?? ''));
-            $permits = $this->permitService->getHistoryByEmail($email);
+        // 2. Druck-Aktion (Guard-Pattern statt Else)
+        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
+            $this->handlePrintAction((string) $get['code'], $emailInSession);
 
-            if ($permits !== []) {
-                $token = $this->magicLinkService->createToken($email);
-                $link  = $this->config->getBaseUrl() . 'history.php?token=' . $token;
-
-                $this->mailService->sendTemplate($email, 'Login: Ihre Genehmigungen', 'magic_link', [
-                    'link'        => $link,
-                    'duration'    => $this->config->get('magic_link_duration'),
-                    'vereinsName' => $this->config->get('vereins_name'),
-                ]);
-                $message = 'Ein Login-Link wurde an Ihre E-Mail gesendet (gültig für '
-                    . $this->config->get('magic_link_duration')
-                    . ' Min).';
-            } else {
-                $message = 'Zu dieser E-Mail wurden keine Genehmigungen gefunden.';
-            }
+            return;
         }
 
-        // 2. Verifizierung via Token aus URL
+        // 3. Login-Logik (Magic Link anfordern)
+        if (isset($post['request_link'])) {
+            $message = $this->handleLinkRequest((string) ($post['email'] ?? ''));
+        }
+
+        // 4. Token-Verifizierung
         if (isset($get['token'])) {
             $email = $this->magicLinkService->verifyToken((string) $get['token']);
-            if ($email) {
+            if ($email !== null) {
                 $_SESSION['user_history_email'] = $email;
                 $emailInSession                 = $email;
             } else {
@@ -95,32 +68,85 @@ final readonly class HistoryController
             }
         }
 
-        // 3. Anzeige
-        if ($emailInSession) {
-            $this->render('history_list', [
-                'permits'  => $this->permitService->getHistoryByEmail($emailInSession),
-                'email'    => $emailInSession,
+        // 5. View-Auswahl
+        $this->renderView($emailInSession, $message);
+    }
+
+    private function handlePrintAction(string $code, string $emailInSession): void
+    {
+        if ($emailInSession === '') {
+            \header('Location: history.php');
+
+            return;
+        }
+
+        $permit = $this->permitService->getStorage()->findByHash($code);
+        if ($permit instanceof Permit && \strtolower($permit->email) === \strtolower($emailInSession)) {
+            $this->render('history_print_view', [
+                'permit'   => $permit,
                 'settings' => $this->getSettingsArray(),
-            ]);
-        } else {
-            $this->render('history_login', [
-                'message'  => $message,
-                'settings' => $this->getSettingsArray(),
+                'appRoot'  => $this->config->get('root_path'),
             ]);
         }
     }
 
+    private function handleLinkRequest(string $email): string
+    {
+        $permits = $this->permitService->getHistoryByEmail($email);
+        if ($permits === []) {
+            return 'Zu dieser E-Mail wurden keine Genehmigungen gefunden.';
+        }
+
+        $token = $this->magicLinkService->createToken($email);
+        $link  = $this->config->getBaseUrl() . 'history.php?token=' . $token;
+
+        $this->mailService->sendTemplate($email, 'Login: Ihre Genehmigungen', 'magic_link', [
+            'link'        => $link,
+            'duration'    => $this->config->get('magic_link_duration'),
+            'vereinsName' => $this->config->get('vereins_name'),
+        ]);
+
+        return 'Ein Login-Link wurde an Ihre E-Mail gesendet (gültig für ' . $this->config->get('magic_link_duration') . ' Min).';
+    }
+
+    private function renderView(string $email, string $message): void
+    {
+        if ($email !== '') {
+            $this->render('history_list', [
+                'permits'  => $this->permitService->getHistoryByEmail($email),
+                'email'    => $email,
+                'settings' => $this->getSettingsArray(),
+            ]);
+
+            return;
+        }
+
+        $this->render('history_login', [
+            'message'  => $message,
+            'settings' => $this->getSettingsArray(),
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function getSettingsArray(): array
     {
         return [
-            'vereins_name' => $this->config->get('vereins_name'),
-            'jahresFarbe'  => $this->config->get('jahresFarbe'),
+            'vereins_name'       => $this->config->get('vereins_name'),
+            'jahresFarbe'        => $this->config->get('jahresFarbe'),
+            'opening_hours'      => $this->config->get('opening_hours'),
+            'terminkalender_url' => $this->config->get('terminkalender_url'),
+            'base_url'           => $this->config->getBaseUrl(),
         ];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function render(string $template, array $data): void
     {
-        $appRoot = $this->config->get('root_path');
+        $appRoot = (string) $this->config->get('root_path');
         \extract($data);
         include "{$appRoot}/templates/pages/{$template}.phtml";
     }

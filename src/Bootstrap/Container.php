@@ -72,29 +72,19 @@ class Container
         $this->instances[Config::class]          = $this->config;
         $this->instances[ConfigInterface::class] = $this->config; // WICHTIG für Entkopplung
 
-        // --- 2. HILFS-SERVICES (Stateless) ---
-        // FIX: HolidayService benötigt jetzt das Config-Interface
-        $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService(
-            $this->get(ConfigInterface::class),
-        );
+        $this->registerInfrastructure();
+        $this->registerCoreServices();
+        $this->registerControllers();
+    }
 
-        // Service für Gutscheine
-        $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
-            $this->get(ConfigInterface::class),
-        );
-
-        // Service verwaltet die temporären Token für den Login
-        $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
-            $this->get(ConfigInterface::class),
-        );
-
-        // --- 3. INFRASTRUKTUR (Storage, Mail, Payment, Auth) ---
+    private function registerInfrastructure(): void
+    {
+        // --- INFRASTRUKTUR (Storage, Mail, Payment, Auth) ---
         $this->services[StorageInterface::class] = function (): JsonStorage {
-            $root         = (string) $this->config->get('root_path');
-            $path         = (string) $this->config->get('storage_path', 'storage/daten.json');
-            $absolutePath = \str_starts_with($path, '/') ? $path : $root . '/' . $path;
+            $root = (string) $this->config->get('root_path');
+            $path = (string) $this->config->get('storage_path', 'storage/daten.json');
 
-            return new JsonStorage($absolutePath);
+            return new JsonStorage(\str_starts_with($path, '/') ? $path : $root . '/' . $path);
         };
 
         // Mail Service (Nutzt das Config-Interface)
@@ -111,8 +101,26 @@ class Container
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
             $this->get(Config::class),
         );
+    }
 
-        // --- 4. CORE LOGIC (Orchestratoren) ---
+    private function registerCoreServices(): void
+    {
+        // HolidayService benötigt jetzt das Config-Interface
+        $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService(
+            $this->get(ConfigInterface::class),
+        );
+
+        // Service für Gutscheine
+        $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
+            $this->get(ConfigInterface::class),
+        );
+
+        // Service verwaltet die temporären Token für den Login
+        $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
+            $this->get(ConfigInterface::class),
+        );
+
+        // --- CORE LOGIC (Orchestratoren) ---
         $this->services[PermitService::class] = fn (): PermitService => new PermitService(
             $this->get(StorageInterface::class),
             $this->get(MailServiceInterface::class),
@@ -121,9 +129,10 @@ class Container
             $this->get(PaymentProviderInterface::class),
             $this->get(VoucherService::class),
         );
+    }
 
-        // --- 5. APPLICATION LAYER (Controller) ---
-
+    private function registerControllers(): void
+    {
         // Admin Controller
         $this->services[AdminController::class] = fn (): AdminController => new AdminController(
             $this->get(ConfigInterface::class),
