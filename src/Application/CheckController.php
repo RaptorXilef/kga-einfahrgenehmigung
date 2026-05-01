@@ -16,6 +16,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\HolidayService;
+use App\Core\Service\PermitService;
 use App\Infrastructure\Auth\AuthService;
 
 /**
@@ -28,6 +29,7 @@ final readonly class CheckController
         private StorageInterface $storage,
         private AuthService $auth,
         private HolidayService $holidayService,
+        private PermitService $permitService, // FIX: PermitService hinzugefügt
     ) {
     }
 
@@ -42,10 +44,9 @@ final readonly class CheckController
         // 1. Suche in echten Permits
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
 
-        // 2. Suche in verifizierten Anträgen (Warteraum 2)
-        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
-        $allVerified  = $this->holidayService->loadJson($verifiedPath); // Methode ggf. in HolidayService public machen oder im Controller loadJson einbauen
-        $tempRequest  = $allVerified[$token] ?? null;
+        // 2. Suche in verifizierten Anträgen (Warteraum 2) via PermitService
+        // FIX: Wir nutzen nun die saubere Service-Methode statt loadJson
+        $tempRequest = $this->permitService->getVerifiedRequest($token);
 
         if ($code === '' && ! $tempRequest) {
             $this->render('check_search', ['error' => null]);
@@ -62,9 +63,33 @@ final readonly class CheckController
                 'config'              => $this->config,
                 'settings'            => $this->getSettingsArray(),
                 'appRoot'             => $this->config->get('root_path'),
+                // Diese Flags werden für das Template benötigt:
+                'isDateValid'   => true,
+                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
+                'allowedToday'  => $this->holidayService->getTodayAllowedSlots(),
+                'showAdminView' => false,
+                'permit'        => null,
             ]);
 
             return;
+        }
+
+        // Normaler Fall: Genehmigung prüfen
+        if ($permit) {
+            $showAdminView = $this->determineViewPrivileges($permit, $get);
+            $this->render($showAdminView ? 'check_admin' : 'check_public', [
+                'permit'        => $permit,
+                'isDateValid'   => $permit->isValid(),
+                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
+                'allowedToday'  => $this->holidayService->getTodayAllowedSlots(),
+                'showAdminView' => $showAdminView,
+                'settings'      => $this->getSettingsArray(),
+                'config'        => $this->config,
+                'appRoot'       => $this->config->get('root_path'),
+                'tempData'      => null,
+            ]);
+        } else {
+            $this->render('check_search', ['error' => "Code '{$code}' nicht gefunden."]);
         }
     }
 

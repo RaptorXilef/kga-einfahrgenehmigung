@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 /**
- * API: Überweisungs-Abschluss v0.12.1
+ * API: Abschluss für Überweisungen v0.12.0
+ * Überführt den Antrag in die Hauptdatenbank (Status: wartend).
  */
 $appRoot = (function (): string {
     $dir = __DIR__;
@@ -25,6 +26,7 @@ use App\Infrastructure\Config\Config;
 
 \header('Content-Type: application/json');
 
+// Token aus der URL holen
 $token = (string) ($_GET['token'] ?? '');
 
 if ($token === '') {
@@ -39,9 +41,18 @@ $container = new Container(new Config($settings));
 $service   = $container->get(PermitService::class);
 
 try {
-    // Überführt Daten von verified_pending.json nach daten.json
+    // Verschiebt Daten von verified_pending.json nach daten.json
+    // und triggert den Mail-Versand an Nutzer & Vorstand
     $permit = $service->finaliseRequest($token, 'wartend', 'Zahlung per Überweisung gewählt');
-    echo \json_encode(['success' => true, 'code' => $permit->code]);
+
+    echo \json_encode([
+        'success' => true,
+        'code'    => $permit->code,
+    ]);
 } catch (\Exception $e) {
-    echo \json_encode(['success' => false, 'error' => $e->getMessage()]);
+    \http_response_code(400);
+    echo \json_encode([
+        'success' => false,
+        'error'   => $e->getMessage(),
+    ]);
 }

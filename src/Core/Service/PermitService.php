@@ -538,4 +538,20 @@ final readonly class PermitService
     {
         return $this->voucherService;
     }
+
+    /**
+     * Lädt einen verifizierten, aber noch nicht finalisierten Antrag.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getVerifiedRequest(string $token): ?array
+    {
+        if ($token === '') {
+            return null;
+        }
+        $path = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $all  = $this->loadJson($path);
+
+        return $all[$token] ?? null;
+    }
 }

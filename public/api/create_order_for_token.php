@@ -7,7 +7,6 @@ declare(strict_types=1);
  *
  * @file public/api/create_order_for_token.php
  */
-
 $appRoot = (function (): string {
     $dir = __DIR__;
     while ($dir !== \dirname($dir)) {
@@ -16,6 +15,7 @@ $appRoot = (function (): string {
         }
         $dir = \dirname($dir);
     }
+
     return \dirname(__DIR__, 2);
 })();
 
@@ -42,8 +42,10 @@ $payment   = $container->get(PaymentProviderInterface::class);
 
 // Wir suchen im Warteraum 2 (verified_pending)
 $verifiedPath = $appRoot . '/storage/verified_pending.json';
-$allVerified  = \json_decode((string)\@\file_get_contents($verifiedPath), true) ?? [];
-$tempRequest  = $allVerified[$token] ?? null;
+// FIX: Das @-Zeichen zur Fehlerunterdrückung ohne Backslash nutzen
+$content     = @\file_get_contents($verifiedPath);
+$allVerified = \json_decode($content ?: '{}', true) ?? [];
+$tempRequest = $allVerified[$token] ?? null;
 
 if (! $tempRequest) {
     echo \json_encode(['success' => false, 'error' => 'Antragssitzung nicht gefunden oder abgelaufen']);
@@ -51,7 +53,7 @@ if (! $tempRequest) {
 }
 
 // PayPal Order mit dem im Warteraum gespeicherten Preis erstellen
-$orderId = $payment->createOrder((float)$tempRequest['preisSnapshot']);
+$orderId = $payment->createOrder((float) $tempRequest['preisSnapshot']);
 
 if (! $orderId) {
     echo \json_encode(['success' => false, 'error' => 'PayPal API Fehler']);

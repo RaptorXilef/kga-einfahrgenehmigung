@@ -137,6 +137,7 @@ class Container
             $this->get(StorageInterface::class),
             $this->get(AuthService::class),
             $this->get(HolidayService::class),
+            $this->get(PermitService::class),
         );
 
         // PermitController für index.php

@@ -53,6 +53,7 @@ export class PermitFormHandler {
     }
 
     initPayPal() {
+        // TODO REMOVE Methode
         window.paypal
             .Buttons({
                 createOrder: async () => {
