@@ -68,7 +68,7 @@ final readonly class JsonStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (!$target->save($permit)) {
+            if (! $target->save($permit)) {
                 continue;
             }
 

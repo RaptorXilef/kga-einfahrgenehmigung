@@ -102,7 +102,11 @@ final readonly class PermitService
         $permit = new Permit(
             code: $fullIdentifier,
             templateKey: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
-            owner: new Owner((string) $data['name'], (string) $data['email'], \str_pad((string) $data['parzelle'], 4, '0', \STR_PAD_LEFT)),
+            owner: new Owner(
+                (string) $data['name'],
+                (string) $data['email'],
+                \str_pad((string) $data['parzelle'], 4, '0', \STR_PAD_LEFT),
+            ),
             vehicle: new Vehicle($typ, $displayPlate, $data['firma'] ?? null),
             validity: new Validity($startDate, $endDate, $preis, $zweck),
             status: new Status((string) ($data['status'] ?? 'wartend')),
@@ -359,16 +363,21 @@ final readonly class PermitService
             $usage     = $this->generateUsageText($permit, $shortCode);
             $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
 
-            $this->mailService->sendTemplate($permit->owner->email, "Zahlung erforderlich: {$permit->code}", 'payment_request', [
-                'name'           => $permit->owner->name,
-                'fullIdentifier' => $permit->code,
-                'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
-                'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
-                'kontoinhaber'   => $this->config->get('kontoinhaber'),
-                'iban'           => $this->config->get('iban'),
-                'usage'          => $usage,
-                'epcData'        => \urlencode($epcQrData),
-            ]);
+            $this->mailService->sendTemplate(
+                $permit->owner->email,
+                "Zahlung erforderlich: {$permit->code}",
+                'payment_request',
+                [
+                    'name'           => $permit->owner->name,
+                    'fullIdentifier' => $permit->code,
+                    'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                    'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
+                    'kontoinhaber'   => $this->config->get('kontoinhaber'),
+                    'iban'           => $this->config->get('iban'),
+                    'usage'          => $usage,
+                    'epcData'        => \urlencode($epcQrData),
+                ],
+            );
         }
 
         // Mail an NUTZER (A4 Dokument)
@@ -576,7 +585,10 @@ final readonly class PermitService
     {
         $all = $this->storage->getAll();
 
-        return \array_filter($all, fn (Permit $permit): bool => \strtolower($permit->owner->email) === \strtolower($email));
+        return \array_filter(
+            $all,
+            fn (Permit $permit): bool => \strtolower($permit->owner->email) === \strtolower($email),
+        );
     }
 
     public function getStorage(): StorageInterface
@@ -632,8 +644,10 @@ final readonly class PermitService
 
         $yearPath = $this->config->get('root_path') . "/storage/daten_{$lastYear}.json";
         // Bestehendes Archiv laden oder neu erstellen
-        $existingYear = \file_exists($yearPath) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
-        $newYearData  = \array_merge($existingYear, $toArchive);
+        $existingYear = \file_exists(
+            $yearPath,
+        ) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
+        $newYearData = \array_merge($existingYear, $toArchive);
 
         $this->saveJson($yearPath, $newYearData);
         $this->saveJson($mainPath, $stayInMain);

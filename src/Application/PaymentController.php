@@ -69,7 +69,10 @@ final readonly class PaymentController
     private function getSettingsArray(?array $prefill = null): array
     {
         $templates = $this->config->get('permit_templates', []);
-        $public    = \array_filter((array) $templates, fn (array $template): bool => ($template['public'] ?? false) === true);
+        $public    = \array_filter(
+            (array) $templates,
+            fn (array $template): bool => ($template['public'] ?? false) === true,
+        );
 
         if ($prefill !== null && isset($prefill['template_key'])) {
             $key = (string) $prefill['template_key'];
