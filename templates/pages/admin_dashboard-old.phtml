@@ -1,0 +1,511 @@
+<?php
+
+/**
+ * @var array<string, mixed>                          $settings
+ * @var \App\Infrastructure\Config\Config             $config
+ * @var string                                        $appRoot
+ * @var string                                        $adminUser
+ * @var int                                           $adminLevel
+ * @var string                                        $message
+ * @var string                                        $filterStart
+ * @var string                                        $filterEnd
+ * @var array<string, mixed>                          $stats
+ * @var array<string, array<\App\Core\Entity\Permit>> $groups
+ * @var array<int, array<string, mixed>>              $mailLogs
+ * @var \App\Core\Service\PermitService               $permitService
+ * @var \App\Core\Service\VoucherService              $voucherService
+ * @var array<string, array<string, mixed>>           $vouchers
+ * @var array<int, string>                            $reasons
+ */
+$now = new \DateTimeImmutable();
+?>
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+    <style>
+        /* TABS LOGIK */
+        .c-tabs__nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            overflow-x: auto;
+        }
+
+        .c-tabs__btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .c-tabs__btn:hover {
+            background: #e0e0e0;
+        }
+
+        .c-tabs__btn--active {
+            background: #3498db;
+            color: white;
+        }
+
+        .c-tabs__content {
+            display: none;
+        }
+
+        .c-tabs__content--active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ZUSTÄNDE & BADGES */
+        .u-bg-suspended {
+            background-color: #f8d7da !important;
+            border-left: 5px solid #c0392b !important;
+        }
+
+        .u-opacity-50 {
+            opacity: 0.5;
+        }
+
+        .c-table td {
+            vertical-align: middle;
+        }
+
+        /* DASHBOARD SPEZIFISCH */
+        .qr-mini {
+            width: 70px;
+            height: 70px;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+
+        .stats-box {
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body class="l-admin">
+
+    <?php include $appRoot . '/templates/partials/test_mode_indicator.phtml'; ?>
+
+    <nav class="c-admin-nav">
+        <div class="c-container">
+            <span>Eingeloggt: <strong><?php echo \htmlspecialchars($adminUser); ?></strong> (Lvl <?php echo $adminLevel; ?>)</span>
+            <?php if ($adminLevel <= 1) { ?>
+                <a href="users.php" class="u-margin-left-m">👤 Benutzerverwaltung</a>
+            <?php } ?>
+            <a href="?action=logout" class="u-float-right">Abmelden</a>
+        </div>
+    </nav>
+
+    <main class="c-container u-padding-y-l">
+        <?php if ($message) { ?>
+            <div class="c-alert c-alert--info u-margin-bottom"><?php echo $message; ?></div>
+        <?php } ?>
+
+        <h1>Dashboard & Statistiken</h1>
+
+        <section class="c-card u-margin-bottom-l">
+            <div class="u-flex u-align-center u-gap-m u-flex-wrap">
+                <form method="GET" class="c-form--inline" style="flex-grow: 1;">
+                    <input type="date" name="start" value="<?php echo $filterStart; ?>" class="c-form-input">
+                    <input type="date" name="end" value="<?php echo $filterEnd; ?>" class="c-form-input">
+                    <button type="submit" class="c-button">Filtern</button>
+                </form>
+
+                <div class="c-form-group" style="width: 300px;">
+                    <input type="text" id="adminSearch" placeholder="🔍 Schnellsuche (Name, KFZ, Code)..." class="c-form-input">
+                </div>
+
+                <div class="u-margin-left-auto">
+                    <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-button c-button--secondary">CSV</a>
+                    <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-button c-button--secondary">JSON</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="c-stats-grid u-margin-bottom-l">
+            <?php if ($adminLevel < 3) { ?>
+                <div class="c-card stats-box">
+                    <small>Einnahmen (Zeitraum)</small>
+                    <div class="u-font-xl u-font-bold"><?php echo \number_format($stats['total_revenue'] ?? 0, 2, ',', '.'); ?> €</div>
+                </div>
+            <?php } ?>
+            <div class="c-card stats-box">
+                <small>Anträge / PKW / LKW</small>
+                <div class="u-font-l"><?php echo $stats['total_count'] ?? 0; ?> (<?php echo $stats['types']['pkw'] ?? 0; ?> / <?php echo $stats['types']['lkw'] ?? 0; ?>)</div>
+            </div>
+        </div>
+
+        <div class="c-grid-dashboard">
+            <div class="u-col-span-2">
+                <div class="c-tabs">
+                    <div class="c-tabs__nav">
+                        <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
+                        <button class="c-tabs__btn" data-tab-target="tab-future">Zukünftig</button>
+                        <button class="c-tabs__btn" data-tab-target="tab-expired">Abgelaufen</button>
+                        <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Gutscheine</button>
+                        <button class="c-tabs__btn" data-tab-target="tab-tools">🛠 Werkzeuge</button>
+                        <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
+                    </div>
+
+                    <!-- TAB: AKTIV -->
+                    <div id="tab-active" class="c-tabs__content c-tabs__content--active">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kennung / Name</th>
+                                        <th>Status</th>
+                                        <?php if ($adminLevel < 3) { ?><th>Betrag</th><?php } ?>
+                                        <th>Aktion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (($groups['active'] ?? []) as $permit) {
+                                        $overdueLevel = $permitService->getOverdueLevel($permit); ?>
+                                        <tr class="<?php echo $permit->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
+                                            <td>
+                                                <code><?php echo $permit->code; ?></code><br>
+                                                <small><strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong> (Parz: <?php echo $permit->owner->parzelle; ?>)</small>
+                                            </td>
+                                            <td>
+                                                <?php if ($permit->status->isSuspended) { ?>
+                                                    <span class="c-badge c-badge--danger">⛔ GESPERRT</span>
+                                                <?php } else { ?>
+                                                    <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($permit->status->current); ?></span>
+                                                    <?php if ($overdueLevel === 1) { ?>
+                                                        <span class="c-badge" style="background: #e67e22; color: white;">ÜBERFÄLLIG</span>
+                                                    <?php } elseif ($overdueLevel === 2) { ?>
+                                                        <span class="c-badge c-badge--danger">🚨 ALARM</span>
+                                                    <?php } ?>
+                                                <?php } ?>
+                                            </td>
+                                            <?php if ($adminLevel < 3) { ?><td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td><?php } ?>
+                                            <td>
+                                                <div class="u-flex u-gap-xs">
+                                                    <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
+                                                    <?php if ($permit->status->isSuspended) { ?>
+                                                        <form method="POST" style="margin:0;">
+                                                            <input type="hidden" name="action" value="unsuspend_permit">
+                                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                            <button type="submit" class="c-button c-button--success c-button--small" title="Entsperren">🔓</button>
+                                                        </form>
+                                                    <?php } else { ?>
+                                                        <?php if ($permit->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
+                                                            <form method="POST" style="margin:0;">
+                                                                <input type="hidden" name="action" value="mark_as_paid">
+                                                                <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                                <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
+                                                            </form>
+                                                        <?php } ?>
+                                                        <button class="c-button c-button--danger c-button--small js-suspend-btn"
+                                                            data-code="<?php echo $permit->code; ?>" title="Sperren">⛔</button>
+                                                        <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
+                                                            <input type="hidden" name="action" value="suspend_permit">
+                                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                            <input type="hidden" name="reason" id="reason_suspend_<?php echo $permit->code; ?>">
+                                                        </form>
+                                                    <?php } ?>
+                                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--small">👁</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+
+                    <!-- TAB: ZUKÜNFTIG -->
+                    <div id="tab-future" class="c-tabs__content">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kennung / Name</th>
+                                        <th>Datum von</th>
+                                        <th>Aktion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (($groups['future'] ?? []) as $permit) { ?>
+                                        <tr>
+                                            <td><code><?php echo $permit->code; ?></code><br><small><?php echo \htmlspecialchars($permit->owner->name); ?></small></td>
+                                            <td><?php echo $permit->validity->von->format('d.m.Y'); ?></td>
+                                            <td><a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+
+                    <!-- TAB: ABGELAUFEN -->
+                    <div id="tab-expired" class="c-tabs__content">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kennung / Name</th>
+                                        <th>Datum bis</th>
+                                        <th>Aktion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (($groups['expired'] ?? []) as $permit) { ?>
+                                        <tr class="u-opacity-50">
+                                            <td><code><?php echo $permit->code; ?></code><br><small><?php echo \htmlspecialchars($permit->owner->name); ?></small></td>
+                                            <td><?php echo $permit->validity->bis->format('d.m.Y'); ?></td>
+                                            <td><a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+
+                    <!-- TAB: GUTSCHEINE -->
+                    <div id="tab-vouchers" class="c-tabs__content">
+                        <div class="u-grid u-gap-l" style="grid-template-columns: 1.5fr 1fr;">
+                            <section class="c-card">
+                                <header class="c-card__header">
+                                    <h3>Offene Gutscheine</h3>
+                                </header>
+                                <div style="max-height: 500px; overflow-y: auto;">
+                                    <table class="c-table">
+                                        <thead>
+                                            <tr>
+                                                <th>QR / Code</th>
+                                                <th>Details</th>
+                                                <th>Aktion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach (($vouchers ?? []) as $v) {
+                                                if ($v['used']) {
+                                                    continue;
+                                                }
+                                                $url = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+                                                $qr  = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' . \urlencode($url);
+
+                                                // Status-Logik wiederhergestellt
+                                                $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+                                                ?>
+                                                <tr class="<?php echo $isDeactivated ? 'u-opacity-50 u-bg-suspended' : ''; ?>">
+                                                    <td>
+                                                        <img src="<?php echo $qr; ?>" class="qr-mini" alt="QR"><br>
+                                                        <code><?php echo $v['code']; ?></code>
+                                                    </td>
+                                                    <td>
+                                                        <strong><?php echo \htmlspecialchars($v['reason']); ?></strong><br>
+                                                        <small>Vorbefüllung: <?php echo $v['data']['name'] ?? '-'; ?> (P: <?php echo $v['data']['parzelle'] ?? '?'; ?>)</small><br>
+                                                        <a href="<?php echo $url; ?>" target="_blank" style="font-size:10px;">Direkt-Link ↗</a>
+                                                    </td>
+                                                    <td>
+                                                        <div class="u-flex u-gap-xs">
+                                                            <!-- Formular zum Aktivieren/Deaktivieren (wiederhergestellt) -->
+                                                            <form method="POST">
+                                                                <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                                                <?php if ($isDeactivated) { ?>
+                                                                    <input type="hidden" name="action" value="activate_voucher">
+                                                                    <button type="submit" class="c-button c-button--success c-button--small">Aktivieren</button>
+                                                                <?php } else { ?>
+                                                                    <input type="hidden" name="action" value="deactivate_voucher">
+                                                                    <button type="submit" class="c-button c-button--danger c-button--small">Sperren</button>
+                                                                <?php } ?>
+                                                            </form>
+
+                                                            <!-- Löschen Formular -->
+                                                            <form method="POST" onsubmit="return confirm('Gutschein wirklich löschen?')">
+                                                                <input type="hidden" name="action" value="delete_voucher">
+                                                                <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                                                <button type="submit" class="c-button c-button--danger c-button--small">🗑</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+
+                            <section class="c-card">
+                                <header class="c-card__header">
+                                    <h3>Einlösungs-Archiv</h3>
+                                </header>
+                                <div style="max-height: 500px; overflow-y: auto;">
+                                    <table class="c-table c-table--small">
+                                        <thead>
+                                            <tr>
+                                                <th>Datum</th>
+                                                <th>Nutzer</th>
+                                                <th>Code</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach (($voucherService->loadArchive() ?? []) as $arc) { ?>
+                                                <tr>
+                                                    <td><small><?php echo $arc['redeemed_at']; ?></small></td>
+                                                    <td><?php echo \htmlspecialchars($arc['user_name']); ?> (<?php echo $arc['user_plot']; ?>)</td>
+                                                    <td><code><?php echo $arc['code']; ?></code></td>
+                                                </tr>
+                                            <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- TAB: TOOLS -->
+                    <div id="tab-tools" class="c-tabs__content">
+                        <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
+                            <section class="c-card">
+                                <header class="c-card__header">
+                                    <h3>Gutschein erstellen</h3>
+                                </header>
+                                <form method="POST" class="c-form">
+                                    <input type="hidden" name="action" value="create_voucher">
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Interne Bezeichnung</label>
+                                        <input type="text" name="reason_internal" class="c-form-input" required placeholder="z.B. Bar bezahlt">
+                                    </div>
+                                    <div class="c-form-group u-margin-top-s">
+                                        <label class="c-form-label">Vorlage</label>
+                                        <select name="template_key" class="c-form-select">
+                                            <?php foreach ($config->get('permit_templates') as $key => $tpl) {
+                                                echo "<option value='$key'>{$tpl['label']}</option>";
+                                            } ?>
+                                        </select>
+                                    </div>
+                                    <div class="u-margin-top-m u-padding-s" style="background:#f9f9f9; border:1px solid #ddd; border-radius:5px;">
+                                        <p class="u-font-bold u-margin-bottom-s">Vorbefüllung (Optional)</p>
+                                        <div class="u-flex u-gap-s">
+                                            <input type="text" name="pre_name" class="c-form-input" placeholder="Name">
+                                            <input type="text" name="pre_parzelle" class="c-form-input" style="width:80px" placeholder="Parz.">
+                                        </div>
+                                        <input type="text" name="pre_kennzeichen" class="c-form-input u-margin-top-s" placeholder="Kennzeichen">
+                                    </div>
+                                    <button type="submit" class="c-button u-width-100 u-margin-top-m">Gutschein & QR erzeugen</button>
+                                </form>
+                            </section>
+
+                            <section class="c-card">
+                                <header class="c-card__header">
+                                    <h3>Spezial-Genehmigung erstellen (Bar/Gratis)</h3>
+                                </header>
+                                <form method="POST" class="c-form">
+                                    <input type="hidden" name="action" value="create_manual">
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Vorlage / Zeitraum</label>
+                                        <select name="template_key" id="manual_template_key" class="c-form-select">
+                                            <?php foreach ($config->get('permit_templates') as $key => $tpl) {
+                                                echo "<option value='$key'>{$tpl['label']}</option>";
+                                            } ?>
+                                        </select>
+                                    </div>
+                                    <div class="u-flex u-gap-s u-margin-top-s">
+                                        <div style="flex:1"><label class="c-form-label">Startdatum</label><input type="date" name="datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>"></div>
+                                        <div style="flex:1; display:none;" id="custom_end_wrapper"><label class="c-form-label">Enddatum (Spezial)</label><input type="date" name="datum_bis" class="c-form-input" value="<?php echo \date('Y-m-d', \strtotime('+1 year')); ?>"></div>
+                                    </div>
+                                    <input type="text" name="name" class="c-form-input u-margin-top-m" placeholder="Name des Pächters" required>
+                                    <div class="u-flex u-gap-s u-margin-top-s">
+                                        <input type="text" name="parzelle" class="c-form-input" placeholder="Parzelle" required>
+                                        <input type="text" name="kennzeichen" class="c-form-input" placeholder="Kennzeichen">
+                                    </div>
+                                    <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail">
+                                    <div class="c-form-group u-margin-top-s">
+                                        <label class="c-form-label">Interner Vermerk</label>
+                                        <select name="reason" class="c-form-select">
+                                            <?php foreach ($reasons as $r) {
+                                                echo "<option value='" . \htmlspecialchars($r) . "'>" . \htmlspecialchars($r) . '</option>';
+                                            } ?>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Sofort erstellen</button>
+                                </form>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- TAB: LOGS -->
+                    <div id="tab-logs" class="c-tabs__content">
+                        <section class="c-card">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Zeitpunkt</th>
+                                        <th>Empfänger</th>
+                                        <th>Betreff</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (\array_slice($mailLogs, 0, 50) as $log) { ?>
+                                        <tr>
+                                            <td><small><?php echo $log['timestamp']; ?></small></td>
+                                            <td><?php echo \htmlspecialchars($log['recipient']); ?></td>
+                                            <td><strong><?php echo \htmlspecialchars($log['subject']); ?></strong><br><small>Tpl: <?php echo $log['template']; ?></small></td>
+                                            <td><span class="c-badge c-badge--<?php echo $log['status'] === 'Erfolg' ? 'success' : 'danger'; ?>"><?php echo $log['status']; ?></span></td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR -->
+            <aside>
+                <section class="c-card">
+                    <header class="c-card__header">
+                        <h3>Top Parzellen</h3>
+                    </header>
+                    <table class="c-table">
+                        <?php foreach (
+                            \array_slice(
+                                $stats['plots'] ?? [],
+                                0,
+                                15,
+                                true,
+                            ) as $plot => $count
+                        ) { ?>
+                            <tr>
+                                <td>Nr. <?php echo \htmlspecialchars((string) $plot); ?></td>
+                                <td class="u-text-right"><strong><?php echo $count; ?>x</strong></td>
+                            </tr>
+                        <?php } ?>
+                    </table>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <script type="module" src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
+</body>
+
+</html>
