@@ -1,26 +1,36 @@
 <?php
+
 /**
  * Partial: Dashboard Tab - Stats Overview
+ *
+ * Path: templates/pages/admin_dashboard/_tab_stats.phtml
+ *
  * @var int   $adminLevel
  * @var array $stats
  */
 ?>
-<div class="u-grid u-gap-l" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-    <?php if ($adminLevel < 3) { ?>
-        <section class="c-card u-text-center u-padding-around-l">
-            <h3 class="u-text-muted u-margin-bottom-s">Einnahmen (Zeitraum)</h3>
-            <div class="u-font-xl u-font-bold u-color-primary" style="font-size: 3rem;">
-                <?php echo \number_format($stats['total_revenue'] ?? 0, 2, ',', '.'); ?> €
+<div class="c-tab-content-container">
+    <div class="u-grid u-gap-l" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <?php if ($adminLevel < 3) { ?>
+            <section class="c-card u-text-center">
+                <div class="c-card__body u-padding-around-l">
+                    <h3 class="u-text-muted">Einnahmen (Zeitraum)</h3>
+                    <div class="u-font-xl u-font-bold" style="font-size: 3.5rem; color: var(--primary-color);">
+                        <?php echo \number_format($stats['total_revenue'] ?? 0, 2, ',', '.'); ?> €
+                    </div>
+                </div>
+            </section>
+        <?php } ?>
+
+        <section class="c-card u-text-center">
+            <div class="c-card__body u-padding-around-l">
+                <h3 class="u-text-muted">Genehmigungen Gesamt</h3>
+                <div class="u-font-xl" style="font-size: 3.5rem;"><?php echo $stats['total_count'] ?? 0; ?></div>
+                <div class="u-margin-top-m">
+                    <span class="c-badge c-badge--success">PKW: <?php echo $stats['types']['pkw'] ?? 0; ?></span>
+                    <span class="c-badge c-badge--warning">LKW/Firma: <?php echo $stats['types']['lkw'] ?? 0; ?></span>
+                </div>
             </div>
         </section>
-    <?php } ?>
-
-    <section class="c-card u-text-center u-padding-around-l">
-        <h3 class="u-text-muted u-margin-bottom-s">Gesamtanzahl Anträge</h3>
-        <div class="u-font-xl" style="font-size: 3rem;"><?php echo $stats['total_count'] ?? 0; ?></div>
-        <p class="u-margin-top-m">
-            <span class="c-badge">PKW: <?php echo $stats['types']['pkw'] ?? 0; ?></span>
-            <span class="c-badge">LKW: <?php echo $stats['types']['lkw'] ?? 0; ?></span>
-        </p>
-    </section>
+    </div>
 </div>

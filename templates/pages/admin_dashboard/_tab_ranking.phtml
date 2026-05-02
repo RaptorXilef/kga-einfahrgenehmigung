@@ -1,53 +1,56 @@
 <?php
+
 /**
  * Partial: Dashboard Tab - Plot Ranking
+ *
+ * Path: templates/pages/admin_dashboard/_tab_ranking.phtml
+ *
  * @var array $stats
  */
 ?>
-<section class="c-card">
-    <header class="c-card__header">
-        <h3 class="u-margin-none">📊 Parzellen-Ranking</h3>
-        <p class="u-text-muted">Welche Parzellen verursachen das meiste Aufkommen?</p>
-    </header>
-
-    <div class="c-card__body">
-        <table class="c-table">
-            <thead>
-                <tr>
-                    <th>Platzierung</th>
-                    <th>Parzelle</th>
-                    <th class="u-text-right">Anzahl der Genehmigungen</th>
-                    <th>Visualisierung</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $plots = $stats['plots'] ?? [];
-if (empty($plots)) {
-    ?>
+<div class="c-tab-content-container">
+    <section class="c-card">
+        <header class="c-card__header">
+            <h3 class="u-margin-none">📊 Parzellen-Ranking</h3>
+            <p class="u-text-muted">Ranking nach Anzahl der Anträge im gewählten Zeitraum.</p>
+        </header>
+        <div class="c-card__body u-padding-none">
+            <table class="c-table">
+                <thead>
                     <tr>
-                        <td colspan="4" class="u-text-center u-padding-y-l u-text-muted">Keine Daten im gewählten Zeitraum vorhanden.</td>
+                        <th style="width: 80px;">Rang</th>
+                        <th>Parzelle</th>
+                        <th class="u-text-right">Anträge</th>
+                        <th>Intensität</th>
                     </tr>
-                <?php } else { ?>
+                </thead>
+                <tbody>
                     <?php
-        $rank                 = 1;
-                    $maxCount = \reset($plots); // Höchster Wert für den Balken
-                    foreach (\array_slice($plots, 0, 30, true) as $plot => $count) {
-                        $percentage = ($count / $maxCount) * 100;
-                        ?>
+                    $plots = $stats['plots'] ?? [];
+if (empty($plots)) { ?>
                         <tr>
-                            <td style="width: 50px;"><strong>#<?php echo $rank++; ?></strong></td>
-                            <td><strong>Nr. <?php echo \htmlspecialchars((string) $plot); ?></strong></td>
-                            <td class="u-text-right"><?php echo $count; ?> Anträge</td>
-                            <td style="width: 40%;">
-                                <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
-                                    <div style="background: #3498db; width: <?php echo $percentage; ?>%; height: 100%;"></div>
-                                </div>
-                            </td>
+                            <td colspan="4" class="u-text-center u-padding-around-l">Keine Daten verfügbar.</td>
                         </tr>
-                    <?php } ?>
-                <?php } ?>
-            </tbody>
-        </table>
-    </div>
-</section>
+                        <?php } else {
+                            $rank = 1;
+                            $max  = \reset($plots);
+                            foreach (\array_slice($plots, 0, 30, true) as $plot => $count) {
+                                $perc = ($count / $max) * 100;
+                                ?>
+                            <tr>
+                                <td><strong>#<?php echo $rank++; ?></strong></td>
+                                <td><strong>Nr. <?php echo \htmlspecialchars((string) $plot); ?></strong></td>
+                                <td class="u-text-right"><?php echo $count; ?></td>
+                                <td>
+                                    <div style="background: #f1f5f9; height: 8px; border-radius: 4px; width: 100%; max-width: 200px;">
+                                        <div style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; border-radius: 4px;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                    <?php }
+                            } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
