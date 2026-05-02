@@ -1,16 +1,40 @@
 <?php
 /**
  * Component: Admin Header Navigation
+ *
+ * Path: templates/components/_header_nav.phtml
+ *
  * @var string $adminUser
  * @var int    $adminLevel
  */
 ?>
-<nav class="c-admin-nav">
-    <div class="c-container">
-        <span>Eingeloggt: <strong><?php echo \htmlspecialchars($adminUser); ?></strong> (Lvl <?php echo $adminLevel; ?>)</span>
-        <?php if ($adminLevel <= 1) { ?>
-            <a href="users.php" class="u-margin-left-m">👤 Benutzerverwaltung</a>
-        <?php } ?>
-        <a href="?action=logout" class="u-float-right">Abmelden</a>
+<nav style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+    <div class="c-tab-content-container" style="display: flex; justify-content: space-between; align-items: center;">
+
+        <!-- User Info & Level -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="background: var(--bg-light); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">👤</span>
+                <span style="font-weight: 600; font-size: 0.9rem;">
+                    <?php echo \htmlspecialchars($adminUser); ?>
+                    <span style="color: var(--text-muted); font-weight: normal; margin-left: 4px;">(Lvl <?php echo $adminLevel; ?>)</span>
+                </span>
+            </div>
+
+            <?php if ($adminLevel <= 1) { ?>
+                <a href="users.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                    ⚙️ Benutzerverwaltung
+                </a>
+            <?php } ?>
+        </div>
+
+        <!-- Logout -->
+        <a href="?action=logout"
+           style="text-decoration: none; color: var(--danger-color); font-weight: 600; font-size: 0.85rem; padding: 6px 15px; border-radius: 8px; transition: background 0.2s;"
+           onmouseover="this.style.background='#fff1f2'"
+           onmouseout="this.style.background='transparent'">
+            ✕ Abmelden
+        </a>
+
     </div>
 </nav>
