@@ -1,6 +1,7 @@
 <?php
 /**
  * Partial: Dashboard Tab Content - Active Permits
+ *
  * Path: templates/pages/admin_dashboard/_tab_active.phtml
  *
  * @var array<string, array<\App\Core\Entity\Permit>> $groups
@@ -8,103 +9,106 @@
  * @var int                                           $adminLevel
  */
 ?>
-<section class="c-card">
-    <table class="c-table">
-        <thead>
-            <tr>
-                <th>Kennung / Name</th>
-                <th>Status</th>
-                <?php if ($adminLevel < 3) { ?>
-                    <th>Betrag</th>
-                <?php } ?>
-                <th class="u-text-right">Aktion</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($groups['active'])) { ?>
-                <tr>
-                    <td colspan="<?php echo ($adminLevel < 3) ? 4 : 3; ?>" class="u-text-center u-text-muted u-padding-y-m">
-                        Aktuell keine aktiven Genehmigungen vorhanden.
-                    </td>
-                </tr>
-            <?php } else { ?>
-                <?php foreach ($groups['active'] as $permit) { ?>
-                    <?php $overdueLevel = $permitService->getOverdueLevel($permit); ?>
+<div class="c-tab-content-container">
+    <section class="c-card">
+        <header class="c-card__header">
+            <h3 class="u-margin-none">🟢 Aktive Genehmigungen</h3>
+            <p class="u-text-muted">Alle aktuell gültigen Einfahrtsberechtigungen im System.</p>
+        </header>
 
-                    <tr class="<?php echo $permit->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
-                        <td>
-                            <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
-                            <small>
-                                <strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong>
-                                (Parz: <?php echo \htmlspecialchars($permit->owner->parzelle); ?>)
-                            </small>
-                        </td>
-
-                        <td>
-                            <?php if ($permit->status->isSuspended) { ?>
-                                <span class="c-badge c-badge--danger">⛔ GESPERRT</span>
-                            <?php } else { ?>
-                                <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
-                                    <?php echo \strtoupper($permit->status->current); ?>
-                                </span>
-
-                                <?php if ($overdueLevel === 1) { ?>
-                                    <span class="c-badge" style="background: #e67e22; color: white;">ÜBERFÄLLIG</span>
-                                <?php } elseif ($overdueLevel === 2) { ?>
-                                    <span class="c-badge c-badge--danger">🚨 ALARM</span>
-                                <?php } ?>
-                            <?php } ?>
-                        </td>
-
+        <div class="c-card__body u-padding-none">
+            <table class="c-table">
+                <thead>
+                    <tr>
+                        <th>Kennung / Name</th>
+                        <th>Status</th>
                         <?php if ($adminLevel < 3) { ?>
-                            <td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td>
+                            <th>Betrag</th>
                         <?php } ?>
+                        <th class="u-text-right">Aktion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($groups['active'])) { ?>
+                        <tr>
+                            <td colspan="<?php echo ($adminLevel < 3) ? 4 : 3; ?>" class="u-text-center u-text-muted u-padding-around-l">
+                                Aktuell keine aktiven Genehmigungen vorhanden.
+                            </td>
+                        </tr>
+                    <?php } else { ?>
+                        <?php foreach ($groups['active'] as $permit) { ?>
+                            <?php $overdueLevel = $permitService->getOverdueLevel($permit); ?>
 
-                        <td class="u-text-right">
-                            <div class="u-flex u-gap-xs u-justify-end">
-                                <!-- Druckansicht -->
-                                <a href="?action=print&code=<?php echo $permit->code; ?>"
-                                   class="c-button c-button--secondary c-button--small" title="Druckvorschau">🖨</a>
+                            <tr class="<?php echo $permit->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
+                                <td>
+                                    <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
+                                    <small>
+                                        <strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong>
+                                        (Parz: <?php echo \htmlspecialchars($permit->owner->parzelle); ?>)
+                                    </small>
+                                </td>
 
-                                <?php if ($permit->status->isSuspended) { ?>
-                                    <!-- Button zum Entsperren -->
-                                    <form method="POST" style="margin:0;">
-                                        <input type="hidden" name="action" value="unsuspend_permit">
-                                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                        <button type="submit" class="c-button c-button--success c-button--small" title="Entsperren">🔓</button>
-                                    </form>
-                                <?php } else { ?>
-                                    <!-- Zahlung manuell bestätigen (nur für Level 0/1) -->
-                                    <?php if ($permit->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
-                                        <form method="POST" style="margin:0;">
-                                            <input type="hidden" name="action" value="mark_as_paid">
-                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                            <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung erhalten">✔</button>
-                                        </form>
+                                <td>
+                                    <?php if ($permit->status->isSuspended) { ?>
+                                        <span class="c-badge c-badge--danger">⛔ GESPERRT</span>
+                                    <?php } else { ?>
+                                        <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
+                                            <?php echo \strtoupper($permit->status->current); ?>
+                                        </span>
+
+                                        <?php if ($overdueLevel === 1) { ?>
+                                            <span class="c-badge" style="background: #e67e22; color: white;">ÜBERFÄLLIG</span>
+                                        <?php } elseif ($overdueLevel === 2) { ?>
+                                            <span class="c-badge c-badge--danger">🚨 ALARM</span>
+                                        <?php } ?>
                                     <?php } ?>
+                                </td>
 
-                                    <!-- Sperr-Button (Nutzt den neuen JS-Handler) -->
-                                    <button class="c-button c-button--danger c-button--small js-suspend-btn"
-                                            data-code="<?php echo $permit->code; ?>"
-                                            title="Sperren">⛔</button>
-
-                                    <!-- Verstecktes Formular für die Sperre -->
-                                    <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
-                                        <input type="hidden" name="action" value="suspend_permit">
-                                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                        <input type="hidden" name="reason" id="reason_suspend_<?php echo $permit->code; ?>">
-                                    </form>
+                                <?php if ($adminLevel < 3) { ?>
+                                    <td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td>
                                 <?php } ?>
 
-                                <!-- Öffentlicher Status-Link -->
-                                <a href="check.php?code=<?php echo $permit->code; ?>"
-                                   target="_blank"
-                                   class="c-button c-button--secondary c-button--small" title="Prüfseite öffnen">👁</a>
-                            </div>
-                        </td>
-                    </tr>
-                <?php } ?>
-            <?php } ?>
-        </tbody>
-    </table>
-</section>
+                                <td class="u-text-right">
+                                    <div class="u-flex u-gap-xs u-justify-end">
+                                        <a href="?action=print&code=<?php echo $permit->code; ?>"
+                                           class="c-button c-button--secondary c-button--small" title="Druckvorschau">🖨</a>
+
+                                        <?php if ($permit->status->isSuspended) { ?>
+                                            <form method="POST" style="margin:0;">
+                                                <input type="hidden" name="action" value="unsuspend_permit">
+                                                <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                <button type="submit" class="c-button c-button--success c-button--small" title="Entsperren">🔓</button>
+                                            </form>
+                                        <?php } else { ?>
+                                            <?php if ($permit->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
+                                                <form method="POST" style="margin:0;">
+                                                    <input type="hidden" name="action" value="mark_as_paid">
+                                                    <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                    <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung erhalten">✔</button>
+                                                </form>
+                                            <?php } ?>
+
+                                            <button class="c-button c-button--danger c-button--small js-suspend-btn"
+                                                    data-code="<?php echo $permit->code; ?>"
+                                                    title="Sperren">⛔</button>
+
+                                            <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
+                                                <input type="hidden" name="action" value="suspend_permit">
+                                                <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                <input type="hidden" name="reason" id="reason_suspend_<?php echo $permit->code; ?>">
+                                            </form>
+                                        <?php } ?>
+
+                                        <a href="check.php?code=<?php echo $permit->code; ?>"
+                                           target="_blank"
+                                           class="c-button c-button--secondary c-button--small" title="Prüfseite öffnen">👁</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

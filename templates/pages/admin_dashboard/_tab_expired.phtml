@@ -1,38 +1,50 @@
 <?php
 /**
- * @var array<string, array<\App\Core\Entity\Permit>> $groups
+ * Partial: Dashboard Tab - Expired Permits
+ *
+ * Path: templates/pages/admin_dashboard/_tab_expired.phtml
  */
 ?>
-<section class="c-card">
-    <table class="c-table">
-        <thead>
-            <tr>
-                <th>Kennung / Name</th>
-                <th>Abgelaufen am</th>
-                <th class="u-text-right">Aktion</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($groups['expired'])) { ?>
-                <tr>
-                    <td colspan="3" class="u-text-center u-text-muted u-padding-y-m">
-                        Keine abgelaufenen Genehmigungen in diesem Zeitraum.
-                    </td>
-                </tr>
-            <?php } else { ?>
-                <?php foreach ($groups['expired'] as $permit) { ?>
-                    <tr class="u-opacity-50">
-                        <td>
-                            <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
-                            <small><?php echo \htmlspecialchars($permit->owner->name); ?></small>
-                        </td>
-                        <td><?php echo $permit->validity->bis->format('d.m.Y'); ?></td>
-                        <td class="u-text-right">
-                            <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small">👁</a>
-                        </td>
+<div class="c-tab-content-container">
+    <section class="c-card">
+        <header class="c-card__header">
+            <h3 class="u-margin-none">⌛ Abgelaufene Genehmigungen</h3>
+            <p class="u-text-muted">Historie der Berechtigungen aus dem gewählten Zeitraum.</p>
+        </header>
+        <div class="c-card__body u-padding-none">
+            <table class="c-table">
+                <thead>
+                    <tr>
+                        <th>Kennung / Name</th>
+                        <th>Abgelaufen am</th>
+                        <th class="u-text-right">Aktion</th>
                     </tr>
-                <?php } ?>
-            <?php } ?>
-        </tbody>
-    </table>
-</section>
+                </thead>
+                <tbody>
+                    <?php if (empty($groups['expired'])) { ?>
+                        <tr>
+                            <td colspan="3" class="u-text-center u-text-muted u-padding-around-l">
+                                Keine abgelaufenen Genehmigungen im Zeitraum.
+                            </td>
+                        </tr>
+                    <?php } else { ?>
+                        <?php foreach ($groups['expired'] as $permit) { ?>
+                            <tr class="u-opacity-50">
+                                <td>
+                                    <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
+                                    <small><?php echo \htmlspecialchars($permit->owner->name); ?></small>
+                                </td>
+                                <td>
+                                    <span class="c-badge c-badge--danger"><?php echo $permit->validity->bis->format('d.m.Y'); ?></span>
+                                </td>
+                                <td class="u-text-right">
+                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small">👁</a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

@@ -2,42 +2,48 @@
 
 /**
  * Partial: Dashboard Tab - Data Export
+ *
+ * Path: templates/pages/admin_dashboard/_tab_export.phtml
+ *
  * @var string $filterStart
  * @var string $filterEnd
  */
 ?>
-<section class="c-card" style="max-width: 800px; margin: 0 auto;">
-    <header class="c-card__header u-text-center">
-        <h3 class="u-margin-none">📤 Daten-Export</h3>
-        <p class="u-text-muted">Laden Sie die Daten für den gewählten Zeitraum (<?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>) herunter.</p>
-    </header>
+<div class="c-tab-content-container">
+    <section class="c-card" style="max-width: 700px; margin: 0 auto;">
+        <header class="c-card__header u-text-center">
+            <h3 class="u-margin-none">📤 Daten-Export</h3>
+            <p class="u-text-muted">Laden Sie die Daten für den oben eingestellten Zeitraum herunter.</p>
+        </header>
 
-    <div class="c-card__body">
+        <div class="c-card__body">
             <!-- Das neue flexible Grid -->
-        <div class="c-export-grid">
-                <!-- CSV Export Button -->
-            <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--csv">
-                <div class="c-export-card__icon">📊</div>
-                <div class="c-export-card__content">
-                    <span class="c-export-card__title">Excel / CSV</span>
-                    <span class="c-export-card__desc">Ideal für Tabellenkalkulation</span>
-                </div>
-            </a>
+            <div class="c-export-grid">
+                <!-- CSV Export -->
+                <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--csv">
+                    <div class="c-export-card__icon">📊</div>
+                    <div class="c-export-card__content">
+                        <span class="c-export-card__title">Excel / CSV</span>
+                        <span class="c-export-card__desc">Ideal für Tabellenkalkulation</span>
+                    </div>
+                </a>
 
-                <!-- JSON Export Button -->
-            <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--json">
-                <div class="c-export-card__icon">⚙️</div>
-                <div class="c-export-card__content">
-                    <span class="c-export-card__title">JSON Daten</span>
-                    <span class="c-export-card__desc">Für technischen Datenimport</span>
-                </div>
-            </a>
+                <!-- JSON Export -->
+                <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--json">
+                    <div class="c-export-card__icon">⚙️</div>
+                    <div class="c-export-card__content">
+                        <span class="c-export-card__title">JSON Daten</span>
+                        <span class="c-export-card__desc">Für technischen Datenimport</span>
+                    </div>
+                </a>
 
                 <!-- Hier könnten zukünftig weitere Buttons stehen (z.B. PDF Export) -->
-        </div>
+            </div>
 
-        <div class="u-margin-top-l u-text-center">
-            <small class="u-text-muted">Tipp: Um andere Daten zu exportieren, passen Sie oben in der Kontroll-Leiste den Zeitraum an.</small>
+            <div class="u-margin-top-l u-padding-around-s u-text-center" style="background: #f8fafc; border-radius: 8px; border: 1px dashed var(--border-color);">
+                <span class="u-font-bold" style="color: var(--primary-color);">Gefilterter Zeitraum:</span><br>
+                <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+</div>
