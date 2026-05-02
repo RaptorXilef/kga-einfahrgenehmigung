@@ -2,6 +2,30 @@
 
 
 
+## [0.14.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.13.0...v0.14.0) (2026-05-02)
+
+### 🚀 Features
+
+* **admin:** implement voucher management and permit suspension ([3cabc2c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3cabc2c542ac3f2cab785cec42015037ca35cbd2))
+* **permits:** implement template engine for flexible durations and types ([21cbe2b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/21cbe2bb5659b2e1fefa5e130ff0fa818f980469))
+* **storage:** implement yearly archiving and incremental history loading ([148af21](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/148af21bfaf7ec5a92d9f7460fc6313ab6d48fdd))
+* **vouchers:** implement advanced voucher types with pre-filled data and QR codes ([5b783e1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5b783e177562b59fe49f29d664311d2ceebc8530))
+* **vouchers:** implement multi-template support for permanent and custom permits ([dd0366c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dd0366c661a4c88623b4cb8bca79e1222b9aeee1))
+* **vouchers:** implement pre-filled vouchers with QR and field locking ([591bce3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/591bce380f603b0da04b3a136cb9a461ac94e8ee))
+* **vouchers:** implement pre-filled vouchers with QR and self-deletion ([8bea118](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8bea118b5b879414a6c68af6f8d114923720947c))
+
+### 🐛 Bug Fixes
+
+* **arch:** resolve static analysis findings and stabilize view rendering ([211a2ee](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/211a2ee5146d84de56068a46fcc03001b7b3906b))
+* **core:** finalize controller-service integration and resolve rendering issues ([4730877](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/47308770e2e1797a16609c397d972177a6d06faa))
+
+### ⚙️ Refactoring
+
+* **core:** finalize Value Object integration and restore payment mail logic ([85b4232](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/85b4232745fc332ed81a526320c70e337e96b1b4))
+* **core:** migrate to controller-service architecture and implement features ([44cba7d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/44cba7da5ba864cccc272e4caeb0f39dc044646e))
+* **domain:** finalize Value Object architecture and cross-layer integration ([c73ce29](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c73ce29517078fd23d000d27c71047e6e10e1bde))
+* **storage:** resolve code duplication via StorageMapperTrait ([ba34a51](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ba34a51c35924107ddc118a65c7ec6581de8d0a4))
+
 ## [0.13.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.12.0...v0.13.0) (2026-05-01)
 
 ### 🚀 Features
