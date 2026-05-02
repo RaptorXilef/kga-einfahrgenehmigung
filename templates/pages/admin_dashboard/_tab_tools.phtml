@@ -1,6 +1,7 @@
 <?php
+
 /**
- * Partial: Dashboard Tab - Admin Tools
+ * Partial: Dashboard Tab - Universal Admin Tools
  * Path: templates/pages/admin_dashboard/_tab_tools.phtml
  *
  * @var \App\Infrastructure\Config\Config $config
@@ -8,92 +9,223 @@
  */
 ?>
 <div class="c-tab-content-container">
-    <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
+    <section class="c-card" style="max-width: 800px; margin: 0 auto;">
+        <header class="c-card__header u-text-center">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🛠️</div>
+            <h3 class="u-margin-none">Universal-Generator</h3>
+            <p class="u-text-muted">Erstellen Sie direkt eine Genehmigung oder generieren Sie einen vorbefüllten Gutschein.</p>
+        </header>
 
-        <!-- Gutschein Erstellung -->
-        <section class="c-card">
-            <header class="c-card__header">
-                <h3 class="u-margin-none">🎟️ Gutschein erzeugen</h3>
-                <p class="u-text-muted">Einen QR-Code/Link für eine 100% rabattierte Buchung erstellen.</p>
-            </header>
-            <div class="c-card__body">
-                <form method="POST" class="c-form">
-                    <input type="hidden" name="action" value="create_voucher">
-                    <div class="c-form-group">
-                        <label class="c-form-label">Interne Bezeichnung</label>
-                        <input type="text" name="reason_internal" class="c-form-input" required placeholder="z.B. Vorab Bar bezahlt">
-                    </div>
-                    <div class="c-form-group u-margin-top-s">
-                        <label class="c-form-label">Gültig für Vorlage</label>
-                        <select name="template_key" class="c-form-select">
-                            <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
-                                <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
-                            <?php } ?>
-                        </select>
-                    </div>
+        <div class="c-card__body">
+            <form id="unifiedToolsForm" method="POST" class="c-form">
 
-                    <div class="u-margin-top-m u-padding-around-m" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
-                        <p class="u-font-bold u-margin-bottom-s u-margin-top-none" style="font-size: 0.9rem;">Formular-Vorbefüllung (Optional)</p>
-                        <div class="u-flex u-gap-s">
-                            <input type="text" name="pre_name" class="c-form-input" placeholder="Pächter Name">
-                            <input type="text" name="pre_parzelle" class="c-form-input" style="width:100px" placeholder="Parz.">
-                        </div>
-                        <input type="text" name="pre_kennzeichen" class="c-form-input u-margin-top-s" placeholder="Kennzeichen (Optional)">
-                    </div>
-                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Gutschein & QR-Code generieren</button>
-                </form>
-            </div>
-        </section>
+                <!-- VERSTECKTE FELDER FÜR DAS BACKEND -->
+                <input type="hidden" name="datum_bis" value="<?php echo \date('Y-m-d', \strtotime('+1 year')); ?>">
 
-        <!-- Manuelle Erstellung -->
-        <section class="c-card">
-            <header class="c-card__header">
-                <h3 class="u-margin-none">⚡ Direkte Genehmigung</h3>
-                <p class="u-text-muted">Sofortige Ausstellung (ohne Nutzer-Verifizierung).</p>
-            </header>
-            <div class="c-card__body">
-                <form method="POST" class="c-form">
-                    <input type="hidden" name="action" value="create_manual">
-                    <div class="c-form-group">
-                        <label class="c-form-label">Vorlage</label>
-                        <select name="template_key" id="manual_template_key" class="c-form-select">
-                            <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
-                                <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
-                            <?php } ?>
-                        </select>
-                    </div>
-                    <div class="u-flex u-gap-s u-margin-top-s">
-                        <div style="flex:1">
-                            <label class="c-form-label">Startdatum</label>
-                            <input type="date" name="datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
-                        </div>
-                        <div style="flex:1; display:none;" id="custom_end_wrapper">
-                            <label class="c-form-label">Enddatum</label>
-                            <input type="date" name="datum_bis" class="c-form-input" value="<?php echo \date('Y-m-d', \strtotime('+1 year')); ?>">
-                        </div>
-                    </div>
+                <!-- ABSCHNITT 1: RAHMENBEDINGUNGEN -->
+                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">1</span>
+                        Rahmenbedingungen
+                    </h4>
 
-                    <div class="u-margin-top-m u-padding-around-m" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
-                        <input type="text" name="name" class="c-form-input u-margin-bottom-s" placeholder="Pächter Name" required>
-                        <div class="u-flex u-gap-s u-margin-bottom-s">
-                            <input type="text" name="parzelle" class="c-form-input" placeholder="Parzelle" required>
-                            <input type="text" name="kennzeichen" class="c-form-input" placeholder="Kennzeichen">
+                    <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
+                        <div class="c-form-group">
+                            <label class="c-form-label">Vorlage / Dauer</label>
+                            <select name="template_key" class="c-form-select">
+                                <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
+                                    <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
+                                <?php } ?>
+                            </select>
                         </div>
-                        <input type="email" name="email" class="c-form-input" placeholder="E-Mail Adresse (Optional)">
+                        <div class="c-form-group">
+                            <label class="c-form-label">Startdatum <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
+                            <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
+                        </div>
                     </div>
 
                     <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">Interner Vermerk / Grund</label>
-                        <select name="reason" class="c-form-select">
+                        <label class="c-form-label">Interne Bezeichnung / Grund <small class="u-text-muted">(Pflicht f. Gutschein)</small></label>
+                        <!-- Wir nutzen eine Datalist, damit man tippen ODER aus der Liste wählen kann -->
+                        <input type="text" id="u_reason" class="c-form-input" list="reason_presets" placeholder="z.B. Barzahlung beim Vorstand">
+                        <datalist id="reason_presets">
                             <?php foreach ($reasons as $r) { ?>
-                                <option value="<?php echo \htmlspecialchars($r); ?>"><?php echo \htmlspecialchars($r); ?></option>
-                            <?php } ?>
-                        </select>
+                                <option value="<?php echo \htmlspecialchars($r); ?>">
+                                <?php } ?>
+                        </datalist>
                     </div>
-                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Genehmigung sofort ausstellen</button>
-                </form>
-            </div>
-        </section>
+                </div>
 
-    </div>
+                <!-- ABSCHNITT 2: PÄCHTER-DATEN -->
+                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                    <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">2</span>
+                        Pächter-Daten
+                    </h4>
+
+                    <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
+                        <div class="c-form-group">
+                            <label class="c-form-label">Name <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
+                            <input type="text" id="u_name" class="c-form-input" placeholder="Max Mustermann">
+                        </div>
+                        <div class="c-form-group">
+                            <label class="c-form-label">Parzelle Nr. <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
+                            <input type="text" id="u_parzelle" class="c-form-input" placeholder="123">
+                        </div>
+                    </div>
+                    <div class="c-form-group u-margin-top-m">
+                        <label class="c-form-label">E-Mail-Adresse <small class="u-text-muted">(Optional)</small></label>
+                        <input type="email" name="email" id="u_email" class="c-form-input" placeholder="mail@beispiel.de">
+                    </div>
+                </div>
+
+                <!-- ABSCHNITT 3: FAHRZEUG-DATEN -->
+                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
+                    <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">3</span>
+                        Fahrzeug-Details <small class="u-text-muted" style="font-weight: normal;">(Relevant für Sofort-Genehmigung)</small>
+                    </h4>
+
+                    <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
+                        <div class="c-form-group">
+                            <label class="c-form-label">Fahrzeug-Typ</label>
+                            <select name="typ" id="u_typ" class="c-form-select">
+                                <option value="">-- Keine Angabe --</option>
+                                <?php foreach ($config->get('vehicle_types', []) as $val => $label) { ?>
+                                    <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                        <div class="c-form-group">
+                            <label class="c-form-label">Amtl. Kennzeichen</label>
+                            <input type="text" id="u_kennzeichen" class="c-form-input" placeholder="B AB 1234">
+                        </div>
+                    </div>
+
+                    <div class="u-grid u-gap-m u-margin-top-m" style="grid-template-columns: 1fr 1fr;">
+                        <div class="c-form-group">
+                            <label class="c-form-label">Firma / Lieferant <small class="u-text-muted">(Optional)</small></label>
+                            <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Müller Bau GmbH">
+                        </div>
+                        <div class="c-form-group">
+                            <label class="c-form-label">Zweck der Einfahrt</label>
+                            <select name="zweck" id="u_zweck" class="c-form-select">
+                                <option value="">-- Keine Angabe --</option>
+                                <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
+                                    <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AKTIONEN (BUTTONS) -->
+                <div class="u-flex u-gap-m u-justify-between" style="flex-wrap: wrap;">
+
+                    <!-- Button 1: Gutschein (Lila/Blau Style) -->
+                    <button type="button"
+                        class="c-button"
+                        style="flex: 1; min-width: 250px; background: #6366f1; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                        onclick="submitUnifiedForm('create_voucher')">
+                        <span style="font-size: 2rem;">🎟️</span>
+                        <div style="text-align: left;">
+                            <span style="display:block; font-weight: 800; font-size: 1.1rem;">Als Gutschein generieren</span>
+                            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">QR-Code erstellen. Pächter füllt den Rest selbst aus.</span>
+                        </div>
+                    </button>
+
+                    <!-- Button 2: Sofort-Gen (Grün/Success Style) -->
+                    <button type="button"
+                        class="c-button"
+                        style="flex: 1; min-width: 250px; background: #10b981; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                        onclick="submitUnifiedForm('create_manual')">
+                        <span style="font-size: 2rem;">⚡</span>
+                        <div style="text-align: left;">
+                            <span style="display:block; font-weight: 800; font-size: 1.1rem;">Sofort ausstellen</span>
+                            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">Genehmigung wird sofort aktiv geschaltet.</span>
+                        </div>
+                    </button>
+
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
+
+<script>
+    /**
+     * Smart Form Handler
+     * Prüft die benötigten Felder dynamisch je nach Button-Klick und
+     * benennt die Variablen so um, dass das PHP Backend sie versteht.
+     */
+    function submitUnifiedForm(actionType) {
+        const form = document.getElementById('unifiedToolsForm');
+
+        // HTML Elemente holen
+        const reasonField = document.getElementById('u_reason');
+        const dateField = document.getElementById('u_datum_von');
+        const nameField = document.getElementById('u_name');
+        const parzelleField = document.getElementById('u_parzelle');
+        const kennzeichenField = document.getElementById('u_kennzeichen');
+
+        // Fehler zurücksetzen
+        [reasonField, dateField, nameField, parzelleField].forEach(f => f.setCustomValidity(''));
+
+        // 1. Validierung für Gutscheine
+        if (actionType === 'create_voucher') {
+            if (!reasonField.value.trim()) {
+                reasonField.setCustomValidity('Für Gutscheine ist eine interne Bezeichnung/Grund Pflicht.');
+                reasonField.reportValidity();
+                return;
+            }
+        }
+        // 2. Validierung für direkte Sofort-Genehmigung
+        else if (actionType === 'create_manual') {
+            if (!dateField.value) {
+                dateField.setCustomValidity('Das Startdatum ist für direkte Genehmigungen Pflicht.');
+                dateField.reportValidity();
+                return;
+            }
+            if (!nameField.value.trim() || !parzelleField.value.trim()) {
+                nameField.setCustomValidity('Name und Parzelle sind für direkte Genehmigungen Pflicht.');
+                nameField.reportValidity();
+                return;
+            }
+        }
+
+        // Wenn HTML5 Validierung fehlschlägt, abbrechen
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Action für das Backend setzen
+        const hiddenAction = document.createElement('input');
+        hiddenAction.type = 'hidden';
+        hiddenAction.name = 'action';
+        hiddenAction.value = actionType;
+        form.appendChild(hiddenAction);
+
+        // Formular-Felder für das alte Backend passend umbenennen
+        if (actionType === 'create_voucher') {
+            // Das Gutschein-Script erwartet 'reason_internal', 'pre_name' etc.
+            reasonField.name = 'reason_internal';
+            nameField.name = 'pre_name';
+            parzelleField.name = 'pre_parzelle';
+            kennzeichenField.name = 'pre_kennzeichen';
+        } else {
+            // Das manuelle Genehmigungs-Script erwartet 'reason', 'name' etc.
+            reasonField.name = 'reason';
+            nameField.name = 'name';
+            parzelleField.name = 'parzelle';
+            kennzeichenField.name = 'kennzeichen';
+        }
+
+        // Formular absenden!
+        form.submit();
+    }
+</script>
