@@ -2,56 +2,71 @@
 
 /**
  * Partial: Dashboard Tab - Universal Admin Tools
+ *
  * Path: templates/pages/admin_dashboard/_tab_tools.phtml
  *
  * @var \App\Infrastructure\Config\Config $config
  * @var array                             $reasons
  */
+
+// Wir bereiten die Template-Daten für JavaScript vor, damit JS die Tage kennt
+$tplMetadata = [];
+foreach ($config->get('permit_templates', []) as $key => $tpl) {
+    $tplMetadata[$key] = [
+        'days' => $tpl['days'],
+        'type' => $tpl['type'],
+    ];
+}
 ?>
 <div class="c-tab-content-container">
     <section class="c-card" style="max-width: 800px; margin: 0 auto;">
         <header class="c-card__header u-text-center">
             <div style="font-size: 2.5rem; margin-bottom: 10px;">🛠️</div>
             <h3 class="u-margin-none">Universal-Generator</h3>
-            <p class="u-text-muted">Erstellen Sie direkt eine Genehmigung oder generieren Sie einen vorbefüllten Gutschein.</p>
+            <p class="u-text-muted">Zeiträume werden automatisch basierend auf der Vorlage berechnet.</p>
         </header>
 
         <div class="c-card__body">
+            <!-- Warnung-Box für Datumskorrekturen -->
+            <div id="date-warning" class="u-margin-bottom-m" style="display:none; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
+                ⚠️ <strong>Hinweis:</strong> <span id="date-warning-text"></span>
+            </div>
+
             <form id="unifiedToolsForm" method="POST" class="c-form">
-
-                <!-- VERSTECKTE FELDER FÜR DAS BACKEND -->
-                <input type="hidden" name="datum_bis" value="<?php echo \date('Y-m-d', \strtotime('+1 year')); ?>">
-
                 <!-- ABSCHNITT 1: RAHMENBEDINGUNGEN -->
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
                     <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
                         <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">1</span>
-                        Rahmenbedingungen
+                        Zeitraum & Vorlage
                     </h4>
+
+                    <div class="c-form-group u-margin-bottom-m">
+                        <label class="c-form-label">Wählen Sie die Vorlage</label>
+                        <select name="template_key" id="u_template_key" class="c-form-select">
+                            <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
+                                <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
 
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
-                            <label class="c-form-label">Vorlage / Dauer</label>
-                            <select name="template_key" class="c-form-select">
-                                <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
-                                    <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
-                                <?php } ?>
-                            </select>
+                            <label class="c-form-label">Startdatum (Von)</label>
+                            <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
                         </div>
                         <div class="c-form-group">
-                            <label class="c-form-label">Startdatum <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
-                            <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
+                            <label class="c-form-label">Enddatum (Bis)</label>
+                            <input type="date" name="datum_bis" id="u_datum_bis" class="c-form-input">
                         </div>
                     </div>
 
                     <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">Interne Bezeichnung / Grund <small class="u-text-muted">(Pflicht f. Gutschein)</small></label>
-                        <!-- SAUBER: Heißt jetzt einfach 'reason' -->
+                        <label class="c-form-label">Interne Bezeichnung / Grund</label>
                         <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="z.B. Barzahlung beim Vorstand">
                         <datalist id="reason_presets">
                             <?php foreach ($reasons as $r) { ?>
                                 <option value="<?php echo \htmlspecialchars($r); ?>">
-                            <?php } ?>
+                                <?php } ?>
                         </datalist>
                     </div>
                 </div>
@@ -60,37 +75,35 @@
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
                     <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
                         <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">2</span>
-                        Pächter-Daten
+                        Pächter-Informationen
                     </h4>
 
                     <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
                         <div class="c-form-group">
-                            <!-- SAUBER: Heißt jetzt einfach 'name' -->
-                            <label class="c-form-label">Name <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
+                            <label class="c-form-label">Vollständiger Name</label>
                             <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Max Mustermann">
                         </div>
                         <div class="c-form-group">
-                            <!-- SAUBER: Heißt jetzt einfach 'parzelle' -->
-                            <label class="c-form-label">Parzelle Nr. <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
-                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="123">
+                            <label class="c-form-label">Parzelle</label>
+                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="0000">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">E-Mail-Adresse <small class="u-text-muted">(Optional)</small></label>
+                        <label class="c-form-label">E-Mail-Adresse (Optional)</label>
                         <input type="email" name="email" id="u_email" class="c-form-input" placeholder="mail@beispiel.de">
                     </div>
                 </div>
 
-                <!-- ABSCHNITT 3: FAHRZEUG-DATEN -->
+                <!-- ABSCHNITT 3: FAHRZEUG-DETAILS -->
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
                     <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
                         <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">3</span>
-                        Fahrzeug-Details <small class="u-text-muted" style="font-weight: normal;">(Optional)</small>
+                        Fahrzeug-Details
                     </h4>
 
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
-                            <label class="c-form-label">Fahrzeug-Typ</label>
+                            <label class="c-form-label">Typ</label>
                             <select name="typ" id="u_typ" class="c-form-select">
                                 <option value="">-- Keine Angabe --</option>
                                 <?php foreach ($config->get('vehicle_types', []) as $val => $label) { ?>
@@ -99,7 +112,6 @@
                             </select>
                         </div>
                         <div class="c-form-group">
-                            <!-- SAUBER: Heißt jetzt einfach 'kennzeichen' -->
                             <label class="c-form-label">Amtl. Kennzeichen</label>
                             <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B AB 1234">
                         </div>
@@ -111,7 +123,7 @@
                             <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Müller Bau GmbH">
                         </div>
                         <div class="c-form-group">
-                            <label class="c-form-label">Zweck der Einfahrt</label>
+                            <label class="c-form-label">Zweck</label>
                             <select name="zweck" id="u_zweck" class="c-form-select">
                                 <option value="">-- Keine Angabe --</option>
                                 <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
@@ -122,37 +134,23 @@
                     </div>
                 </div>
 
-                <!-- AKTIONEN (BUTTONS) -->
+                <!-- AKTIONEN -->
                 <div class="u-flex u-gap-m u-justify-between" style="flex-wrap: wrap;">
-
-                    <!-- Button 1: Gutschein (Lila/Blau Style) -->
-                    <button type="button"
-                            class="c-button"
-                            style="flex: 1; min-width: 250px; background: #6366f1; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
-                            onclick="submitUnifiedForm('create_voucher')">
+                    <button type="button" class="c-button" style="flex: 1; min-width: 250px; background: #6366f1; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.2s;" onclick="submitUnifiedForm('create_voucher')" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                         <span style="font-size: 2rem;">🎟️</span>
                         <div style="text-align: left;">
-                            <span style="display:block; font-weight: 800; font-size: 1.1rem;">Als Gutschein generieren</span>
-                            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">QR-Code erstellen. Pächter füllt den Rest aus.</span>
+                            <span style="display:block; font-weight: 800; font-size: 1.1rem;">Gutschein erzeugen</span>
+                            <span style="font-size: 0.8rem;">Pächter wählt Zeitraum selbst</span>
                         </div>
                     </button>
 
-                    <!-- Button 2: Sofort-Gen (Grün/Success Style) -->
-                    <button type="button"
-                            class="c-button"
-                            style="flex: 1; min-width: 250px; background: #10b981; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
-                            onclick="submitUnifiedForm('create_manual')">
+                    <button type="button" class="c-button" style="flex: 1; min-width: 250px; background: #10b981; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.2s;" onclick="submitUnifiedForm('create_manual')" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                         <span style="font-size: 2rem;">⚡</span>
                         <div style="text-align: left;">
                             <span style="display:block; font-weight: 800; font-size: 1.1rem;">Sofort ausstellen</span>
-                            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">Genehmigung wird sofort aktiv geschaltet.</span>
+                            <span style="font-size: 0.8rem;">Genehmigung ist direkt aktiv</span>
                         </div>
                     </button>
-
                 </div>
             </form>
         </div>
@@ -161,58 +159,122 @@
 
 <script>
     /**
-     * Smart Form Handler
-     * Prüft die benötigten Felder dynamisch je nach Button-Klick und
-     * benennt die Variablen so um, dass das PHP Backend sie versteht.
+     * INTELLIGENTE DATUMS-LOGIK (v2.0)
      */
-function submitUnifiedForm(actionType) {
-    const form = document.getElementById('unifiedToolsForm');
+    const templates = <?php echo \json_encode($tplMetadata); ?>;
+    const inputVon = document.getElementById('u_datum_von');
+    const inputBis = document.getElementById('u_datum_bis');
+    const selectTpl = document.getElementById('u_template_key');
+    const warningBox = document.getElementById('date-warning');
+    const warningText = document.getElementById('date-warning-text');
 
-        // HTML Elemente holen
-    const reasonField = document.getElementById('u_reason');
-    const dateField = document.getElementById('u_datum_von');
-    const nameField = document.getElementById('u_name');
-    const parzelleField = document.getElementById('u_parzelle');
-        const kennzeichenField = document.getElementById('u_kennzeichen');
+    function showDateWarning(msg) {
+        if (!msg) {
+            warningBox.style.display = 'none';
+            return;
+        }
+        warningText.innerText = msg;
+        warningBox.style.display = 'block';
+    }
 
-    // Fehler zurücksetzen
-    [reasonField, dateField, nameField, parzelleField].forEach(f => f.setCustomValidity(''));
+    function getTodayStr() {
+        return new Date().toISOString().split('T')[0];
+    }
 
-        // 1. Validierung für Gutscheine
-    if (actionType === 'create_voucher') {
-        if (!reasonField.value.trim()) {
-            reasonField.setCustomValidity('Für Gutscheine ist eine interne Bezeichnung/Grund Pflicht.');
+    function updateDates(sourceField) {
+        const tplKey = selectTpl.value;
+        const config = templates[tplKey];
+        const today = getTodayStr();
+
+        showDateWarning(null);
+
+        // Spezialzeitraum: Beide Felder sind frei wählbar
+        if (config.days === 'custom') {
+            inputBis.readOnly = false;
+            inputVon.readOnly = false;
+            inputBis.style.background = '#fff';
+            return;
+        }
+
+        // Fixer Zeitraum: Berechnungen
+        inputBis.readOnly = (sourceField === 'von'); // Wenn wir "Von" ändern, berechnen wir "Bis" (Readonly)
+        inputVon.readOnly = false;
+
+        const days = parseInt(config.days);
+
+        if (sourceField === 'von') {
+            if (inputVon.value) {
+                let start = new Date(inputVon.value);
+                let end = new Date(start);
+                end.setDate(start.getDate() + days);
+                inputBis.value = end.toISOString().split('T')[0];
+            }
+        } else if (sourceField === 'bis') {
+            if (inputBis.value) {
+                let end = new Date(inputBis.value);
+                let start = new Date(end);
+                start.setDate(end.getDate() - days);
+
+                const startStr = start.toISOString().split('T')[0];
+
+                if (startStr < today) {
+                    inputVon.value = today;
+                    showDateWarning("Der Startzeitpunkt wurde auf heute gesetzt, da Genehmigungen nicht in der Vergangenheit beginnen können.");
+                    // Bis neu berechnen basierend auf dem korrigierten "Heute"
+                    let newEnd = new Date();
+                    newEnd.setDate(newEnd.getDate() + days);
+                    inputBis.value = newEnd.toISOString().split('T')[0];
+                } else {
+                    inputVon.value = startStr;
+                }
+            }
+        }
+    }
+
+    // Event-Listener
+    selectTpl.addEventListener('change', () => {
+        const config = templates[selectTpl.value];
+        if (config.days !== 'custom') {
+            updateDates('von');
+        } else {
+            inputBis.readOnly = false;
+            inputBis.style.background = '#fff';
+        }
+    });
+
+    inputVon.addEventListener('change', () => updateDates('von'));
+    inputBis.addEventListener('change', () => updateDates('bis'));
+
+    // Initialisierung
+    updateDates('von');
+
+    /**
+     * Formular-Absendung
+     */
+    function submitUnifiedForm(actionType) {
+        const form = document.getElementById('unifiedToolsForm');
+        const reasonField = document.getElementById('u_reason');
+        const nameField = document.getElementById('u_name');
+        const parzelleField = document.getElementById('u_parzelle');
+
+        [reasonField, nameField, parzelleField].forEach(f => f.setCustomValidity(''));
+
+        if (actionType === 'create_voucher' && !reasonField.value.trim()) {
+            reasonField.setCustomValidity('Grund ist für Gutscheine Pflicht.');
             reasonField.reportValidity();
             return;
         }
-    }
-    // 2. Validierung für direkte Sofort-Genehmigung
-    else if (actionType === 'create_manual') {
-        if (!dateField.value) {
-                dateField.setCustomValidity('Das Startdatum ist für direkte Genehmigungen Pflicht.');
-            dateField.reportValidity();
+
+        if (actionType === 'create_manual' && (!nameField.value.trim() || !parzelleField.value.trim())) {
+            alert('Name und Parzelle sind für Sofort-Genehmigungen Pflicht.');
             return;
         }
-        if (!nameField.value.trim() || !parzelleField.value.trim()) {
-                nameField.setCustomValidity('Name und Parzelle sind für direkte Genehmigungen Pflicht.');
-            nameField.reportValidity();
-            return;
-        }
+
+        const hiddenAction = document.createElement('input');
+        hiddenAction.type = 'hidden';
+        hiddenAction.name = 'action';
+        hiddenAction.value = actionType;
+        form.appendChild(hiddenAction);
+        form.submit();
     }
-
-        // Wenn HTML5 Validierung fehlschlägt, abbrechen
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-
-    // SAUBER: Nur noch die Action setzen, KEIN Umbenennen von Feldern mehr!
-    const hiddenAction = document.createElement('input');
-    hiddenAction.type = 'hidden';
-    hiddenAction.name = 'action';
-    hiddenAction.value = actionType;
-    form.appendChild(hiddenAction);
-
-    form.submit();
-}
 </script>
