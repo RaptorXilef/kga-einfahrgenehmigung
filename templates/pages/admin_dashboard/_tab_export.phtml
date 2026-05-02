@@ -6,55 +6,76 @@
  */
 ?>
 <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
-    <!-- Filter & Suche -->
+    <!-- Linke Seite: Filter & Suche -->
     <section class="c-card">
         <header class="c-card__header">
-            <h3>🔍 Ansicht filtern</h3>
+            <h3 class="u-margin-none">🔍 Ansicht filtern</h3>
             <p class="u-text-muted">Zeitraum und Suche für alle Listen anpassen.</p>
         </header>
         <div class="c-card__body">
             <form method="GET" class="c-form">
-                <div class="c-form-group">
-                    <label class="c-form-label">Zeitraum von:</label>
-                    <input type="date" name="start" value="<?php echo $filterStart; ?>" class="c-form-input">
+                <div class="u-flex u-gap-s">
+                    <div class="c-form-group u-width-100">
+                        <label class="c-form-label">Von:</label>
+                        <input type="date" name="start" value="<?php echo $filterStart; ?>" class="c-form-input">
+                    </div>
+                    <div class="c-form-group u-width-100">
+                        <label class="c-form-label">Bis:</label>
+                        <input type="date" name="end" value="<?php echo $filterEnd; ?>" class="c-form-input">
+                    </div>
                 </div>
-                <div class="c-form-group u-margin-top-s">
-                    <label class="c-form-label">bis:</label>
-                    <input type="date" name="end" value="<?php echo $filterEnd; ?>" class="c-form-input">
-                </div>
-                <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Filter anwenden</button>
+                <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">
+                    Filter-Zeitraum anwenden
+                </button>
             </form>
 
             <hr class="u-margin-y-l" style="opacity: 0.1;">
 
             <div class="c-form-group">
-                <label class="c-form-label">Schnellsuche (Live)</label>
-                <input type="text" id="adminSearch" placeholder="Name, Kennzeichen oder Code..." class="c-form-input">
-                <small class="u-text-muted">Filtert die Tabellen in Echtzeit.</small>
+                <label class="c-form-label">Schnellsuche (Live-Filter)</label>
+                <div class="u-position-relative">
+                    <input type="text" id="adminSearch"
+                           placeholder="Name, Kennzeichen oder Code..."
+                           title="Suchen Sie nach Namen, KFZ-Kennzeichen oder dem SmartCode"
+                           class="c-form-input c-form-input--search">
+                </div>
+                <p class="u-text-muted u-margin-top-xs u-text-small">
+                    💡 Tipp: Die Tabellen unter "Aktiv", "Zukünftig" etc. reagieren sofort auf Ihre Eingabe.
+                </p>
             </div>
         </div>
     </section>
 
-    <!-- Export Sektion -->
+    <!-- Rechte Seite: Export Sektion -->
     <section class="c-card">
         <header class="c-card__header">
-            <h3>📤 Daten-Export</h3>
-            <p class="u-text-muted">Aktuell gefilterte Daten herunterladen.</p>
+            <h3 class="u-margin-none">📤 Daten-Export</h3>
+            <p class="u-text-muted">Gefilterte Daten für Buchhaltung oder Archiv sichern.</p>
         </header>
         <div class="c-card__body">
-            <div class="u-flex u-flex-column u-gap-m">
-                <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-button c-button--secondary u-text-center">
-                    📄 Als CSV exportieren (Excel)
+            <div class="c-export-grid">
+                <!-- CSV Export Button -->
+                <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--csv">
+                    <div class="c-export-card__icon">📊</div>
+                    <div class="c-export-card__content">
+                        <span class="c-export-card__title">Excel / CSV</span>
+                        <span class="c-export-card__desc">Ideal für Tabellenkalkulation</span>
+                    </div>
                 </a>
-                <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-button c-button--secondary u-text-center">
-                    { } Als JSON exportieren
+
+                <!-- JSON Export Button -->
+                <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--json">
+                    <div class="c-export-card__icon">⚙️</div>
+                    <div class="c-export-card__content">
+                        <span class="c-export-card__title">JSON Daten</span>
+                        <span class="c-export-card__desc">Für technischen Datenimport</span>
+                    </div>
                 </a>
             </div>
 
-            <div class="u-margin-top-l u-padding-s" style="background: #f0f4f8; border-radius: 5px; border: 1px solid #d1d9e6;">
-                <p class="u-text-small u-margin-none">
-                    <strong>Hinweis:</strong> Der Export berücksichtigt das gewählte Datum (<?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>).
-                </p>
+            <div class="u-margin-top-l u-padding-s c-export-notice">
+                <strong>Gefilterter Zeitraum:</strong><br>
+                <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
             </div>
         </div>
     </section>

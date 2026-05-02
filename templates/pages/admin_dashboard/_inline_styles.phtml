@@ -80,4 +80,93 @@
             padding: 15px;
             border-radius: 8px;
         }
-    </style>
+
+    /* EXPORT CARDS */
+    .c-export-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .c-export-card {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        text-decoration: none;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background: #fff;
+        transition: all 0.2s ease-in-out;
+        color: inherit;
+    }
+
+    .c-export-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-color: #3498db;
+    }
+
+    .c-export-card__icon {
+        font-size: 24px;
+        margin-right: 15px;
+        background: #f8f9fa;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+    }
+
+    .c-export-card__content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .c-export-card__title {
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    .c-export-card__desc {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+    }
+
+    /* Modifikatoren für Farben */
+    .c-export-card--csv:hover { background: #f0fff4; border-color: #27ae60; }
+    .c-export-card--csv:hover .c-export-card__title { color: #27ae60; }
+
+    .c-export-card--json:hover { background: #f0f7ff; border-color: #3498db; }
+    .c-export-card--json:hover .c-export-card__title { color: #3498db; }
+
+    .c-export-notice {
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #34495e;
+        font-size: 0.9rem;
+        color: #34495e;
+    }
+
+    /* SEARCH FIELD FIX */
+    .c-form-input--search {
+        width: 100%;
+        min-height: 45px;
+        font-size: 1rem;
+        padding-left: 12px;
+        border: 2px solid #eee;
+        transition: border-color 0.2s;
+    }
+
+    .c-form-input--search:focus {
+        border-color: #3498db;
+        outline: none;
+    }
+
+    /* Verhindert das Abschneiden von Placeholder-Text auf kleineren Screens */
+    ::placeholder {
+        color: #bdc3c7;
+        opacity: 1;
+    }
+</style>
