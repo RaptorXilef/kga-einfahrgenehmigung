@@ -139,6 +139,9 @@ final readonly class AdminController
             'typ'         => (string) ($post['typ'] ?? ''),
             'firma'       => \trim((string) ($post['firma'] ?? '')),
             'zweck'       => (string) ($post['zweck'] ?? ''),
+            // Wir speichern die im Tool berechneten Daten im Gutschein
+            'datum_von' => (string) ($post['datum_von'] ?? ''),
+            'datum_bis' => (string) ($post['datum_bis'] ?? ''),
         ];
 
         $code = $this->permitService->getVoucherService()->createVoucher(
