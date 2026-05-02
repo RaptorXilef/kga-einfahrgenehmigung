@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Partial: Dashboard Tab - Universal Admin Tools (Complete & Optimized)
- * 
+ * Partial: Dashboard Tab - Universal Admin Tools (Premium UI)
+ *
  * Path: templates/pages/admin_dashboard/_tab_tools.phtml
  *
  * @var \App\Infrastructure\Config\Config $config
@@ -18,34 +18,143 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     ];
 }
 ?>
+
+<style>
+    /* PREMIUM INPUT STYLING */
+    .c-form-input,
+    .c-form-select {
+        background-color: #fcfdfe;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        transition: all 0.2s ease-in-out;
+        width: 100%;
+        color: #1e293b;
+    }
+
+    .c-form-input:focus,
+    .c-form-select:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        outline: none;
+    }
+
+    .c-form-label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+
+    /* ACTION CARDS (BUTTONS RE-DESIGN) */
+    .c-action-grid {
+        display: flex;
+        gap: 20px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .c-action-card {
+        flex: 1;
+        min-width: 280px;
+        background: #fff;
+        border: 2px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: left;
+    }
+
+    .c-action-card__icon {
+        font-size: 1.75rem;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+
+    /* Hover States - Dezent & Edel */
+    .c-action-card--voucher:hover {
+        border-color: #6366f1;
+        background: #f5f3ff;
+    }
+
+    .c-action-card--voucher:hover .c-action-card__icon {
+        background: #6366f1;
+        color: #fff;
+    }
+
+    .c-action-card--manual:hover {
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+
+    .c-action-card--manual:hover .c-action-card__icon {
+        background: #10b981;
+        color: #fff;
+    }
+
+    .c-action-card__title {
+        display: block;
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.05rem;
+    }
+
+    .c-action-card__desc {
+        display: block;
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* TOGGLE SWITCH FÜR ZWECK */
+    .u-text-link {
+        font-size: 0.75rem;
+        color: var(--primary-color);
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: normal;
+    }
+</style>
+
 <div class="c-tab-content-container">
-    <section class="c-card" style="max-width: 800px; margin: 0 auto;">
-        <header class="c-card__header u-text-center">
-            <div style="font-size: 2.5rem; margin-bottom: 10px;">🛠️</div>
-            <h3 class="u-margin-none">Universal-Generator</h3>
-            <p class="u-text-muted">Zeiträume planen, Gutscheine erzeugen oder Genehmigungen sofort ausstellen.</p>
+    <section class="c-card" style="max-width: 850px; margin: 0 auto; border-top: 5px solid var(--primary-color);">
+        <header class="c-card__header u-text-center u-padding-y-l">
+            <h2 class="u-margin-none">Universal-Generator</h2>
+            <p class="u-text-muted">Manuelle Ausstellung oder Gutschein-Erstellung in einem Schritt.</p>
         </header>
 
         <div class="c-card__body">
-            <!-- Warnung-Box für Datumskorrekturen -->
-            <div id="date-warning" class="u-margin-bottom-m" style="display:none; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 8px; font-size: 0.9rem;">
-                <div style="display:flex; gap: 10px; align-items: center;">
-                    <span>💡</span>
-                    <span id="date-warning-text"></span>
-                </div>
+            <!-- Warnung-Box -->
+            <div id="date-warning" class="u-margin-bottom-m" style="display:none; background: #fffbeb; border-left: 4px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 4px;">
+                <span id="date-warning-text"></span>
             </div>
 
             <form id="unifiedToolsForm" method="POST" class="c-form">
 
-                <!-- ABSCHNITT 1: RAHMENBEDINGUNGEN -->
-                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-                    <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
-                        <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">1</span>
+                <!-- 1. ZEITRAUM -->
+                <div class="u-margin-bottom-l">
+                    <h4 class="u-margin-bottom-m" style="display:flex; align-items:center; gap:10px; color: #1e293b;">
+                        <span style="background:#1e293b; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">1</span>
                         Zeitraum & Vorlage
                     </h4>
 
                     <div class="c-form-group u-margin-bottom-m">
-                        <label class="c-form-label">Wählen Sie die Vorlage</label>
+                        <label class="c-form-label">Ausnahmegenehmigungs-Typ</label>
                         <select name="template_key" id="u_template_key" class="c-form-select">
                             <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
                                 <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
@@ -55,59 +164,47 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
-                            <label class="c-form-label">Startdatum (Von)</label>
+                            <label class="c-form-label">Einfahrt ab (Start)</label>
                             <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
                         </div>
                         <div class="c-form-group">
-                            <label class="c-form-label">Enddatum (Bis)</label>
+                            <label class="c-form-label">Einfahrt bis (Ende)</label>
                             <input type="date" name="datum_bis" id="u_datum_bis" class="c-form-input">
                         </div>
                     </div>
-
-                    <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">Interne Bezeichnung / Grund <small class="u-text-muted">(Pflicht f. Gutschein)</small></label>
-                        <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="z.B. Barzahlung beim Vorstand">
-                        <datalist id="reason_presets">
-                            <?php foreach ($reasons as $r) { ?>
-                                <option value="<?php echo \htmlspecialchars($r); ?>">
-                                <?php } ?>
-                        </datalist>
-                    </div>
                 </div>
 
-                <!-- ABSCHNITT 2: PÄCHTER-DATEN -->
-                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
-                    <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
-                        <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">2</span>
-                        Pächter-Informationen
+                <!-- 2. PÄCHTER -->
+                <div class="u-margin-bottom-l">
+                    <h4 class="u-margin-bottom-m" style="display:flex; align-items:center; gap:10px; color: #1e293b;">
+                        <span style="background:#1e293b; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+                        Angaben zum Pächter
                     </h4>
-
                     <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
                         <div class="c-form-group">
-                            <label class="c-form-label">Name <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
-                            <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Max Mustermann">
+                            <label class="c-form-label">Vollständiger Name</label>
+                            <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Vorname Nachname">
                         </div>
                         <div class="c-form-group">
-                            <label class="c-form-label">Parzelle <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
-                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="0000">
+                            <label class="c-form-label">Parzelle</label>
+                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="Nr.">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">E-Mail-Adresse <small class="u-text-muted">(Optional)</small></label>
-                        <input type="email" name="email" id="u_email" class="c-form-input" placeholder="mail@beispiel.de">
+                        <label class="c-form-label">E-Mail für Dokumentenversand (Optional)</label>
+                        <input type="email" name="email" id="u_email" class="c-form-input" placeholder="beispiel@mail.de">
                     </div>
                 </div>
 
-                <!-- ABSCHNITT 3: FAHRZEUG-DETAILS -->
-                <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
-                    <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
-                        <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">3</span>
-                        Fahrzeug-Details
+                <!-- 3. FAHRZEUG & ZWECK -->
+                <div class="u-margin-bottom-l">
+                    <h4 class="u-margin-bottom-m" style="display:flex; align-items:center; gap:10px; color: #1e293b;">
+                        <span style="background:#1e293b; color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+                        Fahrzeug & Grund
                     </h4>
-
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
-                            <label class="c-form-label">Typ</label>
+                            <label class="c-form-label">Fahrzeugtyp</label>
                             <select name="typ" id="u_typ" class="c-form-select">
                                 <?php foreach ($config->get('vehicle_types', []) as $val => $label) { ?>
                                     <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
@@ -116,7 +213,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Amtl. Kennzeichen</label>
-                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B AB 1234">
+                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="z.B. B-XX 123">
                         </div>
                     </div>
 
@@ -126,34 +223,52 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Müller Bau GmbH">
                         </div>
                         <div class="c-form-group">
-                            <label class="c-form-label">Zweck</label>
-                            <select name="zweck" id="u_zweck" class="c-form-select">
-                                <option value="">-- Keine Angabe --</option>
+                            <label class="c-form-label">
+                                Zweck der Einfahrt
+                                <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle">✏️ Manuelle Eingabe</span>
+                            </label>
+
+                            <!-- Vorauswahl -->
+                            <select name="zweck" id="u_zweck_select" class="c-form-select">
+                                <option value="">-- Bitte wählen --</option>
                                 <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
                                     <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
                                 <?php } ?>
                             </select>
+
+                            <!-- Manuelle Eingabe (Standard versteckt) -->
+                            <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
                         </div>
+                    </div>
+
+                    <div class="c-form-group u-margin-top-m">
+                        <label class="c-form-label">Interne Notiz (z.B. Grund der Ausstellung)</label>
+                        <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Warum wird diese Genehmigung erstellt?">
+                        <datalist id="reason_presets">
+                            <?php foreach ($reasons as $r) { ?>
+                                <option value="<?php echo \htmlspecialchars($r); ?>">
+                                <?php } ?>
+                        </datalist>
                     </div>
                 </div>
 
                 <!-- AKTIONEN -->
-                <div class="u-flex u-gap-m u-justify-between" style="flex-wrap: wrap;">
-                    <button type="button" class="c-button" style="flex: 1; min-width: 250px; background: #6366f1; color: white; padding: 1.25rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.2s; cursor: pointer;" onclick="submitUnifiedForm('create_voucher')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <span style="font-size: 2rem;">🎟️</span>
-                        <div style="text-align: left;">
-                            <span style="display:block; font-weight: 800; font-size: 1.1rem;">Gutschein erzeugen</span>
-                            <span style="font-size: 0.8rem; opacity: 0.9;">QR-Code erstellen & Zeitraum vorwählen</span>
+                <div class="c-action-grid">
+                    <div class="c-action-card c-action-card--voucher" onclick="submitUnifiedForm('create_voucher')">
+                        <div class="c-action-card__icon">🎟️</div>
+                        <div>
+                            <span class="c-action-card__title">Gutschein erzeugen</span>
+                            <span class="c-action-card__desc">QR-Code erstellen & Zeitraum vorwählen.</span>
                         </div>
-                    </button>
+                    </div>
 
-                    <button type="button" class="c-button" style="flex: 1; min-width: 250px; background: #10b981; color: white; padding: 1.25rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: all 0.2s; cursor: pointer;" onclick="submitUnifiedForm('create_manual')" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <span style="font-size: 2rem;">⚡</span>
-                        <div style="text-align: left;">
-                            <span style="display:block; font-weight: 800; font-size: 1.1rem;">Sofort ausstellen</span>
-                            <span style="font-size: 0.8rem; opacity: 0.9;">Genehmigung sofort aktiv schalten</span>
+                    <div class="c-action-card c-action-card--manual" onclick="submitUnifiedForm('create_manual')">
+                        <div class="c-action-card__icon">⚡</div>
+                        <div>
+                            <span class="c-action-card__title">Sofort ausstellen</span>
+                            <span class="c-action-card__desc">Genehmigung direkt finalisieren & senden.</span>
                         </div>
-                    </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -170,16 +285,36 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     const warningBox = document.getElementById('date-warning');
     const warningText = document.getElementById('date-warning-text');
 
+    // Zweck-Handling
+    let isZweckManual = false;
+    const zweckSelect = document.getElementById('u_zweck_select');
+    const zweckManual = document.getElementById('u_zweck_manual');
+    const zweckToggle = document.getElementById('u_zweck_toggle');
+
     /**
-     * Fahrzeug-Typ Logik (Firma ein/ausblenden)
+     * Schaltet zwischen Dropdown und manuellem Textfeld für "Zweck" um
      */
-    function toggleFirmaField() {
-        if (selectTyp.value === 'lkw') {
-            firmaWrapper.style.display = 'block';
+    function toggleZweckMode() {
+        isZweckManual = !isZweckManual;
+        if (isZweckManual) {
+            zweckSelect.style.display = 'none';
+            zweckManual.style.display = 'block';
+            zweckSelect.name = "_zweck_disabled"; // Verhindert Senden des Dropdowns
+            zweckManual.name = "zweck";
+            zweckToggle.innerText = "📁 Aus Liste wählen";
+            zweckManual.focus();
         } else {
-            firmaWrapper.style.display = 'none';
-            document.getElementById('u_firma').value = ''; // Feld leeren wenn versteckt
+            zweckSelect.style.display = 'block';
+            zweckManual.style.display = 'none';
+            zweckSelect.name = "zweck";
+            zweckManual.name = "_zweck_manual_disabled";
+            zweckToggle.innerText = "✏️ Manuelle Eingabe";
         }
+    }
+
+    function toggleFirmaField() {
+        firmaWrapper.style.display = (selectTyp.value === 'lkw') ? 'block' : 'none';
+        if (selectTyp.value !== 'lkw') document.getElementById('u_firma').value = '';
     }
 
     /**
@@ -195,9 +330,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     }
 
     function getTodayStr() {
-        const d = new Date();
-        d.setHours(0, 0, 0, 0);
-        return d.toISOString().split('T')[0];
+        return new Date().toISOString().split('T')[0];
     }
 
     /**
@@ -206,37 +339,27 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     function handleDateChange(source) {
         const config = templates[selectTpl.value];
         const today = getTodayStr();
-
         showDateWarning(null);
 
-        // Spezialzeitraum: Keine Automatik, alles frei
-        if (config.days === 'custom') {
-            return;
-        }
+        if (config.days === 'custom') return;
 
+        // Spezialzeitraum: Keine Automatik, alles frei
         const duration = parseInt(config.days);
 
-        if (source === 'von') {
-            if (inputVon.value) {
-                let vonDate = new Date(inputVon.value);
-                let bisDate = new Date(vonDate);
-                bisDate.setDate(vonDate.getDate() + duration);
-                inputBis.value = bisDate.toISOString().split('T')[0];
-            }
-        } else if (source === 'bis') {
-            if (inputBis.value) {
-                let bisDate = new Date(inputBis.value);
-                let vonDate = new Date(bisDate);
-                vonDate.setDate(bisDate.getDate() - duration);
+        if (source === 'von' && inputVon.value) {
+            let d = new Date(inputVon.value);
+            d.setDate(d.getDate() + duration);
+            inputBis.value = d.toISOString().split('T')[0];
+        } else if (source === 'bis' && inputBis.value) {
+            let d = new Date(inputBis.value);
+            d.setDate(d.getDate() - duration);
+            let vonStr = d.toISOString().split('T')[0];
 
-                let vonStr = vonDate.toISOString().split('T')[0];
-
-                if (vonStr < today) {
-                    inputVon.value = today;
-                    showDateWarning("Hinweis: Das Startdatum wurde auf heute korrigiert, da Genehmigungen nicht in der Vergangenheit beginnen können. Der Zeitraum wurde entsprechend verkürzt.");
-                } else {
-                    inputVon.value = vonStr;
-                }
+            if (vonStr < today) {
+                inputVon.value = today;
+                showDateWarning("Hinweis: Der Beginn wurde auf heute korrigiert, da die Vorlage länger als der Restzeitraum ist.");
+            } else {
+                inputVon.value = vonStr;
             }
         }
     }
@@ -260,16 +383,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         const nameField = document.getElementById('u_name');
         const parzelleField = document.getElementById('u_parzelle');
 
-        [reasonField, nameField, parzelleField].forEach(f => f.setCustomValidity(''));
-
         if (actionType === 'create_voucher' && !reasonField.value.trim()) {
-            reasonField.setCustomValidity('Eine interne Bezeichnung ist für Gutscheine zwingend erforderlich.');
-            reasonField.reportValidity();
+            alert('Bitte eine interne Notiz eingeben.');
             return;
         }
 
         if (actionType === 'create_manual' && (!nameField.value.trim() || !parzelleField.value.trim())) {
-            alert('Name und Parzelle müssen für eine Sofort-Genehmigung ausgefüllt sein.');
+            alert('Name und Parzelle sind erforderlich.');
             return;
         }
 
