@@ -1,0 +1,41 @@
+<?php
+/**
+ * @var array<string, array<\App\Core\Entity\Permit>> $groups
+ */
+?>
+<section class="c-card">
+    <table class="c-table">
+        <thead>
+            <tr>
+                <th>Kennung / Name</th>
+                <th>Gültig ab</th>
+                <th class="u-text-right">Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($groups['future'])) { ?>
+                <tr>
+                    <td colspan="3" class="u-text-center u-text-muted u-padding-y-m">
+                        Keine zukünftigen Genehmigungen geplant.
+                    </td>
+                </tr>
+            <?php } else { ?>
+                <?php foreach ($groups['future'] as $permit) { ?>
+                    <tr>
+                        <td>
+                            <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
+                            <small><?php echo \htmlspecialchars($permit->owner->name); ?></small>
+                        </td>
+                        <td><?php echo $permit->validity->von->format('d.m.Y'); ?></td>
+                        <td class="u-text-right">
+                            <div class="u-flex u-gap-xs u-justify-end">
+                                <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
+                                <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small">👁</a>
+                            </div>
+                        </td>
+                    </tr>
+                <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+</section>

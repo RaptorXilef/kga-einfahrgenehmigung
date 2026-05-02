@@ -1,0 +1,103 @@
+<?php
+/**
+ * @var array<string, array<string, mixed>> $vouchers
+ * @var \App\Core\Service\VoucherService    $voucherService
+ * @var \App\Infrastructure\Config\Config   $config
+ */
+?>
+<div class="u-grid u-gap-l" style="grid-template-columns: 1.5fr 1fr;">
+    <!-- Linke Spalte: Offene Gutscheine -->
+    <section class="c-card">
+        <header class="c-card__header">
+            <h3>Offene Gutscheine</h3>
+        </header>
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="c-table">
+                <thead>
+                    <tr>
+                        <th>QR / Code</th>
+                        <th>Details</th>
+                        <th class="u-text-right">Aktion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($vouchers)) { ?>
+                        <tr><td colspan="3" class="u-text-center u-padding-m">Keine aktiven Gutscheine.</td></tr>
+                    <?php } else { ?>
+                        <?php foreach ($vouchers as $v) { ?>
+                            <?php
+                            if ($v['used']) {
+                                continue;
+                            }
+                            $url           = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+                            $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+                            ?>
+                            <tr class="<?php echo $isDeactivated ? 'u-opacity-50 u-bg-suspended' : ''; ?>">
+                                <td>
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=<?php echo \urlencode($url); ?>" class="qr-mini" alt="QR"><br>
+                                    <code><?php echo $v['code']; ?></code>
+                                </td>
+                                <td>
+                                    <strong><?php echo \htmlspecialchars($v['reason']); ?></strong><br>
+                                    <small>Für: <?php echo $v['data']['name'] ?: '-'; ?> (P: <?php echo $v['data']['parzelle'] ?: '?'; ?>)</small><br>
+                                    <a href="<?php echo $url; ?>" target="_blank" style="font-size:10px;">Link kopieren ↗</a>
+                                </td>
+                                <td class="u-text-right">
+                                    <div class="u-flex u-gap-xs u-justify-end">
+                                        <form method="POST">
+                                            <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                            <?php if ($isDeactivated) { ?>
+                                                <input type="hidden" name="action" value="activate_voucher">
+                                                <button type="submit" class="c-button c-button--success c-button--small">Aktivieren</button>
+                                            <?php } else { ?>
+                                                <input type="hidden" name="action" value="deactivate_voucher">
+                                                <button type="submit" class="c-button c-button--danger c-button--small">Sperren</button>
+                                            <?php } ?>
+                                        </form>
+                                        <form method="POST" onsubmit="return confirm('Gutschein löschen?')">
+                                            <input type="hidden" name="action" value="delete_voucher">
+                                            <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                            <button type="submit" class="c-button c-button--danger c-button--small">🗑</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Rechte Spalte: Archiv -->
+    <section class="c-card">
+        <header class="c-card__header">
+            <h3>Einlösungs-Archiv</h3>
+        </header>
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="c-table c-table--small">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Nutzer</th>
+                        <th>Code</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $archive = $voucherService->loadArchive() ?? []; ?>
+                    <?php if (empty($archive)) { ?>
+                        <tr><td colspan="3" class="u-text-center u-padding-m">Archiv ist leer.</td></tr>
+                    <?php } else { ?>
+                        <?php foreach ($archive as $arc) { ?>
+                            <tr>
+                                <td><small><?php echo $arc['redeemed_at']; ?></small></td>
+                                <td><?php echo \htmlspecialchars($arc['user_name']); ?> (<?php echo $arc['user_plot']; ?>)</td>
+                                <td><code><?php echo $arc['code']; ?></code></td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
