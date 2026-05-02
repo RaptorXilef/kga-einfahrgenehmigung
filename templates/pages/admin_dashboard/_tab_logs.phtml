@@ -1,0 +1,38 @@
+<?php
+/**
+ * @var array $mailLogs
+ */
+?>
+<section class="c-card">
+    <table class="c-table">
+        <thead>
+            <tr>
+                <th>Zeitpunkt</th>
+                <th>Empfänger</th>
+                <th>Betreff / Template</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($mailLogs)) { ?>
+                <tr><td colspan="4" class="u-text-center u-padding-m">Keine Logs vorhanden.</td></tr>
+            <?php } else { ?>
+                <?php foreach (\array_slice($mailLogs, 0, 50) as $log) { ?>
+                    <tr>
+                        <td><small><?php echo $log['timestamp']; ?></small></td>
+                        <td><?php echo \htmlspecialchars($log['recipient']); ?></td>
+                        <td>
+                            <strong><?php echo \htmlspecialchars($log['subject']); ?></strong><br>
+                            <small class="u-text-muted">Template: <?php echo $log['template']; ?></small>
+                        </td>
+                        <td>
+                            <span class="c-badge c-badge--<?php echo ($log['status'] === 'Erfolg') ? 'success' : 'danger'; ?>">
+                                <?php echo $log['status']; ?>
+                            </span>
+                        </td>
+                    </tr>
+                <?php } ?>
+            <?php } ?>
+        </tbody>
+    </table>
+</section>

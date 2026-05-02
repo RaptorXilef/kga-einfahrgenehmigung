@@ -1,0 +1,16 @@
+<?php
+/**
+ * Component: Admin Header Navigation
+ * @var string $adminUser
+ * @var int    $adminLevel
+ */
+?>
+<nav class="c-admin-nav">
+    <div class="c-container">
+        <span>Eingeloggt: <strong><?php echo \htmlspecialchars($adminUser); ?></strong> (Lvl <?php echo $adminLevel; ?>)</span>
+        <?php if ($adminLevel <= 1) { ?>
+            <a href="users.php" class="u-margin-left-m">👤 Benutzerverwaltung</a>
+        <?php } ?>
+        <a href="?action=logout" class="u-float-right">Abmelden</a>
+    </div>
+</nav>

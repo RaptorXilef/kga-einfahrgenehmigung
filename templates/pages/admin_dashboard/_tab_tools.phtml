@@ -1,0 +1,71 @@
+<?php
+/**
+ * @var \App\Infrastructure\Config\Config $config
+ * @var array                             $reasons
+ */
+?>
+<div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
+    <!-- Gutschein Erstellung -->
+    <section class="c-card">
+        <header class="c-card__header"><h3>Gutschein erstellen</h3></header>
+        <form method="POST" class="c-form">
+            <input type="hidden" name="action" value="create_voucher">
+            <div class="c-form-group">
+                <label class="c-form-label">Interne Bezeichnung</label>
+                <input type="text" name="reason_internal" class="c-form-input" required placeholder="z.B. Bar bezahlt">
+            </div>
+            <div class="c-form-group u-margin-top-s">
+                <label class="c-form-label">Vorlage</label>
+                <select name="template_key" class="c-form-select">
+                    <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
+                        <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="u-margin-top-m u-padding-s" style="background:#f9f9f9; border:1px solid #ddd; border-radius:5px;">
+                <p class="u-font-bold u-margin-bottom-s">Vorbefüllung (Optional)</p>
+                <div class="u-flex u-gap-s">
+                    <input type="text" name="pre_name" class="c-form-input" placeholder="Name">
+                    <input type="text" name="pre_parzelle" class="c-form-input" style="width:80px" placeholder="Parz.">
+                </div>
+                <input type="text" name="pre_kennzeichen" class="c-form-input u-margin-top-s" placeholder="Kennzeichen">
+            </div>
+            <button type="submit" class="c-button u-width-100 u-margin-top-m">Gutschein & QR erzeugen</button>
+        </form>
+    </section>
+
+    <!-- Manuelle Erstellung -->
+    <section class="c-card">
+        <header class="c-card__header"><h3>Manuelle Genehmigung (Bar/Gratis)</h3></header>
+        <form method="POST" class="c-form">
+            <input type="hidden" name="action" value="create_manual">
+            <div class="c-form-group">
+                <label class="c-form-label">Vorlage / Zeitraum</label>
+                <select name="template_key" id="manual_template_key" class="c-form-select">
+                    <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
+                        <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="u-flex u-gap-s u-margin-top-s">
+                <div style="flex:1"><label class="c-form-label">Start</label><input type="date" name="datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>"></div>
+                <div style="flex:1; display:none;" id="custom_end_wrapper"><label class="c-form-label">Ende</label><input type="date" name="datum_bis" class="c-form-input" value="<?php echo \date('Y-m-d', \strtotime('+1 year')); ?>"></div>
+            </div>
+            <input type="text" name="name" class="c-form-input u-margin-top-m" placeholder="Pächter Name" required>
+            <div class="u-flex u-gap-s u-margin-top-s">
+                <input type="text" name="parzelle" class="c-form-input" placeholder="Parzelle" required>
+                <input type="text" name="kennzeichen" class="c-form-input" placeholder="Kennzeichen">
+            </div>
+            <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail">
+            <div class="c-form-group u-margin-top-s">
+                <label class="c-form-label">Interner Vermerk</label>
+                <select name="reason" class="c-form-select">
+                    <?php foreach ($reasons as $r) { ?>
+                        <option value="<?php echo \htmlspecialchars($r); ?>"><?php echo \htmlspecialchars($r); ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Sofort erstellen</button>
+        </form>
+    </section>
+</div>

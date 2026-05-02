@@ -1,6 +1,15 @@
+<?php
+/**
+ * Component: Test Mode Indicator
+ * Path: templates/components/_test_mode_indicator.phtml
+ * @var \App\Infrastructure\Config\Config $config
+ */
+?>
 <?php if ($config->isTestMode()) { ?>
     <div style="background: #e67e22; color: white; text-align: center; padding: 5px; font-size: 12px; font-weight: bold; position: sticky; top: 0; z-index: 9999; letter-spacing: 1px;">
         ⚠️ TEST-MODUS AKTIV (PayPal Sandbox | Test-Mail: <?php echo \htmlspecialchars($config->get('mail')['recipients']['test']); ?>)
-        <?php if ($config->get('admin_dev_mode')) { ?> | 🔐 ADMIN BYPASS AN <?php } ?>
+        <?php if ($config->get('admin_dev_mode')) { ?>
+            | 🔐 ADMIN BYPASS AN
+        <?php } ?>
     </div>
 <?php } ?>

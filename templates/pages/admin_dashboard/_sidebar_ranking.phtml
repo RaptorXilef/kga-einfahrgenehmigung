@@ -1,0 +1,47 @@
+<?php
+/**
+ * Partial: Sidebar Ranking
+ * Path: templates/pages/admin_dashboard/_sidebar_ranking.phtml
+ * @var array $stats
+ */
+?>
+<section class="c-card">
+    <header class="c-card__header">
+        <h3 class="u-margin-none">📊 Top Parzellen</h3>
+        <small class="u-text-muted">Häufigste Einfahrten</small>
+    </header>
+
+    <div class="c-card__body">
+        <table class="c-table c-table--small">
+            <thead>
+                <tr>
+                    <th>Parzelle</th>
+                    <th class="u-text-right">Anzahl</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $plots = $stats['plots'] ?? [];
+                if (empty($plots)):
+                ?>
+                    <tr>
+                        <td colspan="2" class="u-text-center u-text-muted">Keine Daten vorhanden</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach (\array_slice($plots, 0, 15, true) as $plot => $count): ?>
+                        <tr>
+                            <td><strong>Nr. <?= \htmlspecialchars((string)$plot); ?></strong></td>
+                            <td class="u-text-right"><?= $count; ?>x</td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php if (!empty($plots)): ?>
+        <footer class="c-card__footer">
+            <small class="u-text-muted">Basierend auf aktuellem Filterzeitraum</small>
+        </footer>
+    <?php endif; ?>
+</section>
