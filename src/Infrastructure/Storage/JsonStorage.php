@@ -15,14 +15,12 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
-use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
-use App\Core\Entity\Status;
-use App\Core\Entity\Validity;
-use App\Core\Entity\Vehicle;
 
 final readonly class JsonStorage implements StorageInterface
 {
+    use StorageMapperTrait;
+
     public function __construct(
         private string $filePath,
     ) {
@@ -30,26 +28,9 @@ final readonly class JsonStorage implements StorageInterface
 
     public function save(Permit $permit): bool
     {
-        $data                = $this->loadRaw();
-        $data[$permit->code] = [
-            'code'              => $permit->code,
-            'templateKey'       => $permit->templateKey,
-            'name'              => $permit->owner->name,
-            'email'             => $permit->owner->email,
-            'parzelle'          => $permit->owner->parzelle,
-            'typ'               => $permit->vehicle->typ, // Sicherstellen dass Typ da ist
-            'kennzeichen'       => $permit->vehicle->kennzeichen,
-            'firma'             => $permit->vehicle->firma,
-            'von'               => $permit->validity->von->format('Y-m-d'),
-            'bis'               => $permit->validity->bis->format('Y-m-d'),
-            'preisSnapshot'     => $permit->validity->preisSnapshot,
-            'zweck'             => $permit->validity->zweck,
-            'status'            => $permit->status->current,
-            'isSuspended'       => $permit->status->isSuspended,
-            'suspensionReason'  => $permit->status->suspensionReason,
-            'erstellt'          => $permit->erstellt->format('Y-m-d H:i:s'),
-            'internerKommentar' => $permit->internerKommentar,
-        ];
+        $data = $this->loadRaw();
+        // Nutzt den Trait für die Umwandlung
+        $data[$permit->code] = $this->flattenEntity($permit);
 
         return (bool) \file_put_contents(
             $this->filePath,
@@ -78,50 +59,16 @@ final readonly class JsonStorage implements StorageInterface
         return null;
     }
 
-    /**
-     * @param array<string, mixed> $item
-     */
-    public function mapToEntity(array $item): Permit
-    {
-        return new Permit(
-            code: (string) $item['code'],
-            templateKey: (string) ($item['templateKey'] ?? 'std_7'),
-            owner: new Owner(
-                (string) $item['name'],
-                (string) $item['email'],
-                (string) $item['parzelle'],
-            ),
-            vehicle: new Vehicle(
-                (string) ($item['typ'] ?? 'pkw'),
-                (string) $item['kennzeichen'],
-                $item['firma'] ?? null,
-            ),
-            validity: new Validity(
-                new \DateTimeImmutable((string) $item['von']),
-                new \DateTimeImmutable((string) $item['bis']),
-                (float) ($item['preisSnapshot'] ?? 0.0),
-                (string) ($item['zweck'] ?? 'Privat'),
-            ),
-            status: new Status(
-                (string) $item['status'],
-                (bool) ($item['isSuspended'] ?? false),
-                $item['suspensionReason'] ?? null,
-            ),
-            erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
-            internerKommentar: $item['internerKommentar'] ?? null,
-        );
-    }
-
     public function getAll(): array
     {
-        return \array_map(fn (array $item): ?Permit => $this->findByHash($item['code']), $this->loadRaw());
+        return \array_map($this->mapToEntity(...), $this->loadRaw());
     }
 
     public function migrateTo(StorageInterface $target): int
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (! $target->save($permit)) {
+            if (!$target->save($permit)) {
                 continue;
             }
 
@@ -140,6 +87,6 @@ final readonly class JsonStorage implements StorageInterface
             return [];
         }
 
-        return \json_decode(\file_get_contents($this->filePath), true) ?? [];
+        return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
     }
 }
