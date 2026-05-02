@@ -20,23 +20,14 @@ namespace App\Core\Entity;
 final readonly class Permit
 {
     public function __construct(
-        public string $code,           // ML-26-0020-X8Y1
-        public string $name,
-        public string $email,
-        public string $parzelle,      // Immer 4-stellig (0020)
-        public string $typ,           // pkw, lkw
-        public string $kennzeichen,
-        public ?string $firma,        // Optional für LKW
-        public string $zweck,
-        public float $preisSnapshot, // Der Preis zum Zeitpunkt der Buchung / Wichtig für die Finanzstatistik
-        public \DateTimeImmutable $von,
-        public \DateTimeImmutable $bis,
-        public string $status = 'wartend',
-        public \DateTimeImmutable $erstellt = new \DateTimeImmutable(), // Pflichtfeld
+        public string $code,        // ML-26-0020-X8Y1
+        public string $templateKey, // Welches Template wurde genutzt?
+        public Owner $owner,
+        public Vehicle $vehicle,
+        public Validity $validity,
+        public Status $status,
+        public \DateTimeImmutable $erstellt = new \DateTimeImmutable(),
         public ?string $internerKommentar = null, // Für manuelle Buchung
-        public string $templateKey = 'std_7', // Welches Template wurde genutzt?
-        public bool $isSuspended = false,        // Ist die Genehmigung gesperrt?
-        public ?string $suspensionReason = null, // Warum?
     ) {
     }
 
@@ -47,7 +38,9 @@ final readonly class Permit
     {
         $now = new \DateTimeImmutable();
 
-        // v0.4.0: Genehmigung ist sofort gültig, unabhängig vom Zahlungsstatus (Verwaltungsintern)
-        return $now >= $this->von && $now <= $this->bis;
+        // Prüfung über die neuen Value Objects
+        return ! $this->status->isSuspended
+            && $now >= $this->validity->von
+            && $now <= $this->validity->bis;
     }
 }

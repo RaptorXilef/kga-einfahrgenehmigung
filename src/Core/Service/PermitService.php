@@ -20,7 +20,11 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
+use App\Core\Entity\Status;
+use App\Core\Entity\Validity;
+use App\Core\Entity\Vehicle;
 
 /**
  * Zentraler Service für Ausnahmegenehmigungen.
@@ -55,7 +59,6 @@ final readonly class PermitService
         // 1. Zeiträume bestimmen
         $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
 
-        // Fix: Else-Expression entfernt
         // Automatische Berechnung der Tage aus der Vorlage
         $endDate = $startDate->modify('+' . $template['days'] . ' days');
         if ($template['days'] === 'custom') {
@@ -68,7 +71,7 @@ final readonly class PermitService
             ? (float) $data['manual_price']
             : (float) ($template['prices'][$typ] ?? 0.0);
 
-        // --- KOLLISIONS-CHECK FÜR DIE EINDEUTIGKEIT ---
+        // Code-Generierung
         do {
             $randomId = $this->generateV4Suffix();
 
@@ -95,29 +98,22 @@ final readonly class PermitService
         $purposes = (array) $this->config->get('purposes', []);
         $zweck    = (string) ($purposes[(string) ($data['zweck'] ?? '')] ?? 'Privat');
 
+        // Value Objects-Instanziierung
         $permit = new Permit(
             code: $fullIdentifier,
-            name: (string) $data['name'],
-            email: (string) $data['email'],
-            parzelle: \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
-            typ: $typ,
-            kennzeichen: $displayPlate,
-            firma: isset($data['firma']) ? (string) $data['firma'] : null,
-            zweck: $zweck,
-            preisSnapshot: $preis,
-            von: $startDate,
-            bis: $endDate,
-            status: (string) ($data['status'] ?? 'wartend'),
-            erstellt: new \DateTimeImmutable(),
-            internerKommentar: isset($data['internerKommentar']) ? (string) $data['internerKommentar'] : null,
             templateKey: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
+            owner: new Owner((string) $data['name'], (string) $data['email'], \str_pad((string) $data['parzelle'], 4, '0', \STR_PAD_LEFT)),
+            vehicle: new Vehicle($typ, $displayPlate, $data['firma'] ?? null),
+            validity: new Validity($startDate, $endDate, $preis, $zweck),
+            status: new Status((string) ($data['status'] ?? 'wartend')),
+            erstellt: new \DateTimeImmutable(),
+            internerKommentar: $data['internerKommentar'] ?? null,
         );
 
         if (! $this->storage->save($permit)) {
-            throw new \RuntimeException('Fehler beim Speichern der Daten.');
+            throw new \RuntimeException('Speicherfehler.');
         }
 
-        // 3-Mail-System
         if ($sendMails) {
             $this->dispatchMails($permit, $randomId);
         }
@@ -172,8 +168,8 @@ final readonly class PermitService
         // 1. Check im Hauptspeicher (Storage)
         foreach ($this->storage->getAll() as $permit) {
             if (
-                $permit->parzelle === $parzelleFormatted
-                && $this->datesOverlap($permit->von, $permit->bis, $start, $end)
+                $permit->owner->parzelle === $parzelleFormatted
+                && $this->datesOverlap($permit->validity->von, $permit->validity->bis, $start, $end)
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
@@ -332,64 +328,44 @@ final readonly class PermitService
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        $zeitraum  = "{$permit->von->format('d.m.Y')} bis {$permit->bis->format('d.m.Y')}";
-        $geheimnis = (string) $this->config->get('geheimnis', '');
-        $token     = \hash('sha256', $permit->code . $geheimnis);
+        // Zugriff via $permit->validity->von statt $permit->von
+        $zeitraum = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
+        $token    = \hash('sha256', $permit->code . (string) $this->config->get('geheimnis', ''));
 
-        // Mail an VORSTAND
-        $mailConfig = (array) $this->config->get('mail', []);
-        $recipient  = (string) ($mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'] ?? '');
-
+        // Vorstand Mail
         $this->mailService->sendTemplate(
-            $recipient,
-            "[{$permit->code}] - {$zeitraum} - {$permit->name}",
+            $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
+            "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
             'board_notification',
             [
                 'fullIdentifier' => $permit->code,
-                'name'           => $permit->name,
-                'email'          => $permit->email,
-                'parzelle'       => $permit->parzelle,
-                'typLabel'       => $this->config->get('vehicle_types')[$permit->typ] ?? $permit->typ,
-                'kennzeichen'    => $permit->kennzeichen,
-                'firma'          => $permit->firma ?? '',
-                'von'            => $permit->von->format('d.m.Y'),
-                'bis'            => $permit->bis->format('d.m.Y'),
-                'zweck'          => $permit->zweck,
+                'name'           => $permit->owner->name,
+                'email'          => $permit->owner->email,
+                'parzelle'       => $permit->owner->parzelle,
+                'typLabel'       => $this->config->get('vehicle_types')[$permit->vehicle->typ] ?? $permit->vehicle->typ,
+                'kennzeichen'    => $permit->vehicle->kennzeichen,
+                'firma'          => $permit->vehicle->firma ?? '',
+                'von'            => $permit->validity->von->format('d.m.Y'),
+                'bis'            => $permit->validity->bis->format('d.m.Y'),
+                'zweck'          => $permit->validity->zweck,
                 'adminLink'      => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
-                'vereinsName'    => $this->config->get('vereins_name'),
             ],
         );
 
-        // Mail an NUTZER (Zahlung mit EPC-QR)
-        $usage     = $this->generateUsageText($permit, $shortCode);
-        $epcQrData = $this->generateEpcData($permit->preisSnapshot, $usage);
-
-        $this->mailService->sendTemplate($permit->email, "Zahlung erforderlich: {$permit->code}", 'payment_request', [
-            'name'           => $permit->name,
-            'fullIdentifier' => $permit->code,
-            'betrag'         => \number_format($permit->preisSnapshot, 2, ',', '.') . ' €',
-            'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
-            'kontoinhaber'   => $this->config->get('kontoinhaber'),
-            'iban'           => $this->config->get('iban'),
-            'usage'          => $usage,
-            'epcData'        => \urlencode($epcQrData),
-        ]);
-
-        // Mail an NUTZER (A4 Dokument)
+        // Nutzer Mail (A4 Dokument)
         $this->mailService->sendTemplate(
-            $permit->email,
+            $permit->owner->email,
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
             'permit_a4_document',
             [
                 'fullIdentifier'    => $permit->code,
-                'von'               => $permit->von, // Objekt für das Template
-                'bis'               => $permit->bis, // Objekt für das Template
-                'kennzeichen'       => $permit->kennzeichen,
-                'firma'             => $permit->firma ?? '',
-                'parzelle'          => $permit->parzelle,
-                'zweck'             => $permit->zweck,
+                'von'               => $permit->validity->von,
+                'bis'               => $permit->validity->bis,
+                'kennzeichen'       => $permit->vehicle->kennzeichen,
+                'firma'             => $permit->vehicle->firma ?? '',
+                'parzelle'          => $permit->owner->parzelle,
+                'zweck'             => $permit->validity->zweck,
                 'templateKey'       => $permit->templateKey,
-                'config'            => $this->config,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
@@ -475,26 +451,22 @@ final readonly class PermitService
             return false;
         }
 
-        // Wir erstellen eine Kopie der Entität mit neuem Status
-        $updatedPermit = new Permit(
-            code: $permit->code,
-            name: $permit->name,
-            email: $permit->email,
-            parzelle: $permit->parzelle,
-            typ: $permit->typ,
-            kennzeichen: $permit->kennzeichen,
-            firma: $permit->firma,
-            zweck: $permit->zweck,
-            preisSnapshot: $permit->preisSnapshot,
-            von: $permit->von,
-            bis: $permit->bis,
-            status: 'bezahlt', // Status-Update
-            erstellt: $permit->erstellt,
-            internerKommentar: $grund ?? $permit->internerKommentar, // Grund übernehmen
-            templateKey: $permit->templateKey,
+        $updated = new Permit(
+            $permit->code,
+            $permit->templateKey,
+            $permit->owner,
+            $permit->vehicle,
+            $permit->validity,
+            new Status(
+                'bezahlt', // Status-Update
+                $permit->status->isSuspended,
+                $permit->status->suspensionReason,
+            ),
+            $permit->erstellt,
+            $grund ?? $permit->internerKommentar, // Grund übernehmen
         );
 
-        return $this->storage->save($updatedPermit);
+        return $this->storage->save($updated);
     }
 
     /**
@@ -598,8 +570,8 @@ final readonly class PermitService
      */
     public function getCoveredQuarters(Permit $permit): array
     {
-        $startQ = (int) \ceil((int) $permit->von->format('n') / 3);
-        $endQ   = (int) \ceil((int) $permit->bis->format('n') / 3);
+        $startQ = (int) \ceil((int) $permit->validity->von->format('n') / 3);
+        $endQ   = (int) \ceil((int) $permit->validity->bis->format('n') / 3);
 
         // Wenn es über ein Jahr hinausgeht, müssten wir mehr tun,
         // aber für Dauerkarten innerhalb eines Kalenderjahres reicht:
@@ -657,23 +629,18 @@ final readonly class PermitService
         }
 
         $updated = new Permit(
-            code: $permit->code,
-            name: $permit->name,
-            email: $permit->email,
-            parzelle: $permit->parzelle,
-            typ: $permit->typ,
-            kennzeichen: $permit->kennzeichen,
-            firma: $permit->firma,
-            zweck: $permit->zweck,
-            preisSnapshot: $permit->preisSnapshot,
-            von: $permit->von,
-            bis: $permit->bis,
-            status: $permit->status,
-            erstellt: $permit->erstellt,
-            internerKommentar: $permit->internerKommentar,
-            templateKey: $permit->templateKey,
-            isSuspended: $status,
-            suspensionReason: $reason,
+            $permit->code,
+            $permit->templateKey,
+            $permit->owner,
+            $permit->vehicle,
+            $permit->validity,
+            new Status(
+                $permit->status->current,
+                $status,
+                $reason,
+            ),
+            $permit->erstellt,
+            $permit->internerKommentar,
         );
 
         return $this->storage->save($updated);

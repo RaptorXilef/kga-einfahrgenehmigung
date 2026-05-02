@@ -94,7 +94,7 @@ final readonly class HistoryController
         }
 
         $permit = $this->permitService->getStorage()->findByHash($code);
-        if (! ($permit instanceof Permit) || \strtolower($permit->email) !== \strtolower($emailInSession)) {
+        if (! ($permit instanceof Permit) || \strtolower($permit->owner->email) !== \strtolower($emailInSession)) {
             return;
         }
 

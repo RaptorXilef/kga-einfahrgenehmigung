@@ -154,7 +154,7 @@ $now = new \DateTimeImmutable();
             <?php } ?>
             <div class="c-card stats-box">
                 <small>Anträge / PKW / LKW</small>
-                <div class="u-font-l"><?php echo $stats['total_count']; ?> (<?php echo $stats['types']['pkw']; ?> / <?php echo $stats['types']['lkw']; ?>)</div>
+                <div class="u-font-l"><?php echo $stats['total_count'] ?? 0; ?> (<?php echo $stats['types']['pkw'] ?? 0; ?> / <?php echo $stats['types']['lkw'] ?? 0; ?>)</div>
             </div>
         </div>
 
@@ -162,7 +162,7 @@ $now = new \DateTimeImmutable();
             <div class="u-col-span-2">
                 <div class="c-tabs">
                     <div class="c-tabs__nav">
-                        <button class="c-tabs__btn" data-tab-target="tab-active">Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
+                        <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
                         <button class="c-tabs__btn" data-tab-target="tab-future">Zukünftig</button>
                         <button class="c-tabs__btn" data-tab-target="tab-expired">Abgelaufen</button>
                         <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Gutscheine</button>
@@ -170,6 +170,7 @@ $now = new \DateTimeImmutable();
                         <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
                     </div>
 
+                    <!-- TAB: AKTIV -->
                     <div id="tab-active" class="c-tabs__content c-tabs__content--active">
                         <section class="c-card">
                             <table class="c-table">
@@ -182,18 +183,18 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($groups['active'] as $p) {
+                                    <?php foreach (($groups['active'] ?? []) as $p) {
                                         $overdueLevel = $permitService->getOverdueLevel($p); ?>
-                                        <tr class="<?php echo $p->isSuspended ? 'u-bg-suspended' : ''; ?>">
+                                        <tr class="<?php echo $p->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
                                             <td>
                                                 <code><?php echo $p->code; ?></code><br>
-                                                <small><?php echo \htmlspecialchars($p->name); ?> (Parz: <?php echo $p->parzelle; ?>)</small>
+                                                <small><strong><?php echo \htmlspecialchars($p->owner->name); ?></strong> (Parz: <?php echo $p->owner->parzelle; ?>)</small>
                                             </td>
                                             <td>
-                                                <?php if ($p->isSuspended) { ?>
+                                                <?php if ($p->status->isSuspended) { ?>
                                                     <span class="c-badge c-badge--danger">⛔ GESPERRT</span>
                                                 <?php } else { ?>
-                                                    <span class="c-badge c-badge--<?php echo $p->status === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($p->status); ?></span>
+                                                    <span class="c-badge c-badge--<?php echo $p->status->current === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($p->status->current); ?></span>
                                                     <?php if ($overdueLevel === 1) { ?>
                                                         <span class="c-badge" style="background: #e67e22; color: white;">ÜBERFÄLLIG</span>
                                                     <?php } elseif ($overdueLevel === 2) { ?>
@@ -201,38 +202,32 @@ $now = new \DateTimeImmutable();
                                                     <?php } ?>
                                                 <?php } ?>
                                             </td>
-                                            <?php if ($adminLevel < 3) { ?><td><?php echo \number_format($p->preisSnapshot, 2, ',', '.'); ?> €</td><?php } ?>
+                                            <?php if ($adminLevel < 3) { ?><td><?php echo \number_format($p->validity->preisSnapshot, 2, ',', '.'); ?> €</td><?php } ?>
                                             <td>
                                                 <div class="u-flex u-gap-xs">
                                                     <a href="?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
-
-                                                    <?php if ($p->isSuspended) { ?>
-                                                        <!-- Button zum Entsperren -->
+                                                    <?php if ($p->status->isSuspended) { ?>
                                                         <form method="POST" style="margin:0;">
                                                             <input type="hidden" name="action" value="unsuspend_permit">
                                                             <input type="hidden" name="code" value="<?php echo $p->code; ?>">
                                                             <button type="submit" class="c-button c-button--success c-button--small" title="Entsperren">🔓</button>
                                                         </form>
                                                     <?php } else { ?>
-                                                        <?php if ($p->status !== 'bezahlt' && $adminLevel <= 1) { ?>
+                                                        <?php if ($p->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
                                                             <form method="POST" style="margin:0;">
                                                                 <input type="hidden" name="action" value="mark_as_paid">
                                                                 <input type="hidden" name="code" value="<?php echo $p->code; ?>">
                                                                 <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
                                                             </form>
                                                         <?php } ?>
-
-                                                        <!-- NEU: Sicherer Sperr-Button ohne Inline-JS -->
                                                         <button class="c-button c-button--danger c-button--small js-suspend-btn"
                                                             data-code="<?php echo $p->code; ?>" title="Sperren">⛔</button>
-
                                                         <form id="form_suspend_<?php echo $p->code; ?>" method="POST" style="display:none;">
                                                             <input type="hidden" name="action" value="suspend_permit">
                                                             <input type="hidden" name="code" value="<?php echo $p->code; ?>">
                                                             <input type="hidden" name="reason" id="reason_suspend_<?php echo $p->code; ?>">
                                                         </form>
                                                     <?php } ?>
-
                                                     <a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a>
                                                 </div>
                                             </td>
@@ -243,6 +238,7 @@ $now = new \DateTimeImmutable();
                         </section>
                     </div>
 
+                    <!-- TAB: ZUKÜNFTIG -->
                     <div id="tab-future" class="c-tabs__content">
                         <section class="c-card">
                             <table class="c-table">
@@ -254,10 +250,10 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($groups['future'] as $p) { ?>
+                                    <?php foreach (($groups['future'] ?? []) as $p) { ?>
                                         <tr>
-                                            <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
-                                            <td><?php echo $p->von->format('d.m.Y'); ?></td>
+                                            <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->owner->name); ?></small></td>
+                                            <td><?php echo $p->validity->von->format('d.m.Y'); ?></td>
                                             <td><a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
                                         </tr>
                                     <?php } ?>
@@ -266,6 +262,7 @@ $now = new \DateTimeImmutable();
                         </section>
                     </div>
 
+                    <!-- TAB: ABGELAUFEN -->
                     <div id="tab-expired" class="c-tabs__content">
                         <section class="c-card">
                             <table class="c-table">
@@ -277,10 +274,10 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($groups['expired'] as $p) { ?>
+                                    <?php foreach (($groups['expired'] ?? []) as $p) { ?>
                                         <tr class="u-opacity-50">
-                                            <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->name); ?></small></td>
-                                            <td><?php echo $p->bis->format('d.m.Y'); ?></td>
+                                            <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->owner->name); ?></small></td>
+                                            <td><?php echo $p->validity->bis->format('d.m.Y'); ?></td>
                                             <td><a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
                                         </tr>
                                     <?php } ?>
@@ -289,6 +286,7 @@ $now = new \DateTimeImmutable();
                         </section>
                     </div>
 
+                    <!-- TAB: GUTSCHEINE -->
                     <div id="tab-vouchers" class="c-tabs__content">
                         <div class="u-grid u-gap-l" style="grid-template-columns: 1.5fr 1fr;">
                             <section class="c-card">
@@ -305,15 +303,21 @@ $now = new \DateTimeImmutable();
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($vouchers as $v) {
+                                            <?php foreach (($vouchers ?? []) as $v) {
                                                 if ($v['used']) {
                                                     continue;
                                                 }
-                                                $url           = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
-                                                $qr            = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' . \urlencode($url);
-                                                $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert'; ?>
+                                                $url = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+                                                $qr  = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=' . \urlencode($url);
+
+                                                // Status-Logik wiederhergestellt
+                                                $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+                                                ?>
                                                 <tr class="<?php echo $isDeactivated ? 'u-opacity-50 u-bg-suspended' : ''; ?>">
-                                                    <td><img src="<?php echo $qr; ?>" class="qr-mini" alt="QR"><br><code><?php echo $v['code']; ?></code></td>
+                                                    <td>
+                                                        <img src="<?php echo $qr; ?>" class="qr-mini" alt="QR"><br>
+                                                        <code><?php echo $v['code']; ?></code>
+                                                    </td>
                                                     <td>
                                                         <strong><?php echo \htmlspecialchars($v['reason']); ?></strong><br>
                                                         <small>Vorbefüllung: <?php echo $v['data']['name'] ?? '-'; ?> (P: <?php echo $v['data']['parzelle'] ?? '?'; ?>)</small><br>
@@ -321,16 +325,23 @@ $now = new \DateTimeImmutable();
                                                     </td>
                                                     <td>
                                                         <div class="u-flex u-gap-xs">
+                                                            <!-- Formular zum Aktivieren/Deaktivieren (wiederhergestellt) -->
                                                             <form method="POST">
                                                                 <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
                                                                 <?php if ($isDeactivated) { ?>
-                                                                    <input type="hidden" name="action" value="activate_voucher"><button type="submit" class="c-button c-button--success c-button--small">Aktivieren</button>
+                                                                    <input type="hidden" name="action" value="activate_voucher">
+                                                                    <button type="submit" class="c-button c-button--success c-button--small">Aktivieren</button>
                                                                 <?php } else { ?>
-                                                                    <input type="hidden" name="action" value="deactivate_voucher"><button type="submit" class="c-button c-button--danger c-button--small">Sperren</button>
+                                                                    <input type="hidden" name="action" value="deactivate_voucher">
+                                                                    <button type="submit" class="c-button c-button--danger c-button--small">Sperren</button>
                                                                 <?php } ?>
                                                             </form>
+
+                                                            <!-- Löschen Formular -->
                                                             <form method="POST" onsubmit="return confirm('Gutschein wirklich löschen?')">
-                                                                <input type="hidden" name="action" value="delete_voucher"><input type="hidden" name="code" value="<?php echo $v['code']; ?>"><button type="submit" class="c-button c-button--danger c-button--small">🗑</button>
+                                                                <input type="hidden" name="action" value="delete_voucher">
+                                                                <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                                                <button type="submit" class="c-button c-button--danger c-button--small">🗑</button>
                                                             </form>
                                                         </div>
                                                     </td>
@@ -355,7 +366,7 @@ $now = new \DateTimeImmutable();
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($voucherService->loadArchive() as $arc) { ?>
+                                            <?php foreach (($voucherService->loadArchive() ?? []) as $arc) { ?>
                                                 <tr>
                                                     <td><small><?php echo $arc['redeemed_at']; ?></small></td>
                                                     <td><?php echo \htmlspecialchars($arc['user_name']); ?> (<?php echo $arc['user_plot']; ?>)</td>
@@ -369,17 +380,18 @@ $now = new \DateTimeImmutable();
                         </div>
                     </div>
 
+                    <!-- TAB: TOOLS -->
                     <div id="tab-tools" class="c-tabs__content">
                         <div class="u-grid u-gap-l" style="grid-template-columns: 1fr 1fr;">
                             <section class="c-card">
                                 <header class="c-card__header">
-                                    <h3>Gutschein-Code erstellen</h3>
+                                    <h3>Gutschein erstellen</h3>
                                 </header>
                                 <form method="POST" class="c-form">
                                     <input type="hidden" name="action" value="create_voucher">
                                     <div class="c-form-group">
                                         <label class="c-form-label">Interne Bezeichnung</label>
-                                        <input type="text" name="reason_internal" class="c-form-input" required placeholder="z.B. Bar bezahlt für ML-123">
+                                        <input type="text" name="reason_internal" class="c-form-input" required placeholder="z.B. Bar bezahlt">
                                     </div>
                                     <div class="c-form-group u-margin-top-s">
                                         <label class="c-form-label">Vorlage</label>
@@ -390,7 +402,7 @@ $now = new \DateTimeImmutable();
                                         </select>
                                     </div>
                                     <div class="u-margin-top-m u-padding-s" style="background:#f9f9f9; border:1px solid #ddd; border-radius:5px;">
-                                        <p class="u-font-bold u-margin-bottom-s">Vorbefüllung / Sperrung (Optional)</p>
+                                        <p class="u-font-bold u-margin-bottom-s">Vorbefüllung (Optional)</p>
                                         <div class="u-flex u-gap-s">
                                             <input type="text" name="pre_name" class="c-form-input" placeholder="Name">
                                             <input type="text" name="pre_parzelle" class="c-form-input" style="width:80px" placeholder="Parz.">
@@ -424,21 +436,22 @@ $now = new \DateTimeImmutable();
                                         <input type="text" name="parzelle" class="c-form-input" placeholder="Parzelle" required>
                                         <input type="text" name="kennzeichen" class="c-form-input" placeholder="Kennzeichen">
                                     </div>
-                                    <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail (für Versand des Dokuments)">
+                                    <input type="email" name="email" class="c-form-input u-margin-top-s" placeholder="E-Mail">
                                     <div class="c-form-group u-margin-top-s">
-                                        <label class="c-form-label">Interner Grund / Vermerk</label>
+                                        <label class="c-form-label">Interner Vermerk</label>
                                         <select name="reason" class="c-form-select">
                                             <?php foreach ($reasons as $r) {
                                                 echo "<option value='" . \htmlspecialchars($r) . "'>" . \htmlspecialchars($r) . '</option>';
                                             } ?>
                                         </select>
                                     </div>
-                                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Sofort erstellen & E-Mail senden</button>
+                                    <button type="submit" class="c-button c-button--primary u-width-100 u-margin-top-m">Sofort erstellen</button>
                                 </form>
                             </section>
                         </div>
                     </div>
 
+                    <!-- TAB: LOGS -->
                     <div id="tab-logs" class="c-tabs__content">
                         <section class="c-card">
                             <table class="c-table">
@@ -451,7 +464,7 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($mailLogs as $log) { ?>
+                                    <?php foreach (\array_slice($mailLogs, 0, 50) as $log) { ?>
                                         <tr>
                                             <td><small><?php echo $log['timestamp']; ?></small></td>
                                             <td><?php echo \htmlspecialchars($log['recipient']); ?></td>
@@ -466,16 +479,21 @@ $now = new \DateTimeImmutable();
                 </div>
             </div>
 
+            <!-- SIDEBAR -->
             <aside>
                 <section class="c-card">
                     <header class="c-card__header">
                         <h3>Top Parzellen</h3>
                     </header>
                     <table class="c-table">
-                        <?php
-                        $plots = $stats['plots'] ?? [];
-foreach (\array_slice($plots, 0, 15, true) as $plot => $count) {
-    ?>
+                        <?php foreach (
+                            \array_slice(
+                                $stats['plots'] ?? [],
+                                0,
+                                15,
+                                true,
+                            ) as $plot => $count
+                        ) { ?>
                             <tr>
                                 <td>Nr. <?php echo \htmlspecialchars((string) $plot); ?></td>
                                 <td class="u-text-right"><strong><?php echo $count; ?>x</strong></td>

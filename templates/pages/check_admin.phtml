@@ -1,3 +1,8 @@
+<?php
+/**
+ * @var \App\Core\Entity\Permit $permit
+ */
+?>
 <!DOCTYPE html>
 <html lang="de" data-theme="light">
 <head>
@@ -22,8 +27,8 @@
 
         <section class="c-admin-card">
             <header class="c-admin-card__header">
-                <span class="c-badge c-badge--<?php echo $permit->status === 'bezahlt' ? 'success' : 'warning'; ?>">
-                    Status: <?php echo \strtoupper($permit->status); ?>
+                <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
+                    Status: <?php echo \strtoupper($permit->status->current); ?>
                 </span>
                 <h2 class="c-admin-card__code">Code: <?php echo $permit->code; ?></h2>
             </header>
@@ -32,46 +37,46 @@
                 <table class="c-admin-table">
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Pächter:</th>
-                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->name); ?></td>
+                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->owner->name); ?></td>
                     </tr>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Parzelle:</th>
-                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->parzelle); ?></td>
+                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->owner->parzelle); ?></td>
                     </tr>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Grund/Zweck:</th>
-                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->zweck); ?></td>
+                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->validity->zweck); ?></td>
                     </tr>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Fahrzeugtyp:</th>
-                        <td class="c-admin-table__data"><?php echo \strtoupper($permit->typ); ?></td>
+                        <td class="c-admin-table__data"><?php echo \strtoupper($permit->vehicle->typ); ?></td>
                     </tr>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Kennzeichen:</th>
-                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->kennzeichen); ?></td>
+                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->vehicle->kennzeichen); ?></td>
                     </tr>
-                    <?php if ($permit->firma) { ?>
+                    <?php if ($permit->vehicle->firma) { ?>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Firma/Lieferant:</th>
-                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->firma); ?></td>
+                        <td class="c-admin-table__data"><?php echo \htmlspecialchars($permit->vehicle->firma); ?></td>
                     </tr>
                     <?php } ?>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">E-Mail:</th>
                         <td class="c-admin-table__data">
-                            <a href="mailto:<?php echo \htmlspecialchars($permit->email); ?>"><?php echo \htmlspecialchars($permit->email); ?></a>
+                            <a href="mailto:<?php echo \htmlspecialchars($permit->owner->email); ?>"><?php echo \htmlspecialchars($permit->owner->email); ?></a>
                         </td>
                     </tr>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Gültigkeitsraum:</th>
                         <td class="c-admin-table__data">
-                            <?php echo $permit->von->format('d.m.Y'); ?> bis <?php echo $permit->bis->format('d.m.Y'); ?>
+                            <?php echo $permit->validity->von->format('d.m.Y'); ?> bis <?php echo $permit->validity->bis->format('d.m.Y'); ?>
                         </td>
                     </tr>
                     <tr class="c-admin-table__row">
                         <th class="c-admin-table__header">Einnahme (Snapshot):</th>
                         <td class="c-admin-table__data">
-                            <?php echo \number_format($permit->preisSnapshot, 2, ',', '.'); ?> €
+                            <?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €
                         </td>
                     </tr>
                     <tr class="c-admin-table__row">
@@ -83,7 +88,7 @@
                 </table>
             </div>
 
-            <?php if ($permit->status !== 'bezahlt') { ?>
+            <?php if ($permit->status->current !== 'bezahlt') { ?>
             <footer class="c-admin-card__actions u-padding-around-m">
                 <form action="admin.php" method="POST">
                     <input type="hidden" name="action" value="mark_as_paid">

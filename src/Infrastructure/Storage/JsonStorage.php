@@ -15,7 +15,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
+use App\Core\Entity\Status;
+use App\Core\Entity\Validity;
+use App\Core\Entity\Vehicle;
 
 final readonly class JsonStorage implements StorageInterface
 {
@@ -29,21 +33,22 @@ final readonly class JsonStorage implements StorageInterface
         $data                = $this->loadRaw();
         $data[$permit->code] = [
             'code'              => $permit->code,
-            'name'              => $permit->name,
-            'email'             => $permit->email,
-            'kennzeichen'       => $permit->kennzeichen,
-            'parzelle'          => $permit->parzelle,
-            'typ'               => $permit->typ, // Sicherstellen dass Typ da ist
-            'firma'             => $permit->firma,
-            'zweck'             => $permit->zweck,
-            'von'               => $permit->von->format('Y-m-d'),
-            'bis'               => $permit->bis->format('Y-m-d'),
-            'status'            => $permit->status,
-            'erstellt'          => $permit->erstellt->format('Y-m-d H:i:s'),
-            'preisSnapshot'     => $permit->preisSnapshot,
-            'internerKommentar' => $permit->internerKommentar,
             'templateKey'       => $permit->templateKey,
-            'isSuspended'       => $permit->isSuspended, 'suspensionReason' => $permit->suspensionReason,
+            'name'              => $permit->owner->name,
+            'email'             => $permit->owner->email,
+            'parzelle'          => $permit->owner->parzelle,
+            'typ'               => $permit->vehicle->typ, // Sicherstellen dass Typ da ist
+            'kennzeichen'       => $permit->vehicle->kennzeichen,
+            'firma'             => $permit->vehicle->firma,
+            'von'               => $permit->validity->von->format('Y-m-d'),
+            'bis'               => $permit->validity->bis->format('Y-m-d'),
+            'preisSnapshot'     => $permit->validity->preisSnapshot,
+            'zweck'             => $permit->validity->zweck,
+            'status'            => $permit->status->current,
+            'isSuspended'       => $permit->status->isSuspended,
+            'suspensionReason'  => $permit->status->suspensionReason,
+            'erstellt'          => $permit->erstellt->format('Y-m-d H:i:s'),
+            'internerKommentar' => $permit->internerKommentar,
         ];
 
         return (bool) \file_put_contents(
@@ -80,22 +85,30 @@ final readonly class JsonStorage implements StorageInterface
     {
         return new Permit(
             code: (string) $item['code'],
-            name: (string) $item['name'],
-            email: (string) $item['email'],
-            parzelle: (string) $item['parzelle'],
-            typ: (string) ($item['typ'] ?? 'pkw'),
-            kennzeichen: (string) $item['kennzeichen'],
-            firma: isset($item['firma']) ? (string) $item['firma'] : null,
-            zweck: (string) ($item['zweck'] ?? 'Privat'),
-            preisSnapshot: (float) ($item['preisSnapshot'] ?? 0.0),
-            von: new \DateTimeImmutable((string) $item['von']),
-            bis: new \DateTimeImmutable((string) $item['bis']),
-            status: (string) $item['status'],
-            erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
-            internerKommentar: isset($item['internerKommentar']) ? (string) $item['internerKommentar'] : null,
             templateKey: (string) ($item['templateKey'] ?? 'std_7'),
-            isSuspended: (bool) ($item['isSuspended'] ?? false),
-            suspensionReason: $item['suspensionReason'] ?? null,
+            owner: new Owner(
+                (string) $item['name'],
+                (string) $item['email'],
+                (string) $item['parzelle'],
+            ),
+            vehicle: new Vehicle(
+                (string) ($item['typ'] ?? 'pkw'),
+                (string) $item['kennzeichen'],
+                $item['firma'] ?? null,
+            ),
+            validity: new Validity(
+                new \DateTimeImmutable((string) $item['von']),
+                new \DateTimeImmutable((string) $item['bis']),
+                (float) ($item['preisSnapshot'] ?? 0.0),
+                (string) ($item['zweck'] ?? 'Privat'),
+            ),
+            status: new Status(
+                (string) $item['status'],
+                (bool) ($item['isSuspended'] ?? false),
+                $item['suspensionReason'] ?? null,
+            ),
+            erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
+            internerKommentar: $item['internerKommentar'] ?? null,
         );
     }
 

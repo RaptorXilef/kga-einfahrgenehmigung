@@ -5,7 +5,7 @@
 /**
  * MySQL-Implementierung des Storage-Interfaces.
  *
- * @file      src/Infrastructure/Storage/MySqlStorage.php
+ * @file src/Infrastructure/Storage/MySqlStorage.php
  */
 
 declare(strict_types=1);
@@ -13,7 +13,11 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
+use App\Core\Entity\Status;
+use App\Core\Entity\Validity;
+use App\Core\Entity\Vehicle;
 
 final readonly class MySqlStorage implements StorageInterface
 {
@@ -25,29 +29,35 @@ final readonly class MySqlStorage implements StorageInterface
     {
         // FIX: firma und preisSnapshot im SQL hinzugefügt
         $sql = 'REPLACE INTO permits (
-            code, name, email, kennzeichen, parzelle, typ,
-            firma, zweck, preisSnapshot, von, bis, status, erstellt
+            code, templateKey, name, email, kennzeichen, parzelle, typ,
+            firma, zweck, preisSnapshot, von, bis, status, isSuspended,
+            suspensionReason, erstellt, internerKommentar
         ) VALUES (
-            :code, :name, :email, :kennzeichen, :parzelle, :typ,
-            :firma, :zweck, :preisSnapshot, :von, :bis, :status, :erstellt
+            :code, :templateKey, :name, :email, :kennzeichen, :parzelle, :typ,
+            :firma, :zweck, :preisSnapshot, :von, :bis, :status, :isSuspended,
+            :suspensionReason, :erstellt, :internerKommentar
         )';
 
         $stmt = $this->pdo->prepare($sql);
 
         return $stmt->execute([
-            'code'          => $permit->code,
-            'name'          => $permit->name,
-            'email'         => $permit->email,
-            'kennzeichen'   => $permit->kennzeichen,
-            'parzelle'      => $permit->parzelle,
-            'typ'           => $permit->typ,
-            'firma'         => $permit->firma,
-            'zweck'         => $permit->zweck,
-            'preisSnapshot' => $permit->preisSnapshot,
-            'von'           => $permit->von->format('Y-m-d'),
-            'bis'           => $permit->bis->format('Y-m-d'),
-            'status'        => $permit->status,
-            'erstellt'      => $permit->erstellt->format('Y-m-d H:i:s'),
+            'code'              => $permit->code,
+            'templateKey'       => $permit->templateKey,
+            'name'              => $permit->owner->name,
+            'email'             => $permit->owner->email,
+            'kennzeichen'       => $permit->vehicle->kennzeichen,
+            'parzelle'          => $permit->owner->parzelle,
+            'typ'               => $permit->vehicle->typ,
+            'firma'             => $permit->vehicle->firma,
+            'zweck'             => $permit->validity->zweck,
+            'preisSnapshot'     => $permit->validity->preisSnapshot,
+            'von'               => $permit->validity->von->format('Y-m-d'),
+            'bis'               => $permit->validity->bis->format('Y-m-d'),
+            'status'            => $permit->status->current,
+            'isSuspended'       => (int) $permit->status->isSuspended,
+            'suspensionReason'  => $permit->status->suspensionReason,
+            'erstellt'          => $permit->erstellt->format('Y-m-d H:i:s'),
+            'internerKommentar' => $permit->internerKommentar,
         ]);
     }
 
@@ -61,35 +71,50 @@ final readonly class MySqlStorage implements StorageInterface
             return null;
         }
 
-        return new Permit(
-            code: (string) $row['code'],
-            name: (string) $row['name'],
-            email: (string) $row['email'],
-            parzelle: (string) $row['parzelle'],
-            typ: (string) ($row['typ'] ?? 'pkw'),
-            kennzeichen: (string) $row['kennzeichen'],
-            firma: isset($row['firma']) ? (string) $row['firma'] : null,
-            zweck: (string) ($row['zweck'] ?? 'Privat'),
-            preisSnapshot: (float) ($row['preisSnapshot'] ?? 0.0),
-            von: new \DateTimeImmutable((string) $row['von']),
-            bis: new \DateTimeImmutable((string) $row['bis']),
-            status: (string) $row['status'],
-            erstellt: new \DateTimeImmutable((string) ($row['erstellt'] ?? 'now')),
-        );
+        return $this->mapToEntity($row);
     }
 
     /**
-     * @return Permit[]
+     * @param array<string, mixed> $item
      */
+    public function mapToEntity(array $item): Permit
+    {
+        return new Permit(
+            code: (string) $item['code'],
+            templateKey: (string) ($item['templateKey'] ?? 'std_7'),
+            owner: new Owner(
+                (string) $item['name'],
+                (string) $item['email'],
+                (string) $item['parzelle'],
+            ),
+            vehicle: new Vehicle(
+                (string) ($item['typ'] ?? 'pkw'),
+                (string) $item['kennzeichen'],
+                $item['firma'] ?? null,
+            ),
+            validity: new Validity(
+                new \DateTimeImmutable((string) $item['von']),
+                new \DateTimeImmutable((string) $item['bis']),
+                (float) ($item['preisSnapshot'] ?? 0.0),
+                (string) ($item['zweck'] ?? 'Privat'),
+            ),
+            status: new Status(
+                (string) ($item['status'] ?? 'wartend'),
+                (bool) ($item['isSuspended'] ?? false),
+                $item['suspensionReason'] ?? null,
+            ),
+            erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
+            internerKommentar: $item['internerKommentar'] ?? null,
+        );
+    }
+
     public function getAll(): array
     {
-        $stmt = $this->pdo->query('SELECT code FROM permits');
-
-        // Wir nutzen fetchAll und mappen dann, um PHPStan Typsicherheit zu geben
+        $stmt = $this->pdo->query('SELECT * FROM permits');
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         return \array_map(
-            fn (array $row): ?Permit => $this->findByHash((string) $row['code']),
+            fn (array $row): Permit => $this->mapToEntity($row),
             $rows,
         );
     }
@@ -98,11 +123,9 @@ final readonly class MySqlStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (! ($permit instanceof Permit) || ! $target->save($permit)) {
-                continue;
+            if ($target->save($permit)) {
+                ++$count;
             }
-
-            ++$count;
         }
 
         return $count;

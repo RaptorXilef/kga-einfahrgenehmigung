@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
-    <title>Druckansicht - <?= htmlspecialchars($permit->code) ?></title>
+    <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
     <style>
         @media print {
-            .u-no-print { display: none !important; }
-            body { background: white; padding: 0; }
+            .u-no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
         }
+
         .print-toolbar {
             background: #2c3e50;
             color: white;
@@ -22,44 +30,43 @@
         }
     </style>
 </head>
+
 <body>
     <div class="print-toolbar u-no-print">
         <a href="admin.php" class="c-button c-button--secondary">← Zurück zum Dashboard</a>
-        <div class="u-font-bold">Druckvorschau für: <?= htmlspecialchars($permit->code) ?></div>
+        <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()" class="c-button c-button--primary">Dokument jetzt drucken</button>
     </div>
 
     <?php
-        // Variablen für das Sub-Template vorbereiten (müssen manuell gemappt werden, da wir nicht im Service sind)
-        $opening = $settings['opening_hours'];
-        $data = [
-            'fullIdentifier'    => $permit->code,
-            'von'               => $permit->von->format('d.m.Y'),
-            'bis'               => $permit->bis->format('d.m.Y'),
-            'kennzeichen'       => $permit->kennzeichen,
-            'firma'             => $permit->firma,
-            'parzelle'          => $permit->parzelle,
-            'zweck'             => $settings['purposes'][$permit->zweck] ?? $permit->zweck,
-            'vereinsName'       => $settings['vereins_name'],
-            'jahresFarbe'       => $settings['jahresFarbe'],
-            'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
-            'terminkalenderUrl' => $settings['terminkalender_url'],
-            'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
-            'checkUrl'          => $settings['base_url'] . "check.php?code=" . $permit->code
-        ];
+    $opening = $settings['opening_hours'];
 
-        // Wir lesen das Template ein und ersetzen die Platzhalter
-        $templatePath = $appRoot . '/templates/emails/permit_a4_document.phtml';
-        $content = \file_get_contents($templatePath);
+    // WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->validity->von),
+    // damit das A4-Template die Quartale berechnen kann!
+    $data = [
+        'fullIdentifier'    => $permit->code,
+        'von'               => $permit->validity->von,
+        'bis'               => $permit->validity->bis,
+        'kennzeichen'       => $permit->vehicle->kennzeichen,
+        'firma'             => $permit->vehicle->firma ?? '',
+        'parzelle'          => $permit->owner->parzelle,
+        'zweck'             => $permit->validity->zweck,
+        'templateKey'       => $permit->templateKey,
+        'vereinsName'       => $settings['vereins_name'],
+        'jahresFarbe'       => $settings['jahresFarbe'],
+        'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
+        'terminkalenderUrl' => $settings['terminkalender_url'],
+        'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+        'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
+        'config'            => $config,
+    ];
 
-        foreach ($data as $key => $value) {
-            $content = \str_replace('{{' . $key . '}}', (string)$value, $content);
-        }
+    // Variablen in den lokalen Scope extrahieren
+    \extract($data);
 
-        // Da das Template evtl. PHP-Code enthält (z.B. für die Firma-Weiche), nutzen wir eval oder laden es sauber:
-        // Wir nutzen hier die saubere Integration:
-        extract($data);
-        include $appRoot . '/templates/emails/permit_a4_document.phtml';
+    // Das Sub-Template einbinden
+    include $appRoot . '/templates/emails/permit_a4_document.phtml';
     ?>
 </body>
+
 </html>

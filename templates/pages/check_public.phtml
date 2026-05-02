@@ -7,7 +7,7 @@
  * @var string                            $allowedToday
  * @var string                            $appRoot
  * @var string|null                       $token
- * @var mixed                             $tempData
+ * @var array|null                        $tempData
  * @var \App\Infrastructure\Config\Config $config
  * @var array                             $settings
  */
@@ -30,7 +30,7 @@
         <?php
         // 1. FALL: PERMIT EXISTIERT BEREITS (AKTIV ODER GESPERRT)
         if ($permit) {
-            if ($permit->isSuspended) { ?>
+            if ($permit->status->isSuspended) { ?>
                 <div class="c-card c-card--danger u-margin-auto" style="border: 8px solid #c0392b; max-width: 500px;">
                     <div class="c-card__header" style="background: #c0392b; color: #fff; padding: 20px;">
                         <span style="font-size: 50px;">🚫</span>
@@ -38,10 +38,10 @@
                     </div>
                     <div class="c-card__body">
                         <p class="u-font-bold u-font-l">Diese Genehmigung wurde dauerhaft gesperrt!</p>
-                        <?php if ($permit->suspensionReason) { ?>
+                        <?php if ($permit->status->suspensionReason) { ?>
                             <div style="background: #fdeaea; padding: 15px; border: 1px solid #ebccd1; margin-top: 15px; border-radius: 5px;">
                                 <strong>Grund der Sperre:</strong><br>
-                                <?php echo \htmlspecialchars($permit->suspensionReason); ?>
+                                <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
                             </div>
                         <?php } ?>
                         <p class="u-margin-top-m u-text-small">Bitte wenden Sie sich an die Vereinsverwaltung.</p>
@@ -137,7 +137,7 @@
         <?php } ?>
 
         <?php
-        // ADMIN-LOGIN LINK (NUR WENN NICHT SCHON IN ADMIN-ANSICHT)
+        // ADMIN-LOGIN LINK
         if (! isset($showAdminView) && $permit) { ?>
             <div class="u-margin-top-l">
                 <a href="admin.php?redirect_to_code=<?php echo $permit->code; ?>" class="u-text-small">Vorstands-Login für Details</a>

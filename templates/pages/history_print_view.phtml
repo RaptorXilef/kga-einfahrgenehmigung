@@ -1,14 +1,42 @@
+<?php
+
+/**
+ * @var \App\Core\Entity\Permit           $permit
+ * @var array                             $settings
+ * @var string                            $appRoot
+ * @var \App\Infrastructure\Config\Config $config
+ */
+?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>Druckansicht - <?php echo \htmlspecialchars($permit->code); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
     <style>
-        @media print { .u-no-print { display: none !important; } body { background: white; padding: 0; } }
-        .print-toolbar { background: #2c3e50; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        @media print {
+            .u-no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+        }
+
+        .print-toolbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
+
 <body>
     <div class="print-toolbar u-no-print">
         <a href="history.php" class="c-button c-button--secondary">← Zurück zur Übersicht</a>
@@ -17,26 +45,30 @@
     </div>
 
     <?php
-        // Daten-Mapping für das A4-Template
-        $opening = $settings['opening_hours'];
-    $data        = [
-        'fullIdentifier'    => $permit->code,
-        'von'               => $permit->von->format('d.m.Y'),
-        'bis'               => $permit->bis->format('d.m.Y'),
-        'kennzeichen'       => $permit->kennzeichen,
-        'firma'             => $permit->firma,
-        'parzelle'          => $permit->parzelle,
-        'zweck'             => $permit->zweck,
-        'vereinsName'       => $settings['vereins_name'],
-        'jahresFarbe'       => $settings['jahresFarbe'],
-        'opening'           => "{$opening['mon'][0][0]} bis {$opening['mon'][1][1]} Uhr", // Vereinfacht
-        'terminkalenderUrl' => $settings['terminkalender_url'],
-        'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
-        'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
-    ];
+    // Mapping der Value Objects auf flache Variablen für das A4-Dokument
+    $openingHours = $settings['opening_hours'];
 
-    \extract($data);
-    include $appRoot . '/templates/emails/permit_a4_document.phtml';
-    ?>
+$data = [
+    'fullIdentifier'    => $permit->code,
+    'von'               => $permit->validity->von, // Übergebe das Objekt für Formatierung im Template
+    'bis'               => $permit->validity->bis,
+    'kennzeichen'       => $permit->vehicle->kennzeichen,
+    'firma'             => $permit->vehicle->firma ?? '',
+    'parzelle'          => $permit->owner->parzelle,
+    'zweck'             => $permit->validity->zweck,
+    'templateKey'       => $permit->templateKey,
+    'vereinsName'       => $settings['vereins_name'],
+    'jahresFarbe'       => $settings['jahresFarbe'],
+    'terminkalenderUrl' => $settings['terminkalender_url'],
+    'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+    'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
+    'config'            => $config, // Falls das Template die Config für Preise o.ä. braucht
+    'opening'           => "{$openingHours['mon'][0][0]} bis {$openingHours['mon'][1][1]} Uhr",
+];
+
+\extract($data);
+include $appRoot . '/templates/emails/permit_a4_document.phtml';
+?>
 </body>
+
 </html>

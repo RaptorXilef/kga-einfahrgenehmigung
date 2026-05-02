@@ -7,16 +7,18 @@
     <strong>Identifikation:</strong><br>
     <?php
     $info = [];
-if (! empty($permit->kennzeichen)) {
-    $info[] = \htmlspecialchars($permit->kennzeichen);
+if (! empty($permit->vehicle->kennzeichen)) {
+    $info[] = \htmlspecialchars($permit->vehicle->kennzeichen);
 }
-if (! empty($permit->firma)) {
-    $info[] = 'Firma: ' . \htmlspecialchars($permit->firma);
+if (! empty($permit->vehicle->firma)) {
+    $info[] = 'Firma: ' . \htmlspecialchars($permit->vehicle->firma);
 }
 echo \implode(' / ', $info);
 ?>
 </div>
+
 <div class="u-text-muted">
     Gültigkeitszeitraum:<br>
-    <strong><?php echo $permit->von->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->bis->format('d.m.Y'); ?></strong>
+    <strong><?php echo $permit->validity->von->format('d.m.Y'); ?></strong> bis
+    <strong><?php echo $permit->validity->bis->format('d.m.Y'); ?></strong>
 </div>

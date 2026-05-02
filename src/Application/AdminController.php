@@ -55,8 +55,7 @@ final readonly class AdminController
             return;
         }
 
-        // 2. Daten-Aktionen (Markieren)
-        // $get entfernt, da es in handleDataActions nicht gebraucht wird
+        // 2. Daten-Aktionen (Markieren, Sperren, Gutscheine)
         $message = $this->handleDataActions($post);
 
         // 3. Print Preview abfangen
@@ -95,6 +94,7 @@ final readonly class AdminController
     }
 
     /**
+     * Verarbeitet alle POST-Aktionen des Dashboards.
      * @param array<string, mixed> $post
      */
     private function handleDataActions(array $post): string
@@ -107,12 +107,14 @@ final readonly class AdminController
 
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
         return match ($action) {
-            'mark_as_paid'                           => $this->actionMarkAsPaid($post),
-            'create_voucher'                         => $this->actionCreateVoucher($post),
-            'create_manual'                          => $this->actionCreateManual($post),
-            'activate_voucher', 'deactivate_voucher' => $this->actionToggleVoucher($post),
-            'unsuspend_permit', 'suspend_permit'     => $this->actionToggleSuspension($post),
-            default                                  => '',
+            'mark_as_paid'   => $this->actionMarkAsPaid($post),
+            'create_voucher' => $this->actionCreateVoucher($post),
+            'create_manual'  => $this->actionCreateManual($post),
+            'activate_voucher',
+            'deactivate_voucher' => $this->actionToggleVoucher($post),
+            'unsuspend_permit',
+            'suspend_permit' => $this->actionToggleSuspension($post),
+            default          => '',
         };
     }
 
@@ -126,7 +128,6 @@ final readonly class AdminController
     private function actionCreateVoucher(array $post): string
     {
         // Gutschein erstellen
-        // Korrektur: Nutze 'reason_internal' (wie im HTML) und füge TemplateKey hinzu
         $reason = (string) ($post['reason_internal'] ?? 'Gutschein');
         $tplKey = (string) ($post['template_key'] ?? 'std_7');
         $code   = $this->permitService->getVoucherService()->createVoucher(
@@ -182,9 +183,13 @@ final readonly class AdminController
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
             $permit = $this->storage->findByHash((string) $get['code']);
             if ($permit instanceof Permit) {
+                /** @var Config $config */
+                $config = $this->config;
                 $this->render('admin_print_view', [
                     'permit'   => $permit,
                     'settings' => $this->getSettingsArray(),
+                    'config'   => $config,
+                    'appRoot'  => $config->get('root_path'),
                 ]);
 
                 return true;
@@ -205,7 +210,6 @@ final readonly class AdminController
 
         /** @var Permit[] $filtered */
         $filtered = \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd): bool {
-            // FIX: nullsafe entfernt, da erstellt non-nullable ist
             $date = $permit->erstellt->format('Y-m-d');
 
             return $date >= $filterStart && $date <= $filterEnd;
@@ -237,7 +241,7 @@ final readonly class AdminController
             'config'         => $this->config, // WICHTIG für den Indikator
             'appRoot'        => $this->config->get('root_path'), // WICHTIG für den Indikator
             'vouchers'       => $voucherService->loadVouchers(),
-            'voucherService' => $voucherService, // DIESE ZEILE MUSS REIN!
+            'voucherService' => $voucherService,
             'reasons'        => [
                 'Bargeldzahlung vor Ort',
                 'Vorstandsbeschluss',
@@ -265,7 +269,7 @@ final readonly class AdminController
             $output = \fopen('php://output', 'w');
             if ($output) {
                 // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
-                \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // BOM
+                \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // UTF-8 BOM
 
                 // Hinzufügen der Parameter für Umschließung und Escape (verhindert Warning)
                 \fputcsv($output, [
@@ -275,27 +279,27 @@ final readonly class AdminController
                     'Parzelle',
                     'Typ',
                     'Kennzeichen',
-                    'Firma/Lieferant',
+                    'Firma',
                     'Zweck',
                     'Einnahme (€)',
                     'Status',
                     'Erstellt am',
-                ], ';', '"', '\\');
+                ], ';');
 
                 foreach ($filtered as $permit) {
                     \fputcsv($output, [
                         $permit->code,
-                        $permit->name,
-                        $permit->email,
-                        $permit->parzelle,
-                        $settings['vehicle_types'][$permit->typ] ?? $permit->typ,
-                        $permit->kennzeichen,
-                        $permit->firma ?? '',
-                        $settings['purposes'][$permit->zweck] ?? $permit->zweck,
-                        \number_format($permit->preisSnapshot, 2, ',', ''),
-                        \strtoupper((string) $permit->status),
-                        $permit->erstellt->format('d.m.Y H:i') ?? '',
-                    ], ';', '"', '\\');
+                        $permit->owner->name,
+                        $permit->owner->email,
+                        $permit->owner->parzelle,
+                        $settings['vehicle_types'][$permit->vehicle->typ] ?? $permit->vehicle->typ,
+                        $permit->vehicle->kennzeichen,
+                        $permit->vehicle->firma ?? '',
+                        $permit->validity->zweck,
+                        \number_format($permit->validity->preisSnapshot, 2, ',', ''),
+                        \strtoupper($permit->status->current),
+                        $permit->erstellt->format('d.m.Y H:i'),
+                    ], ';');
                 }
                 \fclose($output);
             }
@@ -303,13 +307,11 @@ final readonly class AdminController
             return;
         }
 
-        if ($format !== 'json') {
-            return;
+        if ($format === 'json') {
+            \header('Content-Type: application/json');
+            \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
+            echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
         }
-
-        \header('Content-Type: application/json');
-        \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
-        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -325,7 +327,7 @@ final readonly class AdminController
             'total_count'   => \count($filtered),
             'total_revenue' => \array_reduce(
                 $filtered,
-                fn (float $sum, Permit $permit): float => $sum + $permit->preisSnapshot,
+                fn (float $sum, Permit $permit): float => $sum + $permit->validity->preisSnapshot,
                 0.0,
             ),
             'types' => ['pkw' => 0, 'lkw' => 0],
@@ -333,8 +335,8 @@ final readonly class AdminController
         ];
 
         foreach ($filtered as $permit) {
-            $stats['types'][$permit->typ]      = ($stats['types'][$permit->typ] ?? 0) + 1;
-            $stats['plots'][$permit->parzelle] = ($stats['plots'][$permit->parzelle] ?? 0) + 1;
+            $stats['types'][$permit->vehicle->typ]    = ($stats['types'][$permit->vehicle->typ] ?? 0) + 1;
+            $stats['plots'][$permit->owner->parzelle] = ($stats['plots'][$permit->owner->parzelle] ?? 0) + 1;
         }
         \arsort($stats['plots']);
 
@@ -353,13 +355,12 @@ final readonly class AdminController
         $now    = new \DateTimeImmutable('today');
         $groups = ['active' => [], 'future' => [], 'expired' => []];
         foreach ($allPermits as $permit) {
-            // Early Return / Flache Logik statt ELSE
-            if ($permit->bis < $now) {
+            if ($permit->validity->bis < $now) {
                 $groups['expired'][] = $permit;
 
                 continue;
             }
-            if ($permit->von > $now) {
+            if ($permit->validity->von > $now) {
                 $groups['future'][] = $permit;
 
                 continue;
