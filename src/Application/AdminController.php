@@ -129,17 +129,23 @@ final readonly class AdminController
     private function actionCreateVoucher(array $post): string
     {
         // Gutschein erstellen
-        $reason = (string) ($post['reason_internal'] ?? 'Gutschein');
+        $reason = (string) ($post['reason'] ?? 'Gutschein');
         $tplKey = (string) ($post['template_key'] ?? 'std_7');
-        $code   = $this->permitService->getVoucherService()->createVoucher(
+
+        $preData = [
+            'name'        => \trim((string) ($post['name'] ?? '')),
+            'parzelle'    => \trim((string) ($post['parzelle'] ?? '')),
+            'kennzeichen' => \trim((string) ($post['kennzeichen'] ?? '')),
+            'typ'         => (string) ($post['typ'] ?? ''),
+            'firma'       => \trim((string) ($post['firma'] ?? '')),
+            'zweck'       => (string) ($post['zweck'] ?? ''),
+        ];
+
+        $code = $this->permitService->getVoucherService()->createVoucher(
             $reason,
-            (string) $_SESSION['admin_user'],
-            $tplKey, // Das fehlte!
-            [
-                'name'        => $post['pre_name'] ?? '',
-                'parzelle'    => $post['pre_parzelle'] ?? '',
-                'kennzeichen' => $post['pre_kennzeichen'] ?? '',
-            ],
+            (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            $tplKey,
+            $preData,
         );
 
         return "Gutschein erstellt: <strong>$code</strong>";
@@ -150,7 +156,11 @@ final readonly class AdminController
         // Manuelle Buchung (Kostenlos/Bar)
         try {
             $post['status'] = 'bezahlt';
-            $permit         = $this->permitService->createPermit($post, true);
+            if (isset($post['reason'])) {
+                $post['internerKommentar'] = $post['reason'];
+            }
+
+            $permit = $this->permitService->createPermit($post, true);
 
             return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
         } catch (\Exception $e) {
@@ -239,8 +249,8 @@ final readonly class AdminController
             'message'        => $message,
             'filterStart'    => $filterStart,
             'filterEnd'      => $filterEnd,
-            'config'         => $this->config, // WICHTIG für den Indikator
-            'appRoot'        => $this->config->get('root_path'), // WICHTIG für den Indikator
+            'config'         => $this->config,
+            'appRoot'        => $this->config->get('root_path'),
             'vouchers'       => $voucherService->loadVouchers(),
             'voucherService' => $voucherService,
             'reasons'        => [
@@ -308,13 +318,11 @@ final readonly class AdminController
             return;
         }
 
-        if ($format !== 'json') {
-            return;
+        if ($format === 'json') {
+            \header('Content-Type: application/json');
+            \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
+            echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
         }
-
-        \header('Content-Type: application/json');
-        \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
-        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
     }
 
     /**

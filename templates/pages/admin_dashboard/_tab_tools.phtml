@@ -46,12 +46,12 @@
 
                     <div class="c-form-group u-margin-top-m">
                         <label class="c-form-label">Interne Bezeichnung / Grund <small class="u-text-muted">(Pflicht f. Gutschein)</small></label>
-                        <!-- Wir nutzen eine Datalist, damit man tippen ODER aus der Liste wählen kann -->
-                        <input type="text" id="u_reason" class="c-form-input" list="reason_presets" placeholder="z.B. Barzahlung beim Vorstand">
+                        <!-- SAUBER: Heißt jetzt einfach 'reason' -->
+                        <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="z.B. Barzahlung beim Vorstand">
                         <datalist id="reason_presets">
                             <?php foreach ($reasons as $r) { ?>
                                 <option value="<?php echo \htmlspecialchars($r); ?>">
-                                <?php } ?>
+                            <?php } ?>
                         </datalist>
                     </div>
                 </div>
@@ -65,12 +65,14 @@
 
                     <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
                         <div class="c-form-group">
+                            <!-- SAUBER: Heißt jetzt einfach 'name' -->
                             <label class="c-form-label">Name <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
-                            <input type="text" id="u_name" class="c-form-input" placeholder="Max Mustermann">
+                            <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Max Mustermann">
                         </div>
                         <div class="c-form-group">
+                            <!-- SAUBER: Heißt jetzt einfach 'parzelle' -->
                             <label class="c-form-label">Parzelle Nr. <small class="u-text-muted">(Pflicht f. Sofort-Gen.)</small></label>
-                            <input type="text" id="u_parzelle" class="c-form-input" placeholder="123">
+                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="123">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
@@ -83,7 +85,7 @@
                 <div style="background: var(--bg-light); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
                     <h4 class="u-margin-top-none u-margin-bottom-m" style="color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
                         <span style="background: var(--primary-color); color: white; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">3</span>
-                        Fahrzeug-Details <small class="u-text-muted" style="font-weight: normal;">(Relevant für Sofort-Genehmigung)</small>
+                        Fahrzeug-Details <small class="u-text-muted" style="font-weight: normal;">(Optional)</small>
                     </h4>
 
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
@@ -97,14 +99,15 @@
                             </select>
                         </div>
                         <div class="c-form-group">
+                            <!-- SAUBER: Heißt jetzt einfach 'kennzeichen' -->
                             <label class="c-form-label">Amtl. Kennzeichen</label>
-                            <input type="text" id="u_kennzeichen" class="c-form-input" placeholder="B AB 1234">
+                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B AB 1234">
                         </div>
                     </div>
 
                     <div class="u-grid u-gap-m u-margin-top-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
-                            <label class="c-form-label">Firma / Lieferant <small class="u-text-muted">(Optional)</small></label>
+                            <label class="c-form-label">Firma / Lieferant</label>
                             <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Müller Bau GmbH">
                         </div>
                         <div class="c-form-group">
@@ -124,25 +127,25 @@
 
                     <!-- Button 1: Gutschein (Lila/Blau Style) -->
                     <button type="button"
-                        class="c-button"
-                        style="flex: 1; min-width: 250px; background: #6366f1; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
-                        onclick="submitUnifiedForm('create_voucher')">
+                            class="c-button"
+                            style="flex: 1; min-width: 250px; background: #6366f1; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(99,102,241,0.3)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                            onclick="submitUnifiedForm('create_voucher')">
                         <span style="font-size: 2rem;">🎟️</span>
                         <div style="text-align: left;">
                             <span style="display:block; font-weight: 800; font-size: 1.1rem;">Als Gutschein generieren</span>
-                            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">QR-Code erstellen. Pächter füllt den Rest selbst aus.</span>
+                            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">QR-Code erstellen. Pächter füllt den Rest aus.</span>
                         </div>
                     </button>
 
                     <!-- Button 2: Sofort-Gen (Grün/Success Style) -->
                     <button type="button"
-                        class="c-button"
-                        style="flex: 1; min-width: 250px; background: #10b981; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
-                        onclick="submitUnifiedForm('create_manual')">
+                            class="c-button"
+                            style="flex: 1; min-width: 250px; background: #10b981; color: white; padding: 1rem; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16,185,129,0.3)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                            onclick="submitUnifiedForm('create_manual')">
                         <span style="font-size: 2rem;">⚡</span>
                         <div style="text-align: left;">
                             <span style="display:block; font-weight: 800; font-size: 1.1rem;">Sofort ausstellen</span>
@@ -162,70 +165,54 @@
      * Prüft die benötigten Felder dynamisch je nach Button-Klick und
      * benennt die Variablen so um, dass das PHP Backend sie versteht.
      */
-    function submitUnifiedForm(actionType) {
-        const form = document.getElementById('unifiedToolsForm');
+function submitUnifiedForm(actionType) {
+    const form = document.getElementById('unifiedToolsForm');
 
         // HTML Elemente holen
-        const reasonField = document.getElementById('u_reason');
-        const dateField = document.getElementById('u_datum_von');
-        const nameField = document.getElementById('u_name');
-        const parzelleField = document.getElementById('u_parzelle');
+    const reasonField = document.getElementById('u_reason');
+    const dateField = document.getElementById('u_datum_von');
+    const nameField = document.getElementById('u_name');
+    const parzelleField = document.getElementById('u_parzelle');
         const kennzeichenField = document.getElementById('u_kennzeichen');
 
-        // Fehler zurücksetzen
-        [reasonField, dateField, nameField, parzelleField].forEach(f => f.setCustomValidity(''));
+    // Fehler zurücksetzen
+    [reasonField, dateField, nameField, parzelleField].forEach(f => f.setCustomValidity(''));
 
         // 1. Validierung für Gutscheine
-        if (actionType === 'create_voucher') {
-            if (!reasonField.value.trim()) {
-                reasonField.setCustomValidity('Für Gutscheine ist eine interne Bezeichnung/Grund Pflicht.');
-                reasonField.reportValidity();
-                return;
-            }
-        }
-        // 2. Validierung für direkte Sofort-Genehmigung
-        else if (actionType === 'create_manual') {
-            if (!dateField.value) {
-                dateField.setCustomValidity('Das Startdatum ist für direkte Genehmigungen Pflicht.');
-                dateField.reportValidity();
-                return;
-            }
-            if (!nameField.value.trim() || !parzelleField.value.trim()) {
-                nameField.setCustomValidity('Name und Parzelle sind für direkte Genehmigungen Pflicht.');
-                nameField.reportValidity();
-                return;
-            }
-        }
-
-        // Wenn HTML5 Validierung fehlschlägt, abbrechen
-        if (!form.checkValidity()) {
-            form.reportValidity();
+    if (actionType === 'create_voucher') {
+        if (!reasonField.value.trim()) {
+            reasonField.setCustomValidity('Für Gutscheine ist eine interne Bezeichnung/Grund Pflicht.');
+            reasonField.reportValidity();
             return;
         }
-
-        // Action für das Backend setzen
-        const hiddenAction = document.createElement('input');
-        hiddenAction.type = 'hidden';
-        hiddenAction.name = 'action';
-        hiddenAction.value = actionType;
-        form.appendChild(hiddenAction);
-
-        // Formular-Felder für das alte Backend passend umbenennen
-        if (actionType === 'create_voucher') {
-            // Das Gutschein-Script erwartet 'reason_internal', 'pre_name' etc.
-            reasonField.name = 'reason_internal';
-            nameField.name = 'pre_name';
-            parzelleField.name = 'pre_parzelle';
-            kennzeichenField.name = 'pre_kennzeichen';
-        } else {
-            // Das manuelle Genehmigungs-Script erwartet 'reason', 'name' etc.
-            reasonField.name = 'reason';
-            nameField.name = 'name';
-            parzelleField.name = 'parzelle';
-            kennzeichenField.name = 'kennzeichen';
-        }
-
-        // Formular absenden!
-        form.submit();
     }
+    // 2. Validierung für direkte Sofort-Genehmigung
+    else if (actionType === 'create_manual') {
+        if (!dateField.value) {
+                dateField.setCustomValidity('Das Startdatum ist für direkte Genehmigungen Pflicht.');
+            dateField.reportValidity();
+            return;
+        }
+        if (!nameField.value.trim() || !parzelleField.value.trim()) {
+                nameField.setCustomValidity('Name und Parzelle sind für direkte Genehmigungen Pflicht.');
+            nameField.reportValidity();
+            return;
+        }
+    }
+
+        // Wenn HTML5 Validierung fehlschlägt, abbrechen
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    // SAUBER: Nur noch die Action setzen, KEIN Umbenennen von Feldern mehr!
+    const hiddenAction = document.createElement('input');
+    hiddenAction.type = 'hidden';
+    hiddenAction.name = 'action';
+    hiddenAction.value = actionType;
+    form.appendChild(hiddenAction);
+
+    form.submit();
+}
 </script>
