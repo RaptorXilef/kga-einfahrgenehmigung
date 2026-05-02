@@ -20,16 +20,21 @@ $now = new \DateTimeImmutable();
     <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
 
 <main class="c-container u-padding-y-l">
-    <?php if ($message) { ?>
-        <div class="c-alert c-alert--info u-margin-bottom"><?php echo $message; ?></div>
-    <?php } ?>
+        <?php if ($message) { ?>
+            <div class="c-alert c-alert--info u-margin-bottom"><?php echo $message; ?></div>
+        <?php } ?>
 
-    <h1>Dashboard & Statistiken</h1>
+        <div class="u-flex u-justify-between u-align-center u-margin-bottom-m">
+            <h1 class="u-margin-none">Dashboard & Statistiken</h1>
+        </div>
 
-    <div class="u-width-100">
-        <div class="c-tabs">
+        <!-- NEU: Die globale Kontroll-Leiste -->
+        <?php include $appRoot . '/templates/pages/admin_dashboard/_control_bar.phtml'; ?>
+
+        <div class="u-width-100">
+            <div class="c-tabs">
                     <!-- Tab-Navigation -->
-            <div class="c-tabs__nav">
+                <div class="c-tabs__nav">
                 <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">🟢 Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
                 <button class="c-tabs__btn" data-tab-target="tab-future">📅 Zukünftig</button>
                 <button class="c-tabs__btn" data-tab-target="tab-expired">⌛ Abgelaufen</button>
