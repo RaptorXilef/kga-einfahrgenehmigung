@@ -1,0 +1,53 @@
+<?php
+/**
+ * Partial: Dashboard Tab - Plot Ranking
+ * @var array $stats
+ */
+?>
+<section class="c-card">
+    <header class="c-card__header">
+        <h3 class="u-margin-none">📊 Parzellen-Ranking</h3>
+        <p class="u-text-muted">Welche Parzellen verursachen das meiste Aufkommen?</p>
+    </header>
+
+    <div class="c-card__body">
+        <table class="c-table">
+            <thead>
+                <tr>
+                    <th>Platzierung</th>
+                    <th>Parzelle</th>
+                    <th class="u-text-right">Anzahl der Genehmigungen</th>
+                    <th>Visualisierung</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $plots = $stats['plots'] ?? [];
+if (empty($plots)) {
+    ?>
+                    <tr>
+                        <td colspan="4" class="u-text-center u-padding-y-l u-text-muted">Keine Daten im gewählten Zeitraum vorhanden.</td>
+                    </tr>
+                <?php } else { ?>
+                    <?php
+        $rank                 = 1;
+                    $maxCount = \reset($plots); // Höchster Wert für den Balken
+                    foreach (\array_slice($plots, 0, 30, true) as $plot => $count) {
+                        $percentage = ($count / $maxCount) * 100;
+                        ?>
+                        <tr>
+                            <td style="width: 50px;"><strong>#<?php echo $rank++; ?></strong></td>
+                            <td><strong>Nr. <?php echo \htmlspecialchars((string) $plot); ?></strong></td>
+                            <td class="u-text-right"><?php echo $count; ?> Anträge</td>
+                            <td style="width: 40%;">
+                                <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                    <div style="background: #3498db; width: <?php echo $percentage; ?>%; height: 100%;"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -29,30 +29,29 @@ $now = new \DateTimeImmutable();
         <!-- Filter & Suche -->
         <?php include $appRoot . '/templates/pages/admin_dashboard/_filters.phtml'; ?>
 
-        <!-- Statistik-Karten -->
-        <?php include $appRoot . '/templates/pages/admin_dashboard/_stats_cards.phtml'; ?>
-
-        <div class="c-grid-dashboard">
-            <div class="u-col-span-2">
-                <div class="c-tabs">
+        <!-- Wir entfernen die u-col-span-2, damit die Tabs die volle Breite nutzen -->
+        <div class="u-width-100">
+            <div class="c-tabs">
                     <!-- Tab-Navigation -->
-                    <div class="c-tabs__nav">
-                        <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">
-                            Aktiv (<?php echo \count($groups['active'] ?? []); ?>)
-                        </button>
-                        <button class="c-tabs__btn" data-tab-target="tab-future">Zukünftig</button>
-                        <button class="c-tabs__btn" data-tab-target="tab-expired">Abgelaufen</button>
-                        <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Gutscheine</button>
-                        <button class="c-tabs__btn" data-tab-target="tab-tools">🛠 Werkzeuge</button>
-                        <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
-                    </div>
+                <div class="c-tabs__nav">
+                    <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">
+                        Aktiv (<?php echo \count($groups['active'] ?? []); ?>)
+                    </button>
+                    <button class="c-tabs__btn" data-tab-target="tab-future">Zukünftig</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-expired">Abgelaufen</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-stats">📈 Einnahmen</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-ranking">📊 Ranking</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Gutscheine</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-tools">🛠 Werkzeuge</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
+                </div>
 
                     <!-- Tab-Inhalte -->
-                    <div id="tab-active" class="c-tabs__content c-tabs__content--active">
-                        <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
-                    </div>
+                <div id="tab-active" class="c-tabs__content c-tabs__content--active">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
+                </div>
 
-                    <div id="tab-future" class="c-tabs__content">
+                <div id="tab-future" class="c-tabs__content">
                         <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
                     </div>
 
@@ -60,7 +59,15 @@ $now = new \DateTimeImmutable();
                         <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
                     </div>
 
-                    <div id="tab-vouchers" class="c-tabs__content">
+                <div id="tab-stats" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
+                </div>
+
+                <div id="tab-ranking" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                </div>
+
+                <div id="tab-vouchers" class="c-tabs__content">
                         <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
                     </div>
 
@@ -73,11 +80,6 @@ $now = new \DateTimeImmutable();
                     </div>
                 </div>
             </div>
-
-            <!-- Sidebar -->
-            <aside>
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_sidebar_ranking.phtml'; ?>
-            </aside>
         </div>
     </main>
 
