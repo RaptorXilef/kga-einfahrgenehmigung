@@ -1,91 +1,94 @@
 <?php
+
 /**
  * Partial: Inline Styles
  * Path: templates/pages/admin_dashboard/_inline_styles.phtml
  */
 ?>
 <style>
-        /* TABS LOGIK */
-        .c-tabs__nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            overflow-x: auto;
+    /* TABS LOGIK */
+    .c-tabs__nav {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+        overflow-x: auto;
+    }
+
+    .c-tabs__btn {
+        padding: 10px 20px;
+        border: none;
+        background: #f0f0f0;
+        cursor: pointer;
+        border-radius: 5px;
+        font-weight: bold;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+    .c-tabs__btn:hover {
+        background: #e0e0e0;
+    }
+
+    .c-tabs__btn--active {
+        background: #3498db;
+        color: white;
+    }
+
+    .c-tabs__content {
+        display: none;
+    }
+
+    .c-tabs__content--active {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
         }
 
-        .c-tabs__btn {
-            padding: 10px 20px;
-            border: none;
-            background: #f0f0f0;
-            cursor: pointer;
-            border-radius: 5px;
-            font-weight: bold;
-            white-space: nowrap;
-            transition: all 0.2s;
+        to {
+            opacity: 1;
         }
+    }
 
-        .c-tabs__btn:hover {
-            background: #e0e0e0;
-        }
+    /* ZUSTÄNDE & BADGES */
+    .u-bg-suspended {
+        background-color: #f8d7da !important;
+        border-left: 5px solid #c0392b !important;
+    }
 
-        .c-tabs__btn--active {
-            background: #3498db;
-            color: white;
-        }
+    .u-opacity-50 {
+        opacity: 0.5;
+    }
 
-        .c-tabs__content {
-            display: none;
-        }
+    .c-table td {
+        vertical-align: middle;
+    }
 
-        .c-tabs__content--active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
+    /* DASHBOARD SPEZIFISCH */
+    .qr-mini {
+        width: 70px;
+        height: 70px;
+        border: 1px solid #ccc;
+        background: #fff;
+    }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* ZUSTÄNDE & BADGES */
-        .u-bg-suspended {
-            background-color: #f8d7da !important;
-            border-left: 5px solid #c0392b !important;
-        }
-
-        .u-opacity-50 {
-            opacity: 0.5;
-        }
-
-        .c-table td {
-            vertical-align: middle;
-        }
-
-        /* DASHBOARD SPEZIFISCH */
-        .qr-mini {
-            width: 70px;
-            height: 70px;
-            border: 1px solid #ccc;
-            background: #fff;
-        }
-
-        .stats-box {
-            padding: 15px;
-            border-radius: 8px;
-        }
+    .stats-box {
+        padding: 15px;
+        border-radius: 8px;
+    }
 
     /* EXPORT CARDS */
     .c-export-grid {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        /* Erlaubt das Umbrechen in die nächste Zeile */
         gap: 15px;
+        /* Abstand zwischen den Karten */
     }
 
     .c-export-card {
@@ -98,21 +101,31 @@
         background: #fff;
         transition: all 0.2s ease-in-out;
         color: inherit;
+
+        /* Intelligente Breite:
+       - flex-grow: 1 (nimmt verfügbaren Platz ein)
+       - flex-shrink: 1 (schrumpft wenn nötig)
+       - flex-basis: 200px (ab dieser Breite wird nachgedacht umzubrechen)
+    */
+        flex: 1 1 200px;
+        min-width: 0;
+        /* Verhindert das Ausbrechen aus dem Container */
     }
 
     .c-export-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        border-color: #3498db;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .c-export-card__icon {
         font-size: 24px;
-        margin-right: 15px;
+        margin-right: 12px;
         background: #f8f9fa;
-        width: 50px;
-        height: 50px;
+        width: 44px;
+        height: 44px;
         display: flex;
+        flex-shrink: 0;
+        /* Icon soll nicht schrumpfen */
         align-items: center;
         justify-content: center;
         border-radius: 6px;
@@ -121,25 +134,41 @@
     .c-export-card__content {
         display: flex;
         flex-direction: column;
+        overflow: hidden;
+        /* Schützt vor zu langen Texten */
     }
 
     .c-export-card__title {
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: #2c3e50;
+        white-space: nowrap;
     }
 
     .c-export-card__desc {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: #7f8c8d;
+        white-space: nowrap;
     }
 
     /* Modifikatoren für Farben */
-    .c-export-card--csv:hover { background: #f0fff4; border-color: #27ae60; }
-    .c-export-card--csv:hover .c-export-card__title { color: #27ae60; }
+    .c-export-card--csv:hover {
+        background: #f0fff4;
+        border-color: #27ae60;
+    }
 
-    .c-export-card--json:hover { background: #f0f7ff; border-color: #3498db; }
-    .c-export-card--json:hover .c-export-card__title { color: #3498db; }
+    .c-export-card--csv:hover .c-export-card__title {
+        color: #27ae60;
+    }
+
+    .c-export-card--json:hover {
+        background: #f0f7ff;
+        border-color: #3498db;
+    }
+
+    .c-export-card--json:hover .c-export-card__title {
+        color: #3498db;
+    }
 
     .c-export-notice {
         background: #f8f9fa;

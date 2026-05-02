@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Dashboard Tab - Data Export & Filters
  * @var string $filterStart
@@ -35,13 +36,10 @@
                 <label class="c-form-label">Schnellsuche (Live-Filter)</label>
                 <div class="u-position-relative">
                     <input type="text" id="adminSearch"
-                           placeholder="Name, Kennzeichen oder Code..."
-                           title="Suchen Sie nach Namen, KFZ-Kennzeichen oder dem SmartCode"
-                           class="c-form-input c-form-input--search">
+                        placeholder="Name, Kennzeichen oder Code..."
+                        title="Suchen Sie nach Namen, KFZ-Kennzeichen oder dem SmartCode"
+                        class="c-form-input c-form-input--search">
                 </div>
-                <p class="u-text-muted u-margin-top-xs u-text-small">
-                    💡 Tipp: Die Tabellen unter "Aktiv", "Zukünftig" etc. reagieren sofort auf Ihre Eingabe.
-                </p>
             </div>
         </div>
     </section>
@@ -50,16 +48,17 @@
     <section class="c-card">
         <header class="c-card__header">
             <h3 class="u-margin-none">📤 Daten-Export</h3>
-            <p class="u-text-muted">Gefilterte Daten für Buchhaltung oder Archiv sichern.</p>
+            <p class="u-text-muted">Wählen Sie das gewünschte Format für den Download.</p>
         </header>
         <div class="c-card__body">
+            <!-- Das neue flexible Grid -->
             <div class="c-export-grid">
                 <!-- CSV Export Button -->
                 <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--csv">
                     <div class="c-export-card__icon">📊</div>
                     <div class="c-export-card__content">
                         <span class="c-export-card__title">Excel / CSV</span>
-                        <span class="c-export-card__desc">Ideal für Tabellenkalkulation</span>
+                        <span class="c-export-card__desc">Tabellenkalkulation</span>
                     </div>
                 </a>
 
@@ -68,9 +67,11 @@
                     <div class="c-export-card__icon">⚙️</div>
                     <div class="c-export-card__content">
                         <span class="c-export-card__title">JSON Daten</span>
-                        <span class="c-export-card__desc">Für technischen Datenimport</span>
+                        <span class="c-export-card__desc">Technischer Import</span>
                     </div>
                 </a>
+
+                <!-- Hier könnten zukünftig weitere Buttons stehen (z.B. PDF Export) -->
             </div>
 
             <div class="u-margin-top-l u-padding-s c-export-notice">
