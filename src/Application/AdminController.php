@@ -95,6 +95,7 @@ final readonly class AdminController
 
     /**
      * Verarbeitet alle POST-Aktionen des Dashboards.
+     *
      * @param array<string, mixed> $post
      */
     private function handleDataActions(array $post): string
@@ -307,11 +308,13 @@ final readonly class AdminController
             return;
         }
 
-        if ($format === 'json') {
-            \header('Content-Type: application/json');
-            \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
-            echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+        if ($format !== 'json') {
+            return;
         }
+
+        \header('Content-Type: application/json');
+        \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
+        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
     }
 
     /**

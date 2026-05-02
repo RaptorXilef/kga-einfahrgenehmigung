@@ -114,7 +114,7 @@ final readonly class MySqlStorage implements StorageInterface
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         return \array_map(
-            fn (array $row): Permit => $this->mapToEntity($row),
+            $this->mapToEntity(...),
             $rows,
         );
     }
@@ -123,9 +123,11 @@ final readonly class MySqlStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if ($target->save($permit)) {
-                ++$count;
+            if (! $target->save($permit)) {
+                continue;
             }
+
+            ++$count;
         }
 
         return $count;

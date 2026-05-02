@@ -324,15 +324,17 @@ final readonly class PermitService
     }
 
     /**
-     * Orchestriert den Versand der drei unterschiedlichen E-Mails.
+     * Orchestriert den Versand der unterschiedlichen E-Mails.
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
         // Zugriff via $permit->validity->von statt $permit->von
-        $zeitraum = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
-        $token    = \hash('sha256', $permit->code . (string) $this->config->get('geheimnis', ''));
+        $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
+        $geheimnis = (string) $this->config->get('geheimnis', '');
+        $token     = \hash('sha256', $permit->code . $geheimnis);
+        $opening   = $this->config->get('opening_hours');
 
-        // Vorstand Mail
+        // Mail an VORSTAND
         $this->mailService->sendTemplate(
             $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
             "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
@@ -352,7 +354,24 @@ final readonly class PermitService
             ],
         );
 
-        // Nutzer Mail (A4 Dokument)
+        // 2. Mail an NUTZER (Zahlung mit EPC-QR) - NUR WENN NOCH NICHT BEZAHLT
+        if ($permit->status->current !== 'bezahlt') {
+            $usage     = $this->generateUsageText($permit, $shortCode);
+            $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
+
+            $this->mailService->sendTemplate($permit->owner->email, "Zahlung erforderlich: {$permit->code}", 'payment_request', [
+                'name'           => $permit->owner->name,
+                'fullIdentifier' => $permit->code,
+                'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
+                'kontoinhaber'   => $this->config->get('kontoinhaber'),
+                'iban'           => $this->config->get('iban'),
+                'usage'          => $usage,
+                'epcData'        => \urlencode($epcQrData),
+            ]);
+        }
+
+        // Mail an NUTZER (A4 Dokument)
         $this->mailService->sendTemplate(
             $permit->owner->email,
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
@@ -368,16 +387,18 @@ final readonly class PermitService
                 'templateKey'       => $permit->templateKey,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
+                'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
+                'config'            => $this->config,
             ],
         );
     }
 
     private function generateUsageText(Permit $permit, string $shortCode): string
     {
-        $nameParts = \explode(' ', $permit->name);
+        $nameParts = \explode(' ', $permit->owner->name);
         $vorname   = $nameParts[0] ?? 'Unbekannt';
         $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
 
@@ -503,7 +524,7 @@ final readonly class PermitService
      */
     public function getOverdueLevel(Permit $permit): int
     {
-        if ($permit->status === 'bezahlt') {
+        if ($permit->status->current === 'bezahlt') {
             return 0;
         }
 
@@ -555,7 +576,7 @@ final readonly class PermitService
     {
         $all = $this->storage->getAll();
 
-        return \array_filter($all, fn (Permit $permit): bool => \strtolower($permit->email) === \strtolower($email));
+        return \array_filter($all, fn (Permit $permit): bool => \strtolower($permit->owner->email) === \strtolower($email));
     }
 
     public function getStorage(): StorageInterface

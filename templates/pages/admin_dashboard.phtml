@@ -183,18 +183,18 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach (($groups['active'] ?? []) as $p) {
-                                        $overdueLevel = $permitService->getOverdueLevel($p); ?>
-                                        <tr class="<?php echo $p->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
+                                    <?php foreach (($groups['active'] ?? []) as $permit) {
+                                        $overdueLevel = $permitService->getOverdueLevel($permit); ?>
+                                        <tr class="<?php echo $permit->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
                                             <td>
-                                                <code><?php echo $p->code; ?></code><br>
-                                                <small><strong><?php echo \htmlspecialchars($p->owner->name); ?></strong> (Parz: <?php echo $p->owner->parzelle; ?>)</small>
+                                                <code><?php echo $permit->code; ?></code><br>
+                                                <small><strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong> (Parz: <?php echo $permit->owner->parzelle; ?>)</small>
                                             </td>
                                             <td>
-                                                <?php if ($p->status->isSuspended) { ?>
+                                                <?php if ($permit->status->isSuspended) { ?>
                                                     <span class="c-badge c-badge--danger">⛔ GESPERRT</span>
                                                 <?php } else { ?>
-                                                    <span class="c-badge c-badge--<?php echo $p->status->current === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($p->status->current); ?></span>
+                                                    <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>"><?php echo \strtoupper($permit->status->current); ?></span>
                                                     <?php if ($overdueLevel === 1) { ?>
                                                         <span class="c-badge" style="background: #e67e22; color: white;">ÜBERFÄLLIG</span>
                                                     <?php } elseif ($overdueLevel === 2) { ?>
@@ -202,33 +202,33 @@ $now = new \DateTimeImmutable();
                                                     <?php } ?>
                                                 <?php } ?>
                                             </td>
-                                            <?php if ($adminLevel < 3) { ?><td><?php echo \number_format($p->validity->preisSnapshot, 2, ',', '.'); ?> €</td><?php } ?>
+                                            <?php if ($adminLevel < 3) { ?><td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td><?php } ?>
                                             <td>
                                                 <div class="u-flex u-gap-xs">
-                                                    <a href="?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
-                                                    <?php if ($p->status->isSuspended) { ?>
+                                                    <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary c-button--small">🖨</a>
+                                                    <?php if ($permit->status->isSuspended) { ?>
                                                         <form method="POST" style="margin:0;">
                                                             <input type="hidden" name="action" value="unsuspend_permit">
-                                                            <input type="hidden" name="code" value="<?php echo $p->code; ?>">
+                                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
                                                             <button type="submit" class="c-button c-button--success c-button--small" title="Entsperren">🔓</button>
                                                         </form>
                                                     <?php } else { ?>
-                                                        <?php if ($p->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
+                                                        <?php if ($permit->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
                                                             <form method="POST" style="margin:0;">
                                                                 <input type="hidden" name="action" value="mark_as_paid">
-                                                                <input type="hidden" name="code" value="<?php echo $p->code; ?>">
+                                                                <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
                                                                 <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung bestätigen">✔</button>
                                                             </form>
                                                         <?php } ?>
                                                         <button class="c-button c-button--danger c-button--small js-suspend-btn"
-                                                            data-code="<?php echo $p->code; ?>" title="Sperren">⛔</button>
-                                                        <form id="form_suspend_<?php echo $p->code; ?>" method="POST" style="display:none;">
+                                                            data-code="<?php echo $permit->code; ?>" title="Sperren">⛔</button>
+                                                        <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
                                                             <input type="hidden" name="action" value="suspend_permit">
-                                                            <input type="hidden" name="code" value="<?php echo $p->code; ?>">
-                                                            <input type="hidden" name="reason" id="reason_suspend_<?php echo $p->code; ?>">
+                                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                            <input type="hidden" name="reason" id="reason_suspend_<?php echo $permit->code; ?>">
                                                         </form>
                                                     <?php } ?>
-                                                    <a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a>
+                                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--small">👁</a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -250,11 +250,11 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach (($groups['future'] ?? []) as $p) { ?>
+                                    <?php foreach (($groups['future'] ?? []) as $permit) { ?>
                                         <tr>
-                                            <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->owner->name); ?></small></td>
-                                            <td><?php echo $p->validity->von->format('d.m.Y'); ?></td>
-                                            <td><a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                            <td><code><?php echo $permit->code; ?></code><br><small><?php echo \htmlspecialchars($permit->owner->name); ?></small></td>
+                                            <td><?php echo $permit->validity->von->format('d.m.Y'); ?></td>
+                                            <td><a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>
@@ -274,11 +274,11 @@ $now = new \DateTimeImmutable();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach (($groups['expired'] ?? []) as $p) { ?>
+                                    <?php foreach (($groups['expired'] ?? []) as $permit) { ?>
                                         <tr class="u-opacity-50">
-                                            <td><code><?php echo $p->code; ?></code><br><small><?php echo \htmlspecialchars($p->owner->name); ?></small></td>
-                                            <td><?php echo $p->validity->bis->format('d.m.Y'); ?></td>
-                                            <td><a href="check.php?code=<?php echo $p->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
+                                            <td><code><?php echo $permit->code; ?></code><br><small><?php echo \htmlspecialchars($permit->owner->name); ?></small></td>
+                                            <td><?php echo $permit->validity->bis->format('d.m.Y'); ?></td>
+                                            <td><a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--small">👁</a></td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>

@@ -25,6 +25,7 @@ reportfile
 stackdump
 sublicensable
 Sysnative
+TEMPDATA
 testsuites
 unsets
 unterzulizenzieren

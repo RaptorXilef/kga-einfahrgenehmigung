@@ -41,22 +41,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($permits as $p) { ?>
+                        <?php foreach ($permits as $permit) { ?>
                             <tr>
-                                <td><code><?php echo $p->code; ?></code></td>
-                                <td><small><?php echo $p->von->format('d.m.Y'); ?> - <?php echo $p->bis->format('d.m.Y'); ?></small></td>
-                                <td>Nr. <?php echo $p->parzelle; ?></td>
+                                <td><code><?php echo $permit->code; ?></code></td>
+                                <td><small><?php echo $permit->validity->von->format('d.m.Y'); ?> - <?php echo $permit->validity->bis->format('d.m.Y'); ?></small></td>
+                                <td>Nr. <?php echo $permit->owner->parzelle; ?></td>
                                 <td>
-                                    <span class="c-badge c-badge--<?php echo $p->status === 'bezahlt' ? 'success' : 'warning'; ?>">
-                                        <?php echo \strtoupper($p->status); ?>
+                                    <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
+                                        <?php echo \strtoupper($permit->status->current); ?>
                                     </span>
                                 </td>
                                 <td class="u-text-right">
                                     <div class="u-flex u-gap-xs u-justify-end">
-                                        <a href="history.php?action=print&code=<?php echo $p->code; ?>" class="c-button c-button--primary c-button--small">
+                                        <a href="history.php?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--primary c-button--small">
                                             🖨 Dokument laden
                                         </a>
-                                        <a href="check.php?code=<?php echo $p->code; ?>" class="c-button c-button--secondary c-button--small" title="Status prüfen">
+                                        <a href="check.php?code=<?php echo $permit->code; ?>" class="c-button c-button--secondary c-button--small" title="Status prüfen">
                                             👁
                                         </a>
                                     </div>
