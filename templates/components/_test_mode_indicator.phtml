@@ -1,27 +1,63 @@
 <?php
+
 /**
- * Component: Test Mode Indicator
- *
+ * Component: Test Mode Indicator (Animated)
  * Path: templates/components/_test_mode_indicator.phtml
  *
  * @var \App\Infrastructure\Config\Config $config
  */
 ?>
 <?php if ($config->isTestMode()) { ?>
-    <div style="background: #fbbf24; background-image: linear-gradient(45deg, #fbbf24 25%, #f59e0b 25%, #f59e0b 50%, #fbbf24 50%, #fbbf24 75%, #f59e0b 75%, #f59e0b 100%); background-size: 56.57px 56.57px; color: #000; text-align: center; padding: 8px; position: sticky; top: 0; z-index: 9999; box-shadow: 0 2px 10px rgba(0,0,0,0.15);">
+    <style>
+        @keyframes moveStripes {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 56.57px 0;
+            }
+        }
+
+        .c-test-indicator {
+            background: #fbbf24;
+            /* Der diagonale Streifen-Look */
+            background-image: linear-gradient(45deg,
+                    rgba(245, 158, 11, 1) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(245, 158, 11, 1) 50%,
+                    rgba(245, 158, 11, 1) 75%,
+                    transparent 75%,
+                    transparent);
+            background-size: 56.57px 56.57px;
+            /* Die Animation: 2 Sekunden für einen Durchlauf, unendlich, linear */
+            animation: moveStripes 2s linear infinite;
+
+            color: #000;
+            text-align: center;
+            padding: 8px;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+
+    <div class="c-test-indicator">
         <div class="c-tab-content-container" style="display: flex; justify-content: center; align-items: center; gap: 20px;">
 
-            <div style="background: rgba(255,255,255,0.9); padding: 2px 12px; border-radius: 4px; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.1);">
+            <div style="background: rgba(255,255,255,0.9); padding: 2px 12px; border-radius: 4px; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.1); box-shadow: var(--shadow-sm);">
                 ⚠️ Test-System
             </div>
 
-            <div style="font-size: 0.85rem; font-weight: 600;">
+            <div style="font-size: 0.85rem; font-weight: 600; text-shadow: 0 1px 0 rgba(255,255,255,0.4);">
                 PayPal Sandbox aktiv &bull; Test-E-Mail:
-                <code style="background: rgba(255,255,255,0.3); padding: 2px 6px; border-radius: 3px;"><?php echo \htmlspecialchars($config->get('mail')['recipients']['test']); ?></code>
+                <code style="background: rgba(255,255,255,0.4); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(0,0,0,0.05);"><?php echo \htmlspecialchars($config->get('mail')['recipients']['test']); ?></code>
             </div>
 
             <?php if ($config->get('admin_dev_mode')) { ?>
-                <div style="background: #000; color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                <div style="background: #1e293b; color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                     🔐 Admin Bypass Aktiv
                 </div>
             <?php } ?>
