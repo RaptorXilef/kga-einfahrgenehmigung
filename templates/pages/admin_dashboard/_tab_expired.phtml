@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Dashboard Tab - Expired Permits
  *
@@ -11,34 +12,78 @@
             <h3 class="u-margin-none"><img src="assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufene Genehmigungen</h3>
             <p class="u-text-muted">Historie der Berechtigungen aus dem gewählten Zeitraum.</p>
         </header>
-        <div class="c-card__body u-padding-none">
+
+        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
             <table class="c-table">
                 <thead>
                     <tr>
-                        <th>Kennung / Name</th>
-                        <th>Abgelaufen am</th>
-                        <th class="u-text-right">Aktion</th>
+                        <th style="min-width: 220px; text-align: left;">Kennung / Pächter</th>
+                        <th class="u-text-center">E-Mail-Adresse</th>
+                        <th class="u-text-center">Zeitraum</th>
+                        <th class="u-text-center">Finanz-Status</th>
+                        <?php if ($adminLevel < 3) { ?>
+                            <th class="u-text-center">Betrag</th>
+                        <?php } ?>
+                        <th class="u-text-right" style="padding-right: 25px;">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($groups['expired'])) { ?>
                         <tr>
-                            <td colspan="3" class="u-text-center u-text-muted u-padding-around-l">
+                            <td colspan="<?php echo ($adminLevel < 3) ? 6 : 5; ?>" class="u-text-center u-text-muted u-padding-around-l">
                                 Keine abgelaufenen Genehmigungen im Zeitraum.
                             </td>
                         </tr>
                     <?php } else { ?>
                         <?php foreach ($groups['expired'] as $permit) { ?>
                             <tr class="u-opacity-50">
-                                <td>
+                                <!-- 1. KENNUNG / NAME -->
+                                <td style="text-align: left;">
                                     <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
-                                    <small><?php echo \htmlspecialchars($permit->owner->name); ?></small>
+                                    <small>
+                                        <strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong>
+                                        (Parz: <?php echo \htmlspecialchars($permit->owner->parzelle); ?>)
+                                    </small>
                                 </td>
-                                <td>
-                                    <span class="c-badge c-badge--danger"><?php echo $permit->validity->bis->format('d.m.Y'); ?></span>
+
+                                <!-- 2. E-MAIL -->
+                                <td class="u-text-center">
+                                    <?php if ($permit->owner->email) { ?>
+                                        <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
+                                    <?php } else { ?>
+                                        <small class="u-text-muted"><em>Keine Mail</em></small>
+                                    <?php } ?>
                                 </td>
+
+                                <!-- 3. ZEITRAUM -->
+                                <td class="u-text-center">
+                                    <small style="line-height: 1.2; display: inline-block;">
+                                        <?php echo $permit->validity->von->format('d.m.Y'); ?> -<br>
+                                        <?php echo $permit->validity->bis->format('d.m.Y'); ?>
+                                    </small>
+                                </td>
+
+                                <!-- 4. FINANZ-STATUS -->
+                                <td class="u-text-center">
+                                    <span class="c-badge">
+                                        <?php echo \strtoupper($permit->status->current); ?>
+                                    </span>
+                                </td>
+
+                                <!-- 5. BETRAG -->
+                                <?php if ($adminLevel < 3) { ?>
+                                    <td class="u-text-center">
+                                        <strong><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
+                                    </td>
+                                <?php } ?>
+
+                                <!-- 6. AKTIONEN -->
                                 <td class="u-text-right">
-                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small"><img src="assets/img/icons/action-view.webp" class="c-icon" alt=""><!-- 👁️ --></a>
+                                    <div class="u-flex u-gap-xs u-justify-end">
+                                        <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" title="Prüfseite öffnen">
+                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php } ?>
