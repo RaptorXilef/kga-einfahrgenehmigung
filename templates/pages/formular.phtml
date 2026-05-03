@@ -152,6 +152,11 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom-l"><?php echo $message; ?></div>
                 <?php } ?>
 
+                <!-- Warnung-Box für Datumsfehler -->
+                <div id="date-warning" class="u-margin-bottom-m" style="display:none; background: #fffbeb; border-left: 4px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 8px;">
+                    <span id="date-warning-text"></span>
+                </div>
+
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                 <?php if ($prefill) { ?>
                     <div class="c-voucher-alert">
@@ -302,14 +307,23 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         const templates = <?php echo \json_encode($tplMetadata); ?>;
         const inputVon = document.getElementById('datum_von');
         const inputBis = document.getElementById('datum_bis');
+        const inputParzelle = document.getElementById('parzelle');
         const selectTpl = document.getElementById('template_key');
         const selectTyp = document.getElementById('typ');
         const firmaWrapper = document.getElementById('u_firma_wrapper');
         const inputKennzeichen = document.getElementById('kennzeichen');
         const labelKennzeichen = document.getElementById('label_kennzeichen');
+        const warningBox = document.getElementById('date-warning');
+        const warningText = document.getElementById('date-warning-text');
 
         // PHP gibt uns mit, ob ein Gutschein geladen ist
         const isVoucherActive = <?php echo $prefill ? 'true' : 'false'; ?>;
+
+        // Heute als Basis
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        // Erlaube keine Daten in der Vergangenheit
+        inputVon.min = todayStr;
 
         function toggleVoucher() {
             document.getElementById('voucher-container').classList.toggle('is-open');
@@ -329,24 +343,87 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             }
         }
 
+        /**
+         * Automatische Parzellen-Formatierung (0001)
+         */
+        inputParzelle.addEventListener('blur', (e) => {
+            if (e.target.value && !isVoucherActive) {
+                e.target.value = e.target.value.toString().padStart(4, '0');
+            }
+        });
+
+        /**
+         * Kennzeichen-Formatierung (B-HD 123)
+         */
+        inputKennzeichen.addEventListener('blur', (e) => {
+            if (isVoucherActive) return; // Nicht überschreiben, wenn durch Gutschein gelockt
+            let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (val.length <= 3) return;
+
+            const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4})$/;
+            const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
+
+            if (berlinPattern.test(val)) {
+                e.target.value = val.replace(berlinPattern, '$1-$2 $3');
+            } else if (complexPattern.test(val)) {
+                e.target.value = val.replace(complexPattern, '$1-$2 $3');
+            }
+        });
+
         function handleDateChange(source) {
             const config = templates[selectTpl.value];
-            if (!config || config.days === 'custom') return;
-            const duration = parseInt(config.days);
+            if (!config) return;
 
-            if (source === 'von' && inputVon.value) {
-                let d = new Date(inputVon.value);
-                d.setDate(d.getDate() + duration);
-                inputBis.value = d.toISOString().split('T')[0];
-            } else if (source === 'bis' && inputBis.value) {
-                let d = new Date(inputBis.value);
-                d.setDate(d.getDate() - duration);
-                inputVon.value = d.toISOString().split('T')[0];
+            const isCustom = config.days === 'custom';
+            const duration = isCustom ? 0 : parseInt(config.days);
+
+            warningBox.style.display = 'none';
+
+            if (!isCustom) {
+                // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
+                let minBisDate = new Date(today);
+                minBisDate.setDate(minBisDate.getDate() + duration);
+                const minBisStr = minBisDate.toISOString().split('T')[0];
+
+                // Sperre im Kalender setzen
+                inputBis.min = minBisStr;
+
+                if (source === 'bis') {
+                    // BIS wurde geändert -> Berechne VON (BIS - Dauer)
+                    if (inputBis.value < minBisStr) {
+                        inputBis.value = minBisStr;
+                        warningText.innerText = "Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.";
+                        warningBox.style.display = 'block';
+                    }
+
+                    let d = new Date(inputBis.value);
+                    d.setDate(d.getDate() - duration);
+                    inputVon.value = d.toISOString().split('T')[0];
+
+                } else {
+                    // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
+                    if (inputVon.value < todayStr) {
+                        inputVon.value = todayStr;
+                    }
+
+                    let d = new Date(inputVon.value);
+                    d.setDate(d.getDate() + duration);
+                    inputBis.value = d.toISOString().split('T')[0];
+                }
+            } else {
+                // Logik für Spezialzeitraum (Custom)
+                inputBis.min = inputVon.value;
+                if (inputBis.value < inputVon.value) {
+                    inputBis.value = inputVon.value;
+                }
             }
         }
 
         // Event-Listener
-        selectTpl.addEventListener('change', () => handleDateChange('von'));
+        selectTpl.addEventListener('change', () => {
+            handleDateChange('template');
+            updatePrice();
+        });
         inputVon.addEventListener('change', () => handleDateChange('von'));
         inputBis.addEventListener('change', () => handleDateChange('bis'));
         selectTyp.addEventListener('change', () => {
@@ -373,7 +450,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
         // Initialisierung
         toggleFirmaField();
-        handleDateChange('von');
+        handleDateChange('init');
         updatePrice(); // Direkt beim Laden aufrufen
     </script>
 </body>
