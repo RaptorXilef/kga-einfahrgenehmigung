@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page: Admin Dashboard (Skelett)
  *
@@ -8,6 +9,7 @@ $now = new \DateTimeImmutable();
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
@@ -20,9 +22,13 @@ $now = new \DateTimeImmutable();
     <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
     <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
 
-<main class="c-container u-padding-y-l">
+    <main class="c-container u-padding-y-l">
         <?php if ($message) { ?>
-            <div class="c-alert c-alert--info u-margin-bottom"><?php echo $message; ?></div>
+            <!-- Nutzt u-text-center für die Ausrichtung und --success für die Farbe -->
+            <div class="c-alert c-alert--success u-text-center u-margin-bottom-l">
+                <span style="font-size: 1.2rem;">✅</span>
+                <span><?php echo $message; ?></span>
+            </div>
         <?php } ?>
 
         <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
@@ -34,60 +40,61 @@ $now = new \DateTimeImmutable();
 
         <div class="u-width-100">
             <div class="c-tabs">
-                    <!-- Tab-Navigation -->
+                <!-- Tab-Navigation -->
                 <div class="c-tabs__nav">
-                <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">🟢 Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
-                <button class="c-tabs__btn" data-tab-target="tab-future">📅 Zukünftig</button>
-                <button class="c-tabs__btn" data-tab-target="tab-expired">⌛ Abgelaufen</button>
-                <button class="c-tabs__btn" data-tab-target="tab-stats">📈 Einnahmen</button>
-                <button class="c-tabs__btn" data-tab-target="tab-ranking">📊 Ranking</button>
-                <button class="c-tabs__btn" data-tab-target="tab-export">📤 Daten & Export</button>
-                <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Aktivierungscodes</button>
-                <button class="c-tabs__btn" data-tab-target="tab-tools">🛠 Werkzeuge</button>
-                <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
-            </div>
+                    <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">🟢 Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-future">📅 Zukünftig</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-expired">⌛ Abgelaufen</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-stats">📈 Einnahmen</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-ranking">📊 Ranking</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-export">📤 Daten & Export</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Aktivierungscodes</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-tools">🛠 Werkzeuge</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
+                </div>
 
-            <!-- Tab-Inhalte -->
-            <div id="tab-active" class="c-tabs__content c-tabs__content--active">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
-            </div>
+                <!-- Tab-Inhalte -->
+                <div id="tab-active" class="c-tabs__content c-tabs__content--active">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
+                </div>
 
-            <div id="tab-future" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
-            </div>
+                <div id="tab-future" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
+                </div>
 
-            <div id="tab-expired" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
-            </div>
+                <div id="tab-expired" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
+                </div>
 
-            <div id="tab-stats" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
-            </div>
+                <div id="tab-stats" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
+                </div>
 
-            <div id="tab-ranking" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
-            </div>
+                <div id="tab-ranking" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                </div>
 
-            <!-- NEUER TAB: EXPORT -->
-            <div id="tab-export" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_export.phtml'; ?>
-            </div>
+                <!-- NEUER TAB: EXPORT -->
+                <div id="tab-export" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_export.phtml'; ?>
+                </div>
 
-            <div id="tab-vouchers" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
-            </div>
+                <div id="tab-vouchers" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
+                </div>
 
-            <div id="tab-tools" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_tools.phtml'; ?>
-            </div>
+                <div id="tab-tools" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_tools.phtml'; ?>
+                </div>
 
-            <div id="tab-logs" class="c-tabs__content">
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
+                <div id="tab-logs" class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
+                </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
 
     <script type="module" src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
 </body>
+
 </html>
