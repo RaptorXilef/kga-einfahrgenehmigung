@@ -73,10 +73,11 @@ final readonly class CheckController
 
         if ($nextSlot !== null) {
             // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
+            // Spezialfall: Letzter Tag / Ablaufprüfung
             if ($permit instanceof Permit && $nextSlot > $permit->validity->bis) {
-                $nextAllowedSlotText = 'Keine Einfahrt innerhalb der Gültigkeit mehr möglich.';
+                $nextAllowedSlotText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
             } else {
-                // Text-Formatierung
+                // Normale Zeit-Formatierung
                 $datePart = $nextSlot->format('d.m.Y');
                 $today    = $now->format('d.m.Y');
                 $tomorrow = $now->modify('+1 day')->format('d.m.Y');
