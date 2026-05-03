@@ -1,5 +1,10 @@
 <?php
+
 /**
+ * Page: Admin User Management
+ *
+ * Path: templates/pages/admin_users.phtml
+ *
  * @var array<string, mixed>                $settings
  * @var \App\Infrastructure\Config\Config   $config
  * @var string                              $appRoot
@@ -12,128 +17,93 @@
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <title>Benutzerverwaltung - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
+    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+    <style>
+        /* Spezifische Ergänzungen für die Benutzer-Tabelle */
+        .c-table td {
+            vertical-align: middle;
+        }
+
+        .c-role-badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-0 {
+            background: #f5f3ff;
+            color: #7c3aed;
+            border: 1px solid #ddd6fe;
+        }
+
+        /* Superadmin */
+        .role-1 {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid #dbeafe;
+        }
+
+        /* Admin */
+        .role-2 {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #dcfce7;
+        }
+
+        /* Vorstand */
+        .role-3 {
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Checker */
+    </style>
 </head>
+
 <body class="l-admin">
-    <?php include $appRoot . '/templates/partials/test_mode_indicator.phtml'; ?>
+    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
 
-    <nav class="c-admin-nav">
-        <div class="c-container">
-            <a href="admin.php">← Zurück zum Dashboard</a>
-            <span class="u-float-right">Angemeldet als: <strong><?php echo $roles[$myLevel] ?? 'User'; ?></strong></span>
-        </div>
-    </nav>
+    <?php
+        // Mapping für die Header-Navigation, damit die Namen übereinstimmen
+        $adminUser = $myUsername;
+$adminLevel        = $myLevel;
+include $appRoot . '/templates/components/_header_nav.phtml';
+?>
 
-    <main class="c-container u-padding-y-l">
-        <h1>Benutzerverwaltung</h1>
+    <main class="c-tab-content-container u-padding-y-l">
 
         <?php if ($message) { ?>
-            <div class="c-alert c-alert--info"><?php echo \htmlspecialchars($message); ?></div>
+            <div class="c-alert c-alert--info u-margin-bottom-l"><?php echo \htmlspecialchars($message); ?></div>
         <?php } ?>
 
-        <section class="c-card">
-            <table class="c-table">
-                <thead>
-                    <tr>
-                        <th>Benutzername</th>
-                        <th>Rolle / Level</th>
-                        <th>Interne Bezeichnung</th>
-                        <th>Neues Passwort</th>
-                        <th>Aktionen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($users as $name => $u) {
-                        $targetLevel = (int) $u['level'];
-                        $isSelf      = $name === $myUsername;
-                        // Darf ich editieren? (Superadmin darf alles, Admin darf >= Level 2 oder sich selbst)
-                        $canEdit = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
-                        ?>
-                    <tr>
-                        <form method="POST">
-                            <input type="hidden" name="action" value="save">
-                            <input type="hidden" name="username" value="<?php echo \htmlspecialchars($name); ?>">
+        <header class="u-flex u-justify-between u-align-center u-margin-bottom-l">
+            <div>
+                <h1 class="u-margin-none" style="text-align: left;">Benutzerverwaltung</h1>
+                <p class="u-text-muted">Verwalten Sie Berechtigungen und Zugänge für den Vorstand.</p>
+            </div>
+            <a href="admin.php" class="c-tabs__btn" style="background: #fff; border: 1px solid var(--border-color);">
+                ← Zum Dashboard
+            </a>
+        </header>
 
-                            <td>
-                                <strong><?php echo \htmlspecialchars($name); ?></strong>
-                                <?php echo $isSelf ? '<br><small class="u-color-primary">(Das sind Sie)</small>' : ''; ?>
-                            </td>
+        <!-- 1. LISTE DER BENUTZER -->
+        <?php include $appRoot . '/templates/pages/admin_users/_user_list.phtml'; ?>
 
-                            <td>
-                                <?php if ($myLevel === 0 && ! $isSelf) { ?>
-                                    <select name="level" class="c-form-select c-form-select--small">
-                                        <?php foreach ($roles as $lvl => $rName) { ?>
-                                            <option value="<?php echo $lvl; ?>" <?php echo $lvl === $targetLevel ? 'selected' : ''; ?>>
-                                                <?php echo $lvl; ?>: <?php echo $rName; ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                <?php } else { ?>
-                                    <span class="c-badge"><?php echo $roles[$targetLevel] ?? $targetLevel; ?></span>
-                                    <input type="hidden" name="level" value="<?php echo $targetLevel; ?>">
-                                <?php } ?>
-                            </td>
+        <!-- 2. NEUEN BENUTZER ANLEGEN -->
+        <?php if ($myLevel <= 1) { ?>
+            <?php include $appRoot . '/templates/pages/admin_users/_user_create.phtml'; ?>
+        <?php } ?>
 
-                            <td>
-                                <input type="text" name="label" value="<?php echo \htmlspecialchars($u['label'] ?? ''); ?>"
-                                       class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
-                            </td>
-
-                            <td>
-                                <input type="password" name="password" placeholder="Nur zum Ändern füllen"
-                                       class="c-form-input c-form-input--small" <?php echo ! $canEdit ? 'disabled' : ''; ?>>
-                            </td>
-
-                            <td>
-                                <?php if ($canEdit) { ?>
-                                    <button type="submit" class="c-button c-button--small">💾</button>
-                                    <?php if (! $isSelf) { ?>
-                                        <button type="submit" name="action" value="delete"
-                                                class="c-button c-button--small c-button--danger"
-                                                onclick="return confirm('Löschen?')">🗑</button>
-                                    <?php } ?>
-                                <?php } else { ?>
-                                    <span class="u-text-muted">Gesperrt</span>
-                                <?php } ?>
-                            </td>
-                        </form>
-                    </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </section>
-
-        <section class="c-card u-margin-top-l">
-            <header class="c-card__header"><h3>Neuen Benutzer anlegen</h3></header>
-            <form method="POST" class="u-flex u-gap-s u-align-end">
-                <input type="hidden" name="action" value="save">
-                <div class="c-form-group">
-                    <label class="c-form-label">Username</label>
-                    <input type="text" name="username" class="c-form-input" required>
-                </div>
-                <div class="c-form-group">
-                    <label class="c-form-label">Passwort</label>
-                    <input type="password" name="password" class="c-form-input" required>
-                </div>
-                <div class="c-form-group">
-                    <label class="c-form-label">Rolle</label>
-                    <select name="level" class="c-form-select">
-                        <?php foreach ($roles as $lvl => $rName) {
-                            // Admin (1) darf nur Level 2 und 3 erstellen
-                            if ($myLevel === 1 && $lvl <= 1) {
-                                continue;
-                            } // Admin darf keine Admins/Superadmins bauen
-                            ?>
-                            <option value="<?php echo $lvl; ?>"><?php echo $lvl; ?>: <?php echo $rName; ?></option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <button type="submit" class="c-button">Benutzer erstellen</button>
-            </form>
-        </section>
     </main>
 </body>
+
 </html>

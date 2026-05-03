@@ -1,0 +1,52 @@
+<?php
+/**
+ * Page: Admin User Aktions-Sektion
+ *
+ * Path: templates/pages/admin_users/_user_create.phtml
+ *
+ * @var int $myLevel
+ */
+?>
+<section class="c-card" style="border-top: 5px solid var(--success-color);">
+    <header class="c-card__header">
+        <h3 class="u-margin-none">✨ Neues Konto erstellen</h3>
+    </header>
+    <div class="c-card__body">
+        <form method="POST" class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr 1fr auto;">
+            <input type="hidden" name="action" value="save">
+
+            <div class="c-form-group">
+                <label class="c-form-label">Benutzername</label>
+                <input type="text" name="username" class="c-form-input" required placeholder="z.B. m.mueller">
+            </div>
+
+            <div class="c-form-group">
+                <label class="c-form-label">Initial-Passwort</label>
+                <input type="password" name="password" class="c-form-input" required>
+            </div>
+
+            <div class="c-form-group">
+                <label class="c-form-label">Rolle</label>
+                <select name="level" class="c-form-select">
+                    <?php foreach ($roles as $lvl => $rName) {
+                        // Admin (1) darf keine anderen Admins oder Superadmins erstellen
+                        if ($myLevel === 1 && $lvl <= 1) {
+                            continue;
+                        }
+                        ?>
+                        <option value="<?php echo $lvl; ?>"><?php echo $rName; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+
+            <div class="u-flex u-align-end">
+                <button type="submit" class="c-button c-button--primary" style="height: 46px; background: var(--success-color);">
+                    Konto anlegen
+                </button>
+            </div>
+        </form>
+        <p class="u-text-muted u-margin-top-m u-text-small">
+            Hinweis: Der Benutzer kann sein Passwort nach dem ersten Login selbstständig in dieser Übersicht ändern.
+        </p>
+    </div>
+</section>
