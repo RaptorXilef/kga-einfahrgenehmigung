@@ -161,16 +161,29 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
                     <!-- SCHRITT 3: ZEITRAUM -->
                     <div class="c-form-section">
                         <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Gültigkeit</h4>
-                        <div class="c-form-group u-margin-bottom-m">
-                            <label class="c-form-label">Gewünschte Dauer</label>
-                            <select name="template_key" id="template_key" class="c-form-select" <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
-                                <?php foreach ($publicTemplates as $key => $tpl) { ?>
-                                    <option value="<?php echo $key; ?>" <?php echo ($prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>>
-                                        <?php echo $tpl['label']; ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                            <div id="price-display" class="u-text-right u-font-bold u-margin-top-s u-color-primary" style="font-size: 1.1rem;"></div>
+
+                        <?php if (\count($publicTemplates) > 1) { ?>
+                            <!-- Mehrere Optionen: Auswahl anzeigen -->
+                            <div class="c-form-group u-margin-bottom-m">
+                                <label class="c-form-label">Gewünschte Dauer</label>
+                                <select name="template_key" id="template_key" class="c-form-select" <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
+                                    <?php foreach ($publicTemplates as $key => $tpl) { ?>
+                                        <option value="<?php echo $key; ?>" <?php echo ($prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>>
+                                            <?php echo $tpl['label']; ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                        <?php } else { ?>
+                            <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
+                            <?php $singleKey = \array_key_first($publicTemplates); ?>
+                            <input type="hidden" name="template_key" id="template_key" value="<?php echo $singleKey; ?>">
+                        <?php } ?>
+
+                        <!-- Premium Preis-Anzeige: Deutlich, farbig und mit Platz -->
+                        <div id="price-display"
+                            class="u-text-center u-font-bold u-margin-top-m u-margin-bottom-l"
+                            style="font-size: 1.4rem; color: var(--primary-color); background: var(--primary-soft); padding: 15px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2);">
                         </div>
 
                         <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
