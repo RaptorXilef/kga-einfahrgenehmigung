@@ -156,8 +156,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     const warningText = document.getElementById('date-warning-text');
 
     // Heute als String
-    const today = new Date().toISOString().split('T')[0];
-    inputVon.min = today; // Verhindert Datum in der Vergangenheit
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    inputVon.min = todayStr; // Verhindert Datum in der Vergangenheit
 
     /**
      * Automatische Parzellen-Formatierung (0001)
@@ -187,38 +188,59 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     function handleDateChange(source) {
         const config = templates[selectTpl.value];
+        const isCustom = config.days === 'custom';
+        const duration = isCustom ? 0 : parseInt(config.days);
+
         warningBox.style.display = 'none';
 
-        // 1. Validierung: Nicht vor Heute
-        if (inputVon.value < today) {
-            inputVon.value = today;
-        }
+        if (!isCustom) {
+            // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
+            let minBisDate = new Date(today);
+            minBisDate.setDate(minBisDate.getDate() + duration);
+            const minBisStr = minBisDate.toISOString().split('T')[0];
 
-        // 2. Logik für Enddatum
-        if (config.days !== 'custom') {
-            const duration = parseInt(config.days);
-            let d = new Date(inputVon.value);
-            d.setDate(d.getDate() + duration);
-            inputBis.value = d.toISOString().split('T')[0];
-        }
+            // Sperre im Kalender setzen
+            inputBis.min = minBisStr;
 
-        // 3. Validierung: Bis darf nicht vor Von liegen
-        if (inputBis.value && inputBis.value < inputVon.value) {
-            inputBis.value = inputVon.value;
-            warningText.innerText = "Das Enddatum wurde korrigiert (darf nicht vor dem Start liegen).";
-            warningBox.style.display = 'block';
-        }
+            if (source === 'bis') {
+                // BIS wurde geändert -> Berechne VON (BIS - Dauer)
+                // Aber: Wenn der Nutzer versucht, BIS vor das Minimum zu setzen:
+                if (inputBis.value < minBisStr) {
+                    inputBis.value = minBisStr;
+                    warningText.innerText = "Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.";
+                    warningBox.style.display = 'block';
+                }
 
-        // Min für Bis-Feld dynamisch anpassen
-        inputBis.min = inputVon.value;
+                let d = new Date(inputBis.value);
+                d.setDate(d.getDate() - duration);
+                inputVon.value = d.toISOString().split('T')[0];
+
+            } else {
+                // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
+                // Sicherstellen, dass VON nicht in der Vergangenheit liegt
+                if (inputVon.value < todayStr) {
+                    inputVon.value = todayStr;
+                }
+
+                let d = new Date(inputVon.value);
+                d.setDate(d.getDate() + duration);
+                inputBis.value = d.toISOString().split('T')[0];
+            }
+        } else {
+            // Logik für Spezialzeitraum (Custom)
+            inputBis.min = inputVon.value;
+            if (inputBis.value < inputVon.value) {
+                inputBis.value = inputVon.value;
+            }
+        }
     }
 
-    selectTpl.addEventListener('change', () => handleDateChange('von'));
+    selectTpl.addEventListener('change', () => handleDateChange('template'));
     inputVon.addEventListener('change', () => handleDateChange('von'));
     inputBis.addEventListener('change', () => handleDateChange('bis'));
 
-    // Init
-    handleDateChange('von');
+    // Init beim Laden
+    handleDateChange('init');
 
     // Restliche Funktionen (toggleZweckMode, submitUnifiedForm) wie bisher...
     function toggleZweckMode() {
