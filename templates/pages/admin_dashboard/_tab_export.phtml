@@ -10,39 +10,44 @@
  */
 ?>
 <div class="c-tab-content-container">
-    <section class="c-card" style="max-width: 700px; margin: 0 auto;">
+    <section class="c-card">
         <header class="c-card__header u-text-center">
             <h3 class="u-margin-none">📤 Daten-Export</h3>
             <p class="u-text-muted">Laden Sie die Daten für den oben eingestellten Zeitraum herunter.</p>
         </header>
 
         <div class="c-card__body">
-            <!-- Das neue flexible Grid -->
-            <div class="c-export-grid">
-                <!-- CSV Export -->
-                <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--csv">
-                    <div class="c-export-card__icon">📊</div>
-                    <div class="c-export-card__content">
-                        <span class="c-export-card__title">Excel / CSV</span>
-                        <span class="c-export-card__desc">Ideal für Tabellenkalkulation</span>
+            <!-- Einheitliches Premium-Grid für Export-Buttons -->
+            <div class="c-action-grid">
+
+                <!-- CSV Export Card -->
+                <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                   class="c-action-card c-action-card--csv">
+                    <div class="c-action-card__icon">📊</div>
+                    <div>
+                        <span class="c-action-card__title">Excel / CSV</span>
+                        <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Berichte.</span>
                     </div>
                 </a>
 
-                <!-- JSON Export -->
-                <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>" class="c-export-card c-export-card--json">
-                    <div class="c-export-card__icon">⚙️</div>
-                    <div class="c-export-card__content">
-                        <span class="c-export-card__title">JSON Daten</span>
-                        <span class="c-export-card__desc">Für technischen Datenimport</span>
+                <!-- JSON Export Card -->
+                <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                   class="c-action-card c-action-card--json">
+                    <div class="c-action-card__icon">⚙️</div>
+                    <div>
+                        <span class="c-action-card__title">JSON Daten</span>
+                        <span class="c-action-card__desc">Für technischen Datenimport und Backups.</span>
                     </div>
                 </a>
 
-                <!-- Hier könnten zukünftig weitere Buttons stehen (z.B. PDF Export) -->
             </div>
 
+            <!-- Zeitraum-Info-Box -->
             <div class="u-margin-top-l u-padding-around-s u-text-center" style="background: #f8fafc; border-radius: 8px; border: 1px dashed var(--border-color);">
-                <span class="u-font-bold" style="color: var(--primary-color);">Gefilterter Zeitraum:</span><br>
-                <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                <span class="u-text-muted">Gefilterter Zeitraum:</span><br>
+                <strong style="color: var(--primary-color);">
+                    <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                </strong>
             </div>
         </div>
     </section>
