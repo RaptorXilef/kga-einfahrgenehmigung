@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Page: Admin User Aktions-Sektion
  *
  * Path: templates/pages/admin_users/_user_create.phtml
  *
- * @var int $myLevel
+ * @var int                $adminLevel
+ * @var array<int, string> $roles
  */
 ?>
 <section class="c-card" style="border-top: 5px solid var(--success-color);">
@@ -29,8 +31,8 @@
                 <label class="c-form-label">Rolle</label>
                 <select name="level" class="c-form-select">
                     <?php foreach ($roles as $lvl => $rName) {
-                        // Admin (1) darf keine anderen Admins oder Superadmins erstellen
-                        if ($myLevel === 1 && $lvl <= 1) {
+                        // Nutzt jetzt die globale $adminLevel Variable
+                        if ($adminLevel === 1 && $lvl <= 1) {
                             continue;
                         }
                         ?>

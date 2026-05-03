@@ -43,8 +43,8 @@ final readonly class UserController
         $this->render('admin_users', [
             'users'      => $this->auth->loadUsers(),
             'roles'      => $roles,
-            'myLevel'    => $myLevel,
-            'myUsername' => (string) ($_SESSION['admin_user'] ?? 'Unbekannt'),
+            'adminLevel' => $myLevel, // Geändert von myLevel
+            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Unbekannt'), // Geändert von myUsername
             'message'    => $message,
             'settings'   => $this->getSettingsArray(),
             'config'     => $this->config,

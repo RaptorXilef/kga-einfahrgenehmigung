@@ -9,8 +9,8 @@
  * @var \App\Infrastructure\Config\Config   $config
  * @var string                              $appRoot
  * @var string                              $message
- * @var int                                 $myLevel
- * @var string                              $myUsername
+ * @var int                                 $adminLevel
+ * @var string                              $adminUser
  * @var array<string, array<string, mixed>> $users
  * @var array<int, string>                  $roles
  */
@@ -71,13 +71,7 @@
 
 <body class="l-admin">
     <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
-
-    <?php
-        // Mapping für die Header-Navigation, damit die Namen übereinstimmen
-        $adminUser = $myUsername;
-$adminLevel        = $myLevel;
-include $appRoot . '/templates/components/_header_nav.phtml';
-?>
+    <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
 
     <main class="c-tab-content-container u-padding-y-l">
 
@@ -90,16 +84,21 @@ include $appRoot . '/templates/components/_header_nav.phtml';
                 <h1 class="u-margin-none" style="text-align: left;">Benutzerverwaltung</h1>
                 <p class="u-text-muted">Verwalten Sie Berechtigungen und Zugänge für den Vorstand.</p>
             </div>
-            <a href="admin.php" class="c-tabs__btn" style="background: #fff; border: 1px solid var(--border-color);">
-                ← Zum Dashboard
-            </a>
+            <div class="u-text-right">
+                <a href="admin.php" class="c-tabs__btn" style="background: #fff; border: 1px solid var(--border-color); margin-bottom: 5px;">
+                    ← Zum Dashboard
+                </a>
+                <br>
+                <!-- HIER ist deine Zeile, jetzt mit $adminLevel -->
+                <span class="u-text-small u-text-muted">Eigene Rolle: <strong><?php echo $roles[$adminLevel] ?? 'User'; ?></strong></span>
+            </div>
         </header>
 
         <!-- 1. LISTE DER BENUTZER -->
         <?php include $appRoot . '/templates/pages/admin_users/_user_list.phtml'; ?>
 
-        <!-- 2. NEUEN BENUTZER ANLEGEN -->
-        <?php if ($myLevel <= 1) { ?>
+        <!-- 2. NEUEN BENUTZER ANLEGEN (nur für Admins/Superadmins) -->
+        <?php if ($adminLevel <= 1) { ?>
             <?php include $appRoot . '/templates/pages/admin_users/_user_create.phtml'; ?>
         <?php } ?>
 

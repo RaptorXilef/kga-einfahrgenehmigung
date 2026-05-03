@@ -4,9 +4,10 @@
  *
  * Path: templates/pages/admin_users/_user_list.phtml
  *
- * @var int                                 $myLevel
- * @var string                              $myUsername
+ * @var int                                 $adminLevel
+ * @var string                              $adminUser
  * @var array<string, array<string, mixed>> $users
+ * @var array<int, string>                  $roles
  */
 ?>
 <section class="c-card u-margin-bottom-xl">
@@ -26,8 +27,11 @@
             <tbody>
                 <?php foreach ($users as $name => $u) {
                     $targetLevel = (int) $u['level'];
-                    $isSelf      = $name === $myUsername;
-                    $canEdit     = ($myLevel === 0) || ($myLevel === 1 && ($targetLevel > 1 || $isSelf));
+                    // Nutzt jetzt die globale $adminUser Variable
+                    $isSelf = $name === $adminUser;
+
+                    // Nutzt jetzt die globale $adminLevel Variable
+                    $canEdit = ($adminLevel === 0) || ($adminLevel === 1 && ($targetLevel > 1 || $isSelf));
                     ?>
                     <tr>
                         <form method="POST">
@@ -42,7 +46,7 @@
                                         <?php if ($isSelf) { ?><span class="u-color-primary" style="font-size: 0.75rem;">(Ich)</span><?php } ?>
                                     </span>
                                     <div>
-                                        <?php if ($myLevel === 0 && ! $isSelf) { ?>
+                                        <?php if ($adminLevel === 0 && ! $isSelf) { ?>
                                             <select name="level" class="c-form-select" style="height: 30px; font-size: 0.75rem; padding: 0 8px; width: auto; display: inline-block;">
                                                 <?php foreach ($roles as $lvl => $rName) { ?>
                                                     <option value="<?php echo $lvl; ?>" <?php echo $lvl === $targetLevel ? 'selected' : ''; ?>>
