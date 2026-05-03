@@ -170,19 +170,37 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     });
 
     /**
-     * Kennzeichen-Formatierung (B-HD 123)
+     * Intelligente Kennzeichen-Formatierung mit Manual Override
      */
     inputKennzeichen.addEventListener('blur', (e) => {
-        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        // Falls im Formular vorhanden, Check auf Gutschein-Lock
+        if (typeof isVoucherActive !== 'undefined' && isVoucherActive) return;
+
+        let val = e.target.value.toUpperCase().trim();
         if (val.length <= 3) return;
 
+        // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
+        if (val.includes('-')) {
+            e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
+            return;
+        }
+
+        // Automatik-Modus ohne manuellen Bindestrich
+        let clean = val.replace(/[^A-Z0-9]/g, '');
+
+        const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4})$/;
         const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4})$/;
         const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
+        const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4})$/;
 
-        if (berlinPattern.test(val)) {
-            e.target.value = val.replace(berlinPattern, '$1-$2 $3');
-        } else if (complexPattern.test(val)) {
-            e.target.value = val.replace(complexPattern, '$1-$2 $3');
+        if (pattern4.test(clean)) {
+            e.target.value = clean.replace(pattern4, '$1-$2 $3');
+        } else if (berlinPattern.test(clean)) {
+            e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
+        } else if (complexPattern.test(clean)) {
+            e.target.value = clean.replace(complexPattern, '$1-$2 $3');
+        } else if (fallbackPattern.test(clean)) {
+            e.target.value = clean.replace(fallbackPattern, '$1 $2');
         }
     });
 

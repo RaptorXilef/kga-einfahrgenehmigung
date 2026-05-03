@@ -428,24 +428,41 @@ final readonly class PermitService
     }
 
     /**
-     * Formatiert deutsche Kennzeichen (z.B. BHD7398 -> B-HD 7398).
+     * Formatiert Kennzeichen (z.B. BHD7398 -> B-HD 7398).
+     * Erkennt manuelle Bindestriche und unterstützt 4-er Blöcke (LL-LL).
      */
     private function formatLicensePlate(string $plate): string
     {
-        $val = \strtoupper((string) \preg_replace('/[^A-Z0-9]/', '', $plate));
-        if (\strlen($val) <= 3) {
-            return $val;
+        $original = \trim(\strtoupper($plate));
+        if ($original === '') {
+            return '';
         }
 
-        // Berlin-Priorität (Regex-Strings korrekt in PHP-Syntax)
+        // 1. Wenn der Nutzer bereits ein Minus gesetzt hat -> Automatik deaktivieren
+        if (\str_contains($original, '-')) {
+            // Nur sicherstellen, dass zwischen letztem Buchstaben und Zahl ein Leerzeichen ist
+            return (string) \preg_replace('/([A-Z])(\d)/', '$1 $2', $original);
+        }
+
+        // 2. Komplettreinigung für die Automatik (nur Buchstaben und Zahlen)
+        $val = (string) \preg_replace('/[^A-Z0-9]/', '', $original);
+
+        // 3. Sonderfall: 4 Buchstaben am Anfang (z.B. BBDW123 -> BB-DW 123)
+        if (\preg_match('/^([A-Z]{2})([A-Z]{2})(\d{1,4})$/', $val, $matches)) {
+            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
+        }
+
+        // 4. Berlin-Priorität (B-XX 1234)
         if (\preg_match('/^(B)([A-Z]{1,2})(\d{1,4})$/', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
+        // 5. Standard: 1-3 Buchstaben (Region) + 1-2 Buchstaben + Zahlen
         if (\preg_match('/^([A-Z]{1,3})([A-Z]{1,2})(\d{1,4})$/', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
+        // 6. Fallback: Region + Zahlen
         return (string) \preg_replace('/^([A-Z]{1,3})(\d{1,4})$/', '$1 $2', $val);
     }
 

@@ -111,7 +111,7 @@ return [
         ],
         'custom_perm' => [
             'type'   => 'permanent',
-            'label'  => 'Spezialzeitraum (Dauer)',
+            'label'  => 'Spezialzeitraum (Dauereinfahrt)',
             'days'   => 'custom',
             'prices' => ['pkw' => 0.00, 'lkw' => 0.00],
             'public' => false,
