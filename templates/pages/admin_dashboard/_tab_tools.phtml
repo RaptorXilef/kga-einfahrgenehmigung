@@ -88,11 +88,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Amtl. Kennzeichen</label>
-                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B-XX 123">
+                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="z.B. B-XX 123">
                         </div>
                     </div>
                     <div class="u-grid u-gap-m u-margin-top-m" style="grid-template-columns: 1fr 1fr;">
-                        <div class="c-form-group" id="u_firma_wrapper">
+                        <div class="c-form-group u-hidden" id="u_firma_wrapper">
                             <label class="c-form-label">Firma / Lieferant</label>
                             <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Firma">
                         </div>
@@ -152,10 +152,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     const inputKennzeichen = document.getElementById('u_kennzeichen');
     const selectTpl = document.getElementById('u_template_key');
     const selectTyp = document.getElementById('u_typ');
+    const firmaWrapper = document.getElementById('u_firma_wrapper');
     const warningBox = document.getElementById('date-warning');
     const warningText = document.getElementById('date-warning-text');
 
-    // Heute als String
+    // Heute als String/Basis
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     inputVon.min = todayStr; // Verhindert Datum in der Vergangenheit
@@ -205,6 +206,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         }
     });
 
+    /**
+     * Bidirektionale Datumslogik
+     */
     function handleDateChange(source) {
         const config = templates[selectTpl.value];
         const isCustom = config.days === 'custom';
@@ -254,20 +258,29 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         }
     }
 
+    /**
+     * Firma ein/ausblenden
+     */
+    function toggleFirmaField() {
+        const isLkw = selectTyp.value === 'lkw';
+        firmaWrapper.classList.toggle('u-hidden', !isLkw);
+        if (!isLkw) document.getElementById('u_firma').value = '';
+    }
+
     selectTpl.addEventListener('change', () => handleDateChange('template'));
     inputVon.addEventListener('change', () => handleDateChange('von'));
     inputBis.addEventListener('change', () => handleDateChange('bis'));
+    selectTyp.addEventListener('change', toggleFirmaField);
 
-    // Init beim Laden
+    // Initialisierung beim Laden
     handleDateChange('init');
+    toggleFirmaField();
 
-    // Restliche Funktionen (toggleZweckMode, submitUnifiedForm) wie bisher...
     function toggleZweckMode() {
         const select = document.getElementById('u_zweck_select');
         const manual = document.getElementById('u_zweck_manual');
         const toggle = document.getElementById('u_zweck_toggle');
-        const isManual = select.style.display === 'none';
-        if (isManual) {
+        if (select.style.display === 'none') {
             select.style.display = 'block';
             manual.style.display = 'none';
             select.name = "zweck";
