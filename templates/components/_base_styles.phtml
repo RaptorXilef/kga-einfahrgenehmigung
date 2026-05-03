@@ -1,0 +1,128 @@
+<?php
+
+/**
+ * Partial: Base Styles
+ *
+ * Path: templates/components/_base_styles.phtml
+ */
+?>
+<style>
+    :root {
+        --primary-color: #3498db;
+        --primary-soft: rgba(52, 152, 219, 0.1);
+        --bg-light: #f8fafc;
+        --text-main: #334155;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --success-color: #27ae60;
+        --danger-color: #e11d48;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        color: var(--text-main);
+        font-family: 'Inter', -apple-system, sans-serif;
+        background-color: var(--bg-light);
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Zentrierung für den Body im öffentlichen Bereich */
+    body.l-public-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+    }
+
+    /* PREMIUM FORM ELEMENTS */
+    .c-form-input,
+    .c-form-select {
+        background-color: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0 14px;
+        font-size: 1rem;
+        transition: all 0.2s ease-in-out;
+        color: #1e293b;
+        height: 46px;
+        /* Etwas höher für bessere mobile Bedienung */
+        width: 100%;
+        display: block;
+    }
+
+    .c-form-input:focus,
+    .c-form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px var(--primary-soft);
+        outline: none;
+    }
+
+    .c-form-label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .c-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    /* BUTTONS */
+    .c-button--primary {
+        background: var(--primary-color);
+        color: #fff;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+        display: block;
+        /* Neu: Damit der Button sich wie ein Block verhält */
+        margin: 0 auto;
+        /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
+    }
+
+    .c-button--primary:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
+
+    /* NEU: Fehlende Utility Klassen für Zentrierung und Abstände */
+    .u-margin-auto {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .u-margin-top-l {
+        margin-top: 2rem !important;
+    }
+
+    .u-width-100 {
+        width: 100% !important;
+    }
+
+    /* LAYOUT ZENTRIERUNG & FIX */
+    .c-tab-content-container {
+        max-width: 1100px;
+        margin: 0 auto !important;
+        /* Erzwingt die Zentrierung */
+        padding: 0 20px;
+        width: 100%;
+        display: block;
+        /* Stellt sicher, dass margin: auto funktioniert */
+    }
+</style>

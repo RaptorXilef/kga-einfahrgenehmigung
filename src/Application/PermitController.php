@@ -64,10 +64,14 @@ final readonly class PermitController
      */
     private function getSettingsArray(): array
     {
+        $templates = (array) $this->config->get('permit_templates', []);
+        $public    = \array_filter($templates, fn ($t) => ($t['public'] ?? false) === true);
+
         return [
-            'vereins_name'  => $this->config->get('vereins_name'),
-            'vehicle_types' => $this->config->get('vehicle_types'),
-            'purposes'      => $this->config->get('purposes'),
+            'vereins_name'     => $this->config->get('vereins_name'),
+            'vehicle_types'    => $this->config->get('vehicle_types'),
+            'purposes'         => $this->config->get('purposes'),
+            'public_templates' => $public,
         ];
     }
 
