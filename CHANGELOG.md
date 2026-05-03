@@ -2,6 +2,29 @@
 
 
 
+## [0.16.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.3...v0.16.0) (2026-05-03)
+
+### 🚀 Features
+
+* **public:** synchronize bidirectional date logic and auto-formatting to public form ([feae62e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/feae62efa33b37cfc71dac668782163c475918ca))
+
+### 🐛 Bug Fixes
+
+* **admin:** implement bidirectional date synchronization and minimum duration lock ([f72d024](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f72d024277d000009496b547fd14d716c16a2195))
+* **admin:** improve dashboard button symmetry and tool input validation ([e45fd7a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e45fd7a2187668e745c19271884787190f33ec41))
+* **admin:** resolve mail rendering errors and prevent duplicate form submissions ([75b9b3e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/75b9b3e74d66fb66befdaafc7a4af7f68cf9d9ad))
+* **core:** enhance license plate formatting with manual hyphen override ([64e69ea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/64e69eabaca66e67b1f022db7e49a32ea09bc079))
+
+### ⚙️ Refactoring
+
+* **check:** transform legacy check pages into structured premium UI ([50969d2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/50969d2f73d7832322d0a3e6a81e9823f9370a8b))
+
+### 💎 Styling
+
+* **admin:** enhance success alert design and center notifications ([d2a2227](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d2a2227e7b86d88f37557cdce09a3d5eedce8cc4))
+* **admin:** relax date filter constraints and implement soft-sync logic ([e441b73](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e441b7338ff21f437a1e36cf4b7d6cb10a7fd1fb))
+* **ui:** replace emojis with custom webp icons and fix button rendering ([42193dd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/42193dd36f81bdbdcc455bfe5de9e83a816d0c2f))
+
 ## [0.15.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.2...v0.15.3) (2026-05-03)
 
 ### ⚙️ Refactoring
