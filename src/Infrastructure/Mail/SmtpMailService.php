@@ -59,7 +59,6 @@ final readonly class SmtpMailService implements MailServiceInterface
      */
     private function render(string $templatePath, array $data): string
     {
-        // Wir holen den dynamischen Root-Pfad aus der Config
         $root     = $this->config->get('root_path');
         $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
 
@@ -67,12 +66,23 @@ final readonly class SmtpMailService implements MailServiceInterface
             throw new \RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
         }
 
-        $content = \file_get_contents($fullPath);
+        // 1. Daten für das Template verfügbar machen
+        \extract($data);
+
+        // 2. Output Buffering starten, um das PHP-Template zu "fangen"
+        \ob_start();
+        include $fullPath;
+        $content = \ob_get_clean();
+
+        // 3. Legacy-Support: Falls noch {{variable}} Syntax im Template ist
         foreach ($data as $key => $value) {
-            $content = \str_replace("{{{$key}}}", (string) $value, $content);
+            // Nur skalare Werte (Text/Zahlen) ersetzen, keine Objekte!
+            if (\is_scalar($value)) {
+                $content = \str_replace("{{{$key}}}", (string) $value, (string) $content);
+            }
         }
 
-        return $content;
+        return (string) $content;
     }
 
     /**

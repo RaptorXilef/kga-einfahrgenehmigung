@@ -55,8 +55,20 @@ final readonly class AdminController
             return;
         }
 
-        // 2. Daten-Aktionen (Markieren, Sperren, Gutscheine)
-        $message = $this->handleDataActions($post);
+        // 2. Daten-Aktionen verarbeiten
+        $message = '';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $message = $this->handleDataActions($post);
+
+            // WICHTIG: Wenn eine Aktion verarbeitet wurde -> Redirect (PRG Pattern)
+            if ($message !== '') {
+                \header('Location: admin.php?msg=' . \urlencode($message));
+                exit;
+            }
+        }
+
+        // Nachricht aus der URL holen (falls wir gerade umgeleitet wurden)
+        $displayMessage = (string) ($get['msg'] ?? '');
 
         // 3. Print Preview abfangen
         if ($this->shouldStopRequest($get)) {
@@ -64,7 +76,8 @@ final readonly class AdminController
         }
 
         // 4. View-Logik (Dashboard & Export)
-        $this->renderDashboard($get, $message);
+        // Wir übergeben $displayMessage statt der flüchtigen POST-Nachricht
+        $this->renderDashboard($get, $displayMessage);
     }
 
     /**

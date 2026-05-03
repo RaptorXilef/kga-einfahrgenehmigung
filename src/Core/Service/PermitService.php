@@ -336,9 +336,8 @@ final readonly class PermitService
         $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
         $geheimnis = (string) $this->config->get('geheimnis', '');
         $token     = \hash('sha256', $permit->code . $geheimnis);
-        $opening   = $this->config->get('opening_hours');
 
-        // Mail an VORSTAND
+        // --- 1. MAIL AN VORSTAND ---
         $this->mailService->sendTemplate(
             $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
             "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
@@ -355,10 +354,11 @@ final readonly class PermitService
                 'bis'            => $permit->validity->bis->format('d.m.Y'),
                 'zweck'          => $permit->validity->zweck,
                 'adminLink'      => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
+                'vereinsName'    => $this->config->get('vereins_name'), // Fehlte im alten Stand
             ],
         );
 
-        // 2. Mail an NUTZER (Zahlung mit EPC-QR) - NUR WENN NOCH NICHT BEZAHLT
+        // --- 2. MAIL AN NUTZER (ZAHLUNG) ---
         if ($permit->status->current !== 'bezahlt') {
             $usage     = $this->generateUsageText($permit, $shortCode);
             $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
@@ -380,7 +380,7 @@ final readonly class PermitService
             );
         }
 
-        // Mail an NUTZER (A4 Dokument)
+        // --- 3. MAIL AN NUTZER (DOKUMENT) ---
         $this->mailService->sendTemplate(
             $permit->owner->email,
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
@@ -396,7 +396,7 @@ final readonly class PermitService
                 'templateKey'       => $permit->templateKey,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
-                'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
+                'opening'           => $this->holidayService->getTodayAllowedSlots(),
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
