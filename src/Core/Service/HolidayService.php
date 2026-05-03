@@ -16,31 +16,32 @@ final readonly class HolidayService
     }
 
     /**
-     * Prüft, ob der gewählte Zeitraum (von-bis) eine Ruhezeit verletzt.
-     *
-     * @return array<string> Liste der gefundenen Zeit-Verletzungen
+     * Sucht den nächsten befahrbaren Zeitpunkt ab jetzt.
+     * Berücksichtigt Wochentage und Feiertage.
      */
-    public function checkTimeConflicts(\DateTimeImmutable $start, \DateTimeImmutable $end): array
+    public function getNextAvailableSlot(\DateTimeImmutable $now): ?\DateTimeImmutable
     {
-        $conflicts = [];
-        $current   = $start;
+        $current = $now;
+        // Wir prüfen die nächsten 14 Tage
+        for ($i = 0; $i < 14; ++$i) {
+            if (! $this->isRestrictedDay($current)) {
+                $dayKey = \strtolower($current->format('D'));
+                $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
 
-        // Wir prüfen jeden Tag im gewählten Zeitraum
-        while ($current <= $end) {
-            $dayKey       = \strtolower($current->format('D'));
-            $allowedSlots = $this->config->get('opening_hours')[$dayKey] ?? [];
+                foreach ($slots as $slot) {
+                    $slotStart = $current->setTime((int) \substr($slot[0], 0, 2), (int) \substr($slot[0], 3, 2));
 
-            // FIX: empty() durch strikten Vergleich ersetzt
-            if ($allowedSlots === []) {
-                $conflicts[] = $current->format('d.m.Y') . ' (Sonntag/Feiertag gesperrt)';
+                    // Wenn der Slot heute ist, muss er in der Zukunft liegen
+                    if ($slotStart > $now) {
+                        return $slotStart;
+                    }
+                }
             }
-
-            // Hier könnte man noch tiefer gehen und Start/Ende Uhrzeiten prüfen
-            // Für v0.10.3 reicht der Check auf Tag-Ebene (Sonntage/Feiertage)
-            $current = $current->modify('+1 day');
+            // Nächster Tag, Start um 00:00 Uhr
+            $current = $current->modify('+1 day')->setTime(0, 0);
         }
 
-        return $conflicts;
+        return null;
     }
 
     /**
@@ -98,7 +99,7 @@ final readonly class HolidayService
 
         // FIX: empty() durch strikten Vergleich ersetzt
         if ($slots === []) {
-            return 'Heute keine Einfahrt erlaubt.';
+            return 'heute keine Einfahrt erlaubt';
         }
 
         $text = [];

@@ -40,6 +40,7 @@ final readonly class CheckController
     {
         $code  = \strtoupper(\trim((string) ($get['code'] ?? '')));
         $token = (string) ($get['token'] ?? ''); // Wir brauchen das Token aus der E-Mail
+        $now   = new \DateTimeImmutable();
 
         // 1. Suche in echten Permits (zuerst via Code/Hash)
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
@@ -66,18 +67,41 @@ final readonly class CheckController
             'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
         ];
 
-        // Fall 2: Bezahlseite (Warteraum)
+        // --- Logik für den nächsten befahrbaren Slot ---
+        $nextAllowedSlotText = 'Keine weitere Einfahrt möglich.';
+        $nextSlot            = $this->holidayService->getNextAvailableSlot($now);
+
+        if ($nextSlot !== null) {
+            // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
+            if ($permit instanceof Permit && $nextSlot > $permit->validity->bis) {
+                $nextAllowedSlotText = 'Keine weitere Einfahrt innerhalb der Gültigkeit möglich.';
+            } else {
+                // Text-Formatierung
+                $datePart = $nextSlot->format('d.m.Y');
+                $today    = $now->format('d.m.Y');
+                $tomorrow = $now->modify('+1 day')->format('d.m.Y');
+
+                if ($datePart === $today) {
+                    $prefix = 'heute um ';
+                } elseif ($datePart === $tomorrow) {
+                    $prefix = 'morgen um ';
+                } else {
+                    $prefix = 'am ' . $datePart . ' um ';
+                }
+
+                $nextAllowedSlotText = $prefix . $nextSlot->format('H:i') . ' Uhr';
+            }
+        }
+
+        // Fall 2: Warteraum / Bezahlseite
         if ($tempRequest !== null && ! $permit instanceof Permit) {
             $this->render('check/public', \array_merge($adminData, [
                 'isWaitingForPayment' => true,
                 'tempData'            => $tempRequest,
                 'token'               => $token,
-                'config'              => $this->config,
-                'settings'            => $this->getSettingsArray(),
-                'appRoot'             => $this->config->get('root_path'),
                 'isDateValid'         => true,
                 'isTimeAllowed'       => $this->holidayService->isTimeAllowedNow(),
-                'allowedToday'        => $this->holidayService->getTodayAllowedSlots(),
+                'allowedToday'        => $nextAllowedSlotText,
                 'showAdminView'       => false,
                 'permit'              => null,
             ]));
@@ -93,11 +117,8 @@ final readonly class CheckController
                 'permit'        => $permit,
                 'isDateValid'   => $permit->isValid(),
                 'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                'allowedToday'  => $this->holidayService->getTodayAllowedSlots(),
+                'allowedToday'  => $nextAllowedSlotText, // Variable wird hier übergeben
                 'showAdminView' => $showAdminView,
-                'settings'      => $this->getSettingsArray(),
-                'config'        => $this->config,
-                'appRoot'       => $this->config->get('root_path'),
                 'tempData'      => null,
             ]));
 
