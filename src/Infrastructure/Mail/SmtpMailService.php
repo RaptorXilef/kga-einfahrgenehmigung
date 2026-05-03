@@ -33,13 +33,20 @@ final readonly class SmtpMailService implements MailServiceInterface
 
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
+        // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
+        if (empty(\trim($recipient))) {
+            $this->logEmail('System', $subject, $template, 'Übersprungen: Kein Empfänger angegeben');
+
+            return true;
+        }
+
         $mailConfig = $this->config->getMailSettings();
 
         // 1. Template laden und Platzhalter ersetzen (Simple Template Engine)
         $body = $this->render($template, $data);
 
-        // Testmodus-Logik
-        // 2. SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
+        // 2. Testmodus-Logik
+        // SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
         if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
             $this->logEmail($recipient, $subject, $template, 'Testmodus (kein Versand)');

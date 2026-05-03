@@ -332,12 +332,12 @@ final readonly class PermitService
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        // Zugriff via $permit->validity->von statt $permit->von
         $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
         $geheimnis = (string) $this->config->get('geheimnis', '');
         $token     = \hash('sha256', $permit->code . $geheimnis);
+        $opening   = $this->holidayService->getTodayAllowedSlots();
 
-        // --- 1. MAIL AN VORSTAND ---
+        // --- 1. MAIL AN VORSTAND (Immer senden) ---
         $this->mailService->sendTemplate(
             $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
             "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
@@ -345,7 +345,7 @@ final readonly class PermitService
             [
                 'fullIdentifier' => $permit->code,
                 'name'           => $permit->owner->name,
-                'email'          => $permit->owner->email,
+                'email'          => $permit->owner->email ?: 'Keine angegeben',
                 'parzelle'       => $permit->owner->parzelle,
                 'typLabel'       => $this->config->get('vehicle_types')[$permit->vehicle->typ] ?? $permit->vehicle->typ,
                 'kennzeichen'    => $permit->vehicle->kennzeichen,
@@ -354,55 +354,59 @@ final readonly class PermitService
                 'bis'            => $permit->validity->bis->format('d.m.Y'),
                 'zweck'          => $permit->validity->zweck,
                 'adminLink'      => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
-                'vereinsName'    => $this->config->get('vereins_name'), // Fehlte im alten Stand
+                'vereinsName'    => $this->config->get('vereins_name'),
             ],
         );
 
-        // --- 2. MAIL AN NUTZER (ZAHLUNG) ---
-        if ($permit->status->current !== 'bezahlt') {
-            $usage     = $this->generateUsageText($permit, $shortCode);
-            $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
+        // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---
+        if (! empty(\trim($permit->owner->email))) {
 
+            // 2. ZAHLUNGSAUFFORDERUNG (Nur wenn noch nicht bezahlt)
+            if ($permit->status->current !== 'bezahlt') {
+                $usage     = $this->generateUsageText($permit, $shortCode);
+                $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
+
+                $this->mailService->sendTemplate(
+                    $permit->owner->email,
+                    "Zahlung erforderlich: {$permit->code}",
+                    'payment_request',
+                    [
+                        'name'           => $permit->owner->name,
+                        'fullIdentifier' => $permit->code,
+                        'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                        'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
+                        'kontoinhaber'   => $this->config->get('kontoinhaber'),
+                        'iban'           => $this->config->get('iban'),
+                        'usage'          => $usage,
+                        'epcData'        => \urlencode($epcQrData),
+                    ],
+                );
+            }
+
+            // 3. DAS A4 DOKUMENT
             $this->mailService->sendTemplate(
                 $permit->owner->email,
-                "Zahlung erforderlich: {$permit->code}",
-                'payment_request',
+                'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
+                'permit_a4_document',
                 [
-                    'name'           => $permit->owner->name,
-                    'fullIdentifier' => $permit->code,
-                    'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
-                    'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
-                    'kontoinhaber'   => $this->config->get('kontoinhaber'),
-                    'iban'           => $this->config->get('iban'),
-                    'usage'          => $usage,
-                    'epcData'        => \urlencode($epcQrData),
+                    'fullIdentifier'    => $permit->code,
+                    'von'               => $permit->validity->von,
+                    'bis'               => $permit->validity->bis,
+                    'kennzeichen'       => $permit->vehicle->kennzeichen,
+                    'firma'             => $permit->vehicle->firma ?? '',
+                    'parzelle'          => $permit->owner->parzelle,
+                    'zweck'             => $permit->validity->zweck,
+                    'templateKey'       => $permit->templateKey,
+                    'vereinsName'       => $this->config->get('vereins_name'),
+                    'jahresFarbe'       => $this->config->get('jahresFarbe'),
+                    'opening'           => $opening,
+                    'terminkalenderUrl' => $this->config->get('terminkalender_url'),
+                    'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+                    'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
+                    'config'            => $this->config,
                 ],
             );
         }
-
-        // --- 3. MAIL AN NUTZER (DOKUMENT) ---
-        $this->mailService->sendTemplate(
-            $permit->owner->email,
-            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
-            'permit_a4_document',
-            [
-                'fullIdentifier'    => $permit->code,
-                'von'               => $permit->validity->von,
-                'bis'               => $permit->validity->bis,
-                'kennzeichen'       => $permit->vehicle->kennzeichen,
-                'firma'             => $permit->vehicle->firma ?? '',
-                'parzelle'          => $permit->owner->parzelle,
-                'zweck'             => $permit->validity->zweck,
-                'templateKey'       => $permit->templateKey,
-                'vereinsName'       => $this->config->get('vereins_name'),
-                'jahresFarbe'       => $this->config->get('jahresFarbe'),
-                'opening'           => $this->holidayService->getTodayAllowedSlots(),
-                'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-                'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
-                'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
-                'config'            => $this->config,
-            ],
-        );
     }
 
     private function generateUsageText(Permit $permit, string $shortCode): string
@@ -483,6 +487,11 @@ final readonly class PermitService
 
     private function validateEmail(string $email): void
     {
+        // Wenn das Feld leer ist, überspringen wir die Prüfung (da optional)
+        if (\trim($email) === '') {
+            return;
+        }
+
         if (! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw new \RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
