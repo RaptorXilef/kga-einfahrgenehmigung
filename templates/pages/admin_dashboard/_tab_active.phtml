@@ -17,22 +17,24 @@
             <p class="u-text-muted">Alle aktuell gültigen Einfahrtsberechtigungen im System.</p>
         </header>
 
-        <div class="c-card__body u-padding-none">
+        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
             <table class="c-table">
                 <thead>
                     <tr>
-                        <th>Kennung / Name</th>
-                        <th>Status</th>
+                        <th style="min-width: 220px; text-align: left;">Kennung / Pächter</th>
+                        <th class="u-text-center">E-Mail-Adresse</th>
+                        <th class="u-text-center">Zeitraum</th>
+                        <th class="u-text-center">Finanz-Status</th>
                         <?php if ($adminLevel < 3) { ?>
-                            <th>Betrag</th>
+                            <th class="u-text-center">Betrag</th>
                         <?php } ?>
-                        <th class="u-text-right">Aktion</th>
+                        <th class="u-text-right" style="padding-right: 25px;">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($groups['active'])) { ?>
                         <tr>
-                            <td colspan="<?php echo ($adminLevel < 3) ? 4 : 3; ?>" class="u-text-center u-text-muted u-padding-around-l">
+                            <td colspan="<?php echo ($adminLevel < 3) ? 6 : 5; ?>" class="u-text-center u-text-muted u-padding-around-l">
                                 Aktuell keine aktiven Genehmigungen vorhanden.
                             </td>
                         </tr>
@@ -41,7 +43,8 @@
                             <?php $overdueLevel = $permitService->getOverdueLevel($permit); ?>
 
                             <tr class="<?php echo $permit->status->isSuspended ? 'u-bg-suspended' : ''; ?>">
-                                <td>
+                                <!-- 1. KENNUNG / NAME (Links) -->
+                                <td style="text-align: left;">
                                     <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
                                     <small>
                                         <strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong>
@@ -49,26 +52,48 @@
                                     </small>
                                 </td>
 
-                                <td>
+                                <!-- 2. E-MAIL (Zentriert) -->
+                                <td class="u-text-center">
+                                    <?php if ($permit->owner->email) { ?>
+                                        <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
+                                    <?php } else { ?>
+                                        <small class="u-text-muted"><em>Keine Mail</em></small>
+                                    <?php } ?>
+                                </td>
+
+                                <!-- 3. ZEITRAUM (Zentriert) -->
+                                <td class="u-text-center">
+                                    <small style="line-height: 1.2; display: inline-block;">
+                                        <?php echo $permit->validity->von->format('d.m.Y'); ?> -<br>
+                                        <?php echo $permit->validity->bis->format('d.m.Y'); ?>
+                                    </small>
+                                </td>
+
+                                <!-- 4. FINANZ-STATUS (Zentriert) -->
+                                <td class="u-text-center">
                                     <?php if ($permit->status->isSuspended) { ?>
-                                        <span class="c-badge c-badge--danger"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --> GESPERRT</span>
+                                        <span class="c-badge c-badge--danger"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""> GESPERRT</span>
                                     <?php } else { ?>
                                         <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
                                             <?php echo \strtoupper($permit->status->current); ?>
                                         </span>
 
                                         <?php if ($overdueLevel === 1) { ?>
-                                            <span class="c-badge" style="background: #e67e22; color: white;">ÜBERFÄLLIG</span>
+                                            <br><span class="c-badge" style="background: #e67e22; color: white; margin-top: 4px;">ÜBERFÄLLIG</span>
                                         <?php } elseif ($overdueLevel === 2) { ?>
-                                            <span class="c-badge c-badge--danger">🚨 ALARM</span>
+                                            <br><span class="c-badge c-badge--danger" style="margin-top: 4px;">🚨 ALARM</span>
                                         <?php } ?>
                                     <?php } ?>
                                 </td>
 
+                                <!-- 5. BETRAG (Zentriert) -->
                                 <?php if ($adminLevel < 3) { ?>
-                                    <td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td>
+                                    <td class="u-text-center">
+                                        <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
+                                    </td>
                                 <?php } ?>
 
+                                <!-- 6. AKTIONEN (Rechts) -->
                                 <td class="u-text-right">
                                     <div class="u-flex u-gap-xs u-justify-end">
 

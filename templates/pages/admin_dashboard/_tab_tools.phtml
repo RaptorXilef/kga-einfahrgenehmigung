@@ -277,24 +277,32 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     toggleFirmaField();
 
     function toggleZweckMode() {
-        const select = document.getElementById('u_zweck_select');
-        const manual = document.getElementById('u_zweck_manual');
-        const toggle = document.getElementById('u_zweck_toggle');
-        if (select.style.display === 'none') {
-            select.style.display = 'block';
-            manual.style.display = 'none';
-            select.name = "zweck";
-            manual.name = "_unused";
-            toggle.innerText = "✏️ Manuell";
-        } else {
-            select.style.display = 'none';
-            manual.style.display = 'block';
-            select.name = "_unused";
-            manual.name = "zweck";
-            toggle.innerText = "📁 Liste";
-            manual.focus();
-        }
+    const select = document.getElementById('u_zweck_select');
+    const manual = document.getElementById('u_zweck_manual');
+    const toggle = document.getElementById('u_zweck_toggle');
+
+    if (select.style.display === 'none') {
+        // Modus: Liste anzeigen
+        select.style.display = 'block';
+        manual.style.display = 'none';
+        select.name = "zweck";
+        manual.name = "_unused";
+
+        // Icon: Crayon/Stift für "Wechsel zu Manuell"
+        toggle.innerHTML = '<img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
+    } else {
+        // Modus: Manuelle Eingabe anzeigen
+        select.style.display = 'none';
+        manual.style.display = 'block';
+        select.name = "_unused";
+        manual.name = "zweck";
+
+        // Icon: Folder/Ordner für "Wechsel zu Liste"
+        toggle.innerHTML = '<img src="assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
+
+        manual.focus();
     }
+}
 
     function submitUnifiedForm(actionType) {
         const form = document.getElementById('unifiedToolsForm');
