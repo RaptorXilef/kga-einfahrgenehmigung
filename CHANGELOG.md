@@ -2,6 +2,13 @@
 
 
 
+## [0.15.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.1...v0.15.2) (2026-05-03)
+
+### 💎 Styling
+
+* **admin:** make dashboard navigation menu responsive ([7e280ed](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e280edd1123b9e78aac9514d1d99837aecaccbe))
+* **ui:** rename "Gutscheincode" to "Aktivierungscode" ([63b36bc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/63b36bc0f6a2f3d470683ee88f494b04231394d9))
+
 ## [0.15.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.0...v0.15.1) (2026-05-03)
 
 ### ⚙️ Refactoring
