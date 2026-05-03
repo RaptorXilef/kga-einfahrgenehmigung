@@ -2,6 +2,16 @@
 
 
 
+## [0.15.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.2...v0.15.3) (2026-05-03)
+
+### ⚙️ Refactoring
+
+* **admin:** standardize session variables and unify user management UI ([a350f7f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a350f7feb448b7fa97ae9076a845050333c43e76))
+
+### 💎 Styling
+
+* **admin:** modernize user management UI and implement role badging ([31aa72e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/31aa72ee3dbd97ab102734444d881827ba229cbb))
+
 ## [0.15.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.1...v0.15.2) (2026-05-03)
 
 ### 💎 Styling
