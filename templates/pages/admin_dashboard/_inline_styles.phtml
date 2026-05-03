@@ -1,11 +1,3 @@
-<?php
-
-/**
- * Partial: Inline Styles
- *
- * Path: templates/pages/admin_dashboard/_inline_styles.phtml
- */
-?>
 <style>
     :root {
         --primary-color: #3498db;
@@ -22,7 +14,7 @@
         --voucher-soft: #f5f3ff;
     }
 
-    /* BASIS & RESET */
+    /* GLOBAL RESET */
     * {
         box-sizing: border-box;
     }
@@ -44,7 +36,7 @@
         margin-top: 0;
     }
 
-    h1 {
+        h1 {
         font-size: 1.8rem;
         margin-bottom: 2rem;
         text-align: center;
@@ -68,6 +60,15 @@
         border-radius: 14px;
     }
 
+    /* LAYOUT ZENTRIERUNG */
+    .c-tab-content-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+        width: 100%;
+    }
+
+    /* NAVIGATION & MENU HOVER */
     .c-tabs__btn {
         padding: 8px 16px;
         border: none;
@@ -76,16 +77,16 @@
         border-radius: 10px;
         font-weight: 600;
         color: var(--text-muted);
-        transition: all 0.2s;
-        font-size: 0.9rem;
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        text-decoration: none;
     }
 
     .c-tabs__btn:hover {
-        background: rgba(255, 255, 255, 0.5);
-        color: var(--text-main);
+        background: rgba(255, 255, 255, 0.8) !important;
+        color: var(--primary-color) !important;
     }
 
     .c-tabs__btn--active {
@@ -94,19 +95,25 @@
         box-shadow: var(--shadow-sm);
     }
 
-    /* FORMULAR-ELEMENTE (GLOBAL) */
+    /* FORMULAR ELEMENTE (GENERATOR) */
     .c-form-input,
     .c-form-select {
         background-color: #fcfdfe;
         border: 1.5px solid #e2e8f0;
         border-radius: 8px;
-        padding: 10px 14px;
+        padding: 0 14px;
         font-size: 0.95rem;
         transition: all 0.2s ease-in-out;
         color: #1e293b;
+        height: 42px;
+        /* Einheitliche Höhe */
+        width: 100%;
+        display: block;
+        appearance: none;
+        /* Entfernt Browser-spezifische Select-Stile */
     }
 
-    /* Modifikator für die Filterleiste oben (damit sie nicht 100% breit wird) */
+    /* Sonderklasse für die Filterleiste oben (damit sie NICHT 100% breit wird) */
     .c-form-input--inline {
         width: auto !important;
         display: inline-block !important;
@@ -136,9 +143,21 @@
         font-size: 0.85rem;
     }
 
-    /* GENERATOR SPEZIFISCH (Abstände) */
+    /* SPEZIAL REGELN FÜR FILTER-BAR (OBEN) */
+    .c-control-bar-input {
+        height: 32px !important;
+        padding: 0 10px !important;
+        font-size: 0.85rem !important;
+        width: 130px !important;
+        border: 1px solid #ddd !important;
+        background: transparent !important;
+        display: inline-block !important;
+    }
+
+    /* GENERATOR ABSTÄNDE */
     .c-form-section {
         margin-bottom: 2.5rem;
+        padding-top: 1rem;
     }
 
     .c-form-section-title {
@@ -147,7 +166,7 @@
         gap: 10px;
         color: #1e293b;
         margin-top: 1.5rem;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
     }
 
     .c-form-section-title__step {
@@ -159,21 +178,19 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 11px;
     }
 
-    /* ACTION CARDS WRAPPING FIX */
+    /* ACTION CARDS (BUTTONS) */
     .c-action-grid {
         display: flex;
         gap: 20px;
         margin-top: 30px;
         flex-wrap: wrap;
-        /* Erlaubt das Umbrechen auf kleinen Screens */
     }
 
     .c-action-card {
         flex: 1 1 300px;
-        /* Nimmt Platz ein, bricht aber ab 300px Breite um */
         min-width: 280px;
         background: #fff;
         border: 2px solid #e2e8f0;
@@ -189,6 +206,22 @@
     .c-action-card:hover {
         transform: translateY(-3px);
         box-shadow: var(--shadow-md);
+    }
+
+    .c-action-card__title {
+        display: block !important;
+        /* Erzeugt Zeilenumbruch */
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.05rem;
+        margin-bottom: 2px;
+    }
+
+    .c-action-card__desc {
+        display: block !important;
+        /* Erzeugt Zeilenumbruch */
+        font-size: 0.8rem;
+        color: #64748b;
     }
 
     .c-action-card__icon {
@@ -223,15 +256,8 @@
         color: #fff;
     }
 
-    /* LAYOUT & CARDS */
-    .c-tab-content-container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0 20px;
-        width: 100%;
-    }
-
-    .c-tabs {
+    /* TAB LOGIK & CARDS */
+        .c-tabs {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -241,7 +267,6 @@
     .c-tabs__content {
         display: none;
         width: 100%;
-        text-align: left;
     }
 
     .c-tabs__content--active {
@@ -292,6 +317,13 @@
     .u-bg-suspended {
         background-color: #fff1f2 !important;
         border-left: 4px solid var(--danger-color);
+    }
+
+    .u-text-link {
+        font-size: 0.75rem;
+        color: var(--primary-color);
+        cursor: pointer;
+        text-decoration: underline;
     }
 
     @keyframes slideUp {

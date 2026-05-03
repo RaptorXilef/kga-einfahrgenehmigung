@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Partial: Dashboard Tab - Universal Admin Tools (Premium UI)
+ * Partial: Dashboard Tab - Universal Admin Tools
  *
  * Path: templates/pages/admin_dashboard/_tab_tools.phtml
  *
@@ -12,17 +12,15 @@
 // Vorbereitung der Template-Daten für JavaScript
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
-    $tplMetadata[$key] = [
-        'days' => $tpl['days'],
-        'type' => $tpl['type'],
-    ];
+    $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
 }
 ?>
+
 <div class="c-tab-content-container">
     <section class="c-card" style="max-width: 850px; margin: 0 auto; border-top: 5px solid var(--primary-color);">
         <header class="c-card__header u-text-center u-padding-y-l">
             <h2 class="u-margin-none">Universal-Generator</h2>
-            <p class="u-text-muted">Manuelle Ausstellung oder Gutschein-Erstellung in einem Schritt.</p>
+            <p class="u-text-muted">Zeiträume planen, Gutscheine erzeugen oder Genehmigungen sofort ausstellen.</p>
         </header>
 
         <div class="c-card__body">
@@ -47,11 +45,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
                             <label class="c-form-label">Start (Von)</label>
-                            <input type="date" name="datum_von" id="u_datum_von" class="c-form-input c-form-input--full" value="<?php echo \date('Y-m-d'); ?>">
+                            <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Ende (Bis)</label>
-                            <input type="date" name="datum_bis" id="u_datum_bis" class="c-form-input c-form-input--full">
+                            <input type="date" name="datum_bis" id="u_datum_bis" class="c-form-input">
                         </div>
                     </div>
                 </div>
@@ -62,19 +60,20 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
                         <div class="c-form-group">
                             <label class="c-form-label">Vollständiger Name</label>
-                            <input type="text" name="name" id="u_name" class="c-form-input c-form-input--full" placeholder="Vorname Nachname">
+                            <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Vorname Nachname">
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Parzelle</label>
-                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input c-form-input--full" placeholder="Nr.">
+                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="Nr.">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
                         <label class="c-form-label">E-Mail Adresse (Optional)</label>
-                        <input type="email" name="email" id="u_email" class="c-form-input c-form-input--full" placeholder="beispiel@mail.de">
+                        <input type="email" name="email" id="u_email" class="c-form-input" placeholder="beispiel@mail.de">
                     </div>
                 </div>
 
+                <!-- 3. FAHRZEUG & ZWECK -->
                 <div class="c-form-section">
                     <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Fahrzeug & Grund</h4>
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
@@ -88,13 +87,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Amtl. Kennzeichen</label>
-                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input c-form-input--full" placeholder="z.B. B-XX 123">
+                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="z.B. B-XX 123">
                         </div>
                     </div>
                     <div class="u-grid u-gap-m u-margin-top-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group" id="u_firma_wrapper">
                             <label class="c-form-label">Firma / Lieferant</label>
-                            <input type="text" name="firma" id="u_firma" class="c-form-input c-form-input--full" placeholder="Firma">
+                            <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Firma">
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle">✏️ Manuell</span></label>
@@ -107,12 +106,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 <?php } ?>
                             </select>
                             <!-- Manuelle Eingabe (Standard versteckt) -->
-                            <input type="text" id="u_zweck_manual" class="c-form-input c-form-input--full" style="display:none;" placeholder="Eigener Grund...">
+                            <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
                         <label class="c-form-label">Interne Notiz</label>
-                        <input type="text" name="reason" id="u_reason" class="c-form-input c-form-input--full" list="reason_presets" placeholder="Grund der Ausstellung">
+                        <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Grund der Ausstellung">
                         <datalist id="reason_presets">
                             <?php foreach ($reasons as $r) {
                                 echo "<option value='" . \htmlspecialchars($r) . "'>";
@@ -125,8 +124,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div class="c-action-grid">
                     <div class="c-action-card c-action-card--voucher" onclick="submitUnifiedForm('create_voucher')">
                         <div class="c-action-card__icon">🎟️</div>
-                        <div><span class="c-action-card__title">Gutschein erzeugen</span><span class="c-action-card__desc">QR-Code & Zeitraum vorwählen.</span></div>
+                        <div>
+                            <span class="c-action-card__title">Gutschein erzeugen</span>
+                            <span class="c-action-card__desc">QR-Code & Zeitraum vorwählen.</span>
+                        </div>
                     </div>
+
                     <div class="c-action-card c-action-card--manual" onclick="submitUnifiedForm('create_manual')">
                         <div class="c-action-card__icon">⚡</div>
                         <div>

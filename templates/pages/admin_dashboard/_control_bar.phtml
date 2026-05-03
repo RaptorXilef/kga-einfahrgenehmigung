@@ -9,24 +9,32 @@
  * @var string $filterEnd
  */
 ?>
-<section class="u-margin-bottom-l u-padding-around-s" style="background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+<div class="c-tab-content-container">
+    <section class="u-margin-bottom-l u-padding-around-s" style="background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
 
-    <!-- Globale Datums-Filterung -->
-    <form method="GET" class="u-flex u-align-center u-gap-s" style="margin: 0; background: #f8f9fa; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;">
-        <span class="u-text-muted u-font-bold" style="font-size: 0.9rem;">📅 Zeitraum:</span>
-        <input type="date" name="start" value="<?php echo $filterStart; ?>" class="c-form-input c-form-input--small" style="width: 140px; border:none; background:transparent;">
-        <span class="u-text-muted">bis</span>
-        <input type="date" name="end" value="<?php echo $filterEnd; ?>" class="c-form-input c-form-input--small" style="width: 140px; border:none; background:transparent;">
-        <button type="submit" class="c-button c-button--primary c-button--small" style="border-radius: 20px; padding: 5px 15px;">Filter laden</button>
-    </form>
+        <!-- Globale Datums-Filterung -->
+        <form method="GET" class="u-flex u-align-center u-gap-s" style="margin: 0; background: #f8f9fa; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;">
+            <span class="u-text-muted u-font-bold" style="font-size: 0.9rem;">📅 Zeitraum:</span>
 
-    <!-- Globale Live-Suche (FIXED RELATIVE) -->
-    <div style="position: relative; min-width: 300px; flex-grow: 1; max-width: 500px;">
-        <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; z-index: 10;">🔍</span>
-        <input type="text" id="adminSearch"
-            placeholder="Schnellsuche in allen Listen..."
-            title="Suchen Sie nach Namen, KFZ oder SmartCode"
-            class="c-form-input"
-            style="width: 100%; padding-left: 45px; border-radius: 30px; height: 45px; border: 2px solid #eee; transition: all 0.3s;">
-    </div>
-</section>
+            <input type="date" name="start" value="<?php echo $filterStart; ?>"
+                class="c-control-bar-input">
+
+            <span class="u-text-muted">bis</span>
+
+            <input type="date" name="end" value="<?php echo $filterEnd; ?>"
+                class="c-control-bar-input">
+
+            <button type="submit" class="c-button c-button--primary c-button--small" style="border-radius: 20px; padding: 5px 15px;">Filter laden</button>
+        </form>
+
+        <!-- Globale Live-Suche -->
+        <div style="position: relative; min-width: 300px; flex-grow: 1; max-width: 500px;">
+            <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; z-index: 10;">🔍</span>
+            <input type="text" id="adminSearch"
+                placeholder="Schnellsuche in allen Listen..."
+                title="Suchen Sie nach Namen, KFZ oder SmartCode"
+                class="c-form-input"
+                style="padding-left: 45px; border-radius: 30px; height: 45px; border: 2px solid #eee; transition: all 0.3s;">
+        </div>
+    </section>
+</div>
