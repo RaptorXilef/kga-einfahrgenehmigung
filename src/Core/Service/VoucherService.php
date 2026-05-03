@@ -22,7 +22,8 @@ final readonly class VoucherService
     }
 
     /**
-     * Erstellt einen Gutschein mit optionalen Vorbefüllungs-Daten v0.15.0
+     * Erstellt einen Gutschein mit optionalen Vorbefüllungs-Daten.
+     * Prüft auf Einmaligkeit gegen aktive und archivierte Codes.
      *
      * @param array<string, mixed> $prefillData Felder wie 'name', 'parzelle', 'kennzeichen'
      */
@@ -32,21 +33,32 @@ final readonly class VoucherService
         string $templateKey,
         array $prefillData = [],
     ): string {
-        $code     = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
-        $vouchers = $this->loadVouchers();
+        $activeVouchers = $this->loadVouchers();
+        $archivedItems  = $this->loadArchive();
 
-        $vouchers[$code] = [
-            'code'         => $code,
+        // Wir sammeln alle bereits vergebenen Codes in einer Liste für den Abgleich
+        $alreadyUsedCodes = \array_keys($activeVouchers);
+        foreach ($archivedItems as $archivedEntry) {
+            $alreadyUsedCodes[] = $archivedEntry['code'];
+        }
+
+        // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
+        do {
+            $newGeneratedCode = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
+        } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true));
+
+        $activeVouchers[$newGeneratedCode] = [
+            'code'         => $newGeneratedCode,
             'reason'       => $reason,
             'template_key' => $templateKey,
-            'data'         => $prefillData, // Enthält die gesperrten Werte
+            'data'         => $prefillData,
             'created_by'   => $createdBy,
             'created_at'   => \date('Y-m-d H:i:s'),
         ];
 
-        $this->saveVouchers($vouchers);
+        $this->saveVouchers($activeVouchers);
 
-        return $code;
+        return $newGeneratedCode;
     }
 
     /**
