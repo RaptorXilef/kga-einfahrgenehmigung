@@ -8,7 +8,7 @@
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none">⌛ Abgelaufene Genehmigungen</h3>
+            <h3 class="u-margin-none"><img src="assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufene Genehmigungen</h3>
             <p class="u-text-muted">Historie der Berechtigungen aus dem gewählten Zeitraum.</p>
         </header>
         <div class="c-card__body u-padding-none">
@@ -38,7 +38,7 @@
                                     <span class="c-badge c-badge--danger"><?php echo $permit->validity->bis->format('d.m.Y'); ?></span>
                                 </td>
                                 <td class="u-text-right">
-                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small">👁</a>
+                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small"><img src="assets/img/icons/action-view.webp" class="c-icon" alt=""><!-- 👁️ --></a>
                                 </td>
                             </tr>
                         <?php } ?>

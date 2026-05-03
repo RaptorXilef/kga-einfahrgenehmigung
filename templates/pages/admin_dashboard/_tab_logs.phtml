@@ -10,7 +10,7 @@
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none">📧 E-Mail Versand-Log</h3>
+            <h3 class="u-margin-none"><img src="assets/img/icons/nav-logs.webp" class="c-icon" alt=""><!-- 📧 --> E-Mail Versand-Log</h3>
             <p class="u-text-muted">Die letzten 50 versendeten System-Nachrichten.</p>
         </header>
         <div class="u-padding-none">
@@ -44,7 +44,7 @@
                                 </td>
                                 <td class="u-text-right">
                                     <span class="c-badge c-badge--<?php echo ($log['status'] === 'Erfolg') ? 'success' : 'danger'; ?>">
-                                        <?php echo ($log['status'] === 'Erfolg') ? '✅ Gesendet' : '❌ Fehler'; ?>
+                                        <?php echo ($log['status'] === 'Erfolg') ? '<img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --> Gesendet' : '<img src="assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --> Fehler'; ?>
                                     </span>
                                 </td>
                             </tr>

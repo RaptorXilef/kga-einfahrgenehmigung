@@ -240,7 +240,10 @@ ToDo*.md
 # TEST-FOLDER
 # ==============================================================================
 
-public/assets/img/test/*
-src/assets/images/test/*
+public/assets/img/test/**
+src/assets/img/test/**
 
 public/assets/img/kga_logo.png
+public/assets/img/**
+src/assets/img/**
+

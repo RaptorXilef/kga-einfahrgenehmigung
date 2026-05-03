@@ -1,9 +1,9 @@
+import { glob } from 'glob';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { glob } from 'glob';
 import sharp from 'sharp';
 
-const INPUT_DIR = 'src/assets/images';
+const INPUT_DIR = 'src/assets/img';
 const OUTPUT_DIR = 'public/assets/img';
 
 async function optimize() {
@@ -29,7 +29,7 @@ async function optimize() {
                 effort: 6, // Höchste Kompressionsstufe (langsamer, aber kleiner)
                 smartSubsample: true,
                 // mixed: true erlaubt Sharp, innerhalb einer Animation
-                // zwischen verlustfrei und verlustbehaftet zu wechseln – extrem effizient!
+                // zwischen verlustfrei und verlustbehaftet zu wechseln - extrem effizient!
                 mixed: true,
                 // Sharp erkennt automatisch, ob ein Alpha-Kanal (Transparenz)
                 // nötig ist oder nicht.

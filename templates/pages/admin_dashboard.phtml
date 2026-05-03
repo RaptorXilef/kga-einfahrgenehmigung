@@ -26,7 +26,7 @@ $now = new \DateTimeImmutable();
         <?php if ($message) { ?>
             <!-- Nutzt u-text-center für die Ausrichtung und --success für die Farbe -->
             <div class="c-alert c-alert--success u-text-center u-margin-bottom-l">
-                <span style="font-size: 1.2rem;">✅</span>
+                <span style="font-size: 1.2rem;"><img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></span>
                 <span><?php echo $message; ?></span>
             </div>
         <?php } ?>
@@ -42,15 +42,15 @@ $now = new \DateTimeImmutable();
             <div class="c-tabs">
                 <!-- Tab-Navigation -->
                 <div class="c-tabs__nav">
-                    <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">🟢 Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-future">📅 Zukünftig</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-expired">⌛ Abgelaufen</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-stats">📈 Einnahmen</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-ranking">📊 Ranking</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-export">📤 Daten & Export</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-vouchers">🎟️ Aktivierungscodes</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-tools">🛠 Werkzeuge</button>
-                    <button class="c-tabs__btn" data-tab-target="tab-logs">📧 Mail Log</button>
+                    <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active"><img src="assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-future"><img src="assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-expired"><img src="assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-stats"><img src="assets/img/icons/nav-stats.webp" class="c-icon" alt=""><!-- 📈 --> Einnahmen</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-ranking"><img src="assets/img/icons/nav-ranking.webp" class="c-icon" alt=""><!-- 📊 --> Ranking</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-export"><img src="assets/img/icons/nav-export.webp" class="c-icon" alt=""><!-- 📤 --> Daten & Export</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-vouchers"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Aktivierungscodes</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-tools"><img src="assets/img/icons/nav-tools.webp" class="c-icon" alt=""><!-- 🛠️ --> Werkzeuge</button>
+                    <button class="c-tabs__btn" data-tab-target="tab-logs"><img src="assets/img/icons/nav-logs.webp" class="c-icon" alt=""><!-- 📧 --> Mail Log</button>
                 </div>
 
                 <!-- Tab-Inhalte -->

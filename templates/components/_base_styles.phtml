@@ -115,8 +115,14 @@
         width: 100% !important;
     }
 
-    .u-text-center { text-align: center !important; width: 100% !important; }
-    .u-justify-center { justify-content: center !important; }
+    .u-text-center {
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    .u-justify-center {
+        justify-content: center !important;
+    }
 
     /* LAYOUT ZENTRIERUNG & FIX */
     .c-tab-content-container {
@@ -127,5 +133,81 @@
         width: 100%;
         display: block;
         /* Stellt sicher, dass margin: auto funktioniert */
+    }
+
+    /* Universal-Klasse für Icons */
+    .c-icon {
+        display: inline-block;
+        width: 1em;
+        /* Passt sich der Textgröße an */
+        height: 1em;
+        vertical-align: middle;
+        margin-top: -2px;
+        /* Optische Korrektur */
+        object-fit: contain;
+    }
+
+    /* Icons in Buttons etwas größer */
+    .c-button .c-icon {
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+    /* Icons in der Navigation */
+    .c-tabs__btn .c-icon {
+        width: 1.4em;
+        height: 1.4em;
+        margin-right: 4px;
+    }
+
+    /* --- KONSISTENTE BUTTON BASIS --- */
+    .c-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0; /* Wir steuern die Größe über width/height für Icons */
+        width: 42px;  /* Festes Quadrat für Icon-Buttons */
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: #fff;
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none; /* Wichtig für <a> Tags */
+        box-shadow: var(--shadow-sm);
+    }
+
+    .c-button:hover {
+        background: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        border-color: #cbd5e1;
+    }
+
+    /* Varianten */
+    .c-button--secondary {
+        background: #fff;
+    }
+
+    .c-button--success {
+        background: #f0fdf4;
+        color: var(--success-color);
+        border-color: #bbf7d0;
+    }
+    .c-button--success:hover { background: #dcfce7; }
+
+    .c-button--danger {
+        background: #fff1f2;
+        color: var(--danger-color);
+        border-color: #fecaca;
+    }
+    .c-button--danger:hover { background: #fee2e2; }
+
+    /* Die Icon-Größe innerhalb der Buttons */
+    .c-button .c-icon {
+        width: 1.2em;
+        height: 1.2em;
+        margin: 0; /* Kein Margin nötig, da der Button zentriert */
     }
 </style>

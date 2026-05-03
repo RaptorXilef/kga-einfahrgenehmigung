@@ -15,7 +15,7 @@
         <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none">🎟️ Offene Aktivierungscodes</h3>
+                <h3 class="u-margin-none"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Offene Aktivierungscodes</h3>
                 <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
             </header>
             <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">
@@ -67,17 +67,17 @@ if (empty($activeVouchers)) {
                                                 <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
                                                 <?php if ($isDeactivated) { ?>
                                                     <input type="hidden" name="action" value="activate_voucher">
-                                                    <button type="submit" class="c-button c-button--success c-button--small" title="Aktivieren">🔓</button>
+                                                    <button type="submit" class="c-button c-button--success c-button--small" title="Aktivieren"><img src="assets/img/icons/action-unlock.webp" class="c-icon" alt=""><!-- 🔓 --></button>
                                                 <?php } else { ?>
                                                     <input type="hidden" name="action" value="deactivate_voucher">
-                                                    <button type="submit" class="c-button c-button--danger c-button--small" title="Sperren">⛔</button>
+                                                    <button type="submit" class="c-button c-button--danger c-button--small" title="Sperren"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></button>
                                                 <?php } ?>
                                             </form>
 
                                             <form method="POST" style="margin:0;" onsubmit="return confirm('Soll dieser Aktivierungscode unwiderruflich gelöscht werden?')">
                                                 <input type="hidden" name="action" value="delete_voucher">
                                                 <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
-                                                <button type="submit" class="c-button c-button--small" style="background:#f1f5f9; color: #64748b;" title="Löschen">🗑</button>
+                                                <button type="submit" class="c-button c-button--small" style="background:#f1f5f9; color: #64748b;" title="Löschen"><img src="assets/img/icons/action-delete.webp" class="c-icon" alt=""><!-- 🗑️ --></button>
                                             </form>
                                         </div>
                                     </td>
@@ -92,7 +92,7 @@ if (empty($activeVouchers)) {
         <!-- RECHTER BLOCK: ARCHIV -->
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none">📜 Einlöse-Archiv</h3>
+                <h3 class="u-margin-none"><img src="assets/img/icons/icon-scroll.webp" class="c-icon" alt=""><!-- 📜 --> Einlöse-Archiv</h3>
                 <p class="u-text-muted">Bereits genutzte Codes.</p>
             </header>
             <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">

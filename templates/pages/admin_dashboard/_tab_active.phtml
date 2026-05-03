@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Partial: Dashboard Tab Content - Active Permits
  *
@@ -12,7 +13,7 @@
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none">🟢 Aktive Genehmigungen</h3>
+            <h3 class="u-margin-none"><img src="assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktive Genehmigungen</h3>
             <p class="u-text-muted">Alle aktuell gültigen Einfahrtsberechtigungen im System.</p>
         </header>
 
@@ -50,7 +51,7 @@
 
                                 <td>
                                     <?php if ($permit->status->isSuspended) { ?>
-                                        <span class="c-badge c-badge--danger">⛔ GESPERRT</span>
+                                        <span class="c-badge c-badge--danger"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --> GESPERRT</span>
                                     <?php } else { ?>
                                         <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
                                             <?php echo \strtoupper($permit->status->current); ?>
@@ -70,27 +71,40 @@
 
                                 <td class="u-text-right">
                                     <div class="u-flex u-gap-xs u-justify-end">
+
+                                        <!-- DRUCKVORSCHAU -->
                                         <a href="?action=print&code=<?php echo $permit->code; ?>"
-                                           class="c-button c-button--secondary c-button--small" title="Druckvorschau">🖨</a>
+                                            class="c-button c-button--secondary" title="Druckvorschau">
+                                            <img src="assets/img/icons/action-print.webp" class="c-icon" alt="Drucken"><!-- 🖨️ -->
+                                        </a>
 
                                         <?php if ($permit->status->isSuspended) { ?>
+                                            <!-- ENTSPERREN -->
                                             <form method="POST" style="margin:0;">
                                                 <input type="hidden" name="action" value="unsuspend_permit">
                                                 <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                                <button type="submit" class="c-button c-button--success c-button--small" title="Entsperren">🔓</button>
+                                                <button type="submit" class="c-button c-button--success" title="Entsperren">
+                                                    <img src="assets/img/icons/action-unlock.webp" class="c-icon" alt="Entsperren"><!-- 🔓 -->
+                                                </button>
                                             </form>
                                         <?php } else { ?>
                                             <?php if ($permit->status->current !== 'bezahlt' && $adminLevel <= 1) { ?>
+                                                <!-- MANUELL BEZAHLT -->
                                                 <form method="POST" style="margin:0;">
                                                     <input type="hidden" name="action" value="mark_as_paid">
                                                     <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                                    <button type="submit" class="c-button c-button--success c-button--small" title="Zahlung erhalten">✔</button>
+                                                    <button type="submit" class="c-button c-button--success" title="Zahlung bestätigen">
+                                                        <img src="assets/img/icons/status-success.webp" class="c-icon" alt="Zahlung erhalten"><!-- ✅ -->
+                                                    </button>
                                                 </form>
                                             <?php } ?>
 
-                                            <button class="c-button c-button--danger c-button--small js-suspend-btn"
-                                                    data-code="<?php echo $permit->code; ?>"
-                                                    title="Sperren">⛔</button>
+                                            <!-- SPERREN -->
+                                            <button class="c-button c-button--danger js-suspend-btn"
+                                                data-code="<?php echo $permit->code; ?>"
+                                                title="Sperren">
+                                                <img src="assets/img/icons/status-denied.webp" class="c-icon" alt="Sperren"><!-- ⛔ -->
+                                            </button>
 
                                             <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
                                                 <input type="hidden" name="action" value="suspend_permit">
@@ -99,9 +113,13 @@
                                             </form>
                                         <?php } ?>
 
+                                        <!-- PRÜFSEITE ÖFFNEN -->
                                         <a href="check.php?code=<?php echo $permit->code; ?>"
-                                           target="_blank"
-                                           class="c-button c-button--secondary c-button--small" title="Prüfseite öffnen">👁</a>
+                                            target="_blank"
+                                            class="c-button c-button--secondary" title="Prüfseite öffnen">
+                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen"><!-- 👁️ -->
+                                        </a>
+
                                     </div>
                                 </td>
                             </tr>

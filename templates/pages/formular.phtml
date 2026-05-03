@@ -155,7 +155,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                 <?php if ($prefill) { ?>
                     <div class="c-voucher-alert">
-                        <span style="font-size: 1.5rem;">🎟️</span>
+                        <span style="font-size: 1.5rem;"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></span>
                         <div>
                             <strong>Gutschein aktiv: <?php echo $prefill['code']; ?></strong><br>
                             <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -164,7 +164,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } else { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
-                        <span class="c-voucher-toggle" onclick="toggleVoucher()">🎟️ Sie haben einen Aktivierungscode? Dann hier klicken.</span>
+                        <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Aktivierungscode? Dann hier klicken.</span>
                     </div>
 
                     <div id="voucher-container" class="u-margin-auto" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left; max-width: 500px;">

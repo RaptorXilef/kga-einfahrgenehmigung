@@ -50,7 +50,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php if ($permit) { ?>
                     <?php if ($permit->status->isSuspended) { ?>
                         <div style="color: var(--danger-color);">
-                            <span style="font-size: 5rem;">🚫</span>
+                            <span style="font-size: 5rem;"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></span>
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt.</p>
                             <?php if ($permit->status->suspensionReason) { ?>
@@ -62,7 +62,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
                     <?php } elseif ($isDateValid && $isTimeAllowed) { ?>
                         <div style="color: var(--success-color);">
-                            <span style="font-size: 5rem;">✅</span>
+                            <span style="font-size: 5rem;"><img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></span>
                             <h2 style="color: var(--success-color); margin-top: 15px;">GÜLTIG</h2>
                             <?php include '_details.phtml'; ?>
                         </div>
@@ -75,7 +75,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
                     <?php } else { ?>
                         <div style="color: var(--text-muted);">
-                            <span style="font-size: 5rem;">❌</span>
+                            <span style="font-size: 5rem;"><img src="assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --></span>
                             <h2 style="margin-top: 15px;">UNGÜLTIG</h2>
                             <p>Zeitraum abgelaufen oder noch nicht erreicht.</p>
                         </div>
@@ -84,7 +84,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } elseif ($tempData && $token) { ?>
                     <!-- WIEDERHERGESTELLT: BEZAHLPROZESS -->
                     <div>
-                        <span style="font-size: 4rem;">💳</span>
+                        <span style="font-size: 4rem;"><img src="assets/img/icons/icon-card.webp" class="c-icon" alt=""><!-- 💳 --></span>
                         <h2 class="u-margin-top-s">Zahlung fällig</h2>
                         <p class="u-text-muted">Um Ihren SmartCode zu aktivieren, wählen Sie bitte eine Zahlungsart:</p>
 
