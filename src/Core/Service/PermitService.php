@@ -91,8 +91,10 @@ final readonly class PermitService
                 $platePart,
                 $randomId,
             );
+
             // Wir prüfen, ob der Code bereits existiert (Storage oder Warteräume)
-        } while ($this->storage->findByHash($fullIdentifier) instanceof Permit);
+            // NEU: Globale Prüfung über alle Archive hinweg
+        } while (! $this->isCodeGloballyUnique($fullIdentifier));
 
         /** @var array<string, string> $purposes */
         $purposes = (array) $this->config->get('purposes', []);
@@ -496,6 +498,35 @@ final readonly class PermitService
         if (! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw new \RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
+    }
+
+    /**
+     * Prüft, ob ein Code in der aktuellen DB oder in irgendwelchen Archiven existiert.
+     */
+    private function isCodeGloballyUnique(string $fullIdentifier): bool
+    {
+        // 1. Check in der aktiven Haupt-Datenbank (Storage)
+        if ($this->storage->findByHash($fullIdentifier) instanceof Permit) {
+            return false;
+        }
+
+        // 2. Check in allen Archiven (daten_XXXX.json)
+        $storageDir = $this->config->get('root_path') . '/storage/';
+        $archives   = \glob($storageDir . 'daten_*.json');
+
+        if ($archives !== false) {
+            foreach ($archives as $archivePath) {
+                // Lade das Archiv
+                $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+
+                // Da der Code im JsonStorage der "Key" auf der höchsten Ebene ist:
+                if (isset($archiveData[$fullIdentifier])) {
+                    return false; // Code wurde im Archiv gefunden!
+                }
+            }
+        }
+
+        return true; // Code ist nirgendwo bekannt
     }
 
     /**
