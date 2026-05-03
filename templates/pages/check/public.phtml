@@ -88,7 +88,15 @@ if ($permit) {
                         <div style="color: #f59e0b;">
                             <span style="font-size: 5rem;">⏳</span>
                             <h2 style="color: #f59e0b; margin-top: 15px;">AKTUELL RUHEZEIT</h2>
-                            <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
+
+                            <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
+                                <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
+                                <p><strong><?php echo $allowedToday; ?></strong></p>
+                            <?php } else { ?>
+                                <!-- Normalfall: Nächste Zeit anzeigen -->
+                                <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
+                            <?php } ?>
+
                             <?php include '_details.phtml'; ?>
                         </div>
                     <?php } else { ?>
