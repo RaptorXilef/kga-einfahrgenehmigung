@@ -170,7 +170,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     });
 
     /**
-     * Intelligente Kennzeichen-Formatierung mit Manual Override
+     * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
      */
     inputKennzeichen.addEventListener('blur', (e) => {
         // Falls im Formular vorhanden, Check auf Gutschein-Lock
@@ -188,10 +188,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         // Automatik-Modus ohne manuellen Bindestrich
         let clean = val.replace(/[^A-Z0-9]/g, '');
 
-        const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4})$/;
-        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4})$/;
-        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
-        const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4})$/;
+        // RegEx erweitert um [EH]? am Ende
+        const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
+        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
+        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
+        const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
 
         if (pattern4.test(clean)) {
             e.target.value = clean.replace(pattern4, '$1-$2 $3');
