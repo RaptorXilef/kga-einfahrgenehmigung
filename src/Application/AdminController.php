@@ -371,7 +371,7 @@ final readonly class AdminController
     }
 
     /**
-     * Gruppiert Genehmigungen nach Zeitstatus.
+     * Gruppiert Genehmigungen nach Zeitstatus und Zahlungsstatus.
      *
      * @param Permit[] $allPermits
      *
@@ -380,8 +380,22 @@ final readonly class AdminController
     private function groupPermits(array $allPermits): array
     {
         $now    = new \DateTimeImmutable('today');
-        $groups = ['active' => [], 'future' => [], 'expired' => []];
+        $groups = [
+            'active'  => [],
+            'future'  => [],
+            'expired' => [],
+            'unpaid'  => [],
+        ];
+
         foreach ($allPermits as $permit) {
+            // 1. FINANZ-LOGIK (Unbezahlte sammeln)
+            // Wir prüfen auf 'bezahlt'. Alles andere (offen, wartend, leer, NULL)
+            // gilt als "unbezahlt" und landet im Finanz-Tab.
+            if (\strtolower(\trim($permit->status->current)) !== 'bezahlt') {
+                $groups['unpaid'][] = $permit;
+            }
+
+            // Zeit-Logik
             if ($permit->validity->bis < $now) {
                 $groups['expired'][] = $permit;
 
@@ -394,6 +408,12 @@ final readonly class AdminController
             }
             $groups['active'][] = $permit;
         }
+
+        // 3. SORTIERUNG FÜR FINANZEN
+        // Die neuesten Anträge (erstellt am) sollen oben stehen.
+        \usort($groups['unpaid'], function ($permitEntryA, $permitEntryB) {
+            return $permitEntryB->erstellt <=> $permitEntryA->erstellt;
+        });
 
         return $groups;
     }

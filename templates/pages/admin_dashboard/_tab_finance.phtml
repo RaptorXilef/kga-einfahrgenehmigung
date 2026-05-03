@@ -1,0 +1,127 @@
+<?php
+/**
+ * Partial: Dashboard Tab - Finance / Open Payments
+ *
+ * Path: templates/pages/admin_dashboard/_tab_finance.phtml
+ */
+
+// Wir filtern uns die unbezahlten direkt aus allen Gruppen oder nutzen die bereitgestellte 'unpaid' Gruppe
+// Falls der Controller die Gruppe nicht sauber liefert,
+// hier zur Sicherheit: Wir nehmen alles, was nicht 'bezahlt' ist.
+$unpaidPermits = $groups['unpaid'] ?? [];
+
+// Zähler berechnen
+$totalOpen    = \count($unpaidPermits);
+$overdueCount = 0;
+foreach ($unpaidPermits as $p) {
+    if ($permitService->getOverdueLevel($p) > 0) {
+        ++$overdueCount;
+    }
+}
+?>
+<div class="c-tab-content-container">
+    <!-- Finanz-Statistik-Header -->
+    <div class="u-flex u-gap-m u-margin-bottom-l">
+        <div class="c-card u-margin-none" style="flex: 1; border-top-color: var(--primary-color);">
+            <div class="c-card__body u-text-center u-padding-around-m">
+                <span class="u-text-muted u-text-small u-font-bold">OFFENE ZAHLUNGEN</span>
+                <div class="u-font-xl u-font-bold"><?php echo $totalOpen; ?></div>
+            </div>
+        </div>
+        <div class="c-card u-margin-none" style="flex: 1; border-top-color: var(--danger-color);">
+            <div class="c-card__body u-text-center u-padding-around-m">
+                <span class="u-text-muted u-text-small u-font-bold">DAVON ÜBERFÄLLIG</span>
+                <div class="u-font-xl u-font-bold" style="color: var(--danger-color);"><?php echo $overdueCount; ?></div>
+            </div>
+        </div>
+    </div>
+
+    <section class="c-card">
+        <header class="c-card__header">
+            <h3 class="u-margin-none"><img src="assets/img/icons/icon-card.webp" class="c-icon" alt=""> Zahlungsüberwachung</h3>
+            <p class="u-text-muted">Alle Genehmigungen mit Status "offen" oder "überfällig".</p>
+        </header>
+
+        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+            <table class="c-table">
+                <thead>
+                    <tr>
+                        <th style="min-width: 220px; text-align: left;">Kennung / Pächter</th>
+                        <th class="u-text-center">E-Mail-Adresse</th>
+                        <th class="u-text-center">Zeitraum</th>
+                        <th class="u-text-center">Finanz-Status</th>
+                        <th class="u-text-center">Betrag</th>
+                        <th class="u-text-right" style="padding-right: 25px;">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($unpaidPermits)) { ?>
+                        <tr>
+                            <td colspan="6" class="u-text-center u-text-muted u-padding-around-l">
+                                <img src="assets/img/icons/status-success.webp" class="c-icon" alt=""> Alle Zahlungen sind aktuell ausgeglichen.
+                            </td>
+                        </tr>
+                    <?php } else { ?>
+                        <?php foreach ($unpaidPermits as $permit) {
+                            $overdueLevel = $permitService->getOverdueLevel($permit);
+                            $rowStyle     = $overdueLevel > 0 ? 'background-color: #fff1f2;' : '';
+
+                            // FIX: Wenn Status leer ist, 'offen' anzeigen
+                            $displayStatus = $permit->status->current ?: 'offen';
+                            ?>
+                            <tr style="<?php echo $rowStyle; ?>">
+                                <td style="text-align: left;">
+                                    <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
+                                    <small><strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong> (Parz: <?php echo \htmlspecialchars($permit->owner->parzelle); ?>)</small>
+                                </td>
+                                <td class="u-text-center">
+                                    <?php if ($permit->owner->email) { ?>
+                                        <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
+                                    <?php } else { ?>
+                                        <small class="u-text-muted"><em>Keine Mail</em></small>
+                                    <?php } ?>
+                                </td>
+                                <td class="u-text-center">
+                                    <small style="line-height: 1.2; display: inline-block;">
+                                        <?php echo $permit->validity->von->format('d.m.Y'); ?> -<br>
+                                        <?php echo $permit->validity->bis->format('d.m.Y'); ?>
+                                    </small>
+                                </td>
+                                <td class="u-text-center">
+                                    <span class="c-badge c-badge--warning"><?php echo \strtoupper($displayStatus); ?></span>
+                                    <?php if ($overdueLevel === 1) { ?>
+                                        <br><span class="c-badge" style="background: #e67e22; color: white; margin-top: 4px;">ÜBERFÄLLIG</span>
+                                    <?php } elseif ($overdueLevel === 2) { ?>
+                                        <br><span class="c-badge c-badge--danger" style="margin-top: 4px;">🚨 ALARM</span>
+                                    <?php } ?>
+                                </td>
+                                <td class="u-text-center">
+                                    <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
+                                </td>
+                                <td class="u-text-right">
+                                    <div class="u-flex u-gap-xs u-justify-end">
+                                        <!-- NEU: DIREKT BEZAHLEN BUTTON -->
+                                        <form method="POST" style="margin:0;" onsubmit="return confirm('Zahlung für <?php echo $permit->code; ?> wirklich bestätigen?')">
+                                            <input type="hidden" name="action" value="mark_as_paid">
+                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                            <button type="submit" class="c-button c-button--success" title="Zahlung erhalten">
+                                                <img src="assets/img/icons/status-success.webp" class="c-icon" alt="OK">
+                                            </button>
+                                        </form>
+
+                                        <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" title="Druckvorschau">
+                                            <img src="assets/img/icons/action-print.webp" class="c-icon" alt="Drucken">
+                                        </a>
+                                        <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" title="Prüfseite öffnen">
+                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

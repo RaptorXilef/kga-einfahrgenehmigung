@@ -70,6 +70,18 @@ $now = new \DateTimeImmutable();
                 <!-- Tab-Navigation -->
                 <div class="c-tabs__nav">
                     <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active"><img src="assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktiv (<?php echo \count($groups['active'] ?? []); ?>)</button>
+                    <!-- NEU: FINANZEN TAB BUTTON -->
+                    <?php if ($adminLevel <= 2) { ?>
+                        <button class="c-tabs__btn" data-tab-target="tab-finance">
+                            <img src="assets/img/icons/icon-card.webp" class="c-icon" alt=""> Finanzen
+                            <?php
+                                $openCount = \count($groups['unpaid'] ?? []);
+                        if ($openCount > 0) {
+                            echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
+                        }
+                        ?>
+                        </button>
+                    <?php } ?>
                     <button class="c-tabs__btn" data-tab-target="tab-future"><img src="assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig</button>
                     <button class="c-tabs__btn" data-tab-target="tab-expired"><img src="assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen</button>
                     <button class="c-tabs__btn" data-tab-target="tab-stats"><img src="assets/img/icons/nav-stats.webp" class="c-icon" alt=""><!-- 📈 --> Einnahmen</button>
@@ -84,6 +96,13 @@ $now = new \DateTimeImmutable();
                 <div id="tab-active" class="c-tabs__content c-tabs__content--active">
                     <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
                 </div>
+
+                <!-- NEU: FINANZEN TAB INHALT -->
+                <?php if ($adminLevel <= 2) { ?>
+                    <div id="tab-finance" class="c-tabs__content">
+                        <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
+                    </div>
+                <?php } ?>
 
                 <div id="tab-future" class="c-tabs__content">
                     <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>

@@ -74,8 +74,9 @@
                                     <?php if ($permit->status->isSuspended) { ?>
                                         <span class="c-badge c-badge--danger"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""> GESPERRT</span>
                                     <?php } else { ?>
+                                        <!-- FIX: Fallback auf OFFEN falls leer -->
                                         <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
-                                            <?php echo \strtoupper($permit->status->current); ?>
+                                            <?php echo \strtoupper($permit->status->current ?: 'offen'); ?>
                                         </span>
 
                                         <?php if ($overdueLevel === 1) { ?>
