@@ -45,6 +45,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
                             <label class="c-form-label">Start (Von)</label>
+                            <!-- min-Attribut wird per JS gesetzt -->
                             <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
                         </div>
                         <div class="c-form-group">
@@ -64,7 +65,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Parzelle</label>
-                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="Nr.">
+                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="z.B. 123">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
@@ -87,7 +88,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Amtl. Kennzeichen</label>
-                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="z.B. B-XX 123">
+                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B-XX 123">
                         </div>
                     </div>
                     <div class="u-grid u-gap-m u-margin-top-m" style="grid-template-columns: 1fr 1fr;">
@@ -147,119 +148,111 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     const templates = <?php echo \json_encode($tplMetadata); ?>;
     const inputVon = document.getElementById('u_datum_von');
     const inputBis = document.getElementById('u_datum_bis');
+    const inputParzelle = document.getElementById('u_parzelle');
+    const inputKennzeichen = document.getElementById('u_kennzeichen');
     const selectTpl = document.getElementById('u_template_key');
     const selectTyp = document.getElementById('u_typ');
-    const firmaWrapper = document.getElementById('u_firma_wrapper');
     const warningBox = document.getElementById('date-warning');
     const warningText = document.getElementById('date-warning-text');
 
-    // Zweck-Handling
-    let isZweckManual = false;
-    const zweckSelect = document.getElementById('u_zweck_select');
-    const zweckManual = document.getElementById('u_zweck_manual');
-    const zweckToggle = document.getElementById('u_zweck_toggle');
+    // Heute als String
+    const today = new Date().toISOString().split('T')[0];
+    inputVon.min = today; // Verhindert Datum in der Vergangenheit
 
     /**
-     * Schaltet zwischen Dropdown und manuellem Textfeld für "Zweck" um
+     * Automatische Parzellen-Formatierung (0001)
      */
-    function toggleZweckMode() {
-        isZweckManual = !isZweckManual;
-        if (isZweckManual) {
-            zweckSelect.style.display = 'none';
-            zweckManual.style.display = 'block';
-            zweckSelect.name = "_zweck_disabled"; // Verhindert Senden des Dropdowns
-            zweckManual.name = "zweck";
-            zweckToggle.innerText = "📁 Aus Liste";
-            zweckManual.focus();
-        } else {
-            zweckSelect.style.display = 'block';
-            zweckManual.style.display = 'none';
-            zweckSelect.name = "zweck";
-            zweckManual.name = "_zweck_manual_disabled";
-            zweckToggle.innerText = "✏️ Manuell";
+    inputParzelle.addEventListener('blur', (e) => {
+        if (e.target.value) {
+            e.target.value = e.target.value.toString().padStart(4, '0');
         }
-    }
-
-    function toggleFirmaField() {
-        firmaWrapper.style.display = (selectTyp.value === 'lkw') ? 'block' : 'none';
-        if (selectTyp.value !== 'lkw') document.getElementById('u_firma').value = '';
-    }
+    });
 
     /**
-     * Datums-Warnung
+     * Kennzeichen-Formatierung (B-HD 123)
      */
-    function showDateWarning(msg) {
-        if (!msg) {
-            warningBox.style.display = 'none';
-            return;
+    inputKennzeichen.addEventListener('blur', (e) => {
+        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (val.length <= 3) return;
+
+        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4})$/;
+        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
+
+        if (berlinPattern.test(val)) {
+            e.target.value = val.replace(berlinPattern, '$1-$2 $3');
+        } else if (complexPattern.test(val)) {
+            e.target.value = val.replace(complexPattern, '$1-$2 $3');
         }
-        warningText.innerText = msg;
-        warningBox.style.display = 'block';
-    }
+    });
 
-    function getTodayStr() {
-        return new Date().toISOString().split('T')[0];
-    }
-
-    /**
-     * Bi-Direktionale Berechnung
-     */
     function handleDateChange(source) {
         const config = templates[selectTpl.value];
-        const today = getTodayStr();
-        showDateWarning(null);
-        if (config.days === 'custom') return;
+        warningBox.style.display = 'none';
 
-        // Spezialzeitraum: Keine Automatik, alles frei
-        const duration = parseInt(config.days);
-        if (source === 'von' && inputVon.value) {
+        // 1. Validierung: Nicht vor Heute
+        if (inputVon.value < today) {
+            inputVon.value = today;
+        }
+
+        // 2. Logik für Enddatum
+        if (config.days !== 'custom') {
+            const duration = parseInt(config.days);
             let d = new Date(inputVon.value);
             d.setDate(d.getDate() + duration);
             inputBis.value = d.toISOString().split('T')[0];
-        } else if (source === 'bis' && inputBis.value) {
-            let d = new Date(inputBis.value);
-            d.setDate(d.getDate() - duration);
-            let vonStr = d.toISOString().split('T')[0];
-            if (vonStr < today) {
-                inputVon.value = today;
-                showDateWarning("Hinweis: Startdatum auf heute korrigiert.");
-            } else {
-                inputVon.value = vonStr;
-            }
         }
+
+        // 3. Validierung: Bis darf nicht vor Von liegen
+        if (inputBis.value && inputBis.value < inputVon.value) {
+            inputBis.value = inputVon.value;
+            warningText.innerText = "Das Enddatum wurde korrigiert (darf nicht vor dem Start liegen).";
+            warningBox.style.display = 'block';
+        }
+
+        // Min für Bis-Feld dynamisch anpassen
+        inputBis.min = inputVon.value;
     }
 
-    // Event-Listener
     selectTpl.addEventListener('change', () => handleDateChange('von'));
-    selectTyp.addEventListener('change', toggleFirmaField);
     inputVon.addEventListener('change', () => handleDateChange('von'));
     inputBis.addEventListener('change', () => handleDateChange('bis'));
 
-    // Initialisierung
+    // Init
     handleDateChange('von');
-    toggleFirmaField();
 
-    /**
-     * Formular-Absendung
-     */
+    // Restliche Funktionen (toggleZweckMode, submitUnifiedForm) wie bisher...
+    function toggleZweckMode() {
+        const select = document.getElementById('u_zweck_select');
+        const manual = document.getElementById('u_zweck_manual');
+        const toggle = document.getElementById('u_zweck_toggle');
+        const isManual = select.style.display === 'none';
+        if (isManual) {
+            select.style.display = 'block';
+            manual.style.display = 'none';
+            select.name = "zweck";
+            manual.name = "_unused";
+            toggle.innerText = "✏️ Manuell";
+        } else {
+            select.style.display = 'none';
+            manual.style.display = 'block';
+            select.name = "_unused";
+            manual.name = "zweck";
+            toggle.innerText = "📁 Liste";
+            manual.focus();
+        }
+    }
+
     function submitUnifiedForm(actionType) {
         const form = document.getElementById('unifiedToolsForm');
-        const reasonField = document.getElementById('u_reason');
-        const nameField = document.getElementById('u_name');
-        const parzelleField = document.getElementById('u_parzelle');
-        if (actionType === 'create_voucher' && !reasonField.value.trim()) {
-            alert('Notiz fehlt.');
+        if (actionType === 'create_manual' && (!document.getElementById('u_name').value || !inputParzelle.value)) {
+            alert('Bitte Name und Parzelle ausfüllen.');
             return;
         }
-        if (actionType === 'create_manual' && (!nameField.value.trim() || !parzelleField.value.trim())) {
-            alert('Name/Parzelle fehlt.');
-            return;
-        }
-        const hiddenAction = document.createElement('input');
-        hiddenAction.type = 'hidden';
-        hiddenAction.name = 'action';
-        hiddenAction.value = actionType;
-        form.appendChild(hiddenAction);
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'action';
+        hidden.value = actionType;
+        form.appendChild(hidden);
         form.submit();
     }
 </script>
