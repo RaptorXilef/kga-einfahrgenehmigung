@@ -2,6 +2,30 @@
 
 
 
+## [0.17.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.16.0...v0.17.0) (2026-05-03)
+
+### 🚀 Features
+
+* **admin:** add direct action buttons to manual permit success message ([bedd7b6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bedd7b6e7ba02734e55ac63dd760321143794b64))
+* **admin:** finalize universal generator with optional email and advanced validation ([672cef4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/672cef41a8dc93eb7c28821b3a6d1ae2e8a2a27b))
+* **admin:** implement finance monitoring and unify unpaid status display ([c7edbd9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c7edbd909d67f7c1850831d98bbf81f5c1245903))
+* **admin:** make email optional in manual permit generation ([7387841](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7387841766cbc3631bb0b2360b835af9816bb98e))
+* **check:** add ability to verify permits by license plate number ([4306cbc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4306cbcc47577d09c268ec9331aacbf5cdca15c1))
+
+### 🐛 Bug Fixes
+
+* **admin:** align detailed check view logic with public rest period behavior ([5d206b3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5d206b34c49dc3bb031ddd36da824ffba8f6c95f))
+* **check:** implement smart next-available-slot detection for rest periods ([17a5738](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/17a57386dee6a06c3e308c6e506a05abf0e13d6f))
+* **check:** resolve conflicting "today/tomorrow" labels in rest period view ([bb64c62](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bb64c6295799e72e73e7881ca9890714059fca28))
+* **core:** support electric (E) and historical (H) license plate suffixes ([f2dde07](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f2dde07d8d5ca121b1afb148152bdcc6096e3bae))
+* **ui:** synchronize public rest period banner with enhanced controller logic ([4eb0a00](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4eb0a0093241c8e9154403b63a6406a36d2639d7))
+
+### 💎 Styling
+
+* **admin:** replace text emojis with WebP icons in admin tools tab ([88ae211](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/88ae211e870528c8ff5f82fa12c10a3c14a973fe))
+* **admin:** synchronize table columns for future and expired tabs ([9d53554](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9d53554af868f97b56b04dd7e3c0ae595097e330))
+* **ui:** implement full-page status backgrounds and admin status banner ([b7a9bcd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b7a9bcdadd256599e83e067e760665d0e95a85b1))
+
 ## [0.16.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.3...v0.16.0) (2026-05-03)
 
 ### 🚀 Features
