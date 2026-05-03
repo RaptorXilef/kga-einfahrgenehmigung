@@ -2,6 +2,12 @@
 
 
 
+## [0.15.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.15.0...v0.15.1) (2026-05-03)
+
+### ⚙️ Refactoring
+
+* **public:** finalize premium application form with dynamic vehicle logic ([130bf1d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/130bf1dd0731d116ff3ddc6d4a7149df677e0bc0)), closes [#price-display](https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues/price-display)
+
 ## [0.15.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.14.0...v0.15.0) (2026-05-03)
 
 ### 🚀 Features
