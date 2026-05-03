@@ -165,8 +165,10 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0; /* Wir steuern die Größe über width/height für Icons */
-        width: 42px;  /* Festes Quadrat für Icon-Buttons */
+        padding: 0;
+        /* Wir steuern die Größe über width/height für Icons */
+        width: 42px;
+        /* Festes Quadrat für Icon-Buttons */
         height: 42px;
         border-radius: 10px;
         border: 1px solid var(--border-color);
@@ -174,7 +176,8 @@
         color: var(--text-main);
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        text-decoration: none; /* Wichtig für <a> Tags */
+        text-decoration: none;
+        /* Wichtig für <a> Tags */
         box-shadow: var(--shadow-sm);
     }
 
@@ -195,19 +198,42 @@
         color: var(--success-color);
         border-color: #bbf7d0;
     }
-    .c-button--success:hover { background: #dcfce7; }
+
+    .c-button--success:hover {
+        background: #dcfce7;
+    }
 
     .c-button--danger {
         background: #fff1f2;
         color: var(--danger-color);
         border-color: #fecaca;
     }
-    .c-button--danger:hover { background: #fee2e2; }
+
+    .c-button--danger:hover {
+        background: #fee2e2;
+    }
 
     /* Die Icon-Größe innerhalb der Buttons */
     .c-button .c-icon {
         width: 1.2em;
         height: 1.2em;
-        margin: 0; /* Kein Margin nötig, da der Button zentriert */
+        margin: 0;
+        /* Kein Margin nötig, da der Button zentriert */
+    }
+
+    /* Status-Hintergründe für die gesamte Seite */
+    /* Dezent Hellgrün */
+    .state-bg-valid {
+        background-color: #f0fdf4 !important;
+    }
+
+    /* Dezent Hellgelb/Orange */
+    .state-bg-rest {
+        background-color: #fffbeb !important;
+    }
+
+    /* Dezent Hellrot */
+    .state-bg-error {
+        background-color: #fef2f2 !important;
     }
 </style>

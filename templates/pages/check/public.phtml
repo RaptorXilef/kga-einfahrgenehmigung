@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page: Public Status Result & Payment
  *
@@ -23,9 +24,23 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         break;
     }
 }
+
+// Status-Farbe bestimmen
+$pageStateClass = 'state-bg-error'; // Default: Ungültig
+if ($permit) {
+    if ($permit->status->isSuspended) {
+        $pageStateClass = 'state-bg-error';
+    } elseif ($isDateValid && $isTimeAllowed) {
+        $pageStateClass = 'state-bg-valid';
+    } elseif ($isDateValid && ! $isTimeAllowed) {
+        $pageStateClass = 'state-bg-rest';
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +48,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     <link rel="stylesheet" href="assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
-<body class="u-bg-light l-public-body">
+
+<!-- Dynamische Klasse am Body -->
+
+<body class="l-public-body <?php echo $pageStateClass; ?>">
     <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
 
     <main class="c-tab-content-container u-padding-y-l">
@@ -96,8 +114,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                     createOrder: () => fetch('api/create_order_for_token.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => data.id),
                                     onApprove: (data) => fetch('api/capture.php', {
                                         method: 'POST',
-                                        headers: {'Content-Type': 'application/json'},
-                                        body: JSON.stringify({orderID: data.orderID, token: '<?php echo $token; ?>'})
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            orderID: data.orderID,
+                                            token: '<?php echo $token; ?>'
+                                        })
                                     }).then(r => r.json()).then(res => {
                                         if (res.success) window.location.href = 'check.php?token=<?php echo $token; ?>&success=1';
                                         else alert('Fehler: ' + res.message);
@@ -124,10 +147,11 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             </div>
 
             <footer class="u-padding-around-m u-text-center u-border-top" style="background: #fcfdfe;">
-                 <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
-                 <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Vorstands-Login für Details</a>
+                <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
+                <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Vorstands-Login für Details</a>
             </footer>
         </div>
     </main>
 </body>
+
 </html>
