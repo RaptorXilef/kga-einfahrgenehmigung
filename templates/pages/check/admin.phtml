@@ -1,0 +1,73 @@
+<?php
+/**
+ * Page: Admin Detailed Check
+ *
+ * Path: templates/pages/check/admin.phtml
+ *
+ * @var \App\Core\Entity\Permit $permit
+ */
+?>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Vorstands-Prüfung - <?php echo $permit->code; ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+</head>
+<body class="l-admin">
+    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
+    <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
+
+    <main class="c-tab-content-container u-padding-y-l">
+        <header class="u-flex u-justify-between u-align-center u-margin-bottom-l">
+            <div>
+                <h1 class="u-margin-none">Detailprüfung (Vorstand)</h1>
+                <p class="u-text-muted">Vollständige Daten für Code: <strong><?php echo $permit->code; ?></strong></p>
+            </div>
+            <div class="u-flex u-gap-s">
+                <a href="check.php" class="c-tabs__btn" style="background: #fff; border: 1px solid var(--border-color);">🔍 Neue Prüfung</a>
+                <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="background: var(--primary-color); color: #fff;">🖨️ Drucken</a>
+            </div>
+        </header>
+
+        <section class="c-card">
+            <header class="c-card__header u-flex u-justify-between u-align-center">
+                <h3 class="u-margin-none">📋 Genehmigungs-Details</h3>
+                <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
+                    STATUS: <?php echo \strtoupper($permit->status->current); ?>
+                </span>
+            </header>
+            <div class="c-card__body u-padding-none">
+                <table class="c-table">
+                    <tr><td class="u-font-bold" style="width: 35%;">Pächter Name</td><td><?php echo \htmlspecialchars($permit->owner->name); ?></td></tr>
+                    <tr><td class="u-font-bold">Parzelle</td><td>Nr. <?php echo \htmlspecialchars($permit->owner->parzelle); ?></td></tr>
+                    <tr><td class="u-font-bold">E-Mail</td><td><a href="mailto:<?php echo $permit->owner->email; ?>"><?php echo \htmlspecialchars($permit->owner->email); ?></a></td></tr>
+                    <tr><td class="u-font-bold">Zweck / Grund</td><td><?php echo \htmlspecialchars($permit->validity->zweck); ?></td></tr>
+                    <tr><td class="u-font-bold">Fahrzeugtyp</td><td><?php echo \strtoupper($permit->vehicle->typ); ?></td></tr>
+                    <tr><td class="u-font-bold">Kennzeichen</td><td><?php echo \htmlspecialchars($permit->vehicle->kennzeichen); ?></td></tr>
+                    <?php if ($permit->vehicle->firma) { ?>
+                        <tr><td class="u-font-bold">Firma / Lieferant</td><td><?php echo \htmlspecialchars($permit->vehicle->firma); ?></td></tr>
+                    <?php } ?>
+                    <tr><td class="u-font-bold">Gültigkeitszeitraum</td><td><?php echo $permit->validity->von->format('d.m.Y'); ?> bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></td></tr>
+                    <tr><td class="u-font-bold">Einnahme (Gebühr)</td><td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td></tr>
+                    <tr><td class="u-font-bold">System-Erstellung</td><td><?php echo $permit->erstellt->format('d.m.Y H:i'); ?> Uhr</td></tr>
+                </table>
+            </div>
+
+            <!-- WIEDERHERGESTELLT: MANUELLE FREISCHALTUNG -->
+            <?php if ($permit->status->current !== 'bezahlt') { ?>
+                <footer class="u-padding-around-m u-border-top" style="background: #fffbeb;">
+                    <form action="admin.php" method="POST" class="u-flex u-justify-center">
+                        <input type="hidden" name="action" value="mark_as_paid">
+                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                        <button type="submit" class="c-button--primary" style="background: var(--success-color); width: 100%; max-width: 400px;">
+                            ✔ Zahlung erhalten & Manuell freischalten
+                        </button>
+                    </form>
+                </footer>
+            <?php } ?>
+        </section>
+    </main>
+</body>
+</html>

@@ -48,16 +48,22 @@ final readonly class CheckController
         // Wir nutzen den PermitService, um den Warteraum zu prüfen
         $tempRequest = $this->permitService->getVerifiedRequest($token);
 
-        // Guard: Nichts eingegeben
+        // Fall 1: Nichts eingegeben -> Suchmaske (Ordner-Pfad angepasst!)
         if ($code === '' && $tempRequest === null) {
-            $this->render('check_search', ['error' => null]);
+            $this->render('check/search', ['error' => null]);
 
             return;
         }
 
-        // Weiche 1: Warteraum (Bezahlseite)
+        // Standard-Daten für die Header-Navigation (falls eingeloggt)
+        $adminData = [
+            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
+        ];
+
+        // Fall 2: Bezahlseite (Warteraum)
         if ($tempRequest !== null && ! $permit instanceof Permit) {
-            $this->render('check_public', [
+            $this->render('check/public', \array_merge($adminData, [
                 'isWaitingForPayment' => true,
                 'tempData'            => $tempRequest,
                 'token'               => $token,
@@ -69,15 +75,16 @@ final readonly class CheckController
                 'allowedToday'        => $this->holidayService->getTodayAllowedSlots(),
                 'showAdminView'       => false,
                 'permit'              => null,
-            ]);
+            ]));
 
             return;
         }
 
-        // Weiche 2: Genehmigung gefunden
+        // Fall 3: Genehmigung gefunden
         if ($permit instanceof Permit) {
             $showAdminView = $this->determineViewPrivileges($permit, $get);
-            $this->render($showAdminView ? 'check_admin' : 'check_public', [
+            // Pfade angepasst auf Unterordner check/
+            $this->render($showAdminView ? 'check/admin' : 'check/public', \array_merge($adminData, [
                 'permit'        => $permit,
                 'isDateValid'   => $permit->isValid(),
                 'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
@@ -87,13 +94,13 @@ final readonly class CheckController
                 'config'        => $this->config,
                 'appRoot'       => $this->config->get('root_path'),
                 'tempData'      => null,
-            ]);
+            ]));
 
             return;
         }
 
-        // Letzter Fall: Code nicht gefunden
-        $this->render('check_search', ['error' => "Code '{$code}' nicht gefunden."]);
+        // Fall 4: Code nicht gefunden
+        $this->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 
     /**
@@ -140,8 +147,20 @@ final readonly class CheckController
      */
     private function render(string $templatePath, array $data = []): void
     {
-        $appRoot = (string) $this->config->get('root_path');
-        \extract($data);
+        $config   = $this->config;
+        $appRoot  = (string) $config->get('root_path');
+        $settings = $this->getSettingsArray();
+
+        // 1. Array in einer Variable zwischenspeichern (löst den Fehler P1114)
+        $templateData = \array_merge([
+            'appRoot'  => $appRoot,
+            'settings' => $settings,
+            'config'   => $config,
+        ], $data);
+
+        // 2. Die Variable an extract übergeben
+        \extract($templateData);
+
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 }

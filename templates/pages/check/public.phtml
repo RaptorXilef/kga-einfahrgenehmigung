@@ -1,0 +1,133 @@
+<?php
+/**
+ * Page: Public Status Result & Payment
+ *
+ * Path: templates/pages/check/public.phtml
+ *
+ * @var \App\Core\Entity\Permit|null      $permit
+ * @var bool                              $isDateValid
+ * @var bool                              $isTimeAllowed
+ * @var string                            $allowedToday
+ * @var string                            $appRoot
+ * @var string|null                       $token
+ * @var array|null                        $tempData
+ * @var \App\Infrastructure\Config\Config $config
+ * @var array                             $settings
+ */
+// Logo-Logik einbinden
+$logoFile = null;
+foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
+    if (\file_exists("assets/img/kga_logo.$ext")) {
+        $logoFile = "assets/img/kga_logo.$ext";
+
+        break;
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status-Check - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+</head>
+<body class="u-bg-light l-public-body">
+    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
+
+    <main class="c-tab-content-container u-padding-y-l">
+        <div class="c-card u-margin-auto" style="max-width: 550px;">
+
+            <header class="c-card__header u-text-center u-padding-around-l">
+                <?php if ($logoFile) { ?>
+                    <img src="<?php echo $logoFile; ?>" alt="Logo" style="max-height: 80px; margin-bottom: 15px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));">
+                <?php } ?>
+                <p class="u-text-muted u-text-small u-margin-none"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
+            </header>
+
+            <div class="c-card__body u-padding-around-l u-text-center">
+                <?php if ($permit) { ?>
+                    <?php if ($permit->status->isSuspended) { ?>
+                        <div style="color: var(--danger-color);">
+                            <span style="font-size: 5rem;">🚫</span>
+                            <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
+                            <p class="u-font-bold">Diese Genehmigung wurde gesperrt.</p>
+                            <?php if ($permit->status->suspensionReason) { ?>
+                                <div style="background: #fff1f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left;">
+                                    <strong style="font-size: 0.8rem; text-transform: uppercase;">Grund:</strong><br>
+                                    <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    <?php } elseif ($isDateValid && $isTimeAllowed) { ?>
+                        <div style="color: var(--success-color);">
+                            <span style="font-size: 5rem;">✅</span>
+                            <h2 style="color: var(--success-color); margin-top: 15px;">GÜLTIG</h2>
+                            <?php include '_details.phtml'; ?>
+                        </div>
+                    <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
+                        <div style="color: #f59e0b;">
+                            <span style="font-size: 5rem;">⏳</span>
+                            <h2 style="color: #f59e0b; margin-top: 15px;">AKTUELL RUHEZEIT</h2>
+                            <p>Einfahrt heute wieder ab: <br><strong><?php echo $allowedToday; ?></strong></p>
+                            <?php include '_details.phtml'; ?>
+                        </div>
+                    <?php } else { ?>
+                        <div style="color: var(--text-muted);">
+                            <span style="font-size: 5rem;">❌</span>
+                            <h2 style="margin-top: 15px;">UNGÜLTIG</h2>
+                            <p>Zeitraum abgelaufen oder noch nicht erreicht.</p>
+                        </div>
+                    <?php } ?>
+
+                <?php } elseif ($tempData && $token) { ?>
+                    <!-- WIEDERHERGESTELLT: BEZAHLPROZESS -->
+                    <div>
+                        <span style="font-size: 4rem;">💳</span>
+                        <h2 class="u-margin-top-s">Zahlung fällig</h2>
+                        <p class="u-text-muted">Um Ihren SmartCode zu aktivieren, wählen Sie bitte eine Zahlungsart:</p>
+
+                        <?php if ($config->get('paypal')['enabled']) { ?>
+                            <div id="paypal-button-container" class="u-padding-y-m"></div>
+                            <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $config->isTestMode() ? $config->get('paypal')['sandbox']['client_id'] : $config->get('paypal')['live']['client_id']; ?>&currency=EUR"></script>
+                            <script>
+                                paypal.Buttons({
+                                    createOrder: () => fetch('api/create_order_for_token.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => data.id),
+                                    onApprove: (data) => fetch('api/capture.php', {
+                                        method: 'POST',
+                                        headers: {'Content-Type': 'application/json'},
+                                        body: JSON.stringify({orderID: data.orderID, token: '<?php echo $token; ?>'})
+                                    }).then(r => r.json()).then(res => {
+                                        if (res.success) window.location.href = 'check.php?token=<?php echo $token; ?>&success=1';
+                                        else alert('Fehler: ' + res.message);
+                                    })
+                                }).render('#paypal-button-container');
+                            </script>
+                        <?php } ?>
+
+                        <div class="u-margin-top-l u-padding-around-m" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <p class="u-text-small u-margin-bottom-s">Oder klassisch per Überweisung (Dauer 2-3 Tage)</p>
+                            <button onclick="finalizeWire()" class="c-button--primary" style="padding: 10px 20px; font-size: 0.9rem; background: #64748b;">Überweisung verbindlich abschließen</button>
+                        </div>
+                    </div>
+                    <script>
+                        function finalizeWire() {
+                            if (!confirm('Hiermit bestätigen Sie, dass Sie den Betrag zeitnah überweisen werden.')) return;
+                            fetch('api/finalize_wire.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => {
+                                if (data.success) window.location.href = 'check.php?code=' + data.code + '&wire=1';
+                                else alert('Fehler: ' + data.error);
+                            });
+                        }
+                    </script>
+                <?php } ?>
+            </div>
+
+            <footer class="u-padding-around-m u-text-center u-border-top" style="background: #fcfdfe;">
+                 <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
+                 <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Vorstands-Login für Details</a>
+            </footer>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,12 +1,18 @@
 <?php
 /**
+ * Snippet: Permit Details Box
+ *
+ * Path: templates/pages/check/_details.phtml
+ *
  * @var \App\Core\Entity\Permit $permit
  */
 ?>
-<div class="u-margin-bottom u-margin-top">
-    <strong>Identifikation:</strong><br>
-    <?php
-    $info = [];
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
+    <div class="u-margin-bottom-m">
+        <span class="u-text-muted u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px;">Fahrzeug</span><br>
+        <strong style="font-size: 1.15rem; color: #1e293b;">
+            <?php
+            $info = [];
 if (! empty($permit->vehicle->kennzeichen)) {
     $info[] = \htmlspecialchars($permit->vehicle->kennzeichen);
 }
@@ -15,10 +21,13 @@ if (! empty($permit->vehicle->firma)) {
 }
 echo \implode(' / ', $info);
 ?>
-</div>
+        </strong>
+    </div>
 
-<div class="u-text-muted">
-    Gültigkeitszeitraum:<br>
-    <strong><?php echo $permit->validity->von->format('d.m.Y'); ?></strong> bis
-    <strong><?php echo $permit->validity->bis->format('d.m.Y'); ?></strong>
+    <div class="u-border-top u-padding-top-m">
+        <span class="u-text-muted u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px;">Gültigkeit</span><br>
+        <span style="font-size: 1.05rem; color: #334155;">
+            Von <strong><?php echo $permit->validity->von->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->validity->bis->format('d.m.Y'); ?></strong>
+        </span>
+    </div>
 </div>

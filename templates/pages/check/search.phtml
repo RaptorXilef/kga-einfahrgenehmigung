@@ -1,0 +1,44 @@
+<?php
+/**
+ * Page: Manual Code Search
+ *
+ * Path: templates/pages/check/search.phtml
+ */
+?>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genehmigung prüfen</title>
+    <link rel="stylesheet" href="assets/css/main.min.css">
+    <!-- Geändert: Nutzt jetzt direkt $appRoot -->
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+</head>
+<body class="u-bg-light l-public-body">
+    <div class="c-tab-content-container u-padding-y-xl">
+        <div class="c-card u-margin-auto" style="max-width: 500px;">
+            <header class="c-card__header u-text-center u-padding-around-l">
+                <h2 class="u-margin-none">🔍 Manuelle Prüfung</h2>
+                <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Aktivierungscode ein.</p>
+            </header>
+            <div class="c-card__body u-padding-around-l">
+                <?php if (isset($error)) { ?>
+                    <div class="c-alert c-alert--danger u-margin-bottom-l"><?php echo \htmlspecialchars($error); ?></div>
+                <?php } ?>
+
+                <form action="check.php" method="GET" class="c-form">
+                    <div class="c-form-group u-margin-bottom-l">
+                        <input type="text" name="code" class="c-form-input u-text-center u-font-xl"
+                               placeholder="z.B. 6Y5C" required autofocus style="letter-spacing: 5px; font-family: monospace; height: 60px;">
+                    </div>
+                    <button type="submit" class="c-button--primary u-width-100">Code jetzt prüfen</button>
+                </form>
+            </div>
+            <footer class="u-text-center u-padding-bottom-l">
+                <a href="index.php" class="u-text-link u-text-small">← Zurück zum Antrag</a>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>
