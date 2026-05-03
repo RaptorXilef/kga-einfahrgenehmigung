@@ -12,10 +12,10 @@
 <div class="c-tab-content-container">
     <div class="u-grid u-gap-l" style="grid-template-columns: 1.6fr 1fr;">
 
-        <!-- LINKER BLOCK: OFFENE GUTSCHEINE -->
+        <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none">🎟️ Offene Gutscheine</h3>
+                <h3 class="u-margin-none">🎟️ Offene Aktivierungscodes</h3>
                 <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
             </header>
             <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">
@@ -34,7 +34,7 @@ if (empty($activeVouchers)) {
     ?>
                             <tr>
                                 <td colspan="3" class="u-text-center u-padding-around-l u-text-muted">
-                                    Aktuell keine unbenutzten Gutscheine vorhanden.
+                                    Aktuell keine unbenutzten Aktivierungscodes vorhanden.
                                 </td>
                             </tr>
                         <?php } else { ?>
@@ -74,7 +74,7 @@ if (empty($activeVouchers)) {
                                                 <?php } ?>
                                             </form>
 
-                                            <form method="POST" style="margin:0;" onsubmit="return confirm('Soll dieser Gutschein unwiderruflich gelöscht werden?')">
+                                            <form method="POST" style="margin:0;" onsubmit="return confirm('Soll dieser Aktivierungscode unwiderruflich gelöscht werden?')">
                                                 <input type="hidden" name="action" value="delete_voucher">
                                                 <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
                                                 <button type="submit" class="c-button c-button--small" style="background:#f1f5f9; color: #64748b;" title="Löschen">🗑</button>
