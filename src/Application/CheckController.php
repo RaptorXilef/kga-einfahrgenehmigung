@@ -74,7 +74,7 @@ final readonly class CheckController
         if ($nextSlot !== null) {
             // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
             if ($permit instanceof Permit && $nextSlot > $permit->validity->bis) {
-                $nextAllowedSlotText = 'Keine weitere Einfahrt innerhalb der Gültigkeit möglich.';
+                $nextAllowedSlotText = 'Keine Einfahrt innerhalb der Gültigkeit mehr möglich.';
             } else {
                 // Text-Formatierung
                 $datePart = $nextSlot->format('d.m.Y');
@@ -82,14 +82,15 @@ final readonly class CheckController
                 $tomorrow = $now->modify('+1 day')->format('d.m.Y');
 
                 if ($datePart === $today) {
-                    $prefix = 'heute um ';
+                    // "heute ab 15:00 Uhr"
+                    $nextAllowedSlotText = 'heute ab ' . $nextSlot->format('H:i') . ' Uhr';
                 } elseif ($datePart === $tomorrow) {
-                    $prefix = 'morgen um ';
+                    // "morgen ab 08:00 Uhr"
+                    $nextAllowedSlotText = 'morgen ab ' . $nextSlot->format('H:i') . ' Uhr';
                 } else {
-                    $prefix = 'am ' . $datePart . ' um ';
+                    // "am 04.05.2026 ab 08:00 Uhr"
+                    $nextAllowedSlotText = 'am ' . $datePart . ' ab ' . $nextSlot->format('H:i') . ' Uhr';
                 }
-
-                $nextAllowedSlotText = $prefix . $nextSlot->format('H:i') . ' Uhr';
             }
         }
 

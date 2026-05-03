@@ -54,7 +54,7 @@ if ($permit->status->isSuspended) {
                 <div style="color: #f59e0b;">
                     <span style="font-size: 3rem;">⏳</span>
                     <h2 style="color: #f59e0b; margin-top: 10px;">AKTUELL RUHEZEIT</h2>
-                    <p class="u-margin-none">Einfahrt heute wieder ab: <strong><?php echo $allowedToday; ?></strong></p>
+                    <p class="u-margin-none">Nächste Einfahrt möglich: <strong><?php echo $allowedToday; ?></strong></p>
                 </div>
             <?php } else { ?>
                 <div style="color: var(--text-muted);">
@@ -71,7 +71,7 @@ if ($permit->status->isSuspended) {
             </div>
             <div class="u-flex u-gap-s">
                 <a href="check.php" class="c-tabs__btn" style="background: #fff; border: 1px solid var(--border-color);"><img src="assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung</a>
-                <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="background: var(--primary-color); color: #fff;"><img src="assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- <img src="assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ --> Drucken</a>
+                <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="background: var(--primary-color); color: #fff;"><img src="assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken</a>
             </div>
         </header>
 
