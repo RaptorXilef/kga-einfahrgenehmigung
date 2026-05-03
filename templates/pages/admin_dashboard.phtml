@@ -24,10 +24,37 @@ $now = new \DateTimeImmutable();
 
     <main class="c-container u-padding-y-l">
         <?php if ($message) { ?>
-            <!-- Nutzt u-text-center für die Ausrichtung und --success für die Farbe -->
-            <div class="c-alert c-alert--success u-text-center u-margin-bottom-l">
-                <span style="font-size: 1.2rem;"><img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></span>
-                <span><?php echo $message; ?></span>
+            <div class="c-alert c-alert--success u-margin-bottom-l">
+                <div class="u-flex u-flex-wrap u-align-center u-justify-center u-gap-m" style="width: 100%;">
+
+                    <div class="u-flex u-align-center u-gap-s">
+                        <span style="font-size: 1.2rem;"><img src="assets/img/icons/status-success.webp" class="c-icon" alt=""></span>
+                        <span><?php echo $message; ?></span>
+                    </div>
+
+                    <?php
+                    // Direkt-Aktionen extrahieren
+                    if (\str_contains($message, 'Manuelle Genehmigung erstellt')) {
+                        \preg_match('/<strong>(.*?)<\/strong>/', $message, $matches);
+                        $createdCode = $matches[1] ?? null;
+
+                        if ($createdCode) { ?>
+                            <div class="u-flex u-gap-xs u-align-center">
+                                <a href="?action=print&code=<?php echo $createdCode; ?>"
+                                    class="c-button c-button--secondary"
+                                    style="width: 34px; height: 34px;" title="Druckvorschau">
+                                    <img src="assets/img/icons/action-print.webp" class="c-icon" style="width: 18px; height: 18px;" alt="Drucken">
+                                </a>
+                                <a href="check.php?code=<?php echo $createdCode; ?>"
+                                    target="_blank"
+                                    class="c-button c-button--secondary"
+                                    style="width: 34px; height: 34px;" title="Prüfseite öffnen">
+                                    <img src="assets/img/icons/action-view.webp" class="c-icon" style="width: 18px; height: 18px;" alt="Prüfen">
+                                </a>
+                            </div>
+                    <?php }
+                        } ?>
+                </div>
             </div>
         <?php } ?>
 
