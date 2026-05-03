@@ -20,7 +20,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <section class="c-card" style="max-width: 850px; margin: 0 auto; border-top: 5px solid var(--primary-color);">
         <header class="c-card__header u-text-center u-padding-y-l">
             <h2 class="u-margin-none">Universal-Generator</h2>
-            <p class="u-text-muted">Zeiträume planen, Gutscheine erzeugen oder Genehmigungen sofort ausstellen.</p>
+            <p class="u-text-muted">Manuelle Ausstellung oder Gutschein-Erstellung in einem Schritt.</p>
         </header>
 
         <div class="c-card__body">
@@ -110,8 +110,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">Interne Notiz</label>
-                        <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Grund der Ausstellung">
+                        <label class="c-form-label">Interne Notiz (Grund der Ausstellung)</label>
+                        <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Warum wird diese Genehmigung erstellt?">
                         <datalist id="reason_presets">
                             <?php foreach ($reasons as $r) {
                                 echo "<option value='" . \htmlspecialchars($r) . "'>";
@@ -124,15 +124,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div class="c-action-grid">
                     <div class="c-action-card c-action-card--voucher" onclick="submitUnifiedForm('create_voucher')">
                         <div class="c-action-card__icon">🎟️</div>
-                        <div>
+                        <div class="c-action-card__content">
                             <span class="c-action-card__title">Gutschein erzeugen</span>
-                            <span class="c-action-card__desc">QR-Code & Zeitraum vorwählen.</span>
+                            <span class="c-action-card__desc">QR-Code erstellen & Zeitraum vorwählen.</span>
                         </div>
                     </div>
 
                     <div class="c-action-card c-action-card--manual" onclick="submitUnifiedForm('create_manual')">
                         <div class="c-action-card__icon">⚡</div>
-                        <div>
+                        <div class="c-action-card__content">
                             <span class="c-action-card__title">Sofort ausstellen</span>
                             <span class="c-action-card__desc">Direkt finalisieren & senden.</span>
                         </div>
@@ -208,12 +208,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         const config = templates[selectTpl.value];
         const today = getTodayStr();
         showDateWarning(null);
-
         if (config.days === 'custom') return;
 
         // Spezialzeitraum: Keine Automatik, alles frei
         const duration = parseInt(config.days);
-
         if (source === 'von' && inputVon.value) {
             let d = new Date(inputVon.value);
             d.setDate(d.getDate() + duration);
@@ -222,7 +220,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             let d = new Date(inputBis.value);
             d.setDate(d.getDate() - duration);
             let vonStr = d.toISOString().split('T')[0];
-
             if (vonStr < today) {
                 inputVon.value = today;
                 showDateWarning("Hinweis: Startdatum auf heute korrigiert.");
@@ -250,17 +247,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         const reasonField = document.getElementById('u_reason');
         const nameField = document.getElementById('u_name');
         const parzelleField = document.getElementById('u_parzelle');
-
         if (actionType === 'create_voucher' && !reasonField.value.trim()) {
             alert('Notiz fehlt.');
             return;
         }
-
         if (actionType === 'create_manual' && (!nameField.value.trim() || !parzelleField.value.trim())) {
             alert('Name/Parzelle fehlt.');
             return;
         }
-
         const hiddenAction = document.createElement('input');
         hiddenAction.type = 'hidden';
         hiddenAction.name = 'action';
