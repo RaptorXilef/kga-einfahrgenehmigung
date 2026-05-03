@@ -89,4 +89,46 @@ final readonly class JsonStorage implements StorageInterface
 
         return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
     }
+
+    public function findByLicensePlate(string $plate): ?Permit
+    {
+        $all         = $this->getAll();
+        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
+
+        if ($searchPlate === '') {
+            return null;
+        }
+
+        $candidates = [];
+
+        foreach ($all as $permit) {
+            $storedPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($permit->vehicle->kennzeichen));
+            if ($storedPlate === $searchPlate) {
+                $candidates[] = $permit;
+            }
+        }
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        // Sortierung:
+        // 1. Aktive Genehmigungen zuerst
+        // 2. Dann nach dem Enddatum (neueste zuerst)
+        \usort($candidates, function (Permit $a, Permit $b) {
+            $aValid = $a->isValid();
+            $bValid = $b->isValid();
+
+            if ($aValid && ! $bValid) {
+                return -1;
+            }
+            if (! $aValid && $bValid) {
+                return 1;
+            }
+
+            return $b->validity->bis <=> $a->validity->bis;
+        });
+
+        return $candidates[0];
+    }
 }

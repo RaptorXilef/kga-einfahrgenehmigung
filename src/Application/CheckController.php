@@ -41,8 +41,13 @@ final readonly class CheckController
         $code  = \strtoupper(\trim((string) ($get['code'] ?? '')));
         $token = (string) ($get['token'] ?? ''); // Wir brauchen das Token aus der E-Mail
 
-        // 1. Suche in echten Permits
+        // 1. Suche in echten Permits (zuerst via Code/Hash)
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
+
+        // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
+        if ($permit === null && $code !== '') {
+            $permit = $this->storage->findByLicensePlate($code);
+        }
 
         // 2. Suche in verifizierten Anträgen (Warteraum 2) via PermitService
         // Wir nutzen den PermitService, um den Warteraum zu prüfen

@@ -23,7 +23,15 @@ interface StorageInterface
 {
     public function save(Permit $permit): bool;
 
+    /**
+     * Sucht die Genehmigung für ein Hash.
+     */
     public function findByHash(string $hash): ?Permit;
+
+    /**
+     * Sucht die relevanteste Genehmigung für ein Kennzeichen.
+     */
+    public function findByLicensePlate(string $plate): ?Permit;
 
     /**
      * @return Permit[]
