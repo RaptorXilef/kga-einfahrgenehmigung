@@ -50,6 +50,7 @@
         font-size: 1.8rem;
         margin-bottom: 2rem;
         text-align: center;
+        width: 100%;
     }
 
     /* LAYOUT ZENTRIERUNG */
@@ -158,17 +159,18 @@
     .c-control-bar-section {
         background: #fff;
         border-radius: 12px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #e2e8f0;
         display: inline-flex;
         flex-wrap: wrap;
         gap: 20px;
         align-items: center;
         justify-content: center;
-        padding: 10px 20px;
+        padding: 10px 25px;
         box-shadow: var(--shadow-sm);
         margin-bottom: 2.5rem;
-        min-width: 1050px;
-        max-width: 1100px;
+        width: 100%; /* Nutzt den vollen Platz des Containers */
+        max-width: 1100px; /* Gleiche Max-Breite wie die Karten */
+        /* min-width: 1050px; */
     }
 
     .c-control-bar-input {
@@ -295,6 +297,7 @@
         color: #fff;
     }
 
+    /* Export-Button Farben (CSV/JSON) */
     .c-action-card--csv:hover {
         border-color: var(--primary-color);
         background: var(--primary-soft);
@@ -313,6 +316,22 @@
     .c-action-card--json:hover .c-action-card__icon {
         background: var(--json-color);
         color: #fff;
+    }
+
+    /* Badge-Farben (Erfolg/Warnung/Fehler) */
+    .c-badge--success {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+    }
+
+    .c-badge--warning {
+        background: #fef9c3 !important;
+        color: #854d0e !important;
+    }
+
+    .c-badge--danger {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
     }
 
     /* CARDS & TABLES */
