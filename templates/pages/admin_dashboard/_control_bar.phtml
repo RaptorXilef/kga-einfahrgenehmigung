@@ -16,12 +16,12 @@
         <form method="GET" class="u-flex u-align-center u-gap-s" style="margin: 0; background: #ffffff; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;"><!--background: #f8f9fa;-->
             <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;"><img src="assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> ZEITRAUM:</span>
 
-            <input type="date" name="start" value="<?php echo $filterStart; ?>"
+            <input type="date" id="filter_start" name="start" value="<?php echo $filterStart; ?>"
                 class="c-control-bar-input">
 
             <span class="u-text-muted" style="font-size: 0.75rem; font-weight: 800;">BIS</span>
 
-            <input type="date" name="end" value="<?php echo $filterEnd; ?>"
+            <input type="date" id="filter_end" name="end" value="<?php echo $filterEnd; ?>"
                 class="c-control-bar-input">
 
             <button type="submit" class="c-button c-button--primary c-button--small" style="border-radius: 20px; padding: 5px 15px; font-size: 0.75rem; font-weight: 700;">FILTER LADEN</button>
@@ -38,3 +38,40 @@
         </div>
     </section>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterStart = document.getElementById('filter_start');
+        const filterEnd = document.getElementById('filter_end');
+
+        if (filterStart && filterEnd) {
+            // Wenn "Start" (VON) geändert wird
+            filterStart.addEventListener('change', () => {
+                const startVal = filterStart.value;
+                const endVal = filterEnd.value;
+
+                if (startVal && endVal) {
+                    // Wenn der neue Start NACH dem aktuellen Ende liegt
+                    if (startVal > endVal) {
+                        // Ziehe das Ende auf das Startdatum mit
+                        filterEnd.value = startVal;
+                    }
+                }
+            });
+
+            // Wenn "Ende" (BIS) geändert wird
+            filterEnd.addEventListener('change', () => {
+                const startVal = filterStart.value;
+                const endVal = filterEnd.value;
+
+                if (startVal && endVal) {
+                    // Wenn das neue Ende VOR dem aktuellen Start liegt
+                    if (endVal < startVal) {
+                        // Ziehe den Start auf das Enddatum zurück
+                        filterStart.value = endVal;
+                    }
+                }
+            });
+        }
+    });
+</script>
