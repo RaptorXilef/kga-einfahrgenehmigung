@@ -2,6 +2,54 @@
 
 
 
+## [0.15.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.14.0...v0.15.0) (2026-05-03)
+
+### 🚀 Features
+
+* **dashboard:** centralize filters and exports into dedicated tab with iconography ([c07accd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c07accd13a3066b7bd0a5b0e5fcac19bb87dd2e0))
+* **dashboard:** migrate statistics and ranking to dedicated tabs ([bd705fe](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bd705febbd9b708b0a16eb2b5cca9412dd10fd14))
+* **public:** enhance form UX by hiding redundant fields and highlighting fees ([e9f04d6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e9f04d699e1b0694356e4a004fc8263d8df0fc3a)), closes [#price-display](https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues/price-display)
+* **public:** improve voucher UX and dynamic pricing display ([a60f36d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a60f36d88d6c128e3b882d5969db8ebfe6bf2ec4))
+* **ui:** implement bi-directional date binding and safety constraints in admin tools ([dec6703](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dec6703d2d1191d76bb15c0149ace53527baac22))
+* **ui:** unify admin tools into a smart universal permit generator ([687a18b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/687a18b75099aef7102445249d5ba29b81e0f27b))
+
+### 🐛 Bug Fixes
+
+* **ui:** restore global navigation and filter aesthetics while maintaining premium tools ([f44a171](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f44a171d60162717575abcc743171f66aa44bdb2))
+
+### ⚙️ Refactoring
+
+* **admin:** unify permit generator with bi-directional dates and conditional fields ([2cce7e8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2cce7e81b46194c948e75cbdc9113d1bcf194871))
+* **backend:** consolidate payload naming convention for admin tools ([6f3eea6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6f3eea622ab96e3f18284cb98fd7c22e17b0c002))
+* **dashboard:** elevate global filters to dedicated control bar ([3d5c887](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3d5c8877bf101a170038b6396cc2075d0cbc0f3c))
+* **public:** align application form with premium design system ([2d08bf8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2d08bf87438edd8a0a8f12ce39b127c7b291c7f9))
+* **view:** complete dashboard modularization and component migration ([bded9d0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bded9d0de10ce430fa13e265953f53599252bb1f))
+* **view:** extract active permits tab to standalone partial ([91abe6a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/91abe6aec9a5dcd844ee5b067fec01e40bdc165c))
+* **view:** modularize remaining dashboard tabs for future, expired and vouchers ([06c86a2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/06c86a2ee99c6dd0ae47b00ff3970b66afd4cf1c))
+
+### 💎 Styling
+
+* **admin:** achieve pixel-perfect symmetry and isolated layout logic ([e6a3cea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e6a3cea40bb8763a095766e72bf1ddf367de8cd7))
+* **admin:** finalize dashboard UI with pixel-perfect symmetry and adaptive containers ([2df7472](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2df747246ebfb40802ff08d59b16e816e1f5f8f5))
+* **admin:** fix heading alignment, restore badge colors and unify export UI ([bc8c03a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bc8c03a75d0bd7a03de7970cbd28644b4c06a579))
+* **admin:** overhaul universal generator with premium UI and custom purpose logic ([f878d4d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f878d4dbcdeffbec3dbcc3f83a48ae57bd5589eb))
+* **admin:** synchronize export tab with premium action card design ([dd2cf15](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dd2cf154346f0f3c2015426cf40a7bad39c1ec05))
+* **admin:** upgrade navigation to modern segmented control and unify export UI ([e694615](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e694615d13b4af83bec09019dc9e197f6044fec8))
+* **dashboard:** center navigation and fix absolute icon positioning ([4ac40ff](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4ac40ff60cd5b5b1de867dd2ba077bbc5704bcee))
+* **dashboard:** finalize polishing of stats, vouchers, and log tabs ([fda3915](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fda3915b3f4e0608d4fad24c6c98794e6cab928d))
+* **dashboard:** finalize styling for active, future, expired, tools, and export tabs ([d6d3fda](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d6d3fda92e7e16a347ea889cf441159dd6d53777))
+* **dashboard:** implement responsive wrapping grid for export actions ([0327673](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/032767378e63dd94453d1a945edca505231c3424))
+* **dashboard:** implement unified design system and content centering ([095fdfa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/095fdfa6688d99d4b7c86519a4ae359bc74fbadb))
+* **dashboard:** upgrade export UI and fix search input display ([3a0533e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a0533e5d3ec60d0cc7979d23f1164d53c74ec34))
+* **public:** final centering and typography polish for application form ([0ff33d4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0ff33d4ff8a3166f6f2c908efa9fefed76601b70))
+* **public:** relocate price display to final summary position ([841e38d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/841e38da7df0e007118876da3b0f23a3cdbb2d42)), closes [#price-display](https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues/price-display)
+* **ui:** align global header and test indicator with new design system ([1eacaa0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1eacaa0b1b7a27062505fd46e031d1cf4367c2b3))
+* **ui:** animate test mode indicator with marching stripes ([6c4388a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6c4388a83e7d0781e209fd164266df1c1fb979b0))
+
+### 🧹 Chore / Maintenance
+
+* **arch:** design new template partial architecture ([d41e19e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d41e19e7809161c064851bb2b5b743c8be649992))
+
 ## [0.14.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.13.0...v0.14.0) (2026-05-02)
 
 ### 🚀 Features
