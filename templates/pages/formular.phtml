@@ -59,10 +59,11 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
             font-size: 12px;
         }
 
-        input[readonly] {
+        input[readonly], select[readonly] {
             background-color: #f8fafc;
             cursor: not-allowed;
             color: var(--text-muted);
+            border-color: #e2e8f0;
         }
 
         .c-voucher-alert {
@@ -74,23 +75,56 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
             display: flex;
             align-items: center;
             gap: 12px;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Gutschein Accordion Styles */
+        .c-voucher-toggle {
+            cursor: pointer;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .c-voucher-toggle:hover { text-decoration: underline; }
+
+        #voucher-container {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        #voucher-container.is-open {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 1rem;
+            margin-bottom: 2rem;
         }
     </style>
 </head>
 
-<body class="u-bg-light l-public-body"> <!-- Klasse l-public-body für Zentrierung hinzugefügt -->
+<body class="u-bg-light l-public-body">
 
     <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
 
     <div class="c-tab-content-container u-padding-y-l">
-        <div class="c-card u-margin-auto" style="max-width: 750px;">
+        <div class="c-card u-margin-auto" style="max-width: 750px; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-text-center u-padding-around-l">
                 <h1 class="u-margin-none">Antrag auf Ausnahmegenehmigung</h1>
                 <p class="u-text-muted u-margin-top-s"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
             </header>
 
             <div class="c-card__body u-padding-around-l">
+
+                <?php if ($message) { ?>
+                    <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom-l"><?php echo $message; ?></div>
+                <?php } ?>
+
+                <!-- GUTSCHEIN EINGABE / ANZEIGE (Ganz oben) -->
                 <?php if ($prefill) { ?>
+                    <!-- Gutschein ist aktiv -->
                     <div class="c-voucher-alert">
                         <span style="font-size: 1.5rem;">🎟️</span>
                         <div>
@@ -98,12 +132,26 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
                             <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
                         </div>
                     </div>
+                <?php } else { ?>
+                    <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
+                    <div class="u-text-center u-margin-bottom-l">
+                        <span class="c-voucher-toggle" onclick="toggleVoucher()">🎟️ Ich habe einen Gutscheincode</span>
+
+                        <div id="voucher-container" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left;">
+                            <!-- Formular nur für den Gutschein-Check -->
+                            <form method="GET" action="index.php" class="u-flex u-gap-s u-align-end">
+                                <div class="c-form-group" style="flex-grow: 1;">
+                                    <label class="c-form-label">Code eingeben</label>
+                                    <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
+                                </div>
+                                <button type="submit" class="c-button--primary" style="padding: 11px 20px; border-radius: 8px;">Einlösen</button>
+                            </form>
+                            <small class="u-text-muted u-margin-top-s" style="display:block;">Das Formular wird nach der Eingabe automatisch für Sie vorausgefüllt.</small>
+                        </div>
+                    </div>
                 <?php } ?>
 
-                <?php if ($message) { ?>
-                    <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom-l"><?php echo $message; ?></div>
-                <?php } ?>
-
+                <!-- HAUPT-FORMULAR -->
                 <form action="index.php" method="POST" id="permitForm" class="c-form">
                     <input type="hidden" name="voucher" value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ($prefill['code'] ?? '')); ?>">
 
@@ -180,7 +228,7 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
                             <input type="hidden" name="template_key" id="template_key" value="<?php echo $singleKey; ?>">
                         <?php } ?>
 
-                        <!-- Premium Preis-Anzeige: Deutlich, farbig und mit Platz -->
+                        <!-- Premium Preis-Anzeige -->
                         <div id="price-display"
                             class="u-text-center u-font-bold u-margin-top-m u-margin-bottom-l"
                             style="font-size: 1.4rem; color: var(--primary-color); background: var(--primary-soft); padding: 15px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2);">
@@ -200,27 +248,29 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
                         </div>
                     </div>
 
-                    <?php if (! $prefill) { ?>
-                        <div class="c-form-group u-margin-bottom-l" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1;">
-                            <label class="c-form-label">Gutscheincode (falls vorhanden)</label>
-                            <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
-                        </div>
-                    <?php } ?>
-
-                    <button type="submit" class="c-button--primary u-width-100 u-margin-top-l">
+                    <button type="submit" class="c-button--primary u-width-100 u-margin-top-l" style="font-size: 1.1rem; padding: 16px;">
                         <?php echo $prefill ? 'Kostenlose Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                     </button>
-                </form><br>
+                    <?php if (! $prefill) { ?>
+                        <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Bezahlung erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
+                    <?php } ?>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- JS LOGIK (Identisch mit Admin für Bi-Direktionales Datum) -->
     <script>
         const templates = <?php echo \json_encode($tplMetadata); ?>;
         const inputVon = document.getElementById('datum_von');
         const inputBis = document.getElementById('datum_bis');
         const selectTpl = document.getElementById('template_key');
+
+        // PHP gibt uns mit, ob ein Gutschein geladen ist
+        const isVoucherActive = <?php echo $prefill ? 'true' : 'false'; ?>;
+
+        function toggleVoucher() {
+            document.getElementById('voucher-container').classList.toggle('is-open');
+        }
 
         function handleDateChange(source) {
             const config = templates[selectTpl.value];
@@ -245,14 +295,25 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
 
         // Preis-Update via API
         async function updatePrice() {
+            // Wenn Gutschein aktiv, immer 0,00 € anzeigen!
+            if (isVoucherActive) {
+                const priceBox = document.getElementById('price-display');
+                priceBox.innerText = `Gebühr: 0,00 € (Gutschein)`;
+                priceBox.style.color = '#10b981'; // Grün für kostenlos
+                priceBox.style.background = '#ecfdf5';
+                priceBox.style.borderColor = '#a7f3d0';
+                return;
+            }
+
             const typ = document.getElementById('typ').value;
             const res = await fetch(`api/get_template_price.php?key=${selectTpl.value}&typ=${typ}`);
             const data = await res.json();
             document.getElementById('price-display').innerText = `Gebühr: ${data.formatted}`;
         }
+
         selectTpl.addEventListener('change', updatePrice);
         document.getElementById('typ').addEventListener('change', updatePrice);
-        updatePrice();
+        updatePrice(); // Direkt beim Laden aufrufen
     </script>
 </body>
 
