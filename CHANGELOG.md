@@ -2,6 +2,17 @@
 
 
 
+## [0.19.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.18.0...v0.19.0) (2026-05-04)
+
+### 🚀 Features
+
+* **admin:** enhance universal generator with dynamic pricing and form restructuring ([8d51a4e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8d51a4efd9ded79c6c0ab48bee7c07582bb8387a))
+* **admin:** finalize universal generator with 4-step layout and dynamic pricing ([919c643](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/919c643ea2fac6b50e12fea6a64b77b8519ba7b6))
+
+### 💎 Styling
+
+* **assets:** add WebP system icons to public/assets/img/icons ([3c83be9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3c83be9af18d33be333aff732b2183acadc068a9))
+
 ## [0.18.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.17.0...v0.18.0) (2026-05-04)
 
 ### 🚀 Features
