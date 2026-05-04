@@ -2,6 +2,23 @@
 
 
 
+## [0.18.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.17.0...v0.18.0) (2026-05-04)
+
+### 🚀 Features
+
+* **admin/core:** finance monitoring, status fallback & form submission fix ([94093a1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/94093a1839f9df0f53088b324306b391a079b1bd))
+* **config:** make mail log storage and display limits configurable ([1238589](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/12385894482d84dd0841fcce95e43aaa57784279))
+
+### 🐛 Bug Fixes
+
+* **admin:** implement status fallback in detailed check view ([3a3563d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a3563d1cc29d365f6276666cf56d5bc5c021002))
+* **core:** enforce global uniqueness for permit IDs across all archives ([0497f5a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0497f5a790182696dc675d0001ee0c5402d50aed))
+* **voucher:** ensure absolute uniqueness for generated voucher codes ([9b4c9f6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9b4c9f680f26bb6ef16d69236068d5194fc64838))
+
+# Changelog
+
+
+
 ## [0.17.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.16.0...v0.17.0) (2026-05-03)
 
 ### 🚀 Features
