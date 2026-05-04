@@ -8,6 +8,7 @@
  * @var bool                    $isDateValid
  * @var bool                    $isTimeAllowed
  * @var string                  $allowedToday
+ * @var string                  $appRoot
  */
 
 // Status-Farbe bestimmen (Logik synchron zur public.phtml)
@@ -91,8 +92,9 @@ if ($permit) {
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-none">📋 Pächter- & Fahrzeugdaten</h3>
+                <!-- FIX: Fallback auf OFFEN falls leer -->
                 <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
-                    FINANZ-STATUS: <?php echo \strtoupper($permit->status->current); ?>
+                    FINANZ-STATUS: <?php echo \strtoupper($permit->status->current ?: 'offen'); ?>
                 </span>
             </header>
             <div class="c-card__body u-padding-none">
