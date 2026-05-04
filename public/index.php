@@ -44,4 +44,5 @@ $settings['root_path'] = $appRoot;
 $container  = new Container(new Config($settings));
 $controller = $container->get(PermitController::class);
 
-$controller->handleRequest($_POST);
+// POST und GET übergeben
+$controller->handleRequest($_POST, $_GET);

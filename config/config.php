@@ -162,7 +162,7 @@ return [
         ],
     ],
     // --- MAIL LOG EINSTELLUNGEN ---
-    'mail_log_max_entries'   => 200, // Maximale Anzahl in der JSON-Datei
+    'mail_log_max_entries'   => 5000, // Maximale Anzahl in der JSON-Datei
     'mail_log_display_limit' => 50,  // Anzahl der gezeigten Einträge im Admin-Tab
 
     // --- TIMEOUTS (in Stunden) ---

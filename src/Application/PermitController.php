@@ -27,29 +27,37 @@ final readonly class PermitController
     }
 
     /**
-     * @param array<string, mixed> $post Entspricht $_POST
+     * @param array<string, mixed> $post
+     * @param array<string, mixed> $get
      */
-    public function handleRequest(array $post): void
+    public function handleRequest(array $post, array $get): void
     {
         $message = '';
         $success = false;
 
-        // Formular-Verarbeitung (nur bei POST)
+        // 1. Verarbeitung (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Wir speichern den Antrag nur zwischen und senden die Bestätigungsmail.
                 // Erst nach Klick auf den Link wird der Gutschein oder die Zahlung relevant.
                 $this->permitService->createPendingVerification($post);
 
-                $success = true;
-                $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. '
-                    . 'Bitte klicken Sie auf den Link darin, um Ihren Antrag (und ggf. Gutschein) zu aktivieren.';
+                // Nach Erfolg: Redirect, um F5-Doppelabsendung zu verhindern
+                \header('Location: index.php?sent=1');
+                exit;
             } catch (\Exception $exception) {
                 $message = 'Fehler: ' . $exception->getMessage();
             }
         }
 
-        // View rendern
+        // 2. Nachricht nach Redirect abfangen (GET)
+        if (isset($get['sent'])) {
+            $success = true;
+            $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. '
+                     . 'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
+        }
+
+        // 3. View rendern (wie gehabt)
         $this->render('formular', [
             'message'  => $message,
             'success'  => $success,
