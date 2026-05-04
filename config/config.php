@@ -161,6 +161,9 @@ return [
             'test' => 'deine-private-mail@test.de', // Hier landen alle Vorstand-Mails im Testmodus
         ],
     ],
+    // --- MAIL LOG EINSTELLUNGEN ---
+    'mail_log_max_entries'   => 200, // Maximale Anzahl in der JSON-Datei
+    'mail_log_display_limit' => 50,  // Anzahl der gezeigten Einträge im Admin-Tab
 
     // --- TIMEOUTS (in Stunden) ---
     'hours_pending_verify'   => 24, // Zeit für E-Mail Bestätigung

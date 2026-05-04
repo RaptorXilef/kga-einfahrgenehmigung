@@ -178,7 +178,11 @@ final readonly class SmtpMailService implements MailServiceInterface
         ];
 
         \array_unshift($logs, $entry);
-        $logs = \array_slice($logs, 0, 200); // Max 200 Einträge
+
+        // NEU: Limit aus Config laden (Fallback 200)
+        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
+        $logs       = \array_slice($logs, 0, $maxEntries);
+
         \file_put_contents($logPath, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 }

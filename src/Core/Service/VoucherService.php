@@ -34,18 +34,18 @@ final readonly class VoucherService
         array $prefillData = [],
     ): string {
         $activeVouchers = $this->loadVouchers();
-        $archivedItems  = $this->loadArchive();
+        $archivedItems  = $this->loadArchive(); // Hier wird die Datei der benutzten Codes geladen!
 
         // Wir sammeln alle bereits vergebenen Codes in einer Liste für den Abgleich
         $alreadyUsedCodes = \array_keys($activeVouchers);
         foreach ($archivedItems as $archivedEntry) {
-            $alreadyUsedCodes[] = $archivedEntry['code'];
+            $alreadyUsedCodes[] = $archivedEntry['code']; // Füge benutzte Codes zur Sperrliste hinzu
         }
 
         // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
         do {
             $newGeneratedCode = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
-        } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true));
+        } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true)); // Prüfe gegen die Sperrliste
 
         $activeVouchers[$newGeneratedCode] = [
             'code'         => $newGeneratedCode,

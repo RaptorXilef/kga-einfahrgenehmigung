@@ -1,17 +1,22 @@
 <?php
+
 /**
  * Partial: Dashboard Tab - Mail Logs
  *
  * Path: templates/pages/admin_dashboard/_tab_logs.phtml
  *
- * @var array $mailLogs
+ * @var array                             $mailLogs
+ * @var \App\Infrastructure\Config\Config $config
  */
+
+// Limit aus der Config holen
+$displayLimit = (int) $config->get('mail_log_display_limit', 50);
 ?>
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="assets/img/icons/nav-logs.webp" class="c-icon" alt=""><!-- 📧 --> E-Mail Versand-Log</h3>
-            <p class="u-text-muted">Die letzten 50 versendeten System-Nachrichten.</p>
+            <h3 class="u-margin-none"><img src="assets/img/icons/nav-logs.webp" class="c-icon" alt=""> E-Mail Versand-Log</h3>
+            <p class="u-text-muted">Die letzten <?php echo $displayLimit; ?> versendeten System-Nachrichten.</p>
         </header>
         <div class="u-padding-none">
             <table class="c-table">
@@ -25,9 +30,13 @@
                 </thead>
                 <tbody>
                     <?php if (empty($mailLogs)) { ?>
-                        <tr><td colspan="4" class="u-text-center u-padding-around-l">Keine Mail-Logs gefunden.</td></tr>
+                        <tr>
+                            <td colspan="4" class="u-text-center u-padding-around-l">Keine Mail-Logs gefunden.</td>
+                        </tr>
                     <?php } else { ?>
-                        <?php foreach (\array_slice($mailLogs, 0, 50) as $log) { ?>
+                        <?php
+                        // Hier nutzen wir das dynamische Limit für den Array-Schnitt
+                        foreach (\array_slice($mailLogs, 0, $displayLimit) as $log) { ?>
                             <tr>
                                 <td>
                                     <span style="font-size: 0.85rem; color: var(--text-muted);">
@@ -44,7 +53,9 @@
                                 </td>
                                 <td class="u-text-right">
                                     <span class="c-badge c-badge--<?php echo ($log['status'] === 'Erfolg') ? 'success' : 'danger'; ?>">
-                                        <?php echo ($log['status'] === 'Erfolg') ? '<img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --> Gesendet' : '<img src="assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --> Fehler'; ?>
+                                        <?php echo ($log['status'] === 'Erfolg') ?
+                                            '<img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --> Gesendet' :
+                                            '<img src="assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --> Fehler'; ?>
                                     </span>
                                 </td>
                             </tr>
