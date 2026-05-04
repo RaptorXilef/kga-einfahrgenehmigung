@@ -9,10 +9,14 @@
  * @var array                             $reasons
  */
 
-// Vorbereitung der Template-Daten für JavaScript
+// Vorbereitung der Template-Daten für JavaScript inkl. Preise
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
-    $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
+    $tplMetadata[$key] = [
+        'days'   => $tpl['days'],
+        'type'   => $tpl['type'],
+        'prices' => $tpl['prices'],
+    ];
 }
 ?>
 
@@ -31,7 +35,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
             <form id="unifiedToolsForm" method="POST" class="c-form">
 
-                <!-- 1. ZEITRAUM -->
+                <!-- 1. ZEITRAUM & VORLAGE -->
                 <div class="c-form-section">
                     <h4 class="c-form-section-title"><span class="c-form-section-title__step">1</span> Zeitraum & Vorlage</h4>
                     <div class="c-form-group u-margin-bottom-m">
@@ -55,7 +59,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </div>
                 </div>
 
-                <!-- 2. PÄCHTER -->
+                <!-- 2. ANGABEN ZUM PÄCHTER -->
                 <div class="c-form-section">
                     <h4 class="c-form-section-title"><span class="c-form-section-title__step">2</span> Angaben zum Pächter</h4>
                     <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
@@ -65,7 +69,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                         <div class="c-form-group">
                             <label class="c-form-label">Parzelle</label>
-                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="z.B. 123">
+                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="z.B. 0001">
                         </div>
                     </div>
                     <div class="c-form-group u-margin-top-m">
@@ -91,26 +95,45 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="z.B. B-XX 123">
                         </div>
                     </div>
-                    <div class="u-grid u-gap-m u-margin-top-m" style="grid-template-columns: 1fr 1fr;">
-                        <div class="c-form-group u-hidden" id="u_firma_wrapper">
-                            <label class="c-form-label">Firma / Lieferant</label>
-                            <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Firma">
-                        </div>
-                        <div class="c-form-group">
-                            <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle">✏️ Manuell</span></label>
-
-                            <!-- Vorauswahl -->
-                            <select name="zweck" id="u_zweck_select" class="c-form-select">
-                                <option value="">-- Wählen --</option>
-                                <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
-                                    <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
-                                <?php } ?>
-                            </select>
-                            <!-- Manuelle Eingabe (Standard versteckt) -->
-                            <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
-                        </div>
+                    <div class="c-form-group u-margin-top-m u-hidden" id="u_firma_wrapper">
+                        <label class="c-form-label">Firma / Lieferant</label>
+                        <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Name der Firma">
                     </div>
                     <div class="c-form-group u-margin-top-m">
+                        <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""><!-- ✏️ --> Manuell</span></label>
+                        <!-- Vorauswahl -->
+                        <select name="zweck" id="u_zweck_select" class="c-form-select">
+                            <option value="">-- Wählen --</option>
+                            <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
+                                <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                            <?php } ?>
+                        </select>
+                            <!-- Manuelle Eingabe (Standard versteckt) -->
+                        <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
+                    </div>
+                </div>
+
+                <!-- 4. GEBÜHR & INTERNE NOTIZ -->
+                <div class="c-form-section" style="background: #f8fafc; border: 2px solid var(--primary-soft);">
+                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">4</span> Gebühr & Interne Notiz</h4>
+
+                    <div class="u-flex u-align-center u-gap-m u-margin-bottom-m">
+                        <div style="flex-grow: 1;">
+                            <label class="c-form-label">Festzulegender Betrag (€)</label>
+                            <div class="u-flex u-align-center u-gap-s">
+                                <input type="number" step="0.01" name="manual_price" id="u_manual_price"
+                                    class="c-form-input" style="font-weight: bold; font-size: 1.2rem; color: var(--primary-color);"
+                                    value="0.00" readonly>
+
+                                <button type="button" id="price_cycle_btn" class="c-button" style="width: auto; padding: 0 15px; gap: 8px; white-space: nowrap;" onclick="cyclePriceMode()">
+                                    <img src="assets/img/icons/status-active.webp" class="c-icon" id="price_mode_icon" alt="">
+                                    <span id="price_mode_label">Automatisch</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="c-form-group">
                         <label class="c-form-label">Interne Notiz (Grund der Ausstellung)</label>
                         <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Warum wird diese Genehmigung erstellt?">
                         <datalist id="reason_presets">
@@ -152,6 +175,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     const inputKennzeichen = document.getElementById('u_kennzeichen');
     const selectTpl = document.getElementById('u_template_key');
     const selectTyp = document.getElementById('u_typ');
+    const inputPrice = document.getElementById('u_manual_price');
+    const priceBtnLabel = document.getElementById('price_mode_label');
+    const priceBtnIcon = document.getElementById('price_mode_icon');
     const firmaWrapper = document.getElementById('u_firma_wrapper');
     const warningBox = document.getElementById('date-warning');
     const warningText = document.getElementById('date-warning-text');
@@ -169,6 +195,100 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             e.target.value = e.target.value.toString().padStart(4, '0');
         }
     });
+
+    /**
+     * Preis-Modi: 0 = Auto, 1 = Kostenlos, 2 = Manuell
+     */
+    let currentPriceMode = 0;
+
+    function updatePriceDisplay() {
+        const config = templates[selectTpl.value];
+        const isCustom = config.days === 'custom';
+
+        if (isCustom && currentPriceMode !== 2) {
+            setPriceMode(2);
+            return;
+        }
+
+        if (currentPriceMode === 0) {
+            const price = config.prices[selectTyp.value] || 0;
+            inputPrice.value = parseFloat(price).toFixed(2);
+            inputPrice.readOnly = true;
+            priceBtnLabel.innerText = "Automatisch";
+            priceBtnIcon.src = "assets/img/icons/status-active.webp";
+        } else if (currentPriceMode === 1) {
+            inputPrice.value = "0.00";
+            inputPrice.readOnly = true;
+            priceBtnLabel.innerText = "Kostenlos";
+            priceBtnIcon.src = "assets/img/icons/status-denied.webp";
+        } else {
+            inputPrice.readOnly = false;
+            priceBtnLabel.innerText = "Manuell";
+            priceBtnIcon.src = "assets/img/icons/icon-crayon.webp";
+        }
+    }
+
+    function setPriceMode(mode) {
+        currentPriceMode = mode;
+        updatePriceDisplay();
+    }
+
+    function cyclePriceMode() {
+        const config = templates[selectTpl.value];
+        if (config.days === 'custom') {
+            setPriceMode(currentPriceMode === 1 ? 2 : 1);
+        } else {
+            setPriceMode((currentPriceMode + 1) % 3);
+        }
+    }
+
+    /**
+     * Bidirektionale Datumslogik
+     */
+    function handleDateChange(source) {
+        const config = templates[selectTpl.value];
+        const isCustom = config.days === 'custom';
+        const duration = isCustom ? 0 : parseInt(config.days);
+
+        warningBox.style.display = 'none';
+
+        if (!isCustom) {
+            // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
+            let minBisDate = new Date(today);
+            minBisDate.setDate(minBisDate.getDate() + duration);
+            const minBisStr = minBisDate.toISOString().split('T')[0];
+
+            // Sperre im Kalender setzen
+            inputBis.min = minBisStr;
+
+            if (source === 'bis') {
+                // BIS wurde geändert -> Berechne VON (BIS - Dauer)
+                // Aber: Wenn der Nutzer versucht, BIS vor das Minimum zu setzen:
+                if (inputBis.value < minBisStr) {
+                    inputBis.value = minBisStr;
+                    warningText.innerText = "Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.";
+                    warningBox.style.display = 'block';
+                }
+
+                let d = new Date(inputBis.value);
+                d.setDate(d.getDate() - duration);
+                inputVon.value = d.toISOString().split('T')[0];
+
+            } else {
+                // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
+                // Sicherstellen, dass VON nicht in der Vergangenheit liegt
+                if (inputVon.value < todayStr) inputVon.value = todayStr;
+                let d = new Date(inputVon.value);
+                d.setDate(d.getDate() + duration);
+                inputBis.value = d.toISOString().split('T')[0];
+            }
+        } else {
+            // Logik für Spezialzeitraum (Custom)
+            inputBis.min = inputVon.value;
+            if (inputBis.value < inputVon.value) inputBis.value = inputVon.value;
+        }
+        updatePriceDisplay();
+    }
 
     /**
      * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
@@ -207,58 +327,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     });
 
     /**
-     * Bidirektionale Datumslogik
-     */
-    function handleDateChange(source) {
-        const config = templates[selectTpl.value];
-        const isCustom = config.days === 'custom';
-        const duration = isCustom ? 0 : parseInt(config.days);
-
-        warningBox.style.display = 'none';
-
-        if (!isCustom) {
-            // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
-            let minBisDate = new Date(today);
-            minBisDate.setDate(minBisDate.getDate() + duration);
-            const minBisStr = minBisDate.toISOString().split('T')[0];
-
-            // Sperre im Kalender setzen
-            inputBis.min = minBisStr;
-
-            if (source === 'bis') {
-                // BIS wurde geändert -> Berechne VON (BIS - Dauer)
-                // Aber: Wenn der Nutzer versucht, BIS vor das Minimum zu setzen:
-                if (inputBis.value < minBisStr) {
-                    inputBis.value = minBisStr;
-                    warningText.innerText = "Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.";
-                    warningBox.style.display = 'block';
-                }
-
-                let d = new Date(inputBis.value);
-                d.setDate(d.getDate() - duration);
-                inputVon.value = d.toISOString().split('T')[0];
-
-            } else {
-                // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
-                // Sicherstellen, dass VON nicht in der Vergangenheit liegt
-                if (inputVon.value < todayStr) {
-                    inputVon.value = todayStr;
-                }
-
-                let d = new Date(inputVon.value);
-                d.setDate(d.getDate() + duration);
-                inputBis.value = d.toISOString().split('T')[0];
-            }
-        } else {
-            // Logik für Spezialzeitraum (Custom)
-            inputBis.min = inputVon.value;
-            if (inputBis.value < inputVon.value) {
-                inputBis.value = inputVon.value;
-            }
-        }
-    }
-
-    /**
      * Firma ein/ausblenden
      */
     function toggleFirmaField() {
@@ -267,42 +335,33 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         if (!isLkw) document.getElementById('u_firma').value = '';
     }
 
-    selectTpl.addEventListener('change', () => handleDateChange('template'));
-    inputVon.addEventListener('change', () => handleDateChange('von'));
-    inputBis.addEventListener('change', () => handleDateChange('bis'));
-    selectTyp.addEventListener('change', toggleFirmaField);
-
-    // Initialisierung beim Laden
-    handleDateChange('init');
-    toggleFirmaField();
-
     function toggleZweckMode() {
-    const select = document.getElementById('u_zweck_select');
-    const manual = document.getElementById('u_zweck_manual');
-    const toggle = document.getElementById('u_zweck_toggle');
+        const select = document.getElementById('u_zweck_select');
+        const manual = document.getElementById('u_zweck_manual');
+        const toggle = document.getElementById('u_zweck_toggle');
 
-    if (select.style.display === 'none') {
+        if (select.style.display === 'none') {
         // Modus: Liste anzeigen
-        select.style.display = 'block';
-        manual.style.display = 'none';
-        select.name = "zweck";
-        manual.name = "_unused";
+            select.style.display = 'block';
+            manual.style.display = 'none';
+            select.name = "zweck";
+            manual.name = "_unused";
 
         // Icon: Crayon/Stift für "Wechsel zu Manuell"
-        toggle.innerHTML = '<img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
-    } else {
+            toggle.innerHTML = '<img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
+        } else {
         // Modus: Manuelle Eingabe anzeigen
-        select.style.display = 'none';
-        manual.style.display = 'block';
-        select.name = "_unused";
-        manual.name = "zweck";
+            select.style.display = 'none';
+            manual.style.display = 'block';
+            select.name = "_unused";
+            manual.name = "zweck";
 
         // Icon: Folder/Ordner für "Wechsel zu Liste"
-        toggle.innerHTML = '<img src="assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
+            toggle.innerHTML = '<img src="assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
 
-        manual.focus();
+            manual.focus();
+        }
     }
-}
 
     function submitUnifiedForm(actionType) {
         const form = document.getElementById('unifiedToolsForm');
@@ -317,4 +376,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         form.appendChild(hidden);
         form.submit();
     }
+
+    selectTpl.addEventListener('change', () => handleDateChange('template'));
+    inputVon.addEventListener('change', () => handleDateChange('von'));
+    inputBis.addEventListener('change', () => handleDateChange('bis'));
+    selectTyp.addEventListener('change', toggleFirmaField);
+
+    // Initialisierung beim Laden
+    handleDateChange('init');
+    toggleFirmaField();
 </script>
