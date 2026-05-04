@@ -80,7 +80,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
                 <!-- 3. FAHRZEUG & ZWECK -->
                 <div class="c-form-section">
-                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Fahrzeug & Grund</h4>
+                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Fahrzeug & Zweck</h4>
                     <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
                         <div class="c-form-group">
                             <label class="c-form-label">Fahrzeugtyp</label>
@@ -108,7 +108,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
                             <?php } ?>
                         </select>
-                            <!-- Manuelle Eingabe (Standard versteckt) -->
+                        <!-- Manuelle Eingabe (Standard versteckt) -->
                         <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
                     </div>
                 </div>
@@ -126,7 +126,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     value="0.00" readonly>
 
                                 <button type="button" id="price_cycle_btn" class="c-button" style="width: auto; padding: 0 15px; gap: 8px; white-space: nowrap;" onclick="cyclePriceMode()">
-                                    <img src="assets/img/icons/status-active.webp" class="c-icon" id="price_mode_icon" alt="">
+                                    <img src="assets/img/icons/icon-money-bag.webp" class="c-icon" id="price_mode_icon" alt="">
                                     <span id="price_mode_label">Automatisch</span>
                                 </button>
                             </div>
@@ -185,27 +185,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     // Heute als String/Basis
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    inputVon.min = todayStr; // Verhindert Datum in der Vergangenheit
+    inputVon.min = todayStr;
 
-    /**
-     * Automatische Parzellen-Formatierung (0001)
-     */
-    inputParzelle.addEventListener('blur', (e) => {
-        if (e.target.value) {
-            e.target.value = e.target.value.toString().padStart(4, '0');
-        }
-    });
-
-    /**
-     * Preis-Modi: 0 = Auto, 1 = Kostenlos, 2 = Manuell
-     */
-    let currentPriceMode = 0;
+    let currentPriceMode = 0; // Preis-Modi: 0=Auto, 1=Free, 2=Manual
 
     function updatePriceDisplay() {
         const config = templates[selectTpl.value];
         const isCustom = config.days === 'custom';
 
-        if (isCustom && currentPriceMode !== 2) {
+        if (isCustom && currentPriceMode !== 2 && currentPriceMode !== 1) {
             setPriceMode(2);
             return;
         }
@@ -215,16 +203,16 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             inputPrice.value = parseFloat(price).toFixed(2);
             inputPrice.readOnly = true;
             priceBtnLabel.innerText = "Automatisch";
-            priceBtnIcon.src = "assets/img/icons/status-active.webp";
+            priceBtnIcon.src = "assets/img/icons/icon-money-bag.webp";
         } else if (currentPriceMode === 1) {
             inputPrice.value = "0.00";
             inputPrice.readOnly = true;
             priceBtnLabel.innerText = "Kostenlos";
-            priceBtnIcon.src = "assets/img/icons/status-denied.webp";
+            priceBtnIcon.src = "assets/img/icons/icon-free.webp";
         } else {
             inputPrice.readOnly = false;
             priceBtnLabel.innerText = "Manuell";
-            priceBtnIcon.src = "assets/img/icons/icon-crayon.webp";
+            priceBtnIcon.src = "assets/img/icons/icon-dollar-sign.webp";
         }
     }
 
@@ -235,10 +223,16 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     function cyclePriceMode() {
         const config = templates[selectTpl.value];
+
+        // Sonderfall für Custom-Vorlagen (erlauben kein "Automatisch")
         if (config.days === 'custom') {
-            setPriceMode(currentPriceMode === 1 ? 2 : 1);
+            // Wechselt nur zwischen Manuell (2) und Kostenlos (1)
+            setPriceMode(currentPriceMode === 2 ? 1 : 2);
         } else {
-            setPriceMode((currentPriceMode + 1) % 3);
+            // Neue Reihenfolge für Standard-Vorlagen: 0 (Auto) -> 2 (Manuell) -> 1 (Kostenlos)
+            if (currentPriceMode === 0) setPriceMode(2); // Von Auto zu Manuell
+            else if (currentPriceMode === 2) setPriceMode(1); // Von Manuell zu Kostenlos
+            else setPriceMode(0); // Von Kostenlos zurück zu Auto
         }
     }
 
@@ -291,12 +285,16 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     }
 
     /**
+     * Automatische Parzellen-Formatierung (0001)
+     */
+    inputParzelle.addEventListener('blur', (e) => {
+        if (e.target.value) e.target.value = e.target.value.toString().padStart(4, '0');
+    });
+
+    /**
      * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
      */
     inputKennzeichen.addEventListener('blur', (e) => {
-        // Falls im Formular vorhanden, Check auf Gutschein-Lock
-        if (typeof isVoucherActive !== 'undefined' && isVoucherActive) return;
-
         let val = e.target.value.toUpperCase().trim();
         if (val.length <= 3) return;
 
@@ -315,15 +313,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
         const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
 
-        if (pattern4.test(clean)) {
-            e.target.value = clean.replace(pattern4, '$1-$2 $3');
-        } else if (berlinPattern.test(clean)) {
-            e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
-        } else if (complexPattern.test(clean)) {
-            e.target.value = clean.replace(complexPattern, '$1-$2 $3');
-        } else if (fallbackPattern.test(clean)) {
-            e.target.value = clean.replace(fallbackPattern, '$1 $2');
-        }
+        if (pattern4.test(clean)) e.target.value = clean.replace(pattern4, '$1-$2 $3');
+        else if (berlinPattern.test(clean)) e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
+        else if (complexPattern.test(clean)) e.target.value = clean.replace(complexPattern, '$1-$2 $3');
+        else if (fallbackPattern.test(clean)) e.target.value = clean.replace(fallbackPattern, '$1 $2');
     });
 
     /**
@@ -341,22 +334,22 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         const toggle = document.getElementById('u_zweck_toggle');
 
         if (select.style.display === 'none') {
-        // Modus: Liste anzeigen
+            // Modus: Liste anzeigen
             select.style.display = 'block';
             manual.style.display = 'none';
             select.name = "zweck";
             manual.name = "_unused";
 
-        // Icon: Crayon/Stift für "Wechsel zu Manuell"
+            // Icon: Crayon/Stift für "Wechsel zu Manuell"
             toggle.innerHTML = '<img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
         } else {
-        // Modus: Manuelle Eingabe anzeigen
+            // Modus: Manuelle Eingabe anzeigen
             select.style.display = 'none';
             manual.style.display = 'block';
             select.name = "_unused";
             manual.name = "zweck";
 
-        // Icon: Folder/Ordner für "Wechsel zu Liste"
+            // Icon: Folder/Ordner für "Wechsel zu Liste"
             toggle.innerHTML = '<img src="assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
 
             manual.focus();
