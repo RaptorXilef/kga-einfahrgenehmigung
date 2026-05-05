@@ -199,5 +199,6 @@ return [
     'admin_dev_mode' => false,  // TRUE = Kein Admin-Login nötig
 
     // Wenn true, werden alle öffentlichen Seiten umgeleitet
-    'maintenance_mode' => false,
+    'maintenance_mode'       => false, // Pächter-Seiten sperren
+    'maintenance_mode_admin' => false, // AUCH Admin-Seiten sperren
 ];

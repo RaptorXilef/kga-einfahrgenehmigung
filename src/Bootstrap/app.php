@@ -51,17 +51,30 @@ if (\file_exists($appRoot . '/config/config.local.php')) {
 $settings              = \array_replace_recursive($baseSettings, $localSettings);
 $settings['root_path'] = $appRoot;
 
-// --- NEU: Wartungsmodus-Logik ---
-if (! empty($settings['maintenance_mode'])) {
-    $currentScript = \basename($_SERVER['SCRIPT_NAME']);
-    // Erlaube admin.php und alles im /api/ Ordner (für Hintergrundprozesse),
-    // sowie die Wartungsseite selbst, um Endlosschleifen zu vermeiden.
-    $allowedScripts = ['admin.php', 'maintenance.php', 'users.php'];
+// --- NEU: Erweiterte Wartungsmodus-Logik ---
+$currentScript     = \basename($_SERVER['SCRIPT_NAME']);
+$isMaintenancePage = $currentScript === 'maintenance.php';
 
-    if (! \in_array($currentScript, $allowedScripts, true)) {
-        // Falls wir nicht auf einer erlaubten Seite sind: Umleitung
+if (! $isMaintenancePage) {
+    $adminMaintenance  = ! empty($settings['maintenance_mode_admin']);
+    $publicMaintenance = ! empty($settings['maintenance_mode']);
+
+    if ($adminMaintenance) {
+        // STUFE 2: Totalsperre (Alles außer die Wartungsseite selbst)
         \header('Location: ' . ($settings['base_url'] ?? '/') . 'maintenance.php');
         exit;
+    }
+
+    if ($publicMaintenance) {
+        // STUFE 1: Nur Pächter-Seiten sperren
+        $allowedAdminScripts = ['admin.php', 'users.php'];
+
+        // Hinweis: API-Anrufe lassen wir durch, da sie oft vom Admin-Panel
+        // oder für die Preisberechnung im Hintergrund genutzt werden.
+        if (! \in_array($currentScript, $allowedAdminScripts, true) && ! \str_contains($_SERVER['SCRIPT_NAME'], '/api/')) {
+            \header('Location: ' . ($settings['base_url'] ?? '/') . 'maintenance.php');
+            exit;
+        }
     }
 }
 // --- Ende Wartungsmodus ---

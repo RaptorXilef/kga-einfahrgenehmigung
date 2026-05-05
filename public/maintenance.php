@@ -40,6 +40,13 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
             Wir aktualisieren gerade das System für die <strong><?php echo \htmlspecialchars($vereinsName); ?></strong>,
             um Ihnen den bestmöglichen Service zu bieten.
         </p>
+
+        <?php if (! empty($settings['maintenance_mode_admin'])) { ?>
+            <div style="display:inline-block; margin-top: 15px; padding: 5px 15px; background: #fee2e2; color: #991b1b; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">
+                Vollständige Systemwartung
+            </div>
+        <?php } ?>
+
         <p style="margin-top: 20px; font-weight: bold; color: #1e293b;">
             In Kürze sind wir wieder für Sie da.
         </p>
