@@ -20,7 +20,10 @@ namespace App\Contracts\Payment;
 interface PaymentProviderInterface
 {
     /**
-     * Erstellt eine Bestellung beim Anbieter und gibt die Order-ID zurück.
+     * Erstellt eine Transaktion/Order/Bestellung beim Anbieter.
+     *
+     * @param  float       $amount Der zu zahlende Betrag
+     * @return string|null Die Order-ID des Anbieters oder null bei Fehler
      */
     public function createOrder(float $amount): string|false;
 

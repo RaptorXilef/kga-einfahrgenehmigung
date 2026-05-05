@@ -6,132 +6,132 @@
 // See LICENSE.md for full license details.
 
 /**
- * PayPal-Implementierung des PaymentProviders.
+ * JSON-Implementierung des Storage-Interfaces.
  *
- * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
- * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
+ * Verwaltet den Lese- und Schreibzugriff auf die lokale daten.json.
  *
- * Path: src/Infrastructure/Payment/PayPalService.php
+ * Path: src/Infrastructure/Storage/JsonStorage.php
  */
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Payment;
+namespace App\Infrastructure\Storage;
 
-use App\Contracts\Payment\PaymentProviderInterface;
-use App\Infrastructure\Config\Config;
+use App\Contracts\Storage\StorageInterface;
+use App\Core\Entity\Permit;
 
-final readonly class PayPalService implements PaymentProviderInterface
+final readonly class JsonStorage implements StorageInterface
 {
-    private const string API_BASE_SANDBOX = 'https://api-m.sandbox.paypal.com';
-    private const string API_BASE_LIVE    = 'https://api-m.paypal.com';
+    use StorageMapperTrait;
 
     public function __construct(
-        private Config $config,
+        private string $filePath,
     ) {
     }
 
-    public function createOrder(float $amount): string|false
+    public function save(Permit $permit): bool
     {
-        $accessToken = $this->getAccessToken();
-        $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $data = $this->loadRaw();
+        // Nutzt den Trait für die Umwandlung
+        $data[$permit->code] = $this->flattenEntity($permit);
 
-        $curlHandle = \curl_init("$baseUrl/v2/checkout/orders");
-        \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($curlHandle, \CURLOPT_POST, true);
-        \curl_setopt($curlHandle, \CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            "Authorization: Bearer $accessToken",
-        ]);
+        return (bool) \file_put_contents(
+            $this->filePath,
+            \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            \LOCK_EX,
+        );
+    }
 
-        $payload = [
-            'intent'         => 'CAPTURE',
-            'purchase_units' => [[
-                'amount' => [
-                    'currency_code' => 'EUR',
-                    'value'         => \number_format($amount, 2, '.', ''),
-                ],
-            ]],
-        ];
+    public function findByHash(string $hash): ?Permit
+    {
+        $data = $this->loadRaw();
+        $hash = \strtoupper(\trim($hash));
 
-        \curl_setopt($curlHandle, \CURLOPT_POSTFIELDS, \json_encode($payload));
-        $response = \curl_exec($curlHandle);
-        $data     = \json_decode((string) $response, true);
-        // curl_close entfernt (deprecated in IDE)
+        // 1. Exakter Match (ML-0020-B-HD-123-6Y5C)
+        if (isset($data[$hash])) {
+            return $this->mapToEntity($data[$hash]);
+        }
 
-        return $data['id'] ?? false;
+        // 2. Teil-Match (Suche nach der 4-stelligen Zufalls-ID am Ende)
+        foreach ($data as $item) {
+            if (\str_ends_with((string) $item['code'], $hash)) {
+                return $this->mapToEntity($item);
+            }
+        }
+
+        return null;
+    }
+
+    public function getAll(): array
+    {
+        return \array_map($this->mapToEntity(...), $this->loadRaw());
+    }
+
+    public function migrateTo(StorageInterface $target): int
+    {
+        $count = 0;
+        foreach ($this->getAll() as $permit) {
+            if (! $target->save($permit)) {
+                continue;
+            }
+
+            ++$count;
+        }
+
+        return $count;
     }
 
     /**
-     * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
-     *
-     * @param float $expectedAmount Der serverseitig erwartete Betrag (z.B. 3.00 oder 10.00).
+     * @return array<string, mixed>
      */
-    public function captureOrder(string $orderId, float $expectedAmount): bool
+    private function loadRaw(): array
     {
-        $accessToken = $this->getAccessToken();
-        $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
-
-        // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
-        $curlHandle = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
-        \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($curlHandle, \CURLOPT_POST, true);
-        \curl_setopt($curlHandle, \CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            "Authorization: Bearer $accessToken",
-        ]);
-
-        $response = \curl_exec($curlHandle);
-        $httpCode = \curl_getinfo($curlHandle, \CURLINFO_HTTP_CODE);
-        // curl_close entfernt (deprecated in IDE)
-
-        // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
-        if ($httpCode !== 201 && $httpCode !== 200) {
-            return false;
+        if (! \file_exists($this->filePath)) {
+            return [];
         }
 
-        $data = \json_decode((string) $response, true);
-
-        // 2. STATUS-PRÜFUNG
-        $status = $data['status'] ?? '';
-
-        // 3. BETRAGS-PRÜFUNG (WICHTIG für Sicherheit!)
-        // PayPal liefert den Betrag als String im Deep-Array: purchase_units -> payments -> captures -> amount -> value
-        $capturedAmount = $data['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? '0.00';
-
-        // Wir formatieren deinen erwarteten Preis auf das PayPal-Format (String mit 2 Nachkommastellen)
-        $formattedExpected = \number_format($expectedAmount, 2, '.', '');
-
-        // Nur wenn Status 'COMPLETED' UND der Preis exakt mit unserem System übereinstimmt:
-        return $status === 'COMPLETED' && $capturedAmount === $formattedExpected;
+        return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
     }
 
-    /**
-     * Holt den temporären OAuth2 Access Token von PayPal.
-     */
-    private function getAccessToken(): string
+    public function findByLicensePlate(string $plate): ?Permit
     {
-        $baseUrl = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $all         = $this->getAll();
+        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
 
-        // Dynamische Auswahl der Credentials basierend auf dem Modus
-        $ppCfg    = $this->config->get('paypal');
-        $mode     = $this->config->isTestMode() ? 'sandbox' : 'live';
-        $clientId = $ppCfg[$mode]['client_id'];
-        $secret   = $ppCfg[$mode]['secret'];
-
-        $curlHandle = \curl_init("$baseUrl/v1/oauth2/token");
-        \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($curlHandle, \CURLOPT_USERPWD, "$clientId:$secret");
-        \curl_setopt($curlHandle, \CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
-
-        $response = \curl_exec($curlHandle);
-        $data     = \json_decode((string) $response, true);
-        // curl_close entfernt (deprecated in IDE)
-
-        if (! isset($data['access_token'])) {
-            throw new \RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte API-Daten prüfen.');
+        if ($searchPlate === '') {
+            return null;
         }
 
-        return (string) $data['access_token'];
+        $candidates = [];
+
+        foreach ($all as $permit) {
+            $storedPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($permit->vehicle->kennzeichen));
+            if ($storedPlate === $searchPlate) {
+                $candidates[] = $permit;
+            }
+        }
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        // Sortierung:
+        // 1. Aktive Genehmigungen zuerst
+        // 2. Dann nach dem Enddatum (neueste zuerst)
+        \usort($candidates, function (Permit $a, Permit $b) {
+            $aValid = $a->isValid();
+            $bValid = $b->isValid();
+
+            if ($aValid && ! $bValid) {
+                return -1;
+            }
+            if (! $aValid && $bValid) {
+                return 1;
+            }
+
+            return $b->validity->bis <=> $a->validity->bis;
+        });
+
+        return $candidates[0];
     }
 }
