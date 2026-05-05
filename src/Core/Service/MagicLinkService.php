@@ -23,35 +23,51 @@ final readonly class MagicLinkService
         $this->storagePath = $this->config->get('root_path') . '/storage/magic_links.json';
     }
 
-    public function createToken(string $email): string
+    public function createToken(string $email): array
     {
         $token = \bin2hex(\random_bytes(32));
-        $links = $this->loadLinks();
+        // Kurzer, gut lesbarer Code für manuelle Eingabe
+        $code = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
-        $duration      = (int) $this->config->get('magic_link_duration', 15);
+        $links    = $this->loadLinks();
+        $duration = (int) $this->config->get('magic_link_duration', 15);
+
         $links[$token] = [
             'email'   => $email,
+            'code'    => $code,
             'expires' => \time() + ($duration * 60),
         ];
 
         $this->saveLinks($links);
 
-        return $token;
+        return ['token' => $token, 'code' => $code];
     }
 
-    public function verifyToken(string $token): ?string
+    public function verifyAny(string $input): ?string
     {
-        $links = $this->loadLinks();
-        if (! isset($links[$token]) || $links[$token]['expires'] < \time()) {
-            return null;
+        $links      = $this->loadLinks();
+        $now        = \time();
+        $input      = \trim(\strtoupper($input));
+        $foundEmail = null;
+
+        foreach ($links as $token => $data) {
+            // Passive Bereinigung abgelaufener Tokens
+            if ($data['expires'] < $now) {
+                unset($links[$token]);
+
+                continue;
+            }
+
+            // Prüfung gegen Lang-Token oder Kurz-Code
+            if ($token === $input || (isset($data['code']) && $data['code'] === $input)) {
+                $foundEmail = $data['email'];
+                unset($links[$token]); // Einmal-Nutzung
+            }
         }
 
-        $email = $links[$token]['email'];
-        // Einmal-Prinzip: Link nach Nutzung löschen
-        unset($links[$token]);
         $this->saveLinks($links);
 
-        return $email;
+        return $foundEmail;
     }
 
     /**

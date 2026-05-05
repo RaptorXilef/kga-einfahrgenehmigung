@@ -1,17 +1,21 @@
-<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-    <h2 style="color: #2c3e50;">Ihr Login-Link</h2>
+<?php
+/**
+ * @file templates/emails/magic_link.phtml
+ */
+?>
+<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+    <h2 style="color: #2c3e50;">Ihr Login-Code</h2>
     <p>Hallo,</p>
-    <p>Sie haben einen Link angefordert, um Ihre bisherigen Ausnahmegenehmigungen für die Anlage <strong>{{vereinsName}}</strong> einzusehen.</p>
+    <p>nutzen Sie den folgenden Code, um sich einzuloggen:</p>
 
-    <div style="text-align: center; margin: 30px 0;">
-        <a href="{{link}}" style="background: #3498db; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 18px; display: inline-block;">
-            Genehmigungen jetzt ansehen
-        </a>
+    <div style="text-align: center; margin: 30px 0; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #3498db;"><?php echo $code; ?></span>
     </div>
 
-    <p style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; font-size: 14px;">
-        <strong>Wichtig:</strong> Dieser Link ist aus Sicherheitsgründen nur <strong>{{duration}} Minuten</strong> gültig und kann nur einmal verwendet werden.
-    </p>
+    <p>Alternativ können Sie auch direkt diesen Link nutzen:</p>
+    <p style="text-align: center;"><a href="<?php echo $link; ?>">Direkt-Login via Link</a></p>
+
+    <p style="font-size: 13px; color: #64748b;">Gültig für <?php echo $duration; ?> Minuten.</p>
 
     <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;">
     <p style="font-size: 12px; color: #999;">Falls Sie diesen Link nicht angefordert haben, können Sie diese E-Mail einfach ignorieren.</p>

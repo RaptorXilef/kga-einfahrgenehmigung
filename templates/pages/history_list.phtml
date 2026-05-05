@@ -1,6 +1,9 @@
 <?php
-
 /**
+ * Page: History Login (Magic Link Request)
+ *
+ * Path: templates/pages/history_login.phtml
+ *
  * @var \App\Core\Entity\Permit[] $permits
  * @var string                    $email
  * @var array                     $settings
@@ -9,82 +12,44 @@
 ?>
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
-    <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verlauf einsehen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="assets/css/main.min.css">
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
+<body class="u-bg-light l-public-body">
+    <div class="c-tab-content-container u-padding-y-xl">
+        <div class="c-card u-margin-auto" style="max-width: 450px; border-top: 5px solid var(--primary-color);">
+            <header class="c-card__header u-text-center u-padding-around-l">
+                <div class="u-margin-bottom-s">
+                    <img src="assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 48px; height: 48px;" alt="">
+                </div>
+                <h2 class="u-margin-none">Meine Genehmigungen</h2>
+                <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, um einen sicheren Login-Link zu erhalten.</p>
+            </header>
 
-<body class="u-bg-light">
-    <div class="c-container u-padding-y-l">
-        <header class="u-flex u-justify-between u-align-center u-margin-bottom-l">
-            <div>
-                <h1>Meine Genehmigungen</h1>
-                <p class="u-text-muted">Angemeldet als: <strong><?php echo \htmlspecialchars($email); ?></strong></p>
-            </div>
-            <a href="history.php?action=logout" class="c-button c-button--text">Abmelden</a>
-        </header>
-
-        <section class="c-card">
-            <?php if (empty($permits)) { ?>
-                <p class="u-padding-around-m">Keine abgeschlossenen Genehmigungen gefunden.</p>
-            <?php } else { ?>
-                <table class="c-table">
-                    <thead>
-                        <tr>
-                            <th>SmartCode</th>
-                            <th>Zeitraum</th>
-                            <th>Parzelle</th>
-                            <th>Status</th>
-                            <th class="u-text-right">Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($permits as $permit) { ?>
-                            <tr>
-                                <td><code><?php echo $permit->code; ?></code></td>
-                                <td><small><?php echo $permit->validity->von->format('d.m.Y'); ?> - <?php echo $permit->validity->bis->format('d.m.Y'); ?></small></td>
-                                <td>Nr. <?php echo $permit->owner->parzelle; ?></td>
-                                <td>
-                                    <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
-                                        <?php echo \strtoupper($permit->status->current); ?>
-                                    </span>
-                                </td>
-                                <td class="u-text-right">
-                                    <div class="u-flex u-gap-xs u-justify-end">
-                                        <a href="history.php?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--primary c-button--small">
-                                            <img src="assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ --> Dokument laden
-                                        </a>
-                                        <a href="check.php?code=<?php echo $permit->code; ?>" class="c-button c-button--secondary c-button--small" title="Status prüfen">
-                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt=""><!-- 👁️ -->
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            <?php } ?>
-
-            <div class="u-padding-around-m u-border-top u-text-center">
-                <?php
-                $lastYear = (int) \date('Y') - 1;
-if ($currentArchiveYear !== $lastYear) {
-    ?>
-                    <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--text">
-                        📥 Daten aus dem Jahr <?php echo $lastYear; ?> laden
-                    </a>
-                <?php } else { ?>
-                    <p class="u-text-small u-text-muted">Archiv <?php echo $lastYear; ?> ist geladen.</p>
+            <div class="c-card__body u-padding-around-l">
+                <?php if ($message) { ?>
+                    <div class="c-alert c-alert--info u-margin-bottom-l"><?php echo \htmlspecialchars($message); ?></div>
                 <?php } ?>
-            </div>
-        </section>
 
-        <div class="u-margin-top-l u-text-center">
-            <a href="index.php" class="c-button">Neuen Antrag stellen</a>
+                <form method="POST" class="c-form">
+                    <div class="c-form-group">
+                        <label class="c-form-label">E-Mail-Adresse</label>
+                        <input type="email" name="email" class="c-form-input" placeholder="ihre@mail.de" required autofocus>
+                    </div>
+                    <button type="submit" name="request_link" class="c-button--primary u-width-100 u-margin-top-m" style="padding: 14px;">
+                        Link anfordern ✉️
+                    </button>
+                </form>
+            </div>
+
+            <footer class="u-text-center u-padding-bottom-l">
+                <a href="index.php" class="u-text-link u-text-small">← Zurück zum Antrag</a>
+            </footer>
         </div>
     </div>
 </body>
-
 </html>
