@@ -190,11 +190,14 @@ return [
      * true  => PayPal Sandbox & Kein echter Mailversand (wenn test_mail_active = false)
      * false => PayPal LIVE & Echter Mailversand
      */
-    'test_mode' => true,  // TRUE = Sandbox & Test-Mails | FALSE = Live & Echt-Mails
+    'test_mode' => false,  // TRUE = Sandbox & Test-Mails | FALSE = Live & Echt-Mails
     /**
      * ADMIN DEV MODE
      * true  => Überspringt den Login in /admin.php (Vollzugriff für Entwicklung)
      * false => Login zwingend erforderlich
      */
-    'admin_dev_mode' => true,  // TRUE = Kein Admin-Login nötig
+    'admin_dev_mode' => false,  // TRUE = Kein Admin-Login nötig
+
+    // Wenn true, werden alle öffentlichen Seiten umgeleitet
+    'maintenance_mode' => false,
 ];
