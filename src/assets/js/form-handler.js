@@ -1,6 +1,13 @@
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
 /**
- * @file form-handler.js
- * Modulares Management des Antragsformulars (v0.12.0).
+ * Path: src/assets/js/form-handler.js
+ * Path: public/assets/js/form-handler.js
+ *
+ * Modulares Management des Antragsformulars
  *
  * Beinhaltet:
  * - Fahrzeugtyp-Umschaltung

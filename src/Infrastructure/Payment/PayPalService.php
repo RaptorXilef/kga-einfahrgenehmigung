@@ -1,6 +1,9 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * PayPal-Implementierung des PaymentProviders.
@@ -8,14 +11,7 @@
  * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
  * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
  *
- * @file      src/Infrastructure/Payment/PayPalService.php
- *
- * @copyright (c) 2026 Felix Maywald. All rights reserved.
- * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE
- *
- * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
- *
- * @author    Felix Maywald (@RaptorXilef)
+ * Path: src/Infrastructure/Payment/PayPalService.php
  */
 
 declare(strict_types=1);

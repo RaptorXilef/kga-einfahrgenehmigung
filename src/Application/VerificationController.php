@@ -1,11 +1,14 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Orchestriert den Double-Opt-In Verifizierungsprozess.
  *
- * @file src/Application/VerificationController.php
+ * Path: src/Application/VerificationController.php
  */
 
 declare(strict_types=1);

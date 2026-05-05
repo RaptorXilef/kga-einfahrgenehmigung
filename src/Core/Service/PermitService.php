@@ -1,185 +1,189 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
- * Service zur Verwaltung des Genehmigungsprozesses.
+ * Interface für Zahlungsanbieter.
  *
- * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
- * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
- * mit konfigurierbaren Sicherheits-Features und dynamischem Pricing.
+ * Definiert die notwendigen Methoden zur Verifizierung und Abwicklung von Zahlungen.
  *
- * @file      src/Core/Service/PermitService.php
+ * Path:      src/Contracts/Payment/PaymentProviderInterface.php
  */
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Contracts\Payment;
 
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\Payment\PaymentProviderInterface;
-use App\Contracts\Storage\StorageInterface;
-use App\Core\Entity\Owner;
-use App\Core\Entity\Permit;
-use App\Core\Entity\Status;
-use App\Core\Entity\Validity;
-use App\Core\Entity\Vehicle;
-
-/**
- * Zentraler Service für Ausnahmegenehmigungen.
- */
-final readonly class PermitService
+interface PaymentProviderInterface
 {
-    public function __construct(
-        private StorageInterface $storage,
-        private MailServiceInterface $mailService,
-        private ConfigInterface $config,
-        private HolidayService $holidayService,
-        private PaymentProviderInterface $paymentProvider,
-        private VoucherService $voucherService,
-    ) {}
+    /**
+     * Erstellt eine Bestellung beim Anbieter und gibt die Order-ID zurück.
+     */
+    public function createOrder(float $amount): string|false;
 
     /**
-     * Erstellt eine neue Genehmigung basierend auf Vorlagen. v0.14.0
+     * Verifiziert eine Zahlung beim Anbieter und schließt diese ab.
      *
-     * @param array<string, mixed> $data
-     * @param bool                 $sendMails Steuert den sofortigen Mailversand.
+     * @param string $orderId        Die vom Client übermittelte Order-ID.
+     * @param float  $expectedAmount Der Betrag, der laut deiner Config gezahlt werden muss.
+     *
+     * @return bool True, wenn die Zahlung erfolgreich verifiziert und abgeschlossen wurde.
      */
-    public function createPermit(array $data, bool $sendMails = true): Permit
-    {
-        $this->validateEmail((string) ($data['email'] ?? ''));
+    public function captureOrder(string $orderId, float $expectedAmount): bool;
+}
+) : null;
 
-        // Vorlagen-Logik laden
-        $tKey      = (string) ($data['template_key'] ?? 'std_7');
-        $templates = (array) $this->config->get('permit_templates', []);
-        $template  = (array) ($templates[$tKey] ?? $templates['std_7']);
-
-        // 1. Zeiträume bestimmen
-        $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
-
-        // Automatische Berechnung der Tage aus der Vorlage
-        $endDate = $startDate->modify('+' . $template['days'] . ' days');
-        if ($template['days'] === 'custom') {
-            $endDate = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
+        // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
+        if ($permit === null && $code !== '') {
+            $permit = $this->storage->findByLicensePlate($code);
         }
 
-        // 2. Preis bestimmen (Template-Preis oder Admin-Override)
-        $typ   = (string) ($data['typ'] ?? 'pkw');
-        $preis = isset($data['manual_price'])
-            ? (float) $data['manual_price']
-            : (float) ($template['prices'][$typ] ?? 0.0);
+        // 2. Suche in verifizierten Anträgen (Warteraum 2) via PermitService
+        // Wir nutzen den PermitService, um den Warteraum zu prüfen
+        $tempRequest = $this->permitService->getVerifiedRequest($token);
 
-        // Code-Generierung
-        do {
-            $randomId = $this->generateV4Suffix();
+        // Fall 1: Nichts eingegeben -> Suchmaske (Ordner-Pfad angepasst!)
+        if ($code === '' && $tempRequest === null) {
+            $this->render('check/search', ['error' => null]);
 
-            // 1. Kennzeichen formatieren für die Anzeige (B-HD 7398)
-            $displayPlate = $this->formatLicensePlate((string) ($data['kennzeichen'] ?? ''));
-
-            // 2. Identifier-Plate: Leerzeichen durch Bindestriche ersetzen (B-HD-7398)
-            $identifierPlate = \str_replace(' ', '-', $displayPlate);
-
-            // 3. Eindeutige Kennung bauen: ML-0371-B-HD-7398-6Y5C
-            $platePart = $identifierPlate !== '' ? $identifierPlate : 'LKW';
-
-            $fullIdentifier = \sprintf(
-                '%s-%s-%s-%s',
-                $this->config->get('prefix', 'ML'),
-                \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
-                $platePart,
-                $randomId,
-            );
-
-            // Wir prüfen, ob der Code bereits existiert (Storage oder Warteräume)
-            // NEU: Globale Prüfung über alle Archive hinweg
-        } while (! $this->isCodeGloballyUnique($fullIdentifier));
-
-        /** @var array<string, string> $purposes */
-        $purposes = (array) $this->config->get('purposes', []);
-        $zweck    = (string) ($purposes[(string) ($data['zweck'] ?? '')] ?? 'Privat');
-
-        // Value Objects-Instanziierung
-        $permit = new Permit(
-            code: $fullIdentifier,
-            templateKey: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
-            owner: new Owner(
-                (string) $data['name'],
-                (string) $data['email'],
-                \str_pad((string) $data['parzelle'], 4, '0', \STR_PAD_LEFT),
-            ),
-            vehicle: new Vehicle($typ, $displayPlate, $data['firma'] ?? null),
-            validity: new Validity($startDate, $endDate, $preis, $zweck),
-            status: new Status((string) ($data['status'] ?? 'wartend')),
-            erstellt: new \DateTimeImmutable(),
-            internerKommentar: $data['internerKommentar'] ?? null,
-        );
-
-        if (! $this->storage->save($permit)) {
-            throw new \RuntimeException('Speicherfehler.');
+            return;
         }
 
-        if ($sendMails) {
-            $this->dispatchMails($permit, $randomId);
+        // Standard-Daten für die Header-Navigation (falls eingeloggt)
+        $adminData = [
+            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
+            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
+        ];
+
+        // --- Logik für den nächsten befahrbaren Slot ---
+        $nextAllowedSlotText = 'Keine weitere Einfahrt möglich.';
+        $nextSlot            = $this->holidayService->getNextAvailableSlot($now);
+
+        if ($nextSlot !== null) {
+            // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
+            // Spezialfall: Letzter Tag / Ablaufprüfung
+            if ($permit instanceof Permit && $nextSlot > $permit->validity->bis) {
+                $nextAllowedSlotText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
+            } else {
+                // Normale Zeit-Formatierung
+                $datePart = $nextSlot->format('d.m.Y');
+                $today    = $now->format('d.m.Y');
+                $tomorrow = $now->modify('+1 day')->format('d.m.Y');
+
+                if ($datePart === $today) {
+                    // "heute ab 15:00 Uhr"
+                    $nextAllowedSlotText = 'heute ab ' . $nextSlot->format('H:i') . ' Uhr';
+                } elseif ($datePart === $tomorrow) {
+                    // "morgen ab 08:00 Uhr"
+                    $nextAllowedSlotText = 'morgen ab ' . $nextSlot->format('H:i') . ' Uhr';
+                } else {
+                    // "am 04.05.2026 ab 08:00 Uhr"
+                    $nextAllowedSlotText = 'am ' . $datePart . ' ab ' . $nextSlot->format('H:i') . ' Uhr';
+                }
+            }
         }
 
-        return $permit;
+        // Fall 2: Warteraum / Bezahlseite
+        if ($tempRequest !== null && ! $permit instanceof Permit) {
+            $this->render('check/public', \array_merge($adminData, [
+                'isWaitingForPayment' => true,
+                'tempData'            => $tempRequest,
+                'token'               => $token,
+                'isDateValid'         => true,
+                'isTimeAllowed'       => $this->holidayService->isTimeAllowedNow(),
+                'allowedToday'        => $nextAllowedSlotText,
+                'showAdminView'       => false,
+                'permit'              => null,
+            ]));
+
+            return;
+        }
+
+        // Fall 3: Genehmigung gefunden
+        if ($permit instanceof Permit) {
+            $showAdminView = $this->determineViewPrivileges($permit, $get);
+            // Pfade angepasst auf Unterordner check/
+            $this->render($showAdminView ? 'check/admin' : 'check/public', \array_merge($adminData, [
+                'permit'        => $permit,
+                'isDateValid'   => $permit->isValid(),
+                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
+                'allowedToday'  => $nextAllowedSlotText, // Variable wird hier übergeben
+                'showAdminView' => $showAdminView,
+                'tempData'      => null,
+            ]));
+
+            return;
+        }
+
+        // Fall 4: Code nicht gefunden
+        $this->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 
     /**
-     * Erstellt einen temporären Antrag, der erst bestätigt werden muss.
+     * Prüft, ob der Nutzer erweiterte Details sehen darf.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $get
      */
-    public function createPendingVerification(array $data): string
+    private function determineViewPrivileges(Permit $permit, array $get): bool
     {
-        // 2. Kollisionsprüfung (Gleichzeitige Buchung der selben Parzelle)
-        $this->validateNoCollisions(
-            (string) ($data['parzelle'] ?? ''),
-            new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now')),
-            new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
-        );
+        // A. Entwickler-Modus
+        if ((bool) $this->config->get('admin_dev_mode', false)) {
+            return true;
+        }
 
-        $token = \bin2hex(\random_bytes(32));
-        // NEU: Kurzer, gut lesbarer Code für die Formulareingabe
-        $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
+        // B. Eingeloggter Admin (Session)
+        if ($this->auth->isLoggedIn()) {
+            return true;
+        }
 
-        $data['verification_token'] = $token;
-        $data['verification_code']  = $shortCode; // NEU
+        // C. Token im Link (SHA256 Abgleich)
+        $token     = (string) ($get['token'] ?? '');
+        $geheimnis = (string) $this->config->get('geheimnis', '');
+        $expected  = \hash('sha256', $permit->code . $geheimnis);
 
-        $hours           = (int) $this->config->get('hours_pending_verify', 24);
-        $data['expires'] = \time() + (3600 * $hours);
-
-        // Wir speichern das in einer separaten Datei (storage/pending_verification.json)
-        $storagePath        = $this->config->get('root_path') . '/storage/pending_verification.json';
-        $allPending         = $this->loadJson($storagePath);
-        $allPending[$token] = $data;
-
-        $this->saveJson($storagePath, $allPending);
-
-        $this->mailService->sendTemplate((string) $data['email'], 'E-Mail bestätigen', 'verify_email', [
-            'name'        => (string) $data['name'],
-            'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
-            'code'        => $shortCode, // NEU
-            'vereinsName' => $this->config->get('vereins_name'),
-        ]);
-
-        return $token;
+        return \hash_equals($expected, $token);
     }
 
     /**
-     * Prüft, ob für eine Parzelle bereits Genehmigungen im Zeitraum vorliegen.
-     * Wir prüfen bestätigte Genehmigungen UND offene Verifizierungen.
+     * @return array<string, mixed>
      */
-    private function validateNoCollisions(string $parzelle, \DateTimeImmutable $start, \DateTimeImmutable $end): void
+    private function getSettingsArray(): array
     {
-        $parzelleFormatted = \str_pad($parzelle, 4, '0', \STR_PAD_LEFT);
+        return [
+            'vereins_name'  => $this->config->get('vereins_name'),
+            'vehicle_types' => $this->config->get('vehicle_types'),
+            'purposes'      => $this->config->get('purposes'),
+            'opening_hours' => $this->config->get('opening_hours'),
+            'jahresFarbe'   => $this->config->get('jahresFarbe'),
+        ];
+    }
 
-        // 1. Check im Hauptspeicher (Storage)
-        foreach ($this->storage->getAll() as $permit) {
-            if (
-                $permit->owner->parzelle === $parzelleFormatted
-                && $this->datesOverlap($permit->validity->von, $permit->validity->bis, $start, $end)
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function render(string $templatePath, array $data = []): void
+    {
+        $config   = $this->config;
+        $appRoot  = (string) $config->get('root_path');
+        $settings = $this->getSettingsArray();
+
+        // 1. Array in einer Variable zwischenspeichern (löst den Fehler P1114)
+        $templateData = \array_merge([
+            'appRoot'  => $appRoot,
+            'settings' => $settings,
+            'config'   => $config,
+        ], $data);
+
+        // 2. Die Variable an extract übergeben
+        \extract($templateData);
+
+        include $appRoot . "/templates/pages/{$templatePath}.phtml";
+    }
+}
+alidity->bis, $start, $end)
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .

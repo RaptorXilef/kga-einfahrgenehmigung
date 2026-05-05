@@ -1,6 +1,9 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Zentrales Konfigurations-Objekt.
@@ -8,7 +11,7 @@
  * Verwaltet alle Anwendungseinstellungen und ermöglicht den Zugriff auf
  * Mail-Templates und Provider-Daten.
  *
- * @file      src/Infrastructure/Config/Config.php
+ * Path: src/Infrastructure/Config/Config.php
  */
 
 declare(strict_types=1);

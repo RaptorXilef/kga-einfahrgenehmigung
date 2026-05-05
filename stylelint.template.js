@@ -1,5 +1,5 @@
 /**
- * @file stylelint.config.js
+ * Path: stylelint.config.js
  * @description Spezialisierte SCSS-Qualitätssicherung.
  */
 

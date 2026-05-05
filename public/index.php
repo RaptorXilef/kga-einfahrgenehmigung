@@ -1,6 +1,9 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Haupteinstiegspunkt der Anwendung.
@@ -8,7 +11,7 @@
  * Initialisiert die Umgebung und delegiert Anfragen an den PermitService.
  * Trennt Request-Handling von der Geschäftslogik.
  *
- * @file      public/index.php
+ * Path:      public/index.php
  */
 
 declare(strict_types=1);

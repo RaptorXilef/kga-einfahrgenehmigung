@@ -1,6 +1,9 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Zentraler Bootstrapper v0.21.0
@@ -8,7 +11,7 @@
  * Findet den Root-Pfad, lädt den Autoloader, mergt die Konfigurationen
  * (config.php + config.local.php) und initialisiert den Dependency Container.
  *
- * @file src/Bootstrap/app.php
+ * Path: src/Bootstrap/app.php
  */
 
 declare(strict_types=1);

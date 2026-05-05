@@ -1,5 +1,5 @@
 /**
- * @file commitlint.config.cjs
+ * Path: commitlint.config.cjs
  * @since 0.1.0
  * @description Erzwingt Conventional Commits 1.0.0.
  */

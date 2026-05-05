@@ -8,7 +8,7 @@
  * Automatisiert die Code-Modernisierung und Refactoring-Prozesse, um den
  * PHP 8.4 Standard sowie höchste Typsicherheit zu gewährleisten.
  *
- * @file      rector.php
+ * Path:      rector.php
  */
 
 declare(strict_types=1);

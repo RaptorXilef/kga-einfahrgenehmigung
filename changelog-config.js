@@ -1,7 +1,7 @@
 import conventionalCommits from 'conventional-changelog-conventionalcommits';
 
 /**
- * @file changelog-config.js
+ * Path: changelog-config.js
  * @since 0.1.0
  * @description Zentrales ESM-Konfigurations-Modul für das Changelog-Format.
  */

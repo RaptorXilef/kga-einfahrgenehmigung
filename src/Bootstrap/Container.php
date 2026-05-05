@@ -1,6 +1,9 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Service Container (Dependency Injector).
@@ -8,7 +11,7 @@
  * Zentraler Bootstrapping-Punkt der Anwendung. Erstellt Instanzen
  * und verwaltet Abhängigkeiten (DI).
  *
- * @file      src/Bootstrap/Container.php
+ * Path:      src/Bootstrap/Container.php
  *
  * @copyright (c) 2026 Felix Maywald. All rights reserved.
  * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE

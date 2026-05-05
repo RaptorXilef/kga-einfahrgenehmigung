@@ -1,9 +1,14 @@
 <?php
 
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
 /**
  * PayPal Order Erstellung - Nutzt den Preis-Snapshot
  *
- * @file public/api/create_order_for_token.php
+ * Path: public/api/create_order_for_token.php
  */
 
 declare(strict_types=1);

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Scripts;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-
 /**
  * Setup-Zentrale
  * Übernimmt die Initialisierung der Umgebung und Tool-Pflege.
@@ -97,9 +94,9 @@ class Setup
             return;
         }
 
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($files as $fileinfo) {

@@ -1,16 +1,16 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Interface für Datenspeicher-Provider.
  *
  * Definiert die Verträge für JSON- und MySQL-Implementierungen.
  *
- * @file      src/Contracts/Storage/StorageInterface.php
- *
- * @since     0.1.0
- * - feat(storage): Definition der Persistenz-Schnittstelle.
+ * Path: src/Contracts/Storage/StorageInterface.php
  */
 
 declare(strict_types=1);

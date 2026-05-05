@@ -1,5 +1,5 @@
 /**
- * @file stylelint.config.js
+ * Path: stylelint.config.js
  * Projektspezifische Anpassungen (Erweitert den Blueprint)
  */
 

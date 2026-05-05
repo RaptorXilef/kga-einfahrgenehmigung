@@ -1,11 +1,14 @@
 <?php
 
-// SPDX-License-Identifier: CC BY-NC-SA 4.0
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
 
 /**
  * Orchestriert die Admin-Logik für den Vorstand.
  *
- * @file src/Application/AdminController.php
+ * Path: src/Application/AdminController.php
  */
 
 declare(strict_types=1);

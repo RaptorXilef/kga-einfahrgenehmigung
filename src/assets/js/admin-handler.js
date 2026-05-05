@@ -1,6 +1,11 @@
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
 /**
- * @file admin-handler.js
- * Finalisierte Version v0.20.0
+ * Path: src/assets/js/admin-handler.js
+ * Path: public/assets/js/admin-handler.js
  */
 
 class AdminDashboardHandler {
