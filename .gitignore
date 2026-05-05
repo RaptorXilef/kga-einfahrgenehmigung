@@ -185,7 +185,7 @@ logs/
 # ==============================================================================
 
 # Sensible Daten & Konfiguration
-/config/config.php
+/config/config.local.php
 
 /public/assets/css/*.map
 /public/assets/js/*.map
@@ -247,5 +247,6 @@ src/assets/img/**
 
 public/assets/img/kga_logo.png
 public/assets/img/kga_logo.webp
+
 
 
