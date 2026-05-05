@@ -141,30 +141,50 @@ final readonly class AdminController
 
     private function actionCreateVoucher(array $post): string
     {
-        // Gutschein erstellen
-        $reason = (string) ($post['reason'] ?? 'Gutschein');
-        $tplKey = (string) ($post['template_key'] ?? 'std_7');
+        try {
+            // Gutschein erstellen
+            $reason = (string) ($post['reason'] ?? 'Gutschein');
+            $tplKey = (string) ($post['template_key'] ?? 'std_7');
+            // Erweiterte Gutschein-Parameter
+            $type      = (string) ($post['voucher_discount_type'] ?? 'free');
+            $val       = (float) ($post['voucher_discount_value'] ?? 0.0);
+            $multi     = isset($post['voucher_multi_use']);
+            $maxUses   = $multi ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
+            $custom    = (string) ($post['voucher_custom_code'] ?? '');
+            $expiresAt = (string) ($post['voucher_expires_at'] ?? '');
+            $dateMode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
 
-        $preData = [
-            'name'        => \trim((string) ($post['name'] ?? '')),
-            'parzelle'    => \trim((string) ($post['parzelle'] ?? '')),
-            'kennzeichen' => \trim((string) ($post['kennzeichen'] ?? '')),
-            'typ'         => (string) ($post['typ'] ?? ''),
-            'firma'       => \trim((string) ($post['firma'] ?? '')),
-            'zweck'       => (string) ($post['zweck'] ?? ''),
-            // Wir speichern die im Tool berechneten Daten im Gutschein
-            'datum_von' => (string) ($post['datum_von'] ?? ''),
-            'datum_bis' => (string) ($post['datum_bis'] ?? ''),
-        ];
+            $preData = [
+                'name'        => \trim((string) ($post['name'] ?? '')),
+                'parzelle'    => \trim((string) ($post['parzelle'] ?? '')),
+                'kennzeichen' => \trim((string) ($post['kennzeichen'] ?? '')),
+                'typ'         => (string) ($post['typ'] ?? ''),
+                'firma'       => \trim((string) ($post['firma'] ?? '')),
+                'zweck'       => (string) ($post['zweck'] ?? ''),
+                // Nur wenn Mode 'fixed', senden wir die Daten aus Schritt 1 mit
+                'datum_von' => ($dateMode === 'fixed') ? (string) ($post['datum_von'] ?? '') : '',
+                'datum_bis' => ($dateMode === 'fixed') ? (string) ($post['datum_bis'] ?? '') : '',
+            ];
 
-        $code = $this->permitService->getVoucherService()->createVoucher(
-            $reason,
-            (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            $tplKey,
-            $preData,
-        );
+            // Service-Aufruf mit neuen Parametern
+            $code = $this->permitService->getVoucherService()->createVoucher(
+                $reason,
+                (string) ($_SESSION['admin_user'] ?? 'Admin'),
+                $tplKey,
+                $preData,
+                $type,
+                $val,
+                $multi,
+                $maxUses,
+                $custom, // Weitergabe an Service
+                $expiresAt ?: null, // In null wandeln wenn leer
+                $dateMode,
+            );
 
-        return "Gutschein erstellt: <strong>$code</strong>";
+            return "Gutschein erstellt: <strong>$code</strong>";
+        } catch (\Exception $e) {
+            return 'Fehler: ' . $e->getMessage();
+        }
     }
 
     private function actionCreateManual(array $post): string

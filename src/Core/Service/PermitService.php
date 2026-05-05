@@ -221,6 +221,7 @@ final readonly class PermitService
 
     /**
      * Schritt 2: Verschiebt von unbestätigt (24h) nach verifiziert (48h).
+     * Berücksichtigt nun Rabatte und Teilzahlungen durch Gutscheine.
      *
      * @return array<string, mixed>|null
      */
@@ -230,38 +231,78 @@ final readonly class PermitService
         $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
 
         $allPending = $this->loadJson($pendingPath);
-        if (! isset($allPending[$token])) {
-            // Falls der User den Link nochmal klickt, schauen wir, ob er schon in verified_pending liegt
-            $allVerified = $this->loadJson($verifiedPath);
-            /** @var array<string, mixed>|null $res */
-            $res = $allVerified[$token] ?? null;
 
-            return $res;
+        // 1. Double-Click Check: Falls nicht mehr in 'pending', schaue in 'verified'
+        if (! isset($allPending[$token])) {
+            $allVerified = $this->loadJson($verifiedPath);
+
+            return $allVerified[$token] ?? null;
         }
 
+        // 2. Daten aus 'pending' extrahieren und dort löschen
         $data = (array) $allPending[$token];
         unset($allPending[$token]);
         $this->saveJson($pendingPath, $allPending);
 
-        // In Warteraum 2 (48h) schieben
+        // 3. Neue Ablaufzeit für Warteraum 2 setzen (z.B. 48h für Zahlung)
         $hours               = (int) $this->config->get('hours_pending_finalize', 48);
         $data['verified_at'] = \time();
         $data['expires']     = \time() + (3600 * $hours);
 
+        // 4. GUTSCHEIN-LOGIK (ERWEITERT)
+        $voucherCode = \trim((string) ($data['voucher'] ?? ''));
+        if ($voucherCode !== '') {
+            $voucher = $this->voucherService->useVoucher($voucherCode, $data);
+
+            if ($voucher !== null) {
+                // Berechne den Preis nach Abzug des Rabatts
+                $finalPrice = $this->calculateDiscountedPrice((float) $data['preisSnapshot'], $voucher);
+
+                // Fall A: Gutschein deckt alles (0,00 €)
+                if ($finalPrice <= 0.0) {
+                    $data['preisSnapshot'] = 0.0;
+                    $data['status']        = 'bezahlt';
+
+                    // Wir müssen es hier nicht in verified_pending speichern,
+                    // sondern können es sofort finalisieren.
+                    return ['finalised' => $this->finaliseRequest($token, 'bezahlt', 'Gutschein (Voll-Rabatt): ' . $voucherCode)];
+                }
+
+                // Fall B: Restbetrag bleibt offen (Teil-Rabatt)
+                $data['preisSnapshot']   = $finalPrice;
+                $data['voucher_applied'] = $voucherCode;
+                $data['voucher_details'] = [
+                    'type'  => $voucher['type'],
+                    'value' => $voucher['value'],
+                ];
+            }
+        }
+
+        // 5. In Warteraum 2 (verified_pending) speichern
         $allVerified         = $this->loadJson($verifiedPath);
         $allVerified[$token] = $data;
         $this->saveJson($verifiedPath, $allVerified);
 
-        // Sofort-Check: Falls ein Gutschein dabei war, direkt finalisieren
-        $voucherCode = \trim((string) ($data['voucher'] ?? ''));
-        if ($voucherCode !== '') {
-            $voucher = $this->voucherService->useVoucher($voucherCode, $data);
-            if ($voucher !== null) { // PHPStan Fix: Expliziter Check
-                return ['finalised' => $this->finaliseRequest($token, 'bezahlt', 'Gutschein: ' . $voucherCode)];
-            }
-        }
-
         return $data;
+    }
+
+    /**
+     * Berechnet den Endpreis für einen Gutschein.
+     * Robust gegen fehlende Array-Keys.
+     */
+    public function calculateDiscountedPrice(float $originalPrice, array $voucher): float
+    {
+        $type  = $voucher['type'] ?? 'free';
+        $value = (float) ($voucher['value'] ?? 0.0);
+
+        $newPrice = match ($type) {
+            'free'    => 0.0,
+            'fixed'   => $value,
+            'percent' => $originalPrice * (1 - ($value / 100)),
+            default   => $originalPrice,
+        };
+
+        return (float) \max(0.0, $newPrice);
     }
 
     /**

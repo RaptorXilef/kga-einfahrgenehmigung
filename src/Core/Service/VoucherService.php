@@ -32,6 +32,13 @@ final readonly class VoucherService
         string $createdBy,
         string $templateKey,
         array $prefillData = [],
+        string $type = 'free', // NEU: free, fixed, percent
+        float $value = 0.0,    // NEU: Betrag oder Prozent
+        bool $multiUse = false, // NEU
+        ?int $maxUses = 1,      // NEU
+        ?string $customCode = null, // NEU: Optionaler individueller Code
+        ?string $expiresAt = null, // NEU
+        string $dateMode = 'fixed',  // NEU: 'fixed' oder 'flexible'
     ): string {
         $activeVouchers = $this->loadVouchers();
         $archivedItems  = $this->loadArchive(); // Hier wird die Datei der benutzten Codes geladen!
@@ -42,15 +49,30 @@ final readonly class VoucherService
             $alreadyUsedCodes[] = $archivedEntry['code']; // Füge benutzte Codes zur Sperrliste hinzu
         }
 
-        // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
-        do {
-            $newGeneratedCode = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
-        } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true)); // Prüfe gegen die Sperrliste
+        // Logik für Code-Findung
+        if ($customCode !== null && \trim($customCode) !== '') {
+            $newGeneratedCode = \strtoupper(\trim($customCode));
+            if (\in_array($newGeneratedCode, $alreadyUsedCodes, true)) {
+                throw new \RuntimeException("Der Code '{$newGeneratedCode}' wurde bereits verwendet oder existiert schon.");
+            }
+        } else {
+            // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
+            do {
+                $newGeneratedCode = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
+            } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true)); // Prüfe gegen die Sperrliste
+        }
 
         $activeVouchers[$newGeneratedCode] = [
             'code'         => $newGeneratedCode,
             'reason'       => $reason,
             'template_key' => $templateKey,
+            'type'         => $type,
+            'value'        => $value,
+            'multi_use'    => $multiUse,
+            'max_uses'     => $maxUses,
+            'uses_count'   => 0,
+            'expires_at'   => $expiresAt, // NEU
+            'date_mode'    => $dateMode,  // NEU
             'data'         => $prefillData,
             'created_by'   => $createdBy,
             'created_at'   => \date('Y-m-d H:i:s'),
@@ -73,7 +95,8 @@ final readonly class VoucherService
             return null;
         }
 
-        $voucher = $vouchers[$code];
+        $voucher = &$vouchers[$code];
+        ++$voucher['uses_count'];
 
         // Archiv-Eintrag erstellen
         $archivePath = $this->config->get('root_path') . '/storage/vouchers_archive.json';
@@ -91,8 +114,17 @@ final readonly class VoucherService
 
         \file_put_contents($archivePath, \json_encode($archive, \JSON_PRETTY_PRINT));
 
-        // Aus aktiven Gutscheinen löschen
-        unset($vouchers[$code]);
+        // Lösch-Logik prüfen
+        $shouldDelete = ! $voucher['multi_use'];
+        if ($voucher['multi_use'] && $voucher['max_uses'] > 0 && $voucher['uses_count'] >= $voucher['max_uses']) {
+            $shouldDelete = true;
+        }
+
+        if ($shouldDelete) {
+            // Aus aktiven Gutscheinen löschen
+            unset($vouchers[$code]);
+        }
+
         $this->saveVouchers($vouchers);
 
         return $voucher;

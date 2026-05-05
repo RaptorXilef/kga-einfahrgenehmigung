@@ -19,6 +19,10 @@ foreach ($publicTemplates as $key => $tpl) {
     $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
 }
 
+/**
+ * FIX: Prüft, ob ein Feld gesperrt werden soll.
+ * Bei Daten aus Gutscheinen werden Felder nur gesperrt, wenn sie auch wirklich Inhalt haben.
+ */
 $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
 
 // Suche nach dem Logo mit verschiedenen Endungen
@@ -122,6 +126,21 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         .u-hidden {
             display: none !important;
         }
+
+        /* Spezial-Style für Streichpreise */
+        .c-price-original {
+            font-size: 0.9rem;
+            text-decoration: line-through;
+            opacity: 0.6;
+            margin-bottom: 2px;
+        }
+
+        .c-price-discount-hint {
+            font-size: 0.85rem;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
@@ -169,7 +188,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } else { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
-                        <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Aktivierungscode? Dann hier klicken.</span>
+                        <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Gutscheincode? Dann hier klicken.</span>
                     </div>
 
                     <div id="voucher-container" class="u-margin-auto" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left; max-width: 500px;">
@@ -178,11 +197,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         <form method="GET" action="index.php" class="u-flex u-gap-s u-align-end">
                             <div class="c-form-group" style="flex-grow: 1;">
                                 <label class="c-form-label">Code eingeben</label>
-                                <input type="text" name="voucher" class="c-form-input" placeholder="GUT-XXXX-XXXX" style="text-transform: uppercase;">
+                                <input type="text" name="voucher" class="c-form-input"
+                                    placeholder="GUT-XXXX-XXXX"
+                                    style="text-transform: uppercase;"
+                                    value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
                             </div>
                             <button type="submit" class="c-button--primary" style="padding: 11px 20px; border-radius: 8px;">Einlösen</button>
                         </form>
-                        <small class="u-text-muted u-margin-top-s" style="display:block;">Das Formular wird nach der Eingabe automatisch für Sie vorausgefüllt.</small>
                     </div>
                 <?php } ?>
 
@@ -254,7 +275,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Gültigkeit</h4>
 
                         <?php if (\count($publicTemplates) > 1) { ?>
-                    <!-- Mehrere Optionen: Auswahl anzeigen -->
+                            <!-- Mehrere Optionen: Auswahl anzeigen -->
                             <div class="c-form-group u-margin-bottom-m">
                                 <label class="c-form-label">Gewünschte Dauer</label>
                                 <select name="template_key" id="template_key" class="c-form-select" <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
@@ -266,7 +287,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 </select>
                             </div>
                         <?php } else { ?>
-                    <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
+                            <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
                             <?php $singleKey = \array_key_first($publicTemplates); ?>
                             <input type="hidden" name="template_key" id="template_key" value="<?php echo $singleKey; ?>">
                         <?php } ?>
@@ -285,14 +306,15 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
                     </div>
 
-                    <!-- Preis-Anzeige direkt vor dem Absenden-->
+                    <!-- Preis-Anzeige mit Rabatt-Logik -->
                     <div id="price-display"
                         class="u-text-center u-font-bold u-margin-top-m u-margin-bottom-l"
                         style="font-size: 1.4rem; color: var(--primary-color); background: var(--primary-soft); padding: 18px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); box-shadow: var(--shadow-sm);">
+                        Wird berechnet...
                     </div>
 
                     <button type="submit" class="c-button--primary u-width-100 u-margin-top-l" style="font-size: 1.1rem; padding: 16px;">
-                        <?php echo $prefill ? 'Kostenlose Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
+                        <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                     </button>
 
                     <?php if (! $prefill) { ?>
@@ -316,7 +338,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         const warningBox = document.getElementById('date-warning');
         const warningText = document.getElementById('date-warning-text');
 
-        // PHP gibt uns mit, ob ein Gutschein geladen ist
+        // Gutschein aktiv wenn $prefill Daten hat
         const isVoucherActive = <?php echo $prefill ? 'true' : 'false'; ?>;
 
         // Heute als Basis
@@ -345,50 +367,54 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
         /**
          * Automatische Parzellen-Formatierung (0001)
+         * Wird nur ausgeführt, wenn KEIN Gutschein das Feld gesperrt hat.
          */
         inputParzelle.addEventListener('blur', (e) => {
-            if (e.target.value && !isVoucherActive) {
+            if (e.target.value && !e.target.readOnly) {
                 e.target.value = e.target.value.toString().padStart(4, '0');
             }
         });
 
-    /**
-     * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
-     */
-    inputKennzeichen.addEventListener('blur', (e) => {
-        // Falls im Formular vorhanden, Check auf Gutschein-Lock
-        if (typeof isVoucherActive !== 'undefined' && isVoucherActive) return;
+        /**
+         * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
+         */
+        inputKennzeichen.addEventListener('blur', (e) => {
+            if (e.target.readOnly) return;
 
-        let val = e.target.value.toUpperCase().trim();
-        if (val.length <= 3) return;
+            let val = e.target.value.toUpperCase().trim();
+            if (val.length <= 3) return;
 
-        // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
-        if (val.includes('-')) {
-            e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
-            return;
-        }
+            // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
+            if (val.includes('-')) {
+                e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
+                return;
+            }
 
-        // Automatik-Modus ohne manuellen Bindestrich
-        let clean = val.replace(/[^A-Z0-9]/g, '');
+            // Automatik-Modus ohne manuellen Bindestrich
+            let clean = val.replace(/[^A-Z0-9]/g, '');
 
-        // RegEx erweitert um [EH]? am Ende
-        const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
-        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
+            // RegEx erweitert um [EH]? am Ende
+            const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
+            const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
+            const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
+            const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
 
-        if (pattern4.test(clean)) {
-            e.target.value = clean.replace(pattern4, '$1-$2 $3');
-        } else if (berlinPattern.test(clean)) {
-            e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
-        } else if (complexPattern.test(clean)) {
-            e.target.value = clean.replace(complexPattern, '$1-$2 $3');
-        } else if (fallbackPattern.test(clean)) {
-            e.target.value = clean.replace(fallbackPattern, '$1 $2');
-        }
-    });
+            if (pattern4.test(clean)) {
+                e.target.value = clean.replace(pattern4, '$1-$2 $3');
+            } else if (berlinPattern.test(clean)) {
+                e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
+            } else if (complexPattern.test(clean)) {
+                e.target.value = clean.replace(complexPattern, '$1-$2 $3');
+            } else if (fallbackPattern.test(clean)) {
+                e.target.value = clean.replace(fallbackPattern, '$1 $2');
+            }
+        });
 
         function handleDateChange(source) {
+            // Wenn das Feld readonly ist (durch festen Gutschein-Zeitraum), Logik überspringen
+            if (source === 'bis' && inputBis.readOnly) return;
+            if (source === 'von' && inputVon.readOnly) return;
+
             const config = templates[selectTpl.value];
             if (!config) return;
 
@@ -431,9 +457,41 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             } else {
                 // Logik für Spezialzeitraum (Custom)
                 inputBis.min = inputVon.value;
-                if (inputBis.value < inputVon.value) {
-                    inputBis.value = inputVon.value;
+                if (inputBis.value < inputVon.value) inputBis.value = inputVon.value;
+            }
+        }
+
+        // Preis-Update via API
+        async function updatePrice() {
+            try {
+                // Wir suchen den Voucher-Wert. Zuerst das Textfeld, falls leer das versteckte Feld.
+                const inputField = document.querySelector('input[type="text"][name="voucher"]');
+                const hiddenField = document.querySelector('input[type="hidden"][name="voucher"]');
+                const voucher = (inputField && inputField.value) ? inputField.value : (hiddenField ? hiddenField.value : '');
+
+                const res = await fetch(`api/get_template_price.php?key=${selectTpl.value}&typ=${selectTyp.value}&voucher=${voucher}`);
+
+                if (!res.ok) throw new Error('Server-Antwort nicht okay');
+
+                const data = await res.json();
+                const priceBox = document.getElementById('price-display');
+
+                if (data.discountText && data.discountText !== '') {
+                    priceBox.innerHTML = `
+                        <div class="c-price-original">Original: ${data.original.toFixed(2).replace('.', ',')} €</div>
+                        <div>Gebühr: ${data.formatted}</div>
+                        <div class="c-price-discount-hint">${data.discountText} angewendet</div>
+                    `;
+                } else {
+                    priceBox.innerText = `Gebühr: ${data.formatted}`;
                 }
+
+                priceBox.style.color = data.isFree ? '#059669' : 'var(--primary-color)';
+                priceBox.style.background = data.isFree ? '#ecfdf5' : 'var(--primary-soft)';
+
+            } catch (error) {
+                console.error("Preisberechnung fehlgeschlagen:", error);
+                document.getElementById('price-display').innerText = "Gebühr: --,-- €";
             }
         }
 
@@ -442,34 +500,30 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             handleDateChange('template');
             updatePrice();
         });
-        inputVon.addEventListener('change', () => handleDateChange('von'));
-        inputBis.addEventListener('change', () => handleDateChange('bis'));
+        inputVon.addEventListener('change', () => {
+            handleDateChange('von');
+            updatePrice();
+        });
+        inputBis.addEventListener('change', () => {
+            handleDateChange('bis');
+            updatePrice();
+        });
         selectTyp.addEventListener('change', () => {
             toggleFirmaField();
             updatePrice();
         });
 
-        // Preis-Update via API
-        async function updatePrice() {
-            // Wenn Gutschein aktiv, immer 0,00 € anzeigen!
-            if (isVoucherActive) {
-                const priceBox = document.getElementById('price-display');
-                priceBox.innerText = `Gebühr: 0,00 € (Gutschein)`;
-                priceBox.style.color = '#10b981'; // Grün für kostenlos
-                priceBox.style.background = '#ecfdf5';
-                priceBox.style.borderColor = '#a7f3d0';
-                return;
-            }
-
-            const res = await fetch(`api/get_template_price.php?key=${selectTpl.value}&typ=${selectTyp.value}`);
-            const data = await res.json();
-            document.getElementById('price-display').innerText = `Gebühr: ${data.formatted}`;
-        }
-
         // Initialisierung
         toggleFirmaField();
         handleDateChange('init');
         updatePrice(); // Direkt beim Laden aufrufen
+
+        // Falls ein Gutschein in der URL steht, aber kein $prefill aktiv ist (z.B. Fehlermeldung)
+        // öffnen wir das Eingabefeld automatisch, damit der User den Code sieht/korrigieren kann.
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('voucher') && !isVoucherActive) {
+            toggleVoucher();
+        }
     </script>
 </body>
 

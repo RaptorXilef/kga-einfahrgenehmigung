@@ -763,4 +763,43 @@
     body.state-bg-error .c-card {
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     }
+
+
+    /* Toast-Feedback Style */
+    .c-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: toastSlideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    .c-toast--hide {
+        opacity: 0;
+        bottom: 10px;
+        transition: all 0.5s ease;
+    }
+
+    @keyframes toastSlideUp {
+        from {
+            bottom: 0;
+            opacity: 0;
+        }
+
+        to {
+            bottom: 30px;
+            opacity: 1;
+        }
+    }
 </style>
