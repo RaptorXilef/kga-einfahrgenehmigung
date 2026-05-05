@@ -51,30 +51,40 @@ if (\file_exists($appRoot . '/config/config.local.php')) {
 $settings              = \array_replace_recursive($baseSettings, $localSettings);
 $settings['root_path'] = $appRoot;
 
-// --- NEU: Erweiterte Wartungsmodus-Logik ---
+// --- Erweiterte Wartungsmodus-Logik v0.24.2 (Internal Load) ---
 $currentScript     = \basename($_SERVER['SCRIPT_NAME']);
 $isMaintenancePage = $currentScript === 'maintenance.php';
 
 if (! $isMaintenancePage) {
-    $adminMaintenance  = ! empty($settings['maintenance_mode_admin']);
-    $publicMaintenance = ! empty($settings['maintenance_mode']);
+    // Sicherstellen, dass wir Booleans vergleichen
+    $adminMaintenance  = isset($settings['maintenance_mode_admin']) && $settings['maintenance_mode_admin'] === true;
+    $publicMaintenance = isset($settings['maintenance_mode']) && $settings['maintenance_mode'] === true;
+
+    $shouldShowMaintenance = false;
 
     if ($adminMaintenance) {
-        // STUFE 2: Totalsperre (Alles außer die Wartungsseite selbst)
-        \header('Location: ' . ($settings['base_url'] ?? '/') . 'maintenance.php');
-        exit;
-    }
-
-    if ($publicMaintenance) {
-        // STUFE 1: Nur Pächter-Seiten sperren
+        // Totalsperre
+        $shouldShowMaintenance = true;
+    } elseif ($publicMaintenance) {
+        // Nur Pächter-Seiten sperren
         $allowedAdminScripts = ['admin.php', 'users.php'];
 
         // Hinweis: API-Anrufe lassen wir durch, da sie oft vom Admin-Panel
         // oder für die Preisberechnung im Hintergrund genutzt werden.
         if (! \in_array($currentScript, $allowedAdminScripts, true) && ! \str_contains($_SERVER['SCRIPT_NAME'], '/api/')) {
-            \header('Location: ' . ($settings['base_url'] ?? '/') . 'maintenance.php');
-            exit;
+            $shouldShowMaintenance = true;
         }
+    }
+
+    if ($shouldShowMaintenance) {
+        // Wir setzen einen HTTP Status 503 (Service Unavailable)
+        // Das ist gut für Suchmaschinen, damit diese wissen: "Wir kommen gleich wieder"
+        \http_response_code(503);
+        \header('Retry-After: 3600'); // Empfehlung: In einer Stunde wiederkommen
+
+        // Wir laden die Datei intern, ohne die URL im Browser zu ändern
+        require $appRoot . '/public/maintenance.php';
+        exit;
     }
 }
 // --- Ende Wartungsmodus ---

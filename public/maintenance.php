@@ -21,7 +21,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wartungsarbeiten - <?php echo \htmlspecialchars($vereinsName); ?></title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <style>
         body { background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
         .c-maintenance-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 500px; border-top: 5px solid #f59e0b; }
@@ -31,7 +31,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
 <body>
     <div class="c-maintenance-card">
         <?php if ($logoFile) { ?>
-            <img src="<?php echo $logoFile; ?>" style="max-width: 200px; margin-bottom: 20px;" alt="Logo">
+            <img src="<?php echo $settings['base_url'] . $logoFile; ?>" style="max-width: 200px; margin-bottom: 20px;" alt="Logo">
         <?php } ?>
 
         <span class="c-icon-large"><img src="assets/img/icons/nav-tools.webp" class="c-icon" alt="" style="width: 1.5em; height: 1.5em;"><!-- 🛠️ --></span>

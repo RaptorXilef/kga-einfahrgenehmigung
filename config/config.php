@@ -8,7 +8,7 @@
 /**
  * Beispiel-Konfiguration für das Ausnahmegenehmigungs-System.
  *
- * Path:      config/config.php.example
+ * Path:      config/config.php
  */
 
 declare(strict_types=1);
