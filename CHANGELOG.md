@@ -2,6 +2,27 @@
 
 
 
+## [0.21.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.20.0...v0.21.0) (2026-05-05)
+
+### 🚀 Features
+
+* **history:** implement dual-auth login and PRG pattern v0.21.0 ([66081ec](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/66081ecfc12a40eb6054f608709b1421904e478d))
+* **verify:** implement 6-digit short code for double opt-in v0.22.0 ([5201e5e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5201e5eac0eb4f87de0316c8a5b41742c3b098b3))
+
+### ⚙️ Refactoring
+
+* **api:** migrate all API endpoints to central bootstrapper ([04bd341](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/04bd3412f38182577596be83f260841a164499e8))
+* **bootstrap:** centralize app initialization and config merging ([c648931](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c648931a47ea49a01c05e7fcbb4a60dafe7056d1))
+
+### 📚 Dokumentation
+
+* add proprietary license headers to all source files ([15ebb61](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/15ebb61ceeb7036a3279e55ccb031cebc497c73d))
+* add proprietary license headers to all source files ([362a0d7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/362a0d72d089b9a7a1632ca74a09e9ef57b1f1f2))
+
+# Changelog
+
+
+
 ## [0.20.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.19.0...v0.20.0) (2026-05-05)
 
 ### 🚀 Features
