@@ -28,33 +28,56 @@ final readonly class VerificationController
     }
 
     /**
-     * @param array<string, mixed> $get Entspricht $_GET
+     * @param array<string, mixed> $get  Entspricht $_GET
+     * @param array<string, mixed> $post
      */
-    public function handleRequest(array $get): void
+    public function handleRequest(array $get, array $post): void
     {
-        $token  = (string) ($get['token'] ?? '');
-        $result = $this->permitService->confirmEmail($token);
+        $input = '';
 
-        // Fall A: Sofort finalisiert (z.B. durch Gutschein)
-        if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
-            $permit = $result['finalised'];
+        // 1. Kam die Anfrage über einen Link (?token=...) oder das Formular (POST)?
+        if (isset($get['token'])) {
+            $input = (string) $get['token'];
+        } elseif (isset($post['submit_code'])) {
+            $input = (string) ($post['verification_code'] ?? '');
+        }
 
-            // Erfolg: Weiterleitung zur Check-Seite mit Flag für Erfolgsmeldung
-            \header('Location: check.php?code=' . $permit->code . '&verified=1');
+        // 2. Eingabe verarbeiten
+        if ($input !== '') {
+            $result = $this->permitService->confirmEmail($input);
+
+            // Fall A: Sofort finalisiert (z.B. durch Gutschein)
+            if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
+                // Erfolg: Weiterleitung zur Check-Seite mit Flag für Erfolgsmeldung
+                \header('Location: check.php?code=' . $result['finalised']->code . '&verified=1');
+
+                return;
+            }
+
+            // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung
+            if (\is_array($result)) {
+                // Wir brauchen den langen Token für die Weiterleitung zu check.php
+                $longToken = $result['verification_token'] ?? $input;
+                \header('Location: check.php?token=' . $longToken . '&verified=1');
+
+                return;
+            }
+
+            // Fehlerfall: Falscher Code / Abgelaufen -> PRG Redirect zur Eingabemaske
+            $msg = 'Der eingegebene Code oder Link ist ungültig bzw. bereits abgelaufen.';
+            \header('Location: verify.php?error=1&msg=' . \urlencode($msg));
 
             return;
         }
 
-        // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung (Array vorhanden)
-        if (\is_array($result)) {
-            \header('Location: check.php?token=' . $token . '&verified=1');
+        // 3. Ansicht rendern (Eingabemaske)
+        $displayMessage = (string) ($get['msg'] ?? '');
+        $isError        = isset($get['error']);
 
-            return;
-        }
-
-        // Fehlerfall: Wir rendern eine kleine Fehlerseite statt exit()
-        $this->render('verify_error', [
-            'message'  => 'Bestätigungslink ungültig oder bereits abgelaufen.',
+        // Wir nennen die Datei jetzt verify_input statt verify_error
+        $this->render('verify_input', [
+            'message'  => $displayMessage,
+            'isError'  => $isError,
             'settings' => $this->getSettingsArray(),
         ]);
     }

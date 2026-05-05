@@ -37,4 +37,5 @@ $settings['root_path'] = $appRoot;
 $container  = new Container(new Config($settings));
 $controller = $container->get(VerificationController::class);
 
-$controller->handleRequest($_GET);
+// NEU: Jetzt auch $_POST übergeben
+$controller->handleRequest($_GET, $_POST);

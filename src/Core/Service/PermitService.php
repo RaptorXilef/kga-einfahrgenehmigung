@@ -38,8 +38,7 @@ final readonly class PermitService
         private HolidayService $holidayService,
         private PaymentProviderInterface $paymentProvider,
         private VoucherService $voucherService,
-    ) {
-    }
+    ) {}
 
     /**
      * Erstellt eine neue Genehmigung basierend auf Vorlagen. v0.14.0
@@ -141,9 +140,13 @@ final readonly class PermitService
             new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
 
-        $token                      = \bin2hex(\random_bytes(32));
+        $token = \bin2hex(\random_bytes(32));
+        // NEU: Kurzer, gut lesbarer Code für die Formulareingabe
+        $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
+
         $data['verification_token'] = $token;
-        // Timeout aus Config laden (Standard 24h)
+        $data['verification_code']  = $shortCode; // NEU
+
         $hours           = (int) $this->config->get('hours_pending_verify', 24);
         $data['expires'] = \time() + (3600 * $hours);
 
@@ -157,6 +160,7 @@ final readonly class PermitService
         $this->mailService->sendTemplate((string) $data['email'], 'E-Mail bestätigen', 'verify_email', [
             'name'        => (string) $data['name'],
             'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
+            'code'        => $shortCode, // NEU
             'vereinsName' => $this->config->get('vereins_name'),
         ]);
 
@@ -225,22 +229,40 @@ final readonly class PermitService
      *
      * @return array<string, mixed>|null
      */
-    public function confirmEmail(string $token): ?array
+    public function confirmEmail(string $input): ?array
     {
         $pendingPath  = $this->config->get('root_path') . '/storage/pending_verification.json';
         $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
 
         $allPending = $this->loadJson($pendingPath);
+        $input      = \strtoupper(\trim($input));
 
-        // 1. Double-Click Check: Falls nicht mehr in 'pending', schaue in 'verified'
-        if (! isset($allPending[$token])) {
+        $matchedToken = null;
+
+        // 1. Suche nach Lang-Token ODER Kurz-Code
+        foreach ($allPending as $t => $d) {
+            if (\strtoupper($t) === $input || \strtoupper((string) ($d['verification_code'] ?? '')) === $input) {
+                $matchedToken = $t;
+
+                break;
+            }
+        }
+
+        // 2. Double-Click Check: Falls nicht mehr in 'pending', schaue in 'verified'
+        if ($matchedToken === null) {
             $allVerified = $this->loadJson($verifiedPath);
+            foreach ($allVerified as $t => $d) {
+                if (\strtoupper($t) === $input || \strtoupper((string) ($d['verification_code'] ?? '')) === $input) {
+                    return $d;
+                }
+            }
 
-            return $allVerified[$token] ?? null;
+            return null;
         }
 
         // 2. Daten aus 'pending' extrahieren und dort löschen
-        $data = (array) $allPending[$token];
+        $token = $matchedToken;
+        $data  = (array) $allPending[$token];
         unset($allPending[$token]);
         $this->saveJson($pendingPath, $allPending);
 
@@ -358,7 +380,7 @@ final readonly class PermitService
             // Entferne alle abgelaufenen Einträge
             $data = \array_filter(
                 $data,
-                fn (array $item): bool => isset($item['expires']) && (int) $item['expires'] > $now,
+                fn(array $item): bool => isset($item['expires']) && (int) $item['expires'] > $now,
             );
 
             // Wenn etwas gelöscht wurde, Datei direkt bereinigen
@@ -686,7 +708,7 @@ final readonly class PermitService
 
         return \array_filter(
             $all,
-            fn (Permit $permit): bool => \strtolower($permit->owner->email) === \strtolower($email),
+            fn(Permit $permit): bool => \strtolower($permit->owner->email) === \strtolower($email),
         );
     }
 
