@@ -2,6 +2,12 @@
 
 
 
+## [0.20.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.19.0...v0.20.0) (2026-05-05)
+
+### 🚀 Features
+
+* **admin:** advanced voucher engine and issuance workflow v0.20.0 ([0542357](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/054235722675770c91c78dd1e4d5a224b4645f3e))
+
 ## [0.19.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.18.0...v0.19.0) (2026-05-04)
 
 ### 🚀 Features
