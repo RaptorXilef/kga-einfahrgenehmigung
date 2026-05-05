@@ -187,7 +187,7 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                        $permit->von->format('d.m.Y') . ' bis ' . $permit->bis->format('d.m.Y') . '.',
+                        $permit->validity->von->format('d.m.Y') . ' bis ' . $permit->validity->bis->format('d.m.Y') . '.',
                 );
             }
         }

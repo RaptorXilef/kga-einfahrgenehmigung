@@ -51,6 +51,53 @@ final readonly class MySqlStorage implements StorageInterface
         return $row ? $this->mapToEntity($row) : null;
     }
 
+    /**
+     * Findet eine Genehmigung anhand des Kennzeichens.
+     * Implementiert für v0.24.5 zur Erfüllung des StorageInterface.
+     */
+    public function findByLicensePlate(string $plate): ?Permit
+    {
+        $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
+
+        if ($searchPlate === '') {
+            return null;
+        }
+
+        // Wir nutzen SQL REPLACE, um Leerzeichen und Bindestriche in der DB beim Vergleich zu ignorieren
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM permits
+            WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?
+        ");
+        $stmt->execute([$searchPlate]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (! $rows) {
+            return null;
+        }
+
+        // Mapping der Datenbankzeilen auf Entities
+        $candidates = \array_map($this->mapToEntity(...), $rows);
+
+        // Sortierung wie in JsonStorage:
+        // 1. Aktive Genehmigungen zuerst
+        // 2. Dann nach dem Enddatum (neueste zuerst)
+        \usort($candidates, function (Permit $a, Permit $b) {
+            $aValid = $a->isValid();
+            $bValid = $b->isValid();
+
+            if ($aValid && ! $bValid) {
+                return -1;
+            }
+            if (! $aValid && $bValid) {
+                return 1;
+            }
+
+            return $b->validity->bis <=> $a->validity->bis;
+        });
+
+        return $candidates[0];
+    }
+
     public function getAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM permits');
