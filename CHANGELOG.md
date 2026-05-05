@@ -2,6 +2,22 @@
 
 
 
+## [0.22.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.21.0...v0.22.0) (2026-05-05)
+
+### 🚀 Features
+
+* **core:** add dedicated admin maintenance mode ([c74fc09](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c74fc090336cc03bee8ab33ea74acb5a1a836e71))
+* **core:** implement maintenance mode via central bootstrap ([e9653c8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e9653c834a9a7c36473f1deba2f068612fca1592))
+
+### 🐛 Bug Fixes
+
+* resolve P1014 and P1037 diagnostic errors ([df1ee08](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/df1ee08e4029d52c08b1ec1406eef284ac620052))
+* restore corrupted core files after license header update ([3a429d8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a429d8faa2b0bfef7d6650cae2d4ae38cae28af))
+
+### ⚙️ Refactoring
+
+* **core:** use internal include for maintenance mode instead of redirect ([d63c853](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d63c853b813557183884a413a2e536ce74d65543))
+
 ## [0.21.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.20.0...v0.21.0) (2026-05-05)
 
 ### 🚀 Features
