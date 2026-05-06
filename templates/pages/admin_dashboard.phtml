@@ -95,6 +95,11 @@ $now = new \DateTimeImmutable();
                     <button class="c-tabs__btn" data-tab-target="tab-vouchers"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Gutscheincodes</button>
                     <button class="c-tabs__btn" data-tab-target="tab-tools"><img src="assets/img/icons/nav-tools.webp" class="c-icon" alt=""><!-- 🛠️ --> Werkzeuge</button>
                     <button class="c-tabs__btn" data-tab-target="tab-logs"><img src="assets/img/icons/nav-logs.webp" class="c-icon" alt=""><!-- 📧 --> Mail Log</button>
+                    <?php if ($adminLevel === 0) { ?>
+                        <button class="c-tabs__btn" data-tab-target="tab-migration">
+                            <img src="assets/img/icons/icon-sync.webp" class="c-icon" alt=""> Migration
+                        </button>
+                    <?php } ?>
                 </div>
 
                 <!-- Tab-Inhalte -->
@@ -141,6 +146,12 @@ $now = new \DateTimeImmutable();
                 <div id="tab-logs" class="c-tabs__content">
                     <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
                 </div>
+
+                <?php if ($adminLevel === 0) { ?>
+                    <div id="tab-migration" class="c-tabs__content">
+                        <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_migration.phtml'; ?>
+                    </div>
+                <?php } ?>
             </div>
         </div>
     </main>

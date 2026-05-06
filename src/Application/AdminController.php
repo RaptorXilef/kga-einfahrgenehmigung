@@ -18,6 +18,7 @@ namespace App\Application;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
@@ -32,6 +33,7 @@ final readonly class AdminController
         private AuthService $auth,
         private StorageInterface $storage,
         private PermitService $permitService,
+        private MigrationService $migrationService,
     ) {
     }
 
@@ -124,6 +126,7 @@ final readonly class AdminController
 
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
         return match ($action) {
+            'migrate_data'   => $this->actionMigrateData($post),
             'mark_as_paid'   => $this->actionMarkAsPaid($post),
             'create_voucher' => $this->actionCreateVoucher($post),
             'create_manual'  => $this->actionCreateManual($post),
@@ -457,6 +460,19 @@ final readonly class AdminController
             'base_url'           => $this->config->getBaseUrl(),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
         ];
+    }
+
+    // Neue Methode im AdminController
+    private function actionMigrateData(array $post): string
+    {
+        if ((int) ($_SESSION['admin_level'] ?? 99) !== 0) {
+            return 'Fehler: Nur Superadmins dürfen migrieren.';
+        }
+
+        $direction = (string) ($post['direction'] ?? 'sync');
+        $target    = (string) ($post['target'] ?? '');
+
+        return $this->migrationService->execute($target, $direction);
     }
 
     /**

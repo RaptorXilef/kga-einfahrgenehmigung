@@ -22,12 +22,11 @@ final readonly class AuthService
 {
     public function __construct(
         private Config $config,
+        private ?\PDO $pdo, // Das '?' erlaubt NULL
     ) {
-        if (\session_status() !== \PHP_SESSION_NONE) {
-            return;
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
-
-        \session_start();
     }
 
     /**
@@ -66,12 +65,25 @@ final readonly class AuthService
      */
     public function loadUsers(): array
     {
-        $path = $this->config->get('root_path') . '/storage/users.json';
-        if (! \file_exists($path)) {
-            return [];
+        $cfg = $this->config->get('storage_config')['users'];
+
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                throw new \RuntimeException("MySQL-Verbindung für 'Users' erforderlich, aber nicht verfügbar.");
+            }
+            $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $rows  = $stmt->fetchAll();
+            $users = [];
+            foreach ($rows as $r) {
+                $users[$r['username']] = $r;
+            }
+
+            return $users;
         }
 
-        return \json_decode((string) \file_get_contents($path), true) ?? [];
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+
+        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     /**
@@ -79,7 +91,28 @@ final readonly class AuthService
      */
     public function saveUsers(array $users): void
     {
-        $path = $this->config->get('root_path') . '/storage/users.json';
+        $cfg = $this->config->get('storage_config')['users'];
+
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                throw new \RuntimeException("MySQL-Verbindung für 'Users' erforderlich, aber nicht verfügbar.");
+            }
+            $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (username, level, label, pass) VALUES (?, ?, ?, ?)");
+            foreach ($users as $username => $data) {
+                $stmt->execute(
+                    [
+                        $username,
+                        (int) $data['level'],
+                        $data['label'],
+                        $data['pass'],
+                    ],
+                );
+            }
+
+            return;
+        }
+
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
         \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT));
     }
 

@@ -19,9 +19,10 @@ final readonly class VoucherService
 {
     private string $storagePath;
 
-    public function __construct(private ConfigInterface $config)
-    {
-        $this->storagePath = $this->config->get('root_path') . '/storage/vouchers.json';
+    public function __construct(
+        private ConfigInterface $config,
+        private ?\PDO $pdo, // Nullable
+    ) {
     }
 
     /**
@@ -101,11 +102,10 @@ final readonly class VoucherService
         $voucher = &$vouchers[$code];
         ++$voucher['uses_count'];
 
-        // Archiv-Eintrag erstellen
-        $archivePath = $this->config->get('root_path') . '/storage/vouchers_archive.json';
-        $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
+        // --- ARCHIV-LOGIK VIA CONFIG ---
+        $arcCfg = $this->config->get('storage_config')['vouchers_archive'];
 
-        $archive[] = [
+        $archiveEntry = [
             'code'        => $code,
             'reason'      => $voucher['reason'],
             'template'    => $voucher['template_key'],
@@ -115,11 +115,29 @@ final readonly class VoucherService
             'user_email'  => $userData['email'] ?? '?',
         ];
 
-        \file_put_contents($archivePath, \json_encode($archive, \JSON_PRETTY_PRINT));
+        if ($arcCfg['type'] === 'mysql' && $this->pdo) {
+            // Direkt in die Datenbank-Tabelle schreiben
+            $sql = "INSERT INTO {$arcCfg['table']} (code, redeemed_at, user_name, user_plot)
+                    VALUES (:code, :redeemed_at, :user_name, :user_plot)";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                'code'        => $archiveEntry['code'],
+                'redeemed_at' => $archiveEntry['redeemed_at'],
+                'user_name'   => $archiveEntry['user_name'],
+                'user_plot'   => $archiveEntry['user_plot'],
+            ]);
+        } else {
+            // Klassisch JSON
+            $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file'];
+            $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
+            $archive[]   = $archiveEntry;
+            \file_put_contents($archivePath, \json_encode($archive, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        }
+        // --- ENDE ARCHIV-LOGIK ---
 
-        // Lösch-Logik prüfen
-        $shouldDelete = ! $voucher['multi_use'];
-        if ($voucher['multi_use'] && $voucher['max_uses'] > 0 && $voucher['uses_count'] >= $voucher['max_uses']) {
+        // Lösch-Logik für den aktiven Gutschein
+        $shouldDelete = ! ($voucher['multi_use'] ?? false);
+        if (($voucher['multi_use'] ?? false) && (int) $voucher['max_uses'] > 0 && $voucher['uses_count'] >= $voucher['max_uses']) {
             $shouldDelete = true;
         }
 
@@ -138,19 +156,54 @@ final readonly class VoucherService
      */
     public function loadVouchers(): array
     {
-        if (! \file_exists($this->storagePath)) {
-            return [];
+        $cfg = $this->config->get('storage_config')['vouchers'];
+
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                throw new \RuntimeException('Datenbank offline.');
+            }
+            $stmt     = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $rows     = $stmt->fetchAll();
+            $vouchers = [];
+            foreach ($rows as $r) {
+                // MySQL TEXT Spalte wieder in Array wandeln
+                $r['data']            = \json_decode((string) ($r['data'] ?? '{}'), true);
+                $vouchers[$r['code']] = $r;
+            }
+
+            return $vouchers;
         }
 
-        return \json_decode((string) \file_get_contents($this->storagePath), true) ?? [];
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+
+        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     /**
      * @param array<string, array<string, mixed>> $vouchers
      */
-    private function saveVouchers(array $vouchers): void
+    public function saveVouchers(array $vouchers): void
     {
-        \file_put_contents($this->storagePath, \json_encode($vouchers, \JSON_PRETTY_PRINT));
+        $cfg = $this->config->get('storage_config')['vouchers'];
+
+        if ($cfg['type'] === 'mysql') {
+            // Wir löschen die Tabelle und füllen sie neu (Einfachste Sync-Logik für REPLACE)
+            $this->pdo->exec("DELETE FROM {$cfg['table']}");
+            $sql = "INSERT INTO {$cfg['table']} (code, reason, template_key, type, value, multi_use, max_uses, uses_count, expires_at, date_mode, created_by, created_at, data)
+                    VALUES (:code, :reason, :template_key, :type, :value, :multi_use, :max_uses, :uses_count, :expires_at, :date_mode, :created_by, :created_at, :data)";
+            $stmt = $this->pdo->prepare($sql);
+
+            foreach ($vouchers as $v) {
+                $v['data']      = \json_encode($v['data'] ?? []); // Array für DB serialisieren
+                $v['multi_use'] = (int) ($v['multi_use'] ?? 0);
+                $stmt->execute($v);
+            }
+
+            return;
+        }
+
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT));
     }
 
     /**
@@ -176,12 +229,15 @@ final readonly class VoucherService
      */
     public function loadArchive(): array
     {
-        $path = $this->config->get('root_path') . '/storage/vouchers_archive.json';
-        if (! \file_exists($path)) {
-            return [];
+        $cfg = $this->config->get('storage_config')['vouchers_archive'];
+
+        if ($cfg['type'] === 'mysql') {
+            return $this->pdo->query("SELECT * FROM {$cfg['table']} ORDER BY redeemed_at DESC")->fetchAll();
         }
 
-        return \json_decode((string) \file_get_contents($path), true) ?? [];
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+
+        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     /**

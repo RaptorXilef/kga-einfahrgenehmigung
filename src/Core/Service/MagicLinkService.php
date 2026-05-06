@@ -21,9 +21,13 @@ final readonly class MagicLinkService
 {
     private string $storagePath;
 
-    public function __construct(private ConfigInterface $config)
-    {
-        $this->storagePath = $this->config->get('root_path') . '/storage/magic_links.json';
+    public function __construct(
+        private ConfigInterface $config,
+        private ?\PDO $pdo, // NEU
+    ) {
+        // storagePath wird für JSON weiter berechnet
+        $cfg               = $this->config->get('storage_config')['magic_links'];
+        $this->storagePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
     }
 
     public function createToken(string $email): array
@@ -78,6 +82,22 @@ final readonly class MagicLinkService
      */
     private function loadLinks(): array
     {
+        $cfg = $this->config->get('storage_config')['magic_links'];
+        if ($cfg['type'] === 'mysql') {
+            $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $rows  = $stmt->fetchAll();
+            $links = [];
+            foreach ($rows as $r) {
+                $links[$r['token']] = [
+                    'email'   => $r['email'],
+                    'code'    => $r['code'],
+                    'expires' => (int) $r['expires'],
+                ];
+            }
+
+            return $links;
+        }
+
         if (! \file_exists($this->storagePath)) {
             return [];
         }
@@ -86,10 +106,28 @@ final readonly class MagicLinkService
     }
 
     /**
-     * @param array<string, array{email: string, expires: int}> $links
+     * Macht den Service kompatibel für die Migration
+     *
+     * @param array<string, array{email: string, code: string, expires: int}> $links
      */
-    private function saveLinks(array $links): void
+    public function saveLinks(array $links): void
     {
-        \file_put_contents($this->storagePath, \json_encode($links, \JSON_PRETTY_PRINT));
+        $cfg = $this->config->get('storage_config')['magic_links'];
+
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                throw new \RuntimeException('MySQL offline');
+            }
+            $this->pdo->exec("DELETE FROM {$cfg['table']}");
+            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)");
+            foreach ($links as $token => $d) {
+                $stmt->execute([$token, $d['email'], $d['code'], (int) $d['expires']]);
+            }
+
+            return;
+        }
+
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        \file_put_contents($path, \json_encode($links, \JSON_PRETTY_PRINT));
     }
 }

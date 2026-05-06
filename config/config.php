@@ -183,6 +183,76 @@ return [
         3 => 'Aufsicht/User',
     ],
 
+    // --- Speicher-Konfiguration ---
+    'storage_config' => [
+        // Haupt-Datenbank für fertige Genehmigungen (ehemals daten.json)
+        'permits' => [
+            'type'  => 'json', // 'json' oder 'mysql'
+            'table' => 'permits',
+            'file'  => 'daten.json',
+        ],
+        // Archiv für abgelaufene Genehmigungen aus vergangenen Jahren
+        'permits_archive' => [
+            'type'         => 'json', // Auch hier: 'json' oder 'mysql'
+            'table'        => 'permits_archive', // In SQL eine (1) Tabelle für alle alten Jahre
+            'file_pattern' => 'daten_{YEAR}.json', // Pattern für die Dateinamen
+        ],
+        // Benutzerkonten für den Admin-Bereich
+        'users' => [
+            'type'  => 'json',
+            'table' => 'users',
+            'file'  => 'users.json',
+        ],
+        // Aktive, noch nicht eingelöste Gutscheine
+        'vouchers' => [
+            'type'  => 'json',
+            'table' => 'vouchers',
+            'file'  => 'vouchers.json',
+        ],
+        // Historie der bereits genutzten Gutscheine
+        'vouchers_archive' => [
+            'type'  => 'json',
+            'table' => 'vouchers_archive',
+            'file'  => 'vouchers_archive.json',
+        ],
+        // Protokoll der versendeten E-Mails
+        'mail_log' => [
+            'type'  => 'json',
+            'table' => 'mail_logs',
+            'file'  => 'mail_log.json',
+        ],
+        // Temporäre Login-Codes für den Pächter-Verlauf
+        'magic_links' => [
+            'type'  => 'json',
+            'table' => 'magic_links',
+            'file'  => 'magic_links.json',
+        ],
+        // Warteraum 1: Antrag gestellt, E-Mail noch nicht bestätigt
+        'pending_verification' => [
+            'type'  => 'json',
+            'table' => 'pending_verifications',
+            'file'  => 'pending_verification.json',
+        ],
+        // Warteraum 2: E-Mail bestätigt, wartet auf Zahlung/Abschluss
+        'verified_pending' => [
+            'type'  => 'json',
+            'table' => 'verified_pending',
+            'file'  => 'verified_pending.json',
+        ],
+    ],
+
+    // Pfad zum Storage-Ordner (relativ zum Root)
+    'storage_path_prefix' => 'storage/',
+
+    // MySQL Zugangsdaten
+    'database' => [
+        'host'    => 'localhost',
+        'dbname'  => 'kga_einfahrt',
+        'user'    => 'root',
+        'pass'    => '',
+        'charset' => 'utf8mb4',
+    ],
+
     // --- UMGEBUNGSSTEUERUNG ---
 
     /**

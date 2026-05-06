@@ -38,13 +38,16 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
+use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
-use App\Core\Service\VoucherService;
+use App\Core\Service\VoucherService; // NEU
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
+use App\Infrastructure\Storage\MySqlStorage;
+use PDO;
 
 /**
  * Service Container (Dependency Injector) v0.10.4.
@@ -73,7 +76,7 @@ class Container
         // 1. Konfiguration
         // Wir registrieren die Config sowohl unter ihrer Klasse als auch unter dem Interface
         $this->instances[Config::class]          = $this->config;
-        $this->instances[ConfigInterface::class] = $this->config; // WICHTIG für Entkopplung
+        $this->instances[ConfigInterface::class] = $this->config;
 
         $this->registerInfrastructure();
         $this->registerCoreServices();
@@ -82,17 +85,59 @@ class Container
 
     private function registerInfrastructure(): void
     {
-        // --- INFRASTRUKTUR (Storage, Mail, Payment, Auth) ---
-        $this->services[StorageInterface::class] = function (): JsonStorage {
-            $root = (string) $this->config->get('root_path');
-            $path = (string) $this->config->get('storage_path', 'storage/daten.json');
+        // 1. Zentrale PDO Verbindung (Jetzt intelligent & blitzschnell)
+        $this->services[\PDO::class] = function (): ?\PDO {
+            $storageCfg = $this->config->get('storage_config', []);
 
-            return new JsonStorage(\str_starts_with($path, '/') ? $path : $root . '/' . $path);
+            // SCHNELL-CHECK: Wird MySQL überhaupt irgendwo benötigt?
+            $needsMysql = false;
+            foreach ($storageCfg as $area) {
+                if (($area['type'] ?? 'json') === 'mysql') {
+                    $needsMysql = true;
+
+                    break;
+                }
+            }
+
+            // Wenn kein Service MySQL will -> Sofort NULL zurückgeben ohne zu warten!
+            if (! $needsMysql) {
+                return null;
+            }
+
+            // Nur wenn MySQL wirklich konfiguriert ist, versuchen wir zu verbinden
+            $db  = $this->config->get('database');
+            $dsn = "mysql:host={$db['host']};dbname={$db['dbname']};charset={$db['charset']}";
+
+            try {
+                return new \PDO($dsn, $db['user'], $db['pass'], [
+                    \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                    \PDO::ATTR_EMULATE_PREPARES   => false,
+                    // ZUSATZ-SICHERHEIT: Timeout auf 2 Sekunden begrenzen
+                    \PDO::ATTR_TIMEOUT => 2,
+                ]);
+            } catch (\PDOException $e) {
+                return null;
+            }
         };
 
-        // Mail Service (Nutzt das Config-Interface)
+        $this->services[StorageInterface::class] = function (): MySqlStorage|JsonStorage {
+            $mapping = $this->config->get('storage_config')['permits'] ?? ['type' => 'json'];
+            if ($mapping['type'] === 'mysql') {
+                $pdo = $this->get(\PDO::class);
+                if (! $pdo) {
+                    throw new \RuntimeException('Datenbank benötigt aber MySQL-Server ist offline.');
+                }
+
+                return new MySqlStorage($pdo);
+            }
+
+            return new JsonStorage($this->config->get('root_path') . '/storage/daten.json');
+        };
+
         $this->services[MailServiceInterface::class] = fn (): SmtpMailService => new SmtpMailService(
             $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
         );
 
         // PayPal Service (Nutzt das Config-Interface)
@@ -103,6 +148,7 @@ class Container
         // AuthService registrieren
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
             $this->get(Config::class),
+            $this->get(\PDO::class),
         );
     }
 
@@ -116,14 +162,16 @@ class Container
         // Service für Gutscheine
         $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
             $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
         );
 
         // Service verwaltet die temporären Token für den Login
         $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
             $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
         );
 
-        // --- CORE LOGIC (Orchestratoren) ---
+        // FIX P1005: Jetzt mit 7 Argumenten (PDO am Ende hinzugefügt)
         $this->services[PermitService::class] = fn (): PermitService => new PermitService(
             $this->get(StorageInterface::class),
             $this->get(MailServiceInterface::class),
@@ -131,6 +179,17 @@ class Container
             $this->get(HolidayService::class),
             $this->get(PaymentProviderInterface::class),
             $this->get(VoucherService::class),
+            $this->get(\PDO::class),
+        );
+
+        // NEU: Migration Service
+        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
+            $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
+            $this->get(PermitService::class),
+            $this->get(AuthService::class),
+            $this->get(VoucherService::class),
+            $this->get(MagicLinkService::class),
         );
     }
 
@@ -142,15 +201,16 @@ class Container
             $this->get(AuthService::class),
             $this->get(StorageInterface::class),
             $this->get(PermitService::class),
+            $this->get(MigrationService::class), // NEU
         );
 
-        // User Controller (Neu für v0.9.7)
+        // User Controller
         $this->services[UserController::class] = fn (): UserController => new UserController(
             $this->get(ConfigInterface::class),
             $this->get(AuthService::class),
         );
 
-        // FIX: CheckController benötigt jetzt den HolidayService für die Live-Prüfung
+        // CheckController benötigt jetzt den HolidayService für die Live-Prüfung
         $this->services[CheckController::class] = fn (): CheckController => new CheckController(
             $this->get(ConfigInterface::class),
             $this->get(StorageInterface::class),
@@ -175,7 +235,7 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
-        // History Controller für Pächter-Verlauf NEU mit v0.13.0:
+        // History Controller für Pächter-Verlauf
         $this->services[HistoryController::class] = fn (): HistoryController => new HistoryController(
             $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
@@ -184,7 +244,7 @@ class Container
         );
     }
 
-    public function get(string $id): object
+    public function get(string $id): mixed
     {
         if (! isset($this->instances[$id])) {
             $this->instances[$id] = ($this->services[$id])();

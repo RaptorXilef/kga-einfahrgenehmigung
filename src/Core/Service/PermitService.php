@@ -41,6 +41,7 @@ final readonly class PermitService
         private HolidayService $holidayService,
         private PaymentProviderInterface $paymentProvider,
         private VoucherService $voucherService,
+        private ?\PDO $pdo,
     ) {
     }
 
@@ -362,6 +363,33 @@ final readonly class PermitService
      */
     private function saveJson(string $path, array $data): void
     {
+        $mapping = $this->config->get('storage_config');
+
+        if (\str_contains($path, 'pending_verification') && $mapping['pending_verification']['type'] === 'mysql') {
+            $table = $mapping['pending_verification']['table'];
+            $this->pdo->exec("DELETE FROM $table");
+            $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
+            foreach ($data as $token => $item) {
+                $expires = $item['expires'] ?? 0;
+                $stmt->execute([$token, $expires, \json_encode($item)]);
+            }
+
+            return;
+        }
+
+        // Analog für verified_pending...
+        if (\str_contains($path, 'verified_pending') && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql') {
+            $table = $mapping['verified_pending']['table'];
+            $this->pdo->exec("DELETE FROM $table");
+            $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
+            foreach ($data as $token => $item) {
+                $expires = $item['expires'] ?? 0;
+                $stmt->execute([$token, $expires, \json_encode($item)]);
+            }
+
+            return;
+        }
+
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
@@ -370,27 +398,47 @@ final readonly class PermitService
      */
     private function loadJson(string $path): array
     {
+        $mapping = $this->config->get('storage_config');
+
+        // Prüfen, ob wir nach pending_verification suchen
+        if (\str_contains($path, 'pending_verification') && $mapping['pending_verification']['type'] === 'mysql') {
+            $table = $mapping['pending_verification']['table'];
+            $stmt  = $this->pdo->query("SELECT * FROM $table");
+            $data  = [];
+            foreach ($stmt->fetchAll() as $r) {
+                $data[$r['token']]            = \json_decode((string) $r['data'], true);
+                $data[$r['token']]['expires'] = (int) $r['expires'];
+            }
+
+            return $data;
+        }
+
+        // Falls du verified_pending.json auch in der Config hast (empfohlen):
+        if (\str_contains($path, 'verified_pending') && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql') {
+            $table = $mapping['verified_pending']['table'];
+            $stmt  = $this->pdo->query("SELECT * FROM $table");
+            $data  = [];
+            foreach ($stmt->fetchAll() as $r) {
+                $data[$r['token']]            = \json_decode((string) $r['data'], true);
+                $data[$r['token']]['expires'] = (int) $r['expires'];
+            }
+
+            return $data;
+        }
+
+        // Fallback zu echtem JSON
         if (! \file_exists($path)) {
             return [];
         }
-
         $data = (array) \json_decode((string) \file_get_contents($path), true) ?? [];
 
-        // --- AUTO-CLEANUP für Pending-Files ---
+        // Auto-Cleanup Logik für JSON (beibehalten)
         if (\str_contains($path, 'pending_verification')) {
-            $now           = \time();
-            $originalCount = \count($data);
-
-            // Entferne alle abgelaufenen Einträge
+            $now  = \time();
             $data = \array_filter(
                 $data,
-                fn (array $item): bool => isset($item['expires']) && (int) $item['expires'] > $now,
+                fn (mixed $item): bool => isset($item['expires']) && (int) $item['expires'] > $now,
             );
-
-            // Wenn etwas gelöscht wurde, Datei direkt bereinigen
-            if (\count($data) !== $originalCount) {
-                $this->saveJson($path, $data);
-            }
         }
 
         return $data;
@@ -572,28 +620,39 @@ final readonly class PermitService
      */
     private function isCodeGloballyUnique(string $fullIdentifier): bool
     {
-        // 1. Check in der aktiven Haupt-Datenbank (Storage)
+        // 1. Check in Haupt-Datenbank (Storage Interface macht das automatisch passend)
         if ($this->storage->findByHash($fullIdentifier) instanceof Permit) {
             return false;
         }
 
-        // 2. Check in allen Archiven (daten_XXXX.json)
-        $storageDir = $this->config->get('root_path') . '/storage/';
-        $archives   = \glob($storageDir . 'daten_*.json');
+        $arcCfg = $this->config->get('storage_config')['permits_archive'];
 
-        if ($archives !== false) {
-            foreach ($archives as $archivePath) {
-                // Lade das Archiv
-                $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+        // 2. Check in den Archiven
+        if ($arcCfg['type'] === 'mysql' && $this->pdo) {
+            $stmt = $this->pdo->prepare("SELECT code FROM {$arcCfg['table']} WHERE code = ?");
+            $stmt->execute([$fullIdentifier]);
+            if ($stmt->fetch()) {
+                return false;
+            }
+        } else {
+            // JSON Archive (glob)
+            $storageDir = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix');
+            $archives   = \glob($storageDir . 'daten_*.json');
 
-                // Da der Code im JsonStorage der "Key" auf der höchsten Ebene ist:
-                if (isset($archiveData[$fullIdentifier])) {
-                    return false; // Code wurde im Archiv gefunden!
+            if ($archives !== false) {
+                foreach ($archives as $archivePath) {
+                    // Lade das Archiv
+                    $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+
+                    // Da der Code im JsonStorage der "Key" auf der höchsten Ebene ist:
+                    if (isset($archiveData[$fullIdentifier])) {
+                        return false;
+                    }
                 }
             }
         }
 
-        return true; // Code ist nirgendwo bekannt
+        return true;
     }
 
     /**
@@ -741,15 +800,16 @@ final readonly class PermitService
      */
     public function checkAndArchive(): void
     {
-        $archiveDeadline = (string) $this->config->get('archive_deadline', '02-01'); // Standard 1. Feb
+        $archiveDeadline = (string) $this->config->get('archive_deadline', '02-01');
         if (\date('m-d') < $archiveDeadline) {
             return;
         }
 
         $lastYear = (int) \date('Y') - 1;
-        $mainPath = $this->config->get('root_path') . '/storage/daten.json';
-        $all      = $this->loadJson($mainPath);
+        $cfg      = $this->config->get('storage_config')['permits'];
+        $arcCfg   = $this->config->get('storage_config')['permits_archive'];
 
+        $all        = $this->loadJson($this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file']);
         $toArchive  = [];
         $stayInMain = [];
 
@@ -763,19 +823,26 @@ final readonly class PermitService
             $stayInMain[$code] = $data;
         }
 
-        if ($toArchive === []) {
+        if (empty($toArchive)) {
             return;
         }
 
-        $yearPath = $this->config->get('root_path') . "/storage/daten_{$lastYear}.json";
-        // Bestehendes Archiv laden oder neu erstellen
-        $existingYear = \file_exists(
-            $yearPath,
-        ) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
-        $newYearData = \array_merge($existingYear, $toArchive);
+        // --- WEICHE: Wo wird archiviert? ---
+        if ($arcCfg['type'] === 'mysql' && $this->pdo) {
+            $archiveStorage = new \App\Infrastructure\Storage\MySqlStorage($this->pdo);
+            // Hier nutzen wir die Tabelle aus $arcCfg['table']
+            foreach ($toArchive as $item) {
+                $this->pdo->prepare("INSERT INTO {$arcCfg['table']} ...")->execute(...); // Logik analog zu save
+            }
+        } else {
+            // Klassisch JSON
+            $yearFile     = \str_replace('{YEAR}', (string) $lastYear, $arcCfg['file_pattern']);
+            $yearPath     = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $yearFile;
+            $existingYear = \file_exists($yearPath) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
+            $this->saveJson($yearPath, \array_merge($existingYear, $toArchive));
+        }
 
-        $this->saveJson($yearPath, $newYearData);
-        $this->saveJson($mainPath, $stayInMain);
+        $this->saveJson($this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'], $stayInMain);
     }
 
     /**
@@ -814,5 +881,17 @@ final readonly class PermitService
     public function arrayToEntity(array $data): Permit
     {
         return $this->storage->mapToEntity($data);
+    }
+
+    /**
+     * Öffentliche Brücke für die Migration, um Warteraum-Daten zu speichern.
+     */
+    public function savePendingData(string $category, array $data): void
+    {
+        // Kategorie ist 'pending_verification' oder 'verified_pending'
+        $cfg  = $this->config->get('storage_config')[$category];
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+
+        $this->saveJson($path, $data);
     }
 }

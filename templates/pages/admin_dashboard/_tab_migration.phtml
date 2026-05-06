@@ -1,0 +1,77 @@
+<?php
+
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
+/**
+ * Path: templates/pages/admin_dashboard/_tab_migration.phtml
+ */
+$targets = [
+    'users'                => 'Benutzerkonten',
+    'vouchers'             => 'Gutscheine',
+    'permits'              => 'Genehmigungen (Haupt-DB)',
+    'mail_log'             => 'E-Mail Protokolle',
+    'pending_verification' => 'Warteraum (E-Mail Bestätigung)',
+    'magic_links'          => 'Login-Tokens',
+];
+?>
+<div class="c-tab-content-container">
+    <section class="c-card" style="border-top: 5px solid var(--json-color);">
+        <header class="c-card__header">
+            <h3 class="u-margin-none">🔄 Daten-Migration & Synchronisierung</h3>
+            <p class="u-text-muted">Verschieben Sie Daten zwischen JSON-Dateien und der MySQL-Datenbank.</p>
+        </header>
+        <div class="c-card__body">
+            <div class="c-alert c-alert--warning u-margin-bottom-l">
+                <img src="assets/img/icons/status-warning.webp" class="c-icon" alt="">
+                <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Erstellen Sie vorab ein Backup!</span>
+            </div>
+
+            <table class="c-table">
+                <thead>
+                    <tr>
+                        <th>Datentyp</th>
+                        <th class="u-text-center">Aktion: JSON ➔ SQL</th>
+                        <th class="u-text-center">Aktion: SQL ➔ JSON</th>
+                        <th class="u-text-center">Synchronisieren</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($targets as $key => $label) { ?>
+                        <tr>
+                            <td><strong><?php echo $label; ?></strong></td>
+                            <td class="u-text-center">
+                                <form method="POST" onsubmit="return confirm('Daten nach MySQL migrieren?')">
+                                    <input type="hidden" name="action" value="migrate_data">
+                                    <input type="hidden" name="target" value="<?php echo $key; ?>">
+                                    <input type="hidden" name="direction" value="json_to_mysql">
+                                    <button type="submit" class="c-button c-button--secondary">➔ SQL</button>
+                                </form>
+                            </td>
+                            <td class="u-text-center">
+                                <form method="POST" onsubmit="return confirm('Daten nach JSON migrieren?')">
+                                    <input type="hidden" name="action" value="migrate_data">
+                                    <input type="hidden" name="target" value="<?php echo $key; ?>">
+                                    <input type="hidden" name="direction" value="mysql_to_json">
+                                    <button type="submit" class="c-button c-button--secondary">➔ JSON</button>
+                                </form>
+                            </td>
+                            <td class="u-text-center">
+                                <form method="POST">
+                                    <input type="hidden" name="action" value="migrate_data">
+                                    <input type="hidden" name="target" value="<?php echo $key; ?>">
+                                    <input type="hidden" name="direction" value="sync">
+                                    <button type="submit" class="c-button c-button--primary" style="width: auto; padding: 0 10px;">
+                                        Zusammenführen (Sync) 🔄
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

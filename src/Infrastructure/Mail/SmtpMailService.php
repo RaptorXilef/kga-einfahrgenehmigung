@@ -24,6 +24,7 @@ final readonly class SmtpMailService implements MailServiceInterface
 {
     public function __construct(
         private Config $config,
+        private ?\PDO $pdo, // Datenbank-Verbindung
     ) {
     }
 
@@ -162,23 +163,73 @@ final readonly class SmtpMailService implements MailServiceInterface
 
     private function logEmail(string $recipient, string $subject, string $template, bool|string $status): void
     {
-        $logPath = $this->config->get('root_path') . '/storage/mail_log.json';
-        $logs    = \file_exists($logPath) ? \json_decode((string) \file_get_contents($logPath), true) : [];
+        $cfg        = $this->config->get('storage_config')['mail_log'];
+        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
-        $entry = [
+        if ($cfg['type'] === 'mysql') {
+            // 1. Eintrag einfügen
+            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([
+                \date('Y-m-d H:i:s'),
+                $recipient,
+                $subject,
+                $template,
+                $status === true ? 'Erfolg' : 'Fehler: ' . $status,
+            ]);
+
+            // 2. Cleanup (Optional: Hält die Datenbank schlank wie bei JSON)
+            // Wir löschen alle alten Einträge, die über das Limit hinausgehen
+            $this->pdo->exec("DELETE FROM {$cfg['table']} WHERE id NOT IN (
+            SELECT id FROM (
+                SELECT id FROM {$cfg['table']} ORDER BY timestamp DESC LIMIT $maxEntries
+            ) foo
+        )");
+
+            return;
+        }
+
+        // --- Alter JSON Code ---
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $logs = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
+        \array_unshift($logs, [
             'timestamp' => \date('Y-m-d H:i:s'),
             'recipient' => $recipient,
             'subject'   => $subject,
             'template'  => $template,
             'status'    => $status === true ? 'Erfolg' : 'Fehler: ' . $status,
-        ];
+        ]);
+        $logs = \array_slice($logs, 0, $maxEntries);
+        \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+    }
 
-        \array_unshift($logs, $entry);
+    /**
+     * Speichert eine Liste von Mail-Logs (wichtig für Migration/Sync).
+     */
+    public function saveLogs(array $logs): void
+    {
+        $cfg = $this->config->get('storage_config')['mail_log'];
 
-        // NEU: Limit aus Config laden (Fallback 200)
-        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
-        $logs       = \array_slice($logs, 0, $maxEntries);
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                throw new \RuntimeException('Datenbank offline.');
+            }
 
-        \file_put_contents($logPath, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            $this->pdo->exec("DELETE FROM {$cfg['table']}");
+            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?)");
+            foreach ($logs as $log) {
+                $stmt->execute([
+                    $log['timestamp'],
+                    $log['recipient'],
+                    $log['subject'],
+                    $log['template'],
+                    $log['status'],
+                ]);
+            }
+
+            return;
+        }
+
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 }
