@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Auth\AuthService;
+use App\Infrastructure\Storage\JsonStorage; // FIX: Fehlte!
 use App\Infrastructure\Storage\MySqlStorage;
 
 final readonly class MigrationService
@@ -26,6 +28,7 @@ final readonly class MigrationService
         private AuthService $authService,
         private VoucherService $voucherService,
         private MagicLinkService $magicLinkService,
+        private MailServiceInterface $mailService,
     ) {
     }
 
@@ -35,7 +38,7 @@ final readonly class MigrationService
         try {
             $backupFolder = $this->createAutoBackup($target);
         } catch (\Exception $e) {
-            return 'Abbruch: Backup konnte nicht erstellt werden (' . $e->getMessage() . '). Keine Daten wurden verschoben.';
+            return 'Abbruch: Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
         }
 
         // 2. MySQL Check
@@ -67,47 +70,39 @@ final readonly class MigrationService
             \mkdir($backupPath, 0o777, true);
         }
 
-        // --- A. JSON-Quelle sichern (falls vorhanden) ---
+        // Flags: 128 (PRETTY) + 64 (UNESCAPED_SLASHES) + 256 (UNESCAPED_UNICODE) = 448
+        $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
+
         $jsonData = $this->loadRawJson($target);
         if (! empty($jsonData)) {
             \file_put_contents(
-                $backupPath . "/{$target}_source_file.json",
-                \json_encode($jsonData, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                $backupPath . "/{$target}_file.json",
+                \json_encode($jsonData, $jsonFlags),
             );
         }
 
         // --- B. MySQL-Quelle sichern (falls erreichbar) ---
         if ($this->pdo) {
-            try {
-                $sqlData = $this->loadRawSql($target);
-                if (! empty($sqlData)) {
-                    \file_put_contents(
-                        $backupPath . "/{$target}_source_mysql.json",
-                        \json_encode($sqlData, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                    );
-                }
-            } catch (\Exception $e) {
-                // Wenn die Tabelle noch nicht existiert, ignorieren wir das SQL-Backup
+            $sqlData = $this->loadRawSql($target);
+            if (! empty($sqlData)) {
+                \file_put_contents($backupPath . "/{$target}_sql.json", \json_encode($sqlData, $jsonFlags));
             }
         }
 
         return "storage/backup/$timestamp";
     }
 
-    private function migrateJsonToSql(string $target): string
-    {
-        $data = $this->loadRawJson($target);
-        if (empty($data)) {
-            return "Keine Daten in JSON-Quelle für $target gefunden.";
-        }
-
-        $this->saveToSql($target, $data);
-
-        return \count($data) . ' Datensätze von JSON nach MySQL kopiert.';
-    }
-
     private function migrateSqlToJson(string $target): string
     {
+        if ($target === 'permits') {
+            // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
+            $json  = new JsonStorage($this->getFilePath('permits'));
+            $sql   = new MySqlStorage($this->pdo);
+            $count = $sql->migrateTo($json);
+
+            return "$count Genehmigungen nach JSON exportiert.";
+        }
+
         $data = $this->loadRawSql($target);
         if (empty($data)) {
             return "Keine Daten in MySQL-Quelle für $target gefunden.";
@@ -118,9 +113,27 @@ final readonly class MigrationService
         return \count($data) . ' Datensätze von MySQL nach JSON kopiert.';
     }
 
-    /**
-     * Synchronisierung: Führt JSON und SQL zusammen (Zusammenführen ohne Datenverlust)
-     */
+    private function migrateJsonToSql(string $target): string
+    {
+        if ($target === 'permits') {
+            // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
+            $json  = new JsonStorage($this->getFilePath('permits'));
+            $sql   = new MySqlStorage($this->pdo);
+            $count = $json->migrateTo($sql);
+
+            return "$count Genehmigungen nach MySQL verschoben.";
+        }
+
+        $data = $this->loadRawJson($target);
+        if (empty($data)) {
+            return "Keine Daten in JSON-Quelle für $target gefunden.";
+        }
+
+        $this->saveToSql($target, $data);
+
+        return \count($data) . ' Datensätze von JSON nach MySQL kopiert.';
+    }
+
     private function syncBoth(string $target): string
     {
         // 1. Daten aus beiden Quellen laden
@@ -134,7 +147,7 @@ final readonly class MigrationService
         $this->saveToJson($target, $merged);
         $this->saveToSql($target, $merged);
 
-        return "Erfolg: '$target' synchronisiert. Beide Quellen enthalten nun " . \count($merged) . ' Datensätze.';
+        return "Erfolg: '$target' synchronisiert. Gesamtbestand: " . \count($merged);
     }
 
     // --- Helfer für direkten Zugriff ohne Rücksicht auf die aktuelle Config-Einstellung ---
@@ -157,22 +170,22 @@ final readonly class MigrationService
     private function loadRawSql(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
-        // Spezialfall Permits (nutzen eigenen Storage)
-        if ($key === 'permits') {
-            $storage = new MySqlStorage($this->pdo);
-            $all     = $storage->getAll();
-            $res     = [];
-            foreach ($all as $p) {
-                $res[$p->code] = $p;
-            } // Vereinfacht für Export
-
-            return $res;
+        if (! $this->pdo) {
+            return [];
         }
 
-        $stmt    = $this->pdo->query("SELECT * FROM {$cfg['table']}");
-        $rows    = $stmt->fetchAll();
-        $res     = [];
-        $idField = ($key === 'users') ? 'username' : 'code';
+        $stmt = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+        $rows = $stmt->fetchAll();
+        $res  = [];
+
+        // Dynamische Bestimmung des ID-Feldes
+        $idField = match ($key) {
+            'users'                                                   => 'username',
+            'mail_log'                                                => 'id',
+            'magic_links', 'pending_verification', 'verified_pending' => 'token',
+            default                                                   => 'code'
+        };
+
         foreach ($rows as $r) {
             if (isset($r['data'])) {
                 $r['data'] = \json_decode((string) $r['data'], true);
@@ -193,10 +206,10 @@ final readonly class MigrationService
             'users'                => $this->authService->saveUsers($data),
             'vouchers'             => $this->voucherService->saveVouchers($data),
             'magic_links'          => $this->magicLinkService->saveLinks($data),
-            'mail_log'             => $this->mailService->saveLogs($data), // Sauber!
-            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data), // Sauber!
-            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data),    // Sauber!
-            'permits'              => $this->migratePermitsToSql($data), // Bleibt Spezialfall wegen Entities
+            'mail_log'             => $this->mailService->saveLogs($data),
+            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data),
+            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data),
+            'permits'              => $this->migratePermitsToSql($data),
             default                => null
         };
     }
@@ -214,23 +227,10 @@ final readonly class MigrationService
         }
     }
 
-    private function migrateMailLogToSql(array $data): void
+    private function getFilePath(string $key): string
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];
-        $this->pdo->exec("DELETE FROM {$cfg['table']}");
-        $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?)");
-        foreach ($data as $log) {
-            $stmt->execute([$log['timestamp'], $log['recipient'], $log['subject'], $log['template'], $log['status']]);
-        }
-    }
+        $cfg = $this->config->get('storage_config')[$key];
 
-    private function migratePendingToSql(array $data): void
-    {
-        $cfg = $this->config->get('storage_config')['pending_verification'];
-        $this->pdo->exec("DELETE FROM {$cfg['table']}");
-        $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (token, expires, data) VALUES (?, ?, ?)");
-        foreach ($data as $token => $d) {
-            $stmt->execute([$token, $d['expires'], \json_encode($d)]);
-        }
+        return $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
     }
 }

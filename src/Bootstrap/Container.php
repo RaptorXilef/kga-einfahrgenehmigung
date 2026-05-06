@@ -190,6 +190,7 @@ class Container
             $this->get(AuthService::class),
             $this->get(VoucherService::class),
             $this->get(MagicLinkService::class),
+            $this->get(MailServiceInterface::class),
         );
     }
 
