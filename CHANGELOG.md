@@ -2,6 +2,16 @@
 
 
 
+## [0.23.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.22.0...v0.23.0) (2026-05-06)
+
+### 🚀 Features
+
+* hybrid MySQL/JSON storage architecture, migration engine & sync v0.23.0 ([29c2a54](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29c2a541fd929f1c69239cc44e9438a12d159d3e))
+
+### ⚙️ Refactoring
+
+* finalize hybrid storage and fix strict typing errors ([f9143bf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f9143bf50efb23784cb656ac5976a108a42f49ed))
+
 ## [0.22.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.21.0...v0.22.0) (2026-05-05)
 
 ### 🚀 Features
