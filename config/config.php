@@ -189,13 +189,13 @@ return [
         'permits' => [
             'type'  => 'json', // 'json' oder 'mysql'
             'table' => 'permits',
-            'file'  => 'daten.json',
+            'file'  => 'permits_active.json',
         ],
         // Archiv für abgelaufene Genehmigungen aus vergangenen Jahren
         'permits_archive' => [
             'type'         => 'json', // Auch hier: 'json' oder 'mysql'
             'table'        => 'permits_archive', // In SQL eine (1) Tabelle für alle alten Jahre
-            'file_pattern' => 'daten_{YEAR}.json', // Pattern für die Dateinamen
+            'file_pattern' => 'permits_archive_{YEAR}.json', // Pattern für die Dateinamen
         ],
         // Benutzerkonten für den Admin-Bereich
         'users' => [

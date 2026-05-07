@@ -30,7 +30,7 @@ try {
 
     $service = $container->get(PermitService::class);
 
-    // Verschiebt Daten von verified_pending(.json) nach daten(.json)
+    // Verschiebt Daten von verified_pending(.json) nach permits_active(.json)
     // und triggert den Mail-Versand an Nutzer & Vorstand
     $permit = $service->finaliseRequest($token, 'wartend', 'Zahlung per Überweisung gewählt');
 

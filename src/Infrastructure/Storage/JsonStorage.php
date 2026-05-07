@@ -8,7 +8,7 @@
 /**
  * JSON-Implementierung des Storage-Interfaces.
  *
- * Verwaltet den Lese- und Schreibzugriff auf die lokale daten.json.
+ * Verwaltet den Lese- und Schreibzugriff auf die lokale permits_active.json.
  *
  * Path: src/Infrastructure/Storage/JsonStorage.php
  */

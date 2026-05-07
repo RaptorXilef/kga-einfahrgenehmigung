@@ -136,7 +136,7 @@ class Container
             // FIX: Pfad und Dateiname werden jetzt dynamisch aus der Config gelesen
             $path = $this->config->get('root_path') . '/' .
                     $this->config->get('storage_path_prefix') .
-                    ($mapping['file'] ?? 'daten.json');
+                    ($mapping['file'] ?? 'permits_active.json');
 
             return new JsonStorage($path);
         };

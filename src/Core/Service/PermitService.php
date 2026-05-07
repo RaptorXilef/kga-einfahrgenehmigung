@@ -625,7 +625,7 @@ final readonly class PermitService
         } else {
             // JSON Archive (glob)
             $storageDir = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix');
-            $archives   = \glob($storageDir . 'daten_*.json');
+            $archives   = \glob($storageDir . 'permits_archive_*.json');
 
             if ($archives !== false) {
                 foreach ($archives as $archivePath) {
