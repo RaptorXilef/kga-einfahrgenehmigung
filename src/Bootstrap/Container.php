@@ -123,6 +123,7 @@ class Container
 
         $this->services[StorageInterface::class] = function (): MySqlStorage|JsonStorage {
             $mapping = $this->config->get('storage_config')['permits'] ?? ['type' => 'json'];
+
             if ($mapping['type'] === 'mysql') {
                 $pdo = $this->get(\PDO::class);
                 if (! $pdo) {
@@ -132,7 +133,12 @@ class Container
                 return new MySqlStorage($pdo);
             }
 
-            return new JsonStorage($this->config->get('root_path') . '/storage/daten.json');
+            // FIX: Pfad und Dateiname werden jetzt dynamisch aus der Config gelesen
+            $path = $this->config->get('root_path') . '/' .
+                    $this->config->get('storage_path_prefix') .
+                    ($mapping['file'] ?? 'daten.json');
+
+            return new JsonStorage($path);
         };
 
         $this->services[MailServiceInterface::class] = fn (): SmtpMailService => new SmtpMailService(

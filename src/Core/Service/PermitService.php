@@ -677,7 +677,7 @@ final readonly class PermitService
      */
     public function completePayment(string $token, string $orderId): bool
     {
-        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $verifiedPath = $this->getStoragePath('verified_pending');
         $allVerified  = $this->loadJson($verifiedPath);
 
         if (! isset($allVerified[$token])) {
