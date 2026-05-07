@@ -623,9 +623,14 @@ final readonly class PermitService
                 return false;
             }
         } else {
-            // JSON Archive (glob)
+            // JSON Archive (DYNAMISCH)
+            $arcCfg     = $this->config->get('storage_config')['permits_archive'];
             $storageDir = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix');
-            $archives   = \glob($storageDir . 'permits_archive_*.json');
+
+            // Wir nehmen das Muster aus der Config (z.B. permits_archive_{YEAR}.json)
+            // und ersetzen {YEAR} durch *, damit glob alle Jahre findet.
+            $globPattern = \str_replace('{YEAR}', '*', (string) $arcCfg['file_pattern']);
+            $archives    = \glob($storageDir . $globPattern);
 
             if ($archives !== false) {
                 foreach ($archives as $archivePath) {
@@ -793,8 +798,8 @@ final readonly class PermitService
         }
 
         $lastYear = (int) \date('Y') - 1;
-        $cfg      = $this->config->get('storage_config')['permits'];
-        $arcCfg   = $this->config->get('storage_config')['permits_archive'];
+        // $cfg      = $this->config->get('storage_config')['permits'];
+        $arcCfg = $this->config->get('storage_config')['permits_archive'];
 
         $mainPath   = $this->getStoragePath('permits');
         $all        = $this->loadJson($mainPath);

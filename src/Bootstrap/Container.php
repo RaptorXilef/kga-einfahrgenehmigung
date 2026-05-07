@@ -133,10 +133,11 @@ class Container
                 return new MySqlStorage($pdo);
             }
 
-            // FIX: Pfad und Dateiname werden jetzt dynamisch aus der Config gelesen
-            $path = $this->config->get('root_path') . '/' .
+            // FIX: Dynamische Pfad-Ermittlung aus der Config
+            $fileName = $mapping['file'] ?? 'permits_active.json';
+            $path     = $this->config->get('root_path') . '/' .
                     $this->config->get('storage_path_prefix') .
-                    ($mapping['file'] ?? 'permits_active.json');
+                    $fileName;
 
             return new JsonStorage($path);
         };
