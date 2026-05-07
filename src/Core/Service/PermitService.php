@@ -145,6 +145,12 @@ final readonly class PermitService
             new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
 
+        $tKey                  = $data['template_key'] ?? 'std_7';
+        $templates             = (array) $this->config->get('permit_templates', []);
+        $template              = $templates[$tKey] ?? $templates['std_7'];
+        $typ                   = $data['typ'] ?? 'pkw';
+        $data['preisSnapshot'] = (float) ($template['prices'][$typ] ?? 0.0);
+
         $token     = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
