@@ -93,6 +93,7 @@ final readonly class VerificationController
         return [
             'vereins_name' => $this->config->get('vereins_name'),
             'jahresFarbe'  => $this->config->get('jahresFarbe'),
+            'base_url'     => $this->config->getBaseUrl(),
         ];
     }
 
