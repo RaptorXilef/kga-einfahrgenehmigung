@@ -48,8 +48,15 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Antrag - <?php echo \htmlspecialchars($config->get('vereins_name')); ?></title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+
+    <script>
+        // Zentrale Frontend-Konfiguration (Die Brücke)
+        window.KGA_CONFIG = {
+            baseUrl: '<?php echo $settings['base_url']; ?>',
+        };
+    </script>
 
     <style>
         .c-form-section {
@@ -160,7 +167,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                 <?php if ($logoFile) { ?>
                     <div class="u-margin-bottom-m u-flex u-justify-center">
-                        <img src="<?php echo $logoFile; ?>"
+                        <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
                             alt="Logo"
                             style="max-width: 280px; max-height: 120px; min-height: 60px; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.08));">
                     </div>
@@ -185,7 +192,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                 <?php if ($prefill) { ?>
                     <div class="c-voucher-alert">
-                        <span style="font-size: 1.5rem;"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></span>
+                        <span style="font-size: 1.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></span>
                         <div>
                             <strong>Gutschein aktiv: <?php echo $prefill['code']; ?></strong><br>
                             <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -194,7 +201,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } else { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                     <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
-                        <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Gutscheincode? Dann hier klicken.</span>
+                        <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Gutscheincode? Dann hier klicken.</span>
                     </div>
 
                     <div id="voucher-container" class="u-margin-auto" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left; max-width: 500px;">

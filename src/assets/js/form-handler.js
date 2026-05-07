@@ -192,13 +192,29 @@ export class PermitFormHandler {
     async updatePrice() {
         if (!this.tplSelect || !this.typSelect) return;
 
-        const response = await fetch(
-            `api/get_template_price.php?key=${this.tplSelect.value}&typ=${this.typSelect.value}`
-        );
-        const data = await response.json();
+        // Nutzt die injizierte baseUrl
+        const baseUrl = window.KGA_CONFIG?.baseUrl || '';
 
-        if (this.priceDisplay) {
-            this.priceDisplay.innerText = `Gebühr: ${data.formatted}`;
+        // Gutschein suchen (wir schauen nach dem Feld 'voucher')
+        const voucherInput = document.getElementsByName('voucher')[0];
+        const voucher = voucherInput ? voucherInput.value : '';
+
+        try {
+            const response = await fetch(
+                `${baseUrl}api/get_template_price.php?key=${this.tplSelect.value}&typ=${this.typSelect.value}&voucher=${voucher}`
+            );
+            const data = await response.json();
+
+            if (this.priceDisplay && data.success) {
+                this.priceDisplay.innerText = `Gebühr: ${data.formatted}`;
+
+                // Falls ein Rabatt aktiv ist, zeigen wir das an
+                if (data.discountText) {
+                    this.priceDisplay.title = data.discountText; // Als Tooltip
+                }
+            }
+        } catch (e) {
+            console.error('Preis-Update fehlgeschlagen', e);
         }
     }
 }

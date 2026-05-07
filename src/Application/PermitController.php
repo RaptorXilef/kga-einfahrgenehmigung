@@ -57,7 +57,7 @@ final readonly class PermitController
         if (isset($get['sent'])) {
             $success = true;
             $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. '
-                     . 'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
+                . 'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
         }
 
         // 3. View rendern (wie gehabt)
@@ -83,6 +83,8 @@ final readonly class PermitController
             'vehicle_types'    => $this->config->get('vehicle_types'),
             'purposes'         => $this->config->get('purposes'),
             'public_templates' => $public,
+            'base_url'         => $this->config->getBaseUrl(), // FIX: Das war der Grund für die Fehlermeldungen!
+            'jahresFarbe'      => $this->config->get('jahresFarbe'),
         ];
     }
 
