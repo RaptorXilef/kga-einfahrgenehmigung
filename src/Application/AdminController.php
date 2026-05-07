@@ -312,12 +312,17 @@ final readonly class AdminController
      */
     private function handleExport(string $format, array $filtered, string $start, string $end): void
     {
-        $filename = "export_kga_{$start}_bis_{$end}";
+        // FIX: Wir nutzen den Vereinsnamen aus der Config für den Dateinamen (statt hartkodiert "kga")
+        $slug = \strtolower(\preg_replace('/[^A-Za-z0-9]/', '_', (string) $this->config->get('vereins_name', 'export')));
+
+        // FIX: Die Endung wird jetzt dynamisch über $format angehängt
+        $filename = "export_{$slug}_{$start}_bis_{$end}.{$format}";
+
         $settings = $this->getSettingsArray();
 
         if ($format === 'csv') {
             \header('Content-Type: text/csv; charset=utf-8');
-            \header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+            \header('Content-Disposition: attachment; filename="' . $filename . '"');
             $output = \fopen('php://output', 'w');
             if ($output) {
                 // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
@@ -361,7 +366,7 @@ final readonly class AdminController
 
         if ($format === 'json') {
             \header('Content-Type: application/json');
-            \header('Content-Disposition: attachment; filename="' . $filename . '.json"');
+            \header('Content-Disposition: attachment; filename="' . $filename . '"');
             echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
         }
     }
