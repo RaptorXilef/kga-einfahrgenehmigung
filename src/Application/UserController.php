@@ -53,7 +53,7 @@ final readonly class UserController
             'users'      => $this->auth->loadUsers(),
             'roles'      => $roles,
             'adminLevel' => $myLevel, // Geändert von myLevel
-            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Unbekannt'), // Geändert von myUsername
+            'adminUser'  => $this->auth->getUsername(),
             'message'    => $message,
             'settings'   => $this->getSettingsArray(),
             'config'     => $this->config,

@@ -140,4 +140,15 @@ final readonly class AuthService
     {
         \session_destroy();
     }
+
+    // In src/Infrastructure/Auth/AuthService.php
+
+    public function getUsername(): string
+    {
+        if ($this->config->get('admin_dev_mode', false) === true) {
+            return 'Dev-Admin (Automatischer Login)'; // Oder 'Dev-Admin (Automatischer Login)'
+        }
+
+        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+    }
 }

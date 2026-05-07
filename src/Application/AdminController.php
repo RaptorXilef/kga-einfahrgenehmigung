@@ -275,6 +275,7 @@ final readonly class AdminController
         }
 
         // E-Mail Logs laden
+        // TODO Datei korrekt einbinden über config!
         $logPath  = $this->config->get('root_path') . '/storage/mail_log.json';
         $mailLogs = \file_exists($logPath)
             ? \json_decode((string) \file_get_contents($logPath), true)
@@ -286,8 +287,8 @@ final readonly class AdminController
             'stats'          => $this->calculateStats($filtered),
             'groups'         => $this->groupPermits($allPermits),
             'settings'       => $this->getSettingsArray(),
-            'adminUser'      => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel'     => (int) ($_SESSION['admin_level'] ?? 1),
+            'adminUser'      => $this->auth->getUsername(),
+            'adminLevel'     => $this->auth->getLevel(),
             'message'        => $message,
             'filterStart'    => $filterStart,
             'filterEnd'      => $filterEnd,
@@ -465,7 +466,8 @@ final readonly class AdminController
     // Neue Methode im AdminController
     private function actionMigrateData(array $post): string
     {
-        if ((int) ($_SESSION['admin_level'] ?? 99) !== 0) {
+        // BUGFIX HIER: AuthService nutzen statt $_SESSION
+        if ($this->auth->getLevel() !== 0) {
             return 'Fehler: Nur Superadmins dürfen migrieren.';
         }
 
