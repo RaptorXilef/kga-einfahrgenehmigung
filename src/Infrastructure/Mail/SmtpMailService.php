@@ -232,4 +232,25 @@ final readonly class SmtpMailService implements MailServiceInterface
         $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
         \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
+
+    public function loadLogs(): array
+    {
+        $cfg = $this->config->get('storage_config')['mail_log'];
+
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                return [];
+            }
+
+            // Wir laden die neuesten zuerst
+            return $this->pdo->query("SELECT * FROM {$cfg['table']} ORDER BY timestamp DESC")->fetchAll();
+        }
+
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        return (array) \json_decode((string) \file_get_contents($path), true) ?? [];
+    }
 }

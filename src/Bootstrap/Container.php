@@ -202,7 +202,8 @@ class Container
             $this->get(AuthService::class),
             $this->get(StorageInterface::class),
             $this->get(PermitService::class),
-            $this->get(MigrationService::class), // NEU
+            $this->get(MigrationService::class),
+            $this->get(MailServiceInterface::class),
         );
 
         // User Controller

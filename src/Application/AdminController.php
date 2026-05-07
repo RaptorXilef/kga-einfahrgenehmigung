@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\MigrationService;
@@ -34,6 +35,7 @@ final readonly class AdminController
         private StorageInterface $storage,
         private PermitService $permitService,
         private MigrationService $migrationService,
+        private MailServiceInterface $mailService,
     ) {
     }
 
@@ -275,11 +277,7 @@ final readonly class AdminController
         }
 
         // E-Mail Logs laden
-        // TODO Datei korrekt einbinden über config!
-        $logPath  = $this->config->get('root_path') . '/storage/mail_log.json';
-        $mailLogs = \file_exists($logPath)
-            ? \json_decode((string) \file_get_contents($logPath), true)
-            : [];
+        $mailLogs = $this->mailService->loadLogs();
 
         $voucherService = $this->permitService->getVoucherService();
 

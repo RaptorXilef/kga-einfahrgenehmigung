@@ -31,4 +31,10 @@ interface MailServiceInterface
      * @return bool|string True bei Erfolg, Fehlermeldung als String bei Fehlern.
      */
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string;
+
+    /**
+     * Lädt den Verlauf der gesendeten E-Mails.
+     * @return array<int, array<string, mixed>>
+     */
+    public function loadLogs(): array;
 }

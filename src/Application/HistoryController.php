@@ -128,7 +128,9 @@ final readonly class HistoryController
         // 2. Archive laden, falls angefordert (?load_archive=2025)
         $loadedYear = (int) ($get['load_archive'] ?? 0);
         if ($loadedYear > 0) {
-            $archivePath = $this->config->get('root_path') . "/storage/daten_{$loadedYear}.json";
+            $arcCfg      = $this->config->get('storage_config')['permits_archive'];
+            $yearFile    = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern']);
+            $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $yearFile;
             if (\file_exists($archivePath)) {
                 $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
                 // Filter für E-Mail im Archiv

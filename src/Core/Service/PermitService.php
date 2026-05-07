@@ -145,31 +145,37 @@ final readonly class PermitService
             new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
 
-        $token = \bin2hex(\random_bytes(32));
-        // NEU: Kurzer, gut lesbarer Code für die Formulareingabe
+        $token     = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
         $data['verification_token'] = $token;
-        $data['verification_code']  = $shortCode; // NEU
+        $data['verification_code']  = $shortCode;
+        $hours                      = (int) $this->config->get('hours_pending_verify', 24);
+        $data['expires']            = \time() + (3600 * $hours);
 
-        $hours           = (int) $this->config->get('hours_pending_verify', 24);
-        $data['expires'] = \time() + (3600 * $hours);
-
-        // Wir speichern das in einer separaten Datei (storage/pending_verification.json)
-        $storagePath        = $this->config->get('root_path') . '/storage/pending_verification.json';
-        $allPending         = $this->loadJson($storagePath);
+        // Wir speichern das in einer separaten Datei oder MySQL (storage/pending_verification.json)
+        $path               = $this->getStoragePath('pending_verification');
+        $allPending         = $this->loadJson($path);
         $allPending[$token] = $data;
-
-        $this->saveJson($storagePath, $allPending);
+        $this->saveJson($path, $allPending);
 
         $this->mailService->sendTemplate((string) $data['email'], 'E-Mail bestätigen', 'verify_email', [
             'name'        => (string) $data['name'],
             'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
-            'code'        => $shortCode, // NEU
+            'code'        => $shortCode,
             'vereinsName' => $this->config->get('vereins_name'),
         ]);
 
         return $token;
+    }
+
+    // --- INTERNE LOGIK & HELFER ---
+
+    private function getStoragePath(string $key): string
+    {
+        $cfg = $this->config->get('storage_config')[$key];
+
+        return $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
     }
 
     /**
@@ -180,7 +186,7 @@ final readonly class PermitService
     {
         $parzelleFormatted = \str_pad($parzelle, 4, '0', \STR_PAD_LEFT);
 
-        // 1. Check im Hauptspeicher (Storage)
+        // 1. Check im Hauptspeicher (Storage Interface)
         foreach ($this->storage->getAll() as $permit) {
             if (
                 $permit->owner->parzelle === $parzelleFormatted
@@ -188,19 +194,18 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                        $permit->validity->von->format('d.m.Y') . ' bis ' . $permit->validity->bis->format('d.m.Y') . '.',
+                    $permit->validity->von->format('d.m.Y') . ' bis ' . $permit->validity->bis->format('d.m.Y') . '.',
                 );
             }
         }
 
         // 2. Check in den ausstehenden E-Mail-Bestätigungen (Pending)
-        $path       = $this->config->get('root_path') . '/storage/pending_verification.json';
-        $allPending = $this->loadJson($path);
+        $allPending = $this->loadJson($this->getStoragePath('pending_verification'));
 
         foreach ($allPending as $pending) {
+            $pPlot  = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
             $pStart = new \DateTimeImmutable((string) ($pending['datum_von'] ?? 'now'));
             $pEnd   = new \DateTimeImmutable((string) ($pending['datum_bis'] ?? 'now'));
-            $pPlot  = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
 
             // Nur prüfen, wenn die ausstehende Anfrage noch nicht abgelaufen ist
             if (
@@ -210,7 +215,7 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
-                        'Bitte warten Sie 24h oder wählen Sie andere Daten.',
+                    'Bitte warten Sie 24h oder wählen Sie andere Daten.',
                 );
             }
         }
@@ -236,8 +241,8 @@ final readonly class PermitService
      */
     public function confirmEmail(string $input): ?array
     {
-        $pendingPath  = $this->config->get('root_path') . '/storage/pending_verification.json';
-        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $pendingPath  = $this->getStoragePath('pending_verification');
+        $verifiedPath = $this->getStoragePath('verified_pending');
 
         $allPending = $this->loadJson($pendingPath);
         $input      = \strtoupper(\trim($input));
@@ -337,7 +342,7 @@ final readonly class PermitService
      */
     public function finaliseRequest(string $token, string $status = 'wartend', ?string $kommentar = null): Permit
     {
-        $verifiedPath = $this->config->get('root_path') . '/storage/verified_pending.json';
+        $verifiedPath = $this->getStoragePath('verified_pending');
         $allVerified  = $this->loadJson($verifiedPath);
 
         if (! isset($allVerified[$token])) {
@@ -363,28 +368,22 @@ final readonly class PermitService
      */
     private function saveJson(string $path, array $data): void
     {
-        $mapping = $this->config->get('storage_config');
+        $mapping    = $this->config->get('storage_config');
+        $isPending  = \str_contains($path, 'pending_verification');
+        $isVerified = \str_contains($path, 'verified_pending');
 
-        if (\str_contains($path, 'pending_verification') && $mapping['pending_verification']['type'] === 'mysql') {
-            $table = $mapping['pending_verification']['table'];
-            $this->pdo->exec("DELETE FROM $table");
-            $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
-            foreach ($data as $token => $item) {
-                $expires = $item['expires'] ?? 0;
-                $stmt->execute([$token, $expires, \json_encode($item)]);
+        if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
+            || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')) {
+
+            $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
+            if (! $this->pdo) {
+                return;
             }
 
-            return;
-        }
-
-        // Analog für verified_pending...
-        if (\str_contains($path, 'verified_pending') && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql') {
-            $table = $mapping['verified_pending']['table'];
             $this->pdo->exec("DELETE FROM $table");
             $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
             foreach ($data as $token => $item) {
-                $expires = $item['expires'] ?? 0;
-                $stmt->execute([$token, $expires, \json_encode($item)]);
+                $stmt->execute([$token, $item['expires'] ?? 0, \json_encode($item)]);
             }
 
             return;
@@ -398,47 +397,36 @@ final readonly class PermitService
      */
     private function loadJson(string $path): array
     {
-        $mapping = $this->config->get('storage_config');
+        $mapping    = $this->config->get('storage_config');
+        $isPending  = \str_contains($path, 'pending_verification');
+        $isVerified = \str_contains($path, 'verified_pending');
 
-        // Prüfen, ob wir nach pending_verification suchen
-        if (\str_contains($path, 'pending_verification') && $mapping['pending_verification']['type'] === 'mysql') {
-            $table = $mapping['pending_verification']['table'];
-            $stmt  = $this->pdo->query("SELECT * FROM $table");
-            $data  = [];
-            foreach ($stmt->fetchAll() as $r) {
-                $data[$r['token']]            = \json_decode((string) $r['data'], true);
-                $data[$r['token']]['expires'] = (int) $r['expires'];
+        if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
+            || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')) {
+
+            $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
+            if (! $this->pdo) {
+                return [];
             }
 
-            return $data;
-        }
-
-        // Falls du verified_pending.json auch in der Config hast (empfohlen):
-        if (\str_contains($path, 'verified_pending') && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql') {
-            $table = $mapping['verified_pending']['table'];
-            $stmt  = $this->pdo->query("SELECT * FROM $table");
-            $data  = [];
+            $stmt = $this->pdo->query("SELECT * FROM $table");
+            $res  = [];
             foreach ($stmt->fetchAll() as $r) {
-                $data[$r['token']]            = \json_decode((string) $r['data'], true);
-                $data[$r['token']]['expires'] = (int) $r['expires'];
+                $res[$r['token']]            = \json_decode((string) $r['data'], true);
+                $res[$r['token']]['expires'] = (int) $r['expires'];
             }
 
-            return $data;
+            return $res;
         }
 
-        // Fallback zu echtem JSON
         if (! \file_exists($path)) {
             return [];
         }
         $data = (array) \json_decode((string) \file_get_contents($path), true) ?? [];
 
-        // Auto-Cleanup Logik für JSON (beibehalten)
-        if (\str_contains($path, 'pending_verification')) {
+        if ($isPending) {
             $now  = \time();
-            $data = \array_filter(
-                $data,
-                fn (mixed $item): bool => isset($item['expires']) && (int) $item['expires'] > $now,
-            );
+            $data = \array_filter($data, fn ($item) => isset($item['expires']) && (int) $item['expires'] > $now);
         }
 
         return $data;
@@ -754,8 +742,7 @@ final readonly class PermitService
         if ($token === '') {
             return null;
         }
-        $path = $this->config->get('root_path') . '/storage/verified_pending.json';
-        $all  = $this->loadJson($path);
+        $all = $this->loadJson($this->getStoragePath('verified_pending'));
 
         return (array) ($all[$token] ?? null) ?: null;
     }
@@ -809,18 +796,17 @@ final readonly class PermitService
         $cfg      = $this->config->get('storage_config')['permits'];
         $arcCfg   = $this->config->get('storage_config')['permits_archive'];
 
-        $all        = $this->loadJson($this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file']);
+        $mainPath   = $this->getStoragePath('permits');
+        $all        = $this->loadJson($mainPath);
         $toArchive  = [];
         $stayInMain = [];
 
         foreach ($all as $code => $data) {
-            $year = (int) \substr((string) $data['erstellt'], 0, 4);
-            if ($year <= $lastYear) {
+            if ((int) \substr((string) $data['erstellt'], 0, 4) <= $lastYear) {
                 $toArchive[$code] = $data;
-
-                continue;
+            } else {
+                $stayInMain[$code] = $data;
             }
-            $stayInMain[$code] = $data;
         }
 
         if (empty($toArchive)) {
@@ -829,20 +815,24 @@ final readonly class PermitService
 
         // --- WEICHE: Wo wird archiviert? ---
         if ($arcCfg['type'] === 'mysql' && $this->pdo) {
-            $archiveStorage = new \App\Infrastructure\Storage\MySqlStorage($this->pdo);
-            // Hier nutzen wir die Tabelle aus $arcCfg['table']
+            $sql = "REPLACE INTO {$arcCfg['table']} (code, templateKey, name, email, kennzeichen, parzelle, typ, firma, zweck, preisSnapshot, von, bis, status, erstellt, internerKommentar)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->pdo->prepare($sql);
             foreach ($toArchive as $item) {
-                $this->pdo->prepare("INSERT INTO {$arcCfg['table']} ...")->execute(...); // Logik analog zu save
+                $stmt->execute([
+                    $item['code'], $item['templateKey'], $item['name'], $item['email'], $item['kennzeichen'],
+                    $item['parzelle'], $item['typ'], $item['firma'], $item['zweck'], $item['preisSnapshot'],
+                    $item['von'], $item['bis'], $item['status'], $item['erstellt'], $item['internerKommentar'],
+                ]);
             }
         } else {
             // Klassisch JSON
-            $yearFile     = \str_replace('{YEAR}', (string) $lastYear, $arcCfg['file_pattern']);
-            $yearPath     = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $yearFile;
-            $existingYear = \file_exists($yearPath) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
-            $this->saveJson($yearPath, \array_merge($existingYear, $toArchive));
+            $yearPath = \str_replace('{YEAR}', (string) $lastYear, $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file_pattern']);
+            $existing = \file_exists($yearPath) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
+            $this->saveJson($yearPath, \array_merge($existing, $toArchive));
         }
 
-        $this->saveJson($this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'], $stayInMain);
+        $this->saveJson($mainPath, $stayInMain);
     }
 
     /**
@@ -888,10 +878,6 @@ final readonly class PermitService
      */
     public function savePendingData(string $category, array $data): void
     {
-        // Kategorie ist 'pending_verification' oder 'verified_pending'
-        $cfg  = $this->config->get('storage_config')[$category];
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-
-        $this->saveJson($path, $data);
+        $this->saveJson($this->getStoragePath($category), $data);
     }
 }
