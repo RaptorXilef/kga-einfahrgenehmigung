@@ -2,6 +2,34 @@
 
 
 
+## [0.24.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.23.0...v0.24.0) (2026-05-07)
+
+### 🚀 Features
+
+* **config:** rename permit storage files for semantic consistency ([f3cd62b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f3cd62bce14df4a99a8ee811ec4da31d2b5b586b))
+
+### 🐛 Bug Fixes
+
+* **admin:** dynamicize export extensions and cleanup mail log retrieval ([94c528c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/94c528c3d135f338a9cee7288d8c75ab5e12faa9))
+* **admin:** resolve hardcoded opening hours in admin print view ([10d558e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/10d558eedf249624f5af0d717c6547b584472c05))
+* **api:** clean up legacy code and unused variables in endpoints ([5fff9c6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5fff9c6b6be74d3e6e6160ae530695339da922bf))
+* **api:** replace manual storage access with service delegation ([bbf3c77](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bbf3c77ab26912127c2f1c1ef53a41d37c51ce69))
+* **arch:** eliminate remaining hardcoded paths and fix dependency injection ([3ea9c22](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3ea9c22d49a98af20f36c2ea6a2ef160717675b3))
+* **arch:** move opening hours formatting to HolidayService ([ddf40ad](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ddf40adc06d16511cdf0ee7373c4c1afd9467bb9))
+* **auth:** unify access level detection and username retrieval ([946f263](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/946f2636678b6338576b7f87c860ca9948273749))
+* **check:** dynamicize API and asset paths in public status view ([db13ae3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/db13ae385f75f4bf9fe9b6909f9245697464e155))
+* **config:** dynamicize archive lookup and clean up redundant variables ([aa9f0ac](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aa9f0ac2680ec3f4d2ff7bf4d14f85cc960fbbd6))
+* **config:** eliminate last hardcoded storage paths in container and service ([deffc85](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/deffc8568d13de2a8655700d27313e0430ba25f4))
+* **controller:** provide base_url to User and Verification views ([0443195](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/04431955b689b3e415593dbd7f963854d86a8855))
+* **core:** dynamicize migration backups and globalize config bridge ([482b8d2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/482b8d2205308afe5343bdcdd8b82650c7a2dcd4))
+* **core:** resolve critical price snapshot ([3b997b3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3b997b357e0b1137986b051c321541b1f44588f4))
+* **core:** resolve verification redirect bug ([5a235c1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5a235c18428e33a5dd104e87a1e9494ec5eda820))
+* **frontend:** restore form stability and fix asset path resolution ([574262b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/574262b26af594a74fbb78358e737c529267a11a))
+* **icon:** upload missing icon ([29970c7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29970c7e72f9391519f4845dd40fdb39218f6875))
+* **maintenance:** resolve base_url detection and asset path errors ([23dfcb1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/23dfcb19f4fddc5b40165e6b190cc834b2ae7d2e))
+* **view:** align variable names for opening hours in admin print preview ([32ce2dc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/32ce2dc38958fefdfd4129ccdb6b9aeb31150325))
+* **view:** resolve remaining magic strings and hardcoded paths in templates ([9e86d46](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9e86d465be267730d09aa1e763782d2591c2dcb4))
+
 ## [0.23.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.22.0...v0.23.0) (2026-05-06)
 
 ### 🚀 Features
