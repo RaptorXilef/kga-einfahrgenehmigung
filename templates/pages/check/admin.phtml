@@ -37,6 +37,12 @@ if ($permit) {
     <title>Vorstands-Prüfung - <?php echo $permit->code; ?></title>
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+
+    <script>
+        window.KGA_CONFIG = {
+            baseUrl: '<?php echo $settings['base_url']; ?>'
+        };
+    </script>
 </head>
 
 <body class="l-admin <?php echo $pageStateClass; ?>">

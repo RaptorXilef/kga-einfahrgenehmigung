@@ -64,7 +64,7 @@ final readonly class MigrationService
     {
         $timestamp  = \date('Ymd-His'); // YYYYMMDD-HHmmss
         $root       = $this->config->get('root_path');
-        $backupPath = $root . '/storage/backup/' . $timestamp;
+        $backupPath = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
 
         if (! \is_dir($backupPath)) {
             \mkdir($backupPath, 0o777, true);
@@ -89,7 +89,7 @@ final readonly class MigrationService
             }
         }
 
-        return "storage/backup/$timestamp";
+        return $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
     }
 
     private function migrateSqlToJson(string $target): string

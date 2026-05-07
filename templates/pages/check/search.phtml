@@ -21,6 +21,12 @@
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <!-- Geändert: Nutzt jetzt direkt $appRoot -->
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+
+    <script>
+        window.KGA_CONFIG = {
+            baseUrl: '<?php echo $settings['base_url']; ?>'
+        };
+    </script>
 </head>
 
 <body class="u-bg-light l-public-body">

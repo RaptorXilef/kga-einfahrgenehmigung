@@ -20,6 +20,12 @@ $now = new \DateTimeImmutable();
     <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+
+    <script>
+        window.KGA_CONFIG = {
+            baseUrl: '<?php echo $settings['base_url']; ?>'
+        };
+    </script>
 </head>
 
 <body class="l-admin">
