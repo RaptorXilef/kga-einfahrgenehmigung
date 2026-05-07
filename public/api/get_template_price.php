@@ -13,10 +13,6 @@
 
 declare(strict_types=1);
 
-// Fehler für die API-Antwort unterdrücken, um JSON nicht zu korrumpieren
-\ini_set('display_errors', '0');
-\error_reporting(0);
-
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
@@ -42,18 +38,14 @@ try {
 
     // Gutschein-Prüfung
     if ($voucherCode !== '') {
+        // Wir lassen den Service die Arbeit machen!
         $vouchers = $permitService->getVoucherService()->loadVouchers();
-        if (isset($vouchers[$voucherCode])) {
-            $v = $vouchers[$voucherCode];
+        $v        = $vouchers[$voucherCode] ?? null;
 
-            // Ablaufdatum prüfen
-            $isExpired = false;
-            if (! empty($v['expires_at'])) {
-                $expiry = new \DateTimeImmutable($v['expires_at']);
-                if ($expiry < new \DateTimeImmutable()) {
-                    $isExpired = true;
-                }
-            }
+        if ($v) {
+            // Check gegen Ablaufdatum (Logik bleibt hier, bis wir eine isValid() Methode im Service haben)
+            $isExpired = ! empty($v['expires_at'])
+                && new \DateTimeImmutable($v['expires_at']) < new \DateTimeImmutable();
 
             if (! $isExpired) {
                 // Preis berechnen über die neue Methode im PermitService
@@ -67,6 +59,8 @@ try {
             } else {
                 $discountText = 'Code abgelaufen';
             }
+        } else {
+            $discountText = 'Ungültiger Code';
         }
     }
 
@@ -77,7 +71,7 @@ try {
         'discountText' => $discountText,
         'formatted'    => \number_format($finalPrice, 2, ',', '.') . ' €',
         'isFree'       => $finalPrice <= 0,
-    ]);
+    ], \JSON_UNESCAPED_UNICODE); // Unicode für das € Zeichen
 
 } catch (\Throwable $e) {
     // Falls ein schwerer Fehler auftritt, senden wir ihn als JSON

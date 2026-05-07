@@ -13,7 +13,6 @@
 
 declare(strict_types=1);
 
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
@@ -22,13 +21,10 @@ use App\Core\Service\PermitService;
 try {
     // Bootstrapper laden
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
-    $config    = $container->get(ConfigInterface::class);
-    $appRoot   = $config->get('root_path');
 
     $token = (string) ($_GET['token'] ?? '');
     if ($token === '') {
-        echo \json_encode(['success' => false, 'error' => 'Kein Token angegeben']);
-        exit;
+        throw new \Exception('Kein Token angegeben');
     }
 
     // Warteraum laden
@@ -37,8 +33,7 @@ try {
     $tempRequest   = $permitService->getVerifiedRequest($token);
 
     if ($tempRequest === null) { // Expliziter Check statt if (!$tempRequest)
-        echo \json_encode(['success' => false, 'error' => 'Sitzung nicht gefunden']);
-        exit;
+        throw new \Exception('Sitzung nicht gefunden oder abgelaufen');
     }
 
     // Preis aus Snapshot nutzen
