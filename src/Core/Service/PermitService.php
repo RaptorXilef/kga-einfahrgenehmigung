@@ -321,6 +321,8 @@ final readonly class PermitService
         $allVerified[$token] = $data;
         $this->saveJson($verifiedPath, $allVerified);
 
+        $data['actual_token'] = $token; // Wir legen den echten Key dazu
+
         return $data;
     }
 

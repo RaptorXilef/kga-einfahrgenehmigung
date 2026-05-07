@@ -59,9 +59,8 @@ final readonly class VerificationController
 
             // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung
             if (\is_array($result)) {
-                // Wir brauchen den langen Token für die Weiterleitung zu check.php
-                $longToken = $result['verification_token'] ?? $input;
-                \header('Location: check.php?token=' . $longToken . '&verified=1');
+                $redirectToken = $result['actual_token'] ?? $input; // Nutze den echten Key
+                \header('Location: check.php?token=' . $redirectToken . '&verified=1');
 
                 return;
             }
