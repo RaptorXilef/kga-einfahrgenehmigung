@@ -80,7 +80,7 @@ if ($permit) {
                 <?php if ($permit) { ?>
                     <?php if ($permit->status->isSuspended) { ?>
                         <div style="color: var(--danger-color);">
-                            <span style="font-size: 5rem;"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></span>
+                            <span style="font-size: 5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></span>
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt.</p>
                             <?php if ($permit->status->suspensionReason) { ?>
@@ -92,7 +92,7 @@ if ($permit) {
                         </div>
                     <?php } elseif ($isDateValid && $isTimeAllowed) { ?>
                         <div style="color: var(--success-color);">
-                            <span style="font-size: 5rem;"><img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></span>
+                            <span style="font-size: 5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></span>
                             <h2 style="color: var(--success-color); margin-top: 15px;">GÜLTIG</h2>
                             <?php include '_details.phtml'; ?>
                         </div>
@@ -113,7 +113,7 @@ if ($permit) {
                         </div>
                     <?php } else { ?>
                         <div style="color: var(--text-muted);">
-                            <span style="font-size: 5rem;"><img src="assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --></span>
+                            <span style="font-size: 5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --></span>
                             <h2 style="margin-top: 15px;">UNGÜLTIG</h2>
                             <p>Zeitraum abgelaufen oder noch nicht erreicht.</p>
                         </div>
@@ -122,7 +122,7 @@ if ($permit) {
                 <?php } elseif ($tempData && $token) { ?>
                     <!-- WIEDERHERGESTELLT: BEZAHLPROZESS -->
                     <div>
-                        <span style="font-size: 4rem;"><img src="assets/img/icons/icon-card.webp" class="c-icon" alt=""><!-- 💳 --></span>
+                        <span style="font-size: 4rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp" class="c-icon" alt=""><!-- 💳 --></span>
                         <h2 class="u-margin-top-s">Zahlung fällig</h2>
                         <p class="u-text-muted">Um Ihren SmartCode zu aktivieren, wählen Sie bitte eine Zahlungsart:</p>
 
@@ -131,8 +131,8 @@ if ($permit) {
                             <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $config->isTestMode() ? $config->get('paypal')['sandbox']['client_id'] : $config->get('paypal')['live']['client_id']; ?>&currency=EUR"></script>
                             <script>
                                 paypal.Buttons({
-                                    createOrder: () => fetch('api/create_order_for_token.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => data.id),
-                                    onApprove: (data) => fetch('api/capture.php', {
+                                    createOrder: () => fetch(window.KGA_CONFIG.baseUrl + 'api/create_order_for_token.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => data.id),
+                                    onApprove: (data) => fetch(window.KGA_CONFIG.baseUrl + 'api/capture.php', {
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json'
@@ -157,7 +157,7 @@ if ($permit) {
                     <script>
                         function finalizeWire() {
                             if (!confirm('Hiermit bestätigen Sie, dass Sie den Betrag zeitnah überweisen werden.')) return;
-                            fetch('api/finalize_wire.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => {
+                            fetch(window.KGA_CONFIG.baseUrl + 'api/finalize_wire.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => {
                                 if (data.success) window.location.href = 'check.php?code=' + data.code + '&wire=1';
                                 else alert('Fehler: ' + data.error);
                             });

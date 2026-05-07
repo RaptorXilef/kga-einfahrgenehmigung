@@ -26,7 +26,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Benutzerverwaltung - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
     <style>
         /* Spezifische Ergänzungen für die Benutzer-Tabelle */

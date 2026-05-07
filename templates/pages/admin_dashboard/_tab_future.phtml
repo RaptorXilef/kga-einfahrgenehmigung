@@ -14,7 +14,7 @@
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftige Anträge</h3>
+            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftige Anträge</h3>
             <p class="u-text-muted">Genehmigungen, deren Gültigkeitszeitraum noch nicht begonnen hat.</p>
         </header>
 
@@ -86,10 +86,10 @@
                                 <td class="u-text-right">
                                     <div class="u-flex u-gap-xs u-justify-end">
                                         <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" title="Druckvorschau">
-                                            <img src="assets/img/icons/action-print.webp" class="c-icon" alt="Drucken">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="Drucken">
                                         </a>
                                         <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" title="Prüfseite öffnen">
-                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
                                         </a>
                                     </div>
                                 </td>

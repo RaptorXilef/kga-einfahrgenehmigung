@@ -44,7 +44,7 @@ foreach ($unpaidPermits as $p) {
 
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="assets/img/icons/icon-card.webp" class="c-icon" alt=""> Zahlungsüberwachung</h3>
+            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp" class="c-icon" alt=""> Zahlungsüberwachung</h3>
             <p class="u-text-muted">Alle Genehmigungen mit Status "offen" oder "überfällig".</p>
         </header>
 
@@ -64,7 +64,7 @@ foreach ($unpaidPermits as $p) {
                     <?php if (empty($unpaidPermits)) { ?>
                         <tr>
                             <td colspan="6" class="u-text-center u-text-muted u-padding-around-l">
-                                <img src="assets/img/icons/status-success.webp" class="c-icon" alt=""> Alle Zahlungen sind aktuell ausgeglichen.
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""> Alle Zahlungen sind aktuell ausgeglichen.
                             </td>
                         </tr>
                     <?php } else { ?>
@@ -111,15 +111,15 @@ foreach ($unpaidPermits as $p) {
                                             <input type="hidden" name="action" value="mark_as_paid">
                                             <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
                                             <button type="submit" class="c-button c-button--success" title="Zahlung erhalten">
-                                                <img src="assets/img/icons/status-success.webp" class="c-icon" alt="OK">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt="OK">
                                             </button>
                                         </form>
 
                                         <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" title="Druckvorschau">
-                                            <img src="assets/img/icons/action-print.webp" class="c-icon" alt="Drucken">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="Drucken">
                                         </a>
                                         <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" title="Prüfseite öffnen">
-                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
                                         </a>
                                     </div>
                                 </td>

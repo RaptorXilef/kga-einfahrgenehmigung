@@ -13,19 +13,21 @@
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genehmigung prüfen</title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <!-- Geändert: Nutzt jetzt direkt $appRoot -->
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
+
 <body class="u-bg-light l-public-body">
     <div class="c-tab-content-container u-padding-y-xl">
         <div class="c-card u-margin-auto" style="max-width: 500px;">
             <header class="c-card__header u-text-center u-padding-around-l">
-                <h2 class="u-margin-none"><img src="assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
+                <h2 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
                 <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
             </header>
             <div class="c-card__body u-padding-around-l">
@@ -36,7 +38,7 @@
                 <form action="check.php" method="GET" class="c-form">
                     <div class="c-form-group u-margin-bottom-l">
                         <input type="text" name="code" class="c-form-input u-text-center u-font-xl"
-                               placeholder="z.B. 6Y5C" required autofocus style="letter-spacing: 5px; font-family: monospace; height: 60px;">
+                            placeholder="z.B. 6Y5C" required autofocus style="letter-spacing: 5px; font-family: monospace; height: 60px;">
                     </div>
                     <button type="submit" class="c-button--primary u-width-100">Code jetzt prüfen</button>
                 </form>
@@ -47,4 +49,5 @@
         </div>
     </div>
 </body>
+
 </html>

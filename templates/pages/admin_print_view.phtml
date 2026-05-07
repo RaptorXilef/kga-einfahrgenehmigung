@@ -16,7 +16,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <style>
         @media print {
             .u-no-print {
@@ -53,32 +53,32 @@
     <?php
     $opening = $settings['opening_hours'];
 
-    // WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->validity->von),
-    // damit das A4-Template die Quartale berechnen kann!
-    $data = [
-        'fullIdentifier'    => $permit->code,
-        'von'               => $permit->validity->von,
-        'bis'               => $permit->validity->bis,
-        'kennzeichen'       => $permit->vehicle->kennzeichen,
-        'firma'             => $permit->vehicle->firma ?? '',
-        'parzelle'          => $permit->owner->parzelle,
-        'zweck'             => $permit->validity->zweck,
-        'templateKey'       => $permit->templateKey,
-        'vereinsName'       => $settings['vereins_name'],
-        'jahresFarbe'       => $settings['jahresFarbe'],
-        'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
-        'terminkalenderUrl' => $settings['terminkalender_url'],
-        'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
-        'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
-        'config'            => $config,
-    ];
+// WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->validity->von),
+// damit das A4-Template die Quartale berechnen kann!
+$data = [
+    'fullIdentifier'    => $permit->code,
+    'von'               => $permit->validity->von,
+    'bis'               => $permit->validity->bis,
+    'kennzeichen'       => $permit->vehicle->kennzeichen,
+    'firma'             => $permit->vehicle->firma ?? '',
+    'parzelle'          => $permit->owner->parzelle,
+    'zweck'             => $permit->validity->zweck,
+    'templateKey'       => $permit->templateKey,
+    'vereinsName'       => $settings['vereins_name'],
+    'jahresFarbe'       => $settings['jahresFarbe'],
+    'opening'           => "{$opening['earliest']} bis {$opening['latest']} Uhr",
+    'terminkalenderUrl' => $settings['terminkalender_url'],
+    'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+    'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
+    'config'            => $config,
+];
 
-    // Variablen in den lokalen Scope extrahieren
-    \extract($data);
+// Variablen in den lokalen Scope extrahieren
+\extract($data);
 
-    // Das Sub-Template einbinden
-    include $appRoot . '/templates/emails/permit_a4_document.phtml';
-    ?>
+// Das Sub-Template einbinden
+include $appRoot . '/templates/emails/permit_a4_document.phtml';
+?>
 </body>
 
 </html>

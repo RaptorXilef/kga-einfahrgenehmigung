@@ -18,7 +18,7 @@
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktive Genehmigungen</h3>
+            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktive Genehmigungen</h3>
             <p class="u-text-muted">Alle aktuell gültigen Einfahrtsberechtigungen im System.</p>
         </header>
 
@@ -77,7 +77,7 @@
                                 <!-- 4. FINANZ-STATUS (Zentriert) -->
                                 <td class="u-text-center">
                                     <?php if ($permit->status->isSuspended) { ?>
-                                        <span class="c-badge c-badge--danger"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""> GESPERRT</span>
+                                        <span class="c-badge c-badge--danger"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""> GESPERRT</span>
                                     <?php } else { ?>
                                         <!-- FIX: Fallback auf OFFEN falls leer -->
                                         <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
@@ -106,7 +106,7 @@
                                         <!-- DRUCKVORSCHAU -->
                                         <a href="?action=print&code=<?php echo $permit->code; ?>"
                                             class="c-button c-button--secondary" title="Druckvorschau">
-                                            <img src="assets/img/icons/action-print.webp" class="c-icon" alt="Drucken"><!-- 🖨️ -->
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="Drucken"><!-- 🖨️ -->
                                         </a>
 
                                         <?php if ($permit->status->isSuspended) { ?>
@@ -115,7 +115,7 @@
                                                 <input type="hidden" name="action" value="unsuspend_permit">
                                                 <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
                                                 <button type="submit" class="c-button c-button--success" title="Entsperren">
-                                                    <img src="assets/img/icons/action-unlock.webp" class="c-icon" alt="Entsperren"><!-- 🔓 -->
+                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp" class="c-icon" alt="Entsperren"><!-- 🔓 -->
                                                 </button>
                                             </form>
                                         <?php } else { ?>
@@ -125,7 +125,7 @@
                                                     <input type="hidden" name="action" value="mark_as_paid">
                                                     <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
                                                     <button type="submit" class="c-button c-button--success" title="Zahlung bestätigen">
-                                                        <img src="assets/img/icons/status-success.webp" class="c-icon" alt="Zahlung erhalten"><!-- ✅ -->
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt="Zahlung erhalten"><!-- ✅ -->
                                                     </button>
                                                 </form>
                                             <?php } ?>
@@ -134,7 +134,7 @@
                                             <button class="c-button c-button--danger js-suspend-btn"
                                                 data-code="<?php echo $permit->code; ?>"
                                                 title="Sperren">
-                                                <img src="assets/img/icons/status-denied.webp" class="c-icon" alt="Sperren"><!-- ⛔ -->
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="Sperren"><!-- ⛔ -->
                                             </button>
 
                                             <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
@@ -148,7 +148,7 @@
                                         <a href="check.php?code=<?php echo $permit->code; ?>"
                                             target="_blank"
                                             class="c-button c-button--secondary" title="Prüfseite öffnen">
-                                            <img src="assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen"><!-- 👁️ -->
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen"><!-- 👁️ -->
                                         </a>
 
                                     </div>

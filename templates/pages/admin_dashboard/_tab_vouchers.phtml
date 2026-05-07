@@ -21,7 +21,7 @@
         <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Offene Gutscheincodes</h3>
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Offene Gutscheincodes</h3>
                 <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
             </header>
             <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">
@@ -110,7 +110,7 @@ if (empty($activeVouchers)) {
                                             <span class="u-text-link"
                                                 style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
                                                 onclick="copyVoucherLink('<?php echo $url; ?>', this)">
-                                                Link kopieren <img src="assets/img/icons/icon-clipboard.webp" class="c-icon" alt=""><!-- 📋 -->
+                                                Link kopieren <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp" class="c-icon" alt=""><!-- 📋 -->
                                             </span>
                                         </div>
                                     </td>
@@ -120,17 +120,17 @@ if (empty($activeVouchers)) {
                                                 <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
                                                 <?php if ($isDeactivated) { ?>
                                                     <input type="hidden" name="action" value="activate_voucher">
-                                                    <button type="submit" class="c-button c-button--success c-button--small" title="Aktivieren"><img src="assets/img/icons/action-unlock.webp" class="c-icon" alt=""><!-- 🔓 --></button>
+                                                    <button type="submit" class="c-button c-button--success c-button--small" title="Aktivieren"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp" class="c-icon" alt=""><!-- 🔓 --></button>
                                                 <?php } else { ?>
                                                     <input type="hidden" name="action" value="deactivate_voucher">
-                                                    <button type="submit" class="c-button c-button--danger c-button--small" title="Sperren"><img src="assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></button>
+                                                    <button type="submit" class="c-button c-button--danger c-button--small" title="Sperren"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></button>
                                                 <?php } ?>
                                             </form>
 
                                             <form method="POST" style="margin:0;" onsubmit="return confirm('Soll dieser Gutscheincode unwiderruflich gelöscht werden?')">
                                                 <input type="hidden" name="action" value="delete_voucher">
                                                 <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
-                                                <button type="submit" class="c-button c-button--small" style="background:#f1f5f9; color: #64748b;" title="Löschen"><img src="assets/img/icons/action-delete.webp" class="c-icon" alt=""><!-- 🗑️ --></button>
+                                                <button type="submit" class="c-button c-button--small" style="background:#f1f5f9; color: #64748b;" title="Löschen"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp" class="c-icon" alt=""><!-- 🗑️ --></button>
                                             </form>
                                         </div>
                                     </td>
@@ -145,7 +145,7 @@ if (empty($activeVouchers)) {
         <!-- RECHTER BLOCK: ARCHIV-->
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none"><img src="assets/img/icons/icon-scroll.webp" class="c-icon" alt=""><!-- 📜 --> Einlöse-Archiv</h3>
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt=""><!-- 📜 --> Einlöse-Archiv</h3>
                 <p class="u-text-muted">Bereits genutzte Codes.</p>
             </header>
             <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">
@@ -259,7 +259,7 @@ function showToast(message) {
 
     const toast = document.createElement('div');
     toast.className = 'c-toast';
-    toast.innerHTML = `<img src="assets/img/icons/status-success.webp" class="c-icon" style="width:16px"> ${message}`;
+    toast.innerHTML = `<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" style="width:16px"> ${message}`;
     document.body.appendChild(toast);
 
     setTimeout(() => {

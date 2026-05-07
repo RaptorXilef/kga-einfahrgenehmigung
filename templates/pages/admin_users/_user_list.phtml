@@ -93,12 +93,12 @@
                             <td class="u-text-right">
                                 <div class="u-flex u-gap-xs u-justify-end">
                                     <?php if ($canEdit) { ?>
-                                        <button type="submit" class="c-button c-button--primary" style="padding: 8px 12px;" title="Speichern"><img src="assets/img/icons/action-save.webp" class="c-icon" alt=""><!-- 💾 --></button>
+                                        <button type="submit" class="c-button c-button--primary" style="padding: 8px 12px;" title="Speichern"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-save.webp" class="c-icon" alt=""><!-- 💾 --></button>
                                         <?php if (! $isSelf) { ?>
                                             <button type="submit" name="action" value="delete"
                                                 class="c-button c-button--danger"
                                                 style="padding: 8px 12px;"
-                                                onclick="return confirm('Benutzer wirklich löschen?')"><img src="assets/img/icons/action-delete.webp" class="c-icon" alt=""><!-- 🗑️ --></button>
+                                                onclick="return confirm('Benutzer wirklich löschen?')"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp" class="c-icon" alt=""><!-- 🗑️ --></button>
                                         <?php } ?>
                                     <?php } else { ?>
                                         <span class="u-text-muted u-text-small">Nur Lesezugriff</span>

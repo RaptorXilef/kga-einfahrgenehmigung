@@ -176,7 +176,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Name der Firma">
                     </div>
                     <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""><!-- ✏️ --> Manuell</span></label>
+                        <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""><!-- ✏️ --> Manuell</span></label>
                         <!-- Vorauswahl -->
                         <select name="zweck" id="u_zweck_select" class="c-form-select">
                             <option value="">-- Wählen --</option>
@@ -195,14 +195,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
                     <div class="c-generator-selector">
                         <div id="btn_mode_manual" class="c-gen-mode-card" onclick="setGeneratorMode('manual')">
-                            <div class="u-icon-container"><img src="assets/img/icons/icon-memo.webp" class="c-icon" style="width:24px" alt=""><!-- 📝 --></div>
+                            <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp" class="c-icon" style="width:24px" alt=""><!-- 📝 --></div>
                             <div class="u-text-container">
                                 <strong>Sofort ausstellen</strong>
                                 <small>Barzahlung / Manuell</small>
                             </div>
                         </div>
                         <div id="btn_mode_voucher" class="c-gen-mode-card" onclick="setGeneratorMode('voucher')">
-                            <div class="u-icon-container"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" style="width:24px" alt=""></div>
+                            <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" style="width:24px" alt=""></div>
                             <div class="u-text-container">
                                 <strong>Gutscheincode</strong>
                                 <small>Code zum Einlösen</small>
@@ -217,7 +217,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <div class="u-flex u-align-center u-gap-s">
                                 <input type="number" step="0.01" name="manual_price" id="u_manual_price" class="c-form-input" style="font-weight: bold; font-size: 1.2rem; color: var(--primary-color); width: 120px;" value="0.00" readonly>
                                 <button type="button" id="price_cycle_btn" class="c-button" style="width: auto; padding: 0 12px; gap: 8px;" onclick="cyclePriceMode()">
-                                    <img src="assets/img/icons/icon-money-bag.webp" class="c-icon" id="price_mode_icon" alt="">
+                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-money-bag.webp" class="c-icon" id="price_mode_icon" alt="">
                                     <span id="price_mode_label">Automatisch</span>
                                 </button>
                             </div>
@@ -294,7 +294,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <!-- AKTIONEN -->
                 <div id="action_grid" class="c-action-grid" style="display:none;">
                     <div id="card_submit_voucher" class="c-action-card c-action-card--voucher" style="display:none;" onclick="submitUnifiedForm('create_voucher')">
-                        <div class="c-action-card__icon"><img src="assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></div>
+                        <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></div>
                         <div class="c-action-card__content">
                             <span class="c-action-card__title">Gutscheincode jetzt erstellen</span>
                             <span class="c-action-card__desc">Code wird in der Übersicht gespeichert.</span>
@@ -302,7 +302,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </div>
 
                     <div id="card_submit_manual" class="c-action-card c-action-card--manual" style="display:none;" onclick="submitUnifiedForm('create_manual')">
-                        <div class="c-action-card__icon"><img src="assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></div>
+                        <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></div>
                         <div class="c-action-card__content">
                             <span class="c-action-card__title">Genehmigung jetzt ausstellen</span>
                             <span class="c-action-card__desc">Sofort gültig, E-Mail wird (wenn vorhanden) versendet.</span>
@@ -509,7 +509,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             manual.name = "_unused";
 
             // Icon: Crayon/Stift für "Wechsel zu Manuell"
-            toggle.innerHTML = '<img src="assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
+            toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
         } else {
             // Modus: Manuelle Eingabe anzeigen
             select.style.display = 'none';
@@ -518,7 +518,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             manual.name = "zweck";
 
             // Icon: Folder/Ordner für "Wechsel zu Liste"
-            toggle.innerHTML = '<img src="assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
+            toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
 
             manual.focus();
         }

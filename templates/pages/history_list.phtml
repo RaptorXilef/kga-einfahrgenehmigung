@@ -22,7 +22,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verlauf einsehen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
 <body class="u-bg-light l-public-body">
@@ -30,7 +30,7 @@
         <div class="c-card u-margin-auto" style="max-width: 450px; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-text-center u-padding-around-l">
                 <div class="u-margin-bottom-s">
-                    <img src="assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 48px; height: 48px;" alt="">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 48px; height: 48px;" alt="">
                 </div>
                 <h2 class="u-margin-none">Meine Genehmigungen</h2>
                 <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, um einen sicheren Login-Link zu erhalten.</p>
@@ -47,7 +47,7 @@
                         <input type="email" name="email" class="c-form-input" placeholder="ihre@mail.de" required autofocus>
                     </div>
                     <button type="submit" name="request_link" class="c-button--primary u-width-100 u-margin-top-m" style="padding: 14px;">
-                        Link anfordern ✉️
+                        Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp" class="c-icon" alt=""><!-- ✉️ -->
                     </button>
                 </form>
             </div>
