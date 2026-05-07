@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Core\Service\PermitService;
 
 \header('Content-Type: application/json');
 
@@ -31,13 +32,9 @@ try {
     }
 
     // Warteraum laden
-    $verifiedPath = $appRoot . '/storage/verified_pending.json';
-    $allVerified  = \json_decode(
-        \file_exists($verifiedPath) ? (string) \file_get_contents($verifiedPath) : '{}',
-        true,
-    ) ?? [];
-
-    $tempRequest = $allVerified[$token] ?? null;
+    // Der Service weiß bereits durch seine Config, ob er JSON oder SQL nutzen muss
+    $permitService = $container->get(PermitService::class);
+    $tempRequest   = $permitService->getVerifiedRequest($token);
 
     if ($tempRequest === null) { // Expliziter Check statt if (!$tempRequest)
         echo \json_encode(['success' => false, 'error' => 'Sitzung nicht gefunden']);
