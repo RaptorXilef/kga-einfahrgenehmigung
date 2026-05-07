@@ -170,6 +170,7 @@ final readonly class CheckController
             'purposes'      => $this->config->get('purposes'),
             'opening_hours' => $this->config->get('opening_hours'),
             'jahresFarbe'   => $this->config->get('jahresFarbe'),
+            'base_url'      => $this->config->getBaseUrl(),
         ];
     }
 

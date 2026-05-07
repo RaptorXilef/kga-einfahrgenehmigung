@@ -153,7 +153,7 @@ final readonly class PermitService
         $hours                      = (int) $this->config->get('hours_pending_verify', 24);
         $data['expires']            = \time() + (3600 * $hours);
 
-        // Wir speichern das in einer separaten Datei oder MySQL (storage/pending_verification.json)
+        // Wir speichern das in einer separaten Datei oder MySQL
         $path               = $this->getStoragePath('pending_verification');
         $allPending         = $this->loadJson($path);
         $allPending[$token] = $data;

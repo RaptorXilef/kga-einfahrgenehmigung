@@ -50,8 +50,15 @@ if ($permit) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status-Check - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+
+    <script>
+        // Die Brücke für die API-Aufrufe
+        window.KGA_CONFIG = {
+            baseUrl: '<?php echo $settings['base_url']; ?>'
+        };
+    </script>
 </head>
 
 <!-- Dynamische Klasse am Body -->
