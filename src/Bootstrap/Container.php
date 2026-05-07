@@ -211,6 +211,7 @@ class Container
             $this->get(PermitService::class),
             $this->get(MigrationService::class),
             $this->get(MailServiceInterface::class),
+            $this->get(HolidayService::class),
         );
 
         // User Controller

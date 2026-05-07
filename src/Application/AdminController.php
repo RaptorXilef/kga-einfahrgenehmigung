@@ -19,6 +19,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\HolidayService;
 use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
 use App\Infrastructure\Auth\AuthService;
@@ -36,6 +37,7 @@ final readonly class AdminController
         private PermitService $permitService,
         private MigrationService $migrationService,
         private MailServiceInterface $mailService,
+        private HolidayService $holidayService,
     ) {
     }
 
@@ -241,10 +243,11 @@ final readonly class AdminController
                 /** @var Config $config */
                 $config = $this->config;
                 $this->render('admin_print_view', [
-                    'permit'   => $permit,
-                    'settings' => $this->getSettingsArray(),
-                    'config'   => $config,
-                    'appRoot'  => $config->get('root_path'),
+                    'permit'      => $permit,
+                    'settings'    => $this->getSettingsArray(),
+                    'config'      => $config,
+                    'appRoot'     => $config->get('root_path'),
+                    'openingText' => $this->holidayService->getGeneralOpeningHoursText(),
                 ]);
 
                 return true;
@@ -469,7 +472,6 @@ final readonly class AdminController
     // Neue Methode im AdminController
     private function actionMigrateData(array $post): string
     {
-        // BUGFIX HIER: AuthService nutzen statt $_SESSION
         if ($this->auth->getLevel() !== 0) {
             return 'Fehler: Nur Superadmins dürfen migrieren.';
         }
