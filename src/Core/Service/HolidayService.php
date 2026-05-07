@@ -142,4 +142,26 @@ final readonly class HolidayService
             $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
         ];
     }
+
+    /**
+     * Gibt eine textuelle Zusammenfassung der allgemeinen Kern-Öffnungszeiten zurück.
+     * Berücksichtigt jetzt dynamisch den ersten verfügbaren Wochentag.
+     */
+    public function getGeneralOpeningHoursText(): string
+    {
+        $hours = $this->config->get('opening_hours', []);
+
+        // Wir suchen den ersten Tag, der nicht leer ist
+        foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day) {
+            if (! empty($hours[$day]) && \is_array($hours[$day])) {
+                $firstSlotStart = $hours[$day][0][0];
+                // Wir nehmen das Ende des letzten Slots dieses Tages
+                $lastSlotEnd = \end($hours[$day])[1];
+
+                return "{$firstSlotStart} bis {$lastSlotEnd} Uhr";
+            }
+        }
+
+        return 'nach Vereinbarung';
+    }
 }

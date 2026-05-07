@@ -250,6 +250,7 @@ class Container
             $this->get(PermitService::class),
             $this->get(MagicLinkService::class),
             $this->get(MailServiceInterface::class),
+            $this->get(HolidayService::class),
         );
     }
 

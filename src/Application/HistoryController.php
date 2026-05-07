@@ -17,6 +17,7 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
 
@@ -27,6 +28,7 @@ final readonly class HistoryController
         private PermitService $permitService,
         private MagicLinkService $magicLinkService,
         private MailServiceInterface $mailService,
+        private HolidayService $holidayService,
     ) {
     }
 
@@ -170,6 +172,8 @@ final readonly class HistoryController
                 'permit'   => $permit,
                 'settings' => $this->getSettingsArray(),
                 'appRoot'  => $this->config->get('root_path'),
+                // FIX: Wir übergeben den fertigen Text statt das rohe Array
+                'opening' => $this->holidayService->getGeneralOpeningHoursText(),
             ]);
         } else {
             \header('Location: history.php');
