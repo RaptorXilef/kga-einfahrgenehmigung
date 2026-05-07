@@ -1,14 +1,42 @@
 <?php
+
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
 /**
+ * Anzeige der Wartungsseite
+ *
  * Path: public/maintenance.php
  */
-$settings    = require __DIR__ . '/../config/config.php';
+
+// 1. Falls das Script über den Bootstrapper (app.php) läuft, ist $settings schon da.
+// Falls nicht (Direktaufruf), laden wir sie hier sicherheitshalber.
+if (! isset($settings)) {
+    $settings = require __DIR__ . '/../config/config.php';
+    if (\file_exists(__DIR__ . '/../config/config.local.php')) {
+        $localSettings = require __DIR__ . '/../config/config.local.php';
+        $settings      = \array_replace_recursive($settings, $localSettings);
+    }
+}
+
+// 2. Fallback-Logik für base_url, falls sie im Array fehlt (wichtig für Ressourcen)
+if (empty($settings['base_url'])) {
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    // Wir ermitteln den Pfad zum Root-Verzeichnis
+    $scriptPath           = \str_replace('\\', '/', \dirname($_SERVER['SCRIPT_NAME']));
+    $rootPath             = \rtrim($scriptPath, '/public');
+    $settings['base_url'] = \rtrim($protocol . $host . $rootPath, '/') . '/';
+}
+
 $vereinsName = $settings['vereins_name'] ?? 'KGA';
 
-// Suche Logo (gleiche Logik wie im Formular)
+// Suche Logo
 $logoFile = null;
 foreach (['webp', 'png', 'jpg'] as $ext) {
-    if (\file_exists("assets/img/kga_logo.$ext")) {
+    if (\file_exists(__DIR__ . "/assets/img/kga_logo.$ext")) {
         $logoFile = "assets/img/kga_logo.$ext";
 
         break;
@@ -21,20 +49,26 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wartungsarbeiten - <?php echo \htmlspecialchars($vereinsName); ?></title>
+
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+
     <style>
         body { background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
         .c-maintenance-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 500px; border-top: 5px solid #f59e0b; }
         .c-icon-large { font-size: 50px; margin-bottom: 20px; display: block; }
+        .c-logo { max-width: 200px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="c-maintenance-card">
         <?php if ($logoFile) { ?>
-            <img src="<?php echo $settings['base_url'] . $logoFile; ?>" style="max-width: 200px; margin-bottom: 20px;" alt="Logo">
+            <img src="<?php echo $settings['base_url'] . $logoFile; ?>" class="c-logo" alt="Logo">
         <?php } ?>
 
-        <span class="c-icon-large"><img src="assets/img/icons/nav-tools.webp" class="c-icon" alt="" style="width: 1.5em; height: 1.5em;"><!-- 🛠️ --></span>
+        <span class="c-icon-large">
+            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp" class="c-icon" alt="" style="width: 1.5em; height: 1.5em;">
+        </span>
+
         <h1>Kurze Pause!</h1>
         <p style="color: #64748b; line-height: 1.6;">
             Wir aktualisieren gerade das System für die <strong><?php echo \htmlspecialchars($vereinsName); ?></strong>,
