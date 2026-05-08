@@ -101,34 +101,47 @@ final readonly class SmtpMailService implements MailServiceInterface
         $from = $smtpConfig['from'] ?? '';
 
         $protocol = $port === 465 ? 'ssl://' : '';
-        $socket   = \fsockopen($protocol . $host, $port, $errno, $errstr, 15);
+        $socket   = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);
 
         if (! $socket) {
             return "Verbindung fehlgeschlagen: $errstr ($errno)";
         }
 
-        $this->getServerResponse($socket); // Begrüßung
+        // 1. Begrüßung abwarten (Code 220)
+        if (! $this->checkResponse($socket, '220')) {
+            return 'Server meldet sich nicht (Timeout)';
+        }
 
+        // 2. EHLO senden
         \fwrite($socket, 'EHLO ' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n");
-        $this->getServerResponse($socket);
+        if (! $this->checkResponse($socket, '250')) {
+            return 'EHLO abgelehnt';
+        }
 
+        // 3. Login starten
         \fwrite($socket, "AUTH LOGIN\r\n");
-        $this->getServerResponse($socket);
+        $this->getServerResponse($socket); // 334 erwartet
 
         \fwrite($socket, \base64_encode((string) $user) . "\r\n");
         $this->getServerResponse($socket);
 
         \fwrite($socket, \base64_encode($pass) . "\r\n");
-        $this->getServerResponse($socket);
+        if (! $this->checkResponse($socket, '235')) {
+            return 'SMTP Login fehlgeschlagen (Daten prüfen)';
+        }
 
+        // 4. Absender & Empfänger
         \fwrite($socket, "MAIL FROM: <$from>\r\n");
         $this->getServerResponse($socket);
 
         \fwrite($socket, "RCPT TO: <$recipient>\r\n");
-        $this->getServerResponse($socket);
+        if (! $this->checkResponse($socket, '250')) {
+            return "Empfänger $recipient wurde vom Server abgelehnt";
+        }
 
+        // 5. Daten senden
         \fwrite($socket, "DATA\r\n");
-        $this->getServerResponse($socket);
+        $this->getServerResponse($socket); // 354 erwartet
 
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
@@ -137,12 +150,24 @@ final readonly class SmtpMailService implements MailServiceInterface
         $headers .= 'Subject: =?UTF-8?B?' . \base64_encode($subject) . "?=\r\n\r\n";
 
         \fwrite($socket, $headers . $body . "\r\n.\r\n");
-        $this->getServerResponse($socket);
+        if (! $this->checkResponse($socket, '250')) {
+            return 'E-Mail Daten wurden nicht akzeptiert';
+        }
 
         \fwrite($socket, "QUIT\r\n");
         \fclose($socket);
 
         return true;
+    }
+
+    /**
+     * Hilfsmethode: Prüft ob der Server mit dem erwarteten Code antwortet
+     */
+    private function checkResponse($socket, string $expectedCode): bool
+    {
+        $response = $this->getServerResponse($socket);
+
+        return \str_starts_with($response, $expectedCode);
     }
 
     /**
@@ -153,7 +178,8 @@ final readonly class SmtpMailService implements MailServiceInterface
         $response = '';
         while ($str = \fgets($socket, 515)) {
             $response .= $str;
-            if (\str_contains($str, ' ')) {
+            // SMTP Zeilenende: Letzte Zeile hat ein Leerzeichen nach dem Code (z.B. "250 ")
+            if (\preg_match('/^\d{3} /', $str)) {
                 break;
             }
         }
