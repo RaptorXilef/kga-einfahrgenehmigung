@@ -10,7 +10,7 @@
  *
  * Path: templates/pages/admin_dashboard/_tab_ranking.phtml
  *
- * @var array $stats
+ * @var array $periodStats
  */
 ?>
 <div class="c-tab-content-container">
@@ -31,7 +31,7 @@
                 </thead>
                 <tbody>
                     <?php
-                    $plots = $stats['plots'] ?? [];
+                    $plots = $periodStats['plots'] ?? [];
 if (empty($plots)) { ?>
                         <tr>
                             <td colspan="4" class="u-text-center u-padding-around-l">Keine Daten verfügbar.</td>

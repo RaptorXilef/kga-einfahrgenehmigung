@@ -266,26 +266,40 @@ final readonly class AdminController
         $filterEnd   = (string) ($get['end'] ?? \date('Y-12-31'));
         $allPermits  = $this->storage->getAll();
 
-        /** @var Permit[] $filtered */
-        $filtered = \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd): bool {
-            $date = $permit->erstellt->format('Y-m-d');
+        // 1. Filterung für den gewählten Zeitraum
+        $filtered = \array_filter($allPermits, function (Permit $p) use ($filterStart, $filterEnd): bool {
+            $date = $p->erstellt->format('Y-m-d');
 
             return $date >= $filterStart && $date <= $filterEnd;
         });
 
-        if (isset($get['export'])) {
-            $this->handleExport((string) $get['export'], $filtered, $filterStart, $filterEnd);
+        // 2. NEU: Jährliche Gruppierung für das Archiv & Diagramm
+        $yearlyStats = [];
+        foreach ($allPermits as $p) {
+            $year = $p->erstellt->format('Y');
+            if (! isset($yearlyStats[$year])) {
+                $yearlyStats[$year] = [
+                    'count' => 0, 'paid' => 0.0, 'unpaid' => 0.0,
+                    'pkw'   => 0, 'lkw' => 0,
+                ];
+            }
+            ++$yearlyStats[$year]['count'];
+            $yearlyStats[$year]['pkw'] += ($p->vehicle->typ === 'pkw' ? 1 : 0);
+            $yearlyStats[$year]['lkw'] += ($p->vehicle->typ === 'lkw' ? 1 : 0);
 
-            return;
+            if (\strtolower($p->status->current) === 'bezahlt') {
+                $yearlyStats[$year]['paid'] += $p->validity->preisSnapshot;
+            } else {
+                $yearlyStats[$year]['unpaid'] += $p->validity->preisSnapshot;
+            }
         }
+        \krsort($yearlyStats); // Neueste Jahre zuerst
 
-        // E-Mail Logs laden
-        $mailLogs = $this->mailService->loadLogs();
-
-        $voucherService = $this->permitService->getVoucherService();
+        // Export Logik
 
         $this->render('admin_dashboard', [
-            'stats'          => $this->calculateStats($filtered),
+            'periodStats'    => $this->calculateDetailedStats($filtered), // Erweiterte Methode
+            'yearlyStats'    => $yearlyStats, // Die Daten für Diagramm & Archiv
             'groups'         => $this->groupPermits($allPermits),
             'settings'       => $this->getSettingsArray(),
             'adminUser'      => $this->auth->getUsername(),
@@ -295,17 +309,45 @@ final readonly class AdminController
             'filterEnd'      => $filterEnd,
             'config'         => $this->config,
             'appRoot'        => $this->config->get('root_path'),
-            'vouchers'       => $voucherService->loadVouchers(),
-            'voucherService' => $voucherService,
-            'reasons'        => [
-                'Bargeldzahlung vor Ort',
-                'Vorstandsbeschluss',
-                'Härtefall-Regelung',
-                'Gartenarbeit-Kompensation',
-            ],
-            'mailLogs'      => $mailLogs,
-            'permitService' => $this->permitService,
+            'vouchers'       => $this->permitService->getVoucherService()->loadVouchers(),
+            'voucherService' => $this->permitService->getVoucherService(),
+            'mailLogs'       => $this->mailService->loadLogs(),
+            'permitService'  => $this->permitService,
         ]);
+    }
+
+    /**
+     * Berechnet detaillierte Finanz-Werte UND Ranking-Daten.
+     */
+    private function calculateDetailedStats(array $permits): array
+    {
+        $stats = [
+            'count'          => \count($permits),
+            'revenue_paid'   => 0.0,
+            'revenue_unpaid' => 0.0,
+            'pkw'            => 0,
+            'lkw'            => 0,
+            'plots'          => [], // WICHTIG FÜR DAS RANKING
+        ];
+
+        foreach ($permits as $p) {
+            $stats['pkw'] += ($p->vehicle->typ === 'pkw' ? 1 : 0);
+            $stats['lkw'] += ($p->vehicle->typ === 'lkw' ? 1 : 0);
+
+            // Parzellen-Zähler für Ranking
+            $pNum                  = $p->owner->parzelle;
+            $stats['plots'][$pNum] = ($stats['plots'][$pNum] ?? 0) + 1;
+
+            if (\strtolower($p->status->current) === 'bezahlt') {
+                $stats['revenue_paid'] += $p->validity->preisSnapshot;
+            } else {
+                $stats['revenue_unpaid'] += $p->validity->preisSnapshot;
+            }
+        }
+
+        \arsort($stats['plots']); // Sortierung: Meiste Anträge zuerst
+
+        return $stats;
     }
 
     /**
