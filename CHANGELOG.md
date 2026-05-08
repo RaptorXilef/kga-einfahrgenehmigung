@@ -2,6 +2,18 @@
 
 
 
+## [0.24.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.24.0...v0.24.1) (2026-05-08)
+
+### 🐛 Bug Fixes
+
+* **core:** resolve PHP syntax errors and JS bridge synchronization ([704809a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/704809a2e2b825d84bc6f487be0b2ebcf06d76fa))
+* **form-ui:** restore missing alert styles and add navigation footer ([3e8168f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3e8168f4656dab1c2a4487f5e5e0f34d1eec0719))
+* **mail:** implement SMTP response code validation and debugging ([aa8b2d6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aa8b2d67770f25439150fd1e59ffe3349ac45398))
+
+### 💎 Styling
+
+* **public-ui:** enhance form feedback and implement auto-redirect ([9967f67](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9967f673963e1fadffc5cd8cf7f65333b84a0810))
+
 ## [0.24.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.23.0...v0.24.0) (2026-05-07)
 
 ### 🚀 Features
