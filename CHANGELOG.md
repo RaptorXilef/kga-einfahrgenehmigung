@@ -2,6 +2,12 @@
 
 
 
+## [0.25.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.24.2...v0.25.0) (2026-05-08)
+
+### 🚀 Features
+
+* **stats:** implement comprehensive financial reporting and yearly archives ([9b8b6fe](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9b8b6fe6c8cb931aa7a5f5f221cfb135446cfab7))
+
 ## [0.24.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.24.0...v0.24.2) (2026-05-08)
 
 ### 🐛 Bug Fixes
