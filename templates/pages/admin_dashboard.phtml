@@ -32,9 +32,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     <script>
         window.KGA_CONFIG = {
-        baseUrl: '<?php echo $settings['base_url']; ?>',
-        templates: <?php echo \json_encode($tplMetadata ?? []); ?>
-    };
+            baseUrl: '<?php echo $settings['base_url']; ?>',
+            templates: <?php echo \json_encode($tplMetadata ?? []); ?>
+        };
     </script>
 </head>
 
@@ -106,10 +106,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </button>
                     <?php } ?>
                     <button class="c-tabs__btn" data-tab-target="tab-future">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig (<?php echo \count($groups['future'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn" data-tab-target="tab-expired">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen (<?php echo \count($groups['expired'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn" data-tab-target="tab-stats">
                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" alt=""><!-- 📈 --> Statistiken
