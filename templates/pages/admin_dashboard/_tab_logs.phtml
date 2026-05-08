@@ -59,8 +59,8 @@ $displayLimit = (int) $config->get('mail_log_display_limit', 50);
                                 <td class="u-text-right">
                                     <span class="c-badge c-badge--<?php echo ($log['status'] === 'Erfolg') ? 'success' : 'danger'; ?>">
                                         <?php echo ($log['status'] === 'Erfolg') ?
-                                            '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --> Gesendet' :
-                                            '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""><!-- ❌ --> Fehler'; ?>
+                                            '<img src="' . $settings['base_url'] . 'assets/img/icons/status-success.webp" class="c-icon" alt=""> Gesendet' :
+                                            '<img src="' . $settings['base_url'] . 'assets/img/icons/status-invalid.webp" class="c-icon" alt=""> Fehler'; ?>
                                     </span>
                                 </td>
                             </tr>

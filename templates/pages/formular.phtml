@@ -482,7 +482,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 const hiddenField = document.querySelector('input[type="hidden"][name="voucher"]');
                 const voucher = (inputField && inputField.value) ? inputField.value : (hiddenField ? hiddenField.value : '');
 
-                const res = await fetch(`api/get_template_price.php?key=${selectTpl.value}&typ=${selectTyp.value}&voucher=${voucher}`);
+                const res = await fetch(window.KGA_CONFIG.baseUrl + `api/get_template_price.php?key=${selectTpl.value}&typ=${selectTyp.value}&voucher=${voucher}`);
 
                 if (!res.ok) throw new Error('Server-Antwort nicht okay');
 

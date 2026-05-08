@@ -11,6 +11,15 @@
  * Path: templates/pages/admin_dashboard.phtml
  */
 $now = new \DateTimeImmutable();
+
+$tplMetadata = [];
+foreach ($config->get('permit_templates', []) as $key => $tpl) {
+    $tplMetadata[$key] = [
+        'days'   => $tpl['days'],
+        'type'   => $tpl['type'],
+        'prices' => $tpl['prices'],
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -23,8 +32,9 @@ $now = new \DateTimeImmutable();
 
     <script>
         window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
-        };
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        templates: <?php echo \json_encode($tplMetadata ?? []); ?>
+    };
     </script>
 </head>
 
