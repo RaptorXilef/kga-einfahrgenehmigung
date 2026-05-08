@@ -6,90 +6,128 @@
 // See LICENSE.md for full license details.
 
 /**
- * Partial: Dashboard Tab - Future Permits
- *
+ * Partial: Dashboard Tab - Modern Future Permits (v0.25.3)
  * Path: templates/pages/admin_dashboard/_tab_future.phtml
+ *
+ * @var array $groups
+ * @var int   $adminLevel
  */
+$now           = new \DateTimeImmutable('today');
+$futurePermits = $groups['future'] ?? [];
 ?>
 <div class="c-tab-content-container">
     <section class="c-card">
-        <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftige Anträge</h3>
-            <p class="u-text-muted">Genehmigungen, deren Gültigkeitszeitraum noch nicht begonnen hat.</p>
+        <header class="c-card__header u-flex u-justify-between u-align-center">
+            <div>
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""> Anstehende Genehmigungen</h3>
+                <p class="u-text-muted u-text-small">Geplante Einfahrten in der Zukunft.</p>
+            </div>
+            <span class="c-badge" style="background: var(--primary-soft); color: var(--primary-color); border: 1px solid var(--primary-color);">
+                DATENSÄTZE: <?php echo \count($futurePermits); ?>
+            </span>
         </header>
 
         <div class="c-card__body u-padding-none" style="overflow-x: auto;">
-            <table class="c-table">
+            <!-- table-layout: fixed verhindert den Versatz der Header -->
+            <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 950px;">
                 <thead>
-                    <tr>
-                        <th style="min-width: 220px; text-align: left;">Kennung / Pächter</th>
-                        <th class="u-text-center">E-Mail-Adresse</th>
-                        <th class="u-text-center">Zeitraum</th>
-                        <th class="u-text-center">Finanz-Status</th>
-                        <?php if ($adminLevel < 3) { ?>
-                            <th class="u-text-center">Betrag</th>
-                        <?php } ?>
-                        <th class="u-text-right" style="padding-right: 25px;">Aktionen</th>
+                    <tr style="background: #f8fafc;">
+                        <th style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
+                        <th style="width: 150px; text-align: center;">Fahrzeug</th>
+                        <th style="text-align: left;">Kontakt (E-Mail)</th>
+                        <th style="width: 180px; text-align: center;">Zeitraum & Countdown</th>
+                        <th style="width: 130px; text-align: center;">Status</th>
+                        <th style="width: 110px; text-align: right; padding-right: 20px;">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($groups['future'])) { ?>
+                    <?php if (empty($futurePermits)) { ?>
                         <tr>
-                            <td colspan="<?php echo ($adminLevel < 3) ? 6 : 5; ?>" class="u-text-center u-text-muted u-padding-around-l">
-                                Keine zukünftigen Genehmigungen geplant.
+                            <td colspan="6" class="u-text-center u-padding-around-l u-text-muted">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" style="opacity: 0.5; width: 32px; height: 32px;">
+                                <br><br>Aktuell keine zukünftigen Genehmigungen geplant.
                             </td>
                         </tr>
                     <?php } else { ?>
-                        <?php foreach ($groups['future'] as $permit) { ?>
-                            <tr>
-                                <!-- 1. KENNUNG / NAME -->
-                                <td style="text-align: left;">
-                                    <code><?php echo \htmlspecialchars($permit->code); ?></code><br>
-                                    <small>
-                                        <strong><?php echo \htmlspecialchars($permit->owner->name); ?></strong>
-                                        (Parz: <?php echo \htmlspecialchars($permit->owner->parzelle); ?>)
-                                    </small>
+                        <?php foreach ($futurePermits as $permit) {
+                            $diff          = $now->diff($permit->validity->von);
+                            $daysUntil     = (int) $diff->format('%r%a');
+                            $countdownText = ($daysUntil === 1) ? 'Morgen' : "In $daysUntil Tagen";
+                            ?>
+                            <tr class="u-hover-fade">
+                                <!-- 1. Antragsteller & Code -->
+                                <td style="vertical-align: middle;">
+                                    <div class="u-flex u-flex-column">
+                                        <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
+                                            <?php echo \htmlspecialchars($permit->owner->name); ?>
+                                        </span>
+                                        <code style="color: var(--text-muted); font-size: 0.75rem; margin: 2px 0;">
+                                            <?php echo $permit->code; ?>
+                                        </code>
+                                        <div>
+                                            <span style="font-size: 0.7rem; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;">
+                                                PARZELLE <?php echo $permit->owner->parzelle; ?>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </td>
 
-                                <!-- 2. E-MAIL -->
-                                <td class="u-text-center">
+                                <!-- 2. Fahrzeug (Icon + Kennzeichen darunter) -->
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <div style="font-size: 1.6rem; line-height: 1;"><?php echo ($permit->vehicle->typ === 'pkw') ? '🚗' : '🚚'; ?></div>
+                                    <div style="margin-top: 4px;">
+                                        <code style="font-size: 0.85rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 5px; border-radius: 3px; color: #000;">
+                                            <?php echo \htmlspecialchars($permit->vehicle->kennzeichen); ?>
+                                        </code>
+                                    </div>
+                                </td>
+
+                                <!-- 3. Kontakt -->
+                                <td style="vertical-align: middle;">
                                     <?php if ($permit->owner->email) { ?>
-                                        <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
+                                        <div class="u-flex u-align-center u-gap-xs">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp" class="c-icon" style="width: 14px; opacity: 0.6;">
+                                            <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
+                                        </div>
                                     <?php } else { ?>
-                                        <small class="u-text-muted"><em>Keine Mail</em></small>
+                                        <small class="u-text-muted"><em>Keine E-Mail</em></small>
                                     <?php } ?>
                                 </td>
 
-                                <!-- 3. ZEITRAUM -->
-                                <td class="u-text-center">
-                                    <small style="line-height: 1.2; display: inline-block;">
-                                        <?php echo $permit->validity->von->format('d.m.Y'); ?> -<br>
-                                        <?php echo $permit->validity->bis->format('d.m.Y'); ?>
-                                    </small>
+                                <!-- 4. Zeitraum & Countdown -->
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <div style="line-height: 1.2;">
+                                        <strong style="font-size: 0.95rem;"><?php echo $permit->validity->von->format('d.m.Y'); ?></strong><br>
+                                        <small class="u-text-muted">bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></small>
+                                        <div style="margin-top: 6px;">
+                                            <span style="color: var(--primary-color); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--primary-soft); padding: 2px 8px; border-radius: 10px;">
+                                                ⏱ <?php echo $countdownText; ?>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </td>
 
-                                <!-- 4. FINANZ-STATUS -->
-                                <td class="u-text-center">
-                                    <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
-                                        <?php echo \strtoupper($permit->status->current ?: 'offen'); ?>
+                                <!-- 5. Finanz-Status -->
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <?php $isPaid = \strtolower($permit->status->current) === 'bezahlt'; ?>
+                                    <span class="c-badge <?php echo $isPaid ? 'c-badge--success' : 'c-badge--warning'; ?>">
+                                        <?php echo $isPaid ? 'BEZAHLT' : 'OFFEN'; ?>
                                     </span>
+                                    <?php if ($adminLevel < 3) { ?>
+                                        <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 700; color: #1e293b;">
+                                            <?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €
+                                        </div>
+                                    <?php } ?>
                                 </td>
 
-                                <!-- 5. BETRAG -->
-                                <?php if ($adminLevel < 3) { ?>
-                                    <td class="u-text-center">
-                                        <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
-                                    </td>
-                                <?php } ?>
-
-                                <!-- 6. AKTIONEN -->
-                                <td class="u-text-right">
+                                <!-- 6. Aktionen -->
+                                <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                     <div class="u-flex u-gap-xs u-justify-end">
-                                        <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" title="Druckvorschau">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="Drucken">
+                                        <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Drucken">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="">
                                         </a>
-                                        <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" title="Prüfseite öffnen">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="Prüfen">
+                                        <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Details">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
                                         </a>
                                     </div>
                                 </td>
