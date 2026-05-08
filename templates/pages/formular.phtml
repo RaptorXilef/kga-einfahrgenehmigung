@@ -180,8 +180,34 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
             <div class="c-card__body u-padding-around-l">
 
+                <!-- Bestätigungs Meldung - E-Mail versandt - und Weiterleitung -->
                 <?php if ($message) { ?>
-                    <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom-l"><?php echo $message; ?></div>
+                    <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom-l" style="flex-direction: column; text-align: center; padding: 25px;">
+                        <div class="u-flex u-align-center u-gap-s">
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-<?php echo $success ? 'success' : 'invalid'; ?>.webp" class="c-icon" style="width: 24px; height: 24px;" alt="">
+                            <span style="font-size: 1.1rem; font-weight: 700;"><?php echo $message; ?></span>
+                        </div>
+
+                        <?php if ($success) { ?>
+                            <div class="u-margin-top-m u-text-muted" style="font-size: 0.9rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
+                                <p>Sie werden in <span id="countdown">10</span> Sekunden automatisch zur Code-Eingabe weitergeleitet...</p>
+                                <a href="verify.php" class="u-text-link" style="font-weight: bold;">[ Jetzt direkt zur Eingabe ]</a>
+                            </div>
+
+                            <script>
+                                let seconds = 10;
+                                const display = document.getElementById('countdown');
+                                const timer = setInterval(() => {
+                                    seconds--;
+                                    if (display) display.innerText = seconds;
+                                    if (seconds <= 0) {
+                                        clearInterval(timer);
+                                        window.location.href = 'verify.php';
+                                    }
+                                }, 1000);
+                            </script>
+                        <?php } ?>
+                    </div>
                 <?php } ?>
 
                 <!-- Warnung-Box für Datumsfehler -->
@@ -335,6 +361,17 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <?php } ?>
                 </form>
             </div>
+
+            <footer class="u-margin-top-xl u-padding-top-m u-text-center" style="border-top: 1px solid var(--border-color);">
+                <p class="u-text-small u-text-muted">
+                    Bereits eine Genehmigung beantragt?<br>
+                    <a href="history.php" class="u-text-link" style="font-weight: 600;">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt=""> Zum Genehmigungsverlauf
+                    </a>
+                </p>
+            </footer>
+
+
         </div>
     </div>
 
