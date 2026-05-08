@@ -6,54 +6,74 @@
 // See LICENSE.md for full license details.
 
 /**
- * Partial: Dashboard Tab - Plot Ranking
+ * Partial: Dashboard Tab - Extended Plot Ranking
  *
  * Path: templates/pages/admin_dashboard/_tab_ranking.phtml
  *
  * @var array $periodStats
  */
+$plots = $periodStats['plots'] ?? [];
 ?>
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""><!-- 📊 --> Parzellen-Ranking</h3>
-            <p class="u-text-muted">Ranking nach Anzahl der Anträge im gewählten Zeitraum.</p>
+            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""> Parzellen-Ranking (Top 30)</h3>
+            <p class="u-text-muted">Auswertung basierend auf dem gewählten Zeitraum.</p>
         </header>
-        <div class="c-card__body u-padding-none">
+        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
             <table class="c-table">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Rang</th>
-                        <th>Parzelle</th>
-                        <th class="u-text-right">Anträge</th>
-                        <th>Intensität</th>
+                        <th style="width: 60px; text-align: center;">Rang</th>
+                        <th style="width: 120px;">Parzelle</th>
+                        <th>Zuletzt verwendete E-Mail</th>
+                        <th style="width: 140px; text-align: right;">Einnahmen</th>
+                        <th style="width: 100px; text-align: center;">Anträge</th>
+                        <th style="width: 200px;">Intensität</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
-                    $plots = $periodStats['plots'] ?? [];
-if (empty($plots)) { ?>
+                    <?php if (empty($plots)) { ?>
                         <tr>
-                            <td colspan="4" class="u-text-center u-padding-around-l">Keine Daten verfügbar.</td>
+                            <td colspan="6" class="u-text-center u-padding-around-l u-text-muted">Keine Daten im Zeitraum gefunden.</td>
                         </tr>
-                        <?php } else {
-                            $rank = 1;
-                            $max  = \reset($plots);
-                            foreach (\array_slice($plots, 0, 30, true) as $plot => $count) {
-                                $perc = ($count / $max) * 100;
-                                ?>
+                    <?php } else {
+                        $rank = 1;
+                        // Max-Wert für den Balken (der Erste in der Liste)
+                        $firstPlot = \reset($plots);
+                        $maxCount  = $firstPlot['count'];
+
+                        foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
+                            $perc = ($data['count'] / $maxCount) * 100;
+                            ?>
                             <tr>
-                                <td><strong>#<?php echo $rank++; ?></strong></td>
-                                <td><strong>Nr. <?php echo \htmlspecialchars((string) $plot); ?></strong></td>
-                                <td class="u-text-right"><?php echo $count; ?></td>
+                                <td class="u-text-center" style="color: var(--text-muted); font-weight: 800;">
+                                    <?php echo $rank <= 3 ? '🏆 ' : '#'; ?><?php echo $rank++; ?>
+                                </td>
                                 <td>
-                                    <div style="background: #f1f5f9; height: 8px; border-radius: 4px; width: 100%; max-width: 200px;">
-                                        <div style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; border-radius: 4px;"></div>
+                                    <strong style="font-size: 1rem;">Nr. <?php echo \htmlspecialchars((string) $pNum); ?></strong>
+                                </td>
+                                <td>
+                                    <?php if ($data['email']) { ?>
+                                        <small><a href="mailto:<?php echo $data['email']; ?>" class="u-text-link"><?php echo \htmlspecialchars($data['email']); ?></a></small>
+                                    <?php } else { ?>
+                                        <small class="u-text-muted"><em>keine Angabe</em></small>
+                                    <?php } ?>
+                                </td>
+                                <td class="u-text-right">
+                                    <strong style="color: var(--primary-color);"><?php echo \number_format($data['revenue'], 2, ',', '.'); ?> €</strong>
+                                </td>
+                                <td class="u-text-center">
+                                    <span class="c-badge" style="background: #f1f5f9; min-width: 30px;"><?php echo $data['count']; ?></span>
+                                </td>
+                                <td>
+                                    <div style="background: #f1f5f9; height: 10px; border-radius: 10px; width: 100%; position: relative; overflow: hidden;">
+                                        <div style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; transition: width 0.5s ease-out;"></div>
                                     </div>
                                 </td>
                             </tr>
-                    <?php }
-                            } ?>
+                        <?php }
+                        } ?>
                 </tbody>
             </table>
         </div>

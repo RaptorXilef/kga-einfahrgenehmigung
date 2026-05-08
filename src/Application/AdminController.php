@@ -317,7 +317,7 @@ final readonly class AdminController
     }
 
     /**
-     * Berechnet detaillierte Finanz-Werte UND Ranking-Daten.
+     * Berechnet detaillierte Finanz-Werte UND erweitertes Parzellen-Ranking.
      */
     private function calculateDetailedStats(array $permits): array
     {
@@ -327,16 +327,31 @@ final readonly class AdminController
             'revenue_unpaid' => 0.0,
             'pkw'            => 0,
             'lkw'            => 0,
-            'plots'          => [], // WICHTIG FÜR DAS RANKING
+            'plots'          => [], // Wird jetzt ein assoziatives Array von Arrays
         ];
 
         foreach ($permits as $p) {
             $stats['pkw'] += ($p->vehicle->typ === 'pkw' ? 1 : 0);
             $stats['lkw'] += ($p->vehicle->typ === 'lkw' ? 1 : 0);
 
-            // Parzellen-Zähler für Ranking
-            $pNum                  = $p->owner->parzelle;
-            $stats['plots'][$pNum] = ($stats['plots'][$pNum] ?? 0) + 1;
+            $pNum = $p->owner->parzelle;
+
+            // Initialisiere Parzelle im Ranking, falls noch nicht vorhanden
+            if (! isset($stats['plots'][$pNum])) {
+                $stats['plots'][$pNum] = [
+                    'count'   => 0,
+                    'revenue' => 0.0,
+                    'email'   => '',
+                ];
+            }
+
+            // Daten aggregieren
+            ++$stats['plots'][$pNum]['count'];
+            $stats['plots'][$pNum]['revenue'] += $p->validity->preisSnapshot;
+            // Die E-Mail überschreiben wir einfach immer, so bleibt die "letzte" stehen
+            if (! empty($p->owner->email)) {
+                $stats['plots'][$pNum]['email'] = $p->owner->email;
+            }
 
             if (\strtolower($p->status->current) === 'bezahlt') {
                 $stats['revenue_paid'] += $p->validity->preisSnapshot;
@@ -345,7 +360,14 @@ final readonly class AdminController
             }
         }
 
-        \arsort($stats['plots']); // Sortierung: Meiste Anträge zuerst
+        // Sortierung: Nach Anzahl (count), bei Gleichstand nach Umsatz (revenue)
+        \uasort($stats['plots'], function ($a, $b) {
+            if ($b['count'] === $a['count']) {
+                return $b['revenue'] <=> $a['revenue'];
+            }
+
+            return $b['count'] <=> $a['count'];
+        });
 
         return $stats;
     }
