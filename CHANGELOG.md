@@ -2,6 +2,12 @@
 
 
 
+## [0.27.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.26.0...v0.27.0) (2026-05-08)
+
+### 🚀 Features
+
+* **logs:** redesign mail log and implement detailed error reporting ([c064113](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c064113aa9e0265b251ed3df81bfe61bf39f185d))
+
 ## [0.26.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.25.0...v0.26.0) (2026-05-08)
 
 ### 🚀 Features
