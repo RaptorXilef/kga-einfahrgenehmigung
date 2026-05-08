@@ -2,6 +2,21 @@
 
 
 
+## [0.26.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.25.0...v0.26.0) (2026-05-08)
+
+### 🚀 Features
+
+* **stats:** add last used name to ranking and fix table alignment ([51d9d0d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/51d9d0da95cb59615462043b84aafad1187f4cba))
+* **stats:** enhance plot ranking with revenue and email tracking ([4e2b920](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4e2b9204ebbd4c0a4040a7cdf0760f54f2ffa653))
+
+### ⚙️ Refactoring
+
+* **admin-ui:** global dashboard overhaul and functional unification ([bf2e197](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bf2e197dfec05431601f7da2d401477531f03c79))
+
+### 💎 Styling
+
+* **admin-ui:** display entry counts for future permits tab ([678fae2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/678fae259fbab657b87d33a31f469b19d9218644))
+
 ## [0.25.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.24.2...v0.25.0) (2026-05-08)
 
 ### 🚀 Features
