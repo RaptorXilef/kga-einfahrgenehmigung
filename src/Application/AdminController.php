@@ -342,16 +342,17 @@ final readonly class AdminController
                     'count'   => 0,
                     'revenue' => 0.0,
                     'email'   => '',
+                    'name'    => '', // NEU
                 ];
             }
 
             // Daten aggregieren
             ++$stats['plots'][$pNum]['count'];
             $stats['plots'][$pNum]['revenue'] += $p->validity->preisSnapshot;
-            // Die E-Mail überschreiben wir einfach immer, so bleibt die "letzte" stehen
-            if (! empty($p->owner->email)) {
-                $stats['plots'][$pNum]['email'] = $p->owner->email;
-            }
+
+            // Zuletzt verwendete Daten speichern
+            $stats['plots'][$pNum]['name']  = $p->owner->name;  // NEU
+            $stats['plots'][$pNum]['email'] = $p->owner->email;
 
             if (\strtolower($p->status->current) === 'bezahlt') {
                 $stats['revenue_paid'] += $p->validity->preisSnapshot;
@@ -360,7 +361,7 @@ final readonly class AdminController
             }
         }
 
-        // Sortierung: Nach Anzahl (count), bei Gleichstand nach Umsatz (revenue)
+        // Sortierung: Anzahl, dann Umsatz
         \uasort($stats['plots'], function ($a, $b) {
             if ($b['count'] === $a['count']) {
                 return $b['revenue'] <=> $a['revenue'];
