@@ -5,7 +5,7 @@
 
 /**
  * Path: src/assets/js/init-form.js
- * Path: public/assets/js/init-form.js
+ * Path: public/assets/js/init-form.min.js
  *
  * Initialisiert den Form-Handler ohne PHP-Linter zu stören.
  */

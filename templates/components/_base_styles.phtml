@@ -241,4 +241,37 @@
     .state-bg-error {
         background-color: #fef2f2 !important;
     }
+
+    /* --- ALERTS & MELDUNGEN --- */
+    .c-alert {
+        padding: 16px 24px;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        box-shadow: var(--shadow-sm);
+        animation: slideUp 0.3s ease-out;
+    }
+
+    /* Kräftigeres Grün für den Erfolg */
+    .c-alert--success {
+        background-color: #dcfce7 !important;
+        color: #166534 !important;
+        border-color: #bbf7d0 !important;
+    }
+
+    .c-alert--danger {
+        background-color: #fee2e2 !important;
+        color: #991b1b !important;
+        border-color: #fecaca !important;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>

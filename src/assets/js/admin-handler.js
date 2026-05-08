@@ -5,7 +5,7 @@
 
 /**
  * Path: src/assets/js/admin-handler.js
- * Path: public/assets/js/admin-handler.js
+ * Path: public/assets/js/admin-handler.min.js
  */
 
 class AdminDashboardHandler {

@@ -184,14 +184,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php if ($message) { ?>
                     <div class="c-alert c-alert--<?php echo $success ? 'success' : 'danger'; ?> u-margin-bottom-l" style="flex-direction: column; text-align: center; padding: 25px;">
                         <div class="u-flex u-align-center u-gap-s">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-<?php echo $success ? 'success' : 'invalid'; ?>.webp" class="c-icon" style="width: 24px; height: 24px;" alt="">
-                            <span style="font-size: 1.1rem; font-weight: 700;"><?php echo $message; ?></span>
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-<?php echo $success ? 'success' : 'invalid'; ?>.webp" class="c-icon" style="width: 28px; height: 28px;" alt="">
+                            <span style="font-size: 1.15rem; font-weight: 700;"><?php echo $message; ?></span>
                         </div>
 
                         <?php if ($success) { ?>
-                            <div class="u-margin-top-m u-text-muted" style="font-size: 0.9rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
-                                <p>Sie werden in <span id="countdown">10</span> Sekunden automatisch zur Code-Eingabe weitergeleitet...</p>
-                                <a href="verify.php" class="u-text-link" style="font-weight: bold;">[ Jetzt direkt zur Eingabe ]</a>
+                            <div class="u-margin-top-m" style="font-size: 0.9rem; opacity: 0.8; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px; width: 100%;">
+                                <p>Sie werden in <span id="countdown" style="font-weight: 800; font-size: 1.1rem;">10</span> Sekunden automatisch zur Code-Eingabe weitergeleitet...</p>
+                                <a href="verify.php" class="u-text-link" style="font-weight: bold; text-decoration: none;">[ Jetzt direkt zur Eingabe ]</a>
                             </div>
 
                             <script>

@@ -5,7 +5,7 @@
 
 /**
  * Path: src/assets/js/form-handler.js
- * Path: public/assets/js/form-handler.js
+ * Path: public/assets/js/form-handler.min.js
  *
  * Modulares Management des Antragsformulars
  *
