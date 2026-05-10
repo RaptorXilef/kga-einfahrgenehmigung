@@ -3,7 +3,37 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-// --- Farben & Styling ---
+// =============================================================================
+// SCHNELLE KONFIGURATION (Hier einfach Ordner/Dateien ergänzen)
+// =============================================================================
+
+const ALWAYS_IGNORE_DIRS = [
+    'backup',
+    'alt',
+    'notizen',
+    'notes',
+    'vendor',
+    'node_modules',
+    '_Commits',
+    'debug',
+    'scripts',
+    '.git',
+    '.cache',
+    '.build',
+];
+
+const ALWAYS_IGNORE_FILES = [
+    '.lock',
+    '-lock.json',
+    '.DS_Store',
+    'min.js',
+    'min.css',
+    'config.local.php',
+    '.local.*',
+];
+
+// =============================================================================
+
 const c = {
     reset: '\x1b[0m',
     bright: '\x1b[1m',
@@ -21,7 +51,6 @@ const c = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const basePath = path.resolve(__dirname, '..');
-const debugFolder = path.join(basePath, '.debug');
 
 let globalIncludeRootFiles = false;
 
@@ -34,62 +63,46 @@ try {
     console.warn(`${c.yellow}⚠️ package.json nicht gefunden oder fehlerhaft.${c.reset}`);
 }
 
-// --- 2. Filter & Ausschluss-Listen ---
-const commonExclDirs = [
-    'backup',
-    'alt',
-    'notizen',
-    'notes',
-    'vendor',
-    'node_modules',
-    '_Commits',
-    'debug',
-    'scripts',
-    '.git',
-    '.cache',
-];
+// Dynamischer Zielordner basierend auf der Version
+const debugFolder = path.join(basePath, '.debug', version);
 
+// --- 2. Filter-Konfigurationen ---
 const configs = {
     JS: {
         name: 'JsCode',
         filter: /\.js$/,
         ext: '.js',
-        exclDirs: [...commonExclDirs, 'public/assets'],
-        exclFiles: [
-            'svgo.config',
-            'purgecss.config',
-            'eslint.config',
-            'commitlint.config',
-            'min.js',
-        ],
+        exclDirs: ['public/assets'],
+        exclFiles: ['svgo.config', 'purgecss.config', 'eslint.config', 'commitlint.config'],
     },
     PHP: {
         name: 'PhpCode',
         filter: /\.php$/,
         ext: '.php',
-        exclDirs: [...commonExclDirs, 'tests'],
+        exclDirs: ['tests'],
         exclFiles: ['php-cs-fixer.dist', 'rector.php'],
     },
     PHTML: {
         name: 'PhtmlCode',
         filter: /\.phtml$/,
         ext: '.phtml',
-        exclDirs: commonExclDirs,
+        exclDirs: [],
         exclFiles: [],
     },
     SCSS: {
         name: 'ScssCode',
         filter: /\.scss$/,
         ext: '.scss',
-        exclDirs: commonExclDirs,
+        exclDirs: [],
         exclFiles: [],
     },
     PROJECT: {
         name: 'ProjektZusammenfassung',
-        filter: /.*/,
+        // Greift exakt die Typen der Punkte 1-4 ab
+        filter: /\.(js|php|phtml|scss)$/,
         ext: '.txt',
-        exclDirs: commonExclDirs,
-        exclFiles: ['.lock', '-lock.json', 'cache'],
+        exclDirs: [],
+        exclFiles: [],
     },
 };
 
@@ -107,20 +120,26 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
-            // Check ob Verzeichnis ausgeschlossen ist
-            const isExcluded = exclDirs.some(
-                (d) => file.toLowerCase().includes(d.toLowerCase()) || file.startsWith('.')
-            );
-            if (!isExcluded)
+            // Check gegen globale und lokale Ausschlussverzeichnisse
+            const isExcluded =
+                ALWAYS_IGNORE_DIRS.some(
+                    (d) => file.toLowerCase().includes(d.toLowerCase()) || file.startsWith('.')
+                ) || exclDirs.some((d) => relPath.toLowerCase().includes(d.toLowerCase()));
+
+            if (!isExcluded) {
                 getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
+            }
         } else {
             // Datei-Validierung
             const isRootFile = path.dirname(fullPath) === basePath;
             if (!includeRoot && isRootFile) continue;
-            if (
-                filter.test(file) &&
-                !exclFiles.some((f) => file.toLowerCase().includes(f.toLowerCase()))
-            ) {
+
+            const matchesFilter = filter.test(file);
+            const isExcludedFile =
+                ALWAYS_IGNORE_FILES.some((f) => file.toLowerCase().includes(f.toLowerCase())) ||
+                exclFiles.some((f) => file.toLowerCase().includes(f.toLowerCase()));
+
+            if (matchesFilter && !isExcludedFile) {
                 currentFiles.push({ fullPath, relPath });
             }
         }
@@ -131,10 +150,12 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
 function startFileCollection(configKey, silent = false) {
     const conf = configs[configKey];
     const timestamp = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0];
-    const outputName = `${conf.name}_v.${version}_${timestamp}${conf.ext}`;
+    const outputName = `${conf.name}_${timestamp}${conf.ext}`;
     const outputPath = path.join(debugFolder, outputName);
 
+    // Erstelle den versionierten Ordner
     if (!fs.existsSync(debugFolder)) fs.mkdirSync(debugFolder, { recursive: true });
+
     if (!silent) console.log(`\n${c.cyan}🚀 Starte Sammlung: ${c.bright}${conf.name}${c.reset}...`);
 
     const foundFiles = getFiles(
@@ -154,7 +175,9 @@ function startFileCollection(configKey, silent = false) {
     for (const file of foundFiles) {
         try {
             const content = fs.readFileSync(file.fullPath, 'utf-8');
-            combinedContent += `// ========== START FILE: [${file.relPath}] ==========\n${content}\n// ========== END FILE: [${file.relPath}] ==========\n\n`;
+            combinedContent += `// ========== START FILE: [${file.relPath}] ==========\n`;
+            combinedContent += `${content}\n`;
+            combinedContent += `// ========== END FILE: [${file.relPath}] ==========\n\n`;
             if (!silent) console.log(`${c.gray} + ${file.relPath}${c.reset}`);
         } catch (_e) {
             if (!silent) console.log(`${c.gray} ! Überspringe (Binär?): ${file.relPath}${c.reset}`);
@@ -162,8 +185,10 @@ function startFileCollection(configKey, silent = false) {
     }
 
     fs.writeFileSync(outputPath, combinedContent, 'utf-8');
+    // Pfad relativ zum Root für die Anzeige kürzen
+    const displayPath = path.relative(basePath, outputPath);
     console.log(
-        `${c.green}✅ Erfolg: ${c.bright}${outputName}${c.reset} (${foundFiles.length} Dateien).`
+        `${c.green}✅ Erfolg: ${c.bright}${displayPath}${c.reset} (${foundFiles.length} Dateien).`
     );
 }
 
@@ -192,10 +217,7 @@ if (args.length > 0) {
         showHelp();
         process.exit(0);
     }
-
-    if (args.includes('--root')) {
-        globalIncludeRootFiles = true;
-    }
+    if (args.includes('--root')) globalIncludeRootFiles = true;
 
     if (args.includes('--all')) {
         ['JS', 'PHP', 'PHTML', 'SCSS'].forEach((k) => {
@@ -227,7 +249,7 @@ if (args.length > 0) {
             `${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG${c.reset} ${c.dim}(NodeJS CLI)${c.reset}`
         );
         console.log(`${c.cyan}    Root: ${c.gray}${basePath}${c.reset}`);
-        console.log(`${c.cyan}    Version: ${c.yellow}${version}${c.reset}`);
+        console.log(`${c.cyan}    Ziel: ${c.yellow}.debug/${version}/${c.reset}`);
         console.log(`${c.cyan}===============================================${c.reset}`);
         console.log(`${c.bright} 1)${c.reset} JavaScript (*.js)`);
         console.log(`${c.bright} 2)${c.reset} PHP (*.php)`);
