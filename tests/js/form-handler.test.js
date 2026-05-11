@@ -8,20 +8,24 @@ describe('PermitFormHandler', () => {
 
     // Wir bauen das HTML-Gerüst vor jedem Test nach
     beforeEach(() => {
-        // DOM-Struktur erstellen BEVOR die Klasse instanziiert wird
+        // Mocking der Config für das JS
+        window.KGA_CONFIG = {
+            baseUrl: 'http://kga-einfahrgenehmigung.local/',
+            vehicleConfig: {
+                pkw: { show_company: false },
+                lkw: { show_company: true },
+            },
+        };
+
         document.body.innerHTML = `
             <form id="permitForm">
                 <select id="typ">
                     <option value="pkw">PKW</option>
                     <option value="lkw">LKW</option>
                 </select>
-                <div id="group_firma" class="u-hidden"></div>
-                <input id="kennzeichen" value="">
-                <label id="label_kennzeichen">* Amtl. Kennzeichen</label>
-                <input id="parzelle" value="">
-                <input id="datum_von" value="">
-                <input id="datum_bis" value="">
-            </form>
+                <div id="u_firma_wrapper" class="u-hidden"> <input id="u_firma">
+                </div>
+                </form>
         `;
 
         // Wir holen uns die Instanz, die im Original-Skript am Ende erstellt wird

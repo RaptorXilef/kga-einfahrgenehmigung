@@ -35,9 +35,24 @@ return [
         'liefer'  => 'Lieferung',
         'entsorg' => 'Entsorgung/Abfuhr',
     ],
+
+    // --- FAHRZEUG-KONFIGURATION ---
     'vehicle_types' => [
-        'pkw' => 'Privat PKW',
-        'lkw' => 'LKW / Lieferant / Firma',
+        'pkw' => [
+            'label'        => 'Privat PKW',
+            'icon'         => 'assets/img/icons/icon-automobile.webp', // Pfad ab public/
+            'show_company' => false, // Zeigt das Firmenfeld NICHT
+        ],
+        'lkw' => [
+            'label'        => 'LKW / Lieferant / Firma',
+            'icon'         => 'assets/img/icons/icon-delivery-truck.webp',
+            'show_company' => true,  // Zeigt das Firmenfeld
+        ],
+        'entsorg' => [
+            'label'        => 'Abwasser / Entsorgung',
+            'icon'         => 'assets/img/icons/icon-biohazard.webp',
+            'show_company' => true,
+        ],
     ],
 
     // --- LOGIK & ZEITRÄUME ---

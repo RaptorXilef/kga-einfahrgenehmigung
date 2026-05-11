@@ -65,14 +65,18 @@ export class PermitFormHandler {
      * Schaltet Felder zwischen PKW und LKW/Firma um.
      */
     toggleVehicleFields(type) {
-        const isLkw = type === 'lkw';
-        if (this.groupFirma) this.groupFirma.classList.toggle('u-hidden', !isLkw);
+        // Holen der Info aus der v0.28.0 Config (pkw)
+        const cfg = window.KGA_CONFIG.vehicleConfig[type] || { show_company: false };
+        const isCompanyRequired = cfg.show_company;
+
+        if (this.groupFirma) this.groupFirma.classList.toggle('u-hidden', !isCompanyRequired);
+
         if (this.labelKennzeichen) {
-            this.labelKennzeichen.innerText = isLkw
+            this.labelKennzeichen.innerText = isCompanyRequired
                 ? 'Amtl. Kennzeichen (Optional)'
                 : '* Amtl. Kennzeichen';
         }
-        if (this.kennzeichenInput) this.kennzeichenInput.required = !isLkw;
+        if (this.kennzeichenInput) this.kennzeichenInput.required = !isCompanyRequired;
     }
 
     /**

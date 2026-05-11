@@ -273,19 +273,25 @@ final readonly class AdminController
             return $date >= $filterStart && $date <= $filterEnd;
         });
 
-        // 2. NEU: Jährliche Gruppierung für das Archiv & Diagramm
+        // 2. Jährliche Gruppierung für das Archiv & Diagramm (pkw)
         $yearlyStats = [];
+        $vConfig     = $this->config->get('vehicle_types', []);
+
         foreach ($allPermits as $p) {
             $year = $p->erstellt->format('Y');
             if (! isset($yearlyStats[$year])) {
                 $yearlyStats[$year] = [
                     'count' => 0, 'paid' => 0.0, 'unpaid' => 0.0,
-                    'pkw'   => 0, 'lkw' => 0,
+                    'types' => \array_fill_keys(\array_keys($vConfig), 0), // Dynamische Typen-Liste
                 ];
             }
             ++$yearlyStats[$year]['count'];
-            $yearlyStats[$year]['pkw'] += ($p->vehicle->typ === 'pkw' ? 1 : 0);
-            $yearlyStats[$year]['lkw'] += ($p->vehicle->typ === 'lkw' ? 1 : 0);
+
+            // Dynamisches Zählen des Fahrzeugtyps
+            $pType = $p->vehicle->typ;
+            if (isset($yearlyStats[$year]['types'][$pType])) {
+                ++$yearlyStats[$year]['types'][$pType];
+            }
 
             if (\strtolower($p->status->current) === 'bezahlt') {
                 $yearlyStats[$year]['paid'] += $p->validity->preisSnapshot;
@@ -321,18 +327,24 @@ final readonly class AdminController
      */
     private function calculateDetailedStats(array $permits): array
     {
+        $vConfig = $this->config->get('vehicle_types', []);
+
+        // Initialisiert das Array mit allen Keys aus der Config (pkw, lkw, entsorg, etc.)
+        $typeStats = \array_fill_keys(\array_keys($vConfig), 0);
+
         $stats = [
             'count'          => \count($permits),
             'revenue_paid'   => 0.0,
             'revenue_unpaid' => 0.0,
-            'pkw'            => 0,
-            'lkw'            => 0,
-            'plots'          => [], // Wird jetzt ein assoziatives Array von Arrays
+            'types'          => $typeStats, // JETZT DYNAMISCH
+            'plots'          => [],
         ];
 
         foreach ($permits as $p) {
-            $stats['pkw'] += ($p->vehicle->typ === 'pkw' ? 1 : 0);
-            $stats['lkw'] += ($p->vehicle->typ === 'lkw' ? 1 : 0);
+            $pType = $p->vehicle->typ;
+            if (isset($stats['types'][$pType])) {
+                ++$stats['types'][$pType];
+            }
 
             $pNum = $p->owner->parzelle;
 
@@ -342,7 +354,7 @@ final readonly class AdminController
                     'count'   => 0,
                     'revenue' => 0.0,
                     'email'   => '',
-                    'name'    => '', // NEU
+                    'name'    => '',
                 ];
             }
 
@@ -351,7 +363,7 @@ final readonly class AdminController
             $stats['plots'][$pNum]['revenue'] += $p->validity->preisSnapshot;
 
             // Zuletzt verwendete Daten speichern
-            $stats['plots'][$pNum]['name']  = $p->owner->name;  // NEU
+            $stats['plots'][$pNum]['name']  = $p->owner->name;
             $stats['plots'][$pNum]['email'] = $p->owner->email;
 
             if (\strtolower($p->status->current) === 'bezahlt') {
@@ -360,15 +372,7 @@ final readonly class AdminController
                 $stats['revenue_unpaid'] += $p->validity->preisSnapshot;
             }
         }
-
-        // Sortierung: Anzahl, dann Umsatz
-        \uasort($stats['plots'], function ($a, $b) {
-            if ($b['count'] === $a['count']) {
-                return $b['revenue'] <=> $a['revenue'];
-            }
-
-            return $b['count'] <=> $a['count'];
-        });
+        \uasort($stats['plots'], fn ($a, $b) => ($b['count'] === $a['count']) ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
 
         return $stats;
     }

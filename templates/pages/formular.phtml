@@ -55,6 +55,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         // Zentrale Frontend-Konfiguration (Die Brücke)
         window.KGA_CONFIG = {
             baseUrl: '<?php echo $settings['base_url']; ?>',
+            // NEU: Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
+            vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); ?>
         };
     </script>
 
@@ -280,8 +282,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             <div class="c-form-group">
                                 <label class="c-form-label">Fahrzeug-Typ</label>
                                 <select name="typ" id="typ" class="c-form-select" <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
-                                    <?php foreach ($config->get('vehicle_types') as $val => $label) { ?>
-                                        <option value="<?php echo $val; ?>" <?php echo ($prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                    <?php foreach ($config->get('vehicle_types', []) as $val => $vData) { ?>
+                                        <option value="<?php echo $val; ?>" <?php echo ($prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
+                                            <?php echo $vData['label']; ?> </option>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -403,7 +406,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
         // Logik für Firma und Kennzeichen-Validierung
         function toggleFirmaField() {
-            if (selectTyp.value === 'lkw') {
+            const currentType = selectTyp.value;
+            // Wir nutzen die injizierte Config aus window.KGA_CONFIG
+            const vCfg = window.KGA_CONFIG.vehicleConfig[currentType] || {
+                show_company: false
+            };
+            const isCompanyVisible = vCfg.show_company;
+
+            if (isCompanyVisible) {
                 firmaWrapper.classList.remove('u-hidden');
                 labelKennzeichen.innerText = "Amtl. Kennzeichen (Optional)";
                 inputKennzeichen.required = false;

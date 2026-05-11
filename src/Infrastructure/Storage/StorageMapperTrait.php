@@ -65,7 +65,7 @@ trait StorageMapperTrait
                 (string) $item['parzelle'],
             ),
             vehicle: new Vehicle(
-                (string) ($item['typ'] ?? 'pkw'),
+                (string) ($item['typ'] ?? 'unknown'), // 'unknown' statt fest 'pkw'
                 (string) $item['kennzeichen'],
                 $item['firma'] ?? null,
             ),

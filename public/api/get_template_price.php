@@ -25,8 +25,11 @@ try {
     $permitService = $container->get(PermitService::class);
     $config        = $container->get(ConfigInterface::class);
 
+    $vehicleTypes = $config->get('vehicle_types', []);
+    $defaultType  = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';
+
     $key         = (string) ($_GET['key'] ?? 'std_7');
-    $typ         = (string) ($_GET['typ'] ?? 'pkw');
+    $typ         = (string) ($_GET['typ'] ?? $defaultType); // Dynamischer Fallback (pkw)
     $voucherCode = \strtoupper(\trim((string) ($_GET['voucher'] ?? '')));
 
     $templates = $config->get('permit_templates', []);

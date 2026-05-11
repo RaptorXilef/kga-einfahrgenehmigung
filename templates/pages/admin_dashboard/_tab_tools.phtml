@@ -23,6 +23,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         'prices' => $tpl['prices'],
     ];
 }
+
+$reasons ??= [
+    'Bargeldzahlung vor Ort',
+    'Vorstandsbeschluss',
+    'Ersatzgenehmigung',
+    'Sommerfest',
+];
 ?>
 
 <style>
@@ -161,8 +168,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <div class="c-form-group">
                             <label class="c-form-label">Fahrzeugtyp</label>
                             <select name="typ" id="u_typ" class="c-form-select">
-                                <?php foreach ($config->get('vehicle_types', []) as $val => $label) { ?>
-                                    <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) { ?>
+                                    <option value="<?php echo $val; ?>"><?php echo $vData['label']; ?></option>
                                 <?php } ?>
                             </select>
                         </div>
@@ -492,8 +499,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
      * Firma ein/ausblenden
      */
     function toggleFirmaField() {
-        const isLkw = selectTyp.value === 'lkw';
-        document.getElementById('u_firma_wrapper').classList.toggle('u-hidden', !isLkw);
+        const type = selectTyp.value;
+        // KGA_CONFIG kommt vom Haupt-Template admin_dashboard.phtml
+        const vCfg = window.KGA_CONFIG.vehicleConfig[type] || {
+            show_company: false
+        };
+        const isCompanyRequired = vCfg.show_company;
+
+        document.getElementById('u_firma_wrapper').classList.toggle('u-hidden', !isCompanyRequired);
     }
 
     function toggleZweckMode() {

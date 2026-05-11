@@ -55,13 +55,20 @@
                 <span class="u-text-muted u-text-small u-font-bold">GENEHMIGUNGEN</span>
                 <div class="u-font-xl u-font-bold" style="font-size: 2.2rem; margin: 5px 0;"><?php echo $periodStats['count']; ?></div>
 
-                <div class="u-flex u-justify-center u-gap-s">
-                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-automobile.webp" class="c-icon" alt=""><!-- 🚗 --> <?php echo $periodStats['pkw']; ?> <small style="font-weight: 400;">PKW</small>
-                    </div>
-                    <div style="background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-delivery-truck.webp" class="c-icon" alt=""><!-- 🚚 --> <?php echo $periodStats['lkw']; ?> <small style="font-weight: 400;">LKW</small>
-                    </div>
+                <div class="u-flex u-justify-center u-gap-s u-flex-wrap">
+                    <?php
+                    $vConfig = $config->get('vehicle_types', []);
+foreach ($periodStats['types'] as $typeKey => $count) {
+    if ($count === 0) {
+        continue;
+    } // Nur anzeigen wenn vorhanden
+    $label = $vConfig[$typeKey]['label'] ?? $typeKey;
+    $icon  = $vConfig[$typeKey]['icon'] ?? '';
+    ?>
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                            <img src="<?php echo $settings['base_url'] . $icon; ?>" style="width:14px; height:14px;"> <?php echo $count; ?> <small style="font-weight: 400;"><?php echo $label; ?></small>
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -120,8 +127,25 @@
                     <div class="c-card__body u-text-center u-padding-around-s">
                         <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">GENEHMIGUNGEN</small>
                         <div class="u-font-bold" style="font-size: 1.1rem; margin-bottom: 2px;"><?php echo $data['count']; ?></div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-automobile.webp" class="c-icon" alt=""><!-- 🚗 --> <?php echo $data['pkw']; ?> PKW | <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-delivery-truck.webp" class="c-icon" alt=""><!-- 🚚 --> <?php echo $data['lkw']; ?> LKW
+
+                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
+                            <?php
+            $vConfig = $config->get('vehicle_types', []);
+        $typeItems   = [];
+        foreach ($data['types'] as $tKey => $count) {
+            if ($count === 0) {
+                continue;
+            } // Nur Typen anzeigen, die Daten haben
+
+            $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
+            $vIcon  = $vConfig[$tKey]['icon'] ?? '';
+
+            // Wir bauen uns ein Array von HTML-Schnipseln
+            $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="width:12px; height:12px; margin-right:2px;"> ' . $count . ' ' . $vLabel . '</span>';
+        }
+        // Wir verbinden die Schnipsel mit einem Trennstrich
+        echo \implode(' <span style="opacity:0.3;">|</span> ', $typeItems);
+        ?>
                         </div>
                     </div>
                 </div>

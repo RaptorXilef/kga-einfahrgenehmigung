@@ -60,13 +60,14 @@ final readonly class Config implements ConfigInterface
 
     public function getPriceForType(string $type): float
     {
-        /** @var array<string, float> $prices */
-        $prices = $this->get('prices', [
-            'pkw' => 3.00,
-            'lkw' => 3.00, // Fallback
-        ]);
+        $vConfig     = $this->get('vehicle_types', []);
+        $defaultType = ! empty($vConfig) ? \array_key_first($vConfig) : 'pkw';
 
-        return (float) ($prices[$type] ?? $prices['pkw']);
+        // Wir schauen in das Preise-Mapping (pkw)
+        $prices = $this->get('prices', []);
+
+        // Fallback-Logik: Wenn für den Typ kein Preis da ist, nimm den Standardpreis (z.B. PKW)
+        return (float) ($prices[$type] ?? ($prices[$defaultType] ?? 0.00));
     }
 
     public function getBaseUrl(): string

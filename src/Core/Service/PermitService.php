@@ -69,8 +69,11 @@ final readonly class PermitService
             $endDate = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
         }
 
-        // 2. Preis bestimmen (Template-Preis oder Admin-Override)
-        $typ   = (string) ($data['typ'] ?? 'pkw');
+        // 2. Preis bestimmen (Template-Preis oder Admin-Override) (pkw)
+        $vehicleTypes = $this->config->get('vehicle_types', []);
+        $defaultType  = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';
+        $typ          = (string) ($data['typ'] ?? $defaultType);
+
         $preis = isset($data['manual_price'])
             ? (float) $data['manual_price']
             : (float) ($template['prices'][$typ] ?? 0.0);
@@ -86,7 +89,8 @@ final readonly class PermitService
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
 
             // 3. Eindeutige Kennung bauen: ML-0371-B-HD-7398-6Y5C
-            $platePart = $identifierPlate !== '' ? $identifierPlate : 'LKW';
+            // Wir nehmen den Typ-Key als Teil des Codes, falls kein Kennzeichen da ist (z.B. "ABWASSER")
+            $platePart = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
 
             $fullIdentifier = \sprintf(
                 '%s-%s-%s-%s',
@@ -148,7 +152,9 @@ final readonly class PermitService
         $tKey                  = $data['template_key'] ?? 'std_7';
         $templates             = (array) $this->config->get('permit_templates', []);
         $template              = $templates[$tKey] ?? $templates['std_7'];
-        $typ                   = $data['typ'] ?? 'pkw';
+        $vTypes                = (array) $this->config->get('vehicle_types', []);
+        $defaultType           = ! empty($vTypes) ? \array_key_first($vTypes) : 'pkw';
+        $typ                   = $data['typ'] ?? $defaultType;
         $data['preisSnapshot'] = (float) ($template['prices'][$typ] ?? 0.0);
 
         $token     = \bin2hex(\random_bytes(32));
