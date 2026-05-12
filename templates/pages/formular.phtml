@@ -282,9 +282,15 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             <div class="c-form-group">
                                 <label class="c-form-label">Fahrzeug-Typ</label>
                                 <select name="typ" id="typ" class="c-form-select" <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
-                                    <?php foreach ($config->get('vehicle_types', []) as $val => $vData) { ?>
+                                    <?php foreach ($config->get('vehicle_types') as $val => $vData) {
+                                        // Pächter sehen NUR aktive Typen
+                                        if (! ($vData['active'] ?? true) && ($prefill['data']['typ'] ?? '') !== $val) {
+                                            continue;
+                                        }
+                                        ?>
                                         <option value="<?php echo $val; ?>" <?php echo ($prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
-                                            <?php echo $vData['label']; ?> </option>
+                                            <?php echo \htmlspecialchars($vData['label']); ?>
+                                        </option>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -407,13 +413,11 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         // Logik für Firma und Kennzeichen-Validierung
         function toggleFirmaField() {
             const currentType = selectTyp.value;
-            // Wir nutzen die injizierte Config aus window.KGA_CONFIG
             const vCfg = window.KGA_CONFIG.vehicleConfig[currentType] || {
                 show_company: false
             };
-            const isCompanyVisible = vCfg.show_company;
 
-            if (isCompanyVisible) {
+            if (vCfg.show_company) {
                 firmaWrapper.classList.remove('u-hidden');
                 labelKennzeichen.innerText = "Amtl. Kennzeichen (Optional)";
                 inputKennzeichen.required = false;

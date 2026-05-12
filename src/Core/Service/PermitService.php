@@ -152,10 +152,10 @@ final readonly class PermitService
         $tKey                  = $data['template_key'] ?? 'std_7';
         $templates             = (array) $this->config->get('permit_templates', []);
         $template              = $templates[$tKey] ?? $templates['std_7'];
-        $vTypes                = (array) $this->config->get('vehicle_types', []);
-        $defaultType           = ! empty($vTypes) ? \array_key_first($vTypes) : 'pkw';
+        $vehicleTypes          = (array) $this->config->get('vehicle_types', []);
+        $defaultType           = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';
         $typ                   = $data['typ'] ?? $defaultType;
-        $data['preisSnapshot'] = (float) ($template['prices'][$typ] ?? 0.0);
+        $data['preisSnapshot'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
 
         $token     = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
@@ -206,7 +206,7 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                    $permit->validity->von->format('d.m.Y') . ' bis ' . $permit->validity->bis->format('d.m.Y') . '.',
+                        $permit->validity->von->format('d.m.Y') . ' bis ' . $permit->validity->bis->format('d.m.Y') . '.',
                 );
             }
         }
@@ -227,7 +227,7 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
-                    'Bitte warten Sie 24h oder wählen Sie andere Daten.',
+                        'Bitte warten Sie 24h oder wählen Sie andere Daten.',
                 );
             }
         }
@@ -387,7 +387,8 @@ final readonly class PermitService
         $isVerified = \str_contains($path, 'verified_pending');
 
         if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
-            || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')) {
+            || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')
+        ) {
 
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
             if (! $this->pdo) {
@@ -416,7 +417,8 @@ final readonly class PermitService
         $isVerified = \str_contains($path, 'verified_pending');
 
         if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
-            || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')) {
+            || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')
+        ) {
 
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
             if (! $this->pdo) {
@@ -839,9 +841,21 @@ final readonly class PermitService
             $stmt = $this->pdo->prepare($sql);
             foreach ($toArchive as $item) {
                 $stmt->execute([
-                    $item['code'], $item['templateKey'], $item['name'], $item['email'], $item['kennzeichen'],
-                    $item['parzelle'], $item['typ'], $item['firma'], $item['zweck'], $item['preisSnapshot'],
-                    $item['von'], $item['bis'], $item['status'], $item['erstellt'], $item['internerKommentar'],
+                    $item['code'],
+                    $item['templateKey'],
+                    $item['name'],
+                    $item['email'],
+                    $item['kennzeichen'],
+                    $item['parzelle'],
+                    $item['typ'],
+                    $item['firma'],
+                    $item['zweck'],
+                    $item['preisSnapshot'],
+                    $item['von'],
+                    $item['bis'],
+                    $item['status'],
+                    $item['erstellt'],
+                    $item['internerKommentar'],
                 ]);
             }
         } else {

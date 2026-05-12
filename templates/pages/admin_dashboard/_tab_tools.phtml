@@ -168,8 +168,11 @@ $reasons ??= [
                         <div class="c-form-group">
                             <label class="c-form-label">Fahrzeugtyp</label>
                             <select name="typ" id="u_typ" class="c-form-select">
-                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) { ?>
-                                    <option value="<?php echo $val; ?>"><?php echo $vData['label']; ?></option>
+                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
+                                    if (! ($vData['active'] ?? true)) {
+                                        continue;
+                                    } ?>
+                                    <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?></option>
                                 <?php } ?>
                             </select>
                         </div>
@@ -500,13 +503,9 @@ $reasons ??= [
      */
     function toggleFirmaField() {
         const type = selectTyp.value;
-        // KGA_CONFIG kommt vom Haupt-Template admin_dashboard.phtml
-        const vCfg = window.KGA_CONFIG.vehicleConfig[type] || {
-            show_company: false
-        };
-        const isCompanyRequired = vCfg.show_company;
-
-        document.getElementById('u_firma_wrapper').classList.toggle('u-hidden', !isCompanyRequired);
+        // Zugriff auf die via admin_dashboard.phtml injizierte Config
+        const vCfg = window.KGA_CONFIG.vehicleConfig[type] || { show_company: false };
+        document.getElementById('u_firma_wrapper').classList.toggle('u-hidden', !vCfg.show_company);
     }
 
     function toggleZweckMode() {
