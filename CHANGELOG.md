@@ -2,6 +2,21 @@
 
 
 
+## [0.27.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.27.0...v0.27.1) (2026-05-12)
+
+### 🐛 Bug Fixes
+
+* **ui:** resolve array conversion error and filter inactive vehicles ([edafa55](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/edafa5589dc8093c3bc971bf3caef2810e71f9d0))
+
+### ⚙️ Refactoring
+
+* **core:** implement agnostic vehicle metadata system ([b53fc9b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b53fc9bb54c8efccecf4b98daccc7e4372f8a6af))
+* **stats:** implement legacy vehicle fallback and active filtering ([fd0b7a9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fd0b7a997fb14913ec5dab2b4262afeb5573d118))
+
+### 🧹 Chore / Maintenance
+
+* **env:** upgrade dev-env-blueprint to v0.26.0 ([a26278b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a26278b464b1e60cd06cbe3d633d5c9f4b3ab365))
+
 ## [0.27.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.26.0...v0.27.0) (2026-05-08)
 
 ### 🚀 Features
