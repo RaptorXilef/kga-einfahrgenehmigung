@@ -61,9 +61,15 @@
 foreach ($periodStats['types'] as $typeKey => $count) {
     if ($count === 0) {
         continue;
+    }
+
+    if ($typeKey === '__legacy__') {
+        $label = 'Sonstige / Ehem.';
+        $icon  = 'assets/img/icons/status-invalid.webp';
+    } else {
+        $label = $vConfig[$typeKey]['label'] ?? $typeKey;
+        $icon  = $vConfig[$typeKey]['icon'] ?? '';
     } // Nur anzeigen wenn vorhanden
-    $label = $vConfig[$typeKey]['label'] ?? $typeKey;
-    $icon  = $vConfig[$typeKey]['icon'] ?? '';
     ?>
                         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
                             <img src="<?php echo $settings['base_url'] . $icon; ?>" style="width:14px; height:14px;"> <?php echo $count; ?> <small style="font-weight: 400;"><?php echo $label; ?></small>
@@ -137,8 +143,13 @@ foreach ($periodStats['types'] as $typeKey => $count) {
                 continue;
             } // Nur Typen anzeigen, die Daten haben
 
-            $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
-            $vIcon  = $vConfig[$tKey]['icon'] ?? '';
+            if ($tKey === '__legacy__') {
+                $vLabel = 'Sonstige / Ehem.';
+                $vIcon  = 'assets/img/icons/status-invalid.webp';
+            } else {
+                $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
+                $vIcon  = $vConfig[$tKey]['icon'] ?? '';
+            }
 
             // Wir bauen uns ein Array von HTML-Schnipseln
             $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="width:12px; height:12px; margin-right:2px;"> ' . $count . ' ' . $vLabel . '</span>';

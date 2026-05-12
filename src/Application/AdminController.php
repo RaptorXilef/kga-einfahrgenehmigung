@@ -281,9 +281,12 @@ final readonly class AdminController
             $year = $p->erstellt->format('Y');
             if (! isset($yearlyStats[$year])) {
                 $yearlyStats[$year] = [
-                    'count' => 0, 'paid' => 0.0, 'unpaid' => 0.0,
-                    'types' => \array_fill_keys(\array_keys($vConfig), 0), // Dynamische Typen-Liste
+                    'count'  => 0,
+                    'paid'   => 0.0,
+                    'unpaid' => 0.0,
+                    'types'  => \array_fill_keys(\array_keys($vConfig), 0), // Dynamische Typen-Liste
                 ];
+                $yearlyStats[$year]['types']['__legacy__'] = 0; // Legacy-Support pro Jahr
             }
             ++$yearlyStats[$year]['count'];
 
@@ -291,6 +294,8 @@ final readonly class AdminController
             $pType = $p->vehicle->typ;
             if (isset($yearlyStats[$year]['types'][$pType])) {
                 ++$yearlyStats[$year]['types'][$pType];
+            } else {
+                ++$yearlyStats[$year]['types']['__legacy__'];
             }
 
             if (\strtolower($p->status->current) === 'bezahlt') {
@@ -329,8 +334,12 @@ final readonly class AdminController
     {
         $vConfig = $this->config->get('vehicle_types', []);
 
+        // Initialisierung inklusive Legacy-Speicher
         // Initialisiert das Array mit allen Keys aus der Config (pkw, lkw, entsorg, etc.)
         $typeStats = \array_fill_keys(\array_keys($vConfig), 0);
+
+        // NEU: Ein Sammelbecken für gelöschte Typen
+        $typeStats['__legacy__'] = 0;
 
         $stats = [
             'count'          => \count($permits),
@@ -342,8 +351,14 @@ final readonly class AdminController
 
         foreach ($permits as $p) {
             $pType = $p->vehicle->typ;
+
+            // Wenn Typ existiert, normal zählen, sonst in den Legacy-Topf
             if (isset($stats['types'][$pType])) {
                 ++$stats['types'][$pType];
+            } else {
+                // Falls der Typ aus der Config gelöscht wurde,
+                // zählen wir ihn hier rein, damit die Summe stimmt.
+                ++$stats['types']['__legacy__'];
             }
 
             $pNum = $p->owner->parzelle;
