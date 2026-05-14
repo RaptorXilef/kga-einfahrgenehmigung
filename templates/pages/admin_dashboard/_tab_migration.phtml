@@ -17,61 +17,81 @@ $targets = [
     'magic_links'          => 'Login-Tokens',
 ];
 ?>
-<div class="c-tab-content-container">
-    <section class="c-card" style="border-top: 5px solid var(--json-color);">
-        <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp" class="c-icon" alt=""><!-- 🔄 --> Daten-Migration & Synchronisierung</h3>
-            <p class="u-text-muted">Verschieben Sie Daten zwischen JSON-Dateien und der MySQL-Datenbank.</p>
-        </header>
-        <div class="c-card__body">
-            <div class="c-alert c-alert--warning u-margin-bottom-l">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp" class="c-icon" alt="">
-                <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Erstellen Sie vorab ein Backup!</span>
-            </div>
+<?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
+    <div class="c-tab-content-container">
+        <section class="c-card" style="border-top: 5px solid var(--json-color);">
+            <header class="c-card__header">
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp" class="c-icon" alt=""><!-- 🔄 --> Daten-Migration & Synchronisierung</h3>
+                <p class="u-text-muted">Verschieben Sie Daten zwischen JSON-Dateien und der MySQL-Datenbank.</p>
+            </header>
+            <div class="c-card__body">
+                <div class="c-alert c-alert--warning u-margin-bottom-l">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp" class="c-icon" alt="">
+                    <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Erstellen Sie vorab ein Backup!</span>
+                </div>
 
-            <table class="c-table">
-                <thead>
-                    <tr>
-                        <th>Datentyp</th>
-                        <th class="u-text-center">Aktion: JSON ➔ SQL</th>
-                        <th class="u-text-center">Aktion: SQL ➔ JSON</th>
-                        <th class="u-text-center">Synchronisieren</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($targets as $key => $label) { ?>
+                <table class="c-table">
+                    <thead>
                         <tr>
-                            <td><strong><?php echo $label; ?></strong></td>
-                            <td class="u-text-center">
-                                <form method="POST" onsubmit="return confirm('Daten nach MySQL migrieren?')">
-                                    <input type="hidden" name="action" value="migrate_data">
-                                    <input type="hidden" name="target" value="<?php echo $key; ?>">
-                                    <input type="hidden" name="direction" value="json_to_mysql">
-                                    <button type="submit" class="c-button c-button--secondary">➔ SQL</button>
-                                </form>
-                            </td>
-                            <td class="u-text-center">
-                                <form method="POST" onsubmit="return confirm('Daten nach JSON migrieren?')">
-                                    <input type="hidden" name="action" value="migrate_data">
-                                    <input type="hidden" name="target" value="<?php echo $key; ?>">
-                                    <input type="hidden" name="direction" value="mysql_to_json">
-                                    <button type="submit" class="c-button c-button--secondary">➔ JSON</button>
-                                </form>
-                            </td>
-                            <td class="u-text-center">
-                                <form method="POST">
-                                    <input type="hidden" name="action" value="migrate_data">
-                                    <input type="hidden" name="target" value="<?php echo $key; ?>">
-                                    <input type="hidden" name="direction" value="sync">
-                                    <button type="submit" class="c-button c-button--primary" style="width: auto; padding: 0 10px;">
-                                        Zusammenführen (Sync) <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp" class="c-icon" alt="Sync"><!-- 🔄 -->
-                                    </button>
-                                </form>
-                            </td>
+                            <th>Datentyp</th>
+                            <th class="u-text-center">Aktion: JSON ➔ SQL</th>
+                            <th class="u-text-center">Aktion: SQL ➔ JSON</th>
+                            <th class="u-text-center">Synchronisieren</th>
                         </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
-    </section>
-</div>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($targets as $key => $label) { ?>
+                            <tr>
+                                <td><strong><?php echo $label; ?></strong></td>
+
+                                <!-- Aktion: JSON ➔ SQL -->
+                                <td class="u-text-center">
+                                    <?php if ($auth->hasPermission("dashboard.migration.{$key}.json_to_mysql")) { ?>
+                                        <form method="POST" onsubmit="return confirm('Daten nach MySQL migrieren?')">
+                                            <input type="hidden" name="action" value="migrate_data">
+                                            <input type="hidden" name="target" value="<?php echo $key; ?>">
+                                            <input type="hidden" name="direction" value="json_to_mysql">
+                                            <button type="submit" class="c-button c-button--secondary">➔ SQL</button>
+                                        </form>
+                                    <?php } else { ?>
+                                        <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
+                                    <?php } ?>
+                                </td>
+
+                                <!-- Aktion: SQL ➔ JSON -->
+                                <td class="u-text-center">
+                                    <?php if ($auth->hasPermission("dashboard.migration.{$key}.mysql_to_json")) { ?>
+                                        <form method="POST" onsubmit="return confirm('Daten nach JSON migrieren?')">
+                                            <input type="hidden" name="action" value="migrate_data">
+                                            <input type="hidden" name="target" value="<?php echo $key; ?>">
+                                            <input type="hidden" name="direction" value="mysql_to_json">
+                                            <button type="submit" class="c-button c-button--secondary">➔ JSON</button>
+                                        </form>
+                                    <?php } else { ?>
+                                        <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
+                                    <?php } ?>
+                                </td>
+
+                                <!-- Synchronisieren -->
+                                <td class="u-text-center">
+                                    <?php if ($auth->hasPermission("dashboard.migration.{$key}.sync")) { ?>
+                                        <form method="POST">
+                                            <input type="hidden" name="action" value="migrate_data">
+                                            <input type="hidden" name="target" value="<?php echo $key; ?>">
+                                            <input type="hidden" name="direction" value="sync">
+                                            <button type="submit" class="c-button c-button--primary" style="width: auto; padding: 0 10px;">
+                                                Zusammenführen (Sync) <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp" class="c-icon" alt="Sync">
+                                            </button>
+                                        </form>
+                                    <?php } else { ?>
+                                        <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+<?php } ?>

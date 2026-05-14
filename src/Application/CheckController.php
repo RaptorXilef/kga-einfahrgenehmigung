@@ -183,11 +183,13 @@ final readonly class CheckController
         $appRoot  = (string) $config->get('root_path');
         $settings = $this->getSettingsArray();
 
-        // 1. Array in einer Variable zwischenspeichern (löst den Fehler P1114)
+        // Hier fügen wir 'auth' hinzu, damit es in JEDEM Template
+        // dieses Controllers verfügbar ist (auch im Header-Nav)
         $templateData = \array_merge([
             'appRoot'  => $appRoot,
             'settings' => $settings,
             'config'   => $config,
+            'auth'     => $this->auth,
         ], $data);
 
         // 2. Die Variable an extract übergeben

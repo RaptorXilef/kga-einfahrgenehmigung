@@ -30,6 +30,15 @@ $reasons ??= [
     'Ersatzgenehmigung',
     'Sommerfest',
 ];
+
+$allowedTemplates = [];
+foreach ($config->get('permit_templates', []) as $key => $tpl) {
+    if ($auth->hasPermission("template.$key")) {
+        $allowedTemplates[$key] = $tpl;
+    }
+}
+
+$hasAnyTemplate = ! empty($allowedTemplates);
 ?>
 
 <style>
@@ -103,459 +112,482 @@ $reasons ??= [
     }
 </style>
 
-<div class="c-tab-content-container">
-    <section class="c-card">
-        <header class="c-card__header u-text-center u-padding-y-l">
-            <h2 class="u-margin-none">Universal-Generator</h2>
-            <p class="u-text-muted">Genehmigung erstellen oder Gutscheincode generieren.</p>
-        </header>
+<?php if ($auth->hasPermission('dashboard.tools.view')) { ?>
+    <div class="c-tab-content-container">
+        <section class="c-card">
+            <header class="c-card__header u-text-center u-padding-y-l">
+                <h2 class="u-margin-none">Universal-Generator</h2>
+                <p class="u-text-muted">Genehmigung erstellen oder Gutscheincode generieren.</p>
+            </header>
 
-        <div class="c-card__body">
-            <!-- Warnung-Box -->
-            <div id="date-warning" class="u-margin-bottom-m" style="display:none; background: #fffbeb; border-left: 4px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 4px;">
-                <span id="date-warning-text"></span>
-            </div>
-
-            <form id="unifiedToolsForm" method="POST" class="c-form">
-
-                <!-- 1. ZEITRAUM & VORLAGE -->
-                <div class="c-form-section">
-                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">1</span> Zeitraum & Vorlage</h4>
-                    <div class="c-form-group u-margin-bottom-m">
-                        <label class="c-form-label">Ausnahmegenehmigungs-Typ</label>
-                        <select name="template_key" id="u_template_key" class="c-form-select">
-                            <?php foreach ($config->get('permit_templates', []) as $key => $tpl) { ?>
-                                <option value="<?php echo $key; ?>"><?php echo $tpl['label']; ?></option>
-                            <?php } ?>
-                        </select>
+            <div class="c-card__body">
+                <?php if (! $hasAnyTemplate) { ?>
+                    <!-- PROFESSIONELLE LEERMELDUNG -->
+                    <div class="u-text-center u-padding-y-xl">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🚫</div>
+                        <h3 class="u-margin-none">Keine Berechtigung</h3>
+                        <p class="u-text-muted" style="max-width: 400px; margin: 10px auto;">
+                            Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
+                            Bitte wenden Sie sich an den System-Administrator.
+                        </p>
+                        <a href="admin.php" class="c-button c-button--secondary u-margin-top-m">Zurück zum Dashboard</a>
                     </div>
-                    <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
-                        <div class="c-form-group">
-                            <label class="c-form-label">Start (Von)</label>
-                            <!-- min-Attribut wird per JS gesetzt -->
-                            <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
-                        </div>
-                        <div class="c-form-group">
-                            <label class="c-form-label">Ende (Bis)</label>
-                            <input type="date" name="datum_bis" id="u_datum_bis" class="c-form-input">
-                        </div>
-                    </div>
-                </div>
+                <?php } else { ?>
 
-                <!-- 2. ANGABEN ZUM PÄCHTER -->
-                <div class="c-form-section">
-                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">2</span> Angaben zum Pächter</h4>
-                    <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
-                        <div class="c-form-group">
-                            <label class="c-form-label">Vollständiger Name</label>
-                            <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Vorname Nachname">
-                        </div>
-                        <div class="c-form-group">
-                            <label class="c-form-label">Parzelle</label>
-                            <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="z.B. 0001">
-                        </div>
-                    </div>
-                    <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">E-Mail Adresse <span style="font-weight: normal; opacity: 0.6;">(Optional)</span></label>
-                        <input type="email" name="email" id="u_email" class="c-form-input" placeholder="beispiel@mail.de (Optional) (leer lassen falls nicht vorhanden)">
-                    </div>
-                </div>
+                    <form id="unifiedToolsForm" method="POST" class="c-form">
 
-                <!-- 3. FAHRZEUG & ZWECK -->
-                <div class="c-form-section">
-                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Fahrzeug & Zweck</h4>
-                    <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
-                        <div class="c-form-group">
-                            <label class="c-form-label">Fahrzeugtyp</label>
-                            <select name="typ" id="u_typ" class="c-form-select">
-                                <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
-                                    if (! ($vData['active'] ?? true)) {
-                                        continue;
-                                    } ?>
-                                    <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?></option>
-                                <?php } ?>
-                            </select>
-                        </div>
-                        <div class="c-form-group">
-                            <label class="c-form-label">Amtl. Kennzeichen</label>
-                            <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B-XX 1234">
-                        </div>
-                    </div>
-                    <div class="c-form-group u-margin-top-m u-hidden" id="u_firma_wrapper">
-                        <label class="c-form-label">Firma / Lieferant</label>
-                        <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Name der Firma">
-                    </div>
-                    <div class="c-form-group u-margin-top-m">
-                        <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""><!-- ✏️ --> Manuell</span></label>
-                        <!-- Vorauswahl -->
-                        <select name="zweck" id="u_zweck_select" class="c-form-select">
-                            <option value="">-- Wählen --</option>
-                            <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
-                                <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
-                            <?php } ?>
-                        </select>
-                        <!-- Manuelle Eingabe (Standard versteckt) -->
-                        <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
-                    </div>
-                </div>
-
-                <!-- 4. GEBÜHR & ABSCHLUSS -->
-                <div class="c-form-section" style="background: #f8fafc; border: 2px solid var(--primary-soft); padding: 15px; border-radius: 12px;">
-                    <h4 class="c-form-section-title"><span class="c-form-section-title__step">4</span> Art der Ausstellung wählen</h4>
-
-                    <div class="c-generator-selector">
-                        <div id="btn_mode_manual" class="c-gen-mode-card" onclick="setGeneratorMode('manual')">
-                            <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp" class="c-icon" style="width:24px" alt=""><!-- 📝 --></div>
-                            <div class="u-text-container">
-                                <strong>Sofort ausstellen</strong>
-                                <small>Barzahlung / Manuell</small>
-                            </div>
-                        </div>
-                        <div id="btn_mode_voucher" class="c-gen-mode-card" onclick="setGeneratorMode('voucher')">
-                            <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" style="width:24px" alt=""></div>
-                            <div class="u-text-container">
-                                <strong>Gutscheincode</strong>
-                                <small>Code zum Einlösen</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- BEREICH A: MANUELL -->
-                    <div id="area_manual_issue" style="display:none;" class="c-sub-config-box">
-                        <div class="c-form-group">
-                            <label class="c-form-label">Festzulegender Betrag (€)</label>
-                            <div class="u-flex u-align-center u-gap-s">
-                                <input type="number" step="0.01" name="manual_price" id="u_manual_price" class="c-form-input" style="font-weight: bold; font-size: 1.2rem; color: var(--primary-color); width: 120px;" value="0.00" readonly>
-                                <button type="button" id="price_cycle_btn" class="c-button" style="width: auto; padding: 0 12px; gap: 8px;" onclick="cyclePriceMode()">
-                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-money-bag.webp" class="c-icon" id="price_mode_icon" alt="">
-                                    <span id="price_mode_label">Automatisch</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- BEREICH B: GUTSCHEIN -->
-                    <div id="area_voucher_config" style="display:none;" class="c-sub-config-box">
-                        <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
-                            <div class="c-form-group">
-                                <label class="c-form-label">Code <small>(Optional)</small></label>
-                                <input type="text" name="voucher_custom_code" class="c-form-input" placeholder="Z.B. VORSTAND2026" style="text-transform: uppercase; font-weight: bold;">
-                            </div>
-                            <div class="c-form-group">
-                                <label class="c-form-label">Gültig bis <small>(Zeitpunkt)</small></label>
-                                <input type="datetime-local" name="voucher_expires_at" class="c-form-input">
-                            </div>
-                        </div>
-
-                        <div class="c-form-group u-margin-bottom-m" style="background: #f1f5f9; padding: 10px; border-radius: 8px;">
-                            <label class="c-form-label">Zeitraum-Vorgabe für Pächter</label>
-                            <div class="u-flex u-gap-l u-margin-top-xs">
-                                <label class="u-flex u-align-center u-gap-xs u-cursor-pointer" style="font-size: 0.85rem;">
-                                    <input type="radio" name="voucher_date_mode" value="fixed" checked>
-                                    <span><strong>Fest</strong> (Datum aus Schritt 1)</span>
-                                </label>
-                                <label class="u-flex u-align-center u-gap-xs u-cursor-pointer" style="font-size: 0.85rem;">
-                                    <input type="radio" name="voucher_date_mode" value="flexible">
-                                    <span><strong>Offen</strong> (Pächter wählt selbst)</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
-                            <div class="c-form-group">
-                                <label class="c-form-label">Rabatt-Art</label>
-                                <select name="voucher_discount_type" id="v_type" class="c-form-select" onchange="updateVoucherUI()">
-                                    <option value="free">Kostenlos (Gratis)</option>
-                                    <option value="percent">Prozent-Abzug (Günstiger)</option>
-                                    <option value="fixed">Festpreis (Pauschale)</option>
+                        <!-- 1. ZEITRAUM & VORLAGE -->
+                        <div class="c-form-section">
+                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">1</span> Zeitraum & Vorlage</h4>
+                            <div class="c-form-group u-margin-bottom-m">
+                                <label class="c-form-label">Ausnahmegenehmigungs-Typ</label>
+                                <select name="template_key" id="u_template_key" class="c-form-select">
+                                    <?php foreach ($allowedTemplates as $key => $tpl) { ?>
+                                        <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
+                                    <?php } ?>
                                 </select>
                             </div>
-                            <div class="c-form-group" id="v_value_wrapper" style="display:none;">
-                                <label class="c-form-label" id="v_value_label">Wert</label>
-                                <input type="number" step="0.01" name="voucher_discount_value" class="c-form-input" value="0.00">
-                                <small id="v_value_hint" class="u-text-muted" style="font-size: 0.7rem;"></small>
+                            <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Start (Von)</label>
+                                    <!-- min-Attribut wird per JS gesetzt -->
+                                    <input type="date" name="datum_von" id="u_datum_von" class="c-form-input" value="<?php echo \date('Y-m-d'); ?>">
+                                </div>
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Ende (Bis)</label>
+                                    <input type="date" name="datum_bis" id="u_datum_bis" class="c-form-input">
+                                </div>
                             </div>
                         </div>
 
-                        <div class="u-margin-top-m">
-                            <label class="u-flex u-align-center u-gap-s u-cursor-pointer" style="font-size: 0.85rem;">
-                                <input type="checkbox" name="voucher_multi_use" id="v_multi" onchange="updateVoucherUI()"> Mehrfach einlösbar?
-                                <div id="v_max_wrapper" style="display:none; margin-left: 10px;">
-                                    <input type="number" name="voucher_max_uses" class="c-form-input" value="10" min="1" style="width: 80px; height: 32px;">
+                        <!-- 2. ANGABEN ZUM PÄCHTER -->
+                        <div class="c-form-section">
+                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">2</span> Angaben zum Pächter</h4>
+                            <div class="u-grid u-gap-m" style="grid-template-columns: 2fr 1fr;">
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Vollständiger Name</label>
+                                    <input type="text" name="name" id="u_name" class="c-form-input" placeholder="Vorname Nachname">
                                 </div>
-                            </label>
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Parzelle</label>
+                                    <input type="text" name="parzelle" id="u_parzelle" class="c-form-input" placeholder="z.B. 0001">
+                                </div>
+                            </div>
+                            <div class="c-form-group u-margin-top-m">
+                                <label class="c-form-label">E-Mail Adresse <span style="font-weight: normal; opacity: 0.6;">(Optional)</span></label>
+                                <input type="email" name="email" id="u_email" class="c-form-input" placeholder="beispiel@mail.de (Optional) (leer lassen falls nicht vorhanden)">
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- NOTIZ -->
-                    <div id="area_common_note" style="display:none;">
-                        <div class="c-form-group u-border-top u-padding-top-m">
-                            <label class="c-form-label">Interne Notiz (Grund der Ausstellung)</label>
-                            <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Z.B. Barzahlung erhalten oder Vorstands-Beschluss">
-                            <datalist id="reason_presets">
-                                <?php foreach ($reasons as $r) {
-                                    echo "<option value='" . \htmlspecialchars($r) . "'>";
-                                } ?>
-                            </datalist>
+                        <!-- 3. FAHRZEUG & ZWECK -->
+                        <div class="c-form-section">
+                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Fahrzeug & Zweck</h4>
+                            <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Fahrzeugtyp</label>
+                                    <select name="typ" id="u_typ" class="c-form-select">
+                                        <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
+                                            // NUR aktive Fahrzeug-Typen im Generator anzeigen
+                                            if (! ($vData['active'] ?? true)) {
+                                                continue;
+                                            }
+                                            ?>
+                                            <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Amtl. Kennzeichen</label>
+                                    <input type="text" name="kennzeichen" id="u_kennzeichen" class="c-form-input" placeholder="B-XX 1234">
+                                </div>
+                            </div>
+                            <div class="c-form-group u-margin-top-m u-hidden" id="u_firma_wrapper">
+                                <label class="c-form-label">Firma / Lieferant</label>
+                                <input type="text" name="firma" id="u_firma" class="c-form-input" placeholder="Name der Firma">
+                            </div>
+                            <div class="c-form-group u-margin-top-m">
+                                <label class="c-form-label">Zweck <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""><!-- ✏️ --> Manuell</span></label>
+                                <!-- Vorauswahl -->
+                                <select name="zweck" id="u_zweck_select" class="c-form-select">
+                                    <option value="">-- Wählen --</option>
+                                    <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
+                                        <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                    <?php } ?>
+                                </select>
+                                <!-- Manuelle Eingabe (Standard versteckt) -->
+                                <input type="text" id="u_zweck_manual" class="c-form-input" style="display:none;" placeholder="Eigener Grund...">
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- AKTIONEN -->
-                <div id="action_grid" class="c-action-grid" style="display:none;">
-                    <div id="card_submit_voucher" class="c-action-card c-action-card--voucher" style="display:none;" onclick="submitUnifiedForm('create_voucher')">
-                        <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></div>
-                        <div class="c-action-card__content">
-                            <span class="c-action-card__title">Gutscheincode jetzt erstellen</span>
-                            <span class="c-action-card__desc">Code wird in der Übersicht gespeichert.</span>
+                        <!-- 4. GEBÜHR & ABSCHLUSS -->
+                        <div class="c-form-section" style="background: #f8fafc; border: 2px solid var(--primary-soft); padding: 15px; border-radius: 12px;">
+                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">4</span> Art der Ausstellung wählen</h4>
+
+                            <div class="c-generator-selector">
+                                <?php if ($auth->hasPermission('dashboard.tools.direct_issue.reveal')) { ?>
+                                    <div id="btn_mode_manual" class="c-gen-mode-card" onclick="setGeneratorMode('manual')">
+                                        <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp" class="c-icon" style="width:24px" alt=""><!-- 📝 --></div>
+                                        <div class="u-text-container">
+                                            <strong>Sofort ausstellen</strong>
+                                            <small>Barzahlung / Manuell</small>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                                <?php if ($auth->hasPermission('dashboard.tools.voucher_gen.reveal')) { ?>
+                                    <div id="btn_mode_voucher" class="c-gen-mode-card" onclick="setGeneratorMode('voucher')">
+                                        <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" style="width:24px" alt=""></div>
+                                        <div class="u-text-container">
+                                            <strong>Gutscheincode</strong>
+                                            <small>Code zum Einlösen</small>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                            </div>
+
+                            <!-- BEREICH A: MANUELL -->
+                            <div id="area_manual_issue" style="display:none;" class="c-sub-config-box">
+                                <div class="c-form-group">
+                                    <label class="c-form-label">Festzulegender Betrag (€)</label>
+                                    <div class="u-flex u-align-center u-gap-s">
+                                        <input type="number" step="0.01" name="manual_price" id="u_manual_price" class="c-form-input" style="font-weight: bold; font-size: 1.2rem; color: var(--primary-color); width: 120px;" value="0.00" readonly>
+                                        <button type="button" id="price_cycle_btn" class="c-button" style="width: auto; padding: 0 12px; gap: 8px;" onclick="cyclePriceMode()">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-money-bag.webp" class="c-icon" id="price_mode_icon" alt="">
+                                            <span id="price_mode_label">Automatisch</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BEREICH B: GUTSCHEIN -->
+                            <div id="area_voucher_config" style="display:none;" class="c-sub-config-box">
+                                <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Code <small>(Optional)</small></label>
+                                        <input type="text" name="voucher_custom_code" class="c-form-input" placeholder="Z.B. VORSTAND2026" style="text-transform: uppercase; font-weight: bold;">
+                                    </div>
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Gültig bis <small>(Zeitpunkt)</small></label>
+                                        <input type="datetime-local" name="voucher_expires_at" class="c-form-input">
+                                    </div>
+                                </div>
+
+                                <div class="c-form-group u-margin-bottom-m" style="background: #f1f5f9; padding: 10px; border-radius: 8px;">
+                                    <label class="c-form-label">Zeitraum-Vorgabe für Pächter</label>
+                                    <div class="u-flex u-gap-l u-margin-top-xs">
+                                        <label class="u-flex u-align-center u-gap-xs u-cursor-pointer" style="font-size: 0.85rem;">
+                                            <input type="radio" name="voucher_date_mode" value="fixed" checked>
+                                            <span><strong>Fest</strong> (Datum aus Schritt 1)</span>
+                                        </label>
+                                        <label class="u-flex u-align-center u-gap-xs u-cursor-pointer" style="font-size: 0.85rem;">
+                                            <input type="radio" name="voucher_date_mode" value="flexible">
+                                            <span><strong>Offen</strong> (Pächter wählt selbst)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
+                                    <div class="c-form-group">
+                                        <label class="c-form-label">Rabatt-Art</label>
+                                        <select name="voucher_discount_type" id="v_type" class="c-form-select" onchange="updateVoucherUI()">
+                                            <option value="free">Kostenlos (Gratis)</option>
+                                            <option value="percent">Prozent-Abzug (Günstiger)</option>
+                                            <option value="fixed">Festpreis (Pauschale)</option>
+                                        </select>
+                                    </div>
+                                    <div class="c-form-group" id="v_value_wrapper" style="display:none;">
+                                        <label class="c-form-label" id="v_value_label">Wert</label>
+                                        <input type="number" step="0.01" name="voucher_discount_value" class="c-form-input" value="0.00">
+                                        <small id="v_value_hint" class="u-text-muted" style="font-size: 0.7rem;"></small>
+                                    </div>
+                                </div>
+
+                                <div class="u-margin-top-m">
+                                    <label class="u-flex u-align-center u-gap-s u-cursor-pointer" style="font-size: 0.85rem;">
+                                        <input type="checkbox" name="voucher_multi_use" id="v_multi" onchange="updateVoucherUI()"> Mehrfach einlösbar?
+                                        <div id="v_max_wrapper" style="display:none; margin-left: 10px;">
+                                            <input type="number" name="voucher_max_uses" class="c-form-input" value="10" min="1" style="width: 80px; height: 32px;">
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- NOTIZ -->
+                            <div id="area_common_note" style="display:none;">
+                                <div class="c-form-group u-border-top u-padding-top-m">
+                                    <label class="c-form-label">Interne Notiz (Grund der Ausstellung)</label>
+                                    <input type="text" name="reason" id="u_reason" class="c-form-input" list="reason_presets" placeholder="Z.B. Barzahlung erhalten oder Vorstands-Beschluss">
+                                    <datalist id="reason_presets">
+                                        <?php foreach ($reasons as $r) {
+                                            echo "<option value='" . \htmlspecialchars($r) . "'>";
+                                        } ?>
+                                    </datalist>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="card_submit_manual" class="c-action-card c-action-card--manual" style="display:none;" onclick="submitUnifiedForm('create_manual')">
-                        <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></div>
-                        <div class="c-action-card__content">
-                            <span class="c-action-card__title">Genehmigung jetzt ausstellen</span>
-                            <span class="c-action-card__desc">Sofort gültig, E-Mail wird (wenn vorhanden) versendet.</span>
+                        <!-- AKTIONEN -->
+                        <div id="action_grid" class="c-action-grid" style="display:none;">
+                            <?php if ($auth->hasPermission('dashboard.tools.direct_issue.execute')) { ?>
+                                <div id="card_submit_voucher" class="c-action-card c-action-card--voucher" style="display:none;" onclick="submitUnifiedForm('create_voucher')">
+                                    <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></div>
+                                    <div class="c-action-card__content">
+                                        <span class="c-action-card__title">Gutscheincode jetzt erstellen</span>
+                                        <span class="c-action-card__desc">Code wird in der Übersicht gespeichert.</span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+
+                            <?php if ($auth->hasPermission('dashboard.tools.voucher_gen.execute')) { ?>
+                                <div id="card_submit_manual" class="c-action-card c-action-card--manual" style="display:none;" onclick="submitUnifiedForm('create_manual')">
+                                    <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""><!-- ✅ --></div>
+                                    <div class="c-action-card__content">
+                                        <span class="c-action-card__title">Genehmigung jetzt ausstellen</span>
+                                        <span class="c-action-card__desc">Sofort gültig, E-Mail wird (wenn vorhanden) versendet.</span>
+                                    </div>
+                                </div>
+                            <?php } ?>
                         </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </section>
-</div>
+                    </form>
+                <?php } ?>
+            </div>
+        </section>
+    </div>
 
-<script>
-    const templates = <?php echo \json_encode($tplMetadata); ?>;
-    const inputVon = document.getElementById('u_datum_von');
-    const inputBis = document.getElementById('u_datum_bis');
-    const inputParzelle = document.getElementById('u_parzelle');
-    const inputKennzeichen = document.getElementById('u_kennzeichen');
-    const selectTpl = document.getElementById('u_template_key');
-    const selectTyp = document.getElementById('u_typ');
-    const inputPrice = document.getElementById('u_manual_price');
-    const priceBtnLabel = document.getElementById('price_mode_label');
-    const priceBtnIcon = document.getElementById('price_mode_icon');
+    <script>
+        const templates = <?php echo \json_encode($tplMetadata); ?>;
+        const inputVon = document.getElementById('u_datum_von');
+        const inputBis = document.getElementById('u_datum_bis');
+        const inputParzelle = document.getElementById('u_parzelle');
+        const inputKennzeichen = document.getElementById('u_kennzeichen');
+        const selectTpl = document.getElementById('u_template_key');
+        const selectTyp = document.getElementById('u_typ');
+        const inputPrice = document.getElementById('u_manual_price');
+        const priceBtnLabel = document.getElementById('price_mode_label');
+        const priceBtnIcon = document.getElementById('price_mode_icon');
 
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    inputVon.min = todayStr;
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        inputVon.min = todayStr;
 
-    let currentPriceMode = 0; // 0=Auto, 1=Free, 2=Manual
-    let generatorMode = null;
+        let currentPriceMode = 0; // 0=Auto, 1=Free, 2=Manual
+        let generatorMode = null;
 
-    function setGeneratorMode(mode) {
-        generatorMode = mode;
+        function setGeneratorMode(mode) {
+            generatorMode = mode;
 
-        // CSS Korrektur: Aktive Klasse setzen/entfernen
-        document.getElementById('btn_mode_manual').classList.toggle('c-gen-mode-card--active', mode === 'manual');
-        document.getElementById('btn_mode_voucher').classList.toggle('c-gen-mode-card--active', mode === 'voucher');
+            // CSS Korrektur: Aktive Klasse setzen/entfernen
+            document.getElementById('btn_mode_manual').classList.toggle('c-gen-mode-card--active', mode === 'manual');
+            document.getElementById('btn_mode_voucher').classList.toggle('c-gen-mode-card--active', mode === 'voucher');
 
-        // UI Umschaltung
-        document.getElementById('area_manual_issue').style.display = (mode === 'manual') ? 'block' : 'none';
-        document.getElementById('area_voucher_config').style.display = (mode === 'voucher') ? 'block' : 'none';
-        document.getElementById('area_common_note').style.display = 'block';
+            // UI Umschaltung
+            document.getElementById('area_manual_issue').style.display = (mode === 'manual') ? 'block' : 'none';
+            document.getElementById('area_voucher_config').style.display = (mode === 'voucher') ? 'block' : 'none';
+            document.getElementById('area_common_note').style.display = 'block';
 
-        document.getElementById('action_grid').style.display = 'grid';
-        document.getElementById('card_submit_manual').style.display = (mode === 'manual') ? 'flex' : 'none';
-        document.getElementById('card_submit_voucher').style.display = (mode === 'voucher') ? 'flex' : 'none';
+            document.getElementById('action_grid').style.display = 'grid';
+            document.getElementById('card_submit_manual').style.display = (mode === 'manual') ? 'flex' : 'none';
+            document.getElementById('card_submit_voucher').style.display = (mode === 'voucher') ? 'flex' : 'none';
 
-        if (mode === 'manual') updatePriceDisplay();
-        else updateVoucherUI();
-    }
-
-    function updatePriceDisplay() {
-        const config = templates[selectTpl.value];
-        if (config.days === 'custom' && currentPriceMode === 0) {
-            setPriceMode(2);
-            return;
+            if (mode === 'manual') updatePriceDisplay();
+            else updateVoucherUI();
         }
 
-        if (currentPriceMode === 0) {
-            const price = config.prices[selectTyp.value] || 0;
-            inputPrice.value = parseFloat(price).toFixed(2);
-            inputPrice.readOnly = true;
-            priceBtnLabel.innerText = "Automatisch";
-            priceBtnIcon.src = "assets/img/icons/icon-money-bag.webp";
-        } else if (currentPriceMode === 1) {
-            inputPrice.value = "0.00";
-            inputPrice.readOnly = true;
-            priceBtnLabel.innerText = "Kostenlos";
-            priceBtnIcon.src = "assets/img/icons/icon-free.webp";
-        } else {
-            inputPrice.readOnly = false;
-            priceBtnLabel.innerText = "Manuell";
-            priceBtnIcon.src = "assets/img/icons/icon-dollar-sign.webp";
-        }
-    }
+        function updatePriceDisplay() {
+            const config = templates[selectTpl.value];
+            if (config.days === 'custom' && currentPriceMode === 0) {
+                setPriceMode(2);
+                return;
+            }
 
-    function setPriceMode(mode) {
-        currentPriceMode = mode;
-        updatePriceDisplay();
-    }
-
-    function cyclePriceMode() {
-        const config = templates[selectTpl.value];
-
-        // Sonderfall für Custom-Vorlagen (erlauben kein "Automatisch")
-        if (config.days === 'custom') {
-            // Wechselt nur zwischen Manuell (2) und Kostenlos (1)
-            setPriceMode(currentPriceMode === 2 ? 1 : 2);
-        } else {
-            // Neue Reihenfolge für Standard-Vorlagen: 0 (Auto) -> 2 (Manuell) -> 1 (Kostenlos)
-            if (currentPriceMode === 0) setPriceMode(2); // Von Auto zu Manuell
-            else if (currentPriceMode === 2) setPriceMode(1); // Von Manuell zu Kostenlos
-            else setPriceMode(0); // Von Kostenlos zurück zu Auto
-        }
-    }
-
-    /**
-     * Fix für Mehrfach-Nutzung und Senioren-Labels
-     */
-    function updateVoucherUI() {
-        const type = document.getElementById('v_type').value;
-        const multi = document.getElementById('v_multi').checked;
-        const valWrapper = document.getElementById('v_value_wrapper');
-        const valLabel = document.getElementById('v_value_label');
-        const valHint = document.getElementById('v_value_hint');
-        const maxWrapper = document.getElementById('v_max_wrapper');
-
-        // Rabatt-Felder
-        valWrapper.style.display = (type === 'free') ? 'none' : 'block';
-        if (type !== 'free') {
-            if (type === 'percent') {
-                valLabel.innerText = 'Abzug (%)';
-                valHint.innerText = 'Z.B. 20 für 20% Rabatt.';
+            if (currentPriceMode === 0) {
+                const price = config.prices[selectTyp.value] || 0;
+                inputPrice.value = parseFloat(price).toFixed(2);
+                inputPrice.readOnly = true;
+                priceBtnLabel.innerText = "Automatisch";
+                priceBtnIcon.src = "assets/img/icons/icon-money-bag.webp";
+            } else if (currentPriceMode === 1) {
+                inputPrice.value = "0.00";
+                inputPrice.readOnly = true;
+                priceBtnLabel.innerText = "Kostenlos";
+                priceBtnIcon.src = "assets/img/icons/icon-free.webp";
             } else {
-                valLabel.innerText = 'Festpreis (€)';
-                valHint.innerText = 'Genauer Zahlbetrag.';
+                inputPrice.readOnly = false;
+                priceBtnLabel.innerText = "Manuell";
+                priceBtnIcon.src = "assets/img/icons/icon-dollar-sign.webp";
             }
         }
 
-        // Fix: Das Feld für die Anzahl taucht jetzt korrekt auf
-        maxWrapper.style.display = multi ? 'inline-block' : 'none';
-    }
+        function setPriceMode(mode) {
+            currentPriceMode = mode;
+            updatePriceDisplay();
+        }
 
-    // --- BEIBEHALTENE LOGIKEN (Formatierung & Datum) ---
-    function handleDateChange(source) {
-        const config = templates[selectTpl.value];
-        const isCustom = config.days === 'custom';
-        const duration = isCustom ? 0 : parseInt(config.days);
+        function cyclePriceMode() {
+            const config = templates[selectTpl.value];
 
-        if (!isCustom) {
-            let minBisDate = new Date(today);
-            minBisDate.setDate(minBisDate.getDate() + duration);
-            inputBis.min = minBisDate.toISOString().split('T')[0];
-
-            if (source === 'bis') {
-                let d = new Date(inputBis.value);
-                d.setDate(d.getDate() - duration);
-                inputVon.value = d.toISOString().split('T')[0];
+            // Sonderfall für Custom-Vorlagen (erlauben kein "Automatisch")
+            if (config.days === 'custom') {
+                // Wechselt nur zwischen Manuell (2) und Kostenlos (1)
+                setPriceMode(currentPriceMode === 2 ? 1 : 2);
             } else {
-                if (inputVon.value < todayStr) inputVon.value = todayStr;
-                let d = new Date(inputVon.value);
-                d.setDate(d.getDate() + duration);
-                inputBis.value = d.toISOString().split('T')[0];
+                // Neue Reihenfolge für Standard-Vorlagen: 0 (Auto) -> 2 (Manuell) -> 1 (Kostenlos)
+                if (currentPriceMode === 0) setPriceMode(2); // Von Auto zu Manuell
+                else if (currentPriceMode === 2) setPriceMode(1); // Von Manuell zu Kostenlos
+                else setPriceMode(0); // Von Kostenlos zurück zu Auto
             }
-        } else {
-            // Logik für Spezialzeitraum (Custom)
-            inputBis.min = inputVon.value;
-        }
-        if (generatorMode === 'manual') updatePriceDisplay();
-    }
-
-    /**
-     * Automatische Parzellen-Formatierung (0001)
-     */
-    inputParzelle.addEventListener('blur', (e) => {
-        if (e.target.value) e.target.value = e.target.value.toString().padStart(4, '0');
-    });
-
-    /**
-     * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
-     */
-    inputKennzeichen.addEventListener('blur', (e) => {
-        let val = e.target.value.toUpperCase().trim();
-        if (val.length <= 3) return;
-
-        // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
-        if (val.includes('-')) {
-            e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
-            return;
         }
 
-        // Automatik-Modus ohne manuellen Bindestrich
-        let clean = val.replace(/[^A-Z0-9]/g, '');
+        /**
+         * Fix für Mehrfach-Nutzung und Senioren-Labels
+         */
+        function updateVoucherUI() {
+            const type = document.getElementById('v_type').value;
+            const multi = document.getElementById('v_multi').checked;
+            const valWrapper = document.getElementById('v_value_wrapper');
+            const valLabel = document.getElementById('v_value_label');
+            const valHint = document.getElementById('v_value_hint');
+            const maxWrapper = document.getElementById('v_max_wrapper');
 
-        // RegEx erweitert um [EH]? am Ende
-        const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
-        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
+            // Rabatt-Felder
+            valWrapper.style.display = (type === 'free') ? 'none' : 'block';
+            if (type !== 'free') {
+                if (type === 'percent') {
+                    valLabel.innerText = 'Abzug (%)';
+                    valHint.innerText = 'Z.B. 20 für 20% Rabatt.';
+                } else {
+                    valLabel.innerText = 'Festpreis (€)';
+                    valHint.innerText = 'Genauer Zahlbetrag.';
+                }
+            }
 
-        if (pattern4.test(clean)) e.target.value = clean.replace(pattern4, '$1-$2 $3');
-        else if (berlinPattern.test(clean)) e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
-        else if (complexPattern.test(clean)) e.target.value = clean.replace(complexPattern, '$1-$2 $3');
-        else if (fallbackPattern.test(clean)) e.target.value = clean.replace(fallbackPattern, '$1 $2');
-    });
-
-    /**
-     * Firma ein/ausblenden
-     */
-    function toggleFirmaField() {
-        const type = selectTyp.value;
-        // Zugriff auf die via admin_dashboard.phtml injizierte Config
-        const vCfg = window.KGA_CONFIG.vehicleConfig[type] || { show_company: false };
-        document.getElementById('u_firma_wrapper').classList.toggle('u-hidden', !vCfg.show_company);
-    }
-
-    function toggleZweckMode() {
-        const select = document.getElementById('u_zweck_select');
-        const manual = document.getElementById('u_zweck_manual');
-        const toggle = document.getElementById('u_zweck_toggle');
-
-        if (select.style.display === 'none') {
-            // Modus: Liste anzeigen
-            select.style.display = 'block';
-            manual.style.display = 'none';
-            select.name = "zweck";
-            manual.name = "_unused";
-
-            // Icon: Crayon/Stift für "Wechsel zu Manuell"
-            toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
-        } else {
-            // Modus: Manuelle Eingabe anzeigen
-            select.style.display = 'none';
-            manual.style.display = 'block';
-            select.name = "_unused";
-            manual.name = "zweck";
-
-            // Icon: Folder/Ordner für "Wechsel zu Liste"
-            toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
-
-            manual.focus();
+            // Fix: Das Feld für die Anzahl taucht jetzt korrekt auf
+            maxWrapper.style.display = multi ? 'inline-block' : 'none';
         }
-    }
 
-    function submitUnifiedForm(actionType) {
-        const form = document.getElementById('unifiedToolsForm');
-        if (actionType === 'create_manual' && (!document.getElementById('u_name').value || !inputParzelle.value)) {
-            alert('Bitte Name und Parzelle ausfüllen.');
-            return;
+        // --- BEIBEHALTENE LOGIKEN (Formatierung & Datum) ---
+        function handleDateChange(source) {
+            const config = templates[selectTpl.value];
+            const isCustom = config.days === 'custom';
+            const duration = isCustom ? 0 : parseInt(config.days);
+
+            if (!isCustom) {
+                let minBisDate = new Date(today);
+                minBisDate.setDate(minBisDate.getDate() + duration);
+                inputBis.min = minBisDate.toISOString().split('T')[0];
+
+                if (source === 'bis') {
+                    let d = new Date(inputBis.value);
+                    d.setDate(d.getDate() - duration);
+                    inputVon.value = d.toISOString().split('T')[0];
+                } else {
+                    if (inputVon.value < todayStr) inputVon.value = todayStr;
+                    let d = new Date(inputVon.value);
+                    d.setDate(d.getDate() + duration);
+                    inputBis.value = d.toISOString().split('T')[0];
+                }
+            } else {
+                // Logik für Spezialzeitraum (Custom)
+                inputBis.min = inputVon.value;
+            }
+            if (generatorMode === 'manual') updatePriceDisplay();
         }
-        const hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = 'action';
-        hidden.value = actionType;
-        form.appendChild(hidden);
-        form.submit();
-    }
 
-    selectTpl.addEventListener('change', () => handleDateChange('template'));
-    inputVon.addEventListener('change', () => handleDateChange('von'));
-    inputBis.addEventListener('change', () => handleDateChange('bis'));
-    selectTyp.addEventListener('change', toggleFirmaField);
+        /**
+         * Automatische Parzellen-Formatierung (0001)
+         */
+        inputParzelle.addEventListener('blur', (e) => {
+            if (e.target.value) e.target.value = e.target.value.toString().padStart(4, '0');
+        });
 
-    // Initialisierung beim Laden
-    handleDateChange('init');
-    toggleFirmaField();
-</script>
+        /**
+         * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
+         */
+        inputKennzeichen.addEventListener('blur', (e) => {
+            let val = e.target.value.toUpperCase().trim();
+            if (val.length <= 3) return;
+
+            // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
+            if (val.includes('-')) {
+                e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
+                return;
+            }
+
+            // Automatik-Modus ohne manuellen Bindestrich
+            let clean = val.replace(/[^A-Z0-9]/g, '');
+
+            // RegEx erweitert um [EH]? am Ende
+            const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
+            const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
+            const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
+            const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
+
+            if (pattern4.test(clean)) e.target.value = clean.replace(pattern4, '$1-$2 $3');
+            else if (berlinPattern.test(clean)) e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
+            else if (complexPattern.test(clean)) e.target.value = clean.replace(complexPattern, '$1-$2 $3');
+            else if (fallbackPattern.test(clean)) e.target.value = clean.replace(fallbackPattern, '$1 $2');
+        });
+
+        /**
+         * Firma ein/ausblenden
+         */
+        function toggleFirmaField() {
+            const type = selectTyp.value;
+            // Zugriff auf die via admin_dashboard.phtml injizierte Config
+            const vCfg = window.KGA_CONFIG.vehicleConfig[type] || {
+                show_company: false
+            };
+            document.getElementById('u_firma_wrapper').classList.toggle('u-hidden', !vCfg.show_company);
+        }
+
+        function toggleZweckMode() {
+            const select = document.getElementById('u_zweck_select');
+            const manual = document.getElementById('u_zweck_manual');
+            const toggle = document.getElementById('u_zweck_toggle');
+
+            if (select.style.display === 'none') {
+                // Modus: Liste anzeigen
+                select.style.display = 'block';
+                manual.style.display = 'none';
+                select.name = "zweck";
+                manual.name = "_unused";
+
+                // Icon: Crayon/Stift für "Wechsel zu Manuell"
+                toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
+            } else {
+                // Modus: Manuelle Eingabe anzeigen
+                select.style.display = 'none';
+                manual.style.display = 'block';
+                select.name = "_unused";
+                manual.name = "zweck";
+
+                // Icon: Folder/Ordner für "Wechsel zu Liste"
+                toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
+
+                manual.focus();
+            }
+        }
+
+        function submitUnifiedForm(actionType) {
+            const form = document.getElementById('unifiedToolsForm');
+            if (actionType === 'create_manual' && (!document.getElementById('u_name').value || !inputParzelle.value)) {
+                alert('Bitte Name und Parzelle ausfüllen.');
+                return;
+            }
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'action';
+            hidden.value = actionType;
+            form.appendChild(hidden);
+            form.submit();
+        }
+
+        selectTpl.addEventListener('change', () => handleDateChange('template'));
+        inputVon.addEventListener('change', () => handleDateChange('von'));
+        inputBis.addEventListener('change', () => handleDateChange('bis'));
+        selectTyp.addEventListener('change', toggleFirmaField);
+
+        // Initialisierung beim Laden
+        handleDateChange('init');
+        toggleFirmaField();
+    </script>
+<?php } ?>

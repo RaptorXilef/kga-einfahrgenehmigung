@@ -14,6 +14,7 @@
  * @var string $filterEnd
  */
 ?>
+<?php if ($auth->hasPermission('dashboard.export.view')) { ?>
 <div class="c-tab-content-container">
     <section class="c-card">
         <header class="c-card__header u-text-center">
@@ -26,6 +27,7 @@
             <div class="c-action-grid">
 
                 <!-- CSV Export Card -->
+                <?php if ($auth->hasPermission('dashboard.export.csv') && $auth->hasPermission('finance.export.execute')) { ?>
                 <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                     class="c-action-card c-action-card--csv">
                     <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""><!-- 📊 --></div>
@@ -34,8 +36,10 @@
                         <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Berichte.</span>
                     </div>
                 </a>
+                <?php } ?>
 
                 <!-- JSON Export Card -->
+                <?php if ($auth->hasPermission('dashboard.export.json') && $auth->hasPermission('finance.export.execute')) { ?>
                 <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                     class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>
@@ -44,6 +48,7 @@
                         <span class="c-action-card__desc">Für technischen Datenimport und Backups.</span>
                     </div>
                 </a>
+                <?php } ?>
 
             </div>
 
@@ -57,3 +62,4 @@
         </div>
     </section>
 </div>
+<?php } ?>

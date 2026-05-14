@@ -151,6 +151,13 @@ final readonly class AdminController
 
     private function actionCreateVoucher(array $post): string
     {
+        $tplKey = (string) ($post['template_key'] ?? 'std.7');
+
+        // --- BACKEND SECURITY CHECK ---
+        if (! $this->auth->hasPermission("template.$tplKey")) {
+            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' zu verwenden.";
+        }
+
         try {
             // Gutschein erstellen
             $reason = (string) ($post['reason'] ?? 'Gutschein');
@@ -199,6 +206,13 @@ final readonly class AdminController
 
     private function actionCreateManual(array $post): string
     {
+        $tplKey = (string) ($post['template_key'] ?? 'std.7');
+
+        // --- BACKEND SECURITY CHECK ---
+        if (! $this->auth->hasPermission("template.$tplKey")) {
+            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' manuell auszustellen.";
+        }
+
         // Manuelle Buchung (Kostenlos/Bar)
         try {
             $post['status'] = 'bezahlt';
@@ -313,8 +327,7 @@ final readonly class AdminController
             'yearlyStats'    => $yearlyStats, // Die Daten für Diagramm & Archiv
             'groups'         => $this->groupPermits($allPermits),
             'settings'       => $this->getSettingsArray(),
-            'adminUser'      => $this->auth->getUsername(),
-            'adminLevel'     => $this->auth->getLevel(),
+            'auth'           => $this->auth,
             'message'        => $message,
             'filterStart'    => $filterStart,
             'filterEnd'      => $filterEnd,
@@ -557,7 +570,7 @@ final readonly class AdminController
     private function actionMigrateData(array $post): string
     {
         if ($this->auth->getLevel() !== 0) {
-            return 'Fehler: Nur Superadmins dürfen migrieren.';
+            return 'Fehler: Nur der Dev-Admin darf migrieren.';
         }
 
         $direction = (string) ($post['direction'] ?? 'sync');
@@ -574,6 +587,11 @@ final readonly class AdminController
         /** @var Config $config */
         $config  = $this->config;
         $appRoot = (string) $config->get('root_path');
+
+        // Wir fügen auth global hinzu, falls es mal vergessen wird
+        if (! isset($data['auth'])) {
+            $data['auth'] = $this->auth;
+        }
 
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
         \extract($data);

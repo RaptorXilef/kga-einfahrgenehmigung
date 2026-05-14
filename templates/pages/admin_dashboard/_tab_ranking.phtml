@@ -14,82 +14,99 @@
  */
 $plots = $periodStats['plots'] ?? [];
 ?>
-<div class="c-tab-content-container">
-    <section class="c-card">
-        <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""> Parzellen-Ranking (Top 30)</h3>
-            <p class="u-text-muted">Auswertung basierend auf dem gewählten Zeitraum.</p>
-        </header>
-        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
-            <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
-                <thead>
-                    <tr style="background: #f8fafc;">
-                        <th style="width: 70px; text-align: center;">Rang</th>
-                        <th style="width: 100px; text-align: left;">Parzelle</th>
-                        <th style="width: 180px; text-align: left;">Pächter (Zuletzt)</th>
-                        <th style="text-align: left;">E-Mail (Zuletzt)</th>
-                        <th style="width: 130px; text-align: right;">Einnahmen</th>
-                        <th style="width: 90px; text-align: center;">Anträge</th>
-                        <th style="width: 180px; text-align: left;">Intensität</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($plots)) { ?>
-                        <tr>
-                            <td colspan="7" class="u-text-center u-padding-around-l u-text-muted">Keine Daten im Zeitraum gefunden.</td>
+<?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
+    <div class="c-tab-content-container">
+        <section class="c-card">
+            <header class="c-card__header">
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""> Parzellen-Ranking (Top 30)</h3>
+                <p class="u-text-muted">Auswertung basierend auf dem gewählten Zeitraum.</p>
+            </header>
+            <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+                <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th style="width: 70px; text-align: center;">Rang</th>
+                            <th style="width: 100px; text-align: left;">Parzelle</th>
+                            <th style="width: 180px; text-align: left;">Pächter (Zuletzt)</th>
+                            <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                                <th style="text-align: left;">E-Mail (Zuletzt)</th>
+                            <?php } ?>
+                            <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                                <th style="width: 130px; text-align: right;">Einnahmen</th>
+                            <?php } ?>
+                            <th style="width: 90px; text-align: center;">Anträge</th>
+                            <th style="width: 180px; text-align: left;">Intensität</th>
                         </tr>
-                    <?php } else {
-                        $rank      = 1;
-                        $firstPlot = \reset($plots);
-                        $maxCount  = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
-
-                        foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
-                            $perc = ($data['count'] / $maxCount) * 100;
-                            ?>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($plots)) { ?>
                             <tr>
-                                <td style="text-align: center; vertical-align: middle;">
-                                    <?php if ($rank <= 3) { ?>
-                                        <div style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_trophy.webp" class="c-icon" alt=""><!-- 🏆 --></div>
-                                        <div style="font-size: 0.7rem; font-weight: 800; margin-top: -5px;"><?php echo $rank++; ?></div>
-                                    <?php } else { ?>
-                                        <span style="color: var(--text-muted); font-weight: 800;">#<?php echo $rank++; ?></span>
-                                    <?php } ?>
-                                </td>
-
-                                <td style="text-align: left; vertical-align: middle;">
-                                    <strong style="font-size: 1rem;"><!-- Nr. --><?php echo \htmlspecialchars((string) $pNum); ?></strong>
-                                </td>
-
-                                <td style="text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    <span style="font-weight: 600;"><?php echo \htmlspecialchars($data['name'] ?: 'Unbekannt'); ?></span>
-                                </td>
-
-                                <td style="text-align: left; vertical-align: middle;">
-                                    <?php if ($data['email']) { ?>
-                                        <small><a href="mailto:<?php echo $data['email']; ?>" class="u-text-link"><?php echo \htmlspecialchars($data['email']); ?></a></small>
-                                    <?php } else { ?>
-                                        <small class="u-text-muted"><em>keine Angabe</em></small>
-                                    <?php } ?>
-                                </td>
-
-                                <td style="text-align: right; vertical-align: middle;">
-                                    <strong style="color: var(--primary-color);"><?php echo \number_format($data['revenue'], 2, ',', '.'); ?> €</strong>
-                                </td>
-
-                                <td style="text-align: center; vertical-align: middle;">
-                                    <span class="c-badge" style="background: #f1f5f9; min-width: 35px; font-weight: 700; color: #1e293b; border: 1px solid #e2e8f0;"><?php echo $data['count']; ?></span>
-                                </td>
-
-                                <td style="text-align: left; vertical-align: middle;">
-                                    <div style="background: #f1f5f9; height: 8px; border-radius: 10px; width: 100%; overflow: hidden; border: 1px solid #e2e8f0;">
-                                        <div style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; transition: width 0.6s ease-in-out;"></div>
-                                    </div>
-                                </td>
+                                <td colspan="7" class="u-text-center u-padding-around-l u-text-muted">Keine Daten im Zeitraum gefunden.</td>
                             </tr>
+                            <?php } else {
+                                $rank      = 1;
+                                $firstPlot = \reset($plots);
+                                $maxCount  = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
+
+                                foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
+                                    $perc = ($data['count'] / $maxCount) * 100;
+                                    ?>
+                                <tr>
+                                    <!-- RANG -->
+                                    <td style="text-align: center; vertical-align: middle;">
+                                        <?php if ($rank <= 3) { ?>
+                                            <div style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_trophy.webp" class="c-icon" alt=""><!-- 🏆 --></div>
+                                            <div style="font-size: 0.7rem; font-weight: 800; margin-top: -5px;"><?php echo $rank++; ?></div>
+                                        <?php } else { ?>
+                                            <span style="color: var(--text-muted); font-weight: 800;">#<?php echo $rank++; ?></span>
+                                        <?php } ?>
+                                    </td>
+
+                                    <!-- PARZELLE NUMMER -->
+                                    <td style="text-align: left; vertical-align: middle;">
+                                        <strong style="font-size: 1rem;"><!-- Nr. --><?php echo \htmlspecialchars((string) $pNum); ?></strong>
+                                    </td>
+
+                                    <!-- PÄCHTER NAME -->
+                                    <td style="text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <span style="font-weight: 600;"><?php echo \htmlspecialchars($data['name'] ?: 'Unbekannt'); ?></span>
+                                    </td>
+
+                                    <!-- E-MAIL -->
+                                    <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                                        <td style="text-align: left; vertical-align: middle;">
+                                            <?php if ($data['email']) { ?>
+                                                <small><a href="mailto:<?php echo $data['email']; ?>" class="u-text-link"><?php echo \htmlspecialchars($data['email']); ?></a></small>
+                                            <?php } else { ?>
+                                                <small class="u-text-muted"><em>keine Angabe</em></small>
+                                            <?php } ?>
+                                        </td>
+                                    <?php } ?>
+
+                                    <!-- EINNAHMEN -->
+                                    <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                                        <td style="text-align: right; vertical-align: middle;">
+                                            <strong style="color: var(--primary-color);"><?php echo \number_format($data['revenue'], 2, ',', '.'); ?> €</strong>
+                                        </td>
+                                    <?php } ?>
+
+                                    <!-- ANTRÄGE -->
+                                    <td style="text-align: center; vertical-align: middle;">
+                                        <span class="c-badge" style="background: #f1f5f9; min-width: 35px; font-weight: 700; color: #1e293b; border: 1px solid #e2e8f0;"><?php echo $data['count']; ?></span>
+                                    </td>
+
+                                    <!-- INTENSITÄT -->
+                                    <td style="text-align: left; vertical-align: middle;">
+                                        <div style="background: #f1f5f9; height: 8px; border-radius: 10px; width: 100%; overflow: hidden; border: 1px solid #e2e8f0;">
+                                            <div style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; transition: width 0.6s ease-in-out;"></div>
+                                        </div>
+                                    </td>
+                                </tr>
                         <?php }
-                        } ?>
-                </tbody>
-            </table>
-        </div>
-    </section>
-</div>
+                                } ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+<?php } ?>

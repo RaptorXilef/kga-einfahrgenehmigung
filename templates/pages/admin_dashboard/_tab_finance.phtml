@@ -17,117 +17,135 @@ $unpaidPermits = $groups['unpaid'] ?? [];
 $dueDaysCfg    = (int) $config->get('payment_due_days', 14);
 $now           = new \DateTimeImmutable('today');
 ?>
-<div class="c-tab-content-container">
-    <section class="c-card">
-        <header class="c-card__header u-flex u-justify-between u-align-center">
-            <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
-            <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($unpaidPermits); ?></span>
-        </header>
+<?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
+    <div class="c-tab-content-container">
+        <section class="c-card">
+            <header class="c-card__header u-flex u-justify-between u-align-center">
+                <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
+                <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($unpaidPermits); ?></span>
+            </header>
 
-        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
-            <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 1000px;">
-                <thead>
-                    <tr style="background: #fcfdfe;">
-                        <th style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
-                        <th style="width: 130px; text-align: center;">Fahrzeug</th>
-                        <th>Kontakt (E-Mail)</th>
-                        <th style="width: 220px; text-align: center;">Frist & Status</th>
-                        <th style="width: 120px; text-align: right;">Betrag</th>
-                        <th style="width: 120px; text-align: right; padding-right: 20px;">Zahlung</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($unpaidPermits)) { ?>
-                        <tr>
-                            <td colspan="6" class="u-text-center u-padding-around-l u-text-muted">Alle Konten ausgeglichen.</td>
+            <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+                <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 1000px;">
+                    <thead>
+                        <tr style="background: #fcfdfe;">
+                            <th style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
+                            <th style="width: 130px; text-align: center;">Fahrzeug</th>
+                            <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                                <th>Kontakt (E-Mail)</th>
+                            <?php } ?>
+                            <th style="width: 220px; text-align: center;">Frist & Status</th>
+                            <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                                <th style="width: 120px; text-align: right;">Betrag</th>
+                            <?php } ?>
+                            <th style="width: 120px; text-align: right; padding-right: 20px;">Verwaltung</th>
                         </tr>
-                    <?php } else { ?>
-                        <?php foreach ($unpaidPermits as $permit) {
-                            $overdueLevel = $permitService->getOverdueLevel($permit);
-                            $deadline     = $permit->erstellt->modify("+$dueDaysCfg days");
-                            $diff         = $now->diff($deadline);
-                            $days         = (int) $diff->format('%r%a');
-                            ?>
-                            <tr class="u-hover-fade" style="<?php echo ($overdueLevel === 2) ? 'background-color: #fff1f2;' : ''; ?>">
-                                <!-- 1. Name, Code & Parzelle -->
-                                <td style="vertical-align: middle;">
-                                    <div class="u-flex u-flex-column">
-                                        <span style="font-weight: 700; color: #1e293b;"><?php echo \htmlspecialchars($permit->owner->name); ?></span>
-                                        <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;"><?php echo $permit->code; ?></code>
-                                        <div>
-                                            <span style="font-size: 0.7rem; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;">
-                                                PARZELLE <?php echo $permit->owner->parzelle; ?>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- 2. Fahrzeug & Kennzeichen darunter -->
-                                <td style="text-align: center; vertical-align: middle;">
-                                    <?php
-                                        $vKey = $permit->vehicle->typ;
-                            $vCfg             = $config->get('vehicle_types')[$vKey] ?? null;
-                            // Fallback Icon, falls Typ gelöscht wurde
-                            $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
-                            $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                            ?>
-                                    <div style="line-height: 1;">
-                                        <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                            class="c-icon"
-                                            style="width: 24px; height: 24px; <?php echo ($permit->validity->bis < $now) ? 'grayscale(1); opacity:0.5;' : ''; ?>"
-                                            title="<?php echo $vLabel; ?>">
-                                    </div>
-                                    <div style="margin-top: 4px;">
-                                        <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
-                                            <?php echo \htmlspecialchars($permit->vehicle->kennzeichen ?: '---'); ?>
-                                        </code>
-                                    </div>
-                                </td>
-
-                                <!-- 3. E-Mail (Anklickbar) -->
-                                <td style="vertical-align: middle;">
-                                    <?php if ($permit->owner->email) { ?>
-                                        <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
-                                    <?php } else { ?>
-                                        <small class="u-text-muted"><em>Keine Mail</em></small>
-                                    <?php } ?>
-                                </td>
-
-                                <!-- 4. Mahnstatus & Zähler -->
-                                <td class="u-text-center" style="vertical-align: middle;">
-                                    <?php if ($overdueLevel === 2) { ?>
-                                        <span class="c-badge c-badge--danger">🚨 <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG</span>
-                                    <?php } elseif ($overdueLevel === 1) { ?>
-                                        <span class="c-badge c-badge--warning">MAHNFRIST ABGELAUFEN</span>
-                                    <?php } else { ?>
-                                        <span class="c-badge" style="background: #f1f5f9; color: #475569;">Noch <?php echo $days; ?> Tage</span>
-                                    <?php } ?>
-                                    <br><small class="u-text-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
-                                </td>
-
-                                <!-- 5. Betrag -->
-                                <td class="u-text-right" style="vertical-align: middle;">
-                                    <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
-                                </td>
-
-                                <!-- 6. Aktionen (Inkl. Auge) -->
-                                <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
-                                    <div class="u-flex u-gap-xs u-justify-end">
-                                        <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 34px; height: 34px;" title="Details">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
-                                        </a>
-                                        <form method="POST" style="margin:0;">
-                                            <input type="hidden" name="action" value="mark_as_paid">
-                                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                            <button type="submit" class="c-button c-button--success" style="width: 42px; height: 34px;" title="Bezahlt">✔</button>
-                                        </form>
-                                    </div>
-                                </td>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($unpaidPermits)) { ?>
+                            <tr>
+                                <td colspan="6" class="u-text-center u-padding-around-l u-text-muted">Alle Konten ausgeglichen.</td>
                             </tr>
+                        <?php } else { ?>
+                            <?php foreach ($unpaidPermits as $permit) {
+                                $overdueLevel = $permitService->getOverdueLevel($permit);
+                                $deadline     = $permit->erstellt->modify("+$dueDaysCfg days");
+                                $diff         = $now->diff($deadline);
+                                $days         = (int) $diff->format('%r%a');
+                                ?>
+                                <tr class="u-hover-fade" style="<?php echo ($overdueLevel === 2) ? 'background-color: #fff1f2;' : ''; ?>">
+                                    <!-- 1. Name, Code & Parzelle -->
+                                    <td style="vertical-align: middle;">
+                                        <div class="u-flex u-flex-column">
+                                            <span style="font-weight: 700; color: #1e293b;"><?php echo \htmlspecialchars($permit->owner->name); ?></span>
+                                            <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;"><?php echo $permit->code; ?></code>
+                                            <div>
+                                                <span style="font-size: 0.7rem; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;">
+                                                    PARZELLE <?php echo $permit->owner->parzelle; ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- 2. Fahrzeug & Kennzeichen darunter -->
+                                    <td style="text-align: center; vertical-align: middle;">
+                                        <?php
+                                            $vKey = $permit->vehicle->typ;
+                                $vCfg             = $config->get('vehicle_types')[$vKey] ?? null;
+                                // Fallback Icon, falls Typ gelöscht wurde
+                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
+                                $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+                                ?>
+                                        <div style="line-height: 1;">
+                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                                class="c-icon"
+                                                style="width: 24px; height: 24px; <?php echo ($permit->validity->bis < $now) ? 'grayscale(1); opacity:0.5;' : ''; ?>"
+                                                title="<?php echo $vLabel; ?>">
+                                        </div>
+                                        <div style="margin-top: 4px;">
+                                            <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
+                                                <?php echo \htmlspecialchars($permit->vehicle->kennzeichen ?: '---'); ?>
+                                            </code>
+                                        </div>
+                                    </td>
+
+                                    <!-- 3. E-Mail (Anklickbar) -->
+                                    <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                                        <td style="vertical-align: middle;">
+                                            <?php if ($permit->owner->email) { ?>
+                                                <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
+                                            <?php } else { ?>
+                                                <small class="u-text-muted"><em>Keine Mail</em></small>
+                                            <?php } ?>
+                                        </td>
+                                    <?php } ?>
+
+                                    <!-- 4. Mahnstatus & Zähler -->
+                                    <td class="u-text-center" style="vertical-align: middle;">
+                                        <?php if ($overdueLevel === 2) { ?>
+                                            <span class="c-badge c-badge--danger">🚨 <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG</span>
+                                        <?php } elseif ($overdueLevel === 1) { ?>
+                                            <span class="c-badge c-badge--warning">MAHNFRIST ABGELAUFEN</span>
+                                        <?php } else { ?>
+                                            <span class="c-badge" style="background: #f1f5f9; color: #475569;">Noch <?php echo $days; ?> Tage</span>
+                                        <?php } ?>
+                                        <br><small class="u-text-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
+                                    </td>
+
+                                    <!-- 5. Betrag -->
+                                    <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                                        <td class="u-text-right" style="vertical-align: middle;">
+                                            <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
+                                        </td>
+                                    <?php } ?>
+
+                                    <!-- 6. Aktionen (Inkl. Auge) -->
+                                    <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
+                                        <div class="u-flex u-gap-xs u-justify-end">
+                                            <?php if ($auth->hasPermission('dashboard.finance.details')) { ?>
+                                                <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 34px; height: 34px;" title="Details">
+                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
+                                                </a>
+                                            <?php } else { ?>
+                                                <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
+                                            <?php } ?>
+                                            <?php if ($auth->hasPermission('dashboard.finance.mark_paid')) { ?>
+                                                <form method="POST" style="margin:0;">
+                                                    <input type="hidden" name="action" value="mark_as_paid">
+                                                    <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                    <button type="submit" class="c-button c-button--success" style="width: 42px; height: 34px;" title="Bezahlt">✔</button>
+                                                </form>
+                                            <?php } else { ?>
+                                                <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
+                                            <?php } ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php } ?>
                         <?php } ?>
-                    <?php } ?>
-                </tbody>
-            </table>
-        </div>
-    </section>
-</div>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+<?php } ?>

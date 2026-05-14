@@ -16,236 +16,244 @@
  * @var int    $adminLevel
  */
 ?>
-<div class="c-tab-content-container">
+<?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
+    <div class="c-tab-content-container">
 
-    <div class="u-flex u-align-center u-gap-s u-margin-bottom-m">
-        <div style="background: #fff; border: 2px solid var(--primary-color); border-radius: 30px; padding: 8px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 10px;">
-            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt="" style="width: 20px; height: 20px;">
-            <div>
-                <span style="font-size: 0.7rem; color: var(--text-muted); display: block; line-height: 1; font-weight: 800; text-transform: uppercase;">Berichtszeitraum</span>
-                <strong style="color: var(--primary-color); font-size: 1rem;">
-                    <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> – <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
-                </strong>
-            </div>
-        </div>
-    </div>
-
-    <div class="u-grid u-gap-m u-margin-bottom-l" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-
-        <div class="c-card u-margin-none" style="border-top: 5px solid var(--success-color);">
-            <div class="c-card__body u-text-center">
-                <span class="u-text-muted u-text-small u-font-bold">BEREITS BEZAHLT</span>
-                <div class="u-font-xl u-font-bold" style="color: var(--success-color); font-size: 2.2rem; margin-top: 5px;">
-                    <?php echo \number_format($periodStats['revenue_paid'], 2, ',', '.'); ?> €
+        <div class="u-flex u-align-center u-gap-s u-margin-bottom-m">
+            <div style="background: #fff; border: 2px solid var(--primary-color); border-radius: 30px; padding: 8px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 10px;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt="" style="width: 20px; height: 20px;">
+                <div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; line-height: 1; font-weight: 800; text-transform: uppercase;">Berichtszeitraum</span>
+                    <strong style="color: var(--primary-color); font-size: 1rem;">
+                        <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> – <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                    </strong>
                 </div>
             </div>
         </div>
 
-        <div class="c-card u-margin-none" style="border-top: 5px solid #f39c12;">
-            <div class="c-card__body u-text-center">
-                <span class="u-text-muted u-text-small u-font-bold">NOCH OFFEN</span>
-                <div class="u-font-xl u-font-bold" style="color: #f39c12; font-size: 2.2rem; margin-top: 5px;">
-                    <?php echo \number_format($periodStats['revenue_unpaid'], 2, ',', '.'); ?> €
+        <?php if ($auth->hasPermission('dashboard.stats.current') && $auth->hasPermission('finance.revenue.reveal')) { ?>
+        <div class="u-grid u-gap-m u-margin-bottom-l" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+
+            <div class="c-card u-margin-none" style="border-top: 5px solid var(--success-color);">
+                <div class="c-card__body u-text-center">
+                    <span class="u-text-muted u-text-small u-font-bold">BEREITS BEZAHLT</span>
+                    <div class="u-font-xl u-font-bold" style="color: var(--success-color); font-size: 2.2rem; margin-top: 5px;">
+                        <?php echo \number_format($periodStats['revenue_paid'], 2, ',', '.'); ?> €
+                    </div>
+                </div>
+            </div>
+
+            <div class="c-card u-margin-none" style="border-top: 5px solid #f39c12;">
+                <div class="c-card__body u-text-center">
+                    <span class="u-text-muted u-text-small u-font-bold">NOCH OFFEN</span>
+                    <div class="u-font-xl u-font-bold" style="color: #f39c12; font-size: 2.2rem; margin-top: 5px;">
+                        <?php echo \number_format($periodStats['revenue_unpaid'], 2, ',', '.'); ?> €
+                    </div>
+                </div>
+            </div>
+
+            <div class="c-card u-margin-none" style="border-top: 5px solid var(--primary-color);">
+                <div class="c-card__body u-text-center">
+                    <span class="u-text-muted u-text-small u-font-bold">GENEHMIGUNGEN</span>
+                    <div class="u-font-xl u-font-bold" style="font-size: 2.2rem; margin: 5px 0;"><?php echo $periodStats['count']; ?></div>
+
+                    <div class="u-flex u-justify-center u-gap-s u-flex-wrap">
+                        <?php
+                        $vConfig = $config->get('vehicle_types', []);
+            foreach ($periodStats['types'] as $typeKey => $count) {
+                if ($count === 0) {
+                    continue;
+                }
+
+                if ($typeKey === '__legacy__') {
+                    $label = 'Sonstige / Ehem.';
+                    $icon  = 'assets/img/icons/status-invalid.webp';
+                } else {
+                    $label = $vConfig[$typeKey]['label'] ?? $typeKey;
+                    $icon  = $vConfig[$typeKey]['icon'] ?? '';
+                } // Nur anzeigen wenn vorhanden
+                ?>
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                                <img src="<?php echo $settings['base_url'] . $icon; ?>" style="width:14px; height:14px;"> <?php echo $count; ?> <small style="font-weight: 400;"><?php echo $label; ?></small>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="c-card u-margin-none" style="border-top: 5px solid #1e293b;">
+                <div class="c-card__body u-text-center">
+                    <span class="u-text-muted u-text-small u-font-bold">GESAMTUMSATZ (SOLL)</span>
+                    <div class="u-font-xl u-font-bold" style="font-size: 2.2rem; margin-top: 5px;">
+                        <?php echo \number_format($periodStats['revenue_paid'] + $periodStats['revenue_unpaid'], 2, ',', '.'); ?> €
+                    </div>
                 </div>
             </div>
         </div>
+        <?php } ?>
 
-        <div class="c-card u-margin-none" style="border-top: 5px solid var(--primary-color);">
-            <div class="c-card__body u-text-center">
-                <span class="u-text-muted u-text-small u-font-bold">GENEHMIGUNGEN</span>
-                <div class="u-font-xl u-font-bold" style="font-size: 2.2rem; margin: 5px 0;"><?php echo $periodStats['count']; ?></div>
+        <?php if ($auth->hasPermission('dashboard.stats.charts') && $auth->hasPermission('finance.revenue.reveal')) { ?>
+        <section class="c-card u-margin-bottom-l" style="border-top-color: #6366f1;">
+            <details>
+                <summary class="u-padding-around-m u-cursor-pointer u-font-bold" style="list-style: none; display: flex; align-items: center; gap: 10px;">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" alt="">
+                    Wachstums-Trend & Jahresvergleich (Grafik einblenden)
+                </summary>
+                <div class="u-padding-around-m" style="background: #fcfdfe;">
+                    <canvas id="yearlyStatsChart" style="max-height: 350px; width: 100%;"></canvas>
+                </div>
+            </details>
+        </section>
+        <?php } ?>
 
-                <div class="u-flex u-justify-center u-gap-s u-flex-wrap">
-                    <?php
-                    $vConfig = $config->get('vehicle_types', []);
-foreach ($periodStats['types'] as $typeKey => $count) {
-    if ($count === 0) {
-        continue;
-    }
+        <?php if ($auth->hasPermission('dashboard.stats.history') && $auth->hasPermission('finance.revenue.reveal')) { ?>
+        <h3 class="u-margin-bottom-m" style="display: flex; align-items: center; gap: 10px;">
+            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt="" style="width: 24px;">
+            Historische Jahresabschlüsse
+        </h3>
 
-    if ($typeKey === '__legacy__') {
-        $label = 'Sonstige / Ehem.';
-        $icon  = 'assets/img/icons/status-invalid.webp';
-    } else {
-        $label = $vConfig[$typeKey]['label'] ?? $typeKey;
-        $icon  = $vConfig[$typeKey]['icon'] ?? '';
-    } // Nur anzeigen wenn vorhanden
-    ?>
-                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
-                            <img src="<?php echo $settings['base_url'] . $icon; ?>" style="width:14px; height:14px;"> <?php echo $count; ?> <small style="font-weight: 400;"><?php echo $label; ?></small>
+        <?php foreach ($yearlyStats as $year => $data) { ?>
+            <details class="u-margin-bottom-s">
+                <summary style="background: #fff; padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.1rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp" class="c-icon" alt=""><!-- 📆 --> Geschäftsjahr <strong><?php echo $year; ?></strong></span>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <span style="font-size: 0.9rem; color: var(--success-color); font-weight: 700;">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
+                        <span class="c-badge" style="background: #f1f5f9; color: #475569; font-weight: 800;"><?php echo $data['count']; ?> Genehmigungen</span>
+                    </div>
+                </summary>
+
+                <div class="u-grid u-gap-m u-padding-around-m" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: #f8fafc; border-radius: 0 0 12px 12px; border: 1px solid var(--border-color); border-top: none;">
+                    <div class="c-card u-margin-none" style="border-top: 3px solid var(--success-color);">
+                        <div class="c-card__body u-text-center u-padding-around-s">
+                            <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">BEREITS BEZAHLT</small>
+                            <div class="u-font-bold" style="font-size: 1.2rem; color: var(--success-color);"><?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
                         </div>
-                    <?php } ?>
-                </div>
-            </div>
-        </div>
-
-        <div class="c-card u-margin-none" style="border-top: 5px solid #1e293b;">
-            <div class="c-card__body u-text-center">
-                <span class="u-text-muted u-text-small u-font-bold">GESAMTUMSATZ (SOLL)</span>
-                <div class="u-font-xl u-font-bold" style="font-size: 2.2rem; margin-top: 5px;">
-                    <?php echo \number_format($periodStats['revenue_paid'] + $periodStats['revenue_unpaid'], 2, ',', '.'); ?> €
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <section class="c-card u-margin-bottom-l" style="border-top-color: #6366f1;">
-        <details>
-            <summary class="u-padding-around-m u-cursor-pointer u-font-bold" style="list-style: none; display: flex; align-items: center; gap: 10px;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" alt="">
-                Wachstums-Trend & Jahresvergleich (Grafik einblenden)
-            </summary>
-            <div class="u-padding-around-m" style="background: #fcfdfe;">
-                <canvas id="yearlyStatsChart" style="max-height: 350px; width: 100%;"></canvas>
-            </div>
-        </details>
-    </section>
-
-    <h3 class="u-margin-bottom-m" style="display: flex; align-items: center; gap: 10px;">
-        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt="" style="width: 24px;">
-        Historische Jahresabschlüsse
-    </h3>
-
-    <?php foreach ($yearlyStats as $year => $data) { ?>
-        <details class="u-margin-bottom-s">
-            <summary style="background: #fff; padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 1.1rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp" class="c-icon" alt=""><!-- 📆 --> Geschäftsjahr <strong><?php echo $year; ?></strong></span>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <span style="font-size: 0.9rem; color: var(--success-color); font-weight: 700;">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
-                    <span class="c-badge" style="background: #f1f5f9; color: #475569; font-weight: 800;"><?php echo $data['count']; ?> Genehmigungen</span>
-                </div>
-            </summary>
-
-            <div class="u-grid u-gap-m u-padding-around-m" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: #f8fafc; border-radius: 0 0 12px 12px; border: 1px solid var(--border-color); border-top: none;">
-                <div class="c-card u-margin-none" style="border-top: 3px solid var(--success-color);">
-                    <div class="c-card__body u-text-center u-padding-around-s">
-                        <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">BEREITS BEZAHLT</small>
-                        <div class="u-font-bold" style="font-size: 1.2rem; color: var(--success-color);"><?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
                     </div>
-                </div>
-                <div class="c-card u-margin-none" style="border-top: 3px solid #f39c12;">
-                    <div class="c-card__body u-text-center u-padding-around-s">
-                        <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">Noch offen</small>
-                        <div class="u-font-bold" style="font-size: 1.2rem; color: #f39c12;"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
+                    <div class="c-card u-margin-none" style="border-top: 3px solid #f39c12;">
+                        <div class="c-card__body u-text-center u-padding-around-s">
+                            <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">Noch offen</small>
+                            <div class="u-font-bold" style="font-size: 1.2rem; color: #f39c12;"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
+                        </div>
                     </div>
-                </div>
-                <div class="c-card u-margin-none" style="border-top: 3px solid var(--primary-color);">
-                    <div class="c-card__body u-text-center u-padding-around-s">
-                        <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">GENEHMIGUNGEN</small>
-                        <div class="u-font-bold" style="font-size: 1.1rem; margin-bottom: 2px;"><?php echo $data['count']; ?></div>
+                    <div class="c-card u-margin-none" style="border-top: 3px solid var(--primary-color);">
+                        <div class="c-card__body u-text-center u-padding-around-s">
+                            <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">GENEHMIGUNGEN</small>
+                            <div class="u-font-bold" style="font-size: 1.1rem; margin-bottom: 2px;"><?php echo $data['count']; ?></div>
 
-                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
-                            <?php
-            $vConfig = $config->get('vehicle_types', []);
-        $typeItems   = [];
-        foreach ($data['types'] as $tKey => $count) {
-            if ($count === 0) {
-                continue;
-            } // Nur Typen anzeigen, die Daten haben
+                            <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
+                                <?php
+                        $vConfig = $config->get('vehicle_types', []);
+            $typeItems           = [];
+            foreach ($data['types'] as $tKey => $count) {
+                if ($count === 0) {
+                    continue;
+                } // Nur Typen anzeigen, die Daten haben
 
-            if ($tKey === '__legacy__') {
-                $vLabel = 'Sonstige / Ehem.';
-                $vIcon  = 'assets/img/icons/status-invalid.webp';
-            } else {
-                $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
-                $vIcon  = $vConfig[$tKey]['icon'] ?? '';
+                if ($tKey === '__legacy__') {
+                    $vLabel = 'Sonstige / Ehem.';
+                    $vIcon  = 'assets/img/icons/status-invalid.webp';
+                } else {
+                    $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
+                    $vIcon  = $vConfig[$tKey]['icon'] ?? '';
+                }
+
+                // Wir bauen uns ein Array von HTML-Schnipseln
+                $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="width:12px; height:12px; margin-right:2px;"> ' . $count . ' ' . $vLabel . '</span>';
             }
-
-            // Wir bauen uns ein Array von HTML-Schnipseln
-            $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="width:12px; height:12px; margin-right:2px;"> ' . $count . ' ' . $vLabel . '</span>';
-        }
-        // Wir verbinden die Schnipsel mit einem Trennstrich
-        echo \implode(' <span style="opacity:0.3;">|</span> ', $typeItems);
-        ?>
+            // Wir verbinden die Schnipsel mit einem Trennstrich
+            echo \implode(' <span style="opacity:0.3;">|</span> ', $typeItems);
+            ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="c-card u-margin-none" style="border-top: 3px solid #1e293b;">
+                        <div class="c-card__body u-text-center u-padding-around-s">
+                            <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">Jahres-Soll</small>
+                            <div class="u-font-bold" style="font-size: 1.2rem;"><?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
                         </div>
                     </div>
                 </div>
-                <div class="c-card u-margin-none" style="border-top: 3px solid #1e293b;">
-                    <div class="c-card__body u-text-center u-padding-around-s">
-                        <small class="u-text-muted u-font-bold" style="text-transform: uppercase; font-size: 0.65rem;">Jahres-Soll</small>
-                        <div class="u-font-bold" style="font-size: 1.2rem;"><?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
-                    </div>
-                </div>
-            </div>
-        </details>
-    <?php } ?>
+            </details>
+        <?php } ?>
+        <?php } ?>
 
-</div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const ctx = document.getElementById('yearlyStatsChart');
-        if (!ctx) return;
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('yearlyStatsChart');
+            if (!ctx) return;
 
-        const years = <?php echo \json_encode(\array_reverse(\array_keys($yearlyStats))); ?>;
-        const revenueTotal = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats))); ?>;
-        const permitCounts = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats))); ?>;
+            const years = <?php echo \json_encode(\array_reverse(\array_keys($yearlyStats))); ?>;
+            const revenueTotal = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats))); ?>;
+            const permitCounts = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats))); ?>;
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: years,
-                datasets: [{
-                        label: 'Umsatz Soll (€)',
-                        data: revenueTotal,
-                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                        borderColor: '#3498db',
-                        borderWidth: 2,
-                        borderRadius: 5,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Anzahl Genehmigungen',
-                        data: permitCounts,
-                        borderColor: '#6366f1',
-                        backgroundColor: '#6366f1',
-                        borderWidth: 3,
-                        type: 'line',
-                        tension: 0.3,
-                        pointRadius: 5,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        grid: {
-                            color: '#f1f5f9'
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [{
+                            label: 'Umsatz Soll (€)',
+                            data: revenueTotal,
+                            backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                            borderColor: '#3498db',
+                            borderWidth: 2,
+                            borderRadius: 5,
+                            yAxisID: 'y'
                         },
-                        title: {
-                            display: true,
-                            text: 'Euro (€)',
-                            font: {
-                                weight: 'bold'
-                            }
+                        {
+                            label: 'Anzahl Genehmigungen',
+                            data: permitCounts,
+                            borderColor: '#6366f1',
+                            backgroundColor: '#6366f1',
+                            borderWidth: 3,
+                            type: 'line',
+                            tension: 0.3,
+                            pointRadius: 5,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
                         }
                     },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        grid: {
-                            drawOnChartArea: false
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            grid: {
+                                color: '#f1f5f9'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Euro (€)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
                         },
-                        title: {
-                            display: true,
-                            text: 'Menge',
-                            font: {
-                                weight: 'bold'
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Menge',
+                                font: {
+                                    weight: 'bold'
+                                }
                             }
                         }
                     }
                 }
-            }
+            });
         });
-    });
-</script>
+    </script>
+<?php } ?>

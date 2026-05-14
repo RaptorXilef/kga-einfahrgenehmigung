@@ -34,18 +34,20 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
-        // 1. Check Hardcoded Superadmin (Level 0)
+        // 1. Dev-Admin Check (bleibt wie er ist)
         $superCfg = $this->config->get('superadmin');
         if ($username === $superCfg['user'] && $password === $superCfg['pass']) {
-            $this->setSession($username, 0, 'System-Eigentümer');
+            // Wir nutzen hier intern 'superadmin' als Gruppe für den Root-User
+            $this->setSession($username, 'superadmin', 'Dev-Admin');
 
             return true;
         }
 
-        // 2. Check JSON Users
+        // 2. User laden
         $users = $this->loadUsers();
         if (isset($users[$username]) && \password_verify($password, (string) $users[$username]['pass'])) {
-            $this->setSession($username, (int) $users[$username]['level'], (string) ($users[$username]['label'] ?? ''));
+            // Wir speichern nun die GRUPPE statt des Levels in der Session
+            $this->setSession($username, (string) $users[$username]['group'], (string) ($users[$username]['label'] ?? ''));
 
             return true;
         }
@@ -53,10 +55,10 @@ final readonly class AuthService
         return false;
     }
 
-    private function setSession(string $user, int $level, string $label): void
+    private function setSession(string $user, string $group, string $label): void
     {
         $_SESSION['admin_user']  = $user;
-        $_SESSION['admin_level'] = $level;
+        $_SESSION['admin_group'] = $group; // Gruppe statt Level
         $_SESSION['admin_label'] = $label;
     }
 
@@ -118,19 +120,15 @@ final readonly class AuthService
 
     public function isLoggedIn(): bool
     {
-        // NEU: Wenn Dev-Mode aktiv, immer "eingeloggt"
-        if ($this->config->get('admin_dev_mode', false) === true) {
-            return true;
-        }
-
-        return isset($_SESSION['admin_level']);
+        // Prüft jetzt auf admin_group statt admin_level
+        return isset($_SESSION['admin_group']) || $this->config->get('admin_dev_mode', false) === true;
     }
 
     public function getLevel(): int
     {
         // Wenn Dev-Mode aktiv, immer Level 0 (Vollzugriff)
         if ($this->config->get('admin_dev_mode', false) === true) {
-            return 0; // Im Dev-Mode immer Superadmin
+            return 0; // Im Dev-Mode immer Dev-Admin
         }
 
         return (int) ($_SESSION['admin_level'] ?? 3);
@@ -145,10 +143,118 @@ final readonly class AuthService
 
     public function getUsername(): string
     {
-        if ($this->config->get('admin_dev_mode', false) === true) {
-            return 'Dev-Admin (Automatischer Login)'; // Oder 'Dev-Admin (Automatischer Login)'
+        // Wenn der eingeloggte User der aus der Config ist, geben wir seinen echten Namen zurück
+        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+    }
+
+    /**
+     * Die neue Herzstück-Methode für das Rechtesystem
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // A. Gott-Modus (Dev-Mode oder Superadmin aus Config)
+        $devAdminName = $this->config->get('superadmin')['user'];
+
+        // 1. Dev-Mode Fallback
+        // 2. Die absolute Absicherung: Der User aus der Config ist GOTT
+        if ($this->config->get('admin_dev_mode', false) === true || $this->getUsername() === $devAdminName) {
+            return true;
         }
 
-        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+        // Berechtigungen der Gruppe laden
+        $groupKey  = $_SESSION['admin_group'] ?? 'guest';
+        $groups    = $this->loadGroups();
+        $userPerms = $groups[$groupKey]['permissions'] ?? [];
+
+        // --- PHASE 1: VERBOTE (NEGATION) ---
+        // Wir prüfen zuerst, ob ein explizites Verbot vorliegt (beginnend mit '-')
+        foreach ($userPerms as $p) {
+            if (! \str_starts_with($p, '-')) {
+                continue;
+            }
+
+            $negatedPerm = \substr($p, 1); // Das Minus entfernen
+
+            // Explizites Verbot (z.B. -dashboard.active.details)
+            if ($negatedPerm === $permission) {
+                return false;
+            }
+
+            // Wildcard-Verbot (z.B. -dashboard.active.*)
+            if (\str_ends_with($negatedPerm, '.*')) {
+                $prefix = \substr($negatedPerm, 0, -1);
+                if (\str_starts_with($permission, $prefix)) {
+                    return false;
+                }
+            }
+
+            // Suffix-Wildcard-Verbot (z.B. -*.details)
+            if (\str_starts_with($negatedPerm, '*.')) {
+                $suffix = \substr($negatedPerm, 1);
+                if (\str_ends_with($permission, $suffix)) {
+                    return false;
+                }
+            }
+        }
+
+        // --- PHASE 2: ERLAUBNISSE ---
+        foreach ($userPerms as $p) {
+            if (\str_starts_with($p, '-')) {
+                continue;
+            } // Überspringe Verbote in dieser Phase
+
+            if ($p === '*' || $p === $permission) {
+                return true;
+            }
+
+            // Präfix-Wildcard (LuckPerms Stil: dashboard.active.*)
+            if (\str_ends_with($p, '.*')) {
+                $prefix = \substr($p, 0, -1); // "dashboard.active."
+                if (\str_starts_with($permission, $prefix)) {
+                    return true;
+                }
+            }
+
+            // Suffix-Wildcard (z:B. alle Druck-Buttons: *.print)
+            if (\str_starts_with($p, '*.')) {
+                $suffix = \substr($p, 1); // ".print"
+                if (\str_ends_with($permission, $suffix)) {
+                    return true;
+                }
+            }
+        }
+
+        // --- PHASE 3: IMPLIZITE ABHÄNGIGKEITEN (AUTO-VIEW) ---
+        // Wenn nach ".view" gefragt wird, der User aber ein Recht hat,
+        // das im selben Pfad liegt (z.B. .print), erlauben wir den View.
+        if (\str_ends_with($permission, '.view')) {
+            $basePath = \str_replace('.view', '', $permission); // z.B. "dashboard.active"
+            foreach ($userPerms as $p) {
+                // Nur wenn es kein Verbot ist und im selben Pfad liegt
+                if (! \str_starts_with($p, '-') && \str_starts_with($p, $basePath)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Lädt die Gruppen-Definitionen (v0.29.0)
+     */
+    public function loadGroups(): array
+    {
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        return \json_decode((string) \file_get_contents($path), true) ?? [];
+    }
+
+    public function getGroup(): string
+    {
+        return $_SESSION['admin_group'] ?? 'guest';
     }
 }

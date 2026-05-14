@@ -1,0 +1,12 @@
+{
+    "pruefer_plus": {
+        "name": "Ober-Prüfer",
+        "permissions": [
+            "*.view",
+            "*.details",
+            "*.print",
+            "-dashboard.finance.*",
+            "-finance.revenue.reveal"
+        ]
+    }
+}

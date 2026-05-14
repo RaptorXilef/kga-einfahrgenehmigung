@@ -94,9 +94,11 @@ if ($permit) {
                 <a href="check.php" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: #fff; border: 1px solid var(--border-color);">
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung
                 </a>
+                <?php if ($auth->hasPermission('check.admin.print')) { ?>
                 <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️  Drucken
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
                 </a>
+                <?php } ?>
             </div>
         </header>
 
@@ -118,10 +120,12 @@ if ($permit) {
                         <td class="u-font-bold">Parzelle</td>
                         <td>Nr. <?php echo \htmlspecialchars($permit->owner->parzelle); ?></td>
                     </tr>
-                    <tr>
-                        <td class="u-font-bold">E-Mail</td>
-                        <td><?php echo $permit->owner->email ? '<a href="mailto:' . $permit->owner->email . '">' . \htmlspecialchars($permit->owner->email) . '</a>' : '<em class="u-text-muted">Keine E-Mail hinterlegt</em>'; ?></td>
-                    </tr>
+                    <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                        <tr>
+                            <td class="u-font-bold">E-Mail</td>
+                            <td><?php echo $permit->owner->email ? '<a href="mailto:' . $permit->owner->email . '">' . \htmlspecialchars($permit->owner->email) . '</a>' : '<em class="u-text-muted">Keine E-Mail hinterlegt</em>'; ?></td>
+                        </tr>
+                    <?php } ?>
                     <tr>
                         <td class="u-font-bold">Zweck / Grund</td>
                         <td><?php echo \htmlspecialchars($permit->validity->zweck); ?></td>
@@ -144,10 +148,12 @@ if ($permit) {
                         <td class="u-font-bold">Zeitraum</td>
                         <td><?php echo $permit->validity->von->format('d.m.Y'); ?> bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></td>
                     </tr>
-                    <tr>
-                        <td class="u-font-bold">Gebühr (Snapshot)</td>
-                        <td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td>
-                    </tr>
+                    <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                        <tr>
+                            <td class="u-font-bold">Gebühr (Snapshot)</td>
+                            <td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td>
+                        </tr>
+                    <?php } ?>
                     <tr>
                         <td class="u-font-bold">System-Erstellung</td>
                         <td><?php echo $permit->erstellt->format('d.m.Y H:i'); ?> Uhr</td>
@@ -156,16 +162,18 @@ if ($permit) {
             </div>
 
             <!-- WIEDERHERGESTELLT: MANUELLE FREISCHALTUNG -->
-            <?php if ($permit->status->current !== 'bezahlt') { ?>
-                <footer class="u-padding-around-m u-border-top" style="background: rgba(255,255,255,0.5);">
-                    <form action="admin.php" method="POST" class="u-flex u-justify-center">
-                        <input type="hidden" name="action" value="mark_as_paid">
-                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                        <button type="submit" class="c-button--primary" style="background: var(--success-color); width: 100%; max-width: 400px; border-radius: 10px;">
-                            ✔ Zahlung erhalten & freischalten
-                        </button>
-                    </form>
-                </footer>
+            <?php if ($auth->hasPermission('dashboard.finance.mark_paid')) { ?>
+                <?php if ($permit->status->current !== 'bezahlt') { ?>
+                    <footer class="u-padding-around-m u-border-top" style="background: rgba(255,255,255,0.5);">
+                        <form action="admin.php" method="POST" class="u-flex u-justify-center">
+                            <input type="hidden" name="action" value="mark_as_paid">
+                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                            <button type="submit" class="c-button--primary" style="background: var(--success-color); width: 100%; max-width: 400px; border-radius: 10px;">
+                                ✔ Zahlung erhalten & freischalten
+                            </button>
+                        </form>
+                    </footer>
+                <?php } ?>
             <?php } ?>
         </section>
     </main>

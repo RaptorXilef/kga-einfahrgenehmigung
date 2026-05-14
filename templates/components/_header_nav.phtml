@@ -10,35 +10,44 @@
  *
  * Path: templates/components/_header_nav.phtml
  *
- * @var string $adminUser
- * @var int    $adminLevel
+ * @var \App\Infrastructure\Auth\AuthService $auth
  */
 ?>
 <nav style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
     <div class="c-tab-content-container" style="display: flex; justify-content: space-between; align-items: center;">
 
-        <!-- User Info & Level -->
+        <!-- User Info & Group -->
         <div style="display: flex; align-items: center; gap: 15px;">
             <div style="background: var(--bg-light); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""><!-- 👤 --></span>
                 <span style="font-weight: 600; font-size: 0.9rem;">
-                    <?php echo \htmlspecialchars($adminUser); ?>
-                    <span style="color: var(--text-muted); font-weight: normal; margin-left: 4px;">(Lvl <?php echo $adminLevel; ?>)</span>
+                    <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                    <span style="color: var(--text-muted); font-weight: normal; margin-left: 4px; text-transform: capitalize;">
+                        (<?php echo \htmlspecialchars($auth->getGroup()); ?>)
+                    </span>
                 </span>
             </div>
 
-            <?php if ($adminLevel <= 1) { ?>
+            <!-- User-Management über Permission absichern -->
+            <?php if ($auth->hasPermission('system.users.manage')) { ?>
                 <a href="users.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
                     ⚙️ Benutzerverwaltung
+                </a>
+            <?php } ?>
+
+            <!-- NEU: User-Management über Permission absichern -->
+            <?php if ($auth->hasPermission('dashboard.view')) { ?>
+                <a href="admin.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                    📚 Dashboard
                 </a>
             <?php } ?>
         </div>
 
         <!-- Logout -->
         <a href="?action=logout"
-           style="text-decoration: none; color: var(--danger-color); font-weight: 600; font-size: 0.85rem; padding: 6px 15px; border-radius: 8px; transition: background 0.2s;"
-           onmouseover="this.style.background='#fff1f2'"
-           onmouseout="this.style.background='transparent'">
+            style="text-decoration: none; color: var(--danger-color); font-weight: 600; font-size: 0.85rem; padding: 6px 15px; border-radius: 8px; transition: background 0.2s;"
+            onmouseover="this.style.background='#fff1f2'"
+            onmouseout="this.style.background='transparent'">
             ✕ Abmelden
         </a>
 
