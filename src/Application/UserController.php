@@ -169,11 +169,86 @@ final readonly class UserController
     }
 
     /**
+     * Rendert ein Template und stellt sicher, dass alle Pfade und Objekte da sind.
+     *
      * @param array<string, mixed> $data
      */
     private function render(string $template, array $data): void
     {
+        // WICHTIG: Wir holen den Pfad und garantieren, dass er mit EINEM Slash endet
+        $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\') . '/';
+
+        // Das auth-Objekt muss für den Header immer dabei sein
+        if (! isset($data['auth'])) {
+            $data['auth'] = $this->auth;
+        }
+
+        // Wir überschreiben appRoot im Daten-Array mit der gesäuberten Version
+        $data['appRoot'] = $appRoot;
+
+        // Falls Settings fehlen (wird im Header gebraucht)
+        if (! isset($data['settings'])) {
+            $data['settings'] = [
+                'base_url'     => $this->config->getBaseUrl(),
+                'vereins_name' => $this->config->get('vereins_name'),
+            ];
+        }
+
         \extract($data);
-        include $this->config->get('root_path') . "/templates/pages/$template.phtml";
+
+        // Durch das rtrim + '/' oben knallt es hier jetzt nicht mehr
+        include $appRoot . "templates/pages/{$template}.phtml";
+    }
+
+    /**
+     * Behandelt die Profil-Seite für JEDEN eingeloggten Nutzer.
+     *
+     * @param array<string, mixed> $post
+     */
+    public function handleProfileRequest(array $post): void
+    {
+        // Basis-Schutz: Wer nicht eingeloggt ist, fliegt raus
+        if (! $this->auth->isLoggedIn()) {
+            \header('Location: admin.php');
+
+            return;
+        }
+
+        $message  = '';
+        $username = $this->auth->getUsername();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($post['action'] ?? '') === 'change_own_password') {
+            $oldPass     = (string) ($post['old_password'] ?? '');
+            $newPass     = (string) ($post['new_password'] ?? '');
+            $confirmPass = (string) ($post['confirm_password'] ?? '');
+
+            $users    = $this->auth->loadUsers();
+            $userData = $users[$username] ?? null;
+
+            // 1. Validierung
+            if (! $userData || ! \password_verify($oldPass, $userData['pass'])) {
+                $message = 'Fehler: Das aktuelle Passwort ist nicht korrekt.';
+            } elseif (\strlen($newPass) < 8) {
+                $message = 'Fehler: Das neue Passwort muss mindestens 8 Zeichen lang sein.';
+            } elseif ($newPass !== $confirmPass) {
+                $message = 'Fehler: Die Passwort-Bestätigung stimmt nicht überein.';
+            } else {
+                // 2. Speichern
+                $users[$username]['pass'] = \password_hash($newPass, \PASSWORD_DEFAULT);
+                $this->auth->saveUsers($users);
+                $message = 'Erfolg: Dein Passwort wurde erfolgreich geändert.';
+            }
+        }
+
+        $this->render('profile', [
+            'username' => $username,
+            'group'    => $this->auth->getGroup(),
+            'message'  => $message,
+            'settings' => [
+                'base_url'     => $this->config->getBaseUrl(),
+                'vereins_name' => $this->config->get('vereins_name'),
+            ],
+            'appRoot' => $this->config->get('root_path'),
+        ]);
     }
 }

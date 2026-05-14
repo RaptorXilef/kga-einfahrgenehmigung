@@ -21,7 +21,10 @@
             <div style="background: var(--bg-light); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""><!-- 👤 --></span>
                 <span style="font-weight: 600; font-size: 0.9rem;">
-                    <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                    <!-- Klickbarer Name führt zum Profil -->
+                    <a href="profile.php" style="text-decoration: none; color: inherit;" title="Zum Profil">
+                        <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                    </a>
                     <span style="color: var(--text-muted); font-weight: normal; margin-left: 4px; text-transform: capitalize;">
                         (<?php echo \htmlspecialchars($auth->getGroup()); ?>)
                     </span>

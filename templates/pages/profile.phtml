@@ -1,0 +1,74 @@
+<?php
+
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
+/**
+ * Path: templates/pages/profile.phtml
+ */
+?>
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Mein Profil - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+</head>
+<body class="l-admin">
+    <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
+
+    <main class="c-tab-content-container u-padding-y-l">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <h1 class="u-margin-bottom-l">👤 Mein Profil</h1>
+
+            <?php if ($message) { ?>
+                <div class="c-alert <?php echo \str_contains($message, 'Fehler') ? 'c-alert--danger' : 'c-alert--success'; ?> u-margin-bottom-l">
+                    <?php echo \htmlspecialchars($message); ?>
+                </div>
+            <?php } ?>
+
+            <section class="c-card">
+                <header class="c-card__header">
+                    <h3 class="u-margin-none">Passwort ändern</h3>
+                </header>
+                <div class="c-card__body">
+                    <p class="u-text-muted u-text-small u-margin-bottom-m">
+                        Eingeloggt als: <strong><?php echo \htmlspecialchars($username); ?></strong> <br>
+                        Gruppe: <span class="u-color-primary"><?php echo \strtoupper(\htmlspecialchars($group)); ?></span>
+                    </p>
+
+                    <form method="POST" class="u-flex u-flex-column u-gap-m">
+                        <input type="hidden" name="action" value="change_own_password">
+
+                        <div class="c-form-group">
+                            <label class="c-form-label">Aktuelles Passwort</label>
+                            <input type="password" name="old_password" class="c-form-input" required>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid #e2e8f0;">
+
+                        <div class="c-form-group">
+                            <label class="c-form-label">Neues Passwort</label>
+                            <input type="password" name="new_password" class="c-form-input" required minlength="8">
+                        </div>
+
+                        <div class="c-form-group">
+                            <label class="c-form-label">Neues Passwort bestätigen</label>
+                            <input type="password" name="confirm_password" class="c-form-input" required minlength="8">
+                        </div>
+
+                        <div class="u-flex u-gap-s u-margin-top-s">
+                            <button type="submit" class="c-button--primary u-width-100">Passwort jetzt aktualisieren</button>
+                            <a href="admin.php" class="c-button c-button--secondary">Abbrechen</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
