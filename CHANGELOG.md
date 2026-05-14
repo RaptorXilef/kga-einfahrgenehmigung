@@ -2,6 +2,12 @@
 
 
 
+## [0.28.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.27.1...v0.28.0) (2026-05-14)
+
+### 🚀 Features
+
+* **auth:** complete overhaul and migration to granular permission matrix system v0.28.0 ([44651e2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/44651e254b45d8fdf644ab05d8ca54a37d8b17f4))
+
 ## [0.27.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.27.0...v0.27.1) (2026-05-12)
 
 ### 🐛 Bug Fixes
