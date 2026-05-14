@@ -2,6 +2,12 @@
 
 
 
+## [0.29.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.28.0...v0.29.0) (2026-05-14)
+
+### 🚀 Features
+
+* **profile:** add personal profile management and self-service password updates ([be018c8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/be018c8ca363509b56d59418a4811e753c90449e))
+
 ## [0.28.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.27.1...v0.28.0) (2026-05-14)
 
 ### 🚀 Features
