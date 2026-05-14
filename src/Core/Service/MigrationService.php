@@ -233,4 +233,73 @@ final readonly class MigrationService
 
         return $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
     }
+
+    /**
+     * Listet alle verfügbaren Backup-Ordner sortiert nach Datum (neuere zuerst).
+     * @return array<string, array<string>>
+     */
+    public function listBackups(): array
+    {
+        $backupPath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . 'backup';
+        if (! \is_dir($backupPath)) {
+            return [];
+        }
+
+        $folders = \array_diff(\scandir($backupPath), ['.', '..']);
+        $result  = [];
+
+        foreach ($folders as $folder) {
+            $fullPath = $backupPath . '/' . $folder;
+            if (\is_dir($fullPath)) {
+                // Prüfen, welche Dateien im Backup liegen
+                $files           = \array_diff(\scandir($fullPath), ['.', '..']);
+                $result[$folder] = \array_values($files);
+            }
+        }
+
+        \krsort($result); // Neueste Backups oben
+
+        return $result;
+    }
+
+    /**
+     * Stellt einen Datentyp aus einem Backup wieder her.
+     */
+    public function restore(string $timestamp, string $target): string
+    {
+        // 1. Sicherheits-Check: Erst aktuelles Backup ziehen!
+        $this->createAutoBackup($target . '_before_restore');
+
+        $root       = $this->config->get('root_path');
+        $backupBase = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
+
+        // Wir suchen im Backup-Ordner nach der Datei für das Target
+        // Priorität: Wir nehmen die *_file.json (da JSON das universelle Austauschformat ist)
+        $backupFile = $backupBase . "/{$target}_file.json";
+        if (! \file_exists($backupFile)) {
+            $backupFile = $backupBase . "/{$target}_sql.json"; // Fallback auf SQL-Export
+        }
+
+        if (! \file_exists($backupFile)) {
+            return "Fehler: Keine Backup-Datei für '$target' im Ordner $timestamp gefunden.";
+        }
+
+        $data = \json_decode((string) \file_get_contents($backupFile), true);
+        if ($data === null) {
+            return 'Fehler: Backup-Datei ist beschädigt.';
+        }
+
+        // 2. In die aktuell AKTIVE Quelle schreiben (egal ob JSON oder SQL)
+        $storageCfg = $this->config->get('storage_config')[$target];
+
+        if ($storageCfg['type'] === 'mysql') {
+            $this->saveToSql($target, $data);
+            $sourceInfo = 'MySQL-Datenbank';
+        } else {
+            $this->saveToJson($target, $data);
+            $sourceInfo = 'JSON-Datei';
+        }
+
+        return "Erfolg: '$target' wurde aus Backup [$timestamp] in $sourceInfo wiederhergestellt.";
+    }
 }

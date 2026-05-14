@@ -131,6 +131,7 @@ final readonly class AdminController
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
         return match ($action) {
             'migrate_data'   => $this->actionMigrateData($post),
+            'restore_data'   => $this->actionRestoreData($post),
             'mark_as_paid'   => $this->actionMarkAsPaid($post),
             'create_voucher' => $this->actionCreateVoucher($post),
             'create_manual'  => $this->actionCreateManual($post),
@@ -323,20 +324,21 @@ final readonly class AdminController
         // Export Logik
 
         $this->render('admin_dashboard', [
-            'periodStats'    => $this->calculateDetailedStats($filtered), // Erweiterte Methode
-            'yearlyStats'    => $yearlyStats, // Die Daten für Diagramm & Archiv
-            'groups'         => $this->groupPermits($allPermits),
-            'settings'       => $this->getSettingsArray(),
-            'auth'           => $this->auth,
-            'message'        => $message,
-            'filterStart'    => $filterStart,
-            'filterEnd'      => $filterEnd,
-            'config'         => $this->config,
-            'appRoot'        => $this->config->get('root_path'),
-            'vouchers'       => $this->permitService->getVoucherService()->loadVouchers(),
-            'voucherService' => $this->permitService->getVoucherService(),
-            'mailLogs'       => $this->mailService->loadLogs(),
-            'permitService'  => $this->permitService,
+            'periodStats'      => $this->calculateDetailedStats($filtered), // Erweiterte Methode
+            'yearlyStats'      => $yearlyStats, // Die Daten für Diagramm & Archiv
+            'groups'           => $this->groupPermits($allPermits),
+            'settings'         => $this->getSettingsArray(),
+            'auth'             => $this->auth,
+            'message'          => $message,
+            'filterStart'      => $filterStart,
+            'filterEnd'        => $filterEnd,
+            'config'           => $this->config,
+            'appRoot'          => $this->config->get('root_path'),
+            'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
+            'voucherService'   => $this->permitService->getVoucherService(),
+            'mailLogs'         => $this->mailService->loadLogs(),
+            'permitService'    => $this->permitService,
+            'migrationService' => $this->migrationService,
         ]);
     }
 
@@ -596,5 +598,27 @@ final readonly class AdminController
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
         \extract($data);
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
+    }
+
+    private function actionRestoreData(array $post): string
+    {
+        // --- NEU: DIE SICHERHEITSSPERRE ---
+        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
+        }
+
+        // Erst danach darf der Rest passieren
+        if ($this->auth->getLevel() !== 0) {
+            return 'Fehler: Nur der Dev-Admin darf Daten wiederherstellen.';
+        }
+
+        $target    = (string) ($post['target'] ?? '');
+        $timestamp = (string) ($post['timestamp'] ?? '');
+
+        if ($target === '' || $timestamp === '') {
+            return 'Fehler: Unvollständige Angaben für Restore.';
+        }
+
+        return $this->migrationService->restore($timestamp, $target);
     }
 }

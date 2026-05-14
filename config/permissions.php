@@ -47,7 +47,7 @@ return [
     'dashboard.vouchers.view'  => 'Tab: "Gutscheine" sehen',
     'dashboard.tools.view'     => 'Tab: "Werkzeuge" sehen',
     'dashboard.logs.view'      => 'Tab: "Mail-Logs" sehen',
-    'dashboard.migration.view' => 'Tab: "Migration des Speichers" sehen',
+    'dashboard.migration.view' => 'Tab: "Migration des Speichers" sehen (ADMINISTRATIV!)',
 
     // === DASHBOARD FILTER AKTIONEN ===
     'dashboard.control_bar.future' => 'Filter: Datums-Filter nutzen',
@@ -100,6 +100,10 @@ return [
 
     // === DASHBOARD: MIGRATION (SYSTEM) ===
 
+    // --- Tabellenzugriff ---
+    'dashboard.migration.sync.view'    => 'Migration: Tabelle für JSON/SQL-Transfer und Synchronisierung anzeigen',
+    'dashboard.migration.backups.view' => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
+
     // --- Benutzerkonten ---
     'dashboard.migration.users.json_to_mysql' => 'Migration: Benutzer -> SQL (Überschreibt DB!)',
     'dashboard.migration.users.mysql_to_json' => 'Migration: Benutzer -> JSON (Überschreibt Datei!)',
@@ -138,6 +142,9 @@ return [
     'dashboard.migration.pending_verification.*' => 'Migration: Alle Warteraum Aktionen',
     'dashboard.migration.magic_links.*'          => 'Migration: Alle Token Aktionen',
 
+    // --- Login-Tokens ---
+    'dashboard.migration.restore.execute' => 'Migration: System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
+
     // --- Seite: check admin ---
     'check.admin.print' => 'Check-Admin: Genehmigungen drucken',
 
@@ -160,7 +167,7 @@ return [
     'template.perm.12'     => 'Genehmigung: Dauerkarten 12 Monate ausstellen',
     'template.custom.std'  => 'Genehmigung: Spezialzeiträume ausstellen',
     'template.custom.perm' => 'Genehmigung: Dauerkarten mit Spezialzeiträume ausstellen',
-    'template.klause.std'  => 'Genehmigung: Klause Belieferung Spezialzeiträume ausstellen',
+    'template.std.klause'  => 'Genehmigung: Klause Belieferung Spezialzeiträume ausstellen',
 
     // --- GLOBALE SAMMLER (Nur zur Info für den Admin) ---
     '*.view'    => 'Global: Alle Ansichten freischalten',
