@@ -2,6 +2,17 @@
 
 
 
+## [0.30.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.29.0...v0.30.0) (2026-05-15)
+
+### 🚀 Features
+
+* **core:** implement intelligent auto-setup and cross-storage data seeding ([8466837](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8466837f9393565a152eaa7bbe5ff9b1279f9cc8))
+* **migration:** implement granular backup management and restore engine ([f448d0c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f448d0c46e469e9325eab0aec2cfa51e9cb09b37))
+
+### 🐛 Bug Fixes
+
+* **auth:** implement deny-first priority and live storage permission checks ([4fa1033](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4fa10335b4d76da7da4505994f49d129c6f8b7d0))
+
 ## [0.29.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.28.0...v0.29.0) (2026-05-14)
 
 ### 🚀 Features
