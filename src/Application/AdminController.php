@@ -49,10 +49,24 @@ final readonly class AdminController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // 1. Authentifizierung & Globale Aktionen
+        // 1. Authentifizierung & Globale Aktionen (Logout/Login-Versuch)
         if ($this->handleAuthActions($get, $post)) {
-            return; // Beendet den Request nach Redirect
+            return;
         }
+
+        // --- NEU: SETUP & WARTUNG IMMER ZUERST (Vor dem Login-Check!) ---
+        // So werden fehlende JSON-Dateien oder SQL-Tabellen angelegt,
+        // noch bevor die Login-Maske erscheint.
+
+        // Tabellen sicherstellen
+        $this->migrationService->ensureTablesExist();
+
+        // Daten impfen (wenn leer)
+        $this->migrationService->seedInitialData();
+
+        // Auto-Backup prüfen
+        $this->migrationService->checkAutoBackup();
+        // ---------------------------------------------------------------
 
         // --- AUTH-GATEKEEPER ---
         if (! $this->auth->isLoggedIn()) {
@@ -64,7 +78,7 @@ final readonly class AdminController
             return;
         }
 
-        // 2. Daten-Aktionen verarbeiten
+        // 2. Daten-Aktionen verarbeiten (nur wenn eingeloggt)
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = $this->handleDataActions($post);

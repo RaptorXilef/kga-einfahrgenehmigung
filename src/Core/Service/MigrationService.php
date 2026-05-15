@@ -62,9 +62,14 @@ final readonly class MigrationService
      */
     private function createAutoBackup(string $target): string
     {
-        $timestamp  = \date('Ymd-His'); // YYYYMMDD-HHmmss
-        $root       = $this->config->get('root_path');
-        $backupPath = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
+        $timestamp = \date('Ymd-His'); // YYYYMMDD-HHmmss
+        $root      = $this->config->get('root_path');
+        $prefix    = $this->config->get('storage_path_prefix');
+
+        // Nutzt jetzt den Namen aus der Config (z.B. 'sql_backup')
+        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
+
+        $backupPath = $root . $prefix . $subFolder . '/' . $timestamp;
 
         if (! \is_dir($backupPath)) {
             \mkdir($backupPath, 0o777, true);
@@ -89,7 +94,7 @@ final readonly class MigrationService
             }
         }
 
-        return $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
+        return $prefix . $subFolder . '/' . $timestamp;
     }
 
     private function migrateSqlToJson(string $target): string
@@ -301,5 +306,224 @@ final readonly class MigrationService
         }
 
         return "Erfolg: '$target' wurde aus Backup [$timestamp] in $sourceInfo wiederhergestellt.";
+    }
+
+    /**
+     * Prüft das Zeit-Intervall und führt ggf. ein Backup mit Rotation durch.
+     */
+    public function checkAutoBackup(): void
+    {
+        $cfg = $this->config->get('backup_settings');
+        if (! ($cfg['enabled'] ?? false)) {
+            return;
+        }
+
+        $interval  = ($cfg['interval_hours'] ?? 24) * 3600;
+        $root      = $this->config->get('root_path');
+        $prefix    = $this->config->get('storage_path_prefix');
+        $stateFile = $root . $prefix . 'last_auto_backup.txt';
+
+        $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
+
+        if (\time() - $lastBackup > $interval) {
+            // 1. Neues Backup erstellen
+            $this->createAutoBackup('auto_maintenance');
+            \file_put_contents($stateFile, (string) \time());
+
+            // 2. Alte Backups löschen (Rotation)
+            $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
+        }
+    }
+
+    /**
+     * Löscht die ältesten Backup-Ordner, wenn das Limit überschritten ist.
+     */
+    private function rotateBackups(int $max): void
+    {
+        $root       = $this->config->get('root_path');
+        $prefix     = $this->config->get('storage_path_prefix');
+        $backupPath = $root . $prefix . 'backup';
+
+        if (! \is_dir($backupPath)) {
+            return;
+        }
+
+        $folders   = \array_diff(\scandir($backupPath), ['.', '..']);
+        $fullPaths = [];
+        foreach ($folders as $f) {
+            if (\is_dir($backupPath . '/' . $f)) {
+                $fullPaths[$f] = $backupPath . '/' . $f;
+            }
+        }
+
+        \ksort($fullPaths); // Sortiert chronologisch (älteste zuerst)
+
+        if (\count($fullPaths) > $max) {
+            $toDelete = \array_slice($fullPaths, 0, \count($fullPaths) - $max);
+            foreach ($toDelete as $dir) {
+                $this->recursiveDelete($dir);
+            }
+        }
+    }
+
+    /**
+     * Hilfsfunktion zum Löschen eines Ordners inkl. Inhalt
+     */
+    private function recursiveDelete(string $dir): void
+    {
+        if (! \is_dir($dir)) {
+            return;
+        }
+        $files = \array_diff(\scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            (\is_dir("$dir/$file")) ? $this->recursiveDelete("$dir/$file") : \unlink("$dir/$file");
+        }
+        \rmdir($dir);
+    }
+
+    /**
+     * Erstellt die Tabellen basierend auf der config/schema.php
+     */
+    public function ensureTablesExist(): void
+    {
+        if (! $this->pdo) {
+            return;
+        }
+
+        $schema = $this->config->get('db_schema', []);
+        foreach ($schema as $tableName => $sql) {
+            try {
+                $this->pdo->exec($sql);
+            } catch (\PDOException $e) {
+                // Fehler silent loggen oder behandeln, falls nötig
+            }
+        }
+    }
+
+    /**
+     * Füllt die Datenbank/JSON-Dateien beim Erststart mit Standardwerten
+     * ODER übernimmt Daten aus der jeweils anderen Quelle.
+     */
+    public function seedInitialData(): void
+    {
+        $this->seedGroups();
+        $this->seedUsers();
+    }
+
+    private function seedGroups(): void
+    {
+        $cfg         = $this->config->get('storage_config')['groups'];
+        $currentType = $cfg['type']; // 'json' oder 'mysql'
+
+        // 1. Daten aus beiden Welten "roh" laden
+        $jsonData = $this->loadRawJson('groups');
+        $sqlData  = $this->loadRawSql('groups');
+
+        // 2. Prüfen, ob die AKTIVE Welt leer ist
+        $activeData = ($currentType === 'json') ? $jsonData : $sqlData;
+
+        if (! empty($activeData)) {
+            return; // Nichts tun, wir haben schon Daten
+        }
+
+        // 3. Logik: Wenn aktiv leer, schaue ob die andere Welt Daten hat
+        $sourceData = [];
+        if ($currentType === 'mysql' && ! empty($jsonData)) {
+            $sourceData = $jsonData; // Von JSON zu SQL umgezogen
+        } elseif ($currentType === 'json' && ! empty($sqlData)) {
+            $sourceData = $sqlData; // Von SQL zu JSON umgezogen
+        } else {
+            // 4. Beide Welten leer? Dann Standard-Impfung
+            $sourceData = [
+                'admin' => [
+                    'name'        => 'Administrator',
+                    'permissions' => ['*', '-dashboard.migration.view'],
+                ],
+                'sachbearbeiter' => [
+                    'name'        => 'Sachbearbeitung',
+                    'permissions' => [
+                        '*.view', '*.details', '*.print',
+                        'dashboard.control_bar.future', 'dashboard.control_bar.search',
+                        'dashboard.tools.direct_issue.execute', 'dashboard.tools.voucher_gen.reveal',
+                        'dashboard.tools.direct_issue.reveal', 'dashboard.tools.voucher_gen.execute',
+                        'dashboard.vouchers.archive', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend',
+                        'privacy.email.reveal', 'template.custom.perm',
+                        'template.custom.std', 'template.perm.12', 'template.perm.3', 'template.perm.6',
+                        'template.perm.9', 'template.std.14', 'template.std.30', 'template.std.7',
+                        'template.std.klause', '-dashboard.migration.view', '-finance.revenue.reveal',
+                    ],
+                ],
+                'pruefer' => [
+                    'name'        => 'Prüfer vor Ort',
+                    'permissions' => [
+                        'dashboard.active.view', 'dashboard.active.details', '-dashboard.migration.view',
+                        'dashboard.view', '-finance.revenue.reveal', '-privacy.email.reveal',
+                    ],
+                ],
+                'finance' => [
+                    'name'        => 'Finanzen',
+                    'permissions' => [
+                        '*.details', '*.execute', '*.print', '*.reveal', '*.suspend', '*.view',
+                        'dashboard.active.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future',
+                        'dashboard.control_bar.search', 'dashboard.expired.view', 'dashboard.export.csv',
+                        'dashboard.export.json', 'dashboard.finance.mark_paid', 'dashboard.stats.charts',
+                        'dashboard.stats.current', 'dashboard.stats.history', 'dashboard.vouchers.archive',
+                        'dashboard.vouchers.open', 'dashboard.vouchers.remove', 'template.custom.perm',
+                        'template.custom.std', 'template.perm.12', 'template.perm.3', 'template.perm.6',
+                        'template.perm.9', 'template.std.14', 'template.std.30', 'template.std.7',
+                        'template.std.klause', '-dashboard.migration.backups.view',
+                        '-dashboard.migration.sync.view', '-dashboard.migration.view',
+                        '-dashboard.migration.restore.execute',
+                    ],
+                ],
+            ];
+        }
+
+        // 5. In die aktive Welt schreiben
+        if ($currentType === 'mysql') {
+            foreach ($sourceData as $id => $data) {
+                $stmt = $this->pdo->prepare('REPLACE INTO `groups` (id, name, permissions) VALUES (?, ?, ?)');
+                $stmt->execute([$id, $data['name'], \json_encode($data['permissions'])]);
+            }
+        } else {
+            $this->saveToJson('groups', $sourceData);
+        }
+    }
+
+    private function seedUsers(): void
+    {
+        $cfg         = $this->config->get('storage_config')['users'];
+        $currentType = $cfg['type'];
+
+        $jsonData = $this->loadRawJson('users');
+        $sqlData  = $this->loadRawSql('users');
+
+        $activeData = ($currentType === 'json') ? $jsonData : $sqlData;
+        if (! empty($activeData)) {
+            return;
+        }
+
+        $sourceData = [];
+        if ($currentType === 'mysql' && ! empty($jsonData)) {
+            $sourceData = $jsonData;
+        } elseif ($currentType === 'json' && ! empty($sqlData)) {
+            $sourceData = $sqlData;
+        } else {
+            // Erster Login-Admin
+            $sourceData = [
+                'Admin' => [
+                    'group' => 'admin',
+                    'label' => 'Admin',
+                    'pass'  => \password_hash('MeinErsterLogin', \PASSWORD_DEFAULT),
+                ],
+            ];
+        }
+
+        // Speichern
+        if ($currentType === 'mysql') {
+            $this->authService->saveUsers($sourceData);
+        } else {
+            $this->saveToJson('users', $sourceData);
+        }
     }
 }

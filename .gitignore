@@ -67,6 +67,9 @@ ehthumbs_vista.db
 *.key
 *.crt
 
+# Geheimnisse
+/public/dev/
+
 # ==============================================================================
 # PHP & COMPOSER
 # Composer-Abhängigkeiten
