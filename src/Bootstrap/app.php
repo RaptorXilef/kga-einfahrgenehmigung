@@ -60,7 +60,7 @@ $settings['backdoor'] = [
 
 // --- AUTO-CREATION: dev_admin.php wenn sie fehlt ---
 if (! \file_exists($configFiles['dev'])) {
-    $defaultDevContent = "<?php\nreturn [\n    'user' => 'SuperAdmin',\n    'pass' => 'admin123',\n    'label' => 'SuperAdmin'\n];";
+    $defaultDevContent = "<?php\nreturn [\n    'user' => 'Systembetreuer',\n    'pass' => 'admin123',\n    'label' => 'Systembetreuer'\n];";
     \file_put_contents($configFiles['dev'], $defaultDevContent);
 }
 

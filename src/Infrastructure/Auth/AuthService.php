@@ -38,8 +38,8 @@ final readonly class AuthService
         $backdoor = $this->config->get('backdoor');
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '')) {
             if (\password_verify($password, $backdoor['pass'] ?? '')) {
-                // Wir geben dem System-Inhaber die Gruppe 'admin'
-                $this->setSession($username, 'admin', $backdoor['label'] ?? 'Inhaber');
+                // Wir nutzen das Label als Gruppenname für die Anzeige
+                $this->setSession($username, $backdoor['label'], $backdoor['label']);
 
                 return true;
             }
@@ -51,7 +51,7 @@ final readonly class AuthService
             $storedPass = $superCfg['pass'] ?? '';
             // Erlaubt Klartext (für den allerersten Start) ODER Hash
             if ($password === $storedPass || \password_verify($password, $storedPass)) {
-                $this->setSession($username, 'admin', $superCfg['label'] ?? 'SuperAdmin');
+                $this->setSession($username, $superCfg['label'] ?? 'Dev-Admin', $superCfg['label'] ?? 'Dev-Admin');
 
                 return true;
             }
@@ -162,87 +162,61 @@ final readonly class AuthService
     }
 
     /**
-     * Die neue Herzstück-Methode für das Rechtesystem
+     * Die Herzstück-Methode für das Rechtesystem v0.30.0
+     * Implementiert Live-Abfrage und strikte "Deny-First" Priorität.
      */
     public function hasPermission(string $permission): bool
     {
         // A. Gott-Modus (Dev-Mode oder Superadmin aus Config)
-        $devAdminName = $this->config->get('superadmin')['user'];
+        $username   = $this->getUsername();
+        $backdoor   = $this->config->get('backdoor');
+        $superadmin = $this->config->get('superadmin');
 
-        // 1. Dev-Mode Fallback
-        // 2. Die absolute Absicherung: Der User aus der Config ist GOTT
-        if ($this->config->get('admin_dev_mode', false) === true || $this->getUsername() === $devAdminName) {
+        // --- PHASE 0: GOTT-MODUS (Absolute Priorität) ---
+        // 1. Dev-Mode in der Config aktiv?
+        // 2. Ist es der fest verbaute RaptorXilef?
+        // 3. Ist es der in der dev_admin.php konfigurierte User?
+        if ($this->config->get('admin_dev_mode', false) === true
+            || $username === ($backdoor['user'] ?? 'backdoor_unset')
+            || $username === ($superadmin['user'] ?? 'superadmin_unset')
+        ) {
             return true;
         }
 
-        // Berechtigungen der Gruppe laden
+        // --- PHASE 1: LIVE-DATEN LADEN (Berechtigungen der Gruppe) ---
         $groupKey  = $_SESSION['admin_group'] ?? 'guest';
         $groups    = $this->loadGroups();
         $userPerms = $groups[$groupKey]['permissions'] ?? [];
 
-        // --- PHASE 1: VERBOTE (NEGATION) ---
-        // Wir prüfen zuerst, ob ein explizites Verbot vorliegt (beginnend mit '-')
+        // --- PHASE 2: STRIKTE VERBOTE (NEGATION) ---
+        // Wir prüfen zuerst ALLE Verbote. Wenn eines matcht, ist hier SOFORT Ende.
         foreach ($userPerms as $p) {
             if (! \str_starts_with($p, '-')) {
                 continue;
             }
 
-            $negatedPerm = \substr($p, 1); // Das Minus entfernen
+            $negatedPerm = \substr($p, 1); // Das '-' entfernen
 
-            // Explizites Verbot (z.B. -dashboard.active.details)
-            if ($negatedPerm === $permission) {
-                return false;
-            }
-
-            // Wildcard-Verbot (z.B. -dashboard.active.*)
-            if (\str_ends_with($negatedPerm, '.*')) {
-                $prefix = \substr($negatedPerm, 0, -1);
-                if (\str_starts_with($permission, $prefix)) {
-                    return false;
-                }
-            }
-
-            // Suffix-Wildcard-Verbot (z.B. -*.details)
-            if (\str_starts_with($negatedPerm, '*.')) {
-                $suffix = \substr($negatedPerm, 1);
-                if (\str_ends_with($permission, $suffix)) {
-                    return false;
-                }
+            if ($this->isMatch($permission, $negatedPerm)) {
+                return false; // Verbot gefunden -> Zugriff verweigert, egal was sonst erlaubt ist!
             }
         }
 
-        // --- PHASE 2: ERLAUBNISSE ---
+        // --- PHASE 3: ERLAUBNISSE ---
+        // Wenn kein Verbot gegriffen hat, suchen wir nach einer Erlaubnis.
         foreach ($userPerms as $p) {
             if (\str_starts_with($p, '-')) {
                 continue;
-            } // Überspringe Verbote in dieser Phase
-
-            if ($p === '*' || $p === $permission) {
-                return true;
             }
 
-            // Präfix-Wildcard (LuckPerms Stil: dashboard.active.*)
-            if (\str_ends_with($p, '.*')) {
-                $prefix = \substr($p, 0, -1); // "dashboard.active."
-                if (\str_starts_with($permission, $prefix)) {
-                    return true;
-                }
-            }
-
-            // Suffix-Wildcard (z:B. alle Druck-Buttons: *.print)
-            if (\str_starts_with($p, '*.')) {
-                $suffix = \substr($p, 1); // ".print"
-                if (\str_ends_with($permission, $suffix)) {
-                    return true;
-                }
+            if ($this->isMatch($permission, $p)) {
+                return true; // Erlaubnis gefunden
             }
         }
 
-        // --- PHASE 3: IMPLIZITE ABHÄNGIGKEITEN (AUTO-VIEW) ---
-        // Wenn nach ".view" gefragt wird, der User aber ein Recht hat,
-        // das im selben Pfad liegt (z.B. .print), erlauben wir den View.
+        // --- PHASE 4: IMPLIZITE ABHÄNGIGKEITEN (AUTO-VIEW) ---
         if (\str_ends_with($permission, '.view')) {
-            $basePath = \str_replace('.view', '', $permission); // z.B. "dashboard.active"
+            $basePath = \str_replace('.view', '', $permission);
             foreach ($userPerms as $p) {
                 // Nur wenn es kein Verbot ist und im selben Pfad liegt
                 if (! \str_starts_with($p, '-') && \str_starts_with($p, $basePath)) {
@@ -251,15 +225,65 @@ final readonly class AuthService
             }
         }
 
+        return false; // Standard: Alles was nicht erlaubt ist, ist verboten.
+    }
+
+    /**
+     * Hilfsmethode für das Pattern-Matching (Wildcards)
+     */
+    private function isMatch(string $currentPermission, string $pattern): bool
+    {
+        if ($pattern === '*' || $pattern === $currentPermission) {
+            return true;
+        }
+
+        // Präfix-Wildcard (LuckPerms Stil: dashboard.active.*)
+        if (\str_ends_with($pattern, '.*')) {
+            $prefix = \substr($pattern, 0, -1);
+            if (\str_starts_with($currentPermission, $prefix)) {
+                return true;
+            }
+        }
+
+        // Suffix-Wildcard (z.B. *.print)
+        if (\str_starts_with($pattern, '*.')) {
+            $suffix = \substr($pattern, 1);
+            if (\str_ends_with($currentPermission, $suffix)) {
+                return true;
+            }
+        }
+
         return false;
     }
 
     /**
-     * Lädt die Gruppen-Definitionen (v0.29.0)
+     * Lädt die Gruppen-Definitionen LIVE aus dem konfigurierten Speicher.
      */
     public function loadGroups(): array
     {
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
+        $cfg = $this->config->get('storage_config')['groups'];
+
+        // --- SQL ABFRAGE ---
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo) {
+                return [];
+            }
+
+            $stmt   = $this->pdo->query('SELECT * FROM `groups`');
+            $rows   = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $groups = [];
+            foreach ($rows as $r) {
+                $groups[$r['id']] = [
+                    'name'        => $r['name'],
+                    'permissions' => \json_decode((string) $r['permissions'], true) ?? [],
+                ];
+            }
+
+            return $groups;
+        }
+
+        // --- JSON ABFRAGE ---
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
         if (! \file_exists($path)) {
             return [];
         }

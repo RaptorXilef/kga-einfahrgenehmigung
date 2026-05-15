@@ -13,7 +13,7 @@ declare(strict_types=1);
  * Path: config/dev_admin.php
  */
 return [
-    'user'  => 'RaptorXilef', // Hier kannst du den Namen jederzeit ändern
+    'user'  => 'Systembetreuer', // Hier kannst du den Namen jederzeit ändern
     'pass'  => 'mein_passwort_123',
-    'label' => 'Dev-Admin', // Der Anzeigename im System
+    'label' => 'Systembetreuer', // Der Anzeigename im System
 ];
