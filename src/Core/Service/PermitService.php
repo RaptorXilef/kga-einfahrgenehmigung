@@ -913,4 +913,9 @@ final readonly class PermitService
     {
         $this->saveJson($this->getStoragePath($category), $data);
     }
+
+    public function getMailService(): MailServiceInterface
+    {
+        return $this->mailService;
+    }
 }

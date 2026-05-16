@@ -38,9 +38,10 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
+use App\Core\Service\MailQueueService;
 use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
-use App\Core\Service\VoucherService; // NEU
+use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
@@ -142,9 +143,17 @@ class Container
             return new JsonStorage($path);
         };
 
-        $this->services[MailServiceInterface::class] = fn (): SmtpMailService => new SmtpMailService(
+        // 1. Der echte SMTP-Versender (umbenannt, damit wir ihn intern nutzen können)
+        $this->services['mail.smtp'] = fn (): SmtpMailService => new SmtpMailService(
             $this->get(ConfigInterface::class),
             $this->get(\PDO::class),
+        );
+
+        // 2. Das offizielle Interface zeigt nun auf die Queue!
+        $this->services[MailServiceInterface::class] = fn (): MailQueueService => new MailQueueService(
+            $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
+            $this->get('mail.smtp'),
         );
 
         // PayPal Service (Nutzt das Config-Interface)

@@ -49,6 +49,12 @@ final readonly class VerificationController
         if ($input !== '') {
             $result = $this->permitService->confirmEmail($input);
 
+            // --- NEU: HIER TRIGGERN (Bevor wir die Methode verlassen) ---
+            $mailService = $this->permitService->getMailService();
+            if ($mailService instanceof \App\Core\Service\MailQueueService) {
+                $mailService->processQueue(3); // Dokumente sofort losschicken!
+            }
+
             // Fall A: Sofort finalisiert (z.B. durch Gutschein)
             if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
                 // Erfolg: Weiterleitung zur Check-Seite mit Flag für Erfolgsmeldung

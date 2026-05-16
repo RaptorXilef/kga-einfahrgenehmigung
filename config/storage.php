@@ -69,6 +69,12 @@ return [
             'table' => 'mail_logs',
             'file'  => 'mail_log.json',
         ],
+        // Temporärer Speicher für ausgehende E-Mails die auf SMTP Verbindung warten
+        'mail_queue' => [
+            'type'  => 'json',
+            'table' => 'mail_queue',
+            'file'  => 'mail_queue.json',
+        ],
         // Temporäre Login-Codes für den Pächter-Verlauf
         'magic_links' => [
             'type'  => 'json',

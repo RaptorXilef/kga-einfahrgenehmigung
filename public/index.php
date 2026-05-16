@@ -24,3 +24,14 @@ $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 $controller = $container->get(PermitController::class);
 
 $controller->handleRequest($_POST, $_GET);
+
+// --- Mail-Queue Trigger ---
+try {
+    $mailService = $container->get(\App\Contracts\Mail\MailServiceInterface::class);
+    if ($mailService instanceof \App\Core\Service\MailQueueService) {
+        // Wir verarbeiten bis zu 10 Mails. Das reicht für Vorstand + Pächter + Dokument
+        $mailService->processQueue(10);
+    }
+} catch (\Throwable $e) {
+    // Fehler beim Mailversand sollen die Seite nicht abstürzen lassen
+}

@@ -10,6 +10,7 @@
  *
  * Path: config/sql_schema.php
  */
+
 declare(strict_types=1);
 
 return [
@@ -72,6 +73,16 @@ return [
         `subject` VARCHAR(255),
         `template` VARCHAR(100),
         `status` TEXT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
+
+    'mail_queue' => 'CREATE TABLE IF NOT EXISTS `mail_queue` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `recipient` VARCHAR(255) NOT NULL,
+        `subject` VARCHAR(255) NOT NULL,
+        `template` VARCHAR(100) NOT NULL,
+        `data` LONGTEXT NOT NULL, -- JSON serialisierte Daten
+        `attempts` INT DEFAULT 0,
+        `created_at` DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
 
     'magic_links' => 'CREATE TABLE IF NOT EXISTS `magic_links` (
