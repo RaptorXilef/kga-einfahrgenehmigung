@@ -2,6 +2,12 @@
 
 
 
+## [0.31.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.31.0...v0.31.1) (2026-05-16)
+
+### 🐛 Bug Fixes
+
+* **auth:** ensure logout works globally by routing to central admin controller ([c12f786](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c12f786da07154527f7cf3016421f38bcc035956))
+
 ## [0.31.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.30.0...v0.31.0) (2026-05-16)
 
 ### 🚀 Features
