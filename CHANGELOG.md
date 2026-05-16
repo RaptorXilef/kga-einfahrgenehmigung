@@ -2,6 +2,13 @@
 
 
 
+## [0.31.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.30.0...v0.31.0) (2026-05-16)
+
+### 🚀 Features
+
+* **mail/ux:** consolidate queue stability and enhance user data summary ([ca136b2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ca136b2ea530b3be1773307fd17eeda65cb75561))
+* **mail:** implement asynchronous mail queue and optimized success UI ([1d6740a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1d6740ae776d0af692667a72efa59a9e41bbf7c7))
+
 ## [0.30.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.29.0...v0.30.0) (2026-05-15)
 
 ### 🚀 Features
