@@ -6,29 +6,53 @@
 // See LICENSE.md for full license details.
 
 /**
+ * Page: A4 Ausnahmegenehmigung (Dokument)
+ *
+ * Diese Version ist optimiert für den Versand via Mail-Queue (flache Datenstrukturen).
+ *
  * Path: templates/emails/permit_a4_document.phtml
+ *
+ * @var string $templateKey
+ * @var string $jahresFarbe
+ * @var string $vereinsName
+ * @var string $fullIdentifier
+ * @var string $checkUrl
+ * @var string $von_formatted
+ * @var string $bis_formatted
+ * @var string $kennzeichen
+ * @var string $firma
+ * @var string $parzelle
+ * @var string $zweck
+ * @var string $terminkalenderUrl
+ * @var string $erstellt
+ * @var string $opening
  */
+
+// 1. Bestimmung des Typs und der Farben
+// Da wir kein $config Objekt mehr haben, prüfen wir den Key einfach auf "perm"
+$isPermanent = \str_contains(\strtolower($templateKey), 'perm');
+
+// Die permanent_color war in der config meist #3498db (Blau)
+$headerColor = $isPermanent ? '#3498db' : $jahresFarbe;
+$title       = $isPermanent ? 'DAUEREINFAHRGENEHMIGUNG' : 'AUSNAHMEGENEHMIGUNG';
+
+// 2. Quartale berechnen aus den übergebenen Strings
+// Wir erstellen temporäre Datumsobjekte nur für die Logik
+$dtVon = \DateTimeImmutable::createFromFormat('d.m.Y', $von_formatted);
+$dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', $bis_formatted);
+
+$activeQuarters = [];
+if ($dtVon && $dtBis) {
+    $qStart         = (int) \ceil((int) $dtVon->format('n') / 3);
+    $qEnd           = (int) \ceil((int) $dtBis->format('n') / 3);
+    $activeQuarters = \range($qStart, $qEnd);
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <?php
-        // Bestimmung des Typs und der Farben
-        $templates = $config->get('permit_templates', []);
-$currentTemplate   = $templates[$templateKey] ?? ($templates['std_7'] ?? ['type' => 'standard']);
-$isPermanent       = $currentTemplate['type'] === 'permanent';
-
-$headerColor = $isPermanent ? $config->get('permanent_color', '#3498db') : $jahresFarbe;
-$title       = $isPermanent ? 'DAUEREINFAHRGENEHMIGUNG' : 'AUSNAHMEGENEHMIGUNG';
-
-// Quartale berechnen (basierend auf den Objekten von/bis)
-// Hinweis: Wir nutzen hier die PHP-Variablen, die vom Controller/Service übergeben werden
-$qStart         = (int) \ceil((int) $von->format('n') / 3);
-$qEnd           = (int) \ceil((int) $bis->format('n') / 3);
-$activeQuarters = \range($qStart, $qEnd);
-?>
     <style>
         @media print {
             body { background: white; margin: 0; padding: 0; }
@@ -97,8 +121,8 @@ $activeQuarters = \range($qStart, $qEnd);
 
         <div class="data-section">
             <table class="data-table">
-                <tr><td class="label">Gültig von:</td><td class="value"><?php echo $von->format('d.m.Y'); ?></td></tr>
-                <tr><td class="label">Gültig bis:</td><td class="value"><?php echo $bis->format('d.m.Y'); ?></td></tr>
+                <tr><td class="label">Gültig von:</td><td class="value"><?php echo $von_formatted; ?></td></tr>
+                <tr><td class="label">Gültig bis:</td><td class="value"><?php echo $bis_formatted; ?></td></tr>
                 <tr><td class="label">Amtl. Kennzeichen:</td><td class="value"><?php echo \htmlspecialchars($kennzeichen); ?></td></tr>
                 <?php if (! empty($firma)) { ?>
                     <tr><td class="label">Firma / Lieferant:</td><td class="value"><?php echo \htmlspecialchars($firma); ?></td></tr>

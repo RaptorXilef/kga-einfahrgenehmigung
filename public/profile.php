@@ -41,3 +41,13 @@ $controller = new \App\Application\UserController($config, $auth);
 
 // Request an den Controller übergeben
 $controller->handleProfileRequest($_POST);
+
+try {
+    $mailService = $container->get(\App\Contracts\Mail\MailServiceInterface::class);
+    if ($mailService instanceof \App\Core\Service\MailQueueService) {
+        // Wir verarbeiten bis zu 10 Mails. Das reicht für Vorstand + Pächter + Dokument
+        $mailService->processQueue(10);
+    }
+} catch (\Throwable $e) {
+    // Fehler beim Mailversand sollen die Seite nicht abstürzen lassen
+}

@@ -40,10 +40,11 @@ final readonly class MailQueueService implements MailServiceInterface
                 'recipient'  => $recipient,
                 'subject'    => $subject,
                 'template'   => $template,
-                'data'       => $payload,
+                'data'       => $data, // Hier direkt das Array speichern
+                'attempts'   => 0,
                 'created_at' => \date('Y-m-d H:i:s'),
             ];
-            \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT));
+            \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
         }
 
         return true; // "Erfolg", da in Queue gespeichert
@@ -54,8 +55,9 @@ final readonly class MailQueueService implements MailServiceInterface
         $cfg       = $this->config->get('storage_config')['mail_queue'];
         $sentCount = 0;
 
+        // --- A. MYSQL LOGIK ---
         if ($cfg['type'] === 'mysql' && $this->pdo) {
-            // ... (Dein SQL Code bleibt so, der ist bereits für Schleifen ausgelegt) ...
+            // Markieren (Locking)
             $this->pdo->prepare("UPDATE mail_queue SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit")->execute();
 
             // Jetzt holen wir uns die markierten Mails
@@ -63,22 +65,28 @@ final readonly class MailQueueService implements MailServiceInterface
             $items = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             foreach ($items as $item) {
-                $result = $this->realMailService->sendTemplate(
-                    $item['recipient'],
-                    $item['subject'],
-                    $item['template'],
-                    \json_decode($item['data'], true),
-                );
-                if ($result === true) {
-                    $this->pdo->prepare('DELETE FROM mail_queue WHERE id = ?')->execute([$item['id']]);
-                    ++$sentCount;
-                } else {
+                try {
+                    $result = $this->realMailService->sendTemplate(
+                        $item['recipient'],
+                        $item['subject'],
+                        $item['template'],
+                        \json_decode($item['data'], true),
+                    );
+                    if ($result === true) {
+                        $this->pdo->prepare('DELETE FROM mail_queue WHERE id = ?')->execute([$item['id']]);
+                        ++$sentCount;
+                    } else {
+                        throw new \Exception((string) $result);
+                    }
+                } catch (\Throwable $t) {
                     $origAttempts = ($item['attempts'] - 100) + 1;
-                    $this->pdo->prepare('UPDATE mail_queue SET attempts = ? WHERE id = ?')->execute([$origAttempts, $item['id']]);
+                    $this->pdo->prepare('UPDATE mail_queue SET attempts = ?, last_error = ? WHERE id = ?')
+                        ->execute([$origAttempts, $t->getMessage(), $item['id']]);
                 }
             }
-        } else {
-            // --- FIX FÜR JSON: MEHRERE MAILS IN EINER SCHLEIFE ---
+        }
+        // --- B. JSON LOGIK ---
+        else {
             $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
             if (! \file_exists($path)) {
                 return 0;
@@ -88,28 +96,31 @@ final readonly class MailQueueService implements MailServiceInterface
                 // Wir müssen die Datei jedes Mal neu lesen, falls parallel Prozesse laufen
                 $queue = \json_decode((string) \file_get_contents($path), true) ?? [];
                 if (empty($queue)) {
-                    return 0;
+                    break;
                 }
 
-                $item = \array_shift($queue); // Nimm die oberste Mail
-                \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT)); // Rest speichern
+                $item = \array_shift($queue); // Nur anschauen
 
-                $result = $this->realMailService->sendTemplate(
-                    $item['recipient'],
-                    $item['subject'],
-                    $item['template'],
-                    \json_decode($item['data'], true),
-                );
+                try {
+                    $result = $this->realMailService->sendTemplate(
+                        $item['recipient'],
+                        $item['subject'],
+                        $item['template'],
+                        $item['data'],
+                    );
 
-                if ($result === true) {
-                    ++$sentCount;
-                } else {
-                    // Fehlerbehandlung: Hinten anstellen
+                    if ($result === true) {
+                        \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                        ++$sentCount;
+                    } else {
+                        throw new \Exception((string) $result);
+                    }
+                } catch (\Throwable $t) {
                     $item['attempts'] = ($item['attempts'] ?? 0) + 1;
                     if ($item['attempts'] < 3) {
-                        $queue[] = $item; // Hinten wieder anstellen
-                        \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT));
+                        $queue[] = $item;
                     }
+                    \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
                 }
             }
         }

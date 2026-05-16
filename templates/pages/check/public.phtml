@@ -6,7 +6,7 @@
 // See LICENSE.md for full license details.
 
 /**
- * Page: Public Status Result & Payment
+ * Page: Public Status Result & Payment Summary
  *
  * Path: templates/pages/check/public.phtml
  *
@@ -20,7 +20,8 @@
  * @var \App\Infrastructure\Config\Config $config
  * @var array                             $settings
  */
-// Logo-Logik einbinden
+
+// 1. Logo-Logik
 $logoFile = null;
 foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     if (\file_exists("assets/img/kga_logo.$ext")) {
@@ -30,7 +31,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     }
 }
 
-// Status-Farbe bestimmen
+// 2. Status-Farbe bestimmen
 $pageStateClass = 'state-bg-error'; // Default: Ungültig
 if ($permit) {
     if ($permit->status->isSuspended) {
@@ -40,6 +41,8 @@ if ($permit) {
     } elseif ($isDateValid && ! $isTimeAllowed) {
         $pageStateClass = 'state-bg-rest';
     }
+} elseif ($tempData) {
+    $pageStateClass = 'state-bg-valid'; // Während der Zahlung dezent neutral/grün
 }
 
 ?>
@@ -77,6 +80,7 @@ if ($permit) {
             </header>
 
             <div class="c-card__body u-padding-around-l u-text-center">
+
                 <?php if ($permit) { ?>
                     <?php if ($permit->status->isSuspended) { ?>
                         <div style="color: var(--danger-color);">
@@ -106,7 +110,7 @@ if ($permit) {
                                 <p><strong><?php echo $allowedToday; ?></strong></p>
                             <?php } else { ?>
                                 <!-- Normalfall: Nächste Zeit anzeigen -->
-                                <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
+                            <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
                             <?php } ?>
 
                             <?php include '_details.phtml'; ?>
@@ -120,11 +124,66 @@ if ($permit) {
                     <?php } ?>
 
                 <?php } elseif ($tempData && $token) { ?>
-                    <!-- WIEDERHERGESTELLT: BEZAHLPROZESS -->
-                    <div>
-                        <span style="font-size: 4rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp" class="c-icon" alt=""><!-- 💳 --></span>
-                        <h2 class="u-margin-top-s">Zahlung fällig</h2>
-                        <p class="u-text-muted">Um Ihre Ausnahmegenehmigung <br> und Ihren SmartCode zu aktivieren, <br> wählen Sie bitte eine Zahlungsart:</p>
+
+                    <div class="u-text-center">
+                        <span style="font-size: 3rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""></span>
+                        <h2 class="u-margin-top-s" style="color: var(--success-color);">E-Mail bestätigt!</h2>
+
+                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
+                            <p class="u-font-bold u-text-small u-text-muted u-margin-bottom-s" style="text-transform: uppercase; letter-spacing: 0.5px;">Zusammenfassung Ihrer Daten:</p>
+                            <table style="width: 100%; font-size: 0.95rem; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Antragsteller:</td>
+                                    <td class="u-font-bold" style="text-align: right;"><?php echo \htmlspecialchars($tempData['name']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Parzelle:</td>
+                                    <td class="u-font-bold" style="text-align: right;">Nr. <?php echo \htmlspecialchars($tempData['parzelle']); ?></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Fahrzeugtyp:</td>
+                                    <td class="u-font-bold" style="text-align: right;">
+                                        <?php
+                                            $vKey = $tempData['typ'];
+                    echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey);
+                    ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Kennzeichen:</td>
+                                    <td class="u-font-bold" style="text-align: right; font-family: monospace;"><?php echo \htmlspecialchars($tempData['kennzeichen']); ?></td>
+                                </tr>
+                                <?php if (! empty($tempData['firma'])) { ?>
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Firma:</td>
+                                    <td class="u-font-bold" style="text-align: right;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
+                                </tr>
+                                <?php } ?>
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Zweck:</td>
+                                    <td class="u-font-bold" style="text-align: right;">
+                                        <?php
+                        $zKey = $tempData['zweck'];
+                    echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey);
+                    ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px 0; color: var(--text-muted);">Zeitraum:</td>
+                                    <td class="u-font-bold" style="text-align: right;">
+                                        <?php echo \date('d.m.Y', \strtotime($tempData['datum_von'])); ?> bis <?php echo \date('d.m.Y', \strtotime($tempData['datum_bis'])); ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 0 0 0; color: var(--text-main); border-top: 1.5px solid #e2e8f0;" class="u-font-bold">Zu zahlender Betrag:</td>
+                                    <td style="padding: 12px 0 0 0; border-top: 1.5px solid #e2e8f0; font-size: 1.25rem; color: var(--primary-color); text-align: right;" class="u-font-bold">
+                                        <?php echo \number_format((float) $tempData['preisSnapshot'], 2, ',', '.'); ?> €
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <p class="u-text-muted u-margin-bottom-l">Wählen Sie bitte eine Zahlungsart aus:</p>
 
                         <?php if ($config->get('paypal')['enabled']) { ?>
                             <div id="paypal-button-container" class="u-padding-y-m"></div>
@@ -149,9 +208,10 @@ if ($permit) {
                             </script>
                         <?php } ?>
 
-                        <div class="u-margin-top-l u-padding-around-m" style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                            <p class="u-text-small u-margin-bottom-s">Per Überweisung (Dauer 2-3 Tage)</p>
-                            <button onclick="finalizeWire()" class="c-button--primary" style="padding: 10px 20px; font-size: 0.9rem; background: #64748b;">Überweisung verbindlich abschließen</button>
+                        <div class="u-margin-top-l u-padding-around-m" style="background: #fff; border-radius: 12px; border: 2px dashed #cbd5e1;">
+                            <p class="u-text-small u-margin-bottom-s u-font-bold">Klassische Überweisung</p>
+                            <button onclick="finalizeWire()" class="c-button--primary" style="padding: 12px 20px; font-size: 0.95rem; background: #64748b; width: 100%;">Zahlung per Überweisung abschließen</button>
+                            <p class="u-text-muted" style="font-size: 0.8rem; margin-top: 10px;">Hinweis: Die Freischaltung erfolgt nach ca. 2-3 Werktagen manuell durch den Vorstand.</p>
                         </div>
                     </div>
                     <script>
@@ -163,15 +223,14 @@ if ($permit) {
                             });
                         }
                     </script>
-                <?php } ?>
+                        <?php } ?>
             </div>
 
             <footer class="u-padding-around-m u-text-center u-border-top" style="background: #fcfdfe;">
                 <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
                 <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Vorstands-Login für Details</a>
             </footer>
-        </div>
+            </div>
     </main>
-</body>
-
+    </body>
 </html>

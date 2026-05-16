@@ -468,7 +468,7 @@ final readonly class PermitService
                 'name'           => $permit->owner->name,
                 'email'          => $permit->owner->email ?: 'Keine angegeben',
                 'parzelle'       => $permit->owner->parzelle,
-                'typLabel'       => $this->config->get('vehicle_types')[$permit->vehicle->typ] ?? $permit->vehicle->typ,
+                'typLabel'       => $this->config->get('vehicle_types')[$permit->vehicle->typ]['label'] ?? $permit->vehicle->typ,
                 'kennzeichen'    => $permit->vehicle->kennzeichen,
                 'firma'          => $permit->vehicle->firma ?? '',
                 'von'            => $permit->validity->von->format('d.m.Y'),
@@ -504,15 +504,15 @@ final readonly class PermitService
                 );
             }
 
-            // 3. DAS A4 DOKUMENT
+            // 3. DAS A4 DOKUMENT (KEINE DUPLIKATE MEHR!)
             $this->mailService->sendTemplate(
                 $permit->owner->email,
                 'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
                 'permit_a4_document',
                 [
                     'fullIdentifier'    => $permit->code,
-                    'von'               => $permit->validity->von,
-                    'bis'               => $permit->validity->bis,
+                    'von_formatted'     => $permit->validity->von->format('d.m.Y'),
+                    'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
                     'kennzeichen'       => $permit->vehicle->kennzeichen,
                     'firma'             => $permit->vehicle->firma ?? '',
                     'parzelle'          => $permit->owner->parzelle,
@@ -524,7 +524,6 @@ final readonly class PermitService
                     'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                     'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                     'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
-                    'config'            => $this->config,
                 ],
             );
         }
