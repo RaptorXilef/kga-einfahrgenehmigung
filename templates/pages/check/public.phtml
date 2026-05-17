@@ -23,9 +23,11 @@
 
 // 1. Logo-Logik
 $logoFile = null;
-foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
-    if (\file_exists("assets/img/kga_logo.$ext")) {
-        $logoFile = "assets/img/kga_logo.$ext";
+foreach (['webp', 'png', 'jpg', 'jpeg'] as $ext) {
+    // Prüfe absolut auf dem Server
+    $serverPath = \rtrim($appRoot, '/\\') . '/public/assets/img/kga_logo.' . $ext;
+    if (\file_exists($serverPath)) {
+        $logoFile = 'assets/img/kga_logo.' . $ext;
 
         break;
     }
@@ -74,7 +76,7 @@ if ($permit) {
 
             <header class="c-card__header u-text-center u-padding-around-l">
                 <?php if ($logoFile) { ?>
-                    <img src="<?php echo $logoFile; ?>" alt="Logo" style="max-height: 80px; margin-bottom: 15px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));">
+                    <img src="<?php echo $settings['base_url'] . $logoFile; ?>" alt="Logo" style="max-height: 80px; ...">
                 <?php } ?>
                 <p class="u-text-muted u-text-small u-margin-none"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
             </header>
@@ -110,7 +112,7 @@ if ($permit) {
                                 <p><strong><?php echo $allowedToday; ?></strong></p>
                             <?php } else { ?>
                                 <!-- Normalfall: Nächste Zeit anzeigen -->
-                            <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
+                                <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
                             <?php } ?>
 
                             <?php include '_details.phtml'; ?>
@@ -144,7 +146,7 @@ if ($permit) {
                                     <td style="padding: 6px 0; color: var(--text-muted);">Fahrzeugtyp:</td>
                                     <td class="u-font-bold" style="text-align: right;">
                                         <?php
-                                            $vKey = $tempData['typ'];
+                                        $vKey = $tempData['typ'];
                     echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey);
                     ?>
                                     </td>
@@ -154,16 +156,16 @@ if ($permit) {
                                     <td class="u-font-bold" style="text-align: right; font-family: monospace;"><?php echo \htmlspecialchars($tempData['kennzeichen']); ?></td>
                                 </tr>
                                 <?php if (! empty($tempData['firma'])) { ?>
-                                <tr>
-                                    <td style="padding: 6px 0; color: var(--text-muted);">Firma:</td>
-                                    <td class="u-font-bold" style="text-align: right;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
-                                </tr>
+                                    <tr>
+                                        <td style="padding: 6px 0; color: var(--text-muted);">Firma:</td>
+                                        <td class="u-font-bold" style="text-align: right;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
+                                    </tr>
                                 <?php } ?>
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Zweck:</td>
                                     <td class="u-font-bold" style="text-align: right;">
                                         <?php
-                        $zKey = $tempData['zweck'];
+                    $zKey = $tempData['zweck'];
                     echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey);
                     ?>
                                     </td>
@@ -223,14 +225,15 @@ if ($permit) {
                             });
                         }
                     </script>
-                        <?php } ?>
+                <?php } ?>
             </div>
 
             <footer class="u-padding-around-m u-text-center u-border-top" style="background: #fcfdfe;">
                 <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
                 <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Vorstands-Login für Details</a>
             </footer>
-            </div>
+        </div>
     </main>
-    </body>
+</body>
+
 </html>

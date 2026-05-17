@@ -95,9 +95,9 @@ if ($permit) {
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung
                 </a>
                 <?php if ($auth->hasPermission('check.admin.print')) { ?>
-                <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
-                </a>
+                    <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
+                    </a>
                 <?php } ?>
             </div>
         </header>
@@ -107,7 +107,7 @@ if ($permit) {
                 <h3 class="u-margin-none">📋 Pächter- & Fahrzeugdaten</h3>
                 <!-- FIX: Fallback auf OFFEN falls leer -->
                 <span class="c-badge c-badge--<?php echo $permit->status->current === 'bezahlt' ? 'success' : 'warning'; ?>">
-                    FINANZ-STATUS: <?php echo \strtoupper($permit->status->current ?: 'offen'); ?>
+                    FINANZ-STATUS: <?php echo \htmlspecialchars(\strtoupper($permit->status->current ?: 'offen')); ?>
                 </span>
             </header>
             <div class="c-card__body u-padding-none">
