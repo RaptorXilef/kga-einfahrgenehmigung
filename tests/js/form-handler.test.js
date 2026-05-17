@@ -10,7 +10,7 @@ describe('PermitFormHandler', () => {
     beforeEach(() => {
         // Mocking der Config für das JS
         window.KGA_CONFIG = {
-            baseUrl: 'http://kga-einfahrgenehmigung.local/',
+            baseUrl: 'https://kga-einfahrgenehmigung.local/',
             vehicleConfig: {
                 pkw: { show_company: false },
                 lkw: { show_company: true },

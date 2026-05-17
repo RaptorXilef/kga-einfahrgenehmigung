@@ -101,6 +101,8 @@ final readonly class UserController
         ];
 
         $this->auth->saveUsers($users);
+
+        // FIX: Auch hier beim ersten Erstellen die neue ID nutzen!
         if ($file && $file['error'] === 0) {
             $this->auth->uploadImage('user', $newId, $file);
         }
@@ -205,9 +207,10 @@ final readonly class UserController
         if (! $file || $file['error'] !== 0) {
             return 'Fehler beim Upload.';
         }
-        $uname = (string) ($post['username'] ?? '');
+        // FIX: Wir nutzen jetzt die user_id statt username
+        $userId = (string) ($post['user_id'] ?? '');
 
-        return $this->auth->uploadImage('user_profiles', $uname, $file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->auth->uploadImage('user', $userId, $file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
     }
 
     private function handleUploadGroupImage(array $post, ?array $file): string

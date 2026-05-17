@@ -56,13 +56,13 @@
             $userImage    = $auth->getImage('user', $userId);
             $groupData    = $groups[$u['group']] ?? ['name' => 'Unbekannt'];
             $displayLogin = $u['username'] ?? $userId; // Fallback auf ID
-        ?>
+            ?>
             <div class="category-card is-closed" id="card-<?php echo $userId; ?>">
                 <header class="category-header u-flex u-justify-between u-align-center" style="background: #fff; border: 1px solid #e2e8f0; padding: 15px 25px;">
                     <div class="u-flex u-align-center u-gap-m" onclick="this.parentElement.parentElement.classList.toggle('is-closed')" style="cursor: pointer; flex-grow: 1;">
                         <img src="<?php echo $userImage; ?>" style="width: 38px; height: 38px; border-radius: 50%;">
                         <div>
-                            <strong style="font-size: 1.05rem; color: var(--text-main);"><?php echo \htmlspecialchars((string) $displayLogin); ?></strong>
+                            <strong style="font-size: 1.05rem; color: var(--text-main);"><?php echo \htmlspecialchars((string) ($u['username'] ?? $userId)); ?></strong>
                             <div style="font-size: 0.75rem; color: var(--text-muted);">
                                 <?php echo \htmlspecialchars($groupData['name'] ?? 'Unbekannt'); ?>
                                 <span style="opacity: 0.6; font-family: monospace;">(ID: <?php echo \htmlspecialchars($userId); ?>)</span>
@@ -95,7 +95,7 @@
                                 <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
                                 <label class="c-form-label">Login-Name</label>
                                 <div class="u-flex u-gap-xs">
-                                    <input type="text" name="new_username" class="c-form-input" style="height:34px;" value="<?php echo \htmlspecialchars((string) $displayLogin); ?>">
+                                    <input type="text" name="new_username" class="c-form-input" style="height:34px;" value="<?php echo \htmlspecialchars((string) ($u['username'] ?? '')); ?>">
                                     <button type="submit" class="c-button--primary" style="height:34px; padding: 0 10px;">OK</button>
                                 </div>
                             </form>

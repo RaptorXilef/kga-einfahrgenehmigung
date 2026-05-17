@@ -10,36 +10,53 @@
  *
  * Path: templates/pages/admin_users/_tab_groups.phtml
  */
+
+/**
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $groups
+ * @var array                                $settings
+ * @var array                                $structure
+ * @var string                               $appRoot
+ */
 $structure ??= $config->get('structure', []);
 
 /**
  * Rekursive Funktion zum Rendern des Permission-Baums
  */
 if (! \function_exists('renderPermissionNode')) {
-    function renderPermissionNode($nodes, $groupPerms, $depth = 0): void
+    function renderPermissionNode(array $nodes, array $groupPerms, int $depth = 0): void
     {
         foreach ($nodes as $id => $node) {
-            $key         = $node['key'];
-            $isAllowed   = \in_array($key, $groupPerms, true);
+            $key         = $node['key'] ?? null; // BUGFIX: Null-Check
+            $isAllowed   = $key ? \in_array($key, $groupPerms, true) : false;
             $hasChildren = ! empty($node['children']);
             $padding     = $depth * 25;
             ?>
-            <div class="p-tree-node" style="padding-left: <?php echo $padding; ?>px;" data-key="<?php echo $key; ?>">
-                <div class="p-item <?php echo $depth === 0 ? 'is-root' : ''; ?>">
+            <div class="p-tree-node" style="padding-left: <?php echo $padding; ?>px;" data-key="<?php echo $key ?? $id; ?>">
+                <div class="p-item <?php echo $depth === 0 ? 'is-root' : ''; ?> <?php echo ! $key ? 'is-category' : ''; ?>">
                     <div class="p-label">
-                        <span class="main"><?php echo \htmlspecialchars($node['label']); ?></span>
-                        <span class="sub"><?php echo $key; ?></span>
+                        <span class="main"><?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?></span>
+                        <?php if ($key) { ?>
+                            <span class="sub"><?php echo \htmlspecialchars((string) $key); ?></span>
+                        <?php } else { ?>
+                            <span class="sub" style="font-style: italic; opacity: 0.5;">Kategorie</span>
+                        <?php } ?>
                     </div>
+
                     <div class="p-controls">
-                        <label class="c-switch">
-                            <input type="checkbox"
-                                name="perms[]"
-                                value="<?php echo $key; ?>"
-                                data-perm-check="true"
-                                data-key="<?php echo $key; ?>"
-                                <?php echo $isAllowed ? 'checked' : ''; ?>>
-                            <span class="c-switch-label" data-on="ALLOW" data-off="NONE"></span>
-                        </label>
+                        <?php if ($key) { // Nur Schalter anzeigen, wenn ein Key existiert
+                            ?>
+                            <label class="c-switch">
+                                <input type="checkbox"
+                                    name="perms[]"
+                                    value="<?php echo \htmlspecialchars((string) $key); ?>"
+                                    data-perm-check="true"
+                                    data-key="<?php echo \htmlspecialchars((string) $key); ?>"
+                                    <?php echo $isAllowed ? 'checked' : ''; ?>>
+                                <span class="c-switch-label" data-on="ALLOW" data-off="NONE"></span>
+                            </label>
+                        <?php } ?>
                     </div>
                 </div>
                 <?php if ($hasChildren) {

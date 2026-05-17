@@ -117,6 +117,7 @@ final readonly class AuthService
     /**
      * GEREINIGTE BILD-LOGIK
      * Akzeptiert 'user' oder 'group'
+     * Sucht jetzt korrekt im 'public' Unterordner
      */
     public function getImage(string $type, string $id): string
     {
@@ -125,9 +126,14 @@ final readonly class AuthService
         $folder   = $isUser ? 'user_images' : 'group_images';
         $fallback = $isUser ? 'icon-user-default.webp' : 'icon-group-default.webp';
 
-        $filePath = "assets/img/{$folder}/{$id}.webp";
-        if (\file_exists($this->config->get('root_path') . $filePath)) {
-            return $baseUrl . $filePath . '?v=' . \filemtime($this->config->get('root_path') . $filePath);
+        // Pfad für file_exists (absolut auf dem Server inkl. public/)
+        $serverPath = $this->config->get('root_path') . 'public/assets/img/' . $folder . '/' . $id . '.webp';
+
+        // URL für den Browser (relativ zur baseUrl)
+        $browserPath = 'assets/img/' . $folder . '/' . $id . '.webp';
+
+        if (\file_exists($serverPath)) {
+            return $baseUrl . $browserPath . '?v=' . \filemtime($serverPath);
         }
 
         return $baseUrl . 'assets/img/icons/' . $fallback;
@@ -139,20 +145,20 @@ final readonly class AuthService
     }
 
     /**
+     * Lädt Benutzer mit Pfadsicherung
+     * (Fix für file_get_contents Warnung)
+     *
      * @return array<string, array<string, mixed>>
      */
     public function loadUsers(): array
     {
         $storageCfg = $this->config->get('storage_config');
-        $userCfg    = $storageCfg['users'] ?? null;
+        $userFile   = $storageCfg['users']['file'] ?? 'users.json';
+        $prefix     = $this->config->get('storage_path_prefix', 'storage/');
 
-        if (! $userCfg) {
-            return [];
-        }
+        $path = $this->config->get('root_path') . $prefix . $userFile;
 
-        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $userCfg['file'];
-
-        if (! \file_exists($path)) {
+        if (! \file_exists($path) || \is_dir($path)) {
             return [];
         }
 
@@ -165,13 +171,10 @@ final readonly class AuthService
     public function saveUsers(array $users): void
     {
         $storageCfg = $this->config->get('storage_config');
-        $userCfg    = $storageCfg['users'] ?? null;
+        $userFile   = $storageCfg['users']['file'] ?? 'users.json';
+        $prefix     = $this->config->get('storage_path_prefix', 'storage/');
+        $path       = $this->config->get('root_path') . $prefix . $userFile;
 
-        if (! $userCfg) {
-            return;
-        }
-
-        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $userCfg['file'];
         \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
@@ -180,45 +183,79 @@ final readonly class AuthService
      */
     public function loadGroups(): array
     {
-        $cfg  = $this->config->get('storage_config')['groups'];
-        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix', 'storage/') . 'groups.json';
 
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     public function saveGroups(array $groups): void
     {
-        $cfg  = $this->config->get('storage_config')['groups'];
-        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix', 'storage/') . 'groups.json';
         \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * Verarbeitet Bild-Uploads (User/Group) inkl. WebP-Konvertierung.
+     */
     public function uploadImage(string $type, string $id, array $file): bool
     {
-        $folder    = \str_contains($type, 'user') ? 'user_images' : 'group_images';
-        $targetDir = $this->config->get('root_path') . 'assets/img/' . $folder . '/';
+        $isUser = \str_contains($type, 'user');
+        $folder = $isUser ? 'user_images' : 'group_images';
+
+        // Vollständiger Server-Pfad inkl. public/
+        $targetDir  = $this->config->get('root_path') . 'public/assets/img/' . $folder . '/';
+        $outputPath = $targetDir . $id . '.webp';
+
+        // 1. Ordner sicherstellen
         if (! \is_dir($targetDir)) {
-            \mkdir($targetDir, 0o755, true);
+            if (! @\mkdir($targetDir, 0o755, true) && ! \is_dir($targetDir)) {
+                return false;
+            }
         }
-        $info = \getimagesize($file['tmp_name']);
+
+        // 2. GD Fallback: Falls die Erweiterung fehlt oder deaktiviert ist
+        if (! \extension_loaded('gd') || ! \function_exists('imagecreatefromjpeg')) {
+            // Wir können hier nicht konvertieren, also nur verschieben.
+            // Achtung: Datei behält Endung des Originals, wird aber als .webp benannt.
+            // Moderne Browser zeigen das Bild oft trotzdem an.
+            return \move_uploaded_file($file['tmp_name'], $outputPath);
+        }
+
+        // 3. GD-Bild-Verarbeitung
+        $info = @\getimagesize($file['tmp_name']);
         if (! $info) {
             return false;
         }
+
+        // Bildressource basierend auf Typ erstellen
         $src = match ($info[2]) {
-            \IMAGETYPE_JPEG => \imagecreatefromjpeg($file['tmp_name']),
-            \IMAGETYPE_PNG  => \imagecreatefrompng($file['tmp_name']),
-            \IMAGETYPE_WEBP => \imagecreatefromwebp($file['tmp_name']),
+            \IMAGETYPE_JPEG => @\imagecreatefromjpeg($file['tmp_name']),
+            \IMAGETYPE_PNG  => @\imagecreatefrompng($file['tmp_name']),
+            \IMAGETYPE_GIF  => @\imagecreatefromgif($file['tmp_name']),
+            \IMAGETYPE_WEBP => @\imagecreatefromwebp($file['tmp_name']),
             default         => null
         };
+
         if (! $src) {
             return false;
         }
-        $size = \min($info[0], $info[1]);
-        $dst  = \imagecreatetruecolor(256, 256);
+
+        // 1. Transparenz-Check & Handling
+        $width  = \imagesx($src);
+        $height = \imagesy($src);
+        $dst    = \imagecreatetruecolor($width, $height);
+
+        // Alpha-Kanal für Transparenz vorbereiten (für PNG/GIF)
         \imagealphablending($dst, false);
         \imagesavealpha($dst, true);
-        \imagecopyresampled($dst, $src, 0, 0, (int) (($info[0] - $size) / 2), (int) (($info[1] - $size) / 2), 256, 256, $size, $size);
-        $success = \imagewebp($dst, $targetDir . $id . '.webp', 80);
+        $transparent = \imagecolorallocatealpha($dst, 255, 255, 255, 127);
+        \imagefill($dst, 0, 0, $transparent);
+
+        \imagecopyresampled($dst, $src, 0, 0, 0, 0, $width, $height, $width, $height);
+
+        // 2. Als WebP mit 75% Qualität speichern
+        $success = \imagewebp($dst, $outputPath, 75);
+
         \imagedestroy($src);
         \imagedestroy($dst);
 
@@ -243,5 +280,13 @@ final readonly class AuthService
     public function logout(): void
     {
         \session_destroy();
+    }
+
+    /**
+     * Gibt die interne ID des aktuell angemeldeten Benutzers zurück.
+     */
+    public function getUserId(): string
+    {
+        return (string) ($_SESSION['user_id'] ?? '');
     }
 }

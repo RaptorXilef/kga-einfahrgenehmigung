@@ -7,8 +7,7 @@
 
 /**
  * Entry Point: My Profile
- *
- * Path: <public>profile.php
+ * Path: public/profile.php
  */
 
 declare(strict_types=1);
@@ -16,16 +15,16 @@ declare(strict_types=1);
 use App\Application\UserController;
 use App\Contracts\Mail\MailServiceInterface;
 
-// 1. Nutze den zentralen Bootstrapper (wie in admin.php)
+// 1. Nutze den zentralen Bootstrapper (garantiert alle Pfade und den Container)
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 
-// 2. Hol dir den Controller aus dem Container (er hat dann alles: Config, Auth, etc.)
+// 2. Controller direkt aus dem Container holen
 $controller = $container->get(UserController::class);
 
-// 3. Request verarbeiten
+// 3. Request an den Controller übergeben
 $controller->handleProfileRequest($_POST);
 
-// 4. Mail-Queue wie gewohnt anstoßen
+// 4. Mail-Queue verarbeiten
 try {
     $mailService = $container->get(MailServiceInterface::class);
     if ($mailService instanceof \App\Core\Service\MailQueueService) {
