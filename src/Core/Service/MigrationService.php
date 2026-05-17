@@ -69,7 +69,7 @@ final readonly class MigrationService
         // Nutzt jetzt den Namen aus der Config (z.B. 'sql_backup')
         $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
 
-        $backupPath = $root . $prefix . $subFolder . '/' . $timestamp;
+        $backupPath = \rtrim($root, '/\\') . '/' . \ltrim($prefix, '/\\') . $subFolder . '/' . $timestamp;
 
         if (! \is_dir($backupPath)) {
             \mkdir($backupPath, 0o777, true);
@@ -160,7 +160,7 @@ final readonly class MigrationService
     private function loadRawJson(string $key): array
     {
         $cfg  = $this->config->get('storage_config')[$key];
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
 
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
@@ -168,7 +168,7 @@ final readonly class MigrationService
     private function saveToJson(string $key, array $data): void
     {
         $cfg  = $this->config->get('storage_config')[$key];
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
