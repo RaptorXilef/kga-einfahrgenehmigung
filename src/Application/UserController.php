@@ -327,6 +327,7 @@ final readonly class UserController
 
         $users = $this->auth->loadUsers();
         $this->render('profile', [
+            'userId'   => $userId, // ID explizit übergeben
             'username' => $users[$userId]['username'] ?? 'Unbekannt',
             'group'    => $this->auth->getGroup(),
             'message'  => $message,

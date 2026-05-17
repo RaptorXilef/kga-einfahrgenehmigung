@@ -242,8 +242,8 @@ final readonly class AuthService
         // 2. Als WebP mit 75% Qualität speichern
         $success = \imagewebp($dst, $outputPath, 75);
 
-        \imagedestroy($src);
-        \imagedestroy($dst);
+        // FIX: imagedestroy() entfernt, da GdImage Objekte in PHP 8.0+
+        // automatisch bereinigt werden und die Funktion deprecated ist.
 
         return $success;
     }

@@ -10,7 +10,19 @@
  *
  * Path: templates/pages/profile.phtml
  */
-$userId    = $_SESSION['user_id'] ?? '';
+
+/**
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var string                               $userId
+ * @var string                               $username
+ * @var string                               $group
+ * @var string                               $message
+ * @var array                                $settings
+ * @var string                               $appRoot
+ */
+
+// $userId wird nun vom Controller übergeben
 $userImage = $auth->getImage('user', $userId);
 ?>
 <!DOCTYPE html>
@@ -31,7 +43,7 @@ $userImage = $auth->getImage('user', $userId);
 
             <header class="u-flex u-justify-between u-align-end u-margin-bottom-l">
                 <div>
-                    <h1 class="u-margin-none" style="text-align: left;">👤 Mein Profil</h1>
+                    <h1 class="u-margin-none" style="text-align: left;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""><!-- 👤 -->Mein Profil</h1>
                     <p class="u-text-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
                 </div>
                 <a href="admin.php" class="c-tabs__btn">← Zum Dashboard</a>
