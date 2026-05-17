@@ -5,14 +5,13 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * API: Für E-Mail-Versand.
- *
- * Path: public/api/process_mail_queue.php
- */
+// Path: public/api/process_mail_queue.php
 
 declare(strict_types=1);
 
+/**
+ * API: Für E-Mail-Versand.
+ */
 $container = require __DIR__ . '/../../src/Bootstrap/app.php';
 
 $container->get(\App\Contracts\Mail\MailServiceInterface::class)->processQueue(10);

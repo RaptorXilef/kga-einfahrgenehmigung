@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * @file src/Core/Service/MigrationService.php
- */
+// Path: src/Core/Service/MigrationService.php
 
 declare(strict_types=1);
 

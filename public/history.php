@@ -5,16 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Pächter-Verlauf Einstiegspunkt
- * Ermöglicht die Einsicht aller Genehmigungen via Magic Link.
- *
- * Path: public/history.php
- */
+// Path: public/history.php
 
 declare(strict_types=1);
 
 use App\Application\HistoryController;
+
+/**
+ * Pächter-Verlauf Einstiegspunkt
+ * Ermöglicht die Einsicht aller Genehmigungen via Magic Link.
+ */
 
 // Lädt die Bootstrap-Logik und liefert direkt den Container
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';

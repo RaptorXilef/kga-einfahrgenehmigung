@@ -5,18 +5,18 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: public/check.php
+
+declare(strict_types=1);
+
+use App\Application\CheckController;
+
 /**
  * Validierungsschnittstelle für Ausnahmegenehmigungen
  *
  * Prüft die Gültigkeit eines Codes und unterscheidet mittels Token-Validierung
  * zwischen der öffentlichen Ansicht und der detaillierten Vorstandsansicht.
- *
- * Path:      public/check.php
  */
-
-declare(strict_types=1);
-
-use App\Application\CheckController;
 
 // Lädt die Bootstrap-Logik und liefert direkt den Container
 $container  = require_once __DIR__ . '/../src/Bootstrap/app.php';

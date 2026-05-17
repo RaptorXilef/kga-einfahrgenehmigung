@@ -5,15 +5,15 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Verifizierungs-Einstiegspunkt
- *
- * Path: public/verify.php
- */
+// Path: public/verify.php
 
 declare(strict_types=1);
 
 use App\Application\VerificationController;
+
+/**
+ * Verifizierungs-Einstiegspunkt
+ */
 
 // Lädt die Bootstrap-Logik und liefert direkt den Container
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';

@@ -5,20 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Kern-Entität für eine Einfahrgenehmigung.
- *
- * Repräsentiert eine einzelne Genehmigung mit allen relevanten Daten.
- *
- * Path: src/Core/Entity/Permit.php
- */
+// Path: src/Core/Entity/Permit.php
 
 declare(strict_types=1);
 
 namespace App\Core\Entity;
 
 /**
- * Kern-Entität für eine Ausnahmegenehmigung.
+ * Kern-Entität für eine Einfahr-/Ausnahmegenehmigung.
+ *
+ * Repräsentiert eine einzelne Genehmigung mit allen relevanten Daten.
  */
 final readonly class Permit
 {

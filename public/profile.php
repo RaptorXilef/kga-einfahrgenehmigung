@@ -5,15 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Entry Point: My Profile
- * Path: public/profile.php
- */
+// Path: public/profile.php
 
 declare(strict_types=1);
 
 use App\Application\UserController;
 use App\Contracts\Mail\MailServiceInterface;
+
+/**
+ * Entry Point: My Profile
+ */
 
 // 1. Nutze den zentralen Bootstrapper (garantiert alle Pfade und den Container)
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';

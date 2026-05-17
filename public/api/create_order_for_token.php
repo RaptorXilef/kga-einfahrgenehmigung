@@ -5,17 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * PayPal Order Erstellung - Nutzt den Preis-Snapshot
- *
- * Path: public/api/create_order_for_token.php
- */
+// Path: public/api/create_order_for_token.php
 
 declare(strict_types=1);
 
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
+/**
+ * PayPal Order Erstellung - Nutzt den Preis-Snapshot
+ */
 \header('Content-Type: application/json');
 
 try {

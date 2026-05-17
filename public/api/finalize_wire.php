@@ -5,17 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * API: Abschluss für Überweisungen
- * Überführt den Antrag in die Hauptdatenbank.
- *
- * Path: public/api/finalize_wire.php
- */
+// Path: public/api/finalize_wire.php
 
 declare(strict_types=1);
 
 use App\Core\Service\PermitService;
 
+/**
+ * API: Abschluss für Überweisungen
+ * Überführt den Antrag in die Hauptdatenbank.
+ */
 \header('Content-Type: application/json');
 
 try {

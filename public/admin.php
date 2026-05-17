@@ -5,16 +5,15 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Admin Einstiegspunkt
- *
- * Path:      public/admin.php
- */
+// Path: public/admin.php
 
 declare(strict_types=1);
 
 use App\Application\AdminController;
 
+/**
+ * Admin Einstiegspunkt
+ */
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 
 $controller = $container->get(AdminController::class);

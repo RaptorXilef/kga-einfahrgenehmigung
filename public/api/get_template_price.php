@@ -5,17 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * API: Liefert den Preis für ein Template unter Berücksichtigung von Gutscheinen.
- *
- * Path: public/api/get_template_price.php
- */
+// Path: public/api/get_template_price.php
 
 declare(strict_types=1);
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
+/**
+ * API: Liefert den Preis für ein Template unter Berücksichtigung von Gutscheinen.
+ */
 \header('Content-Type: application/json');
 
 try {

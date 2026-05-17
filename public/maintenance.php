@@ -5,10 +5,12 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: public/maintenance.php
+
+declare(strict_types=1);
+
 /**
  * Anzeige der Wartungsseite
- *
- * Path: public/maintenance.php
  */
 
 // 1. Falls das Script über den Bootstrapper (app.php) läuft, ist $settings schon da.

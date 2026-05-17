@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Orchestriert die Admin-Logik für den Vorstand.
- *
- * Path: src/Application/AdminController.php
- */
+// Path: src/Application/AdminController.php
 
 declare(strict_types=1);
 

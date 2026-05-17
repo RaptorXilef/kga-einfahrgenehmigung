@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Dieser Controller steuert die Anzeige der Historie.
- *
- * Path: src/Application/HistoryController.php
- */
+// Path: src/Application/HistoryController.php
 
 declare(strict_types=1);
 
@@ -21,6 +17,9 @@ use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
 
+/**
+ * Dieser Controller steuert die Anzeige der Historie.
+ */
 final readonly class HistoryController
 {
     public function __construct(

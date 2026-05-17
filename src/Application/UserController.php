@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: src/Application/UserController.php
- */
+// Path: src/Application/UserController.php
 
 declare(strict_types=1);
 

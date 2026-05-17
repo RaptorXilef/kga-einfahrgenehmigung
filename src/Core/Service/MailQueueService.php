@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * @file src/Core/Service/MailQueueService.php
- */
+// Path: src/Core/Service/MailQueueService.php
 
 declare(strict_types=1);
 

@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: src/Core/Entity/Vehicle.php
- */
+// Path: src/Core/Entity/Vehicle.php
 
 declare(strict_types=1);
 

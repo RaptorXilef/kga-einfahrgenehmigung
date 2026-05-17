@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Orchestriert die Validierung von Genehmigungen für Pächter und Vorstand.
- *
- * Path:      src/Application/CheckController.php
- */
+// Path: src/Application/CheckController.php
 
 declare(strict_types=1);
 

@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Orchestriert den Antragsprozess für Pächter (Hauptformular).
- *
- * Path:      public/index.php
- */
+// Path: src\Application\PermitController.php
 
 declare(strict_types=1);
 

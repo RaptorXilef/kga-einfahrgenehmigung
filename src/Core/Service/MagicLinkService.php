@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Dieser neue Service verwaltet die temporären Token für den Login.
- *
- * Path: src/Core/Service/MagicLinkService.php
- */
+// Path: src/Core/Service/MagicLinkService.php
 
 declare(strict_types=1);
 
@@ -17,6 +13,9 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 
+/**
+ * Dieser neue Service verwaltet die temporären Token für den Login.
+ */
 final readonly class MagicLinkService
 {
     private string $storagePath;

@@ -7,9 +7,7 @@ declare(strict_types=1);
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * @file src/Core/Service/PermissionCompiler.php
- */
+// Path: src/Core/Service/PermissionCompiler.php
 
 namespace App\Core\Service;
 

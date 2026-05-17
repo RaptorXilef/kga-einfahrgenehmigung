@@ -5,15 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Service zur Verwaltung des Genehmigungsprozesses.
- *
- * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
- * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
- * mit konfigurierbaren Sicherheits-Features und dynamischem Pricing.
- *
- * @file      src/Core/Service/PermitService.php
- */
+// Path: src/Core/Service/PermitService.php
 
 declare(strict_types=1);
 
@@ -30,7 +22,11 @@ use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 
 /**
- * Zentraler Service für Ausnahmegenehmigungen.
+ * Service zur Verwaltung des Genehmigungsprozesses. / Zentraler Service für Ausnahmegenehmigungen.
+ *
+ * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
+ * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
+ * mit konfigurierbaren Sicherheits-Features und dynamischem Pricing.
  */
 final readonly class PermitService
 {

@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: src/Core/Entity/Validity.php
- */
+// Path: src/Core/Entity/Validity.php
 
 declare(strict_types=1);
 

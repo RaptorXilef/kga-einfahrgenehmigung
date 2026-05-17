@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Verarbeitet Zahlungs-relevante API-Anfragen
- *
- * Path: src/Application/PaymentController.php
- */
+// Path: src/Application/PaymentController.php
 
 declare(strict_types=1);
 

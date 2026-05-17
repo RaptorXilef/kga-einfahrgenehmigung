@@ -5,15 +5,15 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * User-Management Einstiegspunkt
- *
- * Path:      public/users.php
- */
+// Path:      public/users.php
 
 declare(strict_types=1);
 
 use App\Application\UserController;
+
+/**
+ * User-Management Einstiegspunkt
+ */
 
 // Lädt die Bootstrap-Logik und liefert direkt den Container
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';

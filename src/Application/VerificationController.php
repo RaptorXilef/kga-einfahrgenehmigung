@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Orchestriert den Double-Opt-In Verifizierungsprozess.
- *
- * Path: src/Application/VerificationController.php
- */
+// Path: src/Application/VerificationController.php
 
 declare(strict_types=1);
 
