@@ -24,7 +24,7 @@ $groupImage = $auth->getImage('group', $groupId);
         <div style="display: flex; align-items: center; gap: 15px;">
             <div class="c-user-pill">
                 <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                    <img src="<?php echo $auth->getImage('user', $_SESSION['user_id'] ?? 'default'); ?>"
+                    <img src="<?php echo $auth->getImage('user', $auth->getUserId()); ?>"
                         style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
                     <!-- Klickbarer Name führt zum Profil -->
                     <a href="profile.php" style="text-decoration: none; color: inherit;" title="Zum Profil">

@@ -41,11 +41,11 @@
             </div>
 
             <div id="tab-users" class="c-tabs__content c-tabs__content--active">
-                <?php include 'admin_users/_tab_users.phtml'; ?>
+                <?php include $appRoot . '/templates/pages/admin_users/_tab_users.phtml'; ?>
             </div>
 
             <div id="tab-groups" class="c-tabs__content">
-                <?php include 'admin_users/_tab_groups.phtml'; ?>
+                <?php include $appRoot . '/templates/pages/admin_users/_tab_groups.phtml'; ?>
             </div>
         </div>
     </main>
@@ -99,34 +99,34 @@
             });
         }
 
-/**
- * Fokus-Logik: Springt zum editierten User/Gruppe
- */
+        /**
+         * Fokus-Logik: Springt zum editierten User/Gruppe
+         */
         function handleUrlFocus() {
             const urlParams = new URLSearchParams(window.location.search);
             const focusId = urlParams.get('focus');
 
             if (focusId) {
-        // 1. Karte im gesamten Dokument suchen
+                // 1. Karte im gesamten Dokument suchen
                 const targetCard = document.getElementById('card-' + focusId);
 
                 if (targetCard) {
-            // 2. Intelligenten Tab-Wechsel durchführen
+                    // 2. Intelligenten Tab-Wechsel durchführen
                     const parentTabContent = targetCard.closest('.c-tabs__content');
                     if (parentTabContent) {
                         const tabBtn = document.querySelector(`[data-tab-target="${parentTabContent.id}"]`);
                         if (tabBtn) {
-                    // Alle Tabs deaktivieren
+                            // Alle Tabs deaktivieren
                             document.querySelectorAll('.c-tabs__btn').forEach(b => b.classList.remove('c-tabs__btn--active'));
                             document.querySelectorAll('.c-tabs__content').forEach(c => c.classList.remove('c-tabs__content--active'));
 
-                    // Ziel-Tab aktivieren
+                            // Ziel-Tab aktivieren
                             tabBtn.classList.add('c-tabs__btn--active');
                             parentTabContent.classList.add('c-tabs__content--active');
                         }
                     }
 
-            // 3. Karte aufklappen und hinklettern
+                    // 3. Karte aufklappen und hinklettern
                     setTimeout(() => {
                         targetCard.classList.remove('is-closed');
 
@@ -135,7 +135,7 @@
                             block: 'center'
                         });
 
-                // Visuelles Feedback (Ring-Leuchten)
+                        // Visuelles Feedback (Ring-Leuchten)
                         targetCard.style.outline = "3px solid var(--primary-color)";
                         targetCard.style.outlineOffset = "2px";
                         setTimeout(() => {
@@ -147,30 +147,30 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-    // A. UI Modus (Fokus/Experte) wiederherstellen
+            // A. UI Modus (Fokus/Experte) wiederherstellen
             const savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
             updateUiMode(savedMode);
             const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
             if (radio) radio.checked = true;
 
-    // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
+            // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
             document.querySelectorAll('.permission-container').forEach(container => {
                 const masterCb = container.querySelector('input[data-master-toggle]');
                 if (masterCb) applyMasterState(container, masterCb.checked);
                 refreshTreeVisually(container);
             });
 
-    // C. Fokus-Sprung ausführen
+            // C. Fokus-Sprung ausführen
             handleUrlFocus();
         });
 
         document.addEventListener('change', function(e) {
-    // 1. MASTER TOGGLE Logik
+            // 1. MASTER TOGGLE Logik
             if (e.target && e.target.dataset.masterToggle) {
                 applyMasterState(e.target.closest('.permission-container'), e.target.checked);
             }
 
-    // 2. SMART TREE Logik
+            // 2. SMART TREE Logik
             if (e.target && e.target.dataset.permCheck) {
                 const checkbox = e.target;
                 const container = checkbox.closest('.permission-container');
