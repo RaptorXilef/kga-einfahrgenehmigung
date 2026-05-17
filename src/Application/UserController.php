@@ -15,6 +15,7 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Auth\AuthService;
+use App\Infrastructure\Config\Config;
 
 /**
  * Orchestriert die Benutzerverwaltung für v0.9.7.
@@ -398,11 +399,15 @@ final readonly class UserController
      */
     private function render(string $template, array $data): void
     {
-        $appRoot      = \rtrim((string) $this->config->get('root_path'), '/\\') . '/';
+        /** @var Config $config */
+        $config = $this->config;
+        // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
+        $appRoot = \rtrim((string) $config->get('root_path'), '/\\') . '/';
+
         $templateData = \array_merge([
             'auth'     => $this->auth,
             'config'   => $this->config,
-            'appRoot'  => $appRoot,
+            'appRoot'  => $appRoot . '/', // Für Partials im Template
             'settings' => [
                 'base_url'     => $this->config->getBaseUrl(),
                 'vereins_name' => $this->config->get('vereins_name'),
@@ -410,6 +415,7 @@ final readonly class UserController
         ], $data);
 
         \extract($templateData);
-        include $appRoot . "templates/pages/{$template}.phtml";
+        // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
+        include $appRoot . "/templates/pages/{$template}.phtml";
     }
 }

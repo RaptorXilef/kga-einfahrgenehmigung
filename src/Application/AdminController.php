@@ -201,7 +201,7 @@ final readonly class AdminController
             // Service-Aufruf mit neuen Parametern
             $code = $this->permitService->getVoucherService()->createVoucher(
                 $reason,
-                (string) ($_SESSION['user_id'] ?? 'sys_admin'),
+                (string) ($_SESSION['user_id'] ?? 'sys_admin'), // Geändert von 'Admin' auf 'sys_admin'
                 $tplKey,
                 $preData,
                 $type,
@@ -602,8 +602,9 @@ final readonly class AdminController
     private function render(string $templatePath, array $data = []): void
     {
         /** @var Config $config */
-        $config  = $this->config;
-        $appRoot = (string) $config->get('root_path');
+        $config = $this->config;
+        // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
+        $appRoot = \rtrim((string) $config->get('root_path'), '/\\') . '/';
 
         // Wir fügen auth global hinzu, falls es mal vergessen wird
         if (! isset($data['auth'])) {
@@ -612,6 +613,7 @@ final readonly class AdminController
 
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
         \extract($data);
+        // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 
