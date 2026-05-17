@@ -7,13 +7,13 @@ declare(strict_types=1);
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Speicher- und Backup-Einstellungen
- *
- * Path: config/storage.php
- */
+// Path: config/storage.php
 
 declare(strict_types=1);
+
+/**
+ * Speicher- und Backup-Einstellungen
+ */
 
 return [
     // MySQL Zugangsdaten (Optional)

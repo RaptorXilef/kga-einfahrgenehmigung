@@ -823,7 +823,7 @@ final readonly class PermitService
         $stayInMain = [];
 
         foreach ($all as $code => $data) {
-            // ROBUSTER CHECK: Erkennt Jahr aus String ODER Objekt
+            // ROBUSTER JAHR-CHECK (Funktioniert für JSON-Strings und DB-Objekte)
             $val  = $data['erstellt'] ?? 'now';
             $year = (int) ($val instanceof \DateTimeInterface
                 ? $val->format('Y')

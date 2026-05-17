@@ -5,6 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: config/permissions.php
+
+declare(strict_types=1);
+
 /**
  * Master-Struktur der Berechtigungen (Der Baum)
  *
@@ -21,11 +25,7 @@
  * <?php } ?>
  * <?php if ($auth->hasPermission('') || $auth->hasPermission('')) { ?>
  * <?php if ($auth->hasPermission('') && $auth->hasPermission('')): ?>
- *
- * Path: config/permissions.php
  */
-
-declare(strict_types=1);
 
 return [
     // --- UI EINSTELLUNGEN ---

@@ -5,13 +5,12 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Beispiel-Konfiguration für das Ausnahmegenehmigungs-System.
- *
- * Path:      config/config.php
- */
+// Path:      config/config.php
 
 declare(strict_types=1);
+/**
+ * Beispiel-Konfiguration für das Ausnahmegenehmigungs-System.
+ */
 
 return [
     // --- BASIC ---
@@ -177,12 +176,13 @@ return [
 
     // --- E-MAIL (Zwei Welten System) ---
     'mail' => [
-        'host'       => 'smtp.dein-provider.de',
-        'port'       => 465,
-        'user'       => 'no-reply@deine-kga.de',
-        'pass'       => 'dein-passwort',
-        'from'       => 'no-reply@deine-kga.de',
-        'recipients' => [
+        'host'             => 'smtp.dein-provider.de',
+        'port'             => 465,
+        'user'             => 'no-reply@deine-kga.de',
+        'pass'             => 'dein-passwort',
+        'from'             => 'no-reply@deine-kga.de',
+        'test_mail_active' => false, // Damit der Testmodus explizit gesteuert werden kann
+        'recipients'       => [
             'live' => 'vorstand@echte-domain.de', // Hier landen alle Vorstand-Mails im Live-Modus
             'test' => 'deine-private-mail@test.de', // Hier landen alle Vorstand-Mails im Testmodus
         ],

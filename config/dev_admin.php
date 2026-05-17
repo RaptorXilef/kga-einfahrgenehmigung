@@ -7,10 +7,12 @@ declare(strict_types=1);
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: config/dev_admin.php
+
+declare(strict_types=1);
+
 /**
  * System-Inhaber / Entwickler-Account (Gott-Modus)
- *
- * Path: config/dev_admin.php
  */
 return [
     'user'  => 'Systembetreuer', // Hier kannst du den Namen jederzeit ändern
