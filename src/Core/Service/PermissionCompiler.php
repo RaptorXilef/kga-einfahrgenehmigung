@@ -46,7 +46,7 @@ final class PermissionCompiler
                 $isAllowed    = $parentAllowed && $explicitAllow && ! $explicitDeny;
                 $result[$key] = $isAllowed;
             } else {
-                // Wenn kein Key da ist (Kategorie), gilt der Zustand des Vaters für die Kinder
+                // Wenn kein Key da ist (Kategorie), gilt der Zustand des Vaters für die Kinder.
                 $isAllowed = $parentAllowed;
             }
 
