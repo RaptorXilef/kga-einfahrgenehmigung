@@ -827,7 +827,13 @@ final readonly class PermitService
         $stayInMain = [];
 
         foreach ($all as $code => $data) {
-            if ((int) \substr((string) $data['erstellt'], 0, 4) <= $lastYear) {
+            // ROBUSTER CHECK: Erkennt Jahr aus String ODER Objekt
+            $val  = $data['erstellt'] ?? 'now';
+            $year = (int) ($val instanceof \DateTimeInterface
+                ? $val->format('Y')
+                : \substr((string) $val, 0, 4));
+
+            if ($year <= $lastYear) {
                 $toArchive[$code] = $data;
             } else {
                 $stayInMain[$code] = $data;
