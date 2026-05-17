@@ -1,617 +1,202 @@
 <?php
 
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
 /**
- * Page: Admin User & Permissions Management (v0.30.1)
+ * Path: templates/pages/admin_users.phtml
  */
-// $descOnTop = true;
-
-// --- LOGIK: SORTER & HIERARCHIE ---
-$masterPerm      = null;
-$globalWildcards = [];
-$tree            = [];
-
-\uksort($permissions, function ($a, $b) {
-    if ($a === '*') {
-        return -1;
-    }
-    if ($b === '*') {
-        return 1;
-    }
-    $isGlobA = \str_starts_with($a, '*');
-    $isGlobB = \str_starts_with($b, '*');
-    if ($isGlobA && ! $isGlobB) {
-        return -1;
-    }
-    if (! $isGlobA && $isGlobB) {
-        return 1;
-    }
-
-    $pA = \explode('.', $a);
-    $pB = \explode('.', $b);
-    if ($pA[0] === $pB[0] && ($pA[1] ?? '') === ($pB[1] ?? '')) {
-        $vA = \str_ends_with($a, '.view');
-        $vB = \str_ends_with($b, '.view');
-        if ($vA && ! $vB) {
-            return -1;
-        }
-        if (! $vA && $vB) {
-            return 1;
-        }
-    }
-
-    return \strcmp($a, $b);
-});
-
-foreach ($permissions as $k => $d) {
-    if ($k === '*') {
-        $masterPerm = ['k' => $k, 'd' => $d];
-
-        continue;
-    }
-    if (\str_starts_with($k, '*.')) {
-        $globalWildcards[$k] = $d;
-
-        continue;
-    }
-
-    $p                     = \explode('.', $k);
-    $root                  = $p[0];
-    $sub                   = $p[1] ?? 'GENERAL';
-    $tree[$root][$sub][$k] = $d;
-}
 ?>
-<?php if ($auth->hasPermission('system.users.manage')) { ?>
-    <!DOCTYPE html>
-    <html lang="de">
+<!DOCTYPE html>
+<html lang="de">
 
-    <head>
-        <meta charset="UTF-8">
-        <title>Sicherheitszentrale - v0.30.1</title>
-        <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
-        <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
-        <style>
-            .l-user-layout {
-                display: grid;
-                grid-template-columns: 350px 1fr;
-                gap: 30px;
-                align-items: start;
-            }
+<head>
+    <meta charset="UTF-8">
+    <title>Benutzer & Rechte - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+</head>
 
-            /* Accordion Cards (DASHBOARD, SYSTEM, etc) */
-            .category-card {
-                border: 2px solid #1e293b;
-                border-radius: 12px;
-                margin-bottom: 30px;
-                overflow: hidden;
-                background: #fff;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            }
+<body class="l-admin">
+    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
+    <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
 
-            .category-header {
-                background: #1e293b;
-                color: #fff;
-                padding: 15px 20px;
-                cursor: pointer;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-weight: 900;
-                text-transform: uppercase;
-            }
-
-            .category-header:hover {
-                background: #334155;
-            }
-
-            .category-card.is-closed .category-body {
-                display: none;
-            }
-
-            .category-header::after {
-                content: 'ZUKLAPPEN';
-                font-size: 0.65rem;
-                background: rgba(255, 255, 255, 0.1);
-                padding: 4px 8px;
-                border-radius: 4px;
-            }
-
-            .category-card.is-closed .category-header::after {
-                content: 'AUFKLAPPEN';
-                background: var(--primary-color);
-            }
-
-            /* Feature Tiles (ACTIVE, FINANCE, etc) */
-            .feature-tile {
-                border: 1px solid #cbd5e1;
-                border-radius: 10px;
-                margin: 15px;
-                background: #f8fafc;
-                overflow: hidden;
-            }
-
-            .feature-tile__header {
-                background: #e2e8f0;
-                padding: 8px 15px;
-                font-weight: 800;
-                font-size: 0.75rem;
-                color: #475569;
-                border-bottom: 1px solid #cbd5e1;
-                text-transform: uppercase;
-            }
-
-            /* Permission Items */
-            .p-item {
-                display: flex;
-                align-items: center;
-                padding: 10px 15px;
-                border-bottom: 1px solid #e2e8f0;
-                gap: 15px;
-                background: #fff;
-                transition: background 0.2s;
-            }
-
-            .p-item.is-view-master {
-                background: #f0f4f8;
-                border-bottom: 2px solid #cbd5e1;
-            }
-
-            .p-item:last-child {
-                border-bottom: none;
-            }
-
-            .p-label {
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                min-width: 0;
-            }
-
-            .p-label .main {
-                font-weight: 700;
-                color: #1e293b;
-                font-size: 0.85rem;
-            }
-
-            .p-label .sub {
-                font-family: monospace;
-                font-size: 0.65rem;
-                color: #94a3b8;
-                margin-top: 2px;
-            }
-
-            /* Controls */
-            .p-controls {
-                display: flex;
-                gap: 2px;
-                background: #f1f5f9;
-                padding: 3px;
-                border-radius: 6px;
-            }
-
-            .s-btn {
-                border: none;
-                padding: 5px 10px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 0.6rem;
-                font-weight: 900;
-                background: transparent;
-                color: #94a3b8;
-                min-width: 50px;
-                text-align: center;
-            }
-
-            input[type="radio"] {
-                display: none;
-            }
-
-            input[value="allow"]:checked+.s-btn {
-                background: #22c55e;
-                color: #fff;
-                box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
-            }
-
-            input[value="none"]:checked+.s-btn {
-                background: #fff;
-                color: #64748b;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-
-            input[value="deny"]:checked+.s-btn {
-                background: #ef4444;
-                color: #fff;
-                box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
-            }
-
-            /* Logic Overlays */
-            .p-item.is-auto-permitted {
-                background: #f0fdf4 !important;
-                border-left: 4px solid #22c55e;
-            }
-
-            .auto-label {
-                display: none;
-                color: #16a34a;
-                font-weight: 900;
-                font-size: 0.6rem;
-                margin-left: 8px;
-                text-transform: uppercase;
-            }
-
-            .is-auto-permitted .auto-label {
-                display: inline;
-            }
-
-            /* Sidebar */
-            .sidebar-box {
-                background: #fff;
-                border-radius: 12px;
-                border: 1px solid #e2e8f0;
-                margin-bottom: 20px;
-                overflow: hidden;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            }
-
-            .sidebar-box__head {
-                background: #f8fafc;
-                padding: 12px 15px;
-                border-bottom: 1px solid #e2e8f0;
-                font-weight: 800;
-                font-size: 0.75rem;
-                text-transform: uppercase;
-                color: #475569;
-            }
-        </style>
-    </head>
-
-    <body class="l-admin">
-        <?php include $appRoot . '/templates/components/_header_nav.phtml'; ?>
-
-        <main class="c-tab-content-container u-padding-y-l">
-            <header class="u-flex u-justify-between u-align-end u-margin-bottom-l">
-                <div>
-                    <h1 class="u-margin-none">Sicherheitszentrale</h1>
-                    <p class="u-text-muted">Abstrakte Pattern-Matching Engine</p>
-                </div>
-                <div class="u-flex u-gap-s">
-                    <button onclick="massToggle(true)" class="c-button c-button--secondary">📂 Alle auf</button>
-                    <button onclick="massToggle(false)" class="c-button c-button--secondary">📁 Alle zu</button>
-                    <!--<a href="admin.php" class="c-button c-button--secondary">← Dashboard</a>-->
-                </div>
-            </header>
-
-            <div class="l-user-layout">
-                <!-- SIDEBAR -->
-                <aside>
-                    <div class="sidebar-box" style="border-top: 4px solid var(--success-color);">
-                        <div class="sidebar-box__head">✨ Benutzer anlegen</div>
-                        <div class="u-padding-around-m">
-                            <form method="POST" class="u-flex u-flex-column u-gap-s">
-                                <input type="hidden" name="action" value="save_user">
-                                <input type="text" name="username" class="c-form-input" placeholder="Benutzername" required>
-                                <input type="password" name="password" class="c-form-input" placeholder="Passwort" required>
-                                <select name="group" class="c-form-select">
-                                    <?php foreach ($groups as $id => $g) { ?><option value="<?php echo $id; ?>"><?php echo \htmlspecialchars($g['name']); ?></option><?php } ?>
-                                </select>
-                                <button type="submit" class="c-button--primary">Erstellen</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-box" style="border-top: 4px solid var(--primary-color);">
-                        <div class="sidebar-box__head">📦 Neue Gruppe</div>
-                        <div class="u-padding-around-m">
-                            <form method="POST" class="u-flex u-flex-column u-gap-s">
-                                <input type="hidden" name="action" value="save_group">
-                                <input type="text" name="group_id" class="c-form-input" placeholder="ID (z.B. helfer)" required>
-                                <input type="text" name="group_name" class="c-form-input" placeholder="Name (z.B. Helfer)" required>
-                                <button type="submit" class="c-button--primary">Gruppe anlegen</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-box">
-                        <div class="sidebar-box__head">👥 Konten verwalten</div>
-                        <div class="u-padding-none">
-                            <table class="c-table">
-                                <?php foreach ($users as $uname => $u) { ?>
-                                    <tr>
-                                        <td class="u-padding-around-m">
-                                            <form method="POST" class="u-flex u-flex-column u-gap-xs">
-                                                <input type="hidden" name="action" value="save_user">
-                                                <input type="hidden" name="username" value="<?php echo $uname; ?>">
-                                                <strong><?php echo \htmlspecialchars($uname); ?></strong>
-                                                <select name="group" class="c-form-select" style="font-size:0.7rem; height:28px;">
-                                                    <?php foreach ($groups as $gid => $g) { ?>
-                                                        <option value="<?php echo $gid; ?>" <?php echo ($u['group'] === $gid) ? 'selected' : ''; ?>><?php echo \htmlspecialchars($g['name']); ?></option>
-                                                    <?php } ?>
-                                                </select>
-                                                <input type="password" name="password" class="c-form-input" placeholder="PW ändern..." style="font-size:0.7rem; height:28px;">
-                                                <div class="u-flex u-gap-xs">
-                                                    <button type="submit" class="c-button--primary u-width-100" style="padding:4px; font-size:0.6rem;">Speichern</button>
-                                                    <?php if ($uname !== $auth->getUsername()) { ?>
-                                                        <button type="submit" name="action" value="delete_user" class="c-button--danger" onclick="return confirm('Löschen?')">🗑️</button>
-                                                    <?php } ?>
-                                                </div>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-                            </table>
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- MAIN CONTENT -->
-                <div class="permission-matrix">
-                    <?php foreach ($groups as $groupId => $gData) { ?>
-                        <section class="category-card is-closed" id="group-<?php echo $groupId; ?>">
-                            <header class="category-header" onclick="this.parentElement.classList.toggle('is-closed')">
-                                <span>📦 Gruppe: <?php echo \htmlspecialchars($gData['name']); ?></span>
-                            </header>
-                            <div class="category-body">
-                                <form method="POST">
-                                    <input type="hidden" name="action" value="save_group">
-                                    <input type="hidden" name="group_id" value="<?php echo $groupId; ?>">
-                                    <input type="hidden" name="group_name" value="<?php echo $gData['name']; ?>">
-
-                                    <div class="permission-container" data-group-id="<?php echo $groupId; ?>">
-
-                                        <!-- Alle auf NONE oder DENY setzen (QUICK-AKTIONS) -->
-                                        <div class="u-flex u-justify-between u-align-center u-padding-around-s" style="background: #fff; border-bottom: 1px solid #fee2e2;">
-                                            <span style="font-size: 0.7rem; font-weight: bold; color: #991b1b;">QUICK-ACTIONS:</span>
-                                            <div class="u-flex u-gap-xs">
-                                                <button type="button" onclick="window.engines['<?php echo $groupId; ?>'].massReset('none')" class="c-button" style="padding: 2px 8px; font-size: 0.6rem; background: #e2e8f0; color: #475569; border: none;">Alle auf NONE</button>
-                                                <button type="button" onclick="window.engines['<?php echo $groupId; ?>'].massReset('deny')" class="c-button" style="padding: 2px 8px; font-size: 0.6rem; background: #fee2e2; color: #991b1b; border: none;">Alle auf DENY</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- MASTER RULE -->
-                                        <?php if ($masterPerm) { ?>
-                                            <div class="feature-tile" style="border-color: #ef4444; border-width: 2px;">
-                                                <div class="feature-tile__header" style="background: #fee2e2; color: #b91c1c;">Gott-Modus (Full Access)</div>
-                                                <?php
-                                                $pKey = $masterPerm['k'];
-                                            $pDesc    = $masterPerm['d'];
-                                            $val      = \in_array($pKey, $gData['permissions'], true) ? 'allow' : 'none';
-                                            ?>
-                                                <div class="p-item" data-perm="<?php echo $pKey; ?>">
-                                                    <div class="p-label">
-                                                        <span class="main" style="color:#ef4444"><?php echo $pDesc; ?></span>
-                                                        <span class="sub"><?php echo $pKey; ?></span>
-                                                    </div>
-                                                    <div class="p-controls">
-                                                        <label><input type="radio" name="perms[<?php echo $pKey; ?>]" value="allow" <?php echo $val === 'allow' ? 'checked' : ''; ?>><span class="s-btn btn-allow">ALLOW</span></label>
-                                                        <label><input type="radio" name="perms[<?php echo $pKey; ?>]" value="none" <?php echo $val === 'none' ? 'checked' : ''; ?>><span class="s-btn btn-none">NONE</span></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php } ?>
-
-                                        <!-- GLOBALE WILDCARDS -->
-                                        <div class="feature-tile" style="border-color: #8b5cf6; border-width: 2px;">
-                                            <div class="feature-tile__header" style="background: #f5f3ff; color: #6d28d9;">Globale Sammler (Wildcards)</div>
-                                            <?php foreach ($globalWildcards as $k => $d) {
-                                                $val = 'none';
-                                                if (\in_array($k, $gData['permissions'], true)) {
-                                                    $val = 'allow';
-                                                }
-                                                if (\in_array('-' . $k, $gData['permissions'], true)) {
-                                                    $val = 'deny';
-                                                }
-                                                ?>
-                                                <div class="p-item" data-perm="<?php echo $k; ?>" data-is-wildcard="true">
-                                                    <div class="p-label">
-                                                        <span class="main"><?php echo $descOnTop ? $d : $k; ?></span>
-                                                        <span class="sub"><?php echo $descOnTop ? $k : $d; ?><span class="auto-label"> (AUTO)</span></span>
-                                                    </div>
-                                                    <div class="p-controls">
-                                                        <label><input type="radio" name="perms[<?php echo $k; ?>]" value="allow" <?php echo $val === 'allow' ? 'checked' : ''; ?>><span class="s-btn btn-allow">ALLOW</span></label>
-                                                        <label><input type="radio" name="perms[<?php echo $k; ?>]" value="none" <?php echo $val === 'none' ? 'checked' : ''; ?>><span class="s-btn btn-none">NONE</span></label>
-                                                        <label><input type="radio" name="perms[<?php echo $k; ?>]" value="deny" <?php echo $val === 'deny' ? 'checked' : ''; ?>><span class="s-btn btn-deny">DENY</span></label>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
-                                        </div>
-
-                                        <!-- STRUKTURIERTER BAUM -->
-                                        <?php foreach ($tree as $rootName => $subs) { ?>
-                                            <div class="u-margin-top-l u-margin-bottom-s u-padding-x-m" style="font-weight: 900; font-size: 1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo $rootName; ?></div>
-                                            <?php foreach ($subs as $subName => $items) { ?>
-                                                <div class="feature-tile">
-                                                    <div class="feature-tile__header"><?php echo $subName; ?></div>
-                                                    <?php foreach ($items as $k => $d) {
-                                                        $isView = \str_ends_with($k, '.view');
-                                                        $val    = 'none';
-                                                        if (\in_array($k, $gData['permissions'], true)) {
-                                                            $val = 'allow';
-                                                        }
-                                                        if (\in_array('-' . $k, $gData['permissions'], true)) {
-                                                            $val = 'deny';
-                                                        }
-                                                        ?>
-                                                        <div class="p-item <?php echo $isView ? 'is-view-master' : ''; ?>" data-perm="<?php echo $k; ?>">
-                                                            <div class="p-label" style="padding-left:<?php echo $isView ? 0 : 20; ?>px">
-                                                                <span class="main">
-                                                                    <?php if (! $isView) { ?>└─ <?php } ?>
-                                                                <?php echo \htmlspecialchars($descOnTop ? $d : $k); ?>
-                                                                </span>
-                                                                <span class="sub">
-                                                                    <?php echo \htmlspecialchars($descOnTop ? $k : $d); ?>
-                                                                    <span class="auto-label"> (AUTO)</span>
-                                                                </span>
-                                                            </div>
-                                                            <div class="p-controls">
-                                                                <label><input type="radio" name="perms[<?php echo $k; ?>]" value="allow" <?php echo $val === 'allow' ? 'checked' : ''; ?>><span class="s-btn btn-allow">ALLOW</span></label>
-                                                                <label><input type="radio" name="perms[<?php echo $k; ?>]" value="none" <?php echo $val === 'none' ? 'checked' : ''; ?>><span class="s-btn btn-none">NONE</span></label>
-                                                                <label><input type="radio" name="perms[<?php echo $k; ?>]" value="deny" <?php echo $val === 'deny' ? 'checked' : ''; ?>><span class="s-btn btn-deny">DENY</span></label>
-                                                            </div>
-                                                        </div>
-                                                    <?php } ?>
-                                                </div>
-                                            <?php } ?>
-                                        <?php } ?>
-                                    </div>
-                                    <div class="u-padding-around-m">
-                                        <button type="submit" class="c-button--primary u-width-100" style="padding:15px; font-weight:bold;">RECHTE FÜR <?php echo \strtoupper($gData['name']); ?> SPEICHERN</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </section>
-                    <?php } ?>
-                </div>
+    <main class="c-tab-content-container u-padding-y-l">
+        <?php if ($message) { ?>
+            <div class="c-alert <?php echo \str_contains($message, 'Fehler') ? 'c-alert--danger' : 'c-alert--success'; ?> u-margin-bottom-l">
+                <?php echo \htmlspecialchars($message); ?>
             </div>
-        </main>
+        <?php } ?>
 
-        <script>
-            function massToggle(open) {
-                document.querySelectorAll('.category-card').forEach(c => open ? c.classList.remove('is-closed') : c.classList.add('is-closed'));
-            }
+        <div class="c-tabs">
+            <div class="c-tabs__nav u-margin-bottom-l">
+                <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-users">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""> Benutzerverwaltung
+                </button>
+                <button class="c-tabs__btn" data-tab-target="tab-groups">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-group.webp" class="c-icon" alt=""> Gruppen & Rechte
+                </button>
+            </div>
 
-            /**
-             * Abstrakte Engine v0.30.2 (Bugfix Kettenreaktion)
-             */
-            class PermissionEngine {
-                constructor(container) {
-                    this.container = container;
-                    this.items = Array.from(container.querySelectorAll('.p-item'));
-                }
+            <div id="tab-users" class="c-tabs__content c-tabs__content--active">
+                <?php include 'admin_users/_tab_users.phtml'; ?>
+            </div>
 
-                getActiveExplicit() {
-                    return this.items.filter(i => i.querySelector('input[value="allow"]').checked).map(i => i.dataset.perm);
-                }
+            <div id="tab-groups" class="c-tabs__content">
+                <?php include 'admin_users/_tab_groups.phtml'; ?>
+            </div>
+        </div>
+    </main>
 
-                isCoveredByPattern(targetKey, activePatterns) {
-                    for (let pattern of activePatterns) {
-                        if (pattern === targetKey) continue;
-                        if (pattern === '*') return true;
-                        if (pattern.endsWith('.*') && targetKey.startsWith(pattern.slice(0, -1))) return true;
-                        if (pattern.startsWith('*.') && targetKey.endsWith(pattern.slice(1))) return true;
-                        if (targetKey.endsWith('.view') && pattern.startsWith(targetKey.replace('.view', ''))) return true;
-                    }
-                    return false;
-                }
+    <script type="module" src="<?php echo $settings['base_url']; ?>assets/js/admin-handler.min.js"></script>
 
-                refreshVisuals() {
-                    const explicit = this.getActiveExplicit();
-                    this.items.forEach(item => {
-                        const key = item.dataset.perm;
-                        const isExplicit = item.querySelector('input[value="allow"]').checked;
-                        if (this.isCoveredByPattern(key, explicit) && !isExplicit) {
-                            item.classList.add('is-auto-permitted');
-                        } else {
-                            item.classList.remove('is-auto-permitted');
-                        }
-                    });
-                }
-
-                checkFullCoverage() {
-                    const specifics = this.items.filter(i => !i.dataset.perm.startsWith('*') && i.dataset.perm !== '*');
-                    const wildcards = this.items.filter(i => i.dataset.perm.startsWith('*.'));
-                    const master = this.items.find(i => i.dataset.perm === '*');
-
-                    wildcards.forEach(wItem => {
-                        const suffix = wItem.dataset.perm.slice(1);
-                        const matchers = specifics.filter(i => i.dataset.perm.endsWith(suffix));
-                        if (matchers.length > 0) {
-                            const allSet = matchers.every(i => i.querySelector('input[value="allow"]').checked);
-                            if (allSet) wItem.querySelector('input[value="allow"]').checked = true;
-                        }
-                    });
-
-                    if (master) {
-                        const allOthersSet = this.items.filter(i => i !== master)
-                            .every(i => i.querySelector('input[value="allow"]').checked || i.classList.contains('is-auto-permitted'));
-                        if (allOthersSet) master.querySelector('input[value="allow"]').checked = true;
-                    }
-                }
-
-                applyTopDownRule(triggerKey, state) {
-                    if (state !== 'allow') return;
-                    this.items.forEach(item => {
-                        const k = item.dataset.perm;
-                        if (k === triggerKey) return;
-                        let shouldSet = false;
-                        if (triggerKey === '*') shouldSet = true;
-                        else if (triggerKey.endsWith('.*') && k.startsWith(triggerKey.slice(0, -1))) shouldSet = true;
-                        else if (triggerKey.startsWith('*.') && k.endsWith(triggerKey.slice(1))) shouldSet = true;
-                        if (shouldSet) item.querySelector('input[value="allow"]').checked = true;
-                    });
-                }
-
-                // Hilfsfunktion um Wildcards zu killen, wenn ein Kind stirbt
-                _killParentWildcards(key) {
-                    const suffix = key.includes('.') ? '*.' + key.split('.').pop() : null;
-                    const prefix = key.includes('.') ? key.split('.').slice(0, -1).join('.') + '.*' : null;
-
-                    this.items.forEach(item => {
-                        const k = item.dataset.perm;
-                        const radioNone = item.querySelector('input[value="none"]');
-                        if (radioNone) {
-                            if (k === '*' || (suffix && k === suffix) || (prefix && k === prefix)) {
-                                radioNone.checked = true;
-                            }
-                        }
-                    });
-                }
-
-                applyBottomUpRule(triggerKey, state) {
-                    if (state === 'allow') return;
-
-                    // 1. Wenn ein Recht auf NONE/DENY geht, sterben Master (*) und Suffix/Prefix Wildcards
-                    this._killParentWildcards(triggerKey);
-
-                    // 2. Sonderfall: Wenn .view deaktiviert wird, töte alle Aktionen darunter
-                    if (triggerKey.endsWith('.view')) {
-                        const base = triggerKey.replace('.view', '');
-                        this.items.forEach(item => {
-                            const k = item.dataset.perm;
-                            if (k.startsWith(base) && k !== triggerKey) {
-                                const radioNone = item.querySelector('input[value="none"]');
-                                if (radioNone && !radioNone.checked) {
-                                    radioNone.checked = true;
-                                    // WICHTIG: Wenn wir dashboard.active.print ausschalten,
-                                    // müssen wir JETZT prüfen, ob *.print auch sterben muss!
-                                    this._killParentWildcards(k); // REKURSIVER FIX
-                                }
-                            }
-                        });
-                    }
-                }
-
-                massReset(state) {
-                    if (!confirm("Möchten Sie wirklich alle Rechte dieser Gruppe auf " + state.toUpperCase() + " setzen?")) return;
-                    this.items.forEach(item => {
-                        const radio = item.querySelector(`input[value="${state}"]`);
-                        if (radio) radio.checked = true;
-                    });
-                    this.refreshVisuals();
-                }
-            }
-
-            window.engines = {};
-
-            document.querySelectorAll('.permission-container').forEach(c => {
-                const groupId = c.dataset.groupId;
-                const engine = new PermissionEngine(c);
-                window.engines[groupId] = engine;
-                engine.refreshVisuals();
-
-                c.querySelectorAll('.p-item input').forEach(radio => {
-                    radio.addEventListener('change', (e) => {
-                        const item = e.target.closest('.p-item');
-                        const key = item.dataset.perm;
-                        const val = e.target.value;
-
-                        engine.applyTopDownRule(key, val);
-                        engine.applyBottomUpRule(key, val);
-                        engine.checkFullCoverage();
-                        engine.refreshVisuals();
-                    });
-                });
+    <script>
+        function updateUiMode(mode) {
+            const wrappers = document.querySelectorAll('.p-tree-wrapper');
+            wrappers.forEach(w => {
+                w.classList.remove('mode-hide', 'mode-grey');
+                w.classList.add('mode-' + mode);
             });
-        </script>
-    </body>
+            localStorage.setItem('pref_perm_ui_mode', mode);
+        }
 
-    </html>
-<?php } ?>
+        function applyMasterState(container, isMaster) {
+            const treeWrapper = container.querySelector('.p-tree-wrapper');
+            if (!treeWrapper) return;
+            if (isMaster) {
+                treeWrapper.classList.add('is-master-active');
+                treeWrapper.querySelectorAll('input[data-perm-check]').forEach(cb => {
+                    cb.disabled = true;
+                    cb.parentElement.style.opacity = "0.5";
+                    cb.parentElement.style.pointerEvents = "none";
+                });
+            } else {
+                treeWrapper.classList.remove('is-master-active');
+                treeWrapper.querySelectorAll('input[data-perm-check]').forEach(cb => {
+                    cb.disabled = false;
+                    cb.parentElement.style.opacity = "1";
+                    cb.parentElement.style.pointerEvents = "auto";
+                });
+            }
+        }
+
+        function refreshTreeVisually(container) {
+            const nodes = container.querySelectorAll('.p-tree-node');
+            nodes.forEach(node => {
+                const key = node.dataset.key;
+                if (!key) return;
+                const parentNode = node.parentElement.closest('.p-tree-node');
+                if (parentNode) {
+                    const parentCheckbox = parentNode.querySelector(':scope > .p-item input[data-perm-check]');
+                    if (parentCheckbox && !parentCheckbox.checked) {
+                        node.classList.add('is-locked');
+                    } else {
+                        node.classList.remove('is-locked');
+                    }
+                }
+            });
+        }
+
+/**
+ * Fokus-Logik: Springt zum editierten User/Gruppe
+ */
+        function handleUrlFocus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const focusId = urlParams.get('focus');
+
+            if (focusId) {
+        // 1. Karte im gesamten Dokument suchen
+                const targetCard = document.getElementById('card-' + focusId);
+
+                if (targetCard) {
+            // 2. Intelligenten Tab-Wechsel durchführen
+                    const parentTabContent = targetCard.closest('.c-tabs__content');
+                    if (parentTabContent) {
+                        const tabBtn = document.querySelector(`[data-tab-target="${parentTabContent.id}"]`);
+                        if (tabBtn) {
+                    // Alle Tabs deaktivieren
+                            document.querySelectorAll('.c-tabs__btn').forEach(b => b.classList.remove('c-tabs__btn--active'));
+                            document.querySelectorAll('.c-tabs__content').forEach(c => c.classList.remove('c-tabs__content--active'));
+
+                    // Ziel-Tab aktivieren
+                            tabBtn.classList.add('c-tabs__btn--active');
+                            parentTabContent.classList.add('c-tabs__content--active');
+                        }
+                    }
+
+            // 3. Karte aufklappen und hinklettern
+                    setTimeout(() => {
+                        targetCard.classList.remove('is-closed');
+
+                        targetCard.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
+                // Visuelles Feedback (Ring-Leuchten)
+                        targetCard.style.outline = "3px solid var(--primary-color)";
+                        targetCard.style.outlineOffset = "2px";
+                        setTimeout(() => {
+                            targetCard.style.outline = "none";
+                        }, 2000);
+                    }, 400);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+    // A. UI Modus (Fokus/Experte) wiederherstellen
+            const savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
+            updateUiMode(savedMode);
+            const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
+            if (radio) radio.checked = true;
+
+    // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
+            document.querySelectorAll('.permission-container').forEach(container => {
+                const masterCb = container.querySelector('input[data-master-toggle]');
+                if (masterCb) applyMasterState(container, masterCb.checked);
+                refreshTreeVisually(container);
+            });
+
+    // C. Fokus-Sprung ausführen
+            handleUrlFocus();
+        });
+
+        document.addEventListener('change', function(e) {
+    // 1. MASTER TOGGLE Logik
+            if (e.target && e.target.dataset.masterToggle) {
+                applyMasterState(e.target.closest('.permission-container'), e.target.checked);
+            }
+
+    // 2. SMART TREE Logik
+            if (e.target && e.target.dataset.permCheck) {
+                const checkbox = e.target;
+                const container = checkbox.closest('.permission-container');
+                if (checkbox.checked) {
+                    // Bottom-Up Aktivierung
+                    let parentNode = checkbox.closest('.p-tree-node').parentElement.closest('.p-tree-node');
+                    while (parentNode) {
+                        const parentCheckbox = parentNode.querySelector(':scope > .p-item input[data-perm-check]');
+                        if (parentCheckbox && !parentCheckbox.checked) {
+                            parentCheckbox.checked = true;
+                            parentCheckbox.closest('.p-item').classList.add('is-auto-active');
+                            setTimeout(() => {
+                                if (parentCheckbox.closest('.p-item')) parentCheckbox.closest('.p-item').classList.remove('is-auto-active');
+                            }, 1000);
+                        }
+                        parentNode = parentNode.parentElement.closest('.p-tree-node');
+                    }
+                } else {
+                    // Top-Down Deaktivierung
+                    checkbox.closest('.p-tree-node').querySelectorAll('input[data-perm-check]').forEach(child => child.checked = false);
+                }
+                refreshTreeVisually(container);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

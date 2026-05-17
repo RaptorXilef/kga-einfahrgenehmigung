@@ -70,6 +70,7 @@ foreach ($configFiles as $key => $file) {
         if (\is_array($loaded)) {
             if ($key === 'perms') {
                 $settings['permissions'] = $loaded['list'] ?? [];
+                $settings['structure']   = $loaded['structure'] ?? [];
                 $settings['admin_ui']    = $loaded['admin_ui'] ?? [];
             } elseif ($key === 'dev') {
                 $settings['superadmin'] = $loaded;

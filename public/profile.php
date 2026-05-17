@@ -13,41 +13,24 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+use App\Application\UserController;
+use App\Contracts\Mail\MailServiceInterface;
 
-// 1. Die Einstellungen aus der Datei laden
-$settings = require __DIR__ . '/../config/config.php';
+// 1. Nutze den zentralen Bootstrapper (wie in admin.php)
+$container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 
-// 2. Den root_path manuell hinzufügen, da er für das Rendering wichtig ist
-$settings['root_path'] = \realpath(__DIR__ . '/../') . '/';
+// 2. Hol dir den Controller aus dem Container (er hat dann alles: Config, Auth, etc.)
+$controller = $container->get(UserController::class);
 
-// 3. Jetzt das Config-Objekt korrekt mit dem Array initialisieren
-$config = new \App\Infrastructure\Config\Config($settings);
-
-// Datenbank-Verbindung (PDO) - Falls du MySQL nutzt, hier initialisieren, sonst null
-$pdo = null;
-if ($config->get('storage_config')['users']['type'] === 'mysql') {
-    $db  = $config->get('database');
-    $pdo = new \PDO(
-        "mysql:host={$db['host']};dbname={$db['dbname']};charset={$db['charset']}",
-        $db['user'],
-        $db['pass'],
-        [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION],
-    );
-}
-
-$auth       = new \App\Infrastructure\Auth\AuthService($config, $pdo);
-$controller = new \App\Application\UserController($config, $auth);
-
-// Request an den Controller übergeben
+// 3. Request verarbeiten
 $controller->handleProfileRequest($_POST);
 
+// 4. Mail-Queue wie gewohnt anstoßen
 try {
-    $mailService = $container->get(\App\Contracts\Mail\MailServiceInterface::class);
+    $mailService = $container->get(MailServiceInterface::class);
     if ($mailService instanceof \App\Core\Service\MailQueueService) {
-        // Wir verarbeiten bis zu 10 Mails. Das reicht für Vorstand + Pächter + Dokument
-        $mailService->processQueue(10);
+        $mailService->processQueue(5);
     }
 } catch (\Throwable $e) {
-    // Fehler beim Mailversand sollen die Seite nicht abstürzen lassen
+    // Silent fail für Mails
 }

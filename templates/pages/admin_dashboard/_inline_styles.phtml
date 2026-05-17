@@ -812,18 +812,320 @@
     .u-hover-fade {
         transition: background-color 0.2s ease;
     }
+
     .u-hover-fade:hover {
         background-color: #f8fafc !important;
     }
-    .u-cursor-pointer { cursor: pointer; }
+
+    .u-cursor-pointer {
+        cursor: pointer;
+    }
 
     /* Konsistente Badge-Größen */
+    /* Erweitertes Design für Benutzer & Gruppen */
     .c-badge {
-        display: inline-block;
-        padding: 2px 10px;
+        background: #e2e8f0;
+        color: #475569;
+        padding: 4px 10px;
         border-radius: 20px;
-        font-weight: 700;
         font-size: 0.75rem;
-        white-space: nowrap;
+        font-weight: 700;
+    }
+
+    .category-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .category-card:not(.is-closed) {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .category-header:hover {
+        background: #f8fafc !important;
+    }
+
+    /* 1x1 Bilder erzwingen */
+    img {
+        object-fit: cover;
+    }
+
+
+
+    .p-tree-container {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .p-tree-node {
+        transition: all 0.2s;
+    }
+
+    .p-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .p-item:hover {
+        background: #f8fafc;
+    }
+
+    .p-item.is-root {
+        background: #f1f5f9;
+        font-weight: bold;
+    }
+
+    .p-label .main {
+        display: block;
+        font-size: 0.9rem;
+        color: #1e293b;
+    }
+
+    .p-label .sub {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        font-family: monospace;
+    }
+
+    /* Permission Tree Styles */
+    .p-tree-box {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .p-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.3s;
+    }
+
+    .p-row:hover {
+        background: #f8fafc;
+    }
+
+    .p-row--root {
+        background: #f1f5f9;
+        font-weight: 800;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .p-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .p-label {
+        font-size: 0.9rem;
+        color: #1e293b;
+    }
+
+    .p-key {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        font-family: monospace;
+    }
+
+    /* Animation für die Auto-Aktivierung */
+
+
+
+
+    /* --- UI MODI FÜR DEN RECHTE-BAUM --- */
+
+    /* Wenn ein Knoten gesperrt ist (Elternteil ist aus) */
+    .p-tree-node.is-locked>.p-item {
+        background: #f8fafc;
+        border-left: 3px solid #cbd5e1;
+    }
+
+    .p-tree-node.is-locked .c-switch {
+        opacity: 0.3;
+        pointer-events: none;
+        /* Schalter unbedienbar machen */
+    }
+
+    /* MODUS: VERSTECKEN (Hide) */
+    .mode-hide .p-tree-node.is-locked {
+        display: none !important;
+    }
+
+    /* MODUS: AUSGRAUEN (Grey) */
+    .mode-grey .p-tree-node.is-locked>.p-item {
+        opacity: 0.4;
+        filter: grayscale(1);
+        cursor: not-allowed;
+    }
+
+    /* Visual Feedback für Auto-Aktivierung */
+    .p-item.is-auto-active {
+        background-color: rgba(39, 174, 96, 0.05) !important;
+        transition: background-color 0.5s;
+    }
+
+    /* Wenn Master-Zugriff aktiv ist, den Baum speziell stylen */
+    .is-master-active .p-tree-node {
+        border-color: rgba(39, 174, 96, 0.2);
+    }
+
+    .is-master-active .p-item {
+        background-color: rgba(39, 174, 96, 0.03) !important;
+    }
+
+    .is-auto-selected {
+        background-color: rgba(52, 152, 219, 0.2) !important;
+    }
+
+    /* --- FIX BUG 1 & 2: MODERN SWITCH (BREITER & STABIL) --- */
+    .c-switch {
+        position: relative;
+        display: inline-block;
+        width: 100px;
+        /* Erhöht von 80px auf 100px für MASTER/ALLOW */
+        height: 32px;
+    }
+
+    .c-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .c-switch-label {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: .4s;
+        border-radius: 30px;
+        border: 1px solid var(--border-color);
+    }
+
+    .c-switch-label:before {
+        position: absolute;
+        content: "";
+        height: 24px;
+        width: 24px;
+        left: 4px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        z-index: 5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Der Versatz muss genau zur Breite passen: 100px - 24px - 8px = 68px */
+    input:checked+.c-switch-label:before {
+        transform: translateX(68px);
+    }
+
+    .c-switch-label:after {
+        content: attr(data-off);
+        position: absolute;
+        right: 12px;
+        top: 7px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        color: #64748b;
+        transition: all 0.3s;
+    }
+
+    input:checked+.c-switch-label:after {
+        content: attr(data-on);
+        left: 12px;
+        right: auto;
+        color: #fff;
+    }
+
+    /* Master/Danger Variante */
+    .c-switch--danger input:checked+.c-switch-label {
+        background-color: #e11d48;
+        border-color: #be123c;
+    }
+
+    input:checked+.c-switch-label {
+        background-color: var(--success-color);
+    }
+
+
+    .c-switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: .3s;
+        border-radius: 24px;
+    }
+
+    .c-switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+    }
+
+    input:checked+.c-switch-slider {
+        background-color: var(--success-color);
+    }
+
+    input:checked+.c-switch-slider:before {
+        transform: translateX(26px);
+    }
+
+    /* --- FIX: KARTEN EINKLAPPEN --- */
+    .category-card.is-closed .category-body {
+        display: none !important;
+    }
+
+    /* --- HEADER PILL STYLING --- */
+    .c-user-pill {
+        background: var(--bg-light);
+        padding: 4px 6px 4px 12px;
+        border-radius: 30px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .c-group-badge {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        padding: 3px 10px 3px 6px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .c-group-badge span {
+        color: var(--text-main);
+        font-weight: 800;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 </style>

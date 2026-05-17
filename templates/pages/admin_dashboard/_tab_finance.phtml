@@ -35,7 +35,7 @@ $now           = new \DateTimeImmutable('today');
                                 <th>Kontakt (E-Mail)</th>
                             <?php } ?>
                             <th style="width: 220px; text-align: center;">Frist & Status</th>
-                            <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                            <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
                                 <th style="width: 120px; text-align: right;">Betrag</th>
                             <?php } ?>
                             <th style="width: 120px; text-align: right; padding-right: 20px;">Verwaltung</th>
@@ -113,7 +113,7 @@ $now           = new \DateTimeImmutable('today');
                                     </td>
 
                                     <!-- 5. Betrag -->
-                                    <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                                    <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
                                         <td class="u-text-right" style="vertical-align: middle;">
                                             <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
                                         </td>

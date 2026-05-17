@@ -338,6 +338,7 @@ final readonly class AdminController
         // Export Logik
 
         $this->render('admin_dashboard', [
+            'structure'        => $this->config->get('structure', []),
             'periodStats'      => $this->calculateDetailedStats($filtered), // Erweiterte Methode
             'yearlyStats'      => $yearlyStats, // Die Daten für Diagramm & Archiv
             'groups'           => $this->groupPermits($allPermits),

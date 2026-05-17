@@ -450,14 +450,14 @@ final readonly class MigrationService
                         'privacy.email.reveal', 'template.custom.perm',
                         'template.custom.std', 'template.perm.12', 'template.perm.3', 'template.perm.6',
                         'template.perm.9', 'template.std.14', 'template.std.30', 'template.std.7',
-                        'template.std.klause', '-dashboard.migration.view', '-finance.revenue.reveal',
+                        'template.std.klause', '-dashboard.migration.view', '-privacy.finance.reveal',
                     ],
                 ],
                 'pruefer' => [
                     'name'        => 'Prüfer vor Ort',
                     'permissions' => [
                         'dashboard.active.view', 'dashboard.active.details', '-dashboard.migration.view',
-                        'dashboard.view', '-finance.revenue.reveal', '-privacy.email.reveal',
+                        'dashboard.view', '-privacy.finance.reveal', '-privacy.email.reveal',
                     ],
                 ],
                 'finance' => [

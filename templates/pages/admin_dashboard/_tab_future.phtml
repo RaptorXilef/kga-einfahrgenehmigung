@@ -130,7 +130,7 @@ $futurePermits = $groups['future'] ?? [];
                                         <span class="c-badge <?php echo $isPaid ? 'c-badge--success' : 'c-badge--warning'; ?>">
                                             <?php echo $isPaid ? 'BEZAHLT' : 'OFFEN'; ?>
                                         </span>
-                                        <?php if ($auth->hasPermission('finance.revenue.reveal')) { ?>
+                                        <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
                                             <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 700; color: #1e293b;">
                                                 <?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €
                                             </div>

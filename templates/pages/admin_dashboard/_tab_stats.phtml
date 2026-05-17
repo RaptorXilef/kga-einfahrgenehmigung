@@ -31,7 +31,7 @@
             </div>
         </div>
 
-        <?php if ($auth->hasPermission('dashboard.stats.current') && $auth->hasPermission('finance.revenue.reveal')) { ?>
+        <?php if ($auth->hasPermission('dashboard.stats.current') && $auth->hasPermission('privacy.finance.reveal')) { ?>
         <div class="u-grid u-gap-m u-margin-bottom-l" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
 
             <div class="c-card u-margin-none" style="border-top: 5px solid var(--success-color);">
@@ -92,7 +92,7 @@
         </div>
         <?php } ?>
 
-        <?php if ($auth->hasPermission('dashboard.stats.charts') && $auth->hasPermission('finance.revenue.reveal')) { ?>
+        <?php if ($auth->hasPermission('dashboard.stats.charts') && $auth->hasPermission('privacy.finance.reveal')) { ?>
         <section class="c-card u-margin-bottom-l" style="border-top-color: #6366f1;">
             <details>
                 <summary class="u-padding-around-m u-cursor-pointer u-font-bold" style="list-style: none; display: flex; align-items: center; gap: 10px;">
@@ -106,7 +106,7 @@
         </section>
         <?php } ?>
 
-        <?php if ($auth->hasPermission('dashboard.stats.history') && $auth->hasPermission('finance.revenue.reveal')) { ?>
+        <?php if ($auth->hasPermission('dashboard.stats.history') && $auth->hasPermission('privacy.finance.reveal')) { ?>
         <h3 class="u-margin-bottom-m" style="display: flex; align-items: center; gap: 10px;">
             <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt="" style="width: 24px;">
             Historische Jahresabschlüsse

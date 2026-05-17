@@ -12,47 +12,48 @@
  *
  * @var \App\Infrastructure\Auth\AuthService $auth
  */
+$groupId    = $auth->getGroup();
+$groupImage = $auth->getImage('group', $groupId);
 ?>
 <nav style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
     <div class="c-tab-content-container" style="display: flex; justify-content: space-between; align-items: center;">
 
         <!-- User Info & Group -->
         <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="background: var(--bg-light); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""><!-- 👤 --></span>
-                <span style="font-weight: 600; font-size: 0.9rem;">
+            <div class="c-user-pill">
+                <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                    <img src="<?php echo $auth->getImage('user', $_SESSION['user_id'] ?? 'default'); ?>"
+                        style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
                     <!-- Klickbarer Name führt zum Profil -->
                     <a href="profile.php" style="text-decoration: none; color: inherit;" title="Zum Profil">
                         <?php echo \htmlspecialchars($auth->getUsername()); ?>
                     </a>
-                    <span style="color: var(--text-muted); font-weight: normal; margin-left: 4px; text-transform: capitalize;">
-                        (<?php echo \htmlspecialchars($auth->getGroup()); ?>)
-                    </span>
                 </span>
+
+                <div class="c-group-badge">
+                    <img src="<?php echo $groupImage; ?>" style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover;">
+                    <span><?php echo \htmlspecialchars($groupId); ?></span>
+                </div>
             </div>
 
             <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('system.users.manage')) { ?>
                 <a href="users.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                    ⚙️ Benutzerverwaltung
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" style="width:16px;"> Benutzerverwaltung
                 </a>
             <?php } ?>
 
-            <!-- NEU: User-Management über Permission absichern -->
+            <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('dashboard.view')) { ?>
                 <a href="admin.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                    📚 Dashboard
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" style="width:16px;"> Dashboard
                 </a>
             <?php } ?>
         </div>
 
         <!-- Logout -->
-        <a href="admin.php?action=logout"
-            style="text-decoration: none; color: var(--danger-color); font-weight: 600; font-size: 0.85rem; padding: 6px 15px; border-radius: 8px; transition: background 0.2s;"
-            onmouseover="this.style.background='#fff1f2'"
-            onmouseout="this.style.background='transparent'">
+        <a href="admin.php?action=logout" style="text-decoration: none; color: var(--danger-color); font-weight: 700; font-size: 0.85rem;">
             ✕ Abmelden
         </a>
-
     </div>
 </nav>

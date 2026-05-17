@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Auth;
 
+use App\Core\Service\PermissionCompiler;
 use App\Infrastructure\Config\Config;
 
 /**
@@ -34,131 +35,49 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
-        // A. Check gegen die unzerstörbare Hintertür (RaptorXilef)
+        // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef)
         $backdoor = $this->config->get('backdoor');
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '')) {
             if (\password_verify($password, $backdoor['pass'] ?? '')) {
                 // Wir nutzen das Label als Gruppenname für die Anzeige
-                $this->setSession($username, $backdoor['label'], $backdoor['label']);
+                $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
 
+                // Backdoor braucht kein compiled_permissions, da hasPermission() sys_ erkennt
                 return true;
             }
         }
 
-        // B. Check gegen den konfigurierten SuperAdmin (dev_admin.php)
+        // 2. Check gegen den konfigurierten SuperAdmin (dev_admin.php)
         $superCfg = $this->config->get('superadmin');
         if (\is_array($superCfg) && $username === ($superCfg['user'] ?? '')) {
             $storedPass = $superCfg['pass'] ?? '';
             // Erlaubt Klartext (für den allerersten Start) ODER Hash
             if ($password === $storedPass || \password_verify($password, $storedPass)) {
-                $this->setSession($username, $superCfg['label'] ?? 'Dev-Admin', $superCfg['label'] ?? 'Dev-Admin');
+                $this->setSession('sys_superadmin', 'admin', $superCfg['label'] ?? 'Dev-Admin');
 
                 return true;
             }
         }
 
-        // C. Normale User-Prüfung (SQL/JSON)
+        // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
         $users = $this->loadUsers();
-        if (isset($users[$username]) && \password_verify($password, (string) $users[$username]['pass'])) {
-            // Wir speichern nun die GRUPPE statt des Levels in der Session
-            $this->setSession($username, (string) $users[$username]['group'], (string) ($users[$username]['label'] ?? ''));
+        foreach ($users as $userId => $userData) {
+            if (($userData['username'] ?? '') === $username && \password_verify($password, (string) $userData['pass'])) {
+                $this->setSession($userId, (string) $userData['group'], $username);
+                $this->refreshSessionPermissions((string) $userData['group']);
 
-            return true;
+                return true;
+            }
         }
 
         return false;
     }
 
-    private function setSession(string $user, string $group, string $label): void
+    private function setSession(string $userId, string $groupId, string $label): void
     {
-        $_SESSION['admin_user']  = $user;
-        $_SESSION['admin_group'] = $group; // Gruppe statt Level
-        $_SESSION['admin_label'] = $label;
-    }
-
-    /**
-     * @return array<string, array<string, mixed>>
-     */
-    public function loadUsers(): array
-    {
-        $cfg = $this->config->get('storage_config')['users'];
-
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
-                throw new \RuntimeException("MySQL-Verbindung für 'Users' erforderlich, aber nicht verfügbar.");
-            }
-            $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
-            $rows  = $stmt->fetchAll();
-            $users = [];
-            foreach ($rows as $r) {
-                $users[$r['username']] = $r;
-            }
-
-            return $users;
-        }
-
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $users
-     */
-    public function saveUsers(array $users): void
-    {
-        $cfg = $this->config->get('storage_config')['users'];
-
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
-                throw new \RuntimeException("MySQL-Verbindung für 'Users' erforderlich, aber nicht verfügbar.");
-            }
-            $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (username, level, label, pass) VALUES (?, ?, ?, ?)");
-            foreach ($users as $username => $data) {
-                $stmt->execute(
-                    [
-                        $username,
-                        (int) $data['level'],
-                        $data['label'],
-                        $data['pass'],
-                    ],
-                );
-            }
-
-            return;
-        }
-
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-        \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT));
-    }
-
-    public function isLoggedIn(): bool
-    {
-        // Prüft jetzt auf admin_group statt admin_level
-        return isset($_SESSION['admin_group']) || $this->config->get('admin_dev_mode', false) === true;
-    }
-
-    public function getLevel(): int
-    {
-        // Wenn Dev-Mode aktiv, immer Level 0 (Vollzugriff)
-        if ($this->config->get('admin_dev_mode', false) === true) {
-            return 0; // Im Dev-Mode immer Dev-Admin
-        }
-
-        return (int) ($_SESSION['admin_level'] ?? 3);
-    }
-
-    public function logout(): void
-    {
-        \session_destroy();
-    }
-
-    // In src/Infrastructure/Auth/AuthService.php
-
-    public function getUsername(): string
-    {
-        // Wenn der eingeloggte User der aus der Config ist, geben wir seinen echten Namen zurück
-        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+        $_SESSION['user_id']     = $userId;
+        $_SESSION['admin_user']  = $label;
+        $_SESSION['admin_group'] = $groupId;
     }
 
     /**
@@ -167,123 +86,72 @@ final readonly class AuthService
      */
     public function hasPermission(string $permission): bool
     {
-        // A. Gott-Modus (Dev-Mode oder Superadmin aus Config)
-        $username   = $this->getUsername();
-        $backdoor   = $this->config->get('backdoor');
-        $superadmin = $this->config->get('superadmin');
-
-        // --- PHASE 0: GOTT-MODUS (Absolute Priorität) ---
-        // 1. Dev-Mode in der Config aktiv?
-        // 2. Ist es der fest verbaute RaptorXilef?
-        // 3. Ist es der in der dev_admin.php konfigurierte User?
-        if ($this->config->get('admin_dev_mode', false) === true
-            || $username === ($backdoor['user'] ?? 'backdoor_unset')
-            || $username === ($superadmin['user'] ?? 'superadmin_unset')
-        ) {
+        // Gott-Modus für System-Accounts & Dev-Mode
+        // FIX: Wenn Session eine System-ID hat oder Dev-Mode aktiv ist -> IMMER TRUE
+        // Gott-Modus-Bypass (Fix für den weißen Bildschirm)
+        $uid = (string) ($_SESSION['user_id'] ?? '');
+        if (\str_starts_with($uid, 'sys_') || $this->config->get('admin_dev_mode')) {
             return true;
         }
 
-        // --- PHASE 1: LIVE-DATEN LADEN (Berechtigungen der Gruppe) ---
-        $groupKey  = $_SESSION['admin_group'] ?? 'guest';
-        $groups    = $this->loadGroups();
-        $userPerms = $groups[$groupKey]['permissions'] ?? [];
+        return $_SESSION['compiled_permissions'][$permission] ?? false;
+    }
 
-        // --- PHASE 2: STRIKTE VERBOTE (NEGATION) ---
-        // Wir prüfen zuerst ALLE Verbote. Wenn eines matcht, ist hier SOFORT Ende.
-        foreach ($userPerms as $p) {
-            if (! \str_starts_with($p, '-')) {
-                continue;
-            }
+    public function refreshSessionPermissions(string $groupId): void
+    {
+        $groups                           = $this->loadGroups();
+        $groupPerms                       = $groups[$groupId]['permissions'] ?? [];
+        $structure                        = $this->config->get('structure', []);
+        $compiler                         = new PermissionCompiler();
+        $_SESSION['compiled_permissions'] = $compiler->compile($structure, $groupPerms);
+    }
 
-            $negatedPerm = \substr($p, 1); // Das '-' entfernen
+    // --- IDENTITY & MEDIA ---
 
-            if ($this->isMatch($permission, $negatedPerm)) {
-                return false; // Verbot gefunden -> Zugriff verweigert, egal was sonst erlaubt ist!
-            }
-        }
-
-        // --- PHASE 3: ERLAUBNISSE ---
-        // Wenn kein Verbot gegriffen hat, suchen wir nach einer Erlaubnis.
-        foreach ($userPerms as $p) {
-            if (\str_starts_with($p, '-')) {
-                continue;
-            }
-
-            if ($this->isMatch($permission, $p)) {
-                return true; // Erlaubnis gefunden
-            }
-        }
-
-        // --- PHASE 4: IMPLIZITE ABHÄNGIGKEITEN (AUTO-VIEW) ---
-        if (\str_ends_with($permission, '.view')) {
-            $basePath = \str_replace('.view', '', $permission);
-            foreach ($userPerms as $p) {
-                // Nur wenn es kein Verbot ist und im selben Pfad liegt
-                if (! \str_starts_with($p, '-') && \str_starts_with($p, $basePath)) {
-                    return true;
-                }
-            }
-        }
-
-        return false; // Standard: Alles was nicht erlaubt ist, ist verboten.
+    // --- DIE RETTUNGS-BRÜCKE (Verhindert White Screen) ---
+    public function getProfilePicture(string $username = ''): string
+    {
+        return $this->getImage('user', (string) ($_SESSION['user_id'] ?? 'default'));
     }
 
     /**
-     * Hilfsmethode für das Pattern-Matching (Wildcards)
+     * GEREINIGTE BILD-LOGIK
+     * Akzeptiert 'user' oder 'group'
      */
-    private function isMatch(string $currentPermission, string $pattern): bool
+    public function getImage(string $type, string $id): string
     {
-        if ($pattern === '*' || $pattern === $currentPermission) {
-            return true;
+        $baseUrl  = $this->config->getBaseUrl();
+        $isUser   = \str_contains($type, 'user');
+        $folder   = $isUser ? 'user_images' : 'group_images';
+        $fallback = $isUser ? 'icon-user-default.webp' : 'icon-group-default.webp';
+
+        $filePath = "assets/img/{$folder}/{$id}.webp";
+        if (\file_exists($this->config->get('root_path') . $filePath)) {
+            return $baseUrl . $filePath . '?v=' . \filemtime($this->config->get('root_path') . $filePath);
         }
 
-        // Präfix-Wildcard (LuckPerms Stil: dashboard.active.*)
-        if (\str_ends_with($pattern, '.*')) {
-            $prefix = \substr($pattern, 0, -1);
-            if (\str_starts_with($currentPermission, $prefix)) {
-                return true;
-            }
-        }
+        return $baseUrl . 'assets/img/icons/' . $fallback;
+    }
 
-        // Suffix-Wildcard (z.B. *.print)
-        if (\str_starts_with($pattern, '*.')) {
-            $suffix = \substr($pattern, 1);
-            if (\str_ends_with($currentPermission, $suffix)) {
-                return true;
-            }
-        }
-
-        return false;
+    public function generateId(string $prefix = ''): string
+    {
+        return $prefix . \substr(\bin2hex(\random_bytes(4)), 0, 8);
     }
 
     /**
-     * Lädt die Gruppen-Definitionen LIVE aus dem konfigurierten Speicher.
+     * @return array<string, array<string, mixed>>
      */
-    public function loadGroups(): array
+    public function loadUsers(): array
     {
-        $cfg = $this->config->get('storage_config')['groups'];
+        $storageCfg = $this->config->get('storage_config');
+        $userCfg    = $storageCfg['users'] ?? null;
 
-        // --- SQL ABFRAGE ---
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
-                return [];
-            }
-
-            $stmt   = $this->pdo->query('SELECT * FROM `groups`');
-            $rows   = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $groups = [];
-            foreach ($rows as $r) {
-                $groups[$r['id']] = [
-                    'name'        => $r['name'],
-                    'permissions' => \json_decode((string) $r['permissions'], true) ?? [],
-                ];
-            }
-
-            return $groups;
+        if (! $userCfg) {
+            return [];
         }
 
-        // --- JSON ABFRAGE ---
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $userCfg['file'];
+
         if (! \file_exists($path)) {
             return [];
         }
@@ -291,8 +159,89 @@ final readonly class AuthService
         return \json_decode((string) \file_get_contents($path), true) ?? [];
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $users
+     */
+    public function saveUsers(array $users): void
+    {
+        $storageCfg = $this->config->get('storage_config');
+        $userCfg    = $storageCfg['users'] ?? null;
+
+        if (! $userCfg) {
+            return;
+        }
+
+        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $userCfg['file'];
+        \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * Lädt die Gruppen-Definitionen LIVE aus dem konfigurierten Speicher.
+     */
+    public function loadGroups(): array
+    {
+        $cfg  = $this->config->get('storage_config')['groups'];
+        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+
+        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+    }
+
+    public function saveGroups(array $groups): void
+    {
+        $cfg  = $this->config->get('storage_config')['groups'];
+        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+        \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+    }
+
+    public function uploadImage(string $type, string $id, array $file): bool
+    {
+        $folder    = \str_contains($type, 'user') ? 'user_images' : 'group_images';
+        $targetDir = $this->config->get('root_path') . 'assets/img/' . $folder . '/';
+        if (! \is_dir($targetDir)) {
+            \mkdir($targetDir, 0o755, true);
+        }
+        $info = \getimagesize($file['tmp_name']);
+        if (! $info) {
+            return false;
+        }
+        $src = match ($info[2]) {
+            \IMAGETYPE_JPEG => \imagecreatefromjpeg($file['tmp_name']),
+            \IMAGETYPE_PNG  => \imagecreatefrompng($file['tmp_name']),
+            \IMAGETYPE_WEBP => \imagecreatefromwebp($file['tmp_name']),
+            default         => null
+        };
+        if (! $src) {
+            return false;
+        }
+        $size = \min($info[0], $info[1]);
+        $dst  = \imagecreatetruecolor(256, 256);
+        \imagealphablending($dst, false);
+        \imagesavealpha($dst, true);
+        \imagecopyresampled($dst, $src, 0, 0, (int) (($info[0] - $size) / 2), (int) (($info[1] - $size) / 2), 256, 256, $size, $size);
+        $success = \imagewebp($dst, $targetDir . $id . '.webp', 80);
+        \imagedestroy($src);
+        \imagedestroy($dst);
+
+        return $success;
+    }
+
+    public function getUsername(): string
+    {
+        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+    }
+
     public function getGroup(): string
     {
-        return $_SESSION['admin_group'] ?? 'guest';
+        return (string) ($_SESSION['admin_group'] ?? 'guest');
+    }
+
+    public function isLoggedIn(): bool
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    public function logout(): void
+    {
+        \session_destroy();
     }
 }

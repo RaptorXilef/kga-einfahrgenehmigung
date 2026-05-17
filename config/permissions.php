@@ -6,7 +6,7 @@
 // See LICENSE.md for full license details.
 
 /**
- * Master-Liste aller Berechtigungen im System.
+ * Master-Struktur der Berechtigungen (Der Baum)
  *
  * Es werden
  * Prefix-Wildcards: dashboard.*
@@ -28,164 +28,249 @@
 declare(strict_types=1);
 
 return [
-    // --- UI EINSTELLUNGEN (Verschoben aus config.php) ---
+    // --- UI EINSTELLUNGEN ---
     'admin_ui' => [
         'permissions_desc_on_top' => true, // true = Beschreibung oben | false = Key oben
     ],
-
     // --- DIE RECHTE-LISTE ---
-    'list' => [
-        // === DASHBOARD FILTER (VIEW) ===
-        'dashboard.control_bar.view' => 'Filter: Datums-Filter und Schnellsuche',
+    'structure' => [
+        'privacy' => [
+            'label'    => 'Daten & Finanzen (Datenschutz)',
+            'children' => [
+                'finance_reveal' => ['label' => 'Finanzen: Sensible Beträge und Umsätze enthüllen', 'key' => 'privacy.finance.reveal'],
+                'email_reveal'   => ['label' => 'Datenschutz: E-Mail-Adressen im Klartext zeigen', 'key' => 'privacy.email.reveal'],
+            ],
+        ],
 
-        // === DASHBOARD INFO/ALERT LEISTE (VIEW) ===
-        'dashboard.info_alert.view' => 'Info: Ereignisanzeige sehen',
+        'check' => [
+            'label'    => 'Seite: Check Admin',
+            'children' => [
+                'print' => ['label' => 'Drucken', 'key' => 'check.admin.print'],
+            ],
+        ],
+        'dashboard' => [
+            'label'    => 'Zugriff auf Dashboard & Statistiken',
+            'key'      => 'dashboard.view',
+            'children' => [
+                'control_bar' => [
+                    'label'    => 'Filter-Leiste (Suche/Datum) anzeigen',
+                    'key'      => 'dashboard.control_bar.view',
+                    'children' => [
+                        'future' => ['label' => 'Datums-Filter nutzen', 'key' => 'dashboard.control_bar.future'],
+                        'search' => ['label' => 'Schnellsuche nutzen', 'key' => 'dashboard.control_bar.search'],
+                    ],
+                ],
+                'info_alert' => [
+                    'label'    => 'Ereignisanzeige sehen',
+                    'key'      => 'dashboard.info_alert.view',
+                    'children' => [
+                        'future' => ['label' => 'Drucken', 'key' => 'dashboard.info_alert.print'],
+                        'search' => ['label' => 'Details einsehen', 'key' => 'dashboard.info_alert.details'],
+                    ],
+                ],
+                'active' => [
+                    'label'    => 'Tab: Aktive Genehmigungen sehen',
+                    'key'      => 'dashboard.active.view',
+                    'children' => [
+                        'print'   => ['label' => 'Drucken', 'key' => 'dashboard.active.print'],
+                        'details' => ['label' => 'Details einsehen', 'key' => 'dashboard.active.details'],
+                        'suspend' => ['label' => 'Sperren', 'key' => 'dashboard.active.suspend'],
+                    ],
+                ],
+                'finance' => [
+                    'label'    => 'Tab: Finanzen',
+                    'key'      => 'dashboard.finance.view',
+                    'children' => [
+                        'details'   => ['label' => 'Beleg-Details', 'key' => 'dashboard.finance.details'],
+                        'mark_paid' => ['label' => 'Zahlung bestätigen', 'key' => 'dashboard.finance.mark_paid'],
+                    ],
+                ],
+                'future' => [
+                    'label'    => 'Tab: Zukünftige Genehmigungen sehen',
+                    'key'      => 'dashboard.future.view',
+                    'children' => [
+                        'print'   => ['label' => 'Drucken', 'key' => 'dashboard.future.print'],
+                        'details' => ['label' => 'Details einsehen', 'key' => 'dashboard.future.details'],
+                    ],
+                ],
+                'expired' => [
+                    'label'    => 'Tab: Abgelaufene Genehmigungen sehen',
+                    'key'      => 'dashboard.expired.view',
+                    'children' => [
+                        'print'   => ['label' => 'Drucken', 'key' => 'dashboard.expired.print'],
+                        'details' => ['label' => 'Details einsehen', 'key' => 'dashboard.expired.details'],
+                    ],
+                ],
+                'stats' => [
+                    'label'    => 'Tab: Statistiken sehen',
+                    'key'      => 'dashboard.stats.view',
+                    'children' => [
+                        'current' => ['label' => 'Aktuelles Jahr einsehen', 'key' => 'dashboard.stats.current'],
+                        'charts'  => ['label' => 'Diagramme & Auswertungen anzeigen', 'key' => 'dashboard.stats.charts'],
+                        'history' => ['label' => 'Historische Daten (Vorjahre) einsehen', 'key' => 'dashboard.stats.history'],
+                    ],
+                ],
+                'ranking' => [
+                    'label' => 'Tab: Ranking sehen',
+                    'key'   => 'dashboard.ranking.view',
+                ],
+                'export' => [
+                    'label'    => 'Tab: "Export" sehen',
+                    'key'      => 'dashboard.export.view',
+                    'children' => [
+                        'export'  => ['label' => 'Export: Downloads erlauben', 'key' => 'finance.export.execute'],
+                            'csv'  => ['label' => 'Genehmigungen als CSV (Excel) herunterladen', 'key' => 'dashboard.export.csv'],
+                            'json' => ['label' => 'Vollständiger Datensatz als JSON (Sicherung) laden', 'key' => 'dashboard.export.json'],
+                        ],
+                    ],
+                ],
+                'vouchers' => [
+                    'label'    => 'Tab: Gutscheine sehen',
+                    'key'      => 'dashboard.vouchers.view',
+                    'children' => [
+                        /* 'manage' => ['label' => 'Gutscheine verwalten', 'key' => 'dashboard.vouchers.manage'], */
+                        'open' => [
+                            'label'    => 'Ungenutzte Codes einsehen',
+                            'key'      => 'dashboard.vouchers.open',
+                            'children' => [
+                                'suspend' => ['label' => 'Gutscheine: Aktivieren & Deaktivieren', 'key' => 'dashboard.vouchers.suspend'],
+                                'remove'  => ['label' => 'Gutscheine: Löschen', 'key' => 'dashboard.vouchers.remove'],
+                            ],
+                        ],
+                        'archive' => ['label' => 'Archiv einsehen', 'key' => 'dashboard.vouchers.archive'],
+                    ],
+                ],
+                'tools' => [
+                    'label'    => 'Tab: Werkzeuge sehen',
+                    'key'      => 'dashboard.tools.view',
+                    'children' => [
+                        'direct_issue' => [
+                            'label'    => 'Bereich für manuelle Sofort-Ausstellung aufrufen',
+                            'key'      => 'dashboard.tools.direct_issue.reveal',
+                            'children' => [
+                                'execute' => ['label' => 'Manuelle Genehmigungen final erstellen und speichern', 'key' => 'dashboard.tools.direct_issue.execute'],
+                            ],
+                        ],
+                        'voucher_gen' => [
+                            'label'    => 'Bereich für den Gutschein-Generator aufrufen',
+                            'key'      => 'dashboard.tools.voucher_gen.reveal',
+                            'children' => [
+                                'execute' => ['label' => 'Neue Gutscheincodes final generieren und speichern', 'key' => 'dashboard.tools.voucher_gen.execute'],
+                            ],
+                        ],
+                    ],
+                ],
+                'logs' => [
+                    'label' => 'Tab: Mail-Logs sehen',
+                    'key'   => 'dashboard.logs.view',
+                ],
+                'migration' => [
+                    'label'    => 'Tab: Migration des Speichers sehen (ADMINISTRATIV!)',
+                    'key'      => 'dashboard.migration.view',
+                    'children' => [
+                        'sync' => [
+                            'label'    => 'Migration: Tabelle für JSON/SQL-Transfer und Synchronisierung anzeigen',
+                            'key'      => 'dashboard.migration.sync.view',
+                            'children' => [
+                                'users' => [
+                                    'label'    => 'Migration: Alle Benutzer Aktionen',
+                                    'key'      => 'dashboard.migration.users.view',
+                                    'children' => [
+                                        'json_to_mysql' => ['label' => 'Migration: Benutzer -> SQL (Überschreibt DB!)', 'key' => 'dashboard.migration.users.json_to_mysql'],
+                                        'mysql_to_json' => ['label' => 'Migration: Benutzer -> JSON (Überschreibt Datei!)', 'key' => 'dashboard.migration.users.mysql_to_json'],
+                                        'sync'          => ['label' => 'Migration: Benutzer Bestände zusammenführen', 'key' => 'dashboard.migration.users.sync'],
+                                    ],
+                                ],
+                                'vouchers' => [
+                                    'label'    => 'Migration: Alle Gutschein Aktionen',
+                                    'key'      => 'dashboard.migration.vouchers.view',
+                                    'children' => [
+                                        'json_to_mysql' => ['label' => 'Migration: Gutscheine -> SQL (Überschreibt DB!)', 'key' => 'dashboard.migration.vouchers.json_to_mysql'],
+                                        'mysql_to_json' => ['label' => 'Migration: Gutscheine -> JSON (Überschreibt Datei!)', 'key' => 'dashboard.migration.vouchers.mysql_to_json'],
+                                        'sync'          => ['label' => 'Migration: Gutscheine Bestände zusammenführen', 'key' => 'dashboard.migration.vouchers.sync'],
+                                    ],
+                                ],
+                                'permits' => [
+                                    'label'    => 'Migration: Alle Genehmigungs Aktionen',
+                                    'key'      => 'dashboard.migration.permits.view',
+                                    'children' => [
+                                        'json_to_mysql' => ['label' => 'Migration: Genehmigungen -> SQL (Überschreibt DB!)', 'key' => 'dashboard.migration.permits.json_to_mysql'],
+                                        'mysql_to_json' => ['label' => 'Migration: Genehmigungen -> JSON (Überschreibt Datei!)', 'key' => 'dashboard.migration.permits.mysql_to_json'],
+                                        'sync'          => ['label' => 'Migration: Genehmigungen Bestände zusammenführen', 'key' => 'dashboard.migration.permits.sync'],
+                                    ],
+                                ],
+                                'mail_log' => [
+                                    'label'    => 'Migration: Alle Mail-Log Aktionen',
+                                    'key'      => 'dashboard.migration.mail_log.view',
+                                    'children' => [
+                                        'json_to_mysql' => ['label' => 'Migration: Mail-Logs -> SQL schieben', 'key' => 'dashboard.migration.mail_log.json_to_mysql'],
+                                        'mysql_to_json' => ['label' => 'Migration: Mail-Logs -> JSON (Überschreibt Datei!)', 'key' => 'dashboard.migration.mail_log.mysql_to_json'],
+                                        'sync'          => ['label' => 'Migration: Mail-Logs Bestände zusammenführen', 'key' => 'dashboard.migration.mail_log.sync'],
+                                    ],
+                                ],
+                                'pending_verification' => [
+                                    'label'    => 'Migration: Alle Warteraum Aktionen',
+                                    'key'      => 'dashboard.migration.pending_verification.view',
+                                    'children' => [
+                                        'json_to_mysql' => ['label' => 'Migration: Warteraum -> SQL schieben', 'key' => 'dashboard.migration.pending_verification.json_to_mysql'],
+                                        'mysql_to_json' => ['label' => 'Migration: Warteraum -> JSON (Überschreibt Datei!)', 'key' => 'dashboard.migration.pending_verification.mysql_to_json'],
+                                        'sync'          => ['label' => 'Migration: Warteraum Bestände zusammenführen', 'key' => 'dashboard.migration.pending_verification.sync'],
+                                    ],
+                                ],
+                                'magic_links' => [
+                                    'label'    => 'Migration: Alle Token Aktionen',
+                                    'key'      => 'dashboard.migration.magic_links.view',
+                                    'children' => [
+                                        'json_to_mysql' => ['label' => 'Migration: Login-Tokens -> SQL schieben', 'key' => 'dashboard.migration.magic_links.json_to_mysql'],
+                                        'mysql_to_json' => ['label' => 'Migration: Login-Tokens -> JSON (Überschreibt Datei!)', 'key' => 'dashboard.migration.magic_links.mysql_to_json'],
+                                        'sync'          => ['label' => 'Migration: Login-Tokens Bestände zusammenführen', 'key' => 'dashboard.migration.magic_links.sync'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        'backups' => [
+                            'label'    => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
+                            'key'      => 'dashboard.migration.backups.view',
+                            'children' => [
 
-        // === DASHBOARD TABS (VIEW) ===
-        'dashboard.view' => 'Dashboard: sehen',
-
-        'dashboard.active.view'    => 'Tab: "Aktiv" sehen',
-        'dashboard.finance.view'   => 'Tab: "Finanzen" sehen',
-        'dashboard.future.view'    => 'Tab: "Zukünftig" sehen',
-        'dashboard.expired.view'   => 'Tab: "Abgelaufen" sehen',
-        'dashboard.stats.view'     => 'Tab: "Statistiken" sehen',
-        'dashboard.ranking.view'   => 'Tab: "Ranking" sehen',
-        'dashboard.export.view'    => 'Tab: "Export" sehen',
-        'dashboard.vouchers.view'  => 'Tab: "Gutscheine" sehen',
-        'dashboard.tools.view'     => 'Tab: "Werkzeuge" sehen',
-        'dashboard.logs.view'      => 'Tab: "Mail-Logs" sehen',
-        'dashboard.migration.view' => 'Tab: "Migration des Speichers" sehen (ADMINISTRATIV!)',
-
-        // === DASHBOARD FILTER AKTIONEN ===
-        'dashboard.control_bar.future' => 'Filter: Datums-Filter nutzen',
-        'dashboard.control_bar.search' => 'Filter: Schnellsuche nutzen',
-
-        // === DASHBOARD INFO/ALERT LEISTE (VIEW) ===
-        'dashboard.info_alert.print'   => 'Info: Genehmigungen drucken',
-        'dashboard.info_alert.details' => 'Info: Details einsehen',
-
-        // === DASHBOARD AKTIONEN ===
-        // --- TABS: AKTIV ---
-        'dashboard.active.print'   => 'Aktiv: Genehmigungen drucken',
-        'dashboard.active.details' => 'Aktiv: Details einsehen',
-        'dashboard.active.suspend' => 'Aktiv: Genehmigungen sperren',
-
-        // --- TABS: FINANZEN ---
-        'dashboard.finance.details'   => 'Finanzen: Details eines Belegvorgangs einsehen',
-        'dashboard.finance.mark_paid' => 'Finanzen: Zahlungseingänge manuell bestätigen',
-
-        // --- TABS: ZUKÜNFTIG ---
-        'dashboard.future.print'   => 'Zukünftig: Genehmigungen drucken',
-        'dashboard.future.details' => 'Zukünftig: Details einsehen',
-
-        // --- TABS: ABGELAUFEN ---
-        'dashboard.expired.print'   => 'Abgelaufen: Genehmigungen drucken',
-        'dashboard.expired.details' => 'Abgelaufen: Details einsehen',
-
-        // --- TABS: STATISTIKEN ---
-        'dashboard.stats.current' => 'Statistiken: Aktuelles Jahr einsehen',
-        'dashboard.stats.charts'  => 'Statistiken: Diagramme & Auswertungen anzeigen',
-        'dashboard.stats.history' => 'Statistiken: Historische Daten (Vorjahre) einsehen',
-
-        // --- TABS: EXPORT ---
-        'dashboard.export.csv'  => 'Export: Genehmigungen als CSV (Excel) herunterladen',
-        'dashboard.export.json' => 'Export: Vollständiger Datensatz als JSON (Sicherung) laden',
-
-        // --- TABS: GUTSCHEINE ---
-        'dashboard.vouchers.open'    => 'Gutscheine: Liste der noch offenen Codes anzeigen',
-        'dashboard.vouchers.archive' => 'Gutscheine: Archiv bereits eingelöster Codes einsehen',
-        'dashboard.vouchers.suspend' => 'Gutscheine: Aktivieren & Deaktivieren',
-        'dashboard.vouchers.remove'  => 'Gutscheine: Löschen',
-
-        // --- TABS: WERKZEUGE (TOOLS) ---
-        'dashboard.tools.direct_issue.reveal'  => 'Werkzeuge: Bereich für manuelle Sofort-Ausstellung aufrufen',
-        'dashboard.tools.direct_issue.execute' => 'Werkzeuge: Manuelle Genehmigungen final erstellen und speichern',
-        'dashboard.tools.voucher_gen.reveal'   => 'Werkzeuge: Bereich für den Gutschein-Generator aufrufen',
-        'dashboard.tools.voucher_gen.execute'  => 'Werkzeuge: Neue Gutscheincodes final generieren und speichern',
-
-        // --- TABS: LOGS ---
-
-        // === DASHBOARD: MIGRATION (SYSTEM) ===
-
-        // --- Tabellenzugriff ---
-        'dashboard.migration.sync.view'    => 'Migration: Tabelle für JSON/SQL-Transfer und Synchronisierung anzeigen',
-        'dashboard.migration.backups.view' => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
-
-        // --- Benutzerkonten ---
-        'dashboard.migration.users.json_to_mysql' => 'Migration: Benutzer -> SQL (Überschreibt DB!)',
-        'dashboard.migration.users.mysql_to_json' => 'Migration: Benutzer -> JSON (Überschreibt Datei!)',
-        'dashboard.migration.users.sync'          => 'Migration: Benutzer Bestände zusammenführen',
-
-        // --- Genehmigungen ---
-        'dashboard.migration.permits.json_to_mysql' => 'Migration: Genehmigungen -> SQL (Überschreibt DB!)',
-        'dashboard.migration.permits.mysql_to_json' => 'Migration: Genehmigungen -> JSON (Überschreibt Datei!)',
-        'dashboard.migration.permits.sync'          => 'Migration: Genehmigungen Bestände zusammenführen',
-
-        // --- Gutscheine ---
-        'dashboard.migration.vouchers.json_to_mysql' => 'Migration: Gutscheine -> SQL (Überschreibt DB!)',
-        'dashboard.migration.vouchers.mysql_to_json' => 'Migration: Gutscheine -> JSON (Überschreibt Datei!)',
-        'dashboard.migration.vouchers.sync'          => 'Migration: Gutscheine Bestände zusammenführen',
-
-        // --- E-Mail Protokolle ---
-        'dashboard.migration.mail_log.json_to_mysql' => 'Migration: Mail-Logs -> SQL schieben',
-        'dashboard.migration.mail_log.mysql_to_json' => 'Migration: Mail-Logs -> JSON (Überschreibt Datei!)',
-        'dashboard.migration.mail_log.sync'          => 'Migration: Mail-Logs Bestände zusammenführen',
-
-        // --- Warteraum (E-Mail Bestätigung) ---
-        'dashboard.migration.pending_verification.json_to_mysql' => 'Migration: Warteraum -> SQL schieben',
-        'dashboard.migration.pending_verification.mysql_to_json' => 'Migration: Warteraum -> JSON (Überschreibt Datei!)',
-        'dashboard.migration.pending_verification.sync'          => 'Migration: Warteraum Bestände zusammenführen',
-
-        // --- Login-Tokens ---
-        'dashboard.migration.magic_links.json_to_mysql' => 'Migration: Login-Tokens -> SQL schieben',
-        'dashboard.migration.magic_links.mysql_to_json' => 'Migration: Login-Tokens -> JSON (Überschreibt Datei!)',
-        'dashboard.migration.magic_links.sync'          => 'Migration: Login-Tokens Bestände zusammenführen',
-
-        // Optional: Sammelrechte für Logs
-        'dashboard.migration.users.*'                => 'Migration: Alle Benutzer Aktionen',
-        'dashboard.migration.permits.*'              => 'Migration: Alle Genehmigungs Aktionen',
-        'dashboard.migration.vouchers.*'             => 'Migration: Alle Gutschein Aktionen',
-        'dashboard.migration.mail_log.*'             => 'Migration: Alle Mail-Log Aktionen',
-        'dashboard.migration.pending_verification.*' => 'Migration: Alle Warteraum Aktionen',
-        'dashboard.migration.magic_links.*'          => 'Migration: Alle Token Aktionen',
-
-        // --- Login-Tokens ---
-        'dashboard.migration.restore.execute' => 'Migration: System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
-
-        // --- Seite: check admin ---
-        'check.admin.print' => 'Check-Admin: Genehmigungen drucken',
-
-        // === DATEN & FINANZEN ===
-        'finance.revenue.reveal' => 'Finanzen: Sensible Beträge und Umsätze enthüllen',
-        'finance.export.execute' => 'Export: CSV/JSON Downloads erlauben',
-
-        'privacy.email.reveal' => 'Datenschutz: E-Mail-Adressen im Klartext zeigen',
-
-        // --- SYSTEM & ADMIN ---
-        'system.users.manage' => 'System: Benutzer & Gruppen verwalten',
-
-        // --- VORLAGEN (TEMPLATES) ---
-        'template.std.7'       => 'Genehmigung: 7 Tage ausstellen',
-        'template.std.14'      => 'Genehmigung: 14 Tage ausstellen',
-        'template.std.30'      => 'Genehmigung: 1 Monat ausstellen',
-        'template.perm.3'      => 'Genehmigung: Dauerkarten 3 Monate ausstellen',
-        'template.perm.6'      => 'Genehmigung: Dauerkarten 6 Monate ausstellen',
-        'template.perm.9'      => 'Genehmigung: Dauerkarten 9 Monate ausstellen',
-        'template.perm.12'     => 'Genehmigung: Dauerkarten 12 Monate ausstellen',
-        'template.custom.std'  => 'Genehmigung: Spezialzeiträume ausstellen',
-        'template.custom.perm' => 'Genehmigung: Dauerkarten mit Spezialzeiträume ausstellen',
-        'template.std.klause'  => 'Genehmigung: Klause Belieferung Spezialzeiträume ausstellen',
-
-        // --- GLOBALE SAMMLER (Nur zur Info für den Admin) ---
-        '*.view'    => 'Global: Alle Ansichten freischalten',
-        '*.print'   => 'Global: Alle Druck-Buttons freischalten',
-        '*.details' => 'Global: Alle Detail-Ansichten freischalten',
-        '*.suspend' => 'Global: Alle Sperr-Funktionen freischalten',
-        '*.manage'  => 'Global: Alle Verwaltungs-Funktionen freischalten',
-        '*.execute' => 'Global: Alle System-Aktionen ausführen',
-        '*.reveal'  => 'Global: Alle sensiblen Daten (Geld/Mail) einblenden',
-        '*.sync'    => 'Global: Alle Synchronisierungen erlauben',
-
-        '*' => 'MASTER-ZUGRIFF: Gott-Modus (Alle Rechte)',
+                                'restore' => [
+                                    'label' => 'Migration: System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
+                                    'key'   => 'dashboard.migration.restore.execute',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        'system' => [
+            'label'    => 'System- & Benutzer-Verwaltung',
+            /* 'key'      => 'system.manage', */
+            'children' => [
+                'users' => [
+                    'label'    => 'Benutzerverwaltung',
+                    'key'      => 'system.users.manage',
+                    'children' => [
+                        'groups' => ['label' => 'Gruppen & Rechte', 'key' => 'system.groups.manage'],
+                    ],
+                ],
+            ],
+        ],
+        'templates' => [
+            'label'    => 'Genehmigungs-Vorlagen (Ausstellung)',
+            'key'      => 'template.manage',
+            'children' => [
+                'std_7'       => ['label' => 'Genehmigung: 7 Tage ausstellen', 'key' => 'template.std.7'],
+                'std_14'      => ['label' => 'Genehmigung: 14 Tage ausstellen', 'key' => 'template.std.14'],
+                'std_30'      => ['label' => 'Genehmigung: 1 Monat ausstellen', 'key' => 'template.std.30'],
+                'perm_3'      => ['label' => 'Genehmigung: Dauerkarten 3 Monate ausstellen', 'key' => 'template.perm.3'],
+                'perm_6'      => ['label' => 'Genehmigung: Dauerkarten 6 Monate ausstellen', 'key' => 'template.perm.6'],
+                'perm_9'      => ['label' => 'Genehmigung: Dauerkarten 9 Monate ausstellen', 'key' => 'template.perm.9'],
+                'perm_12'     => ['label' => 'Genehmigung: Dauerkarten 12 Monate ausstellen', 'key' => 'template.perm.12'],
+                'custom_std'  => ['label' => 'Genehmigung: Standard mit Spezialzeiträume ausstellen', 'key' => 'template.custom.std'],
+                'custom_perm' => ['label' => 'Genehmigung: Dauerkarten mit Spezialzeiträume ausstellen', 'key' => 'template.custom.perm'],
+                'std_klause'  => ['label' => 'Genehmigung: Klause Belieferung Spezialzeiträume ausstellen', 'key' => 'template.std.klause'],
+            ],
+        ],
     ],
 ];
