@@ -42,18 +42,14 @@ try {
     // Gutschein-Prüfung
     if ($voucherCode !== '') {
         // Wir lassen den Service die Arbeit machen!
-        $vouchers = $permitService->getVoucherService()->loadVouchers();
-        $v        = $vouchers[$voucherCode] ?? null;
+        $voucherService = $permitService->getVoucherService();
+        $vouchers       = $voucherService->loadVouchers();
+        $v              = $vouchers[$voucherCode] ?? null;
 
         if ($v) {
-            // Check gegen Ablaufdatum (Logik bleibt hier, bis wir eine isValid() Methode im Service haben)
-            // FIX: Prüfe zusätzlich auf den Status 'deaktiviert'
-            $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
-            $isExpired     = ! empty($v['expires_at'])
-                && new \DateTimeImmutable($v['expires_at']) < new \DateTimeImmutable();
-
-            if (! $isExpired && ! $isDeactivated) {
-                // Preis berechnen über die neue Methode im PermitService
+            // NUTZUNG DER NEUEN isValid() SERVICE-METHODE
+            if ($voucherService->isValid($v)) {
+                // Preis berechnen über die entsprechende Methode im PermitService
                 $finalPrice   = $permitService->calculateDiscountedPrice($originalPrice, $v);
                 $discountText = match ($v['type']) {
                     'free'    => '100% Rabatt (Kostenlos)',
@@ -62,7 +58,9 @@ try {
                     default   => ''
                 };
             } else {
-                $discountText = $isDeactivated ? 'Code gesperrt' : 'Code abgelaufen';
+                // Differenzierteres Feedback für den User
+                $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+                $discountText  = $isDeactivated ? 'Code gesperrt' : 'Code abgelaufen';
             }
         } else {
             $discountText = 'Ungültiger Code';

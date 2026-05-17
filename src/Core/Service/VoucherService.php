@@ -255,4 +255,41 @@ final readonly class VoucherService
 
         return true;
     }
+
+    /**
+     * Prüft, ob ein Gutschein-Array aktuell gültig und verwendbar ist.
+     *
+     * @param array<string, mixed> $voucher Das rohe Daten-Array des Gutscheins.
+     */
+    public function isValid(array $voucher): bool
+    {
+        // 1. Check: Administrativ deaktiviert?
+        if (($voucher['status'] ?? 'aktiv') === 'deaktiviert') {
+            return false;
+        }
+
+        // 2. Check: Ablaufdatum überschritten?
+        if (! empty($voucher['expires_at'])) {
+            try {
+                $expiry = new \DateTimeImmutable($voucher['expires_at']);
+                if ($expiry < new \DateTimeImmutable()) {
+                    return false;
+                }
+            } catch (\Exception $e) {
+                // Bei korruptem Datumsformat lieber ungültig
+                return false;
+            }
+        }
+
+        // 3. Check: Nutzungslimit erreicht? (Zusatz-Sicherheit für die Anzeige)
+        $multi = (bool) ($voucher['multi_use'] ?? false);
+        $max   = (int) ($voucher['max_uses'] ?? 1);
+        $count = (int) ($voucher['uses_count'] ?? 0);
+
+        if ($multi && $max > 0 && $count >= $max) {
+            return false;
+        }
+
+        return true;
+    }
 }
