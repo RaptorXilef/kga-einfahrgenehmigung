@@ -600,7 +600,7 @@ final readonly class AdminController
         /** @var Config $config */
         $config = $this->config;
         // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
-        $appRoot = \rtrim((string) $config->get('root_path'), '/\\') . '/';
+        $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
 
         // Wir fügen auth global hinzu, falls es mal vergessen wird
         if (! isset($data['auth'])) {

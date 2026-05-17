@@ -31,7 +31,7 @@ return [
         'permits' => [
             'type'  => 'json', // 'json' oder 'mysql'
             'table' => 'permits',
-            'file'  => 'permits_active.json',
+            'file'  => 'permits.json',
         ],
         // Archiv für abgelaufene Genehmigungen aus vergangenen Jahren
         'permits_archive' => [

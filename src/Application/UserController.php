@@ -400,7 +400,7 @@ final readonly class UserController
         /** @var Config $config */
         $config = $this->config;
         // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
-        $appRoot = \rtrim((string) $config->get('root_path'), '/\\') . '/';
+        $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
 
         $templateData = \array_merge([
             'auth'     => $this->auth,
@@ -413,7 +413,7 @@ final readonly class UserController
         ], $data);
 
         \extract($templateData);
-        // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
+        // FIX: Expliziter Schrägstrich vor templates/ hinzugefügt
         include $appRoot . "/templates/pages/{$template}.phtml";
     }
 }
