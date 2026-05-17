@@ -31,15 +31,21 @@ final readonly class Permit
     }
 
     /**
-     * Prüft die Gültigkeit (v0.4.0: Sofort gültig, Status 'wartend' ist nur intern)
+     * Prüft die Gültigkeit (v0.32.0: Inklusive des gesamten Endtages)
      */
     public function isValid(): bool
     {
         $now = new \DateTimeImmutable();
 
-        // Prüfung über die neuen Value Objects
-        return ! $this->status->isSuspended
-            && $now >= $this->validity->von
-            && $now <= $this->validity->bis;
+        // 1. Check: Manuell gesperrt?
+        if ($this->status->isSuspended) {
+            return false;
+        }
+
+        // 2. Zeitlicher Check:
+        // Wir setzen das Enddatum für den Vergleich auf 23:59:59 Uhr des jeweiligen Tages.
+        $endOfPeriod = $this->validity->bis->setTime(23, 59, 59);
+
+        return $now >= $this->validity->von && $now <= $endOfPeriod;
     }
 }

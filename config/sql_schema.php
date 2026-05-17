@@ -5,13 +5,13 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Definition der MySQL-Tabellenstruktur
- *
- * Path: config/sql_schema.php
- */
+// Path: config/sql_schema.php
 
 declare(strict_types=1);
+
+/**
+ * Definition der MySQL-Tabellenstruktur
+ */
 
 return [
     'groups' => 'CREATE TABLE IF NOT EXISTS `groups` (
@@ -65,6 +65,25 @@ return [
         PRIMARY KEY (`code`),
         KEY `idx_kennzeichen` (`kennzeichen`),
         KEY `idx_parzelle` (`parzelle`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+
+    'permits_archive' => "CREATE TABLE IF NOT EXISTS `permits_archive` (
+        `code` varchar(50) NOT NULL,
+        `templateKey` varchar(50) NOT NULL,
+        `name` varchar(255) NOT NULL,
+        `email` varchar(255) DEFAULT NULL,
+        `kennzeichen` varchar(20) DEFAULT NULL,
+        `parzelle` varchar(10) NOT NULL,
+        `typ` varchar(20) NOT NULL,
+        `firma` varchar(255) DEFAULT NULL,
+        `zweck` varchar(255) NOT NULL,
+        `preisSnapshot` decimal(10,2) NOT NULL,
+        `von` date NOT NULL,
+        `bis` date NOT NULL,
+        `status` varchar(20) NOT NULL DEFAULT 'wartend',
+        `erstellt` datetime NOT NULL,
+        `internerKommentar` text DEFAULT NULL,
+        PRIMARY KEY (`code`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 
     'mail_logs' => 'CREATE TABLE IF NOT EXISTS `mail_logs` (
