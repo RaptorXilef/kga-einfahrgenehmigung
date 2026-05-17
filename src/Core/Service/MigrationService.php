@@ -16,7 +16,7 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Auth\AuthService;
-use App\Infrastructure\Storage\JsonStorage; // FIX: Fehlte!
+use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
 
 final readonly class MigrationService
@@ -432,47 +432,120 @@ final readonly class MigrationService
         } elseif ($currentType === 'json' && ! empty($sqlData)) {
             $sourceData = $sqlData; // Von SQL zu JSON umgezogen
         } else {
-            // 4. Beide Welten leer? Dann Standard-Impfung
+            // 4. Beide Welten leer? Dann modernisierte Standard-Impfung mit neuen UUIDs
             $sourceData = [
-                'admin' => [
+                'grp_71cb1c0d' => [
                     'name'        => 'Administrator',
-                    'permissions' => ['*', '-dashboard.migration.view'],
+                    'permissions' => ['*'],
                 ],
-                'sachbearbeiter' => [
-                    'name'        => 'Sachbearbeitung',
-                    'permissions' => [
-                        '*.view', '*.details', '*.print',
-                        'dashboard.control_bar.future', 'dashboard.control_bar.search',
-                        'dashboard.tools.direct_issue.execute', 'dashboard.tools.voucher_gen.reveal',
-                        'dashboard.tools.direct_issue.reveal', 'dashboard.tools.voucher_gen.execute',
-                        'dashboard.vouchers.archive', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend',
-                        'privacy.email.reveal', 'template.custom.perm',
-                        'template.custom.std', 'template.perm.12', 'template.perm.3', 'template.perm.6',
-                        'template.perm.9', 'template.std.14', 'template.std.30', 'template.std.7',
-                        'template.std.klause', '-dashboard.migration.view', '-privacy.finance.reveal',
-                    ],
-                ],
-                'pruefer' => [
-                    'name'        => 'Prüfer vor Ort',
-                    'permissions' => [
-                        'dashboard.active.view', 'dashboard.active.details', '-dashboard.migration.view',
-                        'dashboard.view', '-privacy.finance.reveal', '-privacy.email.reveal',
-                    ],
-                ],
-                'finance' => [
+                'grp_180a3ec6' => [
                     'name'        => 'Finanzen',
                     'permissions' => [
-                        '*.details', '*.execute', '*.print', '*.reveal', '*.suspend', '*.view',
-                        'dashboard.active.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future',
-                        'dashboard.control_bar.search', 'dashboard.expired.view', 'dashboard.export.csv',
-                        'dashboard.export.json', 'dashboard.finance.mark_paid', 'dashboard.stats.charts',
-                        'dashboard.stats.current', 'dashboard.stats.history', 'dashboard.vouchers.archive',
-                        'dashboard.vouchers.open', 'dashboard.vouchers.remove', 'template.custom.perm',
-                        'template.custom.std', 'template.perm.12', 'template.perm.3', 'template.perm.6',
-                        'template.perm.9', 'template.std.14', 'template.std.30', 'template.std.7',
-                        'template.std.klause', '-dashboard.migration.backups.view',
-                        '-dashboard.migration.sync.view', '-dashboard.migration.view',
-                        '-dashboard.migration.restore.execute',
+                        'privacy.finance.reveal',
+                        'privacy.email.reveal',
+                        'check.admin.print',
+                        'dashboard.view',
+                        'dashboard.control_bar.view',
+                        'dashboard.control_bar.future',
+                        'dashboard.control_bar.search',
+                        'dashboard.info_alert.view',
+                        'dashboard.info_alert.print',
+                        'dashboard.info_alert.details',
+                        'dashboard.active.view',
+                        'dashboard.active.print',
+                        'dashboard.active.details',
+                        'dashboard.active.suspend',
+                        'dashboard.finance.view',
+                        'dashboard.finance.details',
+                        'dashboard.finance.mark_paid',
+                        'dashboard.future.view',
+                        'dashboard.future.print',
+                        'dashboard.future.details',
+                        'dashboard.expired.view',
+                        'dashboard.expired.print',
+                        'dashboard.expired.details',
+                        'dashboard.stats.view',
+                        'dashboard.stats.current',
+                        'dashboard.stats.charts',
+                        'dashboard.stats.history',
+                        'dashboard.ranking.view',
+                        'dashboard.export.view',
+                        'finance.export.execute',
+                        'dashboard.export.csv',
+                        'dashboard.export.json',
+                        'dashboard.vouchers.view',
+                        'dashboard.vouchers.open',
+                        'dashboard.vouchers.suspend',
+                        'dashboard.vouchers.remove',
+                        'dashboard.vouchers.archive',
+                        'dashboard.tools.view',
+                        'dashboard.tools.direct_issue.reveal',
+                        'dashboard.tools.direct_issue.execute',
+                        'dashboard.tools.voucher_gen.reveal',
+                        'dashboard.tools.voucher_gen.execute',
+                        'template.manage',
+                        'template.std.7',
+                        'template.std.14',
+                        'template.std.30',
+                        'template.perm.3',
+                        'template.perm.6',
+                        'template.perm.9',
+                        'template.perm.12',
+                        'template.custom.std',
+                        'template.custom.perm',
+                    ],
+                ],
+                'grp_fd72d38c' => [
+                    'name'        => 'Sachbearbeitung',
+                    'permissions' => [
+                        'privacy.email.reveal',
+                        'check.admin.print',
+                        'dashboard.view',
+                        'dashboard.control_bar.view',
+                        'dashboard.control_bar.future',
+                        'dashboard.control_bar.search',
+                        'dashboard.info_alert.view',
+                        'dashboard.info_alert.print',
+                        'dashboard.info_alert.details',
+                        'dashboard.active.view',
+                        'dashboard.active.print',
+                        'dashboard.active.details',
+                        'dashboard.finance.view',
+                        'dashboard.finance.details',
+                        'dashboard.future.view',
+                        'dashboard.future.print',
+                        'dashboard.future.details',
+                        'dashboard.expired.view',
+                        'dashboard.vouchers.view',
+                        'dashboard.vouchers.open',
+                        'dashboard.vouchers.suspend',
+                        'dashboard.tools.view',
+                        'dashboard.tools.direct_issue.reveal',
+                        'dashboard.tools.direct_issue.execute',
+                        'dashboard.tools.voucher_gen.reveal',
+                        'dashboard.tools.voucher_gen.execute',
+                        'dashboard.logs.view',
+                        'template.manage',
+                        'template.std.7',
+                        'template.std.14',
+                        'template.std.30',
+                        'template.perm.3',
+                        'template.perm.6',
+                        'template.perm.9',
+                        'template.perm.12',
+                        'template.custom.std',
+                        'template.custom.perm',
+                    ],
+                ],
+                'grp_a53d6b56' => [
+                    'name'        => 'Prüfer vor Ort',
+                    'permissions' => [
+                        'dashboard.view',
+                        'dashboard.control_bar.view',
+                        'dashboard.control_bar.future',
+                        'dashboard.control_bar.search',
+                        'dashboard.active.view',
+                        'dashboard.active.details',
                     ],
                 ],
             ];
@@ -508,12 +581,12 @@ final readonly class MigrationService
         } elseif ($currentType === 'json' && ! empty($sqlData)) {
             $sourceData = $sqlData;
         } else {
-            // Erster Login-Admin
+            // Erststart-Impfung mit neuem ID-Schema und nativem, vorberechnetem Hash
             $sourceData = [
-                'Admin' => [
-                    'group' => 'admin',
-                    'label' => 'Admin',
-                    'pass'  => \password_hash('MeinErsterLogin', \PASSWORD_DEFAULT),
+                'usr_7c13b491' => [
+                    'username' => 'Admin',
+                    'group'    => 'grp_71cb1c0d',
+                    'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
                 ],
             ];
         }
