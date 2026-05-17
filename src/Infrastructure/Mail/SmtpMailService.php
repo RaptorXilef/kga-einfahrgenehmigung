@@ -235,28 +235,33 @@ final readonly class SmtpMailService implements MailServiceInterface
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
 
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
-                throw new \RuntimeException('Datenbank offline.');
-            }
+        if ($cfg['type'] === 'mysql' && $this->pdo) {
+            // Wir nutzen eine Transaktion für maximale Bulk-Geschwindigkeit
+            $this->pdo->beginTransaction();
 
-            $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?)");
-            foreach ($logs as $log) {
-                $stmt->execute([
-                    $log['timestamp'],
-                    $log['recipient'],
-                    $log['subject'],
-                    $log['template'],
-                    $log['status'],
-                ]);
-            }
+            try {
+                $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (id, timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($logs as $id => $log) {
+                    $stmt->execute([
+                        $id,
+                        $log['timestamp'] ?? null,
+                        $log['recipient'] ?? null,
+                        $log['subject'] ?? null,
+                        $log['template'] ?? null,
+                        $log['status'] ?? null,
+                    ]);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
 
-            return;
+                throw $e;
+            }
+        } else {
+            // Fallback: Normales JSON-Speichern
+            $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+            \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
         }
-
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-        \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     public function loadLogs(): array

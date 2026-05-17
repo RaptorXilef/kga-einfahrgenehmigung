@@ -10,10 +10,10 @@
  *
  * Path: templates/pages/admin_dashboard/_tab_finance.phtml
  *
- * @var array                           $groups
+ * @var array                           $permitGroups
  * @var \App\Core\Service\PermitService $permitService
  */
-$unpaidPermits = $groups['unpaid'] ?? [];
+$unpaidPermits = $permitGroups['unpaid'] ?? [];
 $dueDaysCfg    = (int) $config->get('payment_due_days', 14);
 $now           = new \DateTimeImmutable('today');
 ?>

@@ -29,20 +29,26 @@ final class PermissionCompiler
     private function walk(array $nodes, array $groupPerms, bool $parentAllowed, array &$result): void
     {
         foreach ($nodes as $node) {
-            $key = $node['key'];
+            // Falls kein Key da ist, überspringen wir die Prüfung für diesen Knoten
+            $key = $node['key'] ?? null;
 
-            // Ein Recht ist nur erlaubt, wenn:
-            // 1. Der Vater erlaubt ist
-            // 2. Es explizit in der Gruppe steht ODER die Gruppe den Master '*' hat
-            // 3. Es NICHT explizit verboten ist ('-key')
+            if ($key !== null) {
 
-            $explicitAllow = \in_array($key, $groupPerms, true) || \in_array('*', $groupPerms, true);
-            $explicitDeny  = \in_array('-' . $key, $groupPerms, true);
+                // Ein Recht ist nur erlaubt, wenn:
+                // 1. Der Vater erlaubt ist
+                // 2. Es explizit in der Gruppe steht ODER die Gruppe den Master '*' hat
+                // 3. Es NICHT explizit verboten ist ('-key')
 
-            // Cascading Deny Logik
-            $isAllowed = $parentAllowed && $explicitAllow && ! $explicitDeny;
+                $explicitAllow = \in_array($key, $groupPerms, true) || \in_array('*', $groupPerms, true);
+                $explicitDeny  = \in_array('-' . $key, $groupPerms, true);
 
-            $result[$key] = $isAllowed;
+                // Cascading Deny Logik
+                $isAllowed    = $parentAllowed && $explicitAllow && ! $explicitDeny;
+                $result[$key] = $isAllowed;
+            } else {
+                // Wenn kein Key da ist (Kategorie), gilt der Zustand des Vaters für die Kinder
+                $isAllowed = $parentAllowed;
+            }
 
             if (isset($node['children'])) {
                 $this->walk($node['children'], $groupPerms, $isAllowed, $result);

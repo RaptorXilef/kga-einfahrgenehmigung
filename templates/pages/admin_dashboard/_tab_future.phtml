@@ -9,11 +9,11 @@
  * Partial: Dashboard Tab - Modern Future Permits (v0.25.3)
  * Path: templates/pages/admin_dashboard/_tab_future.phtml
  *
- * @var array $groups
+ * @var array $permitGroups
  * @var int   $adminLevel
  */
 $now           = new \DateTimeImmutable('today');
-$futurePermits = $groups['future'] ?? [];
+$futurePermits = $permitGroups['future'] ?? [];
 ?>
 <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
     <div class="c-tab-content-container">

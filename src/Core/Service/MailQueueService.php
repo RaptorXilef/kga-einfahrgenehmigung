@@ -132,4 +132,11 @@ final readonly class MailQueueService implements MailServiceInterface
     {
         return $this->realMailService->loadLogs();
     }
+
+    public function saveLogs(array $logs): void
+    {
+        // Die Queue selbst speichert keine Logs, sie leitet den Befehl
+        // an den echten Mail-Service (SmtpMailService) weiter.
+        $this->realMailService->saveLogs($logs);
+    }
 }

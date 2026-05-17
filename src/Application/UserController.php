@@ -325,15 +325,16 @@ final readonly class UserController
             };
         }
 
-        $users   = $this->auth->loadUsers();
-        $groups  = $this->auth->loadGroups();
-        $groupId = $this->auth->getGroup();
+        $users       = $this->auth->loadUsers();
+        $groups      = $this->auth->loadGroups();
+        $userGroupId = $users[$userId]['group'] ?? 'guest';
 
         $this->render('profile', [
-            'userId'   => $userId, // ID explizit übergeben
+            'userId'   => $userId,
             'username' => $users[$userId]['username'] ?? 'Unbekannt',
-            'group'    => $groups[$groupId]['name'] ?? $groupId, // FIX BUG 5: Hier den Namen statt der ID übergeben
-            'message'  => $message,
+            // Hier den Anzeigenamen der Gruppe holen
+            'group'   => $groups[$userGroupId]['name'] ?? $userGroupId,
+            'message' => $message,
         ]);
     }
 

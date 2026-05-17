@@ -1,10 +1,7 @@
 {
-    "admin": {
-        "pass": "$2y$10$xyz...",
-        "level": 1
-    },
-    "vorstand": {
-        "pass": "$2y$10$abc...",
-        "level": 2
+    "usr_7c13b491": {
+        "username": "Admin",
+        "group": "grp_71cb1c0d",
+        "pass": "PasswordHash"
     }
 }

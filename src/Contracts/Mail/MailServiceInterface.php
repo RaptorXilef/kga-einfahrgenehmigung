@@ -37,4 +37,6 @@ interface MailServiceInterface
      * @return array<int, array<string, mixed>>
      */
     public function loadLogs(): array;
+
+    public function saveLogs(array $logs): void;
 }

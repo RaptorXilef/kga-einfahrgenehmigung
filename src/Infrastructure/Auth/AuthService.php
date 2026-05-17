@@ -87,13 +87,24 @@ final readonly class AuthService
     public function hasPermission(string $permission): bool
     {
         // Gott-Modus für System-Accounts & Dev-Mode
-        // FIX: Wenn Session eine System-ID hat oder Dev-Mode aktiv ist -> IMMER TRUE
-        // Gott-Modus-Bypass (Fix für den weißen Bildschirm)
-        $uid = (string) ($_SESSION['user_id'] ?? '');
+        // Wenn Session eine System-ID hat oder Dev-Mode aktiv ist -> IMMER TRUE
+        $uid      = (string) ($_SESSION['user_id'] ?? '');
+        $groupKey = (string) ($_SESSION['admin_group'] ?? 'guest');
+
+        // 1. SYSTEM-BYPASS (Gott-Modus für technische Accounts & Dev-Mode)
         if (\str_starts_with($uid, 'sys_') || $this->config->get('admin_dev_mode')) {
             return true;
         }
 
+        // 2. GRUPPEN-WILDCARD CHECK
+        // Wir laden die Gruppe und schauen, ob sie den '*' (Master) direkt hat
+        $groups   = $this->loadGroups();
+        $groupKey = $_SESSION['admin_group'] ?? 'guest';
+        if (isset($groups[$groupKey]['permissions']) && \in_array('*', $groups[$groupKey]['permissions'], true)) {
+            return true;
+        }
+
+        // 3. COMPILED CHECK (Für spezifische oder negierte Rechte)
         return $_SESSION['compiled_permissions'][$permission] ?? false;
     }
 

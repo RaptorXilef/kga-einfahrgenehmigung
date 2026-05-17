@@ -69,9 +69,26 @@ foreach ($configFiles as $key => $file) {
         $loaded = require $file;
         if (\is_array($loaded)) {
             if ($key === 'perms') {
-                $settings['permissions'] = $loaded['list'] ?? [];
-                $settings['structure']   = $loaded['structure'] ?? [];
-                $settings['admin_ui']    = $loaded['admin_ui'] ?? [];
+                // Da die neue permissions.php kein 'list' mehr hat, nutzen wir die structure direkt
+                $settings['structure'] = $loaded['structure'] ?? [];
+                $settings['admin_ui']  = $loaded['admin_ui'] ?? [];
+
+                // Hilfs-Mapping für die flache Liste im User-Dropdown-UI
+                $flatPerms = [];
+                if (! empty($settings['structure'])) {
+                    $flatten = function ($nodes) use (&$flatten, &$flatPerms): void {
+                        foreach ($nodes as $node) {
+                            if (isset($node['key'])) {
+                                $flatPerms[$node['key']] = $node['label'] ?? $node['key'];
+                            }
+                            if (isset($node['children'])) {
+                                $flatten($node['children']);
+                            }
+                        }
+                    };
+                    $flatten($settings['structure']);
+                }
+                $settings['permissions'] = $flatPerms;
             } elseif ($key === 'dev') {
                 $settings['superadmin'] = $loaded;
             } elseif ($key === 'schema') {
@@ -84,7 +101,7 @@ foreach ($configFiles as $key => $file) {
     }
 }
 
-$settings['root_path'] = $appRoot . '/';
+$settings['root_path'] = $appRoot;
 
 // --- Erweiterte Wartungsmodus-Logik v0.24.2 (Internal Load) ---
 $currentScript     = \basename($_SERVER['SCRIPT_NAME']);

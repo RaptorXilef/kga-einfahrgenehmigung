@@ -56,22 +56,28 @@ trait StorageMapperTrait
      */
     public function mapToEntity(array $item): Permit
     {
+        // Wir suchen flexibel nach alten und neuen Keys
+        $name    = (string) ($item['name'] ?? ($item['pächter'] ?? 'Unbekannt'));
+        $von     = (string) ($item['von'] ?? ($item['datum_von'] ?? 'now'));
+        $bis     = (string) ($item['bis'] ?? ($item['datum_bis'] ?? 'now'));
+        $created = (string) ($item['erstellt'] ?? ($item['erstellt_am'] ?? 'now'));
+
         return new Permit(
-            code: (string) $item['code'],
+            code: (string) ($item['code'] ?? ''),
             templateKey: (string) ($item['templateKey'] ?? 'std_7'),
             owner: new Owner(
-                (string) $item['name'],
-                (string) $item['email'],
-                (string) $item['parzelle'],
+                $name,
+                (string) ($item['email'] ?? ''),
+                \str_pad((string) ($item['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
             ),
             vehicle: new Vehicle(
-                (string) ($item['typ'] ?? 'unknown'), // 'unknown' statt fest 'pkw'
-                (string) $item['kennzeichen'],
+                (string) ($item['typ'] ?? 'pkw'),
+                (string) ($item['kennzeichen'] ?? ''),
                 $item['firma'] ?? null,
             ),
             validity: new Validity(
-                new \DateTimeImmutable((string) $item['von']),
-                new \DateTimeImmutable((string) $item['bis']),
+                new \DateTimeImmutable($von),
+                new \DateTimeImmutable($bis),
                 (float) ($item['preisSnapshot'] ?? 0.0),
                 (string) ($item['zweck'] ?? 'Privat'),
             ),
@@ -80,7 +86,7 @@ trait StorageMapperTrait
                 (bool) ($item['isSuspended'] ?? false),
                 $item['suspensionReason'] ?? null,
             ),
-            erstellt: new \DateTimeImmutable((string) ($item['erstellt'] ?? 'now')),
+            erstellt: new \DateTimeImmutable($created),
             internerKommentar: $item['internerKommentar'] ?? null,
         );
     }

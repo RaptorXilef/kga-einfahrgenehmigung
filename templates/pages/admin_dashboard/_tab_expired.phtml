@@ -9,9 +9,9 @@
  * Partial: Dashboard Tab - Modern Expired Permits
  * Path: templates/pages/admin_dashboard/_tab_expired.phtml
  *
- * @var array $groups
+ * @var array $permitGroups
  */
-$expiredPermits = $groups['expired'] ?? [];
+$expiredPermits = $permitGroups['expired'] ?? [];
 ?>
 <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
     <div class="c-tab-content-container">

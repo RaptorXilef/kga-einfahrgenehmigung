@@ -92,7 +92,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             </div>
 
             <!-- Die globale Kontroll-Leiste -->
-            <?php if ($auth->hasPermission('dashboard.filter.view')) { ?>
+            <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
                 <?php include $appRoot . '/templates/pages/admin_dashboard/_control_bar.phtml'; ?>
             <?php } ?>
 
@@ -102,13 +102,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <div class="c-tabs__nav">
                         <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
                             <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktiv (<?php echo \count($groups['active'] ?? []); ?>)
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
                             </button>
                         <?php } ?>
                         <!-- NEU: FINANZEN TAB BUTTON -->
                         <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
                             <button class="c-tabs__btn" data-tab-target="tab-finance">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp" class="c-icon" alt=""> Finanzen <?php $openCount = \count($groups['unpaid'] ?? []);
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp" class="c-icon" alt=""> Finanzen <?php $openCount = \count($permitGroups['unpaid'] ?? []);
                             if ($openCount > 0) {
                                 echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
                             }
@@ -117,12 +117,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
                             <button class="c-tabs__btn" data-tab-target="tab-future">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig (<?php echo \count($groups['future'] ?? []); ?>)
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
                             <button class="c-tabs__btn" data-tab-target="tab-expired">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen (<?php echo \count($groups['expired'] ?? []); ?>)
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>

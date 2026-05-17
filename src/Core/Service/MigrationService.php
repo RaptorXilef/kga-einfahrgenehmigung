@@ -185,7 +185,7 @@ final readonly class MigrationService
 
         // Dynamische Bestimmung des ID-Feldes
         $idField = match ($key) {
-            'users'                                                   => 'username',
+            'users'                                                   => 'id', // Von username auf id geändert!
             'mail_log'                                                => 'id',
             'magic_links', 'pending_verification', 'verified_pending' => 'token',
             default                                                   => 'code'
@@ -206,12 +206,11 @@ final readonly class MigrationService
      */
     private function saveToSql(string $key, array $data): void
     {
-
         match ($key) {
             'users'                => $this->authService->saveUsers($data),
             'vouchers'             => $this->voucherService->saveVouchers($data),
             'magic_links'          => $this->magicLinkService->saveLinks($data),
-            'mail_log'             => $this->mailService->saveLogs($data),
+            'mail_log'             => $this->mailService->saveLogs($data), // JETZT SAUBER ÜBER SERVICE
             'pending_verification' => $this->permitService->savePendingData('pending_verification', $data),
             'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data),
             'permits'              => $this->migratePermitsToSql($data),

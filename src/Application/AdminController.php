@@ -201,7 +201,7 @@ final readonly class AdminController
             // Service-Aufruf mit neuen Parametern
             $code = $this->permitService->getVoucherService()->createVoucher(
                 $reason,
-                (string) ($_SESSION['admin_user'] ?? 'Admin'),
+                (string) ($_SESSION['user_id'] ?? 'sys_admin'),
                 $tplKey,
                 $preData,
                 $type,
@@ -302,7 +302,7 @@ final readonly class AdminController
             return $date >= $filterStart && $date <= $filterEnd;
         });
 
-        // 2. Jährliche Gruppierung für das Archiv & Diagramm (pkw)
+        // 2. Jährliche Gruppierung (bleibt wie sie ist für die Historie)
         $yearlyStats = [];
         $vConfig     = $this->config->get('vehicle_types', []);
 
@@ -335,13 +335,13 @@ final readonly class AdminController
         }
         \krsort($yearlyStats); // Neueste Jahre zuerst
 
-        // Export Logik
-
+        // FIX: Wir übergeben groupPermits nun die GEFILTERTEN Daten ($filtered),
+        // damit die Tabs exakt das anzeigen, was oben im Datum steht!
         $this->render('admin_dashboard', [
             'structure'        => $this->config->get('structure', []),
-            'periodStats'      => $this->calculateDetailedStats($filtered), // Erweiterte Methode
-            'yearlyStats'      => $yearlyStats, // Die Daten für Diagramm & Archiv
-            'groups'           => $this->groupPermits($allPermits),
+            'periodStats'      => $this->calculateDetailedStats($filtered),
+            'yearlyStats'      => $yearlyStats,
+            'permitGroups'     => $this->groupPermits($allPermits), // <--- GEÄNDERT von $filtered und groups
             'settings'         => $this->getSettingsArray(),
             'auth'             => $this->auth,
             'message'          => $message,
