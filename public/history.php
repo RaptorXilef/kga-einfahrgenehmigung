@@ -6,7 +6,7 @@
 // See LICENSE.md for full license details.
 
 /**
- * Pächter-Verlauf Einstiegspunkt v0.13.0
+ * Pächter-Verlauf Einstiegspunkt
  * Ermöglicht die Einsicht aller Genehmigungen via Magic Link.
  *
  * Path: public/history.php

@@ -36,7 +36,9 @@ $vereinsName = $settings['vereins_name'] ?? 'KGA';
 // Suche Logo
 $logoFile = null;
 foreach (['webp', 'png', 'jpg'] as $ext) {
-    if (\file_exists(__DIR__ . "/assets/img/kga_logo.$ext")) {
+    // Sicherere Pfadprüfung für Logo
+    $localPath = __DIR__ . \DIRECTORY_SEPARATOR . 'assets' . \DIRECTORY_SEPARATOR . 'img' . \DIRECTORY_SEPARATOR . "kga_logo.$ext";
+    if (\file_exists($localPath)) {
         $logoFile = "assets/img/kga_logo.$ext";
 
         break;
@@ -45,6 +47,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,12 +56,39 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
 
     <style>
-        body { background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .c-maintenance-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; max-width: 500px; border-top: 5px solid #f59e0b; }
-        .c-icon-large { font-size: 50px; margin-bottom: 20px; display: block; }
-        .c-logo { max-width: 200px; margin-bottom: 20px; }
+        body {
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        .c-maintenance-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 500px;
+            border-top: 5px solid #f59e0b;
+        }
+
+        .c-icon-large {
+            font-size: 50px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .c-logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
+
 <body>
     <div class="c-maintenance-card">
         <?php if ($logoFile) { ?>
@@ -89,4 +119,5 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
         </div>
     </div>
 </body>
+
 </html>

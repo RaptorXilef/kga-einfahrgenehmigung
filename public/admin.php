@@ -6,7 +6,7 @@
 // See LICENSE.md for full license details.
 
 /**
- * Admin Einstiegspunkt v0.9.5
+ * Admin Einstiegspunkt
  *
  * Path:      public/admin.php
  */

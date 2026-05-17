@@ -28,7 +28,7 @@ $controller->handleProfileRequest($_POST);
 try {
     $mailService = $container->get(MailServiceInterface::class);
     if ($mailService instanceof \App\Core\Service\MailQueueService) {
-        $mailService->processQueue(5);
+        $mailService->processQueue(10);
     }
 } catch (\Throwable $e) {
     // Silent fail für Mails

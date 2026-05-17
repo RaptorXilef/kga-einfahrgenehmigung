@@ -6,7 +6,7 @@
 // See LICENSE.md for full license details.
 
 /**
- * User-Management Einstiegspunkt v0.9.7
+ * User-Management Einstiegspunkt
  *
  * Path:      public/users.php
  */

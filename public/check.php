@@ -6,7 +6,7 @@
 // See LICENSE.md for full license details.
 
 /**
- * Validierungsschnittstelle für Ausnahmegenehmigungen (v0.9.5).
+ * Validierungsschnittstelle für Ausnahmegenehmigungen
  *
  * Prüft die Gültigkeit eines Codes und unterscheidet mittels Token-Validierung
  * zwischen der öffentlichen Ansicht und der detaillierten Vorstandsansicht.
