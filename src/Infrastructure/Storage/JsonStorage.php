@@ -5,13 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * JSON-Implementierung des Storage-Interfaces.
- *
- * Verwaltet den Lese- und Schreibzugriff auf die lokale permits_active.json.
- *
- * Path: src/Infrastructure/Storage/JsonStorage.php
- */
+// Path: src/Infrastructure/Storage/JsonStorage.php
 
 declare(strict_types=1);
 
@@ -20,6 +14,11 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 
+/**
+ * JSON-Implementierung des Storage-Interfaces.
+ *
+ * Verwaltet den Lese- und Schreibzugriff auf die lokale permits_active.json.
+ */
 final readonly class JsonStorage implements StorageInterface
 {
     use StorageMapperTrait;

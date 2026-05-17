@@ -5,13 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * SMTP-Implementierung des Mail-Services.
- *
- * Rendert Templates und versendet diese über eine Socket-Verbindung basierend auf SimpleSMTP.
- *
- * Path: src/Infrastructure/Mail/SmtpMailService.php
- */
+// Path: src/Infrastructure/Mail/SmtpMailService.php
 
 declare(strict_types=1);
 
@@ -20,6 +14,11 @@ namespace App\Infrastructure\Mail;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
 
+/**
+ * SMTP-Implementierung des Mail-Services.
+ *
+ * Rendert Templates und versendet diese über eine Socket-Verbindung basierend auf SimpleSMTP.
+ */
 final readonly class SmtpMailService implements MailServiceInterface
 {
     public function __construct(
@@ -236,10 +235,10 @@ final readonly class SmtpMailService implements MailServiceInterface
         $cfg = $this->config->get('storage_config')['mail_log'];
 
         if ($cfg['type'] === 'mysql' && $this->pdo) {
-            // Wir nutzen eine Transaktion für maximale Bulk-Geschwindigkeit
             $this->pdo->beginTransaction();
 
             try {
+                // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
                 $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (id, timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($logs as $id => $log) {
                     $stmt->execute([
@@ -259,7 +258,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             }
         } else {
             // Fallback: Normales JSON-Speichern
-            $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+            $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
             \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
         }
     }

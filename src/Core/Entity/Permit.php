@@ -43,7 +43,7 @@ final readonly class Permit
         }
 
         // 2. Zeitlicher Check:
-        // Wir setzen das Enddatum für den Vergleich auf 23:59:59 Uhr des jeweiligen Tages.
+        // Wir setzen das Enddatum für den Vergleich auf den letzten Moment des Tages (3:59:59 Uhr).
         $endOfPeriod = $this->validity->bis->setTime(23, 59, 59);
 
         return $now >= $this->validity->von && $now <= $endOfPeriod;

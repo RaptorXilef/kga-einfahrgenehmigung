@@ -5,14 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * PayPal-Implementierung des PaymentProviders.
- *
- * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
- * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
- *
- * Path: src/Infrastructure/Payment/PayPalService.php
- */
+// Path: src/Infrastructure/Payment/PayPalService.php
 
 declare(strict_types=1);
 
@@ -21,6 +14,12 @@ namespace App\Infrastructure\Payment;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Infrastructure\Config\Config;
 
+/**
+ * PayPal-Implementierung des PaymentProviders.
+ *
+ * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
+ * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
+ */
 final readonly class PayPalService implements PaymentProviderInterface
 {
     private const string API_BASE_SANDBOX = 'https://api-m.sandbox.paypal.com';

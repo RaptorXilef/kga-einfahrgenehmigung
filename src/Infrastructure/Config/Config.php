@@ -5,14 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Zentrales Konfigurations-Objekt.
- *
- * Verwaltet alle Anwendungseinstellungen und ermöglicht den Zugriff auf
- * Mail-Templates und Provider-Daten.
- *
- * Path: src/Infrastructure/Config/Config.php
- */
+// Path: src/Infrastructure/Config/Config.php
 
 declare(strict_types=1);
 
@@ -21,6 +14,11 @@ namespace App\Infrastructure\Config;
 use App\Contracts\Config\ConfigInterface;
 
 /**
+ * Zentrales Konfigurations-Objekt.
+ *
+ * Verwaltet alle Anwendungseinstellungen und ermöglicht den Zugriff auf
+ * Mail-Templates und Provider-Daten.
+ *
  * @immutable
  */
 final readonly class Config implements ConfigInterface

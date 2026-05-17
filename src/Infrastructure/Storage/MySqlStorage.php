@@ -5,11 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * MySQL-Implementierung des Storage-Interfaces.
- *
- * Path: src/Infrastructure/Storage/MySqlStorage.php
- */
+// Path: src/Infrastructure/Storage/MySqlStorage.php
 
 declare(strict_types=1);
 
@@ -18,6 +14,9 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 
+/**
+ * MySQL-Implementierung des Storage-Interfaces.
+ */
 final readonly class MySqlStorage implements StorageInterface
 {
     use StorageMapperTrait;

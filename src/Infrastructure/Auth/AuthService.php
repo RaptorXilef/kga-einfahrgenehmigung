@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: src/Infrastructure/Auth/AuthService.php
- */
+// Path: src/Infrastructure/Auth/AuthService.php
 
 declare(strict_types=1);
 
