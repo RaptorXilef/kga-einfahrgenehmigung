@@ -47,10 +47,12 @@ try {
 
         if ($v) {
             // Check gegen Ablaufdatum (Logik bleibt hier, bis wir eine isValid() Methode im Service haben)
-            $isExpired = ! empty($v['expires_at'])
+            // FIX: Prüfe zusätzlich auf den Status 'deaktiviert'
+            $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+            $isExpired     = ! empty($v['expires_at'])
                 && new \DateTimeImmutable($v['expires_at']) < new \DateTimeImmutable();
 
-            if (! $isExpired) {
+            if (! $isExpired && ! $isDeactivated) {
                 // Preis berechnen über die neue Methode im PermitService
                 $finalPrice   = $permitService->calculateDiscountedPrice($originalPrice, $v);
                 $discountText = match ($v['type']) {
@@ -60,7 +62,7 @@ try {
                     default   => ''
                 };
             } else {
-                $discountText = 'Code abgelaufen';
+                $discountText = $isDeactivated ? 'Code gesperrt' : 'Code abgelaufen';
             }
         } else {
             $discountText = 'Ungültiger Code';
