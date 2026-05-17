@@ -5,19 +5,15 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Interface für den E-Mail-Versanddienst.
- *
- * Path:      src/Contracts/Mail/MailServiceInterface.php
- *
- * @since     0.1.0
- * - feat(mail): Definition der Schnittstelle für Template-basierten Mailversand.
- */
+// Path:      src/Contracts/Mail/MailServiceInterface.php
 
 declare(strict_types=1);
 
 namespace App\Contracts\Mail;
 
+/**
+ * Interface für den E-Mail-Versanddienst.
+ */
 interface MailServiceInterface
 {
     /**

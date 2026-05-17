@@ -5,13 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Interface für Datenspeicher-Provider.
- *
- * Definiert die Verträge für JSON- und MySQL-Implementierungen.
- *
- * Path: src/Contracts/Storage/StorageInterface.php
- */
+// Path: src/Contracts/Storage/StorageInterface.php
 
 declare(strict_types=1);
 
@@ -19,6 +13,11 @@ namespace App\Contracts\Storage;
 
 use App\Core\Entity\Permit;
 
+/**
+ * Interface für Datenspeicher-Provider.
+ *
+ * Definiert die Verträge für JSON- und MySQL-Implementierungen.
+ */
 interface StorageInterface
 {
     public function save(Permit $permit): bool;

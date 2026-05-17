@@ -5,9 +5,7 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: src/Contracts/Config/ConfigInterface.php
- */
+// Path: src/Contracts/Config/ConfigInterface.php
 
 declare(strict_types=1);
 

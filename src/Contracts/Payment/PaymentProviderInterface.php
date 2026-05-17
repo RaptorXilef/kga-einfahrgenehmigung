@@ -5,18 +5,17 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Interface für Zahlungsanbieter.
- *
- * Definiert die notwendigen Methoden zur Verifizierung und Abwicklung von Zahlungen.
- *
- * Path: src/Contracts/Payment/PaymentProviderInterface.php
- */
+// Path: src/Contracts/Payment/PaymentProviderInterface.php
 
 declare(strict_types=1);
 
 namespace App\Contracts\Payment;
 
+/**
+ * Interface für Zahlungsanbieter.
+ *
+ * Definiert die notwendigen Methoden zur Verifizierung und Abwicklung von Zahlungen.
+ */
 interface PaymentProviderInterface
 {
     /**

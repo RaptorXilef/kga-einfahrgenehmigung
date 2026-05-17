@@ -60,10 +60,11 @@ final readonly class CheckController
             return;
         }
 
-        // Standard-Daten für die Header-Navigation (falls eingeloggt)
+        // Standard-Daten für die Header-Navigation (falls eingeloggt) Nutzt den AuthService
         $adminData = [
-            'adminUser'  => (string) ($_SESSION['admin_user'] ?? 'Admin'),
-            'adminLevel' => (int) ($_SESSION['admin_level'] ?? 1),
+            'adminUser'  => $this->auth->getUsername(),
+            'adminId'    => $this->auth->getUserId(),
+            'adminGroup' => $this->auth->getGroup(),
         ];
 
         // --- Logik für den nächsten befahrbaren Slot ---
