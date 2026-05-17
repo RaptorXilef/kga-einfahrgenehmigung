@@ -214,7 +214,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         }
 
         // --- Alter JSON Code ---
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         $logs = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
         \array_unshift($logs, [
             'timestamp' => \date('Y-m-d H:i:s'),
@@ -276,7 +276,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             return $this->pdo->query("SELECT * FROM {$cfg['table']} ORDER BY timestamp DESC")->fetchAll();
         }
 
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         if (! \file_exists($path)) {
             return [];
         }
