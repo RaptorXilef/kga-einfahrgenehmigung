@@ -127,7 +127,8 @@ final readonly class AuthService
         $fallback = $isUser ? 'icon-user-default.webp' : 'icon-group-default.webp';
 
         // Pfad für file_exists (absolut auf dem Server inkl. public/)
-        $serverPath = $this->config->get('root_path') . 'public/assets/img/' . $folder . '/' . $id . '.webp';
+        // Fix: Pfad muss absolut zum 'public' Ordner sein
+        $serverPath = \rtrim($this->config->get('root_path'), '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
 
         // URL für den Browser (relativ zur baseUrl)
         $browserPath = 'assets/img/' . $folder . '/' . $id . '.webp';
@@ -152,17 +153,10 @@ final readonly class AuthService
      */
     public function loadUsers(): array
     {
-        $storageCfg = $this->config->get('storage_config');
-        $userFile   = $storageCfg['users']['file'] ?? 'users.json';
-        $prefix     = $this->config->get('storage_path_prefix', 'storage/');
+        $cfg  = $this->config->get('storage_config')['users'];
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
 
-        $path = $this->config->get('root_path') . $prefix . $userFile;
-
-        if (! \file_exists($path) || \is_dir($path)) {
-            return [];
-        }
-
-        return \json_decode((string) \file_get_contents($path), true) ?? [];
+        return (\file_exists($path) && ! \is_dir($path)) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     /**
@@ -170,11 +164,8 @@ final readonly class AuthService
      */
     public function saveUsers(array $users): void
     {
-        $storageCfg = $this->config->get('storage_config');
-        $userFile   = $storageCfg['users']['file'] ?? 'users.json';
-        $prefix     = $this->config->get('storage_path_prefix', 'storage/');
-        $path       = $this->config->get('root_path') . $prefix . $userFile;
-
+        $cfg  = $this->config->get('storage_config')['users'];
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
         \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
@@ -183,14 +174,14 @@ final readonly class AuthService
      */
     public function loadGroups(): array
     {
-        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix', 'storage/') . 'groups.json';
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
 
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     public function saveGroups(array $groups): void
     {
-        $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix', 'storage/') . 'groups.json';
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
         \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
@@ -203,21 +194,16 @@ final readonly class AuthService
         $folder = $isUser ? 'user_images' : 'group_images';
 
         // Vollständiger Server-Pfad inkl. public/
-        $targetDir  = $this->config->get('root_path') . 'public/assets/img/' . $folder . '/';
+        $targetDir  = \rtrim($this->config->get('root_path'), '/\\') . '/public/assets/img/' . $folder . '/';
         $outputPath = $targetDir . $id . '.webp';
 
         // 1. Ordner sicherstellen
         if (! \is_dir($targetDir)) {
-            if (! @\mkdir($targetDir, 0o755, true) && ! \is_dir($targetDir)) {
-                return false;
-            }
+            \mkdir($targetDir, 0o755, true);
         }
 
-        // 2. GD Fallback: Falls die Erweiterung fehlt oder deaktiviert ist
-        if (! \extension_loaded('gd') || ! \function_exists('imagecreatefromjpeg')) {
-            // Wir können hier nicht konvertieren, also nur verschieben.
-            // Achtung: Datei behält Endung des Originals, wird aber als .webp benannt.
-            // Moderne Browser zeigen das Bild oft trotzdem an.
+        // FALLBACK: Falls GD nicht installiert ist
+        if (! \extension_loaded('gd')) {
             return \move_uploaded_file($file['tmp_name'], $outputPath);
         }
 

@@ -21,10 +21,11 @@ return [
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
 
     'users' => 'CREATE TABLE IF NOT EXISTS `users` (
-        `username` VARCHAR(50) PRIMARY KEY,
+        `id` VARCHAR(50) PRIMARY KEY,
+        `username` VARCHAR(50) NOT NULL,
         `group` VARCHAR(50) NOT NULL,
-        `label` VARCHAR(100),
-        `pass` VARCHAR(255) NOT NULL
+        `pass` VARCHAR(255) NOT NULL,
+        UNIQUE KEY `idx_username` (`username`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
 
     'vouchers' => 'CREATE TABLE IF NOT EXISTS `vouchers` (
