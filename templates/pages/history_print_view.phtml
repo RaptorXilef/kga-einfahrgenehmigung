@@ -63,8 +63,8 @@
 
 $data = [
     'fullIdentifier'    => $permit->code,
-    'von'               => $permit->validity->von, // Übergebe das Objekt für Formatierung im Template
-    'bis'               => $permit->validity->bis,
+    'von_formatted'     => $permit->validity->von->format('d.m.Y'),
+    'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
     'kennzeichen'       => $permit->vehicle->kennzeichen,
     'firma'             => $permit->vehicle->firma ?? '',
     'parzelle'          => $permit->owner->parzelle,

@@ -42,8 +42,8 @@ $displayVon = ($von_formatted ?? '') ?: ($von instanceof \DateTimeInterface ? $v
 $displayBis = ($bis_formatted ?? '') ?: ($bis instanceof \DateTimeInterface ? $bis->format('d.m.Y') : $bis);
 
 // Quartals-Logik auf die neuen Variablen umstellen
-$dtVon = \DateTimeImmutable::createFromFormat('d.m.Y', (string) $displayVon);
-$dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', (string) $displayBis);
+$dtVon = \DateTimeImmutable::createFromFormat('d.m.Y', $von_formatted);
+$dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', $bis_formatted);
 
 $activeQuarters = [];
 if ($dtVon && $dtBis) {

@@ -470,13 +470,13 @@ final readonly class PermitService
 
                     return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
                 })($permit->vehicle->typ, $this->config),
-                'kennzeichen' => $permit->vehicle->kennzeichen,
-                'firma'       => $permit->vehicle->firma ?? '',
-                'von'         => $permit->validity->von->format('d.m.Y'),
-                'bis'         => $permit->validity->bis->format('d.m.Y'),
-                'zweck'       => $permit->validity->zweck,
-                'adminLink'   => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
-                'vereinsName' => $this->config->get('vereins_name'),
+                'kennzeichen'   => $permit->vehicle->kennzeichen,
+                'firma'         => $permit->vehicle->firma ?? '',
+                'von_formatted' => $permit->validity->von->format('d.m.Y'), // Key vereinheitlicht!
+                'bis_formatted' => $permit->validity->bis->format('d.m.Y'), // Key vereinheitlicht!
+                'zweck'         => $permit->validity->zweck,
+                'adminLink'     => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
+                'vereinsName'   => $this->config->get('vereins_name'),
             ],
         );
 

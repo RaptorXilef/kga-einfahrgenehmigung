@@ -62,7 +62,7 @@
 // damit das A4-Template die Quartale berechnen kann!
 $data = [
     'fullIdentifier'    => $permit->code,
-    'von_formatted'     => $permit->validity->von->format('d.m.Y'), // A4 Template braucht oft den String
+    'von_formatted'     => $permit->validity->von->format('d.m.Y'),
     'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
     'kennzeichen'       => $permit->vehicle->kennzeichen,
     'firma'             => $permit->vehicle->firma ?? '',
