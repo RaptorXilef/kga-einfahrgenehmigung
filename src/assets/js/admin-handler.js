@@ -43,20 +43,24 @@ class AdminDashboardHandler {
             });
         }
 
-        // 4. Sperr-Buttons (Prompt & Form-Submit)
-        document.querySelectorAll('.js-suspend-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const code = btn.getAttribute('data-code');
-                const reason = prompt(`Grund für die Sperre von ${code}?`);
-                if (reason) {
-                    const form = document.getElementById(`form_suspend_${code}`);
-                    const input = document.getElementById(`reason_suspend_${code}`);
-                    if (form && input) {
-                        input.value = reason;
-                        form.submit();
-                    }
+        // 4. Sperr-Buttons (Event Delegation - Sicher für AJAX/DOM-Wechsel)
+        document.addEventListener('click', (e) => {
+            // Prüfen, ob das geklickte Element (oder ein Elternteil davon) die Klasse hat
+            const btn = e.target.closest('.js-suspend-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            const code = btn.getAttribute('data-code');
+            const reason = prompt(`Grund für die Sperre von ${code}?`);
+
+            if (reason && reason.trim() !== '') {
+                const form = document.getElementById(`form_suspend_${code}`);
+                const input = document.getElementById(`reason_suspend_${code}`);
+                if (form && input) {
+                    input.value = reason;
+                    form.submit();
                 }
-            });
+            }
         });
     }
 
