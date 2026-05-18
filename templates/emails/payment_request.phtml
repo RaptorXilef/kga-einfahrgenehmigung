@@ -5,9 +5,8 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: templates/emails/payment_request.phtml
- */
+// Path: templates/emails/payment_request.phtml
+
 ?>
 
 <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 30px; border-radius: 10px;">
@@ -20,10 +19,22 @@
     </div>
 
     <table style="width: 100%; margin-bottom: 20px;">
-        <tr><td><strong>Betrag:</strong></td><td style="text-align: right; font-size: 18px; font-weight: bold;">{{betrag}}</td></tr>
-        <tr><td><strong>Empfänger:</strong></td><td style="text-align: right;">{{kontoinhaber}}</td></tr>
-        <tr><td><strong>IBAN:</strong></td><td style="text-align: right;"><code>{{iban}}</code></td></tr>
-        <tr><td><strong>Verwendungszweck:</strong></td><td style="text-align: right; color: #d32f2f; font-weight: bold;"><code>{{usage}}</code></td></tr>
+        <tr>
+            <td><strong>Betrag:</strong></td>
+            <td style="text-align: right; font-size: 18px; font-weight: bold;">{{betrag}}</td>
+        </tr>
+        <tr>
+            <td><strong>Empfänger:</strong></td>
+            <td style="text-align: right;">{{kontoinhaber}}</td>
+        </tr>
+        <tr>
+            <td><strong>IBAN:</strong></td>
+            <td style="text-align: right;"><code>{{iban}}</code></td>
+        </tr>
+        <tr>
+            <td><strong>Verwendungszweck:</strong></td>
+            <td style="text-align: right; color: #d32f2f; font-weight: bold;"><code>{{usage}}</code></td>
+        </tr>
     </table>
 
     <div style="text-align: center; border-top: 1px solid #eee; padding-top: 20px;">

@@ -5,12 +5,12 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/emails/permit_a4_document.phtml
+
 /**
  * Page: A4 Ausnahmegenehmigung (Dokument)
  *
  * Diese Version ist optimiert für den Versand via Mail-Queue (flache Datenstrukturen).
- *
- * Path: templates/emails/permit_a4_document.phtml
  *
  * @var string $templateKey
  * @var string $jahresFarbe
@@ -36,10 +36,14 @@ $isPermanent = \str_contains(\strtolower($templateKey), 'perm');
 $headerColor = $isPermanent ? '#3498db' : $jahresFarbe;
 $title       = $isPermanent ? 'DAUEREINFAHRGENEHMIGUNG' : 'AUSNAHMEGENEHMIGUNG';
 
-// 2. Quartale berechnen aus den übergebenen Strings
-// Wir erstellen temporäre Datumsobjekte nur für die Logik
-$dtVon = \DateTimeImmutable::createFromFormat('d.m.Y', $von_formatted);
-$dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', $bis_formatted);
+// Falls die Variablen als Objekte kommen (Druckvorschau), formatieren wir sie.
+// Falls sie als Strings kommen (E-Mail Queue), nutzen wir sie direkt.
+$displayVon = ($von_formatted ?? '') ?: ($von instanceof \DateTimeInterface ? $von->format('d.m.Y') : $von);
+$displayBis = ($bis_formatted ?? '') ?: ($bis instanceof \DateTimeInterface ? $bis->format('d.m.Y') : $bis);
+
+// Quartals-Logik auf die neuen Variablen umstellen
+$dtVon = \DateTimeImmutable::createFromFormat('d.m.Y', (string) $displayVon);
+$dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', (string) $displayBis);
 
 $activeQuarters = [];
 if ($dtVon && $dtBis) {
