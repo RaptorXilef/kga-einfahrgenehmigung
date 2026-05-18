@@ -87,12 +87,13 @@ export class PermitFormHandler {
         const val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (val.length <= 3) return;
 
+        // RegEx erweitert um [EH]? am Ende für E-Autos und Oldtimer
         // 1. Spezialfall Berlin: Falls es mit B beginnt und 3 Buchstaben hat (B-XX 123)
-        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4})$/;
+        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
         // 2. Standard Komplex: Stadt (1-3) + Zeichen (1-2) + Zahlen (1-4)
-        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4})$/;
+        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
         // 3. Standard Simpel: Stadt (1-3) + Zahlen (1-4)
-        const simplePattern = /^([A-Z]{1,3})([0-9]{1,4})$/;
+        const simplePattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
 
         if (berlinPattern.test(val)) {
             input.value = val.replace(berlinPattern, '$1-$2 $3');

@@ -47,7 +47,10 @@
                                     </tr>
                                 <?php } else { ?>
                                     <?php foreach ($activeVouchers as $v) {
-                                        $url           = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+                                        $url = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
+
+                                        // NUTZE DEN SERVICE (Zentralisierte Logik für Sperre, Ablauf und Limits)
+                                        $isValid       = $voucherService->isValid($v);
                                         $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
 
                                         // Ablaufdatum prüfen
@@ -65,7 +68,7 @@
                                             $discountText = \number_format((float) $v['value'], 2, ',', '.') . ' € Festpreis';
                                         }
                                         ?>
-                                        <tr class="<?php echo $isDeactivated || $isExpired ? 'u-bg-suspended u-opacity-50' : ''; ?>">
+                                        <tr class="<?php echo ! $isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
                                             <td>
                                                 <div class="u-text-center">
                                                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo \urlencode($url); ?>"
