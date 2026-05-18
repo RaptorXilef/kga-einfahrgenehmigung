@@ -5,9 +5,8 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-/**
- * Path: templates/pages/admin_print_view.phtml
- */
+// Path: templates/pages/admin_print_view.phtml
+
 ?>
 
 <!DOCTYPE html>
@@ -63,8 +62,8 @@
 // damit das A4-Template die Quartale berechnen kann!
 $data = [
     'fullIdentifier'    => $permit->code,
-    'von'               => $permit->validity->von,
-    'bis'               => $permit->validity->bis,
+    'von_formatted'     => $permit->validity->von->format('d.m.Y'), // A4 Template braucht oft den String
+    'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
     'kennzeichen'       => $permit->vehicle->kennzeichen,
     'firma'             => $permit->vehicle->firma ?? '',
     'parzelle'          => $permit->owner->parzelle,

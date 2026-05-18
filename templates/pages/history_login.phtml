@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/history_login.phtml
+
 /**
  * Page: History Login (Magic Link Request)
- *
- * Path: templates/pages/history_login.phtml
  *
  * @var string $message
  * @var array  $settings
@@ -59,7 +59,7 @@
                 <?php } ?>
 
                 <?php if (! isset($_GET['sent']) || $_GET['sent'] === '0') { ?>
-                <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
+                    <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
                     <form method="POST" class="c-form">
                         <div class="c-form-group">
                             <label class="c-form-label">E-Mail-Adresse</label>
