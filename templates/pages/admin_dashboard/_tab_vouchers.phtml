@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/admin_dashboard/_tab_vouchers.phtml
+
 /**
  * Partial: Dashboard Tab - Vouchers
- *
- * Path: templates/pages/admin_dashboard/_tab_vouchers.phtml
  *
  * @var array<string, array<string, mixed>> $vouchers
  * @var \App\Core\Service\VoucherService    $voucherService
@@ -37,9 +37,9 @@
                             </thead>
                             <tbody>
                                 <?php
-                                $activeVouchers = \array_filter($vouchers ?? [], fn($v) => ! ($v['used'] ?? false));
-                                if (empty($activeVouchers)) {
-                                ?>
+                                $activeVouchers = \array_filter($vouchers ?? [], fn ($v) => ! ($v['used'] ?? false));
+                if (empty($activeVouchers)) {
+                    ?>
                                     <tr>
                                         <td colspan="3" class="u-text-center u-padding-around-l u-text-muted">
                                             Aktuell keine unbenutzten Gutscheincodes vorhanden.
@@ -64,7 +64,7 @@
                                         } elseif (($v['type'] ?? 'free') === 'fixed') {
                                             $discountText = \number_format((float) $v['value'], 2, ',', '.') . ' € Festpreis';
                                         }
-                                    ?>
+                                        ?>
                                         <tr class="<?php echo $isDeactivated || $isExpired ? 'u-bg-suspended u-opacity-50' : ''; ?>">
                                             <td>
                                                 <div class="u-text-center">
@@ -168,8 +168,8 @@
                             <tbody>
                                 <?php
                                 $archive = $voucherService->loadArchive() ?? [];
-                                if (empty($archive)) {
-                                ?>
+                if (empty($archive)) {
+                    ?>
                                     <tr>
                                         <td colspan="3" class="u-text-center u-padding-around-l u-text-muted">Noch keine Einlösungen dokumentiert.</td>
                                     </tr>

@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/admin_dashboard/_tab_tools.phtml
+
 /**
  * Partial: Dashboard Tab - Universal Admin Tools
- *
- * Path: templates/pages/admin_dashboard/_tab_tools.phtml
  *
  * @var \App\Infrastructure\Config\Config $config
  * @var array                             $reasons
@@ -404,16 +404,16 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                 inputPrice.value = parseFloat(price).toFixed(2);
                 inputPrice.readOnly = true;
                 priceBtnLabel.innerText = "Automatisch";
-                priceBtnIcon.src = "assets/img/icons/icon-money-bag.webp";
+                priceBtnIcon.src = window.KGA_CONFIG.baseUrl + "assets/img/icons/icon-money-bag.webp";
             } else if (currentPriceMode === 1) {
                 inputPrice.value = "0.00";
                 inputPrice.readOnly = true;
                 priceBtnLabel.innerText = "Kostenlos";
-                priceBtnIcon.src = "assets/img/icons/icon-free.webp";
+                priceBtnIcon.src = window.KGA_CONFIG.baseUrl + "assets/img/icons/icon-free.webp";
             } else {
                 inputPrice.readOnly = false;
                 priceBtnLabel.innerText = "Manuell";
-                priceBtnIcon.src = "assets/img/icons/icon-dollar-sign.webp";
+                priceBtnIcon.src = window.KGA_CONFIG.baseUrl + "assets/img/icons/icon-dollar-sign.webp";
             }
         }
 
@@ -552,7 +552,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                 manual.name = "_unused";
 
                 // Icon: Crayon/Stift für "Wechsel zu Manuell"
-                toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell';
+                toggle.innerHTML = `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell`;
             } else {
                 // Modus: Manuelle Eingabe anzeigen
                 select.style.display = 'none';
@@ -561,7 +561,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                 manual.name = "zweck";
 
                 // Icon: Folder/Ordner für "Wechsel zu Liste"
-                toggle.innerHTML = '<img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste';
+                toggle.innerHTML = `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Liste`;
 
                 manual.focus();
             }
