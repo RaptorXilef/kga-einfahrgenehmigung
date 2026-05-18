@@ -148,6 +148,8 @@ final readonly class HistoryController
             'email'              => $email,
             'settings'           => $this->getSettingsArray(),
             'currentArchiveYear' => $loadedYear,
+            'message'            => $message,    // FIX: Hier hat die Variable gefehlt!
+            'isSuccess'          => $isSuccess,   // Auch isSuccess sicherheitshalber mitgeben
         ]);
     }
 
