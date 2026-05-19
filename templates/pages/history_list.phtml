@@ -5,15 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
-// Path: templates/pages/history_login.phtml
-
 /**
- * Page: History Login (Magic Link Request)
+ * Page: History List (Modernized)
  *
  * @var \App\Core\Entity\Permit[] $permits
  * @var string                    $email
  * @var array                     $settings
  * @var int                       $currentArchiveYear
+ * @var string                    $message
+ * @var bool                      $isSuccess
+ * @var string                    $appRoot
  */
 ?>
 <!DOCTYPE html>
@@ -22,7 +23,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verlauf einsehen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
@@ -35,35 +36,111 @@
 
 <body class="u-bg-light l-public-body">
     <div class="c-tab-content-container u-padding-y-xl">
-        <div class="c-card u-margin-auto" style="max-width: 450px; border-top: 5px solid var(--primary-color);">
-            <header class="c-card__header u-text-center u-padding-around-l">
-                <div class="u-margin-bottom-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 48px; height: 48px;" alt="">
+
+        <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
+            <div>
+                <h2 class="u-margin-none u-flex u-align-center u-gap-s">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 32px; height: 32px;" alt="">
+                    Meine Genehmigungen
+                </h2>
+                <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als: <strong style="color: #1e293b;"><?php echo \htmlspecialchars($email); ?></strong></p>
+            </div>
+            <a href="history.php?action=logout" class="c-button c-button--secondary" style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color);">
+                Abmelden ✕
+            </a>
+        </header>
+
+        <?php if (! empty($message)) {
+            $alertClass = ($isSuccess ?? false) ? 'c-alert--success' : 'c-alert--danger';
+            ?>
+            <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
+                <div class="u-flex u-align-center u-gap-s">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/<?php echo ($isSuccess ?? false) ? 'status-success' : 'status-invalid'; ?>.webp" class="c-icon" alt="">
+                    <span><?php echo \htmlspecialchars($message); ?></span>
                 </div>
-                <h2 class="u-margin-none">Meine Genehmigungen</h2>
-                <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, um einen sicheren Login-Link zu erhalten.</p>
-            </header>
+            </div>
+        <?php } ?>
 
-            <div class="c-card__body u-padding-around-l">
-                <?php if ($message) { ?>
-                    <div class="c-alert c-alert--info u-margin-bottom-l"><?php echo \htmlspecialchars($message); ?></div>
-                <?php } ?>
-
-                <form method="POST" class="c-form">
-                    <div class="c-form-group">
-                        <label class="c-form-label">E-Mail-Adresse</label>
-                        <input type="email" name="email" class="c-form-input" placeholder="ihre@mail.de" required autofocus>
+        <section class="c-card" style="border-top: 5px solid var(--primary-color);">
+            <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+                <?php if (empty($permits)) { ?>
+                    <div class="u-text-center u-padding-around-l u-text-muted">
+                        <span style="font-size: 2.5rem; opacity: 0.5;">📄</span><br>
+                        <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum gefunden.</p>
                     </div>
-                    <button type="submit" name="request_link" class="c-button--primary u-width-100 u-margin-top-m" style="padding: 14px;">
-                        Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp" class="c-icon" alt=""><!-- ✉️ -->
-                    </button>
-                </form>
+                <?php } else { ?>
+                    <table class="c-table" style="min-width: 800px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th>SmartCode</th>
+                                <th>Zeitraum</th>
+                                <th>Parzelle</th>
+                                <th>Status</th>
+                                <th class="u-text-right" style="padding-right: 20px;">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($permits as $permit) {
+                                $isPaid = \strtolower($permit->status->current) === 'bezahlt';
+                                ?>
+                                <tr class="u-hover-fade">
+                                    <td style="vertical-align: middle;">
+                                        <code style="font-size: 0.85rem; font-weight: bold; color: var(--text-main); background: #f1f5f9; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                                            <?php echo $permit->code; ?>
+                                        </code>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <div style="line-height: 1.3;">
+                                            <strong style="color: #1e293b;"><?php echo $permit->validity->von->format('d.m.Y'); ?></strong><br>
+                                            <small class="u-text-muted">bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></small>
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <span class="c-badge" style="background: #fff; border: 1px solid #e2e8f0; color: #475569;">
+                                            Nr. <?php echo \htmlspecialchars($permit->owner->parzelle); ?>
+                                        </span>
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <span class="c-badge c-badge--<?php echo $isPaid ? 'success' : 'warning'; ?>">
+                                            <?php echo \strtoupper($permit->status->current); ?>
+                                        </span>
+                                    </td>
+                                    <td class="u-text-right" style="vertical-align: middle; padding-right: 20px;">
+                                        <div class="u-flex u-gap-xs u-justify-end">
+                                            <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Status / Prüfseite öffnen">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
+                                            </a>
+                                            <a href="history.php?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--primary" style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;" title="Dokument anzeigen">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""> Dokument
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                <?php } ?>
             </div>
 
-            <footer class="u-text-center u-padding-bottom-l">
-                <a href="index.php" class="u-text-link u-text-small">← Zurück zum Antrag</a>
-            </footer>
-        </div>
+            <div class="u-padding-around-m u-border-top u-text-center" style="background: #fcfdfe;">
+                <?php
+                $lastYear = (int) \date('Y') - 1;
+if ($currentArchiveYear !== $lastYear) {
+    ?>
+                    <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary" style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
+                        📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
+                    </a>
+                <?php } else { ?>
+                    <p class="u-text-small u-text-muted u-margin-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
+                <?php } ?>
+            </div>
+        </section>
+
+        <footer class="u-margin-top-l u-text-center">
+            <a href="index.php" class="c-button c-button--primary" style="width: auto; padding: 0 25px; height: 46px; font-size: 1rem;">
+                Neuen Antrag stellen
+            </a>
+        </footer>
     </div>
 </body>
 

@@ -401,6 +401,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                         <?php if (! $prefill) { ?>
                             <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Auswahl der Zahlungsart erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
+
+                            <div class="u-margin-top-m u-text-center">
+                                <a href="verify.php" class="u-text-small u-text-link" style="font-weight: 600;">
+                                    Ich habe bereits einen Bestätigungs-Code erhalten
+                                </a>
+                            </div>
                         <?php } ?>
                     </form>
                 <?php } ?>

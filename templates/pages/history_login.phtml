@@ -58,16 +58,23 @@
                     </div>
                 <?php } ?>
 
-                <?php if (! isset($_GET['sent']) || $_GET['sent'] === '0') { ?>
+                <?php if ($step === 1) { ?>
                     <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
                     <form method="POST" class="c-form">
                         <div class="c-form-group">
                             <label class="c-form-label">E-Mail-Adresse</label>
                             <input type="email" name="email" class="c-form-input" placeholder="ihre@mail.de" required autofocus>
                         </div>
-                        <button type="submit" name="request_link" class="c-button--primary u-width-100 u-margin-top-m">
-                            Code anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp" class="c-icon" alt=""><!-- ✉️ -->
+                        <button type="submit" name="request_link" class="c-button--primary u-width-100 u-margin-top-m" style="padding: 14px;">
+                            Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp" class="c-icon" alt=""><!-- ✉️ -->
                         </button>
+
+                        <!-- NEU: DIESER BLOCK -->
+                        <div class="u-margin-top-m u-text-center">
+                            <a href="history.php?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
+                        </div>
+                        <!-- ENDE NEU -->
+
                     </form>
                 <?php } else { ?>
                     <!-- SCHRITT 2: Code eingeben (Wird nach Schritt 1 eingeblendet) -->

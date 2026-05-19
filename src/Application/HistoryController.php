@@ -37,14 +37,18 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // 1. Session & Logout prüfen
         if ($this->processLogout($get)) {
             return;
         }
 
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
+        $displayMessage = (string) ($get['msg'] ?? '');
+        $isSuccess      = ($get['sent'] ?? '') === '1';
 
-        // --- A. POST-AKTION: Link/Code anfordern ---
+        // NEU: Wir führen eine Variable für den aktuellen Anzeige-Schritt ein
+        // 1 = E-Mail Abfrage, 2 = Code-Eingabe
+        $currentStep = ($get['sent'] ?? '0') === '1' ? 2 : 1;
+
         if (isset($post['request_link'])) {
             $email   = \trim((string) ($post['email'] ?? ''));
             $permits = $this->permitService->getHistoryByEmail($email);
@@ -89,34 +93,36 @@ final readonly class HistoryController
 
         // --- C. GET-AKTION: Token-Verifizierung (Klick auf E-Mail Link) ---
         if (isset($get['token'])) {
+            $currentStep   = 2; // Feld für manuellen Code soll sichtbar bleiben bei Fehler
             $verifiedEmail = $this->magicLinkService->verifyAny((string) $get['token']);
+
             if ($verifiedEmail) {
                 $_SESSION['user_history_email'] = $verifiedEmail;
-                \header('Location: history.php'); // Redirect für saubere URL ohne Token
+                \header('Location: history.php');
                 exit;
             }
-            $displayMessage = 'Der Link ist ungültig oder abgelaufen.';
+            $displayMessage = 'Der Link ist ungültig oder abgelaufen. Sie können den Code manuell eingeben.';
             $isSuccess      = false;
         }
 
-        // --- D. GET-AKTION: Druckvorschau ---
         if (isset($get['action'], $get['code']) && $get['action'] === 'print') {
             $this->handlePrintAction((string) $get['code'], $emailInSession);
 
             return;
         }
 
-        // 3. View-Auswahl
-        $this->renderView($emailInSession, $displayMessage, $get, $isSuccess);
+        // Wir übergeben den $currentStep an die renderView
+        $this->renderView($emailInSession, $displayMessage, $get, $isSuccess, $currentStep);
     }
 
     // In renderView den neuen Parameter $isSuccess hinzufügen:
-    private function renderView(string $email, string $message, array $get, bool $isSuccess = false): void
+    private function renderView(string $email, string $message, array $get, bool $isSuccess, int $step): void
     {
         if ($email === '') {
             $this->render('history_login', [
                 'message'   => $message,
-                'isSuccess' => $isSuccess, // Weitergabe an das Template
+                'isSuccess' => $isSuccess,
+                'step'      => $step, // Den Schritt ans Template geben
                 'settings'  => $this->getSettingsArray(),
             ]);
 

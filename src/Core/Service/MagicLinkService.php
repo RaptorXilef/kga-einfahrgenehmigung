@@ -53,7 +53,7 @@ final readonly class MagicLinkService
     {
         $links      = $this->loadLinks();
         $now        = \time();
-        $input      = \trim(\strtoupper($input));
+        $trimmed    = \trim($input);
         $foundEmail = null;
 
         foreach ($links as $token => $data) {
@@ -64,10 +64,18 @@ final readonly class MagicLinkService
                 continue;
             }
 
-            // Prüfung gegen Lang-Token oder Kurz-Code
-            if ($token === $input || (isset($data['code']) && $data['code'] === $input)) {
+            // NEU: Differenzierte Prüfung
+            // 1. Vergleich gegen Lang-Token (Case-Insensitive für Hex)
+            // 2. Vergleich gegen Kurz-Code (Immer Großbuchstaben)
+            $isLongTokenMatch = \hash_equals(\strtolower($token), \strtolower($trimmed));
+            $isShortCodeMatch = isset($data['code']) && \hash_equals(\strtoupper($data['code']), \strtoupper($trimmed));
+
+            if ($isLongTokenMatch || $isShortCodeMatch) {
                 $foundEmail = $data['email'];
+                // BUGFIX ggf. Auskommentieren
                 unset($links[$token]); // Einmal-Nutzung
+
+                break; // Schleife abbrechen, wir haben einen Treffer
             }
         }
 
