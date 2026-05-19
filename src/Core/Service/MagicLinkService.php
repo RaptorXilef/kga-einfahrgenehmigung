@@ -67,12 +67,15 @@ final readonly class MagicLinkService
             // NEU: Differenzierte Prüfung
             // 1. Vergleich gegen Lang-Token (Case-Insensitive für Hex)
             // 2. Vergleich gegen Kurz-Code (Immer Großbuchstaben)
-            $isLongTokenMatch = \hash_equals(\strtolower($token), \strtolower($trimmed));
-            $isShortCodeMatch = isset($data['code']) && \hash_equals(\strtoupper($data['code']), \strtoupper($trimmed));
+            $isLongTokenMatch = \strlen($token) === \strlen($trimmed)
+                && \hash_equals(\strtolower($token), \strtolower($trimmed));
+
+            $isShortCodeMatch = isset($data['code'])
+                && \strlen((string) $data['code']) === \strlen($trimmed)
+                && \hash_equals(\strtoupper($data['code']), \strtoupper($trimmed));
 
             if ($isLongTokenMatch || $isShortCodeMatch) {
                 $foundEmail = $data['email'];
-                // BUGFIX ggf. Auskommentieren
                 unset($links[$token]); // Einmal-Nutzung
 
                 break; // Schleife abbrechen, wir haben einen Treffer

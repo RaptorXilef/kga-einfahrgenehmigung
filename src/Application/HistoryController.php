@@ -149,6 +149,12 @@ final readonly class HistoryController
             }
         }
 
+        // --- Sortierung der Genehmigungen (Neueste zuerst) ---
+        // Der Spaceship-Operator (<=>) funktioniert perfekt mit DateTime Objekten!
+        \usort($permits, function ($a, $b) {
+            return $b->erstellt <=> $a->erstellt;
+        });
+
         $this->render('history_list', [
             'permits'            => $permits,
             'email'              => $email,
