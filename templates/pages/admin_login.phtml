@@ -7,14 +7,24 @@
 
 // Path: templates/pages/admin_login.phtml
 
+/**
+ * Page: Admin Login
+ *
+ * @var string $message
+ * @var array  $settings
+ * @var string $appRoot
+ */
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <script>
         window.KGA_CONFIG = {
@@ -22,37 +32,49 @@
         };
     </script>
 </head>
-<body class="u-bg-light">
+<body class="u-bg-light l-public-body">
+
+    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
     <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
-    <div class="c-container u-padding-y-xl">
-        <div class="c-card u-margin-auto" style="max-width: 400px;">
-            <header class="c-card__header u-text-center">
-                <h2>Vorstands-Login</h2>
-                <p class="u-text-muted"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
+
+    <div class="c-tab-content-container u-padding-y-xl">
+        <div class="c-card u-margin-auto" style="max-width: 450px; border-top: 5px solid var(--primary-color);">
+
+            <header class="c-card__header u-text-center u-padding-around-l">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" style="width: 48px; height: 48px; opacity: 0.9;" alt="">
+                <h2 class="u-margin-none u-margin-top-s">Vorstands-Login</h2>
+                <p class="u-text-muted u-margin-top-s">Bitte loggen Sie sich ein, um den Verwaltungsbereich von <?php echo \htmlspecialchars($settings['vereins_name']); ?> zu betreten.</p>
             </header>
-            <div class="c-card__body">
+
+            <div class="c-card__body u-padding-around-l">
+
                 <?php if (! empty($message)) { ?>
-                    <div class="c-alert c-alert--danger u-margin-bottom"><?php echo \htmlspecialchars($message); ?></div>
+                    <div class="c-alert c-alert--danger u-margin-bottom-l">
+                        <div class="u-flex u-align-center u-justify-center u-gap-s">
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt="">
+                            <span><?php echo \htmlspecialchars($message); ?></span>
+                        </div>
+                    </div>
                 <?php } ?>
 
                 <form method="POST" class="c-form">
                     <div class="c-form-group">
                         <label class="c-form-label">Benutzername</label>
-                        <input type="text" name="user" class="c-form-input" required autofocus>
+                        <input type="text" name="user" class="c-form-input" placeholder="z.B. vorstand" required autofocus>
                     </div>
-                    <div class="c-form-group">
+
+                    <div class="c-form-group u-margin-top-m">
                         <label class="c-form-label">Passwort</label>
-                        <input type="password" name="pass" class="c-form-input" required>
+                        <input type="password" name="pass" class="c-form-input" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" name="login" class="c-button c-button--primary u-width-100 u-margin-top-m">
-                        Anmelden
+
+                    <button type="submit" name="login" class="c-button--primary u-width-100 u-margin-top-l" style="padding: 14px; font-size: 1.05rem;">
+                        Sicher einloggen 🔒
                     </button>
                 </form>
             </div>
-            <footer class="c-card__footer u-text-center">
-                <a href="index.php" class="u-text-small"> zurück zum Formular</a>
-            </footer>
-        </div>
+
+            </div>
     </div>
 </body>
 </html>
