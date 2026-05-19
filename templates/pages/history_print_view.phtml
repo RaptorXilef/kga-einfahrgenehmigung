@@ -75,8 +75,8 @@ $data = [
     'terminkalenderUrl' => $settings['terminkalender_url'],
     'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
     'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
-    'config'            => $config, // Falls das Template die Config für Preise o.ä. braucht
-    'opening'           => $opening,
+    // 'config'            => $config, // Falls das Template die Config für Preise o.ä. braucht
+    'opening' => $opening,
 ];
 
 \extract($data);

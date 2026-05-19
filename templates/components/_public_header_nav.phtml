@@ -1,0 +1,46 @@
+<?php
+
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
+// Path: templates/components/_public_header_nav.phtml
+
+/**
+ * Component: Public Header Navigation
+ *
+ * @var array $settings
+ */
+
+// Bestimme die aktuelle Seite, um den aktiven Tab hervorzuheben
+$currentPage = \basename($_SERVER['PHP_SELF']);
+?>
+<nav style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+    <div class="c-tab-content-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="font-weight: 800; color: var(--primary-color); margin-right: 15px; letter-spacing: 0.5px;">
+                <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
+            </span>
+
+            <a href="index.php" class="c-tabs__btn <?php echo $currentPage === 'index.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp" class="c-icon" style="width:16px;" alt=""> Antrag
+            </a>
+
+            <a href="history.php" class="c-tabs__btn <?php echo $currentPage === 'history.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width:16px;" alt=""> Verlauf
+            </a>
+
+            <a href="check.php" class="c-tabs__btn <?php echo $currentPage === 'check.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" style="width:16px;" alt=""> Check
+            </a>
+        </div>
+
+        <div>
+            <a href="admin.php" class="c-tabs__btn <?php echo $currentPage === 'admin.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" style="width:16px;" alt=""> Login
+            </a>
+        </div>
+    </div>
+</nav>

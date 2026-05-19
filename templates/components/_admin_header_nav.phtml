@@ -8,7 +8,7 @@
 /**
  * Component: Admin Header Navigation
  *
- * Path: templates/components/_header_nav.phtml
+ * Path: templates/components/_admin_header_nav.phtml
  *
  * @var \App\Infrastructure\Auth\AuthService $auth
  */
@@ -21,7 +21,7 @@ $groupImage = $auth->getImage('group', $groupId);
     <div class="c-tab-content-container" style="display: flex; justify-content: space-between; align-items: center;">
 
         <!-- User Info & Group -->
-        <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <div class="c-user-pill">
                 <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
                     <img src="<?php echo $auth->getImage('user', $auth->getUserId()); ?>"
@@ -51,6 +51,10 @@ $groupImage = $auth->getImage('group', $groupId);
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" style="width:16px;"> Dashboard
                 </a>
             <?php } ?>
+
+            <a href="check.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;" target="_blank">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" style="width:16px;"> Check
+            </a>
         </div>
 
         <!-- Logout -->
