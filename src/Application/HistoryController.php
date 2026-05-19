@@ -160,8 +160,10 @@ final readonly class HistoryController
             'email'              => $email,
             'settings'           => $this->getSettingsArray(),
             'currentArchiveYear' => $loadedYear,
-            'message'            => $message,    // FIX: Hier hat die Variable gefehlt!
-            'isSuccess'          => $isSuccess,   // Auch isSuccess sicherheitshalber mitgeben
+            'message'            => $message,
+            'isSuccess'          => $isSuccess,
+            'config'             => $this->config,        // Für Fahrzeug-Icons
+            'permitService'      => $this->permitService,  // Für Überfälligkeits-Prüfung
         ]);
     }
 
