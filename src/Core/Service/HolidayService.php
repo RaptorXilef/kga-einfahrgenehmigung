@@ -142,24 +142,44 @@ final readonly class HolidayService
     }
 
     /**
-     * Gibt eine textuelle Zusammenfassung der allgemeinen Kern-Öffnungszeiten zurück.
-     * Berücksichtigt jetzt dynamisch den ersten verfügbaren Wochentag.
+     * Erstellt eine detaillierte Textmatrix aller erlaubten Einfahrtszeiten.
+     * Ausgabeformat: Mo - Fr: 08:00 - 12:00, 15:00 - 20:00 | Sat: ... | Sun: Geschlossen
      */
     public function getGeneralOpeningHoursText(): string
     {
         $hours = $this->config->get('opening_hours', []);
-
-        // Wir suchen den ersten Tag, der nicht leer ist
-        foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day) {
-            if (! empty($hours[$day]) && \is_array($hours[$day])) {
-                $firstSlotStart = $hours[$day][0][0];
-                // Wir nehmen das Ende des letzten Slots dieses Tages
-                $lastSlotEnd = \end($hours[$day])[1];
-
-                return "{$firstSlotStart} bis {$lastSlotEnd} Uhr";
-            }
+        if (empty($hours)) {
+            return 'nach Vereinbarung';
         }
 
-        return 'nach Vereinbarung';
+        $daysMap = [
+            'mon' => 'Mo',
+            'tue' => 'Di',
+            'wed' => 'Mi',
+            'thu' => 'Do',
+            'fri' => 'Fr',
+            'sat' => 'Sa',
+            'sun' => 'So',
+        ];
+
+        $resultStrings = [];
+
+        foreach ($daysMap as $key => $label) {
+            $slots = $hours[$key] ?? [];
+            if ($slots === []) {
+                $resultStrings[] = "{$label}: Keine Einfahrt";
+
+                continue;
+            }
+
+            $daySlots = [];
+            foreach ($slots as $slot) {
+                $daySlots[] = $slot[0] . ' - ' . $slot[1];
+            }
+            $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
+        }
+
+        // Formatiert die Ausgabe leserlich mit Trennstrichen
+        return \implode(' | ', $resultStrings);
     }
 }
