@@ -58,20 +58,6 @@ final readonly class AdminController
             return;
         }
 
-        // --- NEU: SETUP & WARTUNG IMMER ZUERST (Vor dem Login-Check!) ---
-        // So werden fehlende JSON-Dateien oder SQL-Tabellen angelegt,
-        // noch bevor die Login-Maske erscheint.
-
-        // Tabellen sicherstellen
-        $this->migrationService->ensureTablesExist();
-
-        // Daten impfen (wenn leer)
-        $this->migrationService->seedInitialData();
-
-        // Auto-Backup prüfen
-        $this->migrationService->checkAutoBackup();
-        // ---------------------------------------------------------------
-
         // --- AUTH-GATEKEEPER ---
         if (! $this->auth->isLoggedIn()) {
             $this->render('admin_login', [
@@ -79,8 +65,29 @@ final readonly class AdminController
                 'settings' => $this->getSettingsArray(),
             ]);
 
-            return;
+            return; // Hier ist für nicht-eingeloggte User Schluss!
         }
+
+        // --- FIX ANFRAGE 1: SETUP & WARTUNG HIERHER VERSCHOBEN ---
+        // Wartungsarbeiten werden nur ausgeführt, wenn der Admin EINGELOGGT ist.
+        try {
+            // --- SETUP & WARTUNG IMMER ZUERST (Vor dem Login-Check!) ---
+            // So werden fehlende JSON-Dateien oder SQL-Tabellen angelegt,
+            // noch bevor die Login-Maske erscheint.
+
+            // Tabellen sicherstellen
+            $this->migrationService->ensureTablesExist();
+
+            // Daten impfen (wenn leer)
+            $this->migrationService->seedInitialData();
+
+            // Auto-Backup prüfen
+            $this->migrationService->checkAutoBackup();
+        } catch (\Throwable $e) {
+            // Fängt Fehler ab, damit das Dashboard nicht abstürzt
+            \error_log('MigrationService Warning: ' . $e->getMessage());
+        }
+        // ---------------------------------------------------------------
 
         // 2. Daten-Aktionen verarbeiten (nur wenn eingeloggt)
         $message = '';
@@ -325,7 +332,7 @@ final readonly class AdminController
     /**
      * /**
      * Rendert das Admin-Dashboard mit Statistiken und Tabellen.
-     * Kontext: Berechnet YearlyStats, ruft calculateDetailedStats auf und übergibt diverse Services.
+     * Kontext: Berechnet YearlyStats, ruft calculateDetailedStats auf, verarbeitet Exporte und übergibt diverse Services.
      *
      * @param array<string, mixed> $get
      */
@@ -341,6 +348,13 @@ final readonly class AdminController
 
             return $date >= $filterStart && $date <= $filterEnd;
         });
+
+        // --- FIX ANFRAGE 3: EXPORT-ROUTING ---
+        // Bevor HTML gerendert wird, fangen wir den Export-Befehl ab!
+        if (isset($get['export'])) {
+            $this->handleExport((string) $get['export'], $filtered, $filterStart, $filterEnd);
+            exit; // Wichtig: Nach dem Download darf kein HTML mehr gesendet werden!
+        }
 
         // 2. Jährliche Gruppierung (bleibt wie sie ist für die Historie)
         $yearlyStats = [];
@@ -375,13 +389,13 @@ final readonly class AdminController
         }
         \krsort($yearlyStats); // Neueste Jahre zuerst
 
-        // FIX: Wir übergeben groupPermits nun die GEFILTERTEN Daten ($filtered),
-        // damit die Tabs exakt das anzeigen, was oben im Datum steht!
+        // --- FIX ANFRAGE 2: FILTER-LOGIK ---
+        // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->render('admin_dashboard', [
             'structure'        => $this->config->get('structure', []),
             'periodStats'      => $this->calculateDetailedStats($filtered),
             'yearlyStats'      => $yearlyStats,
-            'permitGroups'     => $this->groupPermits($allPermits), // <--- GEÄNDERT von $filtered und groups
+            'permitGroups'     => $this->groupPermits($filtered), // <-- BUGFIX! GEÄNDERT von $allPermits und groups
             'settings'         => $this->getSettingsArray(),
             'auth'             => $this->auth,
             'message'          => $message,

@@ -465,7 +465,7 @@ final readonly class PermitService
                 'name'           => $permit->owner->name,
                 'email'          => $permit->owner->email ?: 'Keine angegeben',
                 'parzelle'       => $permit->owner->parzelle,
-                // NEU (Sicher gegen gelöschte Fahrzeugtypen):
+                // (Sicher gegen gelöschte Fahrzeugtypen):
                 'typLabel' => (function ($typ, $config) {
                     $vConfigs = $config->get('vehicle_types', []);
 
@@ -476,7 +476,8 @@ final readonly class PermitService
                 'von_formatted' => $permit->validity->von->format('d.m.Y'), // Key vereinheitlicht!
                 'bis_formatted' => $permit->validity->bis->format('d.m.Y'), // Key vereinheitlicht!
                 'zweck'         => $permit->validity->zweck,
-                'adminLink'     => $this->config->getBaseUrl() . "admin.php?code={$permit->code}&token={$token}",
+                'preis'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                'adminLink'     => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
                 'vereinsName'   => $this->config->get('vereins_name'),
             ],
         );
