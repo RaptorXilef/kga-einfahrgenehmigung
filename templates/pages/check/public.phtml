@@ -106,7 +106,7 @@ if ($permit) {
                     <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
                         <div style="color: #f59e0b;">
                             <span style="font-size: 5rem;">⏳</span>
-                            <h2 style="color: #f59e0b; margin-top: 15px;">AKTUELL RUHEZEIT</h2>
+                            <h2 style="color: #f59e0b; margin-top: 15px;">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
 
                             <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                                 <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
@@ -185,8 +185,9 @@ if ($permit) {
                                 </tr>
                             </table>
                         </div>
+                        <p class="u-text-muted u-margin-bottom-l">Nach Auswahl der Zahlungsart erhalten Sie:<br> die Genehmigung und Zahlungsdaten per E-Mail.</p>
 
-                        <p class="u-text-muted u-margin-bottom-l">Wählen Sie bitte eine Zahlungsart aus:</p>
+                        <!-- <p class="u-text-muted u-margin-bottom-l">Wählen Sie bitte eine Zahlungsart aus:</p> -->
 
                         <?php if ($config->get('paypal')['enabled']) { ?>
                             <div id="paypal-button-container" class="u-padding-y-m"></div>
@@ -219,7 +220,7 @@ if ($permit) {
                     </div>
                     <script>
                         function finalizeWire() {
-                            if (!confirm('Hiermit bestätigen Sie, dass Sie den Betrag zeitnah überweisen werden.')) return;
+                            if (!confirm('BITTE BESTÄTIGEN SIE IHREN ANTRAG:\n\nBitte klicken Sie unten auf \"OK\", um zu bestätigen, dass Sie den Betrag zeitnah überweisen.\n\nSie gelangen danach automatisch zur Status-Seite Ihrer Genehmigung. Sobald diese vollständig geladen ist, ist der Vorgang beendet und Sie können die Seite verlassen.')) return;
                             fetch(window.KGA_CONFIG.baseUrl + 'api/finalize_wire.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => {
                                 if (data.success) window.location.href = 'check.php?code=' + data.code + '&wire=1';
                                 else alert('Fehler: ' + data.error);

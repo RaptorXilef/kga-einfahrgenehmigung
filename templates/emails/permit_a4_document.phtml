@@ -195,7 +195,7 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
                     </div>
                 <?php } ?>
 
-                <div class="full-code"><?php echo $fullIdentifier; ?></div>
+                <div class="full-code">CODE: <?php echo $fullIdentifier; ?></div>
             </div>
 
             <div class="header-right">
@@ -248,7 +248,7 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         <div class="conditions">
             <h4>Bedingungen & Sicherheitshinweise:</h4>
             <ul>
-                <li><strong>Sichtbarkeit:</strong> Dieses Dokument ist gut sichtbar im Fahrzeug (Windschutzscheibe) auszulegen.</li>
+                <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im Fahrzeug (Windschutzscheibe) auszulegen.</li>
                 <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo ! $isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten sowie an Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
                 <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10 km/h</strong>).</li>
                 <li><strong>Parken:</strong> <?php echo $isPermanent ? 'Berechtigt zum Parken auf ausgewiesenen Flächen / Vereinshaus.' : 'Berechtigt zum Be- und Entladen, jedoch <strong>nicht zum Parken</strong>.'; ?></li>

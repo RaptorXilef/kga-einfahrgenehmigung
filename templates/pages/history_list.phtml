@@ -116,11 +116,11 @@ $now = new \DateTimeImmutable('today');
                                     $overdueLevel = $permitService->getOverdueLevel($permit);
                                     if ($overdueLevel === 2) {
                                         $statusClass = 'danger'; // Rot
-                                        $statusText  = 'ÜBERFÄLLIG';
+                                        $statusText  = 'ZAHLUNG ÜBERFÄLLIG';
                                     } elseif ($overdueLevel === 1) {
                                         $statusText = 'MAHNFRIST';
                                     } else {
-                                        $statusText = 'WARTEND';
+                                        $statusText = 'ZAHLUNG OFFEN';
                                     }
                                 }
 
