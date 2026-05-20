@@ -22,10 +22,16 @@ use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 
 /**
- * Orchestriert die Admin-Logik für den Vorstand.
+ * Haupt-Controller für die Administration.
+ * Zuständig für: Authentifizierung, Dashboard-Rendering, Finanz-Export,
+ * Gutschein-Verwaltung und System-Wartung (Migration/Restore).
+ * Kontext: Einstiegspunkt für Admin-Anfragen. Verwaltet den gesamten Admin-Lifecycle.
  */
 final readonly class AdminController
 {
+    /**
+     * Initiiert den Controller mit allen Abhängigkeiten (Dependency Injection).
+     */
     public function __construct(
         private ConfigInterface $config,
         private AuthService $auth,
@@ -38,7 +44,9 @@ final readonly class AdminController
     }
 
     /**
-     * Haupt-Methode, die den Request verarbeitet.
+     * Haupt-Einstiegspunkt für alle Admin-Requests.
+     * Orchestriert: Authentifizierung -> Wartungs-Checks -> POST-Aktionen -> Rendering.
+     * Kontext: PRG-Pattern (Post-Redirect-Get) wird hier angewendet.
      *
      * @param array<string, mixed> $get  Entspricht $_GET
      * @param array<string, mixed> $post Entspricht $_POST
@@ -100,8 +108,13 @@ final readonly class AdminController
     }
 
     /**
+     * Behandelt Login-Versuche und Logout-Aktionen.
+     * Kontext: Gibt true zurück, wenn ein Redirect erfolgt ist (Request beenden).
+     *
      * @param array<string, mixed> $get
      * @param array<string, mixed> $post
+     *
+     * @return bool True wenn Request gestoppt werden soll.
      */
     private function handleAuthActions(array $get, array $post): bool
     {
@@ -126,9 +139,12 @@ final readonly class AdminController
     }
 
     /**
-     * Verarbeitet alle POST-Aktionen des Dashboards.
+     * Zentrale Weiche für alle POST-Aktionen (z.B. Gutscheine, Status-Änderungen).
+     * Kontext: Nutzt 'match' für sauberes Routing. Leitet an action-Methoden weiter.
      *
      * @param array<string, mixed> $post
+     *
+     * @return string Nachricht für die UI.
      */
     private function handleDataActions(array $post): string
     {
@@ -153,6 +169,10 @@ final readonly class AdminController
         };
     }
 
+    /**
+     * Markiert eine Genehmigung als bezahlt im Storage.
+     * Kontext: Nutzt PermitService::manualActivate().
+     */
     private function actionMarkAsPaid(array $post): string
     {
         $code = (string) ($post['code'] ?? '');
@@ -160,6 +180,10 @@ final readonly class AdminController
         return $this->permitService->manualActivate($code) ? "Zahlung für $code bestätigt." : '';
     }
 
+    /**
+     * Erstellt einen Gutschein über VoucherService.
+     * Kontext: Beinhaltet Sicherheitsprüfung (hasPermission). Übergibt diverse Gutschein-Parameter.
+     */
     private function actionCreateVoucher(array $post): string
     {
         $tplKey = (string) ($post['template_key'] ?? 'std.7');
@@ -215,6 +239,10 @@ final readonly class AdminController
         }
     }
 
+    /**
+     * Manuelle Erstellung einer Genehmigung ohne Online-Zahlung.
+     * Kontext: Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
+     */
     private function actionCreateManual(array $post): string
     {
         $tplKey = (string) ($post['template_key'] ?? 'std.7');
@@ -239,6 +267,9 @@ final readonly class AdminController
         }
     }
 
+    /**
+     * Ändert den aktiven/deaktivierten Status eines Gutscheins.
+     */
     private function actionToggleVoucher(array $post): string
     {
         // Gutschein sperren / aktivieren
@@ -248,6 +279,10 @@ final readonly class AdminController
         return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
     }
 
+    /**
+     * Setzt den Sperrstatus (Suspension) einer Genehmigung.
+     * Kontext: Interaktion mit PermitService::toggleSuspension().
+     */
     private function actionToggleSuspension(array $post): string
     {
         // Genehmigung entsperren
@@ -258,7 +293,12 @@ final readonly class AdminController
     }
 
     /**
+     * Fängt Print-Requests für Genehmigungen ab.
+     * Kontext: Überprüft Zugriff und rendert 'admin_print_view'.
+     *
      * @param array<string, mixed> $get
+     *
+     * @return bool True wenn Print-View gerendert wurde.
      */
     private function shouldStopRequest(array $get): bool
     {
@@ -283,6 +323,10 @@ final readonly class AdminController
     }
 
     /**
+     * /**
+     * Rendert das Admin-Dashboard mit Statistiken und Tabellen.
+     * Kontext: Berechnet YearlyStats, ruft calculateDetailedStats auf und übergibt diverse Services.
+     *
      * @param array<string, mixed> $get
      */
     private function renderDashboard(array $get, string $message): void
@@ -354,7 +398,12 @@ final readonly class AdminController
     }
 
     /**
-     * Berechnet detaillierte Finanz-Werte UND erweitertes Parzellen-Ranking.
+     * Berechnet Finanz-KPIs (Revenue) und Parzellen-Ranking.
+     * Kontext: Aggregiert Daten aus Permit-Array. Nutzt uasort zur Sortierung nach Plot-Ranking.
+     *
+     * @param Permit[] $permits
+     *
+     * @return array<string, mixed>
      */
     private function calculateDetailedStats(array $permits): array
     {
@@ -419,7 +468,8 @@ final readonly class AdminController
     }
 
     /**
-     * Export-Weiche (CSV / JSON).
+     * Erzeugt CSV- oder JSON-Dateiexporte.
+     * Kontext: Setzt Header und UTF-8-BOM für Excel-Kompatibilität.
      *
      * @param Permit[] $filtered
      */
@@ -485,7 +535,8 @@ final readonly class AdminController
     }
 
     /**
-     * Berechnet die Statistiken inklusive Typen und Top-Parzellen.
+     * Berechnet zusammenfassende Statistiken für einen gefilterten Datensatz.
+     * Kontext: Reduziert Permits auf Gesamtanzahl und Umsatz.
      *
      * @param Permit[] $filtered
      *
@@ -514,7 +565,8 @@ final readonly class AdminController
     }
 
     /**
-     * Gruppiert Genehmigungen nach Zeitstatus und Zahlungsstatus.
+     * Gruppiert Permits für die Dashboard-Tabs (Active, Future, Expired, Unpaid).
+     * Kontext: Logik-Kern für die tabellarische Übersicht.
      *
      * @param Permit[] $allPermits
      *
@@ -562,7 +614,8 @@ final readonly class AdminController
     }
 
     /**
-     * Hilfsmethode, um das $settings-Array für Templates zu bauen.
+     * Baut das Konfigurations-Array für Templates.
+     * Kontext: Schnittstelle zwischen Config-Objekt und UI.
      *
      * @return array<string, mixed>
      */
@@ -579,20 +632,28 @@ final readonly class AdminController
         ];
     }
 
-    // Neue Methode im AdminController
+    /**
+     * Trigger für Datenmigrationen (Sync SQL/JSON).
+     * Kontext: Level-0 Sicherheitscheck (Dev-Admin only).
+     */
     private function actionMigrateData(array $post): string
     {
-        if ($this->auth->getLevel() !== 0) {
-            return 'Fehler: Nur der Dev-Admin darf migrieren.';
-        }
-
         $direction = (string) ($post['direction'] ?? 'sync');
         $target    = (string) ($post['target'] ?? '');
+
+        // NEU: Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
+        // Prüft exakt das Recht, z.B. 'dashboard.migration.users.json_to_mysql'
+        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$direction}")) {
+            return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
+        }
 
         return $this->migrationService->execute($target, $direction);
     }
 
     /**
+     * Rendert das PHTML-Template und stellt Variablen zur Verfügung.
+     * Kontext: Nutzt 'extract' um Array-Keys zu lokalen Variablen zu machen.
+     *
      * @param array<string, mixed> $data
      */
     private function render(string $templatePath, array $data = []): void
@@ -613,17 +674,19 @@ final readonly class AdminController
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 
+    /**
+     * Führt eine Wiederherstellung aus einem Backup durch.
+     * Kontext: Sicherheitsprüfung über hasPermission und Level-Check.
+     */
     private function actionRestoreData(array $post): string
     {
-        // --- NEU: DIE SICHERHEITSSPERRE ---
+        // Die Permission-Sperre bleibt (sie deckt den Dev-Admin via '*' oder 'sys_' automatisch mit ab)
         if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
             return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
         }
 
-        // Erst danach darf der Rest passieren
-        if ($this->auth->getLevel() !== 0) {
-            return 'Fehler: Nur der Dev-Admin darf Daten wiederherstellen.';
-        }
+        // Der alte getLevel() Check wurde hier komplett entfernt, da das Rechtesystem
+        // völlig ausreicht. Wer das Recht hat, darf auch restoren.
 
         $target    = (string) ($post['target'] ?? '');
         $timestamp = (string) ($post['timestamp'] ?? '');

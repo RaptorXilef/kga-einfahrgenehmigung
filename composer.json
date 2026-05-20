@@ -64,6 +64,7 @@
   },
   "scripts": {
     "// --- PHASE 0: SETUP & LIFECYCLE ---": "Initialisierung und Bereinigung",
+    "generate-context": "php scripts/generate_context.php",
     "legacy:collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
     "setup": "@php scripts/console.php init",
     "clear": "@php scripts/console.php clear",
