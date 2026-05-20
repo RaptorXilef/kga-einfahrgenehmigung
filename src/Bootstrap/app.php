@@ -47,6 +47,7 @@ $configFiles = [
     'perms'   => $appRoot . '/config/permissions.php',
     'dev'     => $appRoot . '/config/dev_admin.php',
     'schema'  => $appRoot . '/config/sql_schema.php',
+    'reasons' => $appRoot . '/config/reasons.php',
     'local'   => $appRoot . '/config/config.local.php',
 ];
 

@@ -24,12 +24,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     ];
 }
 
-$reasons ??= [
-    'Bargeldzahlung vor Ort',
-    'Vorstandsbeschluss',
-    'Ersatzgenehmigung',
-    'Sommerfest',
-];
+// NEU: Wir laden die Gründe sicher aus der Config
+$reasons = $config->get('internal_reasons', [
+    'Manuelle Ausstellung', // Fallback, falls die Config mal fehlen sollte
+]);
 
 $allowedTemplates = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {

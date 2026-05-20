@@ -19,6 +19,7 @@
  * @var \App\Core\Service\PermitService   $permitService
  */
 $now = new \DateTimeImmutable('today');
+\usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
 ?>
 <!DOCTYPE html>
 <html lang="de">
