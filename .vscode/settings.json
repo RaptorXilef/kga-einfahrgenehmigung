@@ -34,6 +34,13 @@
         "editor.wordWrap": "off",
         "editor.renderWhitespace": "boundary"
     },
+    "[phtml]": {
+        //"editor.defaultFormatter": "bmewburn.vscode-intelephense-client", // Intelephense als Basis
+        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+        "editor.wordWrap": "off",
+        "editor.renderWhitespace": "boundary",
+        "editor.formatOnSave": true
+    },
     "intelephense.format.enable": false, // CLI-Tools (PHP-CS-Fixer) haben Vorrang!
     "php.suggest.basic": false,
     "php-docblocker.gap": true,
@@ -111,6 +118,24 @@
     ],
     // Das hier hilft, wenn Intelephense hängen bleibt
     "intelephense.completion.fullyQualifyImportNames": true,
+
+    "draw.folder.structure.exclude": [
+        "**/node_modules",
+        "**/.git",
+        "**/dist",
+        "**/.next",
+        "**/out",
+        "**/.build",
+        "**/.cache",
+        "**/.debug",
+        "**/.github",
+        "**/.husky",
+        "**/.vscode",
+        "**/docs",
+        "**/scripts",
+        "**/tools",
+        "**/vendor"
+    ],
 
     // =========================================================================
     // TOOLS & WORKFLOW (Meine persönlichen Favoriten)

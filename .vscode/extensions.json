@@ -61,7 +61,8 @@
         "nobuhito.printcode",
 
         // THEME/VSCODE
-        "lakshits11.monokai-pirokai"
+        "lakshits11.monokai-pirokai",
+        "st-pham.php-refactor-tool"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": ["htmlhint.vscode-htmlhint", "mikebovenlander.formate"]

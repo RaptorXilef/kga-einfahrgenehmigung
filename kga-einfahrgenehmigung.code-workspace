@@ -5,6 +5,9 @@
         }
     ],
     "settings": {
-        "php-cs-fixer.allow-risky": true
+        "php-cs-fixer.allow-risky": true,
+        "files.associations": {
+            "*.module": "php"
+        }
     }
 }
