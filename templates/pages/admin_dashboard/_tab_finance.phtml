@@ -25,19 +25,26 @@ $now           = new \DateTimeImmutable('today');
                 <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($unpaidPermits); ?></span>
             </header>
 
-            <div class="c-card__body u-padding-none" style="overflow-x: auto;">
-                <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 1000px;">
+            <div class="c-card__body u-padding-none"
+                 style="overflow-x: auto;">
+                <table class="c-table js-sort-table"
+                       style="table-layout: fixed; width: 100%; min-width: 1000px;">
                     <thead>
                         <tr style="background: #fcfdfe;">
-                            <th style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
-                            <th style="width: 130px; text-align: center;">Fahrzeug</th>
+                            <th class="js-sort-header"
+                                style="width: 220px; text-align: left;">Antragsteller & Kennung</th>
+                            <th class="js-sort-header"
+                                style="width: 130px; text-align: center;">Fahrzeug</th>
                             <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
-                                <th>Kontakt (E-Mail)</th>
+                                <th class="js-sort-header">Kontakt (E-Mail)</th>
                             <?php } ?>
-                            <th style="width: 150px; text-align: center;">Frist & Finanz-Status</th>
-                            <th style="width: 100px; text-align: center;">STATUS</th>
+                            <th class="js-sort-header"
+                                style="width: 150px; text-align: center;">Frist & Finanz-Status</th>
+                            <th class="js-sort-header"
+                                style="width: 110px; text-align: center;">Zustand</th>
                             <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
-                                <th style="width: 120px; text-align: right;">Betrag</th>
+                                <th class="js-sort-header"
+                                    style="width: 120px; text-align: right;">Betrag</th>
                             <?php } ?>
                             <th style="width: 160px; text-align: right; padding-right: 20px;">Verwaltung</th>
                         </tr>
@@ -45,7 +52,8 @@ $now           = new \DateTimeImmutable('today');
                     <tbody>
                         <?php if (empty($unpaidPermits)) { ?>
                             <tr>
-                                <td colspan="7" class="u-text-center u-padding-around-l u-text-muted">Alle Konten ausgeglichen.</td>
+                                <td colspan="7"
+                                    class="u-text-center u-padding-around-l u-text-muted">Alle Konten ausgeglichen.</td>
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($unpaidPermits as $permit) {
@@ -54,10 +62,17 @@ $now           = new \DateTimeImmutable('today');
                                 $diff         = $now->diff($deadline);
                                 $days         = (int) $diff->format('%r%a');
                                 $isSuspended  = $permit->status->isSuspended;
+
+                                $vKey     = $permit->vehicle->typ;
+                                $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
+                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
+                                $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
-                                <tr class="u-hover-fade" style="<?php echo ($overdueLevel === 2 || $isSuspended) ? 'background-color: #fff1f2;' : ''; ?>">
-                                <!-- 1. Name, Code & Parzelle -->
-                                    <td style="vertical-align: middle;">
+                                <tr class="u-hover-fade"
+                                    style="<?php echo ($overdueLevel === 2 || $isSuspended) ? 'background-color: #fff1f2;' : ''; ?>">
+                                    <!-- 1. Name, Code & Parzelle -->
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"
+                                        style="vertical-align: middle;">
                                         <div class="u-flex u-flex-column">
                                             <span style="font-weight: 700; color: #1e293b;"><?php echo \htmlspecialchars($permit->owner->name); ?></span>
                                             <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;"><?php echo $permit->code; ?></code>
@@ -70,26 +85,24 @@ $now           = new \DateTimeImmutable('today');
                                     </td>
 
                                     <!-- 2. Fahrzeug & Kennzeichen darunter -->
-                                    <td style="text-align: center; vertical-align: middle;">
-                                        <?php
-                                            $vKey = $permit->vehicle->typ;
-                                $vCfg             = $config->get('vehicle_types')[$vKey] ?? null;
-                                $iconPath         = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
-                                $vLabel           = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                                ?>
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->vehicle->kennzeichen); ?>"
+                                        style="text-align: center; vertical-align: middle;">
                                         <div style="line-height: 1;">
-                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>" class="c-icon" style="width: 24px; height: 24px;" title="<?php echo $vLabel; ?>">
+                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                                 class="c-icon"
+                                                 style="width: 24px; height: 24px;"
+                                                 title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div style="margin-top: 4px;">
-                                            <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
-                                                <?php echo \htmlspecialchars($permit->vehicle->kennzeichen ?: '---'); ?>
-                                            </code>
+                                            <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;"><?php echo \htmlspecialchars($permit->vehicle->kennzeichen ?: '---'); ?>
+                                        </code>
                                         </div>
                                     </td>
 
                                     <!-- 3. E-Mail (Anklickbar) -->
                                     <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
-                                        <td style="vertical-align: middle;">
+                                        <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->email); ?>"
+                                            style="vertical-align: middle;">
                                             <?php if ($permit->owner->email) { ?>
                                                 <small><a href="mailto:<?php echo $permit->owner->email; ?>" class="u-text-link"><?php echo \htmlspecialchars($permit->owner->email); ?></a></small>
                                             <?php } else { ?>
@@ -99,20 +112,25 @@ $now           = new \DateTimeImmutable('today');
                                     <?php } ?>
 
                                     <!-- 4. Mahnstatus & Zähler -->
-                                    <td class="u-text-center" style="vertical-align: middle;">
+                                    <td data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>"
+                                        class="u-text-center"
+                                        style="vertical-align: middle;">
                                         <?php if ($overdueLevel === 2) { ?>
                                             <span class="c-badge c-badge--danger">🚨 <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG</span>
                                         <?php } elseif ($overdueLevel === 1) { ?>
                                             <span class="c-badge c-badge--warning">MAHNFRIST ABGELAUFEN</span>
                                         <?php } else { ?>
-                                            <span class="c-badge" style="background: #f1f5f9; color: #475569;">Noch <?php echo $days; ?> Tage</span>
+                                            <span class="c-badge"
+                                                  style="background: #f1f5f9; color: #475569;">Noch <?php echo $days; ?> Tage</span>
                                         <?php } ?>
                                         <br><small class="u-text-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
                                     </td>
-
-                                    <td class="u-text-center" style="vertical-align: middle;">
+                                    <td data-sort-val="<?php echo $isSuspended ? '1' : '0'; ?>"
+                                        class="u-text-center"
+                                        style="vertical-align: middle;">
                                         <?php if ($isSuspended) { ?>
-                                            <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->status->suspensionReason); ?>">GESPERRT</span>
+                                            <span class="c-badge c-badge--danger"
+                                                  title="<?php echo \htmlspecialchars($permit->status->suspensionReason); ?>">GESPERRT</span>
                                         <?php } else { ?>
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
@@ -120,7 +138,9 @@ $now           = new \DateTimeImmutable('today');
 
                                     <!-- 5. Betrag -->
                                     <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
-                                        <td class="u-text-right" style="vertical-align: middle;">
+                                        <td data-sort-val="<?php echo $permit->validity->preisSnapshot; ?>"
+                                            class="u-text-right"
+                                            style="vertical-align: middle;">
                                             <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
                                         </td>
                                     <?php } ?>
@@ -136,28 +156,59 @@ $now           = new \DateTimeImmutable('today');
 
                                             <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
                                                 <?php if ($isSuspended) { ?>
-                                                    <form method="POST" style="margin:0;">
-                                                        <input type="hidden" name="action" value="unsuspend_permit">
-                                                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                                        <button type="submit" class="c-button c-button--success" style="width: 34px; height: 34px;" title="Wieder freigeben">🔓</button>
+                                                    <form method="POST"
+                                                          style="margin:0;">
+                                                        <input type="hidden"
+                                                               name="action"
+                                                               value="unsuspend_permit">
+                                                        <input type="hidden"
+                                                               name="code"
+                                                               value="<?php echo $permit->code; ?>">
+                                                        <button type="submit"
+                                                                class="c-button c-button--success"
+                                                                style="width: 34px; height: 34px;"
+                                                                title="Wieder freigeben">🔓
+                                                        </button>
                                                     </form>
                                                 <?php } else { ?>
-                                                    <button class="c-button c-button--danger js-suspend-btn" style="width: 34px; height: 34px;" data-code="<?php echo $permit->code; ?>" title="Sperren">
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="">
+                                                    <button class="c-button c-button--danger js-suspend-btn"
+                                                            style="width: 34px; height: 34px;"
+                                                            data-code="<?php echo $permit->code; ?>"
+                                                            title="Sperren">
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
+                                                             class="c-icon"
+                                                             alt="">
                                                     </button>
-                                                    <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
-                                                        <input type="hidden" name="action" value="suspend_permit">
-                                                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                                        <input type="hidden" name="reason" id="reason_suspend_<?php echo $permit->code; ?>">
+                                                    <form id="form_suspend_<?php echo $permit->code; ?>"
+                                                          method="POST"
+                                                          style="display:none;">
+                                                        <input type="hidden"
+                                                               name="action"
+                                                               value="suspend_permit">
+                                                        <input type="hidden"
+                                                               name="code"
+                                                               value="<?php echo $permit->code; ?>">
+                                                        <input type="hidden"
+                                                               name="reason"
+                                                               id="reason_suspend_<?php echo $permit->code; ?>">
                                                     </form>
                                                 <?php } ?>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('dashboard.finance.mark_paid')) { ?>
-                                                <form method="POST" style="margin:0;">
-                                                    <input type="hidden" name="action" value="mark_as_paid">
-                                                    <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                                                    <button type="submit" class="c-button c-button--success" style="width: 34px; height: 34px;" title="Bezahlt">✔</button>
+                                                <form method="POST"
+                                                      style="margin:0;">
+                                                    <input type="hidden"
+                                                           name="action"
+                                                           value="mark_as_paid">
+                                                    <input type="hidden"
+                                                           name="code"
+                                                           value="<?php echo $permit->code; ?>">
+                                                    <button type="submit"
+                                                            class="c-button c-button--success"
+                                                            style="width: 34px; height: 34px;"
+                                                            title="Bezahlt">✔
+                                                    </button>
                                                 </form>
                                             <?php } ?>
                                         </div>

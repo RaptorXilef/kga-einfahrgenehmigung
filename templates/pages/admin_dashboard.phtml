@@ -27,15 +27,17 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 
     <script>
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>',
-            templates: <?php echo \json_encode($tplMetadata ?? []); ?>,
-            vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); ?>
-        };
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        templates: <?php echo \json_encode($tplMetadata ?? []); ?>,
+        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); ?>
+    };
+
     </script>
 </head>
 
@@ -49,10 +51,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <?php if ($auth->hasPermission('dashboard.info_alert.view')) { ?>
                 <?php if ($message) { ?>
                     <div class="c-alert c-alert--success u-margin-bottom-l">
-                        <div class="u-flex u-flex-wrap u-align-center u-justify-center u-gap-m" style="width: 100%;">
+                        <div class="u-flex u-flex-wrap u-align-center u-justify-center u-gap-m"
+                             style="width: 100%;">
 
                             <div class="u-flex u-align-center u-gap-s">
-                                <span style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""></span>
+                                <span style="font-size: 1.2rem;"><img
+                                        src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                                        class="c-icon" alt=""></span>
                                 <span><?php echo $message; ?></span>
                             </div>
 
@@ -65,18 +70,18 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 if ($createdCode) { ?>
                                     <div class="u-flex u-gap-xs u-align-center">
                                         <?php if ($auth->hasPermission('dashboard.info_alert.print')) { ?>
-                                            <a href="?action=print&code=<?php echo $createdCode; ?>"
-                                                class="c-button c-button--secondary"
+                                            <a href="?action=print&code=<?php echo $createdCode; ?>" class="c-button c-button--secondary"
                                                 style="width: 34px; height: 34px;" title="Druckvorschau">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" style="width: 18px; height: 18px;" alt="Drucken">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                                                    class="c-icon" style="width: 18px; height: 18px;" alt="Drucken">
                                             </a>
                                         <?php } ?>
                                         <?php if ($auth->hasPermission('dashboard.info_alert.details')) { ?>
-                                            <a href="check.php?code=<?php echo $createdCode; ?>"
-                                                target="_blank"
-                                                class="c-button c-button--secondary"
-                                                style="width: 34px; height: 34px;" title="Prüfseite öffnen">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" style="width: 18px; height: 18px;" alt="Prüfen">
+                                            <a href="check.php?code=<?php echo $createdCode; ?>" target="_blank"
+                                                class="c-button c-button--secondary" style="width: 34px; height: 34px;"
+                                                title="Prüfseite öffnen">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                    class="c-icon" style="width: 18px; height: 18px;" alt="Prüfen">
                                             </a>
                                         <?php } ?>
                                     </div>
@@ -101,14 +106,21 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <!-- Tab-Navigation -->
                     <div class="c-tabs__nav">
                         <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
-                            <button class="c-tabs__btn c-tabs__btn--active" data-tab-target="tab-active">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-active.webp" class="c-icon" alt=""><!-- 🟢 --> Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
+                            <button class="c-tabs__btn c-tabs__btn--active"
+                                    data-tab-target="tab-active">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-active.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 🟢 --> Aktiv
+                                (<?php echo \count($permitGroups['active'] ?? []); ?>)
                             </button>
                         <?php } ?>
                         <!-- NEU: FINANZEN TAB BUTTON -->
                         <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-finance">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp" class="c-icon" alt=""> Finanzen <?php $openCount = \count($permitGroups['unpaid'] ?? []);
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-finance">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp"
+                                     class="c-icon"
+                                     alt=""> Finanzen <?php $openCount = \count($permitGroups['unpaid'] ?? []);
                             if ($openCount > 0) {
                                 echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
                             }
@@ -116,117 +128,157 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-future">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-future">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 📅 --> Zukünftig
+                                (<?php echo \count($permitGroups['future'] ?? []); ?>)
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-expired">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp" class="c-icon" alt=""><!-- ⌛ --> Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-expired">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp"
+                                     class="c-icon"
+                                     alt=""><!-- ⌛ --> Abgelaufen
+                                (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-stats">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" alt=""><!-- 📈 --> Statistiken
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-stats">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 📈 --> Statistiken
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-ranking">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""><!-- 📊 --> Ranking
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-ranking">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 📊 --> Ranking
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-export">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-export.webp" class="c-icon" alt=""><!-- 📤 --> Daten & Export
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-export">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-export.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 📤 --> Daten & Export
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-vouchers">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Gutscheincodes
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-vouchers">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 🎟️ --> Gutscheincodes
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.tools.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-tools">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp" class="c-icon" alt=""><!-- 🛠️ --> Werkzeuge
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-tools">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 🛠️ --> Werkzeuge
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-logs">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-logs.webp" class="c-icon" alt=""><!-- 📧 --> Mail Log
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-logs">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-logs.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 📧 --> Mail Log
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
-                            <button class="c-tabs__btn" data-tab-target="tab-migration">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp" class="c-icon" alt=""><!-- 🔄 --> Migration
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-migration">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                                     class="c-icon"
+                                     alt=""><!-- 🔄 --> Migration
                             </button>
                         <?php } ?>
                     </div>
 
                     <!-- Tab-Inhalte -->
                     <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
-                        <div id="tab-active" class="c-tabs__content c-tabs__content--active">
+                        <div id="tab-active"
+                             class="c-tabs__content c-tabs__content--active">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <!-- FINANZEN TAB INHALT -->
                     <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
-                        <div id="tab-finance" class="c-tabs__content">
+                        <div id="tab-finance"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
-                        <div id="tab-future" class="c-tabs__content">
+                        <div id="tab-future"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
-                        <div id="tab-expired" class="c-tabs__content">
+                        <div id="tab-expired"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
-                        <div id="tab-stats" class="c-tabs__content">
+                        <div id="tab-stats"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
-                        <div id="tab-ranking" class="c-tabs__content">
+                        <div id="tab-ranking"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <!-- NEUER TAB: EXPORT -->
                     <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
-                        <div id="tab-export" class="c-tabs__content">
+                        <div id="tab-export"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_export.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
-                        <div id="tab-vouchers" class="c-tabs__content">
+                        <div id="tab-vouchers"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.tools.view')) { ?>
-                        <div id="tab-tools" class="c-tabs__content">
+                        <div id="tab-tools"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_tools.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
-                        <div id="tab-logs" class="c-tabs__content">
+                        <div id="tab-logs"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
                         </div>
                     <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
-                        <div id="tab-migration" class="c-tabs__content">
+                        <div id="tab-migration"
+                             class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_migration.phtml'; ?>
                         </div>
                     <?php } ?>
@@ -235,7 +287,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         </main>
     <?php } ?>
 
-    <script type="module" src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
+    <script type="module"
+            src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
+    <script src="<?php echo $config->getBaseUrl(); ?>assets/js/table-sorter.min.js"></script>
 </body>
 
 </html>

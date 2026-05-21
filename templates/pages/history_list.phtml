@@ -26,16 +26,20 @@ $now = new \DateTimeImmutable('today');
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
-    <?php // include $appRoot . '/templates/components/_base_styles.phtml';?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php // include $appRoot . '/templates/components/_base_styles.phtml';
+    ?>
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 
     <script>
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
-        };
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>'
+    };
+
     </script>
 </head>
 
@@ -46,10 +50,15 @@ $now = new \DateTimeImmutable('today');
         <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
             <div>
                 <h2 class="u-margin-none u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 32px; height: 32px;" alt="">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                         class="c-icon"
+                         style="width: 32px; height: 32px;"
+                         alt="">
                     Meine Genehmigungen
                 </h2>
-                <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als: <strong style="color: #1e293b;"><?php echo \htmlspecialchars($email); ?></strong></p>
+                <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als:
+                    <strong style="color: #1e293b;"><?php echo \htmlspecialchars($email); ?></strong>
+                </p>
             </div>
             <a href="history.php?action=logout" class="c-button c-button--secondary" style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color);">
                 Abmelden ✕
@@ -61,28 +70,38 @@ $now = new \DateTimeImmutable('today');
             ?>
             <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
                 <div class="u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/<?php echo ($isSuccess ?? false) ? 'status-success' : 'status-invalid'; ?>.webp" class="c-icon" alt="">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/<?php echo ($isSuccess ?? false) ? 'status-success' : 'status-invalid'; ?>.webp"
+                         class="c-icon"
+                         alt="">
                     <span><?php echo \htmlspecialchars($message); ?></span>
                 </div>
             </div>
         <?php } ?>
 
-        <section class="c-card" style="border-top: 5px solid var(--primary-color);">
-            <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+        <section class="c-card"
+                 style="border-top: 5px solid var(--primary-color);">
+            <div class="c-card__body u-padding-none"
+                 style="overflow-x: auto;">
                 <?php if (empty($permits)) { ?>
                     <div class="u-text-center u-padding-around-l u-text-muted">
                         <span style="font-size: 2.5rem; opacity: 0.5;">📄</span><br>
                         <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum gefunden.</p>
                     </div>
                 <?php } else { ?>
-                    <table class="c-table" style="min-width: 950px; table-layout: fixed;">
+                    <table class="c-table js-sort-table"
+                           style="min-width: 950px; table-layout: fixed;">
                         <thead>
                             <tr style="background: #f8fafc;">
-                                <th style="width: 250px;">Antragsteller & Kennung</th>
-                                <th style="width: 150px; text-align: center;">Fahrzeug</th>
-                                <th style="width: 180px; text-align: center;">Gültigkeit & Restzeit</th>
-                                <th style="width: 140px; text-align: center;">Finanz-Status</th>
-                                <th class="u-text-right" style="width: 150px; padding-right: 20px;">Aktion</th>
+                                <th class="js-sort-header"
+                                    style="width: 250px;">Antragsteller & Kennung</th>
+                                <th class="js-sort-header"
+                                    style="width: 150px; text-align: center;">Fahrzeug</th>
+                                <th class="js-sort-header"
+                                    style="width: 180px; text-align: center;">Gültigkeit & Restzeit</th>
+                                <th class="js-sort-header"
+                                    style="width: 140px; text-align: center;">Finanz-Status</th>
+                                <th class="u-text-right"
+                                    style="width: 150px; padding-right: 20px;">Aktion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,7 +150,8 @@ $now = new \DateTimeImmutable('today');
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
-                                    <td style="vertical-align: middle;">
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"
+                                        style="vertical-align: middle;">
                                         <div class="u-flex u-flex-column">
                                             <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
                                                 <?php echo \htmlspecialchars($permit->owner->name); ?>
@@ -147,9 +167,13 @@ $now = new \DateTimeImmutable('today');
                                         </div>
                                     </td>
 
-                                    <td style="text-align: center; vertical-align: middle;">
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->vehicle->kennzeichen); ?>"
+                                        style="text-align: center; vertical-align: middle;">
                                         <div style="line-height: 1;">
-                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>" class="c-icon" style="width: 24px; height: 24px; <?php echo $isExpired ? 'grayscale(1);' : ''; ?>" title="<?php echo $vLabel; ?>">
+                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                                 class="c-icon"
+                                                 style="width: 24px; height: 24px; <?php echo $isExpired ? 'grayscale(1);' : ''; ?>"
+                                                 title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div style="margin-top: 4px;">
                                             <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
@@ -158,7 +182,9 @@ $now = new \DateTimeImmutable('today');
                                         </div>
                                     </td>
 
-                                    <td class="u-text-center" style="vertical-align: middle;">
+                                    <td data-sort-val="<?php echo $permit->validity->von->format('Y-m-d'); ?>"
+                                        class="u-text-center"
+                                        style="vertical-align: middle;">
                                         <div style="line-height: 1.3;">
                                             <strong style="color: #1e293b; font-size: 0.95rem;"><?php echo $permit->validity->von->format('d.m.Y'); ?></strong><br>
                                             <small class="u-text-muted">bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></small>
@@ -176,19 +202,31 @@ $now = new \DateTimeImmutable('today');
                                         </div>
                                     </td>
 
-                                    <td style="vertical-align: middle; text-align: center;">
+                                    <td data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
+                                        style="vertical-align: middle; text-align: center;">
                                         <span class="c-badge c-badge--<?php echo $statusClass; ?>">
                                             <?php echo $statusText; ?>
                                         </span>
                                     </td>
 
-                                    <td class="u-text-right" style="vertical-align: middle; padding-right: 20px;">
+                                    <td class="u-text-right"
+                                        style="vertical-align: middle; padding-right: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
-                                            <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Status / Prüfseite öffnen">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
+                                            <a href="check.php?code=<?php echo $permit->code; ?>"
+                                               target="_blank" class="c-button c-button--secondary"
+                                               style="width: 36px; height: 36px;"
+                                               title="Status / Prüfseite öffnen">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                     class="c-icon"
+                                                     alt="">
                                             </a>
-                                            <a href="history.php?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--primary" style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;" title="Dokument anzeigen">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""> Dokument
+                                            <a href="history.php?action=print&code=<?php echo $permit->code; ?>"
+                                               class="c-button c-button--primary"
+                                               style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;"
+                                               title="Dokument anzeigen">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                                                     class="c-icon"
+                                                     alt=""> Dokument
                                             </a>
                                         </div>
                                     </td>
@@ -199,7 +237,8 @@ $now = new \DateTimeImmutable('today');
                 <?php } ?>
             </div>
 
-            <div class="u-padding-around-m u-border-top u-text-center" style="background: #fcfdfe;">
+            <div class="u-padding-around-m u-border-top u-text-center"
+                 style="background: #fcfdfe;">
                 <?php
                 $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) {
@@ -219,6 +258,8 @@ if ($currentArchiveYear !== $lastYear) {
             </a>
         </footer>
     </div>
+
+    <script src="<?php echo $settings['base_url']; ?>assets/js/table-sorter.min.js"></script>
 </body>
 
 </html>
