@@ -12,33 +12,36 @@
  *
  * @var string $filterStart
  * @var string $filterEnd
+ * @var string $filterType
  */
+$filterType ??= 'all'; // Fallback
 ?>
 <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
     <div class="c-control-bar-wrapper">
         <section class="c-control-bar-section">
 
-            <!-- Globale Datums-Filterung -->
             <?php if ($auth->hasPermission('dashboard.control_bar.future')) { ?>
-                <form method="GET" class="u-flex u-align-center u-gap-s" style="margin: 0; background: #ffffff; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;"><!--background: #f8f9fa;-->
-                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt=""><!-- 📅 --> ZEITRAUM:</span>
+                <form method="GET" class="u-flex u-align-center u-gap-s u-flex-wrap" style="margin: 0; background: #ffffff; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;">
+                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt="">ZEITRAUM:</span>
 
-                    <input type="date" id="filter_start" name="start" value="<?php echo $filterStart; ?>"
-                        class="c-control-bar-input">
-
+                    <input type="date" id="filter_start" name="start" value="<?php echo $filterStart; ?>" class="c-control-bar-input">
                     <span class="u-text-muted" style="font-size: 0.75rem; font-weight: 800;">BIS</span>
+                    <input type="date" id="filter_end" name="end" value="<?php echo $filterEnd; ?>" class="c-control-bar-input">
 
-                    <input type="date" id="filter_end" name="end" value="<?php echo $filterEnd; ?>"
-                        class="c-control-bar-input">
+                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">TYP:</span>
+                    <select name="type" class="c-control-bar-input" style="width: auto !important; cursor: pointer;" onchange="this.form.submit()">
+                        <option value="all" <?php echo $filterType === 'all' ? 'selected' : ''; ?>>Alle Genehmigungen</option>
+                        <option value="standard" <?php echo $filterType === 'standard' ? 'selected' : ''; ?>>Nur Standard</option>
+                        <option value="permanent" <?php echo $filterType === 'permanent' ? 'selected' : ''; ?>>Nur Dauerkarten</option>
+                    </select>
 
-                    <button type="submit" class="c-button c-button--primary c-button--small" style="border-radius: 20px; padding: 5px 15px; font-size: 0.75rem; font-weight: 700;">FILTER LADEN</button>
+                    <button type="submit" class="c-button c-button--primary c-button--small" style="border-radius: 20px; padding: 5px 15px; font-size: 0.75rem; font-weight: 700;">LADEN</button>
                 </form>
             <?php } ?>
 
-            <!-- Globale Live-Suche -->
             <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
                 <div style="position: relative; min-width: 280px;">
-                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --></span>
+                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""></span>
                     <input type="text" id="adminSearch"
                         placeholder="Schnellsuche..."
                         title="Suchen Sie nach Namen, KFZ oder SmartCode"

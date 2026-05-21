@@ -340,23 +340,42 @@ final readonly class AdminController
     {
         $filterStart = (string) ($get['start'] ?? \date('Y-01-01'));
         $filterEnd   = (string) ($get['end'] ?? \date('Y-12-31'));
-        $allPermits  = $this->storage->getAll();
 
-        // 1. Filterung für den gewählten Zeitraum
-        $filtered = \array_filter($allPermits, function (Permit $p) use ($filterStart, $filterEnd): bool {
+        // Den Typ-Filter aus der URL auslesen (Standard: 'all')
+        $filterType = (string) ($get['type'] ?? 'all');
+
+        $allPermits = $this->storage->getAll();
+
+        // Vorlagen laden, um den Typ abzugleichen
+        $permitTemplates = $this->config->get('permit_templates', []);
+
+        // 1. Filterung für den gewählten Zeitraum & Typ
+        $filtered = \array_filter($allPermits, function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates): bool {
             $date = $p->erstellt->format('Y-m-d');
 
-            return $date >= $filterStart && $date <= $filterEnd;
+            // Check Zeitraum
+            if ($date < $filterStart || $date > $filterEnd) {
+                return false;
+            }
+
+            // Check Typ (wenn nicht 'all')
+            if ($filterType !== 'all') {
+                $tplType = $permitTemplates[$p->templateKey]['type'] ?? 'standard';
+                if ($tplType !== $filterType) {
+                    return false;
+                }
+            }
+
+            return true;
         });
 
-        // --- FIX ANFRAGE 3: EXPORT-ROUTING ---
-        // Bevor HTML gerendert wird, fangen wir den Export-Befehl ab!
+        // Export abfangen
         if (isset($get['export'])) {
             $this->handleExport((string) $get['export'], $filtered, $filterStart, $filterEnd);
             exit; // Wichtig: Nach dem Download darf kein HTML mehr gesendet werden!
         }
 
-        // 2. Jährliche Gruppierung (bleibt wie sie ist für die Historie)
+        // 2. Jährliche Gruppierung
         $yearlyStats = [];
         $vConfig     = $this->config->get('vehicle_types', []);
 
@@ -389,7 +408,7 @@ final readonly class AdminController
         }
         \krsort($yearlyStats); // Neueste Jahre zuerst
 
-        // --- FIX ANFRAGE 2: FILTER-LOGIK ---
+        // Gefilterte Daten ans Template übergeben
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->render('admin_dashboard', [
             'structure'        => $this->config->get('structure', []),
@@ -401,6 +420,7 @@ final readonly class AdminController
             'message'          => $message,
             'filterStart'      => $filterStart,
             'filterEnd'        => $filterEnd,
+            'filterType'       => $filterType, // An die Control-Bar übergeben
             'config'           => $this->config,
             'appRoot'          => $this->config->get('root_path'),
             'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),

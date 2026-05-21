@@ -56,7 +56,7 @@ return [
                     'label'    => 'Filter-Leiste (Suche/Datum) anzeigen',
                     'key'      => 'dashboard.control_bar.view',
                     'children' => [
-                        'future' => ['label' => 'Datums-Filter nutzen', 'key' => 'dashboard.control_bar.future'],
+                        'future' => ['label' => 'Datums- & Fahrzeugtyp-Filter nutzen', 'key' => 'dashboard.control_bar.future'],
                         'search' => ['label' => 'Schnellsuche nutzen', 'key' => 'dashboard.control_bar.search'],
                     ],
                 ],
@@ -83,6 +83,7 @@ return [
                     'children' => [
                         'details'   => ['label' => 'Beleg-Details', 'key' => 'dashboard.finance.details'],
                         'mark_paid' => ['label' => 'Zahlung bestätigen', 'key' => 'dashboard.finance.mark_paid'],
+                        'suspend'   => ['label' => 'Sperren', 'key' => 'dashboard.finance.suspend'],
                     ],
                 ],
                 'future' => [
@@ -91,6 +92,7 @@ return [
                     'children' => [
                         'print'   => ['label' => 'Drucken', 'key' => 'dashboard.future.print'],
                         'details' => ['label' => 'Details einsehen', 'key' => 'dashboard.future.details'],
+                        'suspend' => ['label' => 'Sperren', 'key' => 'dashboard.future.suspend'],
                     ],
                 ],
                 'expired' => [

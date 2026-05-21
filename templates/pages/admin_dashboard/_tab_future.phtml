@@ -41,7 +41,7 @@ $futurePermits = $permitGroups['future'] ?? [];
                             <?php } ?>
                             <th style="width: 180px; text-align: center;">Zeitraum & Countdown</th>
                             <th style="width: 130px; text-align: center;">Status</th>
-                            <th style="width: 110px; text-align: right; padding-right: 20px;">Verwaltung</th>
+                            <th style="width: 150px; text-align: right; padding-right: 20px;">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,8 +57,9 @@ $futurePermits = $permitGroups['future'] ?? [];
                                 $diff          = $now->diff($permit->validity->von);
                                 $daysUntil     = (int) $diff->format('%r%a');
                                 $countdownText = ($daysUntil === 1) ? 'Morgen' : "In $daysUntil Tagen";
+                                $isSuspended   = $permit->status->isSuspended;
                                 ?>
-                                <tr class="u-hover-fade">
+                                <tr class="u-hover-fade <?php echo $isSuspended ? 'u-bg-suspended' : ''; ?>">
                                     <!-- 1. Antragsteller & Code -->
                                     <td style="vertical-align: middle;">
                                         <div class="u-flex u-flex-column">
@@ -79,17 +80,14 @@ $futurePermits = $permitGroups['future'] ?? [];
                                     <!-- 2. Fahrzeug (Icon + Kennzeichen darunter) -->
                                     <td style="text-align: center; vertical-align: middle;">
                                         <?php
-                                            $vKey = $permit->vehicle->typ;
-                                $vCfg             = $config->get('vehicle_types')[$vKey] ?? null;
+                                        $vKey = $permit->vehicle->typ;
+                                $vCfg         = $config->get('vehicle_types')[$vKey] ?? null;
                                 // Fallback Icon, falls Typ gelöscht wurde
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                         <div style="line-height: 1;">
-                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                class="c-icon"
-                                                style="width: 24px; height: 24px; <?php echo ($permit->validity->bis < $now) ? 'grayscale(1); opacity:0.5;' : ''; ?>"
-                                                title="<?php echo $vLabel; ?>">
+                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>" class="c-icon" style="width: 24px; height: 24px;" title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div style="margin-top: 4px;">
                                             <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
@@ -126,15 +124,11 @@ $futurePermits = $permitGroups['future'] ?? [];
                                     </td>
 
                                     <!-- 5. Finanz-Status -->
-                                    <td style="text-align: center; vertical-align: middle;">
-                                        <?php $isPaid = \strtolower($permit->status->current) === 'bezahlt'; ?>
-                                        <span class="c-badge <?php echo $isPaid ? 'c-badge--success' : 'c-badge--warning'; ?>">
-                                            <?php echo $isPaid ? 'BEZAHLT' : 'OFFEN'; ?>
-                                        </span>
-                                        <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
-                                            <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 700; color: #1e293b;">
-                                                <?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €
-                                            </div>
+                                    <td class="u-text-center" style="vertical-align: middle;">
+                                        <?php if ($isSuspended) { ?>
+                                            <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->status->suspensionReason); ?>">GESPERRT</span>
+                                        <?php } else { ?>
+                                            <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
                                     </td>
 
@@ -145,15 +139,31 @@ $futurePermits = $permitGroups['future'] ?? [];
                                                 <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Drucken">
                                                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="">
                                                 </a>
-                                            <?php } else { ?>
-                                                <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
                                             <?php } ?>
+
                                             <?php if ($auth->hasPermission('dashboard.future.details')) { ?>
                                                 <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Details">
                                                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
                                                 </a>
-                                            <?php } else { ?>
-                                                <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
+                                            <?php } ?>
+
+                                            <?php if ($auth->hasPermission('dashboard.future.suspend')) { ?>
+                                                <?php if ($isSuspended) { ?>
+                                                    <form method="POST" style="margin:0;">
+                                                        <input type="hidden" name="action" value="unsuspend_permit">
+                                                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                        <button type="submit" class="c-button c-button--success" style="width: 36px; height: 36px;" title="Wieder freigeben">🔓</button>
+                                                    </form>
+                                                <?php } else { ?>
+                                                    <button class="c-button c-button--danger js-suspend-btn" style="width: 36px; height: 36px;" data-code="<?php echo $permit->code; ?>" title="Sperren">
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="">
+                                                    </button>
+                                                    <form id="form_suspend_<?php echo $permit->code; ?>" method="POST" style="display:none;">
+                                                        <input type="hidden" name="action" value="suspend_permit">
+                                                        <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
+                                                        <input type="hidden" name="reason" id="reason_suspend_<?php echo $permit->code; ?>">
+                                                    </form>
+                                                <?php } ?>
                                             <?php } ?>
                                         </div>
                                     </td>
