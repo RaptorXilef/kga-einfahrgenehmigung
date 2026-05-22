@@ -32,13 +32,14 @@ final readonly class MailQueueService implements MailServiceInterface
             $stmt = $this->pdo->prepare('INSERT INTO mail_queue (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$recipient, $subject, $template, $payload, \date('Y-m-d H:i:s')]);
         } else {
-            $path    = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+            // BUGFIX: Sicherer Pfad mit Schrägstrich
+            $path    = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
             $queue   = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
             $queue[] = [
                 'recipient'  => $recipient,
                 'subject'    => $subject,
                 'template'   => $template,
-                'data'       => $data, // Hier direkt das Array speichern
+                'data'       => $data,
                 'attempts'   => 0,
                 'created_at' => \date('Y-m-d H:i:s'),
             ];
@@ -85,7 +86,8 @@ final readonly class MailQueueService implements MailServiceInterface
         }
         // --- B. JSON LOGIK ---
         else {
-            $path = $this->config->get('root_path') . $this->config->get('storage_path_prefix') . $cfg['file'];
+            // BUGFIX: Sicherer Pfad mit Schrägstrich
+            $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
             if (! \file_exists($path)) {
                 return 0;
             }

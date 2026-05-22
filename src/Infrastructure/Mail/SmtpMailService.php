@@ -31,7 +31,8 @@ final readonly class SmtpMailService implements MailServiceInterface
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
         if (empty(\trim($recipient))) {
-            $this->logEmail('System', $subject, $template, 'Übersprungen: Kein Empfänger angegeben');
+            // $data am Ende hinzugefügt
+            $this->logEmail('System', $subject, $template, 'Übersprungen: Kein Empfänger angegeben', $data);
 
             return true;
         }
@@ -45,14 +46,16 @@ final readonly class SmtpMailService implements MailServiceInterface
         // SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
         if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
-            $this->logEmail($recipient, $subject, $template, 'Testmodus (kein Versand)');
+            // $data am Ende hinzugefügt
+            $this->logEmail($recipient, $subject, $template, 'Testmodus (kein Versand)', $data);
 
             return true;
         }
 
         // 3. Versand und Logging
         $status = $this->dispatch($recipient, $subject, $body, $mailConfig);
-        $this->logEmail($recipient, $subject, $template, $status);
+        // $data am Ende hinzugefügt
+        $this->logEmail($recipient, $subject, $template, $status, $data);
 
         return $status;
     }
@@ -186,29 +189,31 @@ final readonly class SmtpMailService implements MailServiceInterface
         return $response;
     }
 
-    private function logEmail(string $recipient, string $subject, string $template, bool|string $status): void
+    private function logEmail(string $recipient, string $subject, string $template, bool|string $status, array $data = []): void
     {
         $cfg        = $this->config->get('storage_config')['mail_log'];
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
+        $statusStr  = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
 
         if ($cfg['type'] === 'mysql') {
-            // 1. Eintrag einfügen
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?)");
+            // Hier wird das data-Array als JSON-String in die DB geladen
+            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status, data) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 \date('Y-m-d H:i:s'),
                 $recipient,
                 $subject,
                 $template,
-                $status === true ? 'Erfolg' : 'Fehler: ' . $status,
+                $statusStr,
+                \json_encode($data, \JSON_UNESCAPED_UNICODE),
             ]);
 
             // 2. Cleanup (Optional: Hält die Datenbank schlank wie bei JSON)
             // Wir löschen alle alten Einträge, die über das Limit hinausgehen
             $this->pdo->exec("DELETE FROM {$cfg['table']} WHERE id NOT IN (
-            SELECT id FROM (
-                SELECT id FROM {$cfg['table']} ORDER BY timestamp DESC LIMIT $maxEntries
-            ) foo
-        )");
+                SELECT id FROM (
+                    SELECT id FROM {$cfg['table']} ORDER BY timestamp DESC LIMIT $maxEntries
+                ) foo
+            )");
 
             return;
         }
@@ -221,7 +226,8 @@ final readonly class SmtpMailService implements MailServiceInterface
             'recipient' => $recipient,
             'subject'   => $subject,
             'template'  => $template,
-            'status'    => $status === true ? 'Erfolg' : 'Fehler: ' . $status,
+            'status'    => $statusStr,
+            'data'      => $data,
         ]);
         $logs = \array_slice($logs, 0, $maxEntries);
         \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
@@ -239,8 +245,9 @@ final readonly class SmtpMailService implements MailServiceInterface
 
             try {
                 // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
-                $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (id, timestamp, recipient, subject, template, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (id, timestamp, recipient, subject, template, status, data) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 foreach ($logs as $id => $log) {
+                    $rawPayload = $log['data'] ?? null;
                     $stmt->execute([
                         $id,
                         $log['timestamp'] ?? null,
@@ -248,6 +255,7 @@ final readonly class SmtpMailService implements MailServiceInterface
                         $log['subject'] ?? null,
                         $log['template'] ?? null,
                         $log['status'] ?? null,
+                        \is_array($rawPayload) ? \json_encode($rawPayload) : $rawPayload,
                     ]);
                 }
                 $this->pdo->commit();

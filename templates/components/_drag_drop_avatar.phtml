@@ -19,10 +19,19 @@
     border: 2px dashed transparent;
 }
 
+.js-avatar-dropzone.js-preview-only {
+    border-color: #cbd5e1;
+    cursor: pointer;
+}
+
+.js-avatar-dropzone.js-preview-only:hover {
+    border-color: var(--primary-color);
+    background: #f1f5f9;
+}
+
 .js-avatar-dropzone.is-dragover {
     background-color: var(--primary-soft) !important;
     border-color: var(--primary-color);
-    border-radius: 16px;
 }
 
 .drop-overlay {
@@ -32,7 +41,7 @@
     right: 0;
     bottom: 0;
     background: rgba(52, 152, 219, 0.9);
-    color: white;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -72,22 +81,40 @@ document.addEventListener('DOMContentLoaded', () => {
             zone.addEventListener(eventName, () => zone.classList.remove('is-dragover'), false);
         });
 
+        const inp = zone.querySelector('input[type="file"]'),
+            frm = zone.closest('form');
+
+        const handleFile = f => {
+            if (!f || !f.type.startsWith('image/')) return alert('Bitte nur Bilder hochladen!');
+            if (zone.classList.contains('js-preview-only')) {
+                const r = new FileReader();
+                r.onload = e => {
+                    const img = zone.querySelector('.js-preview-img'),
+                        txt = zone.querySelector('.js-preview-text');
+                    if (img) {
+                        img.src = e.target.result;
+                        img.classList.remove('u-hidden');
+                    }
+                    if (txt) {
+                        txt.classList.add('u-hidden');
+                    }
+                };
+                r.readAsDataURL(f);
+            } else if (frm) frm.submit();
+        };
+
         // Die Magie beim Loslassen (Drop)
         zone.addEventListener('drop', e => {
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const fileInput = zone.querySelector('input[type="file"]');
-                const form = zone.querySelector('form');
-
-                // Prüfen ob es ein Bild ist
-                if (fileInput && form && files[0].type.startsWith('image/')) {
-                    fileInput.files = files; // Datei ins versteckte Input laden
-                    form.submit(); // Formular sofort absenden
-                } else if (!files[0].type.startsWith('image/')) {
-                    alert('Bitte nur Bilder (JPG, PNG, WEBP) hochladen.');
-                }
+            if (e.dataTransfer.files.length > 0) {
+                inp.files = e.dataTransfer.files;
+                handleFile(inp.files[0]);
             }
         });
+        if (inp) inp.addEventListener('change', e => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+        if (zone.classList.contains('js-preview-only')) zone.addEventListener('click', () => inp
+            .click());
     });
 });
 

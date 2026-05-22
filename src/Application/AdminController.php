@@ -165,6 +165,7 @@ final readonly class AdminController
         return match ($action) {
             'migrate_data'   => $this->actionMigrateData($post),
             'restore_data'   => $this->actionRestoreData($post),
+            'resend_mail'    => $this->actionResendMail($post),
             'mark_as_paid'   => $this->actionMarkAsPaid($post),
             'create_voucher' => $this->actionCreateVoucher($post),
             'create_manual'  => $this->actionCreateManual($post),
@@ -174,6 +175,46 @@ final readonly class AdminController
             'suspend_permit' => $this->actionToggleSuspension($post),
             default          => '',
         };
+    }
+
+    /**
+     * Sendet eine E-Mail aus den Logs basierend auf dem Zeitstempel erneut ab.
+     */
+    private function actionResendMail(array $post): string
+    {
+        if (! $this->auth->hasPermission('dashboard.logs.view')) {
+            return 'Fehler: Keine Berechtigung.';
+        }
+
+        $timestamp = (string) ($post['timestamp'] ?? '');
+        $logs      = $this->mailService->loadLogs();
+
+        foreach ($logs as $log) {
+            if (($log['timestamp'] ?? '') === $timestamp) {
+                $payload = $log['data'] ?? [];
+
+                // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
+                if (\is_string($payload)) {
+                    $payload = \json_decode($payload, true) ?? [];
+                }
+
+                if (empty($payload)) {
+                    return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
+                }
+
+                // Erneuter Versand über das Template-System
+                $this->mailService->sendTemplate(
+                    $log['recipient'],
+                    $log['subject'],
+                    $log['template'],
+                    $payload,
+                );
+
+                return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
+            }
+        }
+
+        return 'Fehler: Log-Eintrag nicht gefunden.';
     }
 
     /**

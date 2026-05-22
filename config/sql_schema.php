@@ -92,7 +92,8 @@ return [
         `recipient` VARCHAR(255),
         `subject` VARCHAR(255),
         `template` VARCHAR(100),
-        `status` TEXT
+        `status` TEXT,
+        `data` LONGTEXT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
 
     'mail_queue' => 'CREATE TABLE IF NOT EXISTS `mail_queue` (

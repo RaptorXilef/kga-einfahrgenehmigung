@@ -24,9 +24,11 @@
     <section class="c-card"
              style="border-top: 4px solid var(--success-color);">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+            <h3 class="u-margin-none">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
                      class="c-icon"
-                     alt=""><!-- 👤 --> Neues Benutzerkonto anlegen</h3>
+                     alt=""><!-- 👤 --> Neues Benutzerkonto anlegen
+            </h3>
         </header>
         <div class="c-card__body u-padding-around-l">
             <form method="POST"
@@ -75,12 +77,27 @@
                             class="c-button--primary"
                             style="height: 46px;">Erstellen</button>
                 </div>
-                <div class="u-grid-column-span-all u-margin-top-s">
-                    <label class="c-form-label">Profilbild (optional)</label>
-                    <input type="file"
-                           name="avatar"
-                           class="c-form-input"
-                           accept="image/*">
+                <div class="u-grid-column-span-all u-margin-top-s u-flex u-align-center u-gap-m">
+                    <div class="js-avatar-dropzone js-preview-only u-position-relative u-text-center"
+                         style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8fafc; overflow: hidden; flex-shrink: 0;">
+                        <img class="js-preview-img u-hidden"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                        <span class="js-preview-text" style="font-size: 1.5rem; opacity: 0.3;">
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                                 class="c-icon"
+                                 alt=""><!-- 👤 -->
+                        </span>
+                        <div class="drop-overlay"
+                             style="border-radius: 50%; font-size: 0.7rem;">Ablegen</div>
+                        <input type="file"
+                               name="avatar"
+                               class="u-hidden"
+                               accept="image/*">
+                    </div>
+                    <div>
+                        <label class="c-form-label u-margin-none">Profilbild (optional)</label>
+                        <p class="u-text-muted u-text-small u-margin-none">Klicken oder Bild hierher ziehen</p>
+                    </div>
                 </div>
             </form>
         </div>
