@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/profile.phtml
+
 /**
  * Page: Mein Profil (Modern UI)
- *
- * Path: templates/pages/profile.phtml
  */
 
 /**
@@ -31,7 +31,8 @@ $userImage = $auth->getImage('user', $userId);
 <head>
     <meta charset="UTF-8">
     <title>Mein Profil - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 </head>
 
@@ -43,7 +44,10 @@ $userImage = $auth->getImage('user', $userId);
 
             <header class="u-flex u-justify-between u-align-end u-margin-bottom-l">
                 <div>
-                    <h1 class="u-margin-none" style="text-align: left;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""><!-- 👤 -->Mein Profil</h1>
+                    <h1 class="u-margin-none"
+                        style="text-align: left;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                             class="c-icon"
+                             alt=""> Mein Profil</h1>
                     <p class="u-text-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
                 </div>
                 <a href="admin.php" class="c-tabs__btn">← Zum Dashboard</a>
@@ -55,25 +59,47 @@ $userImage = $auth->getImage('user', $userId);
                 </div>
             <?php } ?>
 
-            <div class="u-grid u-gap-l" style="grid-template-columns: 250px 1fr;">
+            <div class="u-grid u-gap-l"
+                 style="grid-template-columns: 250px 1fr;">
 
                 <aside>
-                    <section class="c-card u-text-center u-padding-around-l">
-                        <div class="u-position-relative u-margin-bottom-m" style="display: inline-block;">
+                    <section class="c-card u-text-center u-padding-around-l js-avatar-dropzone">
+
+                        <div class="u-position-relative u-margin-bottom-m"
+                             style="display: inline-block;">
                             <img src="<?php echo $userImage; ?>"
-                                style="width: 150px; height: 150px; border-radius: 50%; border: 5px solid #fff; box-shadow: var(--shadow-md); object-fit: cover;">
+                                 style="width: 150px; height: 150px; border-radius: 50%; border: 5px solid #fff; box-shadow: var(--shadow-md); object-fit: cover;">
+                            <div class="drop-overlay"
+                                 style="border-radius: 50%;">Foto ablegen</div>
                         </div>
 
-                        <form method="POST" enctype="multipart/form-data">
-                            <input type="hidden" name="action" value="change_own_avatar">
-                            <input type="file" name="avatar" id="avatar-input" class="u-hidden" onchange="this.form.submit()" accept="image/*">
-                            <button type="button" onclick="document.getElementById('avatar-input').click()" class="c-button--primary u-width-100" style="font-size: 0.8rem; height: 36px;">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-camera.webp" class="c-icon" style="width:14px;"> Bild ändern
+                        <form method="POST"
+                              enctype="multipart/form-data">
+                            <input type="hidden"
+                                   name="action"
+                                   value="change_own_avatar">
+                            <input type="file"
+                                   name="avatar"
+                                   id="avatar-input"
+                                   class="u-hidden"
+                                   onchange="this.form.submit()"
+                                   accept="image/*">
+                            <button type="button"
+                                    onclick="document.getElementById('avatar-input').click()"
+                                    class="c-button--primary u-width-100"
+                                    style="font-size: 0.8rem; height: 36px;">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-camera.webp"
+                                     class="c-icon"
+                                     style="width:14px;">
+                                Bild ändern
                             </button>
                         </form>
 
                         <div class="u-margin-top-l u-padding-top-m u-border-top">
-                            <small class="u-text-muted u-font-bold" style="text-transform: uppercase;">Zugehörigkeit</small>
+                            <small class="u-text-muted u-font-bold"
+                                   style="text-transform: uppercase;">
+                                Zugehörigkeit
+                            </small>
                             <div class="u-margin-top-xs">
                                 <span class="c-badge" style="background: var(--primary-soft); color: var(--primary-color); font-size: 0.8rem; padding: 5px 15px;">
                                     <?php echo \strtoupper(\htmlspecialchars($group)); ?>
@@ -85,52 +111,78 @@ $userImage = $auth->getImage('user', $userId);
                 </aside>
 
                 <div class="u-flex u-flex-column u-gap-l">
-
                     <section class="c-card">
                         <header class="c-card__header">
                             <h3 class="u-margin-none">Anmeldedaten</h3>
                         </header>
                         <div class="c-card__body">
-                            <form method="POST" class="u-grid u-gap-m" style="grid-template-columns: 1fr auto;">
-                                <input type="hidden" name="action" value="change_own_username">
+                            <form method="POST"
+                                  class="u-grid u-gap-m"
+                                  style="grid-template-columns: 1fr auto;">
+                                <input type="hidden"
+                                       name="action"
+                                       value="change_own_username">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Anzeigename / Login</label>
-                                    <input type="text" name="new_username" class="c-form-input" value="<?php echo \htmlspecialchars($username); ?>" required>
+                                    <input type="text"
+                                           name="new_username"
+                                           class="c-form-input"
+                                           value="<?php echo \htmlspecialchars($username); ?>"
+                                           required>
                                 </div>
                                 <div class="u-flex u-align-end">
-                                    <button type="submit" class="c-button--primary" style="height: 46px;">Speichern</button>
+                                    <button type="submit"
+                                            class="c-button--primary"
+                                            style="height: 46px;">Speichern</button>
                                 </div>
                             </form>
                         </div>
                     </section>
 
-                    <section class="c-card" style="border-top-color: var(--danger-color);">
+                    <section class="c-card"
+                             style="border-top-color: var(--danger-color);">
                         <header class="c-card__header">
                             <h3 class="u-margin-none">Sicherheit & Passwort</h3>
                         </header>
                         <div class="c-card__body">
-                            <form method="POST" class="u-flex u-flex-column u-gap-m">
-                                <input type="hidden" name="action" value="change_own_password">
-
+                            <form method="POST"
+                                  class="u-flex u-flex-column u-gap-m">
+                                <input type="hidden"
+                                       name="action"
+                                       value="change_own_password">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Aktuelles Passwort</label>
-                                    <input type="password" name="old_password" class="c-form-input" required placeholder="••••••••">
+                                    <input type="password"
+                                           name="old_password"
+                                           class="c-form-input"
+                                           required
+                                           placeholder="••••••••">
                                 </div>
-
                                 <hr style="border: none; border-top: 1px solid #e2e8f0;">
-
-                                <div class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr;">
+                                <div class="u-grid u-gap-m"
+                                     style="grid-template-columns: 1fr 1fr;">
                                     <div class="c-form-group">
                                         <label class="c-form-label">Neues Passwort</label>
-                                        <input type="password" name="new_password" class="c-form-input" required minlength="8" placeholder="Mind. 8 Zeichen">
+                                        <input type="password"
+                                               name="new_password"
+                                               class="c-form-input"
+                                               required
+                                               minlength="8"
+                                               placeholder="Mind. 8 Zeichen">
                                     </div>
                                     <div class="c-form-group">
                                         <label class="c-form-label">Wiederholen</label>
-                                        <input type="password" name="confirm_password" class="c-form-input" required minlength="8" placeholder="Bestätigen">
+                                        <input type="password"
+                                               name="confirm_password"
+                                               class="c-form-input"
+                                               required
+                                               minlength="8"
+                                               placeholder="Bestätigen">
                                     </div>
                                 </div>
-
-                                <button type="submit" class="c-button--primary u-margin-top-s" style="background: var(--danger-color);">
+                                <button type="submit"
+                                        class="c-button--primary u-margin-top-s"
+                                        style="background: var(--danger-color);">
                                     Passwort sicher aktualisieren
                                 </button>
                             </form>
@@ -140,6 +192,8 @@ $userImage = $auth->getImage('user', $userId);
             </div>
         </div>
     </main>
+
+    <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
 </body>
 
 </html>

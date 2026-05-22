@@ -1,0 +1,94 @@
+<?php
+
+// SPDX-License-Identifier: LicenseRef-Proprietary
+// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+// Usage without explicit permission is strictly prohibited.
+// See LICENSE.md for full license details.
+
+// Path: templates/pages/profile.phtml
+
+/**
+ * Page: Profilbild per Drag n Drop austauschen
+ */
+?>
+
+<style>
+.js-avatar-dropzone {
+    position: relative;
+    transition: all 0.2s ease;
+    border: 2px dashed transparent;
+}
+
+.js-avatar-dropzone.is-dragover {
+    background-color: var(--primary-soft) !important;
+    border-color: var(--primary-color);
+    border-radius: 16px;
+}
+
+.drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(52, 152, 219, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.js-avatar-dropzone.is-dragover .drop-overlay {
+    opacity: 1;
+}
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.js-avatar-dropzone').forEach(zone => {
+
+        // Standard-Browser-Aktionen (wie Bild öffnen) verhindern
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            zone.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        // Visuelles Feedback beim Drüberziehen
+        ['dragenter', 'dragover'].forEach(eventName => {
+            zone.addEventListener(eventName, () => zone.classList.add('is-dragover'), false);
+        });
+
+        // Visuelles Feedback entfernen, wenn man die Zone verlässt
+        ['dragleave', 'drop'].forEach(eventName => {
+            zone.addEventListener(eventName, () => zone.classList.remove('is-dragover'), false);
+        });
+
+        // Die Magie beim Loslassen (Drop)
+        zone.addEventListener('drop', e => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const fileInput = zone.querySelector('input[type="file"]');
+                const form = zone.querySelector('form');
+
+                // Prüfen ob es ein Bild ist
+                if (fileInput && form && files[0].type.startsWith('image/')) {
+                    fileInput.files = files; // Datei ins versteckte Input laden
+                    form.submit(); // Formular sofort absenden
+                } else if (!files[0].type.startsWith('image/')) {
+                    alert('Bitte nur Bilder (JPG, PNG, WEBP) hochladen.');
+                }
+            }
+        });
+    });
+});
+
+</script>

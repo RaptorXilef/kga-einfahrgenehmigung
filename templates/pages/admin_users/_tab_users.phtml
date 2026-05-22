@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/admin_users/_tab_users.phtml
+
 /**
  * Tab: Benutzerverwaltung
- *
- * Path: templates/pages/admin_users/_tab_users.phtml
  */
 
 /**
@@ -21,39 +21,66 @@
  */
 ?>
 <div class="u-flex u-flex-column u-gap-l">
-    <section class="c-card" style="border-top: 4px solid var(--success-color);">
+    <section class="c-card"
+             style="border-top: 4px solid var(--success-color);">
         <header class="c-card__header">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""><!-- 👤 --> Neues Benutzerkonto anlegen</h3>
+            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                     class="c-icon"
+                     alt=""><!-- 👤 --> Neues Benutzerkonto anlegen</h3>
         </header>
         <div class="c-card__body u-padding-around-l">
-            <form method="POST" action="users.php" enctype="multipart/form-data" class="u-grid u-gap-m" style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
-                <input type="hidden" name="action" value="save_user">
+            <form method="POST"
+                  action="users.php"
+                  enctype="multipart/form-data"
+                  class="u-grid u-gap-m"
+                  style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
+                <input type="hidden"
+                       name="action"
+                       value="save_user">
                 <div class="c-form-group">
                     <label class="c-form-label">Benutzername</label>
-                    <input type="text" name="username" class="c-form-input" placeholder="z.B. max_m" required>
+                    <input type="text"
+                           name="username"
+                           class="c-form-input"
+                           placeholder="z.B. max_m"
+                           required>
                 </div>
                 <div class="c-form-group">
                     <label class="c-form-label">Passwort</label>
-                    <input type="password" name="password" class="c-form-input" placeholder="Passwort" required>
+                    <input type="password"
+                           name="password"
+                           class="c-form-input"
+                           placeholder="Passwort"
+                           required>
                 </div>
                 <div class="c-form-group">
                     <label class="c-form-label">Wiederholen</label>
-                    <input type="password" name="password_repeat" class="c-form-input" placeholder="Bestätigen" required>
+                    <input type="password"
+                           name="password_repeat"
+                           class="c-form-input"
+                           placeholder="Bestätigen"
+                           required>
                 </div>
                 <div class="c-form-group">
                     <label class="c-form-label">Gruppe</label>
-                    <select name="group" class="c-form-select">
+                    <select name="group"
+                            class="c-form-select">
                         <?php foreach ($groups as $id => $g) { ?>
                             <option value="<?php echo $id; ?>"><?php echo \htmlspecialchars($g['name'] ?? 'Unbenannt'); ?></option>
                         <?php } ?>
                     </select>
                 </div>
                 <div class="u-flex u-align-end">
-                    <button type="submit" class="c-button--primary" style="height: 46px;">Erstellen</button>
+                    <button type="submit"
+                            class="c-button--primary"
+                            style="height: 46px;">Erstellen</button>
                 </div>
                 <div class="u-grid-column-span-all u-margin-top-s">
                     <label class="c-form-label">Profilbild (optional)</label>
-                    <input type="file" name="avatar" class="c-form-input" accept="image/*">
+                    <input type="file"
+                           name="avatar"
+                           class="c-form-input"
+                           accept="image/*">
                 </div>
             </form>
         </div>
@@ -67,10 +94,15 @@
             $groupData    = $groups[$u['group']] ?? ['name' => 'Unbekannt'];
             $displayLogin = $u['username'] ?? $userId; // Fallback auf ID
             ?>
-            <div class="category-card is-closed" id="card-<?php echo $userId; ?>">
-                <header class="category-header u-flex u-justify-between u-align-center" style="background: #fff; border: 1px solid #e2e8f0; padding: 15px 25px;">
-                    <div class="u-flex u-align-center u-gap-m" onclick="this.parentElement.parentElement.classList.toggle('is-closed')" style="cursor: pointer; flex-grow: 1;">
-                        <img src="<?php echo $userImage; ?>" style="width: 38px; height: 38px; border-radius: 50%;">
+            <div class="category-card is-closed"
+                 id="card-<?php echo $userId; ?>">
+                <header class="category-header u-flex u-justify-between u-align-center"
+                        style="background: #fff; border: 1px solid #e2e8f0; padding: 15px 25px;">
+                    <div class="u-flex u-align-center u-gap-m"
+                         onclick="this.parentElement.parentElement.classList.toggle('is-closed')"
+                         style="cursor: pointer; flex-grow: 1;">
+                        <img src="<?php echo $userImage; ?>"
+                             style="width: 38px; height: 38px; border-radius: 50%;">
                         <div>
                             <strong style="font-size: 1.05rem; color: var(--text-main);"><?php echo \htmlspecialchars((string) ($u['username'] ?? $userId)); ?></strong>
                             <div style="font-size: 0.75rem; color: var(--text-muted);">
@@ -80,61 +112,123 @@
                         </div>
                     </div>
 
-                    <form method="POST" onsubmit="return confirm('Soll der Benutzer \'<?php echo \addslashes((string) $displayLogin); ?>\' wirklich gelöscht werden?')" style="margin: 0;">
-                        <input type="hidden" name="action" value="delete_user">
-                        <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
-                        <button type="submit" class="c-button c-button--danger">🗑️</button>
+                    <form method="POST"
+                          onsubmit="return confirm('Soll der Benutzer \'<?php echo \addslashes((string) $displayLogin); ?>\' wirklich gelöscht werden?')"
+                          style="margin: 0;">
+                        <input type="hidden"
+                               name="action"
+                               value="delete_user">
+                        <input type="hidden"
+                               name="user_id"
+                               value="<?php echo $userId; ?>">
+                        <button type="submit"
+                                class="c-button c-button--danger">🗑️</button>
                     </form>
                 </header>
 
-                <div class="category-body u-padding-around-l" style="background: #fcfdfe; border: 1px solid #e2e8f0; border-top: none;">
-                    <div class="u-grid u-gap-l" style="grid-template-columns: 200px 1.2fr 1fr;">
+                <div class="category-body u-padding-around-l"
+                     style="background: #fcfdfe; border: 1px solid #e2e8f0; border-top: none;">
+                    <div class="u-grid u-gap-l"
+                         style="grid-template-columns: 200px 1.2fr 1fr;">
 
-                        <div class="u-text-center">
-                            <label class="c-form-label">Profilbild</label>
-                            <img src="<?php echo $userImage; ?>" style="width: 120px; height: 120px; border-radius: 12px; border: 4px solid #fff; box-shadow: var(--shadow-md); margin-bottom: 10px;">
-                            <form method="POST" enctype="multipart/form-data">
-                                <input type="hidden" name="action" value="upload_avatar">
-                                <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
-                                <input type="file" name="avatar" class="u-hidden" id="file-<?php echo \md5($userId); ?>" onchange="this.form.submit()">
-                                <button type="button" onclick="document.getElementById('file-<?php echo \md5($userId); ?>').click()" class="c-tabs__btn u-width-100" style="font-size: 0.75rem;">Bild ändern</button>
+                        <div class="u-text-center js-avatar-dropzone"
+                             style="padding: 10px;">
+                            <label class="c-form-label u-justify-center">Profilbild</label>
+                            <div class="u-position-relative"
+                                 style="display: inline-block;">
+                                <img src="<?php echo $userImage; ?>"
+                                     style="width: 120px; height: 120px; border-radius: 12px; border: 4px solid #fff; box-shadow: var(--shadow-md); margin-bottom: 10px; object-fit: cover;">
+                                <div class="drop-overlay"
+                                     style="border-radius: 12px; margin-bottom: 10px;">Foto ablegen</div>
+                            </div>
+                            <form method="POST"
+                                  enctype="multipart/form-data">
+                                <input type="hidden"
+                                       name="action"
+                                       value="upload_avatar">
+                                <input type="hidden"
+                                       name="user_id"
+                                       value="<?php echo $userId; ?>">
+                                <input type="file"
+                                       name="avatar"
+                                       class="u-hidden"
+                                       id="file-<?php echo \md5($userId); ?>"
+                                       onchange="this.form.submit()"
+                                       accept="image/*">
+                                <button type="button"
+                                        onclick="document.getElementById('file-<?php echo \md5($userId); ?>').click()"
+                                        class="c-tabs__btn u-width-100"
+                                        style="font-size: 0.75rem;">Bild ändern</button>
                             </form>
                             <hr style="border:none; border-top:1px solid #eee; margin: 15px 0;">
                             <form method="POST">
-                                <input type="hidden" name="action" value="rename_user">
-                                <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+                                <input type="hidden"
+                                       name="action"
+                                       value="rename_user">
+                                <input type="hidden"
+                                       name="user_id"
+                                       value="<?php echo $userId; ?>">
                                 <label class="c-form-label">Login-Name</label>
                                 <div class="u-flex u-gap-xs">
-                                    <input type="text" name="new_username" class="c-form-input" style="height:34px;" value="<?php echo \htmlspecialchars((string) ($u['username'] ?? '')); ?>">
-                                    <button type="submit" class="c-button--primary" style="height:34px; padding: 0 10px;">OK</button>
+                                    <input type="text"
+                                           name="new_username"
+                                           class="c-form-input"
+                                           style="height:34px;"
+                                           value="<?php echo \htmlspecialchars((string) ($u['username'] ?? '')); ?>">
+                                    <button type="submit"
+                                            class="c-button--primary"
+                                            style="height:34px; padding: 0 10px;">OK</button>
                                 </div>
                             </form>
                         </div>
 
                         <div class="u-flex u-flex-column u-gap-m">
-                            <form method="POST" class="u-flex u-flex-column u-gap-s">
-                                <input type="hidden" name="action" value="change_user_password">
-                                <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+                            <form method="POST"
+                                  class="u-flex u-flex-column u-gap-s">
+                                <input type="hidden"
+                                       name="action"
+                                       value="change_user_password">
+                                <input type="hidden"
+                                       name="user_id"
+                                       value="<?php echo $userId; ?>">
                                 <label class="c-form-label">Passwort ändern</label>
-                                <input type="password" name="password" class="c-form-input" placeholder="Neues Passwort" required>
-                                <input type="password" name="password_repeat" class="c-form-input" placeholder="Wiederholen" required>
-                                <button type="submit" class="c-button--primary u-width-100">Aktualisieren</button>
+                                <input type="password"
+                                       name="password"
+                                       class="c-form-input"
+                                       placeholder="Neues Passwort"
+                                       required>
+                                <input type="password"
+                                       name="password_repeat"
+                                       class="c-form-input"
+                                       placeholder="Wiederholen"
+                                       required>
+                                <button type="submit"
+                                        class="c-button--primary u-width-100">Aktualisieren</button>
                             </form>
                         </div>
 
                         <div class="u-flex u-flex-column u-gap-m">
-                            <form method="POST" class="u-flex u-flex-column u-gap-s">
-                                <input type="hidden" name="action" value="change_user_group">
-                                <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
+                            <form method="POST"
+                                  class="u-flex u-flex-column u-gap-s">
+                                <input type="hidden"
+                                       name="action"
+                                       value="change_user_group">
+                                <input type="hidden"
+                                       name="user_id"
+                                       value="<?php echo $userId; ?>">
                                 <label class="c-form-label">Gruppe zuweisen</label>
-                                <select name="group" class="c-form-select" onchange="this.form.submit()">
+                                <select name="group"
+                                        class="c-form-select"
+                                        onchange="this.form.submit()">
                                     <?php foreach ($groups as $gid => $g) { ?>
-                                        <option value="<?php echo $gid; ?>" <?php echo ($u['group'] === $gid) ? 'selected' : ''; ?>>
+                                        <option value="<?php echo $gid; ?>"
+                                                <?php echo ($u['group'] === $gid) ? 'selected' : ''; ?>>
                                             <?php echo \htmlspecialchars($g['name'] ?? 'Unbekannt'); ?>
                                         </option>
                                     <?php } ?>
                                 </select>
-                                <p class="u-text-muted u-text-small" style="margin-top: 5px;">
+                                <p class="u-text-muted u-text-small"
+                                   style="margin-top: 5px;">
                                     ℹ️ Änderungen an der Gruppe wirken sich sofort auf die Berechtigungen aus.
                                 </p>
                             </form>
