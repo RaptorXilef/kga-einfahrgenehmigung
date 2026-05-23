@@ -109,45 +109,46 @@ const configs = {
 
 /**
  * Optimiert den Code-Inhalt basierend auf dem Dateityp
+ * @param {string} content - Der rohe Code
+ * @param {string} fileExtension - Die Dateiendung (z.B. '.php')
+ * @param {boolean} forceKeepPathComments - Wenn true, werden Pfadkommentare IMMER behalten (für Option 6)
  */
-function optimizeTokens(content, fileExtension) {
+function optimizeTokens(content, fileExtension, forceKeepPathComments = false) {
     const ext = fileExtension.toLowerCase();
     const isPhpOrPhtml = ext === '.php' || ext === '.phtml';
     const isJsOrScss = ext === '.js' || ext === '.scss';
 
     // 1. Schritt: Kommentare entfernen (außer deine geschützten Pfad-Kommentare)
     if (isJsOrScss || isPhpOrPhtml) {
-        // Multi-line Kommentare /* ... */ entfernen (außer sie enthalten geschützte Wörter)
+        // Multi-line Kommentare /* ... */ entfernen
         content = content.replace(/\/\*[\s\S]*?\*\//g, (match) => {
-            // Bei JS/SCSS behalten wir geschützte Kommentare, bei PHP/PHTML löschen wir sie gnadenlos
-            if (isJsOrScss && /path:|pfad:|file:/i.test(match)) return match;
+            if ((forceKeepPathComments || isJsOrScss) && /path:|pfad:|file:/i.test(match)) {
+                return match;
+            }
             return '';
         });
 
         // Single-line Kommentare // ... entfernen
-        // Verhindert das matchen von URLs (http://) durch [^:]
         content = content.replace(/(^|[^:])\/\/.*$/gm, (match, prefix) => {
-            if (isJsOrScss && /path:|pfad:|file:/i.test(match)) return match;
+            if ((forceKeepPathComments || isJsOrScss) && /path:|pfad:|file:/i.test(match)) {
+                return match;
+            }
             return prefix; // Behalte das Zeichen vor dem //
         });
 
         // Speziell für PHP/PHTML: # Kommentare entfernen
         if (isPhpOrPhtml) {
-            content = content.replace(/(^|[^"'])#.*$/gm, (match, prefix) => {
-                // if (/path:|pfad:|file:/i.test(match)) return match;
+            content = content.replace(/(^|[^"'])#.*$/gm, (_match, prefix) => {
                 return prefix;
             });
         }
     }
 
     // Extra-Schritt für PHP/PHTML/JS/SCSS: Mehrfache Leerzeichen vor und nach '=>', '+=', '=', '=>' etc. kollabieren
-    // Reduziert tabellarische Ausrichtungen wie 'key      => value' zu 'key => value'
     content = content.replace(/\s*(=>|==|=|<=|>=|\+=|-=)\s*/g, ' $1 ');
 
     // 2. Schritt: Whitespace & Zeilenumbrüche minimieren
     if (ext === '.phtml') {
-        // PHTML-Schonwaschgang: Kollabiert mehrfache Leerzeilen, schützt aber HTML-Einrückungen
-        // um HTML-Strukturen und Inline-PHP nicht zu beschädigen.
         content = content.replace(/\n\s*\n/g, '\n');
         return content.trim();
     }
@@ -161,7 +162,7 @@ function optimizeTokens(content, fileExtension) {
         if (line.length === 0) continue;
 
         // JS/SCSS: Wenn die Zeile ein geschützter Kommentar ist, MUSS sie eine eigene Zeile bleiben
-        if (isJsOrScss && /^\/\/.*(path:|pfad:|file:)/i.test(line)) {
+        if ((forceKeepPathComments || isJsOrScss) && /^\/\/.*(path:|pfad:|file:)/i.test(line)) {
             optimizedLines.push(line);
             continue;
         }
@@ -176,16 +177,16 @@ function optimizeTokens(content, fileExtension) {
         if (
             optimizedLines.length > 0 &&
             !(
-                isJsOrScss &&
+                (forceKeepPathComments || isJsOrScss) &&
                 /^\/\/.*(path:|pfad:|file:)/i.test(optimizedLines[optimizedLines.length - 1])
             ) &&
             !(ext === '.php' && /^<\?php/i.test(optimizedLines[optimizedLines.length - 1]))
         ) {
             const lastLine = optimizedLines[optimizedLines.length - 1];
 
-            // Ein kleines Leerzeichen spendieren, falls Wortgrenzen aufeinandertreffen (z.B. zwischen Keywords)
+            // Ein kleines Leerzeichen spendieren, falls Wortgrenzen aufeinandertreffen
             if (/[a-zA-Z0-9_]$/.test(lastLine) && /^[a-zA-Z0-9_]/.test(line)) {
-                optimizedLines[optimizedLines.length - 1] += ' ' + line;
+                optimizedLines[optimizedLines.length - 1] += ` ${line}`;
             } else {
                 optimizedLines[optimizedLines.length - 1] += line;
             }
@@ -213,7 +214,6 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
                 ALWAYS_IGNORE_DIRS.some(
                     (d) => file.toLowerCase().includes(d.toLowerCase()) || file.startsWith('.')
                 ) || exclDirs.some((d) => relPath.toLowerCase().includes(d.toLowerCase()));
-
             if (!isExcluded) {
                 getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
             }
@@ -234,10 +234,77 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
     return currentFiles;
 }
 
+// Generiert einen sauberen Zeitstempel-Ordnernamen (YYYY-MM-DD_hh-mm-ss)
+function getTimestampString() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+}
+
+/**
+ * Funktion für den neuen Menüpunkt 6 (Gleiche Ordnerstruktur spiegeln)
+ */
+function startStructureMirror() {
+    const timestampDirName = getTimestampString();
+    const targetDir = path.join(debugFolder, `${timestampDirName}_minimized`);
+
+    console.log(`\n${c.cyan}🚀 Starte Erstellung der gespiegelten Token-Struktur...`);
+    console.log(`${c.yellow}Target: .debug/${version}/${timestampDirName}_minimized/${c.reset}`);
+
+    // Alle relevanten Dateitypen einsammeln
+    const foundFiles = getFiles(basePath, /\.(js|php|phtml|scss)$/, [], [], globalIncludeRootFiles);
+
+    if (foundFiles.length === 0) {
+        console.log(`${c.red}❌ Keine Dateien gefunden.${c.reset}`);
+        return;
+    }
+
+    let count = 0;
+    for (const file of foundFiles) {
+        try {
+            const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
+
+            // Wichtig: forceKeepPathComments=true, damit bei Einzeldateien JEDER Typ den Pfad behält
+            let optimizedContent = optimizeTokens(rawContent, file.ext, true);
+
+            // Falls die Datei noch keinen Pfad-Kommentar am Anfang hat, setzen wir ihn davor
+            if (!/^\/\/.*(path:|pfad:|file:)/i.test(optimizedContent)) {
+                const commentPrefix = `// Path: ${file.relPath}\n`;
+                // Bei PHP darauf achten, dass der Kommentar nach dem <?php Tag landet
+                if (file.ext.toLowerCase() === '.php' && /^<\?php/i.test(optimizedContent)) {
+                    optimizedContent = optimizedContent.replace(
+                        /^<\?php/i,
+                        `<?php\n${commentPrefix.trim()}`
+                    );
+                } else {
+                    optimizedContent = commentPrefix + optimizedContent;
+                }
+            }
+
+            // Zielpfad innerhalb des neuen Zeitstempel-Ordners berechnen
+            const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
+            const fileOutputPath = path.join(targetDir, file.relPath);
+
+            // Verzeichnisstruktur bei Bedarf replizieren
+            if (!fs.existsSync(fileOutputDir)) fs.mkdirSync(fileOutputDir, { recursive: true });
+
+            fs.writeFileSync(fileOutputPath, optimizedContent, 'utf-8');
+            count++;
+            console.log(`${c.gray} + [Spiegeln] ${file.relPath}${c.reset}`);
+        } catch (e) {
+            console.log(`${c.red} ! Fehler bei Datei: ${file.relPath} (${e.message})${c.reset}`);
+        }
+    }
+
+    console.log(
+        `${c.green}✅ Erfolg: Struktur gespiegelt! ${c.bright}${count} Dateien${c.reset} exportiert nach ${c.yellow}.debug/${version}/${timestampDirName}_minimized/${c.reset}`
+    );
+}
+
 function startFileCollection(configKey, silent = false) {
     const conf = configs[configKey];
-    const timestamp = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0];
-    const outputName = `${conf.name}_${timestamp}${conf.ext}`;
+    const timestamp = getTimestampString();
+    const outputName = `${conf.name}_${timestamp}_minimized${conf.ext}`;
     const outputPath = path.join(debugFolder, outputName);
 
     if (!fs.existsSync(debugFolder)) fs.mkdirSync(debugFolder, { recursive: true });
@@ -266,7 +333,7 @@ function startFileCollection(configKey, silent = false) {
             const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
 
             // Hier passiert die Magie der Token-Optimierung
-            const optimizedContent = optimizeTokens(rawContent, file.ext);
+            const optimizedContent = optimizeTokens(rawContent, file.ext, false);
 
             combinedContent += `// ========== START FILE: [${file.relPath}] ==========\n`;
             combinedContent += `${optimizedContent}\n`;
@@ -290,14 +357,12 @@ function showHelp() {
     console.table([
         { Argument: '--js', Beschreibung: 'Sammelt & optimiert nur JavaScript Dateien' },
         { Argument: '--php', Beschreibung: 'Sammelt & optimiert nur PHP Dateien' },
-        {
-            Argument: '--phtml',
-            Beschreibung: 'Sammelt & optimiert nur PHTML Dateien (Sicherheitsmodus)',
-        },
+        { Argument: '--phtml', Beschreibung: 'Sammelt & optimiert nur PHTML Dateien' },
         { Argument: '--scss', Beschreibung: 'Sammelt & optimiert nur SCSS Dateien' },
+        { Argument: '--project', Beschreibung: 'Projektweite Zusammenfassung (*.txt)' },
         {
-            Argument: '--project',
-            Beschreibung: 'Projektweite Zusammenfassung (*.txt) - komplett optimiert',
+            Argument: '--mirror',
+            Beschreibung: 'Spiegelt die gesamte optimierte Ordnerstruktur (Punkt 6)',
         },
         { Argument: '--all', Beschreibung: 'Führt Punkt 1-4 automatisch aus' },
         { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
@@ -317,22 +382,20 @@ if (args.length > 0) {
     if (args.includes('--root')) globalIncludeRootFiles = true;
 
     if (args.includes('--all')) {
-        ['JS', 'PHP', 'PHTML', 'SCSS'].forEach((k) => {
+        for (const k of ['JS', 'PHP', 'PHTML', 'SCSS']) {
             startFileCollection(k, true);
-        });
+        }
     } else {
         if (args.includes('--js')) startFileCollection('JS', true);
         if (args.includes('--php')) startFileCollection('PHP', true);
         if (args.includes('--phtml')) startFileCollection('PHTML', true);
         if (args.includes('--scss')) startFileCollection('SCSS', true);
         if (args.includes('--project')) startFileCollection('PROJECT', true);
+        if (args.includes('--mirror')) startStructureMirror();
     }
     process.exit(0);
 } else {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
     const showMenu = () => {
         const rootStatus = globalIncludeRootFiles
@@ -341,18 +404,19 @@ if (args.length > 0) {
 
         console.clear();
         console.log(`${c.cyan}===============================================`);
-        console.log(
-            `${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG (TOKEN OPTIMIERT)${c.reset} ${c.dim}(NodeJS CLI)${c.reset}`
-        );
+        console.log(`${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG (TOKEN OPTIMIERT)${c.reset}`);
         console.log(`${c.cyan}    Root: ${c.gray}${basePath}${c.reset}`);
         console.log(`${c.cyan}    Ziel: ${c.yellow}.debug/${version}/${c.reset}`);
         console.log(`${c.cyan}===============================================${c.reset}`);
         console.log(`${c.bright} 1)${c.reset} JavaScript (*.js)`);
         console.log(`${c.bright} 2)${c.reset} PHP (*.php)`);
-        console.log(`${c.bright} 3)${c.reset} PHTML (*.phtml) ${c.dim}(Sicherer Modus)${c.reset}`);
+        console.log(`${c.bright} 3)${c.reset} PHTML (*.phtml)`);
         console.log(`${c.bright} 4)${c.reset} SCSS (*.scss)`);
         console.log(
             `${c.bright} 5)${c.reset} ${c.magenta}PROJEKT-ZUSAMMENFASSUNG${c.reset} (*.txt)`
+        );
+        console.log(
+            `${c.bright} 6)${c.reset} ${c.green}PROJEKT-STRUKTUR SPIEGELN${c.reset} (Einzeldateien in Verzeichnissen)`
         );
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
         console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
@@ -376,9 +440,14 @@ if (args.length > 0) {
                 return;
             }
             if (choice === 'A') {
-                ['JS', 'PHP', 'PHTML', 'SCSS'].forEach((k) => {
+                for (const k of ['JS', 'PHP', 'PHTML', 'SCSS']) {
                     startFileCollection(k);
-                });
+                }
+                rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
+                return;
+            }
+            if (choice === '6') {
+                startStructureMirror();
                 rl.question(`\n${c.gray}Fertig. Drücke Enter...${c.reset}`, showMenu);
                 return;
             }
