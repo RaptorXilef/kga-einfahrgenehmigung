@@ -13,6 +13,7 @@
     "// --- PHASE 0: SETUP & LIFECYCLE ---": "",
     "prepare": "husky",
     "collect": "node scripts/collect-all.js",
+    "collect-llm": "node scripts/collect-all-llm.js",
     "extract": "node scripts/extract-all.js",
     "legacy:collect": "pwsh.exe -ExecutionPolicy Bypass -Command \"& (Get-Item scripts/Collect-All*.ps1).FullName\"",
     "collect-info": "pwsh.exe -Command \"Get-Location; Get-ChildItem scripts\"",
