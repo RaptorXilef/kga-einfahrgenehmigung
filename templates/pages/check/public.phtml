@@ -94,14 +94,18 @@ if ($permit) {
                 <?php if ($permit) { ?>
                     <?php if ($permit->status->isSuspended) { ?>
                         <div style="color: var(--danger-color);">
-                            <span style="font-size: 5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></span>
+                            <span style="font-size: 5rem;">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="">
+                            </span>
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
-                            <p class="u-font-bold">Diese Genehmigung wurde gesperrt.</p>
-                            <?php if ($permit->status->suspensionReason) { ?>
-                                <div
-                                     style="background: #fff1f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left;">
-                                    <strong style="font-size: 0.8rem; text-transform: uppercase;">Grund:</strong><br>
-                                    <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
+                            <p class="u-font-bold">Diese Genehmigung wurde gesperrt/wiederrufen.</p>
+
+                            <?php if (! empty($permit->status->suspensionReason)) { ?>
+                                <div style="background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: center;">
+                                    <strong style="font-size: 0.85rem; text-transform: uppercase; color: #991b1b; letter-spacing: 0.5px;">Grund der Sperrung:</strong><br>
+                                    <span style="color: #7f1d1d; font-size: 1.05rem; display: block; margin-top: 5px;">
+                                        <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
+                                    </span>
                                 </div>
                             <?php } ?>
                         </div>
