@@ -21,10 +21,12 @@
     <meta charset="UTF-8">
     <title>Druckansicht - <?php echo \htmlspecialchars($permit->code); ?></title>
     <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 
     <script>
         window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
+            baseUrl: '<?php echo $settings['base_url']; ?>',
+            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
         };
     </script>
     <style>
@@ -52,6 +54,7 @@
 
 <body>
     <div class="print-toolbar u-no-print">
+        <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
         <a href="history.php" class="c-button c-button--secondary">← Zurück zur Übersicht</a>
         <div class="u-font-bold">Ausnahmegenehmigung: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()" class="c-button c-button--primary">Jetzt drucken / Als PDF speichern</button>

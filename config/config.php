@@ -14,10 +14,6 @@ declare(strict_types=1);
  * Fachliche Einstellungen (Farben, Typen, Zeiten) liegen in separaten Dateien.
  */
 return [
-    // --- SICHERHEIT ---
-    // fungiert als "Salt" für die Sicherheit des token in der Zugriffs-URL die per E-Mail versandt wird
-    'geheimnis' => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
-
     // --- ZAHLUNGS-KONFIGURATION ---
     /**
      * Zahlungsziel für Überfälligkeit

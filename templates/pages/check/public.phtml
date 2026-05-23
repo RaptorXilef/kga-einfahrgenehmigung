@@ -53,16 +53,20 @@ if ($permit) {
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>Status-Check - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <script>
-        // Die Brücke für die API-Aufrufe
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
-        };
+    // Die Brücke für die API-Aufrufe
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
+    };
+
     </script>
 </head>
 
@@ -73,11 +77,14 @@ if ($permit) {
     <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
 
     <main class="c-tab-content-container u-padding-y-l">
-        <div class="c-card u-margin-auto" style="max-width: 550px;">
+        <div class="c-card u-margin-auto"
+             style="max-width: 550px;">
 
             <header class="c-card__header u-text-center u-padding-around-l">
                 <?php if ($logoFile) { ?>
-                    <img src="<?php echo $settings['base_url'] . $logoFile; ?>" alt="Logo" style="max-height: 80px; ...">
+                    <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
+                         alt="Logo"
+                         style="max-height: 80px; ...">
                 <?php } ?>
                 <p class="u-text-muted u-text-small u-margin-none"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
             </header>
@@ -91,7 +98,8 @@ if ($permit) {
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt.</p>
                             <?php if ($permit->status->suspensionReason) { ?>
-                                <div style="background: #fff1f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left;">
+                                <div
+                                     style="background: #fff1f2; border: 1px solid #fee2e2; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left;">
                                     <strong style="font-size: 0.8rem; text-transform: uppercase;">Grund:</strong><br>
                                     <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
                                 </div>
@@ -106,7 +114,8 @@ if ($permit) {
                     <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
                         <div style="color: #f59e0b;">
                             <span style="font-size: 5rem;">⏳</span>
-                            <h2 style="color: #f59e0b; margin-top: 15px;">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
+                            <h2 style="color: #f59e0b; margin-top: 15px;">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!
+                            </h2>
 
                             <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                                 <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
@@ -130,22 +139,29 @@ if ($permit) {
 
                     <div class="u-text-center">
                         <span style="font-size: 3rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""></span>
-                        <h2 class="u-margin-top-s" style="color: var(--success-color);">E-Mail bestätigt!</h2>
+                        <h2 class="u-margin-top-s"
+                            style="color: var(--success-color);">E-Mail bestätigt!</h2>
 
-                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
-                            <p class="u-font-bold u-text-small u-text-muted u-margin-bottom-s" style="text-transform: uppercase; letter-spacing: 0.5px;">Zusammenfassung Ihrer Daten:</p>
+                        <div
+                             style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
+                            <p class="u-font-bold u-text-small u-text-muted u-margin-bottom-s"
+                               style="text-transform: uppercase; letter-spacing: 0.5px;">Zusammenfassung Ihrer Daten:
+                            </p>
                             <table style="width: 100%; font-size: 0.95rem; border-collapse: collapse;">
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Antragsteller:</td>
-                                    <td class="u-font-bold" style="text-align: right;"><?php echo \htmlspecialchars($tempData['name']); ?></td>
+                                    <td class="u-font-bold"
+                                        style="text-align: right;"><?php echo \htmlspecialchars($tempData['name']); ?></td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Parzelle:</td>
-                                    <td class="u-font-bold" style="text-align: right;">Nr. <?php echo \htmlspecialchars($tempData['parzelle']); ?></td>
+                                    <td class="u-font-bold"
+                                        style="text-align: right;">Nr. <?php echo \htmlspecialchars($tempData['parzelle']); ?></td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Fahrzeugtyp:</td>
-                                    <td class="u-font-bold" style="text-align: right;">
+                                    <td class="u-font-bold"
+                                        style="text-align: right;">
                                         <?php
                                         $vKey = $tempData['typ'];
                     echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey);
@@ -154,17 +170,20 @@ if ($permit) {
                                 </tr>
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Kennzeichen:</td>
-                                    <td class="u-font-bold" style="text-align: right; font-family: monospace;"><?php echo \htmlspecialchars($tempData['kennzeichen']); ?></td>
+                                    <td class="u-font-bold"
+                                        style="text-align: right; font-family: monospace;"><?php echo \htmlspecialchars($tempData['kennzeichen']); ?></td>
                                 </tr>
                                 <?php if (! empty($tempData['firma'])) { ?>
                                     <tr>
                                         <td style="padding: 6px 0; color: var(--text-muted);">Firma:</td>
-                                        <td class="u-font-bold" style="text-align: right;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
+                                        <td class="u-font-bold"
+                                            style="text-align: right;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
                                     </tr>
                                 <?php } ?>
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Zweck:</td>
-                                    <td class="u-font-bold" style="text-align: right;">
+                                    <td class="u-font-bold"
+                                        style="text-align: right;">
                                         <?php
                     $zKey = $tempData['zweck'];
                     echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey);
@@ -173,66 +192,95 @@ if ($permit) {
                                 </tr>
                                 <tr>
                                     <td style="padding: 6px 0; color: var(--text-muted);">Zeitraum:</td>
-                                    <td class="u-font-bold" style="text-align: right;">
+                                    <td class="u-font-bold"
+                                        style="text-align: right;">
                                         <?php echo \date('d.m.Y', \strtotime($tempData['datum_von'])); ?> bis <?php echo \date('d.m.Y', \strtotime($tempData['datum_bis'])); ?>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 12px 0 0 0; color: var(--text-main); border-top: 1.5px solid #e2e8f0;" class="u-font-bold">Zu zahlender Betrag:</td>
-                                    <td style="padding: 12px 0 0 0; border-top: 1.5px solid #e2e8f0; font-size: 1.25rem; color: var(--primary-color); text-align: right;" class="u-font-bold">
+                                    <td style="padding: 12px 0 0 0; color: var(--text-main); border-top: 1.5px solid #e2e8f0;"
+                                        class="u-font-bold">Zu zahlender Betrag:</td>
+                                    <td style="padding: 12px 0 0 0; border-top: 1.5px solid #e2e8f0; font-size: 1.25rem; color: var(--primary-color); text-align: right;"
+                                        class="u-font-bold">
                                         <?php echo \number_format((float) $tempData['preisSnapshot'], 2, ',', '.'); ?> €
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        <p class="u-text-muted u-margin-bottom-l">Nach Auswahl der Zahlungsart erhalten Sie:<br> die Genehmigung und Zahlungsdaten per E-Mail.</p>
+                        <p class="u-text-muted u-margin-bottom-l">Nach Auswahl der Zahlungsart erhalten Sie:<br> die
+                            Genehmigung und Zahlungsdaten per E-Mail.</p>
 
                         <!-- <p class="u-text-muted u-margin-bottom-l">Wählen Sie bitte eine Zahlungsart aus:</p> -->
 
                         <?php if ($config->get('paypal')['enabled']) { ?>
-                            <div id="paypal-button-container" class="u-padding-y-m"></div>
+                            <div id="paypal-button-container"
+                                 class="u-padding-y-m"></div>
                             <script src="https://www.paypal.com/sdk/js?client-id=<?php echo $config->isTestMode() ? $config->get('paypal')['sandbox']['client_id'] : $config->get('paypal')['live']['client_id']; ?>&currency=EUR"></script>
                             <script>
-                                paypal.Buttons({
-                                    createOrder: () => fetch(window.KGA_CONFIG.baseUrl + 'api/create_order_for_token.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => data.id),
-                                    onApprove: (data) => fetch(window.KGA_CONFIG.baseUrl + 'api/capture.php', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            orderID: data.orderID,
-                                            token: '<?php echo $token; ?>'
-                                        })
-                                    }).then(r => r.json()).then(res => {
-                                        if (res.success) window.location.href = 'check.php?token=<?php echo $token; ?>&success=1';
-                                        else alert('Fehler: ' + res.message);
+                            paypal.Buttons({
+                                createOrder: () => fetch(window.KGA_CONFIG.baseUrl +
+                                        'api/create_order_for_token.php?token=<?php echo $token; ?>', {
+                                            headers: {
+                                                'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                                            }
+                                        }).then(r => r.json())
+                                    .then(data => data.id),
+                                onApprove: (data) => fetch(window.KGA_CONFIG.baseUrl + 'api/capture.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                                    },
+                                    body: JSON.stringify({
+                                        orderID: data.orderID,
+                                        token: '<?php echo $token; ?>'
                                     })
-                                }).render('#paypal-button-container');
+                                }).then(r => r.json()).then(res => {
+                                    if (res.success) window.location.href =
+                                        'check.php?token=<?php echo $token; ?>&success=1';
+                                    else alert('Fehler: ' + res.message);
+                                })
+                            }).render('#paypal-button-container');
+
                             </script>
                         <?php } ?>
 
-                        <div class="u-margin-top-l u-padding-around-m" style="background: #fff; border-radius: 12px; border: 2px dashed #cbd5e1;">
+                        <div class="u-margin-top-l u-padding-around-m"
+                             style="background: #fff; border-radius: 12px; border: 2px dashed #cbd5e1;">
                             <p class="u-text-small u-margin-bottom-s u-font-bold">Klassische Überweisung</p>
-                            <button onclick="finalizeWire()" class="c-button--primary" style="padding: 12px 20px; font-size: 0.95rem; background: #64748b; width: 100%;">Zahlung per Überweisung abschließen</button>
+                            <button onclick="finalizeWire()"
+                                    class="c-button--primary"
+                                    style="padding: 12px 20px; font-size: 0.95rem; background: #64748b; width: 100%;">Zahlung
+                                per Überweisung abschließen</button>
                             <!--<p class="u-text-muted" style="font-size: 0.8rem; margin-top: 10px;">Hinweis: Die Freischaltung erfolgt nach ca. 2-3 Werktagen manuell durch den Vorstand.</p>-->
                         </div>
                     </div>
                     <script>
-                        function finalizeWire() {
-                            if (!confirm('BITTE BESTÄTIGEN SIE IHREN ANTRAG:\n\nBitte klicken Sie unten auf \"OK\", um zu bestätigen, dass Sie den Betrag zeitnah überweisen.\n\nSie gelangen danach automatisch zur Status-Seite Ihrer Genehmigung. Sobald diese vollständig geladen ist, ist der Vorgang beendet und Sie können die Seite verlassen.')) return;
-                            fetch(window.KGA_CONFIG.baseUrl + 'api/finalize_wire.php?token=<?php echo $token; ?>').then(r => r.json()).then(data => {
+                    function finalizeWire() {
+                        if (!confirm(
+                                'BITTE BESTÄTIGEN SIE IHREN ANTRAG:\n\nBitte klicken Sie unten auf \"OK\", um zu bestätigen, dass Sie den Betrag zeitnah überweisen.\n\nSie gelangen danach automatisch zur Status-Seite Ihrer Genehmigung. Sobald diese vollständig geladen ist, ist der Vorgang beendet und Sie können die Seite verlassen.'
+                                )) return;
+
+                        fetch(window.KGA_CONFIG.baseUrl + 'api/finalize_wire.php?token=<?php echo $token; ?>', {
+                                headers: {
+                                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                                }
+                            })
+                            .then(r => r.json())
+                            .then(data => {
                                 if (data.success) window.location.href = 'check.php?code=' + data.code + '&wire=1';
                                 else alert('Fehler: ' + data.error);
                             });
-                        }
+                    }
+
                     </script>
                 <?php } ?>
             </div>
 
-            <footer class="u-padding-around-m u-text-center u-border-top" style="background: #fcfdfe;">
+            <footer class="u-padding-around-m u-text-center u-border-top"
+                    style="background: #fcfdfe;">
                 <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
-                <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Vorstands-Login für Details</a>
+                <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Login für Details</a>
             </footer>
         </div>
     </main>

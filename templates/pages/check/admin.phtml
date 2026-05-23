@@ -40,7 +40,8 @@ if ($permit) {
 
     <script>
         window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
+            baseUrl: '<?php echo $settings['base_url']; ?>',
+            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
         };
     </script>
 </head>

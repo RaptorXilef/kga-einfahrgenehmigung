@@ -56,6 +56,7 @@ $configFiles = [
     'perms'   => $appRoot . '/config/permissions.php',
     'dev'     => $appRoot . '/config/dev_admin.php',
     'schema'  => $appRoot . '/config/sql_schema.php',
+    'secrets' => $appRoot . '/config/secrets.php',
     'local'   => $appRoot . '/config/config.local.php', // Überschreibt ALLES (für Passwörter lokal)
 ];
 
@@ -111,6 +112,11 @@ foreach ($configFiles as $key => $file) {
 }
 
 $settings['root_path'] = $appRoot;
+
+// CSRF Token für sichere Frontend-API-Calls generieren
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
+}
 
 // --- Erweiterte Wartungsmodus-Logik v0.24.2 (Internal Load) ---
 $currentScript     = \basename($_SERVER['SCRIPT_NAME']);

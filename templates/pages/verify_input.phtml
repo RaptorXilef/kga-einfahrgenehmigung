@@ -26,11 +26,13 @@
 
     <script>
         window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
+            baseUrl: '<?php echo $settings['base_url']; ?>',
+            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
         };
     </script>
 </head>
 <body class="u-bg-light l-public-body">
+    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
     <div class="c-tab-content-container u-padding-y-xl">
         <div class="c-card u-margin-auto" style="max-width: 450px; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-text-center u-padding-around-l">
@@ -67,9 +69,9 @@
                 </form>
             </div>
 
-            <footer class="c-card__footer u-text-center">
-                <a href="index.php" class="u-text-small u-text-muted">← Zurück zum neuen Antrag</a>
-            </footer>
+            <!--<footer class="c-card__footer u-text-center">
+                <a href="index.php" class="u-text-small u-text-muted">← Zurück zum Antrag</a>
+            </footer>-->
         </div>
     </div>
 </body>

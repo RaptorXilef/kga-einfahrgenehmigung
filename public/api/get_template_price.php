@@ -21,8 +21,27 @@ try {
     // Hier zwei Ebenen hoch, da wir im Unterordner /api/ sind
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
 
-    $permitService = $container->get(PermitService::class);
     $config        = $container->get(ConfigInterface::class);
+    $permitService = $container->get(PermitService::class);
+
+    // --- CSRF SECURITY GATEKEEPER ---
+    $providedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    $sessionToken  = $_SESSION['csrf_token'] ?? '';
+
+    // Wir erlauben das Secret entweder als X-API-Key Header ODER als Bearer Token
+    $providedSecret = $_SERVER['HTTP_X_API_KEY'] ?? '';
+    if (empty($providedSecret) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        if (\preg_match('/Bearer\s(\S+)/', $_SERVER['HTTP_AUTHORIZATION'], $matches)) {
+            $providedSecret = $matches[1];
+        }
+    }
+
+    if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
+        \http_response_code(401);
+        echo \json_encode(['success' => false, 'error' => 'Unauthorized: Invalid Security Token']);
+        exit;
+    }
+    // --------------------------------
 
     $vehicleTypes = $config->get('vehicle_types', []);
     $defaultType  = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';

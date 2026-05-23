@@ -19,7 +19,8 @@
 
     <script>
         window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>'
+            baseUrl: '<?php echo $settings['base_url']; ?>',
+            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
         };
     </script>
     <style>

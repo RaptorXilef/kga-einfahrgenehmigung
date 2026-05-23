@@ -35,7 +35,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     window.KGA_CONFIG = {
         baseUrl: '<?php echo $settings['base_url']; ?>',
         templates: <?php echo \json_encode($tplMetadata ?? []); ?>,
-        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); ?>
+        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend?>,
+        csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
 
     </script>
