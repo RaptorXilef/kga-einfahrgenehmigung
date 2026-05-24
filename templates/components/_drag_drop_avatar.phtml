@@ -8,7 +8,9 @@
 // Path: templates/pages/profile.phtml
 
 /**
- * Page: Profilbild per Drag n Drop austauschen
+ * Component: Drag & Drop Avatar Upload
+ *
+ * Stellt CSS und JS für interaktive Bild-Uploads (Dropzones mit Preview) bereit.
  */
 ?>
 
@@ -87,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const handleFile = f => {
             if (!f || !f.type.startsWith('image/')) return alert('Bitte nur Bilder hochladen!');
             if (zone.classList.contains('js-preview-only')) {
-                const r = new FileReader();
+                const r = new window.FileReader(); // TODO Wenn in eigener JS Datei, das "window." wieder entfernen.
                 r.onload = e => {
                     const img = zone.querySelector('.js-preview-img'),
                         txt = zone.querySelector('.js-preview-text');

@@ -8,10 +8,14 @@
 // Path: templates/pages/admin_dashboard/_tab_logs.phtml
 
 /**
- * Partial: Dashboard Tab - Modern Mail Logs
+ * Partial: Dashboard Tab - Mail Logs
  *
- * @var array                             $mailLogs
- * @var \App\Infrastructure\Config\Config $config
+ * Protokoll und Status-Anzeige des SMTP-Versands, inkl. Resend-Option.
+ *
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var array                                $mailLogs
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
  */
 
 // Limit aus der Config holen

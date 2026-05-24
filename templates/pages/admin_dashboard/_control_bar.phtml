@@ -8,11 +8,15 @@
 // Path: templates/pages/admin_dashboard/_control_bar.phtml
 
 /**
- * Partial: Dashboard Global Controls (Filter & Search)
+ * Partial: Dashboard Control Bar
  *
- * @var string $filterStart
- * @var string $filterEnd
- * @var string $filterType
+ * Suchleiste und Zeitraum-/Typen-Filter.
+ *
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var string                               $filterStart
+ * @var string                               $filterEnd
+ * @var string                               $filterType
  */
 $filterType ??= 'all'; // Fallback
 ?>

@@ -8,12 +8,16 @@
 // Path: templates/pages/history_login.phtml
 
 /**
- * Page: History Login (Magic Link Request)
+ * Page: History Magic Link Login
  *
- * @var string $message
- * @var array  $settings
- *             $isSuccess
- * @var string $appRoot
+ * 2-Step Login-Formular (OTP Anforderung und Eingabe).
+ *
+ * @var array                             $settings
+ * @var string                            $appRoot
+ * @var \App\Infrastructure\Config\Config $config
+ * @var string                            $message
+ * @var bool                              $isSuccess
+ * @var int                               $step
  */
 ?>
 <!DOCTYPE html>

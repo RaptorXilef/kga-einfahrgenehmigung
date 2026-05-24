@@ -52,6 +52,8 @@ $configFiles = [
 
     // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
     'main'    => $appRoot . '/config/config.php',
+    'payment' => $appRoot . '/config/payment.php',
+    'email'   => $appRoot . '/config/email.php',
     'storage' => $appRoot . '/config/storage.php',
     'perms'   => $appRoot . '/config/permissions.php',
     'dev'     => $appRoot . '/config/dev_admin.php',

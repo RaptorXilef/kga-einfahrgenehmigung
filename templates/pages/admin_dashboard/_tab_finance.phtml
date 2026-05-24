@@ -8,10 +8,15 @@
 // Path: templates/pages/admin_dashboard/_tab_finance.phtml
 
 /**
- * Partial: Dashboard Tab - Finance / Open Payments
+ * Partial: Dashboard Tab - Finance Monitoring
  *
- * @var array                           $permitGroups
- * @var \App\Core\Service\PermitService $permitService
+ * Zahlungsüberwachung für offene und überfällige Überweisungen.
+ *
+ * @var array                                $permitGroups
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var \App\Core\Service\PermitService      $permitService
+ * @var array                                $settings
  */
 $unpaidPermits = $permitGroups['unpaid'] ?? [];
 $dueDaysCfg    = (int) $config->get('payment_due_days', 14);

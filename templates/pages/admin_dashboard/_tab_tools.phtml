@@ -8,10 +8,13 @@
 // Path: templates/pages/admin_dashboard/_tab_tools.phtml
 
 /**
- * Partial: Dashboard Tab - Universal Admin Tools
+ * Partial: Dashboard Tab - Universal Generator
  *
- * @var \App\Infrastructure\Config\Config $config
- * @var array                             $reasons
+ * Manuelle Dokumenten-Ausstellung und Gutschein-Erstellung.
+ *
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
  */
 
 // Vorbereitung der Template-Daten für JavaScript inkl. Preise
@@ -502,7 +505,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
     const priceBtnLabel = document.getElementById('price_mode_label');
     const priceBtnIcon = document.getElementById('price_mode_icon');
 
-    const today = new Date();
+    const today = new window.Date(); // TODO wenn in eigener JS Datei das "window." entfernen
     const todayStr = today.toISOString().split('T')[0];
     inputVon.min = todayStr;
 
@@ -608,17 +611,17 @@ $hasAnyTemplate = ! empty($allowedTemplates);
         const duration = isCustom ? 0 : parseInt(config.days);
 
         if (!isCustom) {
-            let minBisDate = new Date(today);
+            let minBisDate = new window.Date(today); // TODO wenn in eigener JS Datei das "window." entfernen
             minBisDate.setDate(minBisDate.getDate() + duration);
             inputBis.min = minBisDate.toISOString().split('T')[0];
 
             if (source === 'bis') {
-                let d = new Date(inputBis.value);
+                let d = new window.Date(inputBis.value); // TODO wenn in eigener JS Datei das "window." entfernen
                 d.setDate(d.getDate() - duration);
                 inputVon.value = d.toISOString().split('T')[0];
             } else {
                 if (inputVon.value < todayStr) inputVon.value = todayStr;
-                let d = new Date(inputVon.value);
+                let d = new window.Date(inputVon.value); // TODO wenn in eigener JS Datei das "window." entfernen
                 d.setDate(d.getDate() + duration);
                 inputBis.value = d.toISOString().split('T')[0];
             }

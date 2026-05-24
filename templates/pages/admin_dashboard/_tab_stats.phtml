@@ -8,13 +8,17 @@
 // Path: templates/pages/admin_dashboard/_tab_stats.phtml
 
 /**
- * Partial: Dashboard Tab - Stats Overview
+ * Partial: Dashboard Tab - Statistics & Charts
  *
- * @var array  $periodStats
- * @var array  $yearlyStats
- * @var string $filterStart
- * @var string $filterEnd
- * @var int    $adminLevel
+ * Chart.js Integration und Kennzahlen-Auswertung (Umsatz, Fahrzeuge).
+ *
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var string                               $filterStart
+ * @var string                               $filterEnd
+ * @var array                                $periodStats
+ * @var array                                $yearlyStats
+ * @var \App\Infrastructure\Config\Config    $config
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
@@ -231,7 +235,7 @@
         const revenueTotal = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats))); ?>;
         const permitCounts = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats))); ?>;
 
-        new Chart(ctx, {
+        new window.Chart(ctx, { // TODO wenn in eigener JS Datei das "window." entfernen
             type: 'bar',
             data: {
                 labels: years,

@@ -8,9 +8,12 @@
 // Path: templates/components/_admin_header_nav.phtml
 
 /**
- * Component: Admin Header Navigation
+ * Component: Administrative Header Navigation
+ *
+ * Beinhaltet das Top-Menü für eingeloggte Administratoren, Profil-Shortcuts und System-Links.
  *
  * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
  */
 $groupId    = $auth->getGroup();
 $groups     = $auth->loadGroups(); // Wir brauchen die Liste für den Namen

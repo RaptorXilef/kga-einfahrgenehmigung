@@ -10,8 +10,12 @@
 /**
  * Partial: Dashboard Tab - Data Export
  *
- * @var string $filterStart
- * @var string $filterEnd
+ * CSV und JSON Export-Schnittstellen für Buchhaltungs-Software.
+ *
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var string                               $filterStart
+ * @var string                               $filterEnd
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.export.view')) { ?>

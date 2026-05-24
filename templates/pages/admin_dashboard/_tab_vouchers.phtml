@@ -8,11 +8,15 @@
 // Path: templates/pages/admin_dashboard/_tab_vouchers.phtml
 
 /**
- * Partial: Dashboard Tab - Vouchers
+ * Partial: Dashboard Tab - Voucher Management
  *
- * @var array<string, array<string, mixed>> $vouchers
- * @var \App\Core\Service\VoucherService    $voucherService
- * @var \App\Infrastructure\Config\Config   $config
+ * Aktivierungscodes und Gutschein-Archiv verwalten.
+ *
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var array                                $vouchers
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Core\Service\VoucherService     $voucherService
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>

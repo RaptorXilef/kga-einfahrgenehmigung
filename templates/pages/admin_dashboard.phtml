@@ -8,9 +8,26 @@
 // Path: templates/pages/admin_dashboard.phtml
 
 /**
- * Page: Admin Dashboard (Skelett)
+ * Page: Main Admin Dashboard Wrapper
  *
- * @var string $appRoot
+ * Haupt-Einstiegspunkt der Administration.
+ *
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var array                                $settings
+ * @var string                               $appRoot
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var string                               $message
+ * @var array                                $permitGroups
+ * @var string                               $filterStart
+ * @var string                               $filterEnd
+ * @var string                               $filterType
+ * @var array                                $periodStats
+ * @var array                                $yearlyStats
+ * @var array                                $vouchers
+ * @var \App\Core\Service\VoucherService     $voucherService
+ * @var array                                $mailLogs
+ * @var \App\Core\Service\PermitService      $permitService
+ * @var \App\Core\Service\MigrationService   $migrationService
  */
 $now = new \DateTimeImmutable();
 

@@ -8,9 +8,11 @@
 // Path: templates/components/_footer.phtml
 
 /**
- * Component: Global Footer
+ * Component: Global Dynamic Footer
  *
- * @var string $appRoot (optional, wird berechnet falls nicht vorhanden)
+ * Liest die Version aus der package.json und zeigt Urheberrechts- und GitHub-Informationen.
+ *
+ * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
  */
 
 // 1. App-Root Fallback (falls die Variable mal nicht übergeben wird)

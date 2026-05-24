@@ -8,9 +8,13 @@
 // Path: templates/pages/admin_dashboard/_tab_ranking.phtml
 
 /**
- * Partial: Dashboard Tab - Extended Plot Ranking
+ * Partial: Dashboard Tab - Plot Ranking
  *
- * @var array $periodStats
+ * Top 30 Ranking der Parzellen nach Antragsintensität.
+ *
+ * @var array                                $periodStats
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
  */
 $plots = $periodStats['plots'] ?? [];
 ?>

@@ -8,17 +8,19 @@
 // Path: templates/pages/check/public.phtml
 
 /**
- * Page: Public Status Result & Payment Summary
+ * Page: Verification & Payment (Public View)
  *
+ * Zeigt Pächtern den Status an und wickelt Zahlungen (PayPal/Überweisung) ab.
+ *
+ * @var string                            $appRoot
  * @var \App\Core\Entity\Permit|null      $permit
  * @var bool                              $isDateValid
  * @var bool                              $isTimeAllowed
- * @var string                            $allowedToday
- * @var string                            $appRoot
- * @var string|null                       $token
  * @var array|null                        $tempData
- * @var \App\Infrastructure\Config\Config $config
  * @var array                             $settings
+ * @var \App\Infrastructure\Config\Config $config
+ * @var string                            $allowedToday
+ * @var string|null                       $token
  */
 
 // 1. Logo-Logik

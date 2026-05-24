@@ -8,17 +8,20 @@
 // Path: templates/pages/history_list.phtml
 
 /**
- * Page: History List (Modernized & Extended)
+ * Page: Tenant History
+ *
+ * Listet alle jemals abgewickelten Genehmigungen eines Pächters auf.
  *
  * @var \App\Core\Entity\Permit[]         $permits
- * @var string                            $email
  * @var array                             $settings
- * @var int                               $currentArchiveYear
- * @var string                            $message
- * @var bool                              $isSuccess
  * @var string                            $appRoot
  * @var \App\Infrastructure\Config\Config $config
+ * @var string                            $email
+ * @var string                            $message
+ * @var bool                              $isSuccess
+ * @var \DateTimeImmutable                $now
  * @var \App\Core\Service\PermitService   $permitService
+ * @var int                               $currentArchiveYear
  */
 $now = new \DateTimeImmutable('today');
 \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);

@@ -8,12 +8,16 @@
 // Path: templates/pages/formular.phtml
 
 /**
- * Page: Public Permit Application
+ * Page: Public Application Form
  *
- * @var \App\Infrastructure\Config\Config $config
- * @var string                            $appRoot
- * @var array                             $settings
+ * Das interaktive Antragsformular für neue Genehmigungen inkl. Code-Einlösung.
+ *
  * @var array|null                        $prefill
+ * @var array                             $settings
+ * @var string                            $appRoot
+ * @var \App\Infrastructure\Config\Config $config
+ * @var bool                              $success
+ * @var string                            $message
  */
 $prefill ??= null;
 $tplMetadata = [];
@@ -540,7 +544,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     const isVoucherActive = <?php echo $prefill ? 'true' : 'false'; ?>;
 
     // Heute als Basis
-    const today = new Date();
+    const today = new window.Date(); // TODO wenn in eigener JS Datei das "window." entfernen
     const todayStr = today.toISOString().split('T')[0];
     // Erlaube keine Daten in der Vergangenheit
     if (inputVon) inputVon.min = todayStr;
@@ -625,7 +629,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
         if (!isCustom) {
             // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
-            let minBisDate = new Date(today);
+            let minBisDate = new window.Date(today); // TODO wenn in eigener JS Datei das "window." entfernen
             minBisDate.setDate(minBisDate.getDate() + duration);
             const minBisStr = minBisDate.toISOString().split('T')[0];
 
@@ -640,13 +644,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         warningBox.style.display = 'block';
                     }
                 }
-                let d = new Date(inputBis.value);
+                let d = new window.Date(inputBis.value); // TODO wenn in eigener JS Datei das "window." entfernen
                 d.setDate(d.getDate() - duration);
                 inputVon.value = d.toISOString().split('T')[0];
             } else {
                 // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
                 if (inputVon.value < todayStr) inputVon.value = todayStr;
-                let d = new Date(inputVon.value);
+                let d = new window.Date(inputVon.value); // TODO wenn in eigener JS Datei das "window." entfernen
                 d.setDate(d.getDate() + duration);
                 inputBis.value = d.toISOString().split('T')[0];
             }
@@ -718,7 +722,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
     // Falls ein Gutschein in der URL steht, aber kein $prefill aktiv ist (z.B. Fehlermeldung)
     // öffnen wir das Eingabefeld automatisch, damit der User den Code sieht/korrigieren kann.
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new window.URLSearchParams(window.location.search); // TODO wenn in eigener JS Datei das "window." entfernen
     if (urlParams.has('voucher') && !isVoucherActive) toggleVoucher();
 
     </script>

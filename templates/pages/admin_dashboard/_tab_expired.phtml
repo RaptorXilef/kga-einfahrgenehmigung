@@ -8,9 +8,14 @@
 // Path: templates/pages/admin_dashboard/_tab_expired.phtml
 
 /**
- * Partial: Dashboard Tab - Modern Expired Permits
+ * Partial: Dashboard Tab - Expired Permits
  *
- * @var array $permitGroups
+ * Historisches Archiv der abgelaufenen Genehmigungen im gewählten Zeitraum.
+ *
+ * @var array                                $permitGroups
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var \App\Infrastructure\Config\Config    $config
  */
 $expiredPermits = $permitGroups['expired'] ?? [];
 ?>
@@ -92,7 +97,7 @@ $expiredPermits = $permitGroups['expired'] ?? [];
                                         <div style="line-height: 1;">
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                                  class="c-icon"
-                                                 style="width: 24px; height: 24px; grayscale(1); opacity:0.5;"
+                                                 style="width: 24px; height: 24px; filter: grayscale(1); opacity:0.5;"
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div style="margin-top: 4px;">

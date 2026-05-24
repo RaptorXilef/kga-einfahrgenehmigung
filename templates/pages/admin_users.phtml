@@ -8,7 +8,17 @@
 // Path: templates/pages/admin_users.phtml
 
 /**
- * @var string $appRoot
+ * Page: User & Group Management Wrapper
+ *
+ * Container für die Benutzer- und Rechte-Matrix.
+ *
+ * @var array                                $settings
+ * @var string                               $appRoot
+ * @var string                               $message
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $groups
+ * @var array                                $users
  */
 ?>
 <!DOCTYPE html>
@@ -120,7 +130,7 @@
      * Fokus-Logik: Springt zum editierten User/Gruppe
      */
     function handleUrlFocus() {
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new window.URLSearchParams(window.location.search);  // TODO wenn in eigener JS Datei das "window." entfernen
         const focusId = urlParams.get('focus');
 
         if (focusId) {

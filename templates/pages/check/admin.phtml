@@ -8,13 +8,18 @@
 // Path: templates/pages/check/admin.phtml
 
 /**
- * Page: Admin Detailed Check
+ * Page: Verification Details (Admin View)
  *
- * @var \App\Core\Entity\Permit $permit
- * @var bool                    $isDateValid
- * @var bool                    $isTimeAllowed
- * @var string                  $allowedToday
- * @var string                  $appRoot
+ * Erweiterte Prüfseite für Schrankenpersonal und Vorstand.
+ *
+ * @var \App\Core\Entity\Permit|null         $permit
+ * @var bool                                 $isDateValid
+ * @var bool                                 $isTimeAllowed
+ * @var array                                $settings
+ * @var string                               $appRoot
+ * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var string                               $allowedToday
  */
 
 // Status-Farbe bestimmen (Logik synchron zur public.phtml)

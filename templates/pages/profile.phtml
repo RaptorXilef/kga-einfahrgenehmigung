@@ -8,18 +8,18 @@
 // Path: templates/pages/profile.phtml
 
 /**
- * Page: Mein Profil (Modern UI)
- */
-
-/**
- * @var \App\Infrastructure\Config\Config    $config
+ * Page: User Profile
+ *
+ * Verwaltung von Avatar, Login-Name und Passwort für den angemeldeten User.
+ *
  * @var \App\Infrastructure\Auth\AuthService $auth
  * @var string                               $userId
- * @var string                               $username
- * @var string                               $group
- * @var string                               $message
  * @var array                                $settings
  * @var string                               $appRoot
+ * @var string                               $message
+ * @var string                               $username
+ * @var string                               $group
+ * @var \App\Infrastructure\Config\Config    $config
  */
 
 // $userId wird nun vom Controller übergeben
@@ -204,6 +204,7 @@ $userImage = $auth->getImage('user', $userId);
     </main>
 
     <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 </body>
 
 </html>

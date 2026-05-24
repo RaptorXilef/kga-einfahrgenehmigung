@@ -8,16 +8,19 @@
 // Path: templates/pages/admin_dashboard/_tab_active.phtml
 
 /**
- * Partial: Dashboard Tab - Modern Active Permits
+ * Partial: Dashboard Tab - Active Permits
  *
- * @var array                           $permitGroups
- * @var \App\Core\Service\PermitService $permitService
- * @var int                             $adminLevel
+ * Übersicht aller aktuell laufenden Genehmigungen.
+ *
+ * @var array                                $permitGroups
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var \App\Infrastructure\Config\Config    $config
  */
 $now           = new \DateTimeImmutable('today');
 $activePermits = $permitGroups['active'] ?? [];
-?>
-<?php if ($auth->hasPermission('dashboard.active.view')) { ?>
+if ($auth->hasPermission('dashboard.active.view')) {
+    ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">

@@ -8,10 +8,14 @@
 // Path: templates/pages/admin_dashboard/_tab_future.phtml
 
 /**
- * Partial: Dashboard Tab - Modern Future Permits (v0.25.3)
+ * Partial: Dashboard Tab - Future Permits
  *
- * @var array $permitGroups
- * @var int   $adminLevel
+ * Übersicht aller noch nicht gestarteten, anstehenden Genehmigungen.
+ *
+ * @var array                                $permitGroups
+ * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                                $settings
+ * @var \App\Infrastructure\Config\Config    $config
  */
 $now           = new \DateTimeImmutable('today');
 $futurePermits = $permitGroups['future'] ?? [];
