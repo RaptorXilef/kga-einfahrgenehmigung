@@ -9,6 +9,8 @@
 
 /**
  * Page: Admin Dashboard (Skelett)
+ *
+ * @var string $appRoot
  */
 $now = new \DateTimeImmutable();
 
@@ -27,6 +29,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
@@ -35,7 +38,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     window.KGA_CONFIG = {
         baseUrl: '<?php echo $settings['base_url']; ?>',
         templates: <?php echo \json_encode($tplMetadata ?? []); ?>,
-        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend?>,
+        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
+?>,
         csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
 
@@ -63,12 +67,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </div>
 
                             <?php
-                            // Direkt-Aktionen extrahieren
-                            if (\str_contains($message, 'Manuelle Genehmigung erstellt')) {
-                                \preg_match('/<strong>(.*?)<\/strong>/', $message, $matches);
-                                $createdCode = $matches[1] ?? null;
+    // Direkt-Aktionen extrahieren
+    if (\str_contains($message, 'Manuelle Genehmigung erstellt')) {
+        \preg_match('/<strong>(.*?)<\/strong>/', $message, $matches);
+        $createdCode = $matches[1] ?? null;
 
-                                if ($createdCode) { ?>
+        if ($createdCode) { ?>
                                     <div class="u-flex u-gap-xs u-align-center">
                                         <?php if ($auth->hasPermission('dashboard.info_alert.print')) { ?>
                                             <a href="?action=print&code=<?php echo $createdCode; ?>" class="c-button c-button--secondary"
@@ -87,7 +91,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         <?php } ?>
                                     </div>
                             <?php }
-                                } ?>
+        } ?>
                         </div>
                     </div>
                 <?php } ?>
@@ -288,6 +292,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         </main>
     <?php } ?>
 
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
     <script type="module"
             src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
     <script src="<?php echo $config->getBaseUrl(); ?>assets/js/table-sorter.min.js"></script>

@@ -17,16 +17,21 @@
 ?>
 <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
     <div class="c-tab-content-container">
-        <div class="u-grid u-gap-l" style="grid-template-columns: 1.6fr 1fr;">
+        <div class="u-grid u-gap-l"
+             style="grid-template-columns: 1.6fr 1fr;">
 
             <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
             <?php if ($auth->hasPermission('dashboard.vouchers.open')) { ?>
                 <section class="c-card">
                     <header class="c-card__header">
-                        <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Offene Gutscheincodes</h3>
+                        <h3 class="u-margin-none">
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                                 class="c-icon"
+                                 alt=""><!-- 🎟️ --> Offene Gutscheincodes</h3>
                         <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
                     </header>
-                    <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">
+                    <div class="u-padding-none"
+                         style="max-height: 650px; overflow-y: auto;">
                         <table class="c-table">
                             <thead>
                                 <tr>
@@ -41,7 +46,8 @@
                 if (empty($activeVouchers)) {
                     ?>
                                     <tr>
-                                        <td colspan="3" class="u-text-center u-padding-around-l u-text-muted">
+                                        <td colspan="3"
+                                            class="u-text-center u-padding-around-l u-text-muted">
                                             Aktuell keine unbenutzten Gutscheincodes vorhanden.
                                         </td>
                                     </tr>
@@ -72,7 +78,9 @@
                                             <td>
                                                 <div class="u-text-center">
                                                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo \urlencode($url); ?>"
-                                                        class="qr-mini" style="border: 1px solid #eee; border-radius: 4px;" alt="QR">
+                                                         class="qr-mini"
+                                                         style="border: 1px solid #eee; border-radius: 4px;"
+                                                         alt="QR">
                                                     <code style="display:block; margin-top: 5px; font-size: 0.7rem; font-weight: bold;"><?php echo $v['code']; ?></code>
                                                 </div>
                                             </td>
@@ -84,7 +92,8 @@
                                                     } ?>
                                                 </strong>
 
-                                                <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap" style="font-size: 0.8rem;">
+                                                <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap"
+                                                     style="font-size: 0.8rem;">
                                                     <span class="c-badge" style="background: #e0e7ff; color: #4338ca;">🏷️ <?php echo $discountText; ?></span>
 
                                                     <?php if ($v['multi_use'] ?? false) { ?>
@@ -102,7 +111,8 @@
                                                     <?php } ?>
                                                 </div>
 
-                                                <div class="u-margin-top-s" style="font-size: 0.8rem; color: var(--text-muted);">
+                                                <div class="u-margin-top-s"
+                                                     style="font-size: 0.8rem; color: var(--text-muted);">
                                                     <?php if (! empty($v['data']['name'])) { ?>
                                                         Vorbefüllt für: <strong><?php echo \htmlspecialchars($v['data']['name']); ?></strong> (Parz: <?php echo $v['data']['parzelle'] ?: '?'; ?>)<br>
                                                     <?php } ?>
@@ -122,23 +132,52 @@
                                             <td class="u-text-right">
                                                 <div class="u-flex u-gap-xs u-justify-end">
                                                     <?php if ($auth->hasPermission('dashboard.vouchers.suspend')) { ?>
-                                                        <form method="POST" style="margin:0;">
-                                                            <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
+                                                        <form method="POST"
+                                                              style="margin:0;">
+                                                            <input type="hidden"
+                                                                   name="code"
+                                                                   value="<?php echo $v['code']; ?>">
                                                             <?php if ($isDeactivated) { ?>
-                                                                <input type="hidden" name="action" value="activate_voucher">
-                                                                <button type="submit" class="c-button c-button--success c-button--small" title="Aktivieren"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp" class="c-icon" alt=""><!-- 🔓 --></button>
+                                                                <input type="hidden"
+                                                                       name="action"
+                                                                       value="activate_voucher">
+                                                                <button type="submit"
+                                                                        class="c-button c-button--success c-button--small"
+                                                                        title="Aktivieren"><img
+                                                                         src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
+                                                                         class="c-icon"
+                                                                         alt=""><!-- 🔓 --></button>
                                                             <?php } else { ?>
-                                                                <input type="hidden" name="action" value="deactivate_voucher">
-                                                                <button type="submit" class="c-button c-button--danger c-button--small" title="Sperren"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""><!-- ⛔ --></button>
+                                                                <input type="hidden"
+                                                                       name="action"
+                                                                       value="deactivate_voucher">
+                                                                <button type="submit"
+                                                                        class="c-button c-button--danger c-button--small"
+                                                                        title="Sperren"><img
+                                                                         src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
+                                                                         class="c-icon"
+                                                                         alt=""><!-- ⛔ --></button>
                                                             <?php } ?>
                                                         </form>
                                                     <?php } ?>
 
                                                     <?php if ($auth->hasPermission('dashboard.vouchers.remove')) { ?>
-                                                        <form method="POST" style="margin:0;" onsubmit="return confirm('Soll dieser Gutscheincode unwiderruflich gelöscht werden?')">
-                                                            <input type="hidden" name="action" value="delete_voucher">
-                                                            <input type="hidden" name="code" value="<?php echo $v['code']; ?>">
-                                                            <button type="submit" class="c-button c-button--small" style="background:#f1f5f9; color: #64748b;" title="Löschen"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp" class="c-icon" alt=""><!-- 🗑️ --></button>
+                                                        <form method="POST"
+                                                              style="margin:0;"
+                                                              onsubmit="return confirm('Soll dieser Gutscheincode unwiderruflich gelöscht werden?')">
+                                                            <input type="hidden"
+                                                                   name="action"
+                                                                   value="delete_voucher">
+                                                            <input type="hidden"
+                                                                   name="code"
+                                                                   value="<?php echo $v['code']; ?>">
+                                                            <button type="submit"
+                                                                    class="c-button c-button--small"
+                                                                    style="background:#f1f5f9; color: #64748b;"
+                                                                    title="Löschen"><img
+                                                                     src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
+                                                                     class="c-icon"
+                                                                     alt=""><!-- 🗑️ --></button>
                                                         </form>
                                                     <?php } ?>
                                                 </div>
@@ -156,10 +195,13 @@
             <?php if ($auth->hasPermission('dashboard.vouchers.archive')) { ?>
                 <section class="c-card">
                     <header class="c-card__header">
-                        <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt=""><!-- 📜 --> Archiv</h3>
+                        <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                                 class="c-icon"
+                                 alt=""><!-- 📜 --> Archiv</h3>
                         <p class="u-text-muted">Bereits vollständig eingelöste Codes.</p>
                     </header>
-                    <div class="u-padding-none" style="max-height: 650px; overflow-y: auto;">
+                    <div class="u-padding-none"
+                         style="max-height: 650px; overflow-y: auto;">
                         <table class="c-table c-table--small">
                             <thead>
                                 <tr>
@@ -174,13 +216,16 @@
                 if (empty($archive)) {
                     ?>
                                     <tr>
-                                        <td colspan="3" class="u-text-center u-padding-around-l u-text-muted">Noch keine Einlösungen dokumentiert.</td>
+                                        <td colspan="3"
+                                            class="u-text-center u-padding-around-l u-text-muted">Noch keine Einlösungen
+                                            dokumentiert.</td>
                                     </tr>
                                 <?php } else { ?>
                                     <?php foreach ($archive as $arc) { ?>
                                         <tr>
                                             <td style="white-space: nowrap;">
-                                                <small class="u-font-bold" style="color: var(--text-muted);"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
+                                                <small class="u-font-bold"
+                                                       style="color: var(--text-muted);"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
                                             </td>
                                             <td>
                                                 <div style="line-height: 1.2;">
@@ -203,81 +248,83 @@
         </div>
     </div>
     <script>
-        function copyVoucherLink(url, element) {
-            // Funktion für das visuelle Feedback
-            const successAction = () => {
-                const originalText = element.innerText;
-                element.innerText = 'Kopiert! ✓';
-                element.style.color = 'var(--success-color)';
+    function copyVoucherLink(url, element) {
+        // Funktion für das visuelle Feedback
+        const successAction = () => {
+            const originalText = element.innerText;
+            element.innerText = 'Kopiert! ✓';
+            element.style.color = 'var(--success-color)';
 
-                if (typeof showToast === "function") {
-                    showToast("Gutschein-Link kopiert!");
-                }
-
-                setTimeout(() => {
-                    element.innerText = originalText;
-                    element.style.color = 'var(--primary-color)';
-                }, 2000);
-            };
-
-            // 1. Versuch: Moderne Clipboard API
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(url)
-                    .then(successAction)
-                    .catch(err => {
-                        console.error('Fehler beim Kopieren:', err);
-                        fallbackCopyText(url, successAction);
-                    });
-            } else {
-                // 2. Versuch: Fallback für HTTP / .local Domains
-                fallbackCopyText(url, successAction);
+            if (typeof showToast === "function") {
+                showToast("Gutschein-Link kopiert!");
             }
-        }
-
-        /**
-         * Fallback-Methode für nicht-HTTPS Umgebungen
-         */
-        function fallbackCopyText(text, callback) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-
-            // Sicherstellen, dass das Feld nicht sichtbar ist
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            textArea.style.top = "0";
-
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    callback();
-                }
-            } catch (err) {
-                console.error('Fallback Kopieren fehlgeschlagen', err);
-            }
-
-            document.body.removeChild(textArea);
-        }
-
-        /**
-         * Toast-Benachrichtigung anzeigen
-         */
-        function showToast(message) {
-            const existingToast = document.querySelector('.c-toast');
-            if (existingToast) existingToast.remove();
-
-            const toast = document.createElement('div');
-            toast.className = 'c-toast';
-            toast.innerHTML = `<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" style="width:16px"> ${message}`;
-            document.body.appendChild(toast);
 
             setTimeout(() => {
-                toast.classList.add('c-toast--hide');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+                element.innerText = originalText;
+                element.style.color = 'var(--primary-color)';
+            }, 2000);
+        };
+
+        // 1. Versuch: Moderne Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url)
+                .then(successAction)
+                .catch(err => {
+                    console.error('Fehler beim Kopieren:', err);
+                    fallbackCopyText(url, successAction);
+                });
+        } else {
+            // 2. Versuch: Fallback für HTTP / .local Domains
+            fallbackCopyText(url, successAction);
         }
+    }
+
+    /**
+     * Fallback-Methode für nicht-HTTPS Umgebungen
+     */
+    function fallbackCopyText(text, callback) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+
+        // Sicherstellen, dass das Feld nicht sichtbar ist
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                callback();
+            }
+        } catch (err) {
+            console.error('Fallback Kopieren fehlgeschlagen', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+
+    /**
+     * Toast-Benachrichtigung anzeigen
+     */
+    function showToast(message) {
+        const existingToast = document.querySelector('.c-toast');
+        if (existingToast) existingToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'c-toast';
+        toast.innerHTML =
+            `<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" style="width:16px"> ${message}`;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('c-toast--hide');
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+
     </script>
 <?php } ?>

@@ -75,7 +75,7 @@ $futurePermits = $permitGroups['future'] ?? [];
                                 $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                            ?>
+                                ?>
                                 <tr class="u-hover-fade <?php echo $isSuspended ? 'u-bg-suspended' : ''; ?>">
                                     <!-- 1. Antragsteller & Code -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"

@@ -21,71 +21,108 @@ $filterType ??= 'all'; // Fallback
         <section class="c-control-bar-section">
 
             <?php if ($auth->hasPermission('dashboard.control_bar.future')) { ?>
-                <form method="GET" class="u-flex u-align-center u-gap-s u-flex-wrap" style="margin: 0; background: #ffffff; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;">
-                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt="">ZEITRAUM:</span>
+                <form method="GET"
+                      class="u-flex u-align-center u-gap-s u-flex-wrap"
+                      style="margin: 0; background: #ffffff; padding: 5px 15px; border-radius: 30px; border: 1px solid #eee;">
+                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp"
+                             class="c-icon"
+                             alt="">
+                        ZEITRAUM:
+                    </span>
 
-                    <input type="date" id="filter_start" name="start" value="<?php echo $filterStart; ?>" class="c-control-bar-input">
+                    <input type="date"
+                           id="filter_start"
+                           name="start"
+                           value="<?php echo $filterStart; ?>"
+                           class="c-control-bar-input">
                     <span class="u-text-muted" style="font-size: 0.75rem; font-weight: 800;">BIS</span>
-                    <input type="date" id="filter_end" name="end" value="<?php echo $filterEnd; ?>" class="c-control-bar-input">
+                    <input type="date"
+                           id="filter_end"
+                           name="end"
+                           value="<?php echo $filterEnd; ?>"
+                           class="c-control-bar-input">
 
                     <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">TYP:</span>
-                    <select name="type" class="c-control-bar-input" style="width: auto !important; cursor: pointer;" onchange="this.form.submit()">
-                        <option value="all" <?php echo $filterType === 'all' ? 'selected' : ''; ?>>Alle Genehmigungen</option>
-                        <option value="standard" <?php echo $filterType === 'standard' ? 'selected' : ''; ?>>Nur Standard</option>
-                        <option value="permanent" <?php echo $filterType === 'permanent' ? 'selected' : ''; ?>>Nur Dauerkarten</option>
+                    <select name="type"
+                            class="c-control-bar-input"
+                            style="width: auto !important; cursor: pointer;"
+                            onchange="this.form.submit()">
+                        <option value="all"
+                                <?php echo $filterType === 'all' ? 'selected' : ''; ?>>
+                            Alle Genehmigungen
+                        </option>
+                        <option value="standard"
+                                <?php echo $filterType === 'standard' ? 'selected' : ''; ?>>
+                            Nur Standard
+                        </option>
+                        <option value="permanent"
+                                <?php echo $filterType === 'permanent' ? 'selected' : ''; ?>>
+                            Nur Dauerkarten
+                        </option>
                     </select>
 
-                    <button type="submit" class="c-button c-button--primary c-button--small" style="border-radius: 20px; padding: 5px 15px; font-size: 0.75rem; font-weight: 700;">LADEN</button>
+                    <button type="submit"
+                            class="c-button c-button--primary c-button--small"
+                            style="border-radius: 20px; padding: 5px 15px; font-size: 0.75rem; font-weight: 700;">
+                        LADEN
+                    </button>
                 </form>
             <?php } ?>
 
             <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
                 <div style="position: relative; min-width: 280px;">
-                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""></span>
-                    <input type="text" id="adminSearch"
-                        placeholder="Schnellsuche..."
-                        title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                        class="c-form-input"
-                        style="padding-left: 42px; border-radius: 30px; height: 38px; border: 1px solid #e2e8f0; font-size: 0.85rem; width: 100%;">
+                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                            class="c-icon"
+                             alt="">
+                    </span>
+                    <input type="text"
+                           id="adminSearch"
+                           placeholder="Schnellsuche..."
+                           title="Suchen Sie nach Namen, KFZ oder SmartCode"
+                           class="c-form-input"
+                           style="padding-left: 42px; border-radius: 30px; height: 38px; border: 1px solid #e2e8f0; font-size: 0.85rem; width: 100%;">
                 </div>
             <?php } ?>
         </section>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const filterStart = document.getElementById('filter_start');
-            const filterEnd = document.getElementById('filter_end');
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterStart = document.getElementById('filter_start');
+        const filterEnd = document.getElementById('filter_end');
 
-            if (filterStart && filterEnd) {
-                // Wenn "Start" (VON) geändert wird
-                filterStart.addEventListener('change', () => {
-                    const startVal = filterStart.value;
-                    const endVal = filterEnd.value;
+        if (filterStart && filterEnd) {
+            // Wenn "Start" (VON) geändert wird
+            filterStart.addEventListener('change', () => {
+                const startVal = filterStart.value;
+                const endVal = filterEnd.value;
 
-                    if (startVal && endVal) {
-                        // Wenn der neue Start NACH dem aktuellen Ende liegt
-                        if (startVal > endVal) {
-                            // Ziehe das Ende auf das Startdatum mit
-                            filterEnd.value = startVal;
-                        }
+                if (startVal && endVal) {
+                    // Wenn der neue Start NACH dem aktuellen Ende liegt
+                    if (startVal > endVal) {
+                        // Ziehe das Ende auf das Startdatum mit
+                        filterEnd.value = startVal;
                     }
-                });
+                }
+            });
 
-                // Wenn "Ende" (BIS) geändert wird
-                filterEnd.addEventListener('change', () => {
-                    const startVal = filterStart.value;
-                    const endVal = filterEnd.value;
+            // Wenn "Ende" (BIS) geändert wird
+            filterEnd.addEventListener('change', () => {
+                const startVal = filterStart.value;
+                const endVal = filterEnd.value;
 
-                    if (startVal && endVal) {
-                        // Wenn das neue Ende VOR dem aktuellen Start liegt
-                        if (endVal < startVal) {
-                            // Ziehe den Start auf das Enddatum zurück
-                            filterStart.value = endVal;
-                        }
+                if (startVal && endVal) {
+                    // Wenn das neue Ende VOR dem aktuellen Start liegt
+                    if (endVal < startVal) {
+                        // Ziehe den Start auf das Enddatum zurück
+                        filterStart.value = endVal;
                     }
-                });
-            }
-        });
+                }
+            });
+        }
+    });
+
     </script>
 <?php } ?>

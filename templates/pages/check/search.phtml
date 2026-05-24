@@ -5,10 +5,12 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/check/search.phtml
+
 /**
  * Page: Manual Code Search
  *
- * Path: templates/pages/check/search.phtml
+ * @var string $appRoot
  */
 ?>
 <!DOCTYPE html>
@@ -16,26 +18,33 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>Genehmigung prüfen</title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <!-- Geändert: Nutzt jetzt direkt $appRoot -->
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <script>
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>',
-            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
-        };
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
+    };
+
     </script>
 </head>
 
 <body class="u-bg-light l-public-body">
     <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
     <div class="c-tab-content-container u-padding-y-xl">
-        <div class="c-card u-margin-auto" style="max-width: 500px;">
+        <div class="c-card u-margin-auto"
+             style="max-width: 500px;">
             <header class="c-card__header u-text-center u-padding-around-l">
-                <h2 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
+                <h2 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                         class="c-icon"
+                         alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
                 <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
             </header>
             <div class="c-card__body u-padding-around-l">
@@ -43,12 +52,20 @@
                     <div class="c-alert c-alert--danger u-margin-bottom-l"><?php echo \htmlspecialchars($error); ?></div>
                 <?php } ?>
 
-                <form action="check.php" method="GET" class="c-form">
+                <form action="check.php"
+                      method="GET"
+                      class="c-form">
                     <div class="c-form-group u-margin-bottom-l">
-                        <input type="text" name="code" class="c-form-input u-text-center u-font-xl"
-                            placeholder="z.B. 6Y5C" required autofocus style="letter-spacing: 5px; font-family: monospace; height: 60px;">
+                        <input type="text"
+                               name="code"
+                               class="c-form-input u-text-center u-font-xl"
+                               placeholder="z.B. 6Y5C"
+                               required
+                               autofocus
+                               style="letter-spacing: 5px; font-family: monospace; height: 60px;">
                     </div>
-                    <button type="submit" class="c-button--primary u-width-100">Code jetzt prüfen</button>
+                    <button type="submit"
+                            class="c-button--primary u-width-100">Code jetzt prüfen</button>
                 </form>
             </div>
             <!--<footer class="u-text-center u-padding-bottom-l">
@@ -56,6 +73,7 @@
             </footer>-->
         </div>
     </div>
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 </body>
 
 </html>

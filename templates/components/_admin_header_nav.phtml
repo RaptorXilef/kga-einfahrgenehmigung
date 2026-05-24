@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/components/_admin_header_nav.phtml
+
 /**
  * Component: Admin Header Navigation
- *
- * Path: templates/components/_admin_header_nav.phtml
  *
  * @var \App\Infrastructure\Auth\AuthService $auth
  */
@@ -17,8 +17,10 @@ $groups     = $auth->loadGroups(); // Wir brauchen die Liste für den Namen
 $groupName  = $groups[$groupId]['name'] ?? $groupId; // Name finden, sonst ID als Fallback
 $groupImage = $auth->getImage('group', $groupId);
 ?>
-<nav style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
-    <div class="c-tab-content-container" style="display: flex; justify-content: space-between; align-items: center;">
+<nav
+     style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+    <div class="c-tab-content-container"
+         style="display: flex; justify-content: space-between; align-items: center;">
 
         <!-- User Info & Group -->
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
@@ -33,7 +35,8 @@ $groupImage = $auth->getImage('group', $groupId);
                 </span>
 
                 <div class="c-group-badge">
-                    <img src="<?php echo $groupImage; ?>" style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover;">
+                    <img src="<?php echo $groupImage; ?>"
+                         style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover;">
                     <span><?php echo \htmlspecialchars($groupName); ?></span>
                 </div>
             </div>

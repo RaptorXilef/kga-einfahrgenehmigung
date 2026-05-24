@@ -8,12 +8,14 @@
 // Path: templates/emails/magic_link.phtml
 
 ?>
-<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+<div
+     style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
     <h2 style="color: #2c3e50;">Ihr Login-Code</h2>
     <p>Hallo,</p>
     <p>nutzen Sie den folgenden Code, um sich einzuloggen:</p>
 
-    <div style="text-align: center; margin: 30px 0; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
+    <div
+         style="text-align: center; margin: 30px 0; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
         <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #3498db;"><?php echo $code; ?></span>
     </div>
 
@@ -23,5 +25,6 @@
     <p style="font-size: 13px; color: #64748b;">Gültig für <?php echo $duration; ?> Minuten.</p>
 
     <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;">
-    <p style="font-size: 12px; color: #999;">Falls Sie diesen Link nicht angefordert haben, können Sie diese E-Mail einfach ignorieren.</p>
+    <p style="font-size: 12px; color: #999;">Falls Sie diesen Link nicht angefordert haben, können Sie diese E-Mail
+        einfach ignorieren.</p>
 </div>

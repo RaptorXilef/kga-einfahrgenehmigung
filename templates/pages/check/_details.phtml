@@ -5,15 +5,16 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/check/_details.phtml
+
 /**
  * Snippet: Permit Details Box
- *
- * Path: templates/pages/check/_details.phtml
  *
  * @var \App\Core\Entity\Permit $permit
  */
 ?>
-<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
+<div
+     style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
     <div class="u-margin-bottom-m">
         <span class="u-text-muted u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px;">Fahrzeug</span><br>
         <strong style="font-size: 1.15rem; color: #1e293b;">
@@ -38,7 +39,8 @@ echo \implode(' / ', $info);
     </div>
 
     <?php if ($permit->status->isSuspended && ! empty($permit->status->suspensionReason)) { ?>
-        <div class="u-border-top u-padding-top-m" style="border-top-color: #fee2e2;">
+        <div class="u-border-top u-padding-top-m"
+             style="border-top-color: #fee2e2;">
             <span class="u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px; color: var(--danger-color);">Sperrgrund</span><br>
             <span style="font-size: 1rem; color: #991b1b; font-weight: 600;">
                 <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>

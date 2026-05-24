@@ -31,6 +31,7 @@ $userImage = $auth->getImage('user', $userId);
 <head>
     <meta charset="UTF-8">
     <title>Mein Profil - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
@@ -45,9 +46,12 @@ $userImage = $auth->getImage('user', $userId);
             <header class="u-flex u-justify-between u-align-end u-margin-bottom-l">
                 <div>
                     <h1 class="u-margin-none"
-                        style="text-align: left;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                        style="text-align: left;">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
                              class="c-icon"
-                             alt=""> Mein Profil</h1>
+                             alt="">
+                        Mein Profil
+                    </h1>
                     <p class="u-text-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
                 </div>
                 <a href="admin.php" class="c-tabs__btn">← Zum Dashboard</a>
@@ -101,11 +105,15 @@ $userImage = $auth->getImage('user', $userId);
                                 Zugehörigkeit
                             </small>
                             <div class="u-margin-top-xs">
-                                <span class="c-badge" style="background: var(--primary-soft); color: var(--primary-color); font-size: 0.8rem; padding: 5px 15px;">
+                                <span class="c-badge"
+                                      style="background: var(--primary-soft); color: var(--primary-color); font-size: 0.8rem; padding: 5px 15px;">
                                     <?php echo \strtoupper(\htmlspecialchars($group)); ?>
                                 </span>
                             </div>
-                            <code class="u-text-muted" style="font-size: 0.65rem; display: block; margin-top: 10px;">ID: <?php echo $userId; ?></code>
+                            <code class="u-text-muted"
+                                  style="font-size: 0.65rem; display: block; margin-top: 10px;">
+                                ID: <?php echo $userId; ?>
+                            </code>
                         </div>
                     </section>
                 </aside>
@@ -133,7 +141,9 @@ $userImage = $auth->getImage('user', $userId);
                                 <div class="u-flex u-align-end">
                                     <button type="submit"
                                             class="c-button--primary"
-                                            style="height: 46px;">Speichern</button>
+                                            style="height: 46px;">
+                                        Speichern
+                                    </button>
                                 </div>
                             </form>
                         </div>

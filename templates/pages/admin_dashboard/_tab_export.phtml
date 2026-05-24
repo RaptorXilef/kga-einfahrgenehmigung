@@ -15,32 +15,36 @@
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
-<div class="c-tab-content-container">
-    <section class="c-card">
-        <header class="c-card__header u-text-center">
-            <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-export.webp" class="c-icon" alt=""><!-- 📤 --> Daten-Export</h3>
-            <p class="u-text-muted">Laden Sie die Finanz-Daten für den oben eingestellten Zeitraum herunter.</p>
-        </header>
+    <div class="c-tab-content-container">
+        <section class="c-card">
+            <header class="c-card__header u-text-center">
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-export.webp"
+                         class="c-icon"
+                         alt=""><!-- 📤 --> Daten-Export</h3>
+                <p class="u-text-muted">Laden Sie die Finanz-Daten für den oben eingestellten Zeitraum herunter.</p>
+            </header>
 
-        <div class="c-card__body">
-            <!-- Modernes Action-Grid für Export -->
-            <div class="c-action-grid">
+            <div class="c-card__body">
+                <!-- Modernes Action-Grid für Export -->
+                <div class="c-action-grid">
 
-                <!-- CSV Export Card -->
-                <?php if ($auth->hasPermission('dashboard.export.csv') && $auth->hasPermission('finance.export.execute')) { ?>
-                <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    <!-- CSV Export Card -->
+                    <?php if ($auth->hasPermission('dashboard.export.csv') && $auth->hasPermission('finance.export.execute')) { ?>
+                        <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                     class="c-action-card c-action-card--csv">
-                    <div class="c-action-card__icon"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""><!-- 📊 --></div>
+                    <div class="c-action-card__icon">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""><!-- 📊 -->
+                    </div>
                     <div>
                         <span class="c-action-card__title">Excel / CSV</span>
                         <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Berichte.</span>
                     </div>
                 </a>
-                <?php } ?>
+                    <?php } ?>
 
-                <!-- JSON Export Card -->
-                <?php if ($auth->hasPermission('dashboard.export.json') && $auth->hasPermission('finance.export.execute')) { ?>
-                <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    <!-- JSON Export Card -->
+                    <?php if ($auth->hasPermission('dashboard.export.json') && $auth->hasPermission('finance.export.execute')) { ?>
+                        <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                     class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>
                     <div>
@@ -48,18 +52,19 @@
                         <span class="c-action-card__desc">Für technischen Datenimport und Backups.</span>
                     </div>
                 </a>
-                <?php } ?>
+                    <?php } ?>
 
-            </div>
+                </div>
 
-            <!-- Zeitraum-Info-Box -->
-            <div class="u-margin-top-l u-padding-around-s u-text-center" style="background: #f8fafc; border-radius: 8px; border: 1px dashed var(--border-color);">
-                <span class="u-text-muted">Gefilterter Zeitraum:</span><br>
-                <strong style="color: var(--primary-color);">
-                    <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
-                </strong>
+                <!-- Zeitraum-Info-Box -->
+                <div class="u-margin-top-l u-padding-around-s u-text-center"
+                     style="background: #f8fafc; border-radius: 8px; border: 1px dashed var(--border-color);">
+                    <span class="u-text-muted">Gefilterter Zeitraum:</span><br>
+                    <strong style="color: var(--primary-color);">
+                        <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
+                    </strong>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 <?php } ?>

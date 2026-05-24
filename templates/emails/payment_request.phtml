@@ -9,7 +9,8 @@
 
 ?>
 
-<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 30px; border-radius: 10px;">
+<div
+     style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 30px; border-radius: 10px;">
     <h2 style="color: #2c3e50;">Zahlungsinformationen</h2>
     <p>Sehr geehrte(r) <strong>{{name}}</strong>,</p>
     <p>vielen Dank für Ihren Antrag auf eine Ausnahmegenehmigung (Kennung: <code>{{fullIdentifier}}</code>).</p>
@@ -38,11 +39,15 @@
     </table>
 
     <div style="text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-        <p style="font-size: 14px; color: #666;">Scannen Sie diesen Code mit Ihrer Banking-App für eine automatische Überweisung:</p>
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{epcData}}" alt="BezahlCode" style="border: 1px solid #ccc; padding: 5px;">
+        <p style="font-size: 14px; color: #666;">Scannen Sie diesen Code mit Ihrer Banking-App für eine automatische
+            Überweisung:</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{epcData}}"
+             alt="BezahlCode"
+             style="border: 1px solid #ccc; padding: 5px;">
     </div>
 
     <p style="font-size: 13px; color: #7f8c8d; margin-top: 30px;">
-        <em>Hinweis: Ihre Genehmigung wurde Ihnen bereits in einer separaten E-Mail zugestellt. <!--und ist ab sofort gültig.--> Bitte begleichen Sie die Gebühr zeitnah.</em>
+        <em>Hinweis: Ihre Genehmigung wurde Ihnen bereits in einer separaten E-Mail zugestellt.
+            <!--und ist ab sofort gültig.--> Bitte begleichen Sie die Gebühr zeitnah.</em>
     </p>
 </div>

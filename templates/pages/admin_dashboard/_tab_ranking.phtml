@@ -18,11 +18,15 @@ $plots = $periodStats['plots'] ?? [];
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp" class="c-icon" alt=""> Parzellen-Ranking (Top 30)</h3>
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp"
+                         class="c-icon"
+                         alt=""> Parzellen-Ranking (Top 30)</h3>
                 <p class="u-text-muted">Auswertung basierend auf dem gewählten Zeitraum.</p>
             </header>
-            <div class="c-card__body u-padding-none" style="overflow-x: auto;">
-                <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 900px;">
+            <div class="c-card__body u-padding-none"
+                 style="overflow-x: auto;">
+                <table class="c-table"
+                       style="table-layout: fixed; width: 100%; min-width: 900px;">
                     <thead>
                         <tr style="background: #f8fafc;">
                             <th style="width: 70px; text-align: center;">Rang</th>
@@ -41,7 +45,9 @@ $plots = $periodStats['plots'] ?? [];
                     <tbody>
                         <?php if (empty($plots)) { ?>
                             <tr>
-                                <td colspan="7" class="u-text-center u-padding-around-l u-text-muted">Keine Daten im Zeitraum gefunden.</td>
+                                <td colspan="7"
+                                    class="u-text-center u-padding-around-l u-text-muted">Keine Daten im Zeitraum
+                                    gefunden.</td>
                             </tr>
                             <?php } else {
                                 $rank      = 1;
@@ -55,8 +61,12 @@ $plots = $periodStats['plots'] ?? [];
                                     <!-- RANG -->
                                     <td style="text-align: center; vertical-align: middle;">
                                         <?php if ($rank <= 3) { ?>
-                                            <div style="font-size: 1.2rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_trophy.webp" class="c-icon" alt=""><!-- 🏆 --></div>
-                                            <div style="font-size: 0.7rem; font-weight: 800; margin-top: -5px;"><?php echo $rank++; ?></div>
+                                            <div style="font-size: 1.2rem;"><img
+                                                     src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_trophy.webp"
+                                                     class="c-icon"
+                                                     alt=""><!-- 🏆 --></div>
+                                            <div style="font-size: 0.7rem; font-weight: 800; margin-top: -5px;"><?php echo $rank++; ?>
+                                            </div>
                                         <?php } else { ?>
                                             <span style="color: var(--text-muted); font-weight: 800;">#<?php echo $rank++; ?></span>
                                         <?php } ?>
@@ -68,7 +78,8 @@ $plots = $periodStats['plots'] ?? [];
                                     </td>
 
                                     <!-- PÄCHTER NAME -->
-                                    <td style="text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <td
+                                        style="text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         <span style="font-weight: 600;"><?php echo \htmlspecialchars($data['name'] ?: 'Unbekannt'); ?></span>
                                     </td>
 
@@ -97,8 +108,11 @@ $plots = $periodStats['plots'] ?? [];
 
                                     <!-- INTENSITÄT -->
                                     <td style="text-align: left; vertical-align: middle;">
-                                        <div style="background: #f1f5f9; height: 8px; border-radius: 10px; width: 100%; overflow: hidden; border: 1px solid #e2e8f0;">
-                                            <div style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; transition: width 0.6s ease-in-out;"></div>
+                                        <div
+                                             style="background: #f1f5f9; height: 8px; border-radius: 10px; width: 100%; overflow: hidden; border: 1px solid #e2e8f0;">
+                                            <div
+                                                 style="background: var(--primary-color); width: <?php echo $perc; ?>%; height: 100%; transition: width 0.6s ease-in-out;">
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

@@ -39,9 +39,9 @@ $vereinsName = $settings['vereins_name'] ?? 'KGA';
 $logoFile = null;
 foreach (['webp', 'png', 'jpg'] as $ext) {
     // Sicherere Pfadprüfung für Logo
-    $localPath = __DIR__ . \DIRECTORY_SEPARATOR . 'assets' . \DIRECTORY_SEPARATOR . 'img' . \DIRECTORY_SEPARATOR . "kga_logo.$ext";
+    $localPath = __DIR__ . \DIRECTORY_SEPARATOR . 'assets' . \DIRECTORY_SEPARATOR . 'img' . \DIRECTORY_SEPARATOR . 'logo' . \DIRECTORY_SEPARATOR . "kga.$ext";
     if (\file_exists($localPath)) {
-        $logoFile = "assets/img/kga_logo.$ext";
+        $logoFile = "assets/img/logo/kga.$ext";
 
         break;
     }

@@ -5,9 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/check/admin.phtml
+
 /**
  * Page: Admin Detailed Check
- * Path: templates/pages/check/admin.phtml
  *
  * @var \App\Core\Entity\Permit $permit
  * @var bool                    $isDateValid
@@ -35,14 +36,17 @@ if ($permit) {
 <head>
     <meta charset="UTF-8">
     <title>Vorstands-Prüfung - <?php echo $permit->code; ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 
     <script>
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>',
-            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
-        };
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
+    };
+
     </script>
 </head>
 
@@ -53,11 +57,13 @@ if ($permit) {
     <main class="c-tab-content-container u-padding-y-l">
 
         <!-- GROSSER STATUS-BANNER (Synchron zur öffentlichen Ansicht) -->
-        <div class="c-card u-margin-bottom-l u-text-center u-padding-around-l" style="border-top: none;">
+        <div class="c-card u-margin-bottom-l u-text-center u-padding-around-l"
+             style="border-top: none;">
             <?php if ($permit->status->isSuspended) { ?>
                 <div style="color: var(--danger-color);">
                     <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""></span>
-                    <h2 style="color: var(--danger-color); margin-top: 10px; margin-bottom: 5px;">ZUTRITT VERWEIGERT</h2>
+                    <h2 style="color: var(--danger-color); margin-top: 10px; margin-bottom: 5px;">ZUTRITT VERWEIGERT
+                    </h2>
                     <p class="u-font-bold u-margin-none">Diese Genehmigung ist gesperrt/wiederrufen.</p>
                 </div>
             <?php } elseif ($isDateValid && $isTimeAllowed) { ?>
@@ -88,7 +94,8 @@ if ($permit) {
 
         <header class="u-flex u-justify-between u-align-center u-margin-bottom-l">
             <div>
-                <h1 class="u-margin-none" style="text-align: left;">Detailprüfung (Vorstand)</h1>
+                <h1 class="u-margin-none"
+                    style="text-align: left;">Detailprüfung (Vorstand)</h1>
                 <p class="u-text-muted">Interne Daten für Code: <code><?php echo $permit->code; ?></code></p>
             </div>
             <div class="u-flex u-gap-s">
@@ -115,13 +122,15 @@ if ($permit) {
                 <table class="c-table">
                     <?php if ($permit->status->isSuspended && ! empty($permit->status->suspensionReason)) { ?>
                         <tr style="background: #fff1f2;">
-                            <td class="u-font-bold" style="color: var(--danger-color);">Sperrgrund</td>
+                            <td class="u-font-bold"
+                                style="color: var(--danger-color);">Sperrgrund</td>
                             <td style="color: var(--danger-color);"><strong><?php echo \htmlspecialchars($permit->status->suspensionReason); ?></strong></td>
                         </tr>
                     <?php } ?>
 
                     <tr>
-                        <td class="u-font-bold" style="width: 35%;">Pächter Name</td>
+                        <td class="u-font-bold"
+                            style="width: 35%;">Pächter Name</td>
                         <td><?php echo \htmlspecialchars($permit->owner->name); ?></td>
                     </tr>
                     <tr>
@@ -172,11 +181,20 @@ if ($permit) {
             <!-- WIEDERHERGESTELLT: MANUELLE FREISCHALTUNG -->
             <?php if ($auth->hasPermission('dashboard.finance.mark_paid')) { ?>
                 <?php if ($permit->status->current !== 'bezahlt') { ?>
-                    <footer class="u-padding-around-m u-border-top" style="background: rgba(255,255,255,0.5);">
-                        <form action="admin.php" method="POST" class="u-flex u-justify-center">
-                            <input type="hidden" name="action" value="mark_as_paid">
-                            <input type="hidden" name="code" value="<?php echo $permit->code; ?>">
-                            <button type="submit" class="c-button--primary" style="background: var(--success-color); width: 100%; max-width: 400px; border-radius: 10px;">
+                    <footer class="u-padding-around-m u-border-top"
+                            style="background: rgba(255,255,255,0.5);">
+                        <form action="admin.php"
+                              method="POST"
+                              class="u-flex u-justify-center">
+                            <input type="hidden"
+                                   name="action"
+                                   value="mark_as_paid">
+                            <input type="hidden"
+                                   name="code"
+                                   value="<?php echo $permit->code; ?>">
+                            <button type="submit"
+                                    class="c-button--primary"
+                                    style="background: var(--success-color); width: 100%; max-width: 400px; border-radius: 10px;">
                                 ✔ Zahlung erhalten & freischalten
                             </button>
                         </form>
@@ -185,6 +203,7 @@ if ($permit) {
             <?php } ?>
         </section>
     </main>
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 </body>
 
 </html>

@@ -12,6 +12,8 @@
  *
  * @var string $message
  * @var array  $settings
+ *             $isSuccess
+ * @var string $appRoot
  */
 ?>
 <!DOCTYPE html>
@@ -19,27 +21,36 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>Verlauf - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <script>
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>',
-            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
-        };
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
+    };
+
     </script>
 </head>
 
 <body class="u-bg-light l-public-body">
     <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
     <div class="c-tab-content-container u-padding-y-xl">
-        <div class="c-card u-margin-auto" style="max-width: 450px; border-top: 5px solid var(--primary-color);">
+        <div class="c-card u-margin-auto"
+             style="max-width: 450px; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-text-center u-padding-around-l">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width: 48px; height: 48px;" alt="">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                     class="c-icon"
+                     style="width: 48px; height: 48px;"
+                     alt="">
                 <h2 class="u-margin-none">Meine Genehmigungen</h2>
-                <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, mit der Sie bereits eine Genemigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
+                <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, mit der Sie bereits eine
+                    Genemigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
             </header>
 
             <div class="c-card__body u-padding-around-l">
@@ -51,9 +62,13 @@
                         <!-- u-justify-center hinzugefügt, um Inhalt horizontal zu zentrieren -->
                         <div class="u-flex u-align-center u-justify-center u-gap-s">
                             <?php if ($isSuccess) { ?>
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt="">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                                     class="c-icon"
+                                     alt="">
                             <?php } else { ?>
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-information.webp" class="c-icon" alt="">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-information.webp"
+                                     class="c-icon"
+                                     alt="">
                             <?php } ?>
                             <span><?php echo \htmlspecialchars($message); ?></span>
                         </div>
@@ -62,13 +77,24 @@
 
                 <?php if ($step === 1) { ?>
                     <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
-                    <form method="POST" class="c-form">
+                    <form method="POST"
+                          class="c-form">
                         <div class="c-form-group">
                             <label class="c-form-label">E-Mail-Adresse</label>
-                            <input type="email" name="email" class="c-form-input" placeholder="ihre@mail.de" required autofocus>
+                            <input type="email"
+                                   name="email"
+                                   class="c-form-input"
+                                   placeholder="ihre@mail.de"
+                                   required
+                                   autofocus>
                         </div>
-                        <button type="submit" name="request_link" class="c-button--primary u-width-100 u-margin-top-m" style="padding: 14px;">
-                            Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp" class="c-icon" alt=""><!-- ✉️ -->
+                        <button type="submit"
+                                name="request_link"
+                                class="c-button--primary u-width-100 u-margin-top-m"
+                                style="padding: 14px;">
+                            Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                                 class="c-icon"
+                                 alt=""><!-- ✉️ -->
                         </button>
 
                         <!-- NEU: DIESER BLOCK -->
@@ -80,14 +106,22 @@
                     </form>
                 <?php } else { ?>
                     <!-- SCHRITT 2: Code eingeben (Wird nach Schritt 1 eingeblendet) -->
-                    <form method="POST" class="c-form u-text-center">
+                    <form method="POST"
+                          class="c-form u-text-center">
                         <div class="c-form-group">
                             <label class="c-form-label u-justify-center">6-stelligen Login-Code eingeben</label>
-                            <input type="text" name="login_code" class="c-form-input u-text-center u-font-xl"
-                                placeholder="______" required autofocus maxlength="6"
-                                style="letter-spacing: 8px; font-family: monospace; height: 60px; text-transform: uppercase;">
+                            <input type="text"
+                                   name="login_code"
+                                   class="c-form-input u-text-center u-font-xl"
+                                   placeholder="______"
+                                   required
+                                   autofocus
+                                   maxlength="6"
+                                   style="letter-spacing: 8px; font-family: monospace; height: 60px; text-transform: uppercase;">
                         </div>
-                        <button type="submit" name="submit_code" class="c-button--primary u-width-100 u-margin-top-m">
+                        <button type="submit"
+                                name="submit_code"
+                                class="c-button--primary u-width-100 u-margin-top-m">
                             Einloggen 🔓
                         </button>
                         <div class="u-margin-top-m">
@@ -102,6 +136,7 @@
             </footer>-->
         </div>
     </div>
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 </body>
 
 </html>

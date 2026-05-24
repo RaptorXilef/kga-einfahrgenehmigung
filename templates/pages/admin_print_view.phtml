@@ -7,6 +7,9 @@
 
 // Path: templates/pages/admin_print_view.phtml
 
+/**
+ * @var string $appRoot
+ */
 ?>
 
 <!DOCTYPE html>
@@ -15,37 +18,41 @@
 <head>
     <meta charset="UTF-8">
     <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
 
     <script>
-        window.KGA_CONFIG = {
-            baseUrl: '<?php echo $settings['base_url']; ?>',
-            csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
-        };
+    window.KGA_CONFIG = {
+        baseUrl: '<?php echo $settings['base_url']; ?>',
+        csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
+    };
+
     </script>
     <style>
-        @media print {
-            .u-no-print {
-                display: none !important;
-            }
-
-            body {
-                background: white;
-                padding: 0;
-            }
+    @media print {
+        .u-no-print {
+            display: none !important;
         }
 
-        .print-toolbar {
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        body {
+            background: white;
+            padding: 0;
         }
+    }
+
+    .print-toolbar {
+        background: #2c3e50;
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
     </style>
 </head>
 
@@ -53,7 +60,8 @@
     <div class="print-toolbar u-no-print">
         <a href="admin.php" class="c-button c-button--secondary">← Zurück zum Dashboard</a>
         <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
-        <button onclick="window.print()" class="c-button c-button--primary">Dokument jetzt drucken</button>
+        <button onclick="window.print()"
+                class="c-button c-button--primary">Dokument jetzt drucken</button>
     </div>
 
     <?php
@@ -84,6 +92,7 @@ $data = [
 
 // Das Sub-Template einbinden
 include $appRoot . '/templates/emails/permit_a4_document.phtml';
+include $appRoot . '/templates/components/_footer.phtml';
 ?>
 </body>
 

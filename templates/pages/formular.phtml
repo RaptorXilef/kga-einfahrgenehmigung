@@ -5,10 +5,10 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/pages/formular.phtml
+
 /**
  * Page: Public Permit Application
- *
- * Path: templates/pages/formular.phtml
  *
  * @var \App\Infrastructure\Config\Config $config
  * @var string                            $appRoot
@@ -34,8 +34,8 @@ $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) 
 // Suche nach dem Logo mit verschiedenen Endungen
 $logoFile = null;
 foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
-    if (\file_exists("assets/img/kga_logo.$ext")) {
-        $logoFile = "assets/img/kga_logo.$ext";
+    if (\file_exists("assets/img/logo/kga.$ext")) {
+        $logoFile = "assets/img/logo/kga.$ext";
 
         break;
     }
@@ -49,6 +49,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
     <title>Antrag - <?php echo \htmlspecialchars($config->get('vereins_name')); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
@@ -57,7 +58,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     // Zentrale Frontend-Konfiguration (Die Brücke)
     window.KGA_CONFIG = {
         baseUrl: '<?php echo $settings['base_url']; ?>',
-        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend?>,
+        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
+?>,
         csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
 
@@ -182,15 +184,21 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         <div class="c-card u-margin-auto"
              style="max-width: 750px; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-text-center u-padding-around-l">
+                <div class="u-margin-bottom-m u-flex u-justify-center">
+                    <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
+                         alt="KGA Einfahrts-Manager Logo"
+                         style="max-width: 280px; max-height: 220px; object-fit: contain;">
+                </div>
+                <!-- u-text-center für Überschrift und Text -->
+                <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
                 <?php if ($logoFile) { ?>
                     <div class="u-margin-bottom-m u-flex u-justify-center">
                         <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
-                             alt="Logo"
-                             style="max-width: 280px; max-height: 120px; object-fit: contain;">
+                             alt="KGA Logo"
+                             style="max-width: 120px; max-height: 120px; object-fit: contain;">
+
                     </div>
                 <?php } ?>
-                <!-- u-text-center für Überschrift und Text -->
-                <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
                 <p class="u-text-muted u-margin-top-s"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
             </header>
 
@@ -271,14 +279,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         <div class="c-voucher-alert">
                             <span style="font-size: 1.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></span>
                             <div>
-                                <strong>Gutschein aktiv: <?php echo $prefill['code']; ?></strong><br>
+                                <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
                                 <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
                             </div>
                         </div>
                     <?php } else { ?>
                         <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                         <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
-                            <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Gutscheincode? Dann hier klicken.</span>
+                            <span class="c-voucher-toggle" onclick="toggleVoucher()"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --> Sie haben einen Aktivierungscode? Dann hier klicken.</span>
                         </div>
 
                         <div id="voucher-container"
@@ -496,7 +504,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 <a href="verify.php" class="u-text-small u-text-link" style="font-weight: 600;">
                                     Ich habe bereits einen Bestätigungs-Code erhalten
                                 </a>
-                            </div>
+                            </div><br>
                         <?php } ?>
                     </form>
                 <?php } ?>
@@ -512,6 +520,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             </footer>-->
         </div>
     </div>
+
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 
     <script>
     const templates = <?php echo \json_encode($tplMetadata); ?>;

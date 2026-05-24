@@ -66,8 +66,13 @@ if (isset($settings['base_url']) && \is_string($settings['base_url'])) {
 $openingText = 'Siehe Aushang';
 if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     $daysMap = [
-        'mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi',
-        'thu' => 'Do', 'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So',
+        'mon' => 'Mo',
+        'tue' => 'Di',
+        'wed' => 'Mi',
+        'thu' => 'Do',
+        'fri' => 'Fr',
+        'sat' => 'Sa',
+        'sun' => 'So',
     ];
     $formattedDays = [];
     foreach ($daysMap as $k => $label) {
@@ -84,98 +89,226 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
 
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <style>
-        @media print {
-            body { background: white; margin: 0; padding: 0; }
-            .no-print { display: none; }
-            .page-container { border: none !important; box-shadow: none !important; margin: 0 !important; width: 100% !important; }
+    @media print {
+        body {
+            background: white;
+            margin: 0;
+            padding: 0;
         }
-        body { font-family: Arial, sans-serif; color: #000; line-height: 1.4; padding: 20px; background: #f0f0f0; }
+
+        .no-print {
+            display: none;
+        }
+
         .page-container {
-            background: white; width: 210mm; min-height: 297mm; margin: auto;
-            padding: 20mm; box-sizing: border-box; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            width: 100% !important;
         }
+    }
 
-        /* Neuer Header mit integriertem QR-Code Layout */
-        .header-box {
-            background-color: <?php echo $headerColor; ?>;
-            padding: 20px;
-            border: 3px solid #000;
-            margin-bottom: 30px;
-            display: table;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .header-left {
-            display: table-cell;
-            vertical-align: middle;
-            text-align: left;
-        }
-        .header-right {
-            display: table-cell;
-            vertical-align: middle;
-            text-align: right;
-            width: 130px;
-        }
-        .title { font-size: 22pt; font-weight: bold; margin: 0; letter-spacing: 0.5px; }
-        .subtitle { margin: 5px 0 0 0; font-size: 12pt; font-weight: bold; }
+    body {
+        font-family: Arial, sans-serif;
+        color: #000;
+        line-height: 1.4;
+        padding: 20px;
+        background: #f0f0f0;
+    }
 
-        .full-code {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 16pt;
-            margin-top: 12px;
-            font-weight: bold;
-            background: rgba(255,255,255,0.75);
-            display: inline-block;
-            padding: 4px 12px;
-            border: 1px solid #000;
-        }
+    .page-container {
+        background: white;
+        width: 210mm;
+        min-height: 297mm;
+        margin: auto;
+        padding: 20mm;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-        .quarter-box { margin-top: 10px; display: flex; gap: 8px; font-weight: bold; }
-        .quarter { border: 2px solid #000; padding: 2px 8px; background: #fff; font-size: 10pt; }
-        .quarter--active { background: #000; color: #fff; }
+    /* Neuer Header mit integriertem QR-Code Layout */
+    .header-box {
+        background-color: <?php echo $headerColor; ?>;
+        padding: 20px;
+        border: 3px solid #000;
+        margin-bottom: 30px;
+        display: table;
+        width: 100%;
+        box-sizing: border-box;
+    }
 
-        /* QR-Code als integriertes Siegel im Header */
-        .header-qr {
-            background: #fff;
-            padding: 6px;
-            border: 2px solid #000;
-            display: inline-block;
-            text-align: center;
-            line-height: 1;
-        }
-        .header-qr img {
-            display: block;
-        }
-        .header-qr-text {
-            font-size: 7pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            display: block;
-            margin-top: 4px;
-        }
+    .header-left {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: left;
+    }
 
-        .data-section { margin-bottom: 25px; }
-        .data-table { width: 100%; border-collapse: collapse; font-size: 14pt; }
-        .data-table td { padding: 12px 5px; border-bottom: 1px solid #eee; }
-        .label { color: #555; width: 35%; }
-        .value { font-weight: bold; }
+    .header-right {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: right;
+        width: 130px;
+    }
 
-        .parking-note { background: #fff3cd; border: 2px solid #ffeeba; padding: 10px; margin-bottom: 20px; font-weight: bold; color: #856404; text-align: center; font-size: 13pt; }
-        .info-notice-box { background: #e8f4fd; border: 1px solid #b3d7ff; padding: 15px; margin-bottom: 25px; border-radius: 4px; font-size: 11pt; }
+    .title {
+        font-size: 22pt;
+        font-weight: bold;
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
 
-        .conditions { font-size: 10.5pt; border-top: 2px solid #000; padding-top: 15px; margin-top: 20px; }
-        .conditions h4 { margin: 0 0 10px 0; text-transform: uppercase; }
-        .conditions ul { padding-left: 20px; margin: 0; }
-        .conditions li { margin-bottom: 5px; }
+    .subtitle {
+        margin: 5px 0 0 0;
+        font-size: 12pt;
+        font-weight: bold;
+    }
 
-        .route-box { background: #e8f5e9; border: 1px solid #2e7d32; padding: 15px; margin-top: 15px; color: #1b5e20; }
-        .footer-info { margin-top: 30px; text-align: center; font-size: 9pt; color: #666; border-top: 1px solid #ccc; padding-top: 10px; }
-        .clear { clear: both; }
+    .full-code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 16pt;
+        margin-top: 12px;
+        font-weight: bold;
+        background: rgba(255, 255, 255, 0.75);
+        display: inline-block;
+        padding: 4px 12px;
+        border: 1px solid #000;
+    }
+
+    .quarter-box {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        font-weight: bold;
+    }
+
+    .quarter {
+        border: 2px solid #000;
+        padding: 2px 8px;
+        background: #fff;
+        font-size: 10pt;
+    }
+
+    .quarter--active {
+        background: #000;
+        color: #fff;
+    }
+
+    /* QR-Code als integriertes Siegel im Header */
+    .header-qr {
+        background: #fff;
+        padding: 6px;
+        border: 2px solid #000;
+        display: inline-block;
+        text-align: center;
+        line-height: 1;
+    }
+
+    .header-qr img {
+        display: block;
+    }
+
+    .header-qr-text {
+        font-size: 7pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .data-section {
+        margin-bottom: 25px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14pt;
+    }
+
+    .data-table td {
+        padding: 12px 5px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .label {
+        color: #555;
+        width: 35%;
+    }
+
+    .value {
+        font-weight: bold;
+    }
+
+    .parking-note {
+        background: #fff3cd;
+        border: 2px solid #ffeeba;
+        padding: 10px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        color: #856404;
+        text-align: center;
+        font-size: 13pt;
+    }
+
+    .info-notice-box {
+        background: #e8f4fd;
+        border: 1px solid #b3d7ff;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 4px;
+        font-size: 11pt;
+    }
+
+    .conditions {
+        font-size: 10.5pt;
+        border-top: 2px solid #000;
+        padding-top: 15px;
+        margin-top: 20px;
+    }
+
+    .conditions h4 {
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .conditions ul {
+        padding-left: 20px;
+        margin: 0;
+    }
+
+    .conditions li {
+        margin-bottom: 5px;
+    }
+
+    .route-box {
+        background: #e8f5e9;
+        border: 1px solid #2e7d32;
+        padding: 15px;
+        margin-top: 15px;
+        color: #1b5e20;
+    }
+
+    .footer-info {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+    }
+
+    .clear {
+        clear: both;
+    }
+
     </style>
 </head>
+
 <body>
     <div class="page-container">
 
@@ -200,7 +333,8 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
 
             <div class="header-right">
                 <div class="header-qr">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=<?php echo $checkUrl; ?>" alt="Prüf-Code">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=<?php echo $checkUrl; ?>"
+                         alt="Prüf-Code">
                     <span class="header-qr-text">Scan zur Prüfung</span>
                 </div>
             </div>
@@ -218,14 +352,32 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         <!-- REINE DATEN-SECTION OHNE QR-CODE-REPEATS ODER DOPPELTE SMARTCODES -->
         <div class="data-section">
             <table class="data-table">
-                <tr><td class="label">Gültig von:</td><td class="value"><?php echo $von_formatted; ?></td></tr>
-                <tr><td class="label">Gültig bis:</td><td class="value"><?php echo $bis_formatted; ?></td></tr>
-                <tr><td class="label">Amtl. Kennzeichen:</td><td class="value"><?php echo \htmlspecialchars($kennzeichen); ?></td></tr>
+                <tr>
+                    <td class="label">Gültig von:</td>
+                    <td class="value"><?php echo $von_formatted; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Gültig bis:</td>
+                    <td class="value"><?php echo $bis_formatted; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Amtl. Kennzeichen:</td>
+                    <td class="value"><?php echo \htmlspecialchars($kennzeichen); ?></td>
+                </tr>
                 <?php if (! empty($firma)) { ?>
-                    <tr><td class="label">Firma / Lieferant:</td><td class="value"><?php echo \htmlspecialchars($firma); ?></td></tr>
+                    <tr>
+                        <td class="label">Firma / Lieferant:</td>
+                        <td class="value"><?php echo \htmlspecialchars($firma); ?></td>
+                    </tr>
                 <?php } ?>
-                <tr><td class="label">Parzelle Nr.:</td><td class="value"><?php echo \htmlspecialchars($parzelle); ?></td></tr>
-                <tr><td class="label">Zweck der Einfahrt:</td><td class="value"><?php echo \htmlspecialchars($zweck); ?></td></tr>
+                <tr>
+                    <td class="label">Parzelle Nr.:</td>
+                    <td class="value"><?php echo \htmlspecialchars($parzelle); ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Zweck der Einfahrt:</td>
+                    <td class="value"><?php echo \htmlspecialchars($zweck); ?></td>
+                </tr>
             </table>
         </div>
 
@@ -238,7 +390,8 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         <?php } ?>
 
         <!-- FORMULIERTER HINWEIS AUF DIE HISTORY.PHP URL -->
-        <div style="margin: 20px 0; background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; text-align: center; font-size: 11pt;">
+        <div
+             style="margin: 20px 0; background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; text-align: center; font-size: 11pt;">
             🖨️ <strong>Tipp:</strong> Sie können dieses Dokument jederzeit erneut herunterladen oder drucken unter:<br>
             <a href="<?php echo \htmlspecialchars($baseUrl); ?>history.php" style="color: var(--primary-color); font-weight: bold; text-decoration: none; display: inline-block; margin-top: 5px;">
                 <?php echo \htmlspecialchars($baseUrl); ?>history.php
@@ -248,12 +401,16 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         <div class="conditions">
             <h4>Bedingungen & Sicherheitshinweise:</h4>
             <ul>
-                <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im Fahrzeug (Windschutzscheibe) auszulegen.</li>
+                <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im
+                    Fahrzeug (Windschutzscheibe) auszulegen.</li>
                 <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo ! $isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten sowie an Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
-                <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10 km/h</strong>).</li>
+                <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10
+                        km/h</strong>).</li>
                 <li><strong>Parken:</strong> <?php echo $isPermanent ? 'Berechtigt zum Parken auf ausgewiesenen Flächen / Vereinshaus.' : 'Berechtigt zum Be- und Entladen, jedoch <strong>nicht zum Parken</strong>.'; ?></li>
-                <li><strong>Nutzungskreis:</strong> Die Genehmigung gilt ausdrücklich auch für Liefer- und Baufahrzeuge.</li>
-                <li><strong>Entzug:</strong> Bei Nichteinhaltung der Gartenordnung wird die Genehmigung sofort entzogen.</li>
+                <li><strong>Nutzungskreis:</strong> Die Genehmigung gilt ausdrücklich auch für Liefer- und Baufahrzeuge.
+                </li>
+                <li><strong>Entzug:</strong> Bei Nichteinhaltung der Gartenordnung wird die Genehmigung sofort entzogen.
+                </li>
             </ul>
 
             <div class="route-box">
@@ -267,7 +424,8 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
             </div>
 
             <p style="margin-top: 15px; font-size: 10pt;">
-                <strong>Torschlüssel:</strong> Kann gegen Kaution im Vereinshaus geliehen werden (offizielle Sprechstunden).
+                <strong>Torschlüssel:</strong> Kann gegen Kaution im Vereinshaus geliehen werden (offizielle
+                Sprechstunden).
                 Termine unter: <a href="<?php echo $terminkalenderUrl; ?>"><?php echo $terminkalenderUrl; ?></a>.
             </p>
         </div>
@@ -278,4 +436,5 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         </div>
     </div>
 </body>
+
 </html>

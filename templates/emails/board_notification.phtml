@@ -18,18 +18,49 @@
     <p>es wurde ein neuer Antrag gestellt. Hier sind die Details im Überblick:</p>
 
     <table style="width: 100%; border-collapse: collapse; background: #f9f9f9;">
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Eindeutige Kennung:</td><td style="padding: 8px; border: 1px solid #ddd;">{{fullIdentifier}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Name:</td><td style="padding: 8px; border: 1px solid #ddd;">{{name}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">E-Mail:</td><td style="padding: 8px; border: 1px solid #ddd;">{{email}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Parzelle:</td><td style="padding: 8px; border: 1px solid #ddd;">{{parzelle}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Fahrzeug-Typ:</td><td style="padding: 8px; border: 1px solid #ddd;">{{typLabel}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Kennzeichen:</td><td style="padding: 8px; border: 1px solid #ddd;">{{kennzeichen}}</td></tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Eindeutige Kennung:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{fullIdentifier}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Name:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{name}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">E-Mail:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{email}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Parzelle:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{parzelle}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Fahrzeug-Typ:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{typLabel}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Kennzeichen:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{kennzeichen}}</td>
+        </tr>
         <?php if (! empty($firma)) { ?>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Firma/Lieferant:</td><td style="padding: 8px; border: 1px solid #ddd;">{{firma}}</td></tr>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Firma/Lieferant:</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">{{firma}}</td>
+            </tr>
         <?php } ?>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zeitraum:</td><td style="padding: 8px; border: 1px solid #ddd;">{{von_formatted}} bis {{bis_formatted}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zweck:</td><td style="padding: 8px; border: 1px solid #ddd;">{{zweck}}</td></tr>
-        <tr><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;">Zu zahlender Betrag:</td><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;">{{preis}}</td></tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zeitraum:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{von_formatted}} bis {{bis_formatted}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zweck:</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">{{zweck}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;">Zu zahlender Betrag:
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;">{{preis}}</td>
+        </tr>
     </table>
 
     <p style="margin-top: 25px;">

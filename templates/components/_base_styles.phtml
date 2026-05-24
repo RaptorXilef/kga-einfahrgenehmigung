@@ -5,286 +5,298 @@
 // Usage without explicit permission is strictly prohibited.
 // See LICENSE.md for full license details.
 
+// Path: templates/components/_base_styles.phtml
+
 /**
  * Partial: Base Styles
- *
- * Path: templates/components/_base_styles.phtml
  */
 ?>
 <style>
-    :root {
-        --primary-color: #3498db;
-        --primary-soft: rgba(52, 152, 219, 0.1);
-        --bg-light: #f8fafc;
-        --text-main: #334155;
-        --text-muted: #64748b;
-        --border-color: #e2e8f0;
-        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        --success-color: #27ae60;
-        --danger-color: #e11d48;
+:root {
+    --primary-color: #3498db;
+    --primary-soft: rgba(52, 152, 219, 0.1);
+    --bg-light: #f8fafc;
+    --text-main: #334155;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --success-color: #27ae60;
+    --danger-color: #e11d48;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-light);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Zentrierung für den Body im öffentlichen Bereich */
+body.l-public-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+}
+
+/* PREMIUM FORM ELEMENTS */
+.c-form-input,
+.c-form-select {
+    background-color: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+    color: #1e293b;
+    height: 46px;
+    /* Etwas höher für bessere mobile Bedienung */
+    width: 100%;
+    display: block;
+}
+
+.c-form-input:focus,
+.c-form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--primary-soft);
+    outline: none;
+}
+
+.c-form-label {
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.c-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+/* BUTTONS */
+.c-button--primary {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    display: block;
+    /* Neu: Damit der Button sich wie ein Block verhält */
+    margin: 0 auto;
+    /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
+}
+
+.c-button--primary:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+/* NEU: Fehlende Utility Klassen für Zentrierung und Abstände */
+.u-margin-auto {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.u-margin-top-l {
+    margin-top: 2rem !important;
+}
+
+.u-width-100 {
+    width: 100% !important;
+}
+
+.u-text-center {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+.u-justify-center {
+    justify-content: center !important;
+}
+
+/* LAYOUT ZENTRIERUNG & FIX */
+.c-tab-content-container {
+    max-width: 1100px;
+    margin: 0 auto !important;
+    /* Erzwingt die Zentrierung */
+    padding: 0 20px;
+    width: 100%;
+    display: block;
+    /* Stellt sicher, dass margin: auto funktioniert */
+}
+
+/* Universal-Klasse für Icons */
+.c-icon {
+    display: inline-block;
+    width: 1em;
+    /* Passt sich der Textgröße an */
+    height: 1em;
+    vertical-align: middle;
+    margin-top: -2px;
+    /* Optische Korrektur */
+    object-fit: contain;
+}
+
+/* Icons in Buttons etwas größer */
+.c-button .c-icon {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+/* Icons in der Navigation */
+.c-tabs__btn .c-icon {
+    width: 1.4em;
+    height: 1.4em;
+    margin-right: 4px;
+}
+
+/* --- KONSISTENTE BUTTON BASIS --- */
+.c-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    /* Wir steuern die Größe über width/height für Icons */
+    width: 42px;
+    /* Festes Quadrat für Icon-Buttons */
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    /* Wichtig für <a> Tags */
+    box-shadow: var(--shadow-sm);
+}
+
+.c-button:hover {
+    background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    border-color: #cbd5e1;
+}
+
+/* Varianten */
+.c-button--secondary {
+    background: #fff;
+}
+
+.c-button--success {
+    background: #f0fdf4;
+    color: var(--success-color);
+    border-color: #bbf7d0;
+}
+
+.c-button--success:hover {
+    background: #dcfce7;
+}
+
+.c-button--danger {
+    background: #fff1f2;
+    color: var(--danger-color);
+    border-color: #fecaca;
+}
+
+.c-button--danger:hover {
+    background: #fee2e2;
+}
+
+/* Die Icon-Größe innerhalb der Buttons */
+.c-button .c-icon {
+    width: 1.2em;
+    height: 1.2em;
+    margin: 0;
+    /* Kein Margin nötig, da der Button zentriert */
+}
+
+/* Status-Hintergründe für die gesamte Seite */
+/* Dezent Hellgrün */
+.state-bg-valid {
+    background-color: #f0fdf4 !important;
+}
+
+/* Dezent Hellgelb/Orange */
+.state-bg-rest {
+    background-color: #fffbeb !important;
+}
+
+/* Dezent Hellrot */
+.state-bg-error {
+    background-color: #fef2f2 !important;
+}
+
+/* --- ALERTS & MELDUNGEN --- */
+.c-alert {
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Kräftigeres Grün für den Erfolg */
+.c-alert--success {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+    border-color: #bbf7d0 !important;
+}
+
+.c-alert--danger {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: #fecaca !important;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
     }
 
-    * {
-        box-sizing: border-box;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
+}
 
-    body {
-        color: var(--text-main);
-        font-family: 'Inter', -apple-system, sans-serif;
-        background-color: var(--bg-light);
-        line-height: 1.5;
-        margin: 0;
-    }
+.u-hover-fade {
+    transition: background-color 0.2s ease;
+}
 
-    /* Zentrierung für den Body im öffentlichen Bereich */
-    body.l-public-body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        min-height: 100vh;
-    }
+.u-hover-fade:hover {
+    background-color: #fcfdfe !important;
+}
 
-    /* PREMIUM FORM ELEMENTS */
-    .c-form-input,
-    .c-form-select {
-        background-color: #fff;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0 14px;
-        font-size: 1rem;
-        transition: all 0.2s ease-in-out;
-        color: #1e293b;
-        height: 46px;
-        /* Etwas höher für bessere mobile Bedienung */
-        width: 100%;
-        display: block;
-    }
+.u-cursor-pointer {
+    cursor: pointer;
+}
 
-    .c-form-input:focus,
-    .c-form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px var(--primary-soft);
-        outline: none;
-    }
+/* Etwas mehr Zeilenhöhe für die moderne Tabelle */
+.c-table td {
+    padding: 1.25rem 1rem !important;
+}
 
-    .c-form-label {
-        font-weight: 600;
-        color: #475569;
-        margin-bottom: 8px;
-        display: block;
-        font-size: 0.9rem;
-    }
-
-    .c-card {
-        background: #fff;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-    }
-
-    /* BUTTONS */
-    .c-button--primary {
-        background: var(--primary-color);
-        color: #fff;
-        border: none;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
-        display: block;
-        /* Neu: Damit der Button sich wie ein Block verhält */
-        margin: 0 auto;
-        /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
-    }
-
-    .c-button--primary:hover {
-        background: #2980b9;
-        transform: translateY(-1px);
-    }
-
-    /* NEU: Fehlende Utility Klassen für Zentrierung und Abstände */
-    .u-margin-auto {
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-
-    .u-margin-top-l {
-        margin-top: 2rem !important;
-    }
-
-    .u-width-100 {
-        width: 100% !important;
-    }
-
-    .u-text-center {
-        text-align: center !important;
-        width: 100% !important;
-    }
-
-    .u-justify-center {
-        justify-content: center !important;
-    }
-
-    /* LAYOUT ZENTRIERUNG & FIX */
-    .c-tab-content-container {
-        max-width: 1100px;
-        margin: 0 auto !important;
-        /* Erzwingt die Zentrierung */
-        padding: 0 20px;
-        width: 100%;
-        display: block;
-        /* Stellt sicher, dass margin: auto funktioniert */
-    }
-
-    /* Universal-Klasse für Icons */
-    .c-icon {
-        display: inline-block;
-        width: 1em;
-        /* Passt sich der Textgröße an */
-        height: 1em;
-        vertical-align: middle;
-        margin-top: -2px;
-        /* Optische Korrektur */
-        object-fit: contain;
-    }
-
-    /* Icons in Buttons etwas größer */
-    .c-button .c-icon {
-        width: 1.2em;
-        height: 1.2em;
-    }
-
-    /* Icons in der Navigation */
-    .c-tabs__btn .c-icon {
-        width: 1.4em;
-        height: 1.4em;
-        margin-right: 4px;
-    }
-
-    /* --- KONSISTENTE BUTTON BASIS --- */
-    .c-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        /* Wir steuern die Größe über width/height für Icons */
-        width: 42px;
-        /* Festes Quadrat für Icon-Buttons */
-        height: 42px;
-        border-radius: 10px;
-        border: 1px solid var(--border-color);
-        background: #fff;
-        color: var(--text-main);
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        text-decoration: none;
-        /* Wichtig für <a> Tags */
-        box-shadow: var(--shadow-sm);
-    }
-
-    .c-button:hover {
-        background: #f8fafc;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        border-color: #cbd5e1;
-    }
-
-    /* Varianten */
-    .c-button--secondary {
-        background: #fff;
-    }
-
-    .c-button--success {
-        background: #f0fdf4;
-        color: var(--success-color);
-        border-color: #bbf7d0;
-    }
-
-    .c-button--success:hover {
-        background: #dcfce7;
-    }
-
-    .c-button--danger {
-        background: #fff1f2;
-        color: var(--danger-color);
-        border-color: #fecaca;
-    }
-
-    .c-button--danger:hover {
-        background: #fee2e2;
-    }
-
-    /* Die Icon-Größe innerhalb der Buttons */
-    .c-button .c-icon {
-        width: 1.2em;
-        height: 1.2em;
-        margin: 0;
-        /* Kein Margin nötig, da der Button zentriert */
-    }
-
-    /* Status-Hintergründe für die gesamte Seite */
-    /* Dezent Hellgrün */
-    .state-bg-valid {
-        background-color: #f0fdf4 !important;
-    }
-
-    /* Dezent Hellgelb/Orange */
-    .state-bg-rest {
-        background-color: #fffbeb !important;
-    }
-
-    /* Dezent Hellrot */
-    .state-bg-error {
-        background-color: #fef2f2 !important;
-    }
-
-    /* --- ALERTS & MELDUNGEN --- */
-    .c-alert {
-        padding: 16px 24px;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        font-weight: 500;
-        border: 1px solid transparent;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        box-shadow: var(--shadow-sm);
-        animation: slideUp 0.3s ease-out;
-    }
-
-    /* Kräftigeres Grün für den Erfolg */
-    .c-alert--success {
-        background-color: #dcfce7 !important;
-        color: #166534 !important;
-        border-color: #bbf7d0 !important;
-    }
-
-    .c-alert--danger {
-        background-color: #fee2e2 !important;
-        color: #991b1b !important;
-        border-color: #fecaca !important;
-    }
-
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .u-hover-fade {
-        transition: background-color 0.2s ease;
-    }
-    .u-hover-fade:hover {
-        background-color: #fcfdfe !important;
-    }
-    .u-cursor-pointer { cursor: pointer; }
-
-    /* Etwas mehr Zeilenhöhe für die moderne Tabelle */
-    .c-table td {
-        padding: 1.25rem 1rem !important;
-    }
 </style>

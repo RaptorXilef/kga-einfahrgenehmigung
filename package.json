@@ -1,10 +1,10 @@
 {
   "name": "@raptorxilef/kga-einfahrgenehmigung",
   "version": "0.31.1",
-  "description": "OOP-basiertes System für Einfahrgenehmigungen",
+  "description": "OOP-basiertes System zur Verwaltung von Ausnahmegenehmigungen",
   "type": "module",
-  "author": "Felix Maywald",
-  "license": "CC-BY-NC-SA-4.0",
+  "author": "Felix Maywald <RaptorXilef>",
+  "license": "Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.",
   "engines": {
     "node": ">=25.3.0",
     "npm": ">=11.11.0"

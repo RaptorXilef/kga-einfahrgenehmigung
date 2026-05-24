@@ -7,6 +7,9 @@
 
 // Path: templates/pages/admin_users.phtml
 
+/**
+ * @var string $appRoot
+ */
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -14,6 +17,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Benutzer & Rechte - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
@@ -57,6 +61,8 @@
             </div>
         </div>
     </main>
+
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 
     <script type="module"
             src="<?php echo $settings['base_url']; ?>assets/js/admin-handler.min.js">
