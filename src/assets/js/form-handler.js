@@ -225,6 +225,8 @@ export class PermitFormHandler {
                 }
             }
         } catch (e) {
+            // Oben über den try-catch Block oder direkt über die Zeile: // TODO Später entfernen
+            // biome-ignore lint/suspicious/noConsole: Fehler müssen in der Konsole zur Diagnose sichtbar sein
             console.error('Preis-Update fehlgeschlagen', e);
         }
     }

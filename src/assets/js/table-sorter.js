@@ -59,7 +59,9 @@ class TableSorter {
 
         if (nextSort === 'none') {
             // 3. Klick: Originalzustand wiederherstellen
-            table.originalRows.forEach((row) => tbody.appendChild(row));
+            table.originalRows.forEach((row) => {
+                tbody.appendChild(row);
+            });
         } else {
             // 1. oder 2. Klick: Sortieren
             th.setAttribute('data-sort-dir', nextSort);
@@ -105,7 +107,9 @@ class TableSorter {
             });
 
             // Sortierte Zeilen neu ins DOM einfügen
-            rows.forEach((row) => tbody.appendChild(row));
+            rows.forEach((row) => {
+                tbody.appendChild(row);
+            });
         }
     }
 }

@@ -1,6 +1,6 @@
-import { glob } from 'glob';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { glob } from 'glob';
 import sharp from 'sharp';
 
 const INPUT_DIR = 'src/assets/img';
