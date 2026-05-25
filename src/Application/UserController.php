@@ -398,9 +398,8 @@ final readonly class UserController
             return;
         }
 
-        $message = '';
-        $userId  = $_SESSION['user_id'] ?? '';
-        $action  = $post['action'] ?? '';
+        $userId = $_SESSION['user_id'] ?? '';
+        $action = $post['action'] ?? '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = match ($action) {
@@ -409,6 +408,12 @@ final readonly class UserController
                 'change_own_avatar'   => $this->processOwnAvatarUpload($userId, $_FILES['avatar'] ?? null),
                 default               => ''
             };
+
+            // PRG-Pattern Fix: Wenn eine Aktion verarbeitet wurde -> per Redirect neu laden
+            if ($message !== '') {
+                \header('Location: profile.php?msg=' . \urlencode($message));
+                exit;
+            }
         }
 
         $users       = $this->auth->loadUsers();
@@ -420,7 +425,7 @@ final readonly class UserController
             'username' => $users[$userId]['username'] ?? 'Unbekannt',
             // Hier den Anzeigenamen der Gruppe holen
             'group'   => $groups[$userGroupId]['name'] ?? $userGroupId,
-            'message' => $message,
+            'message' => (string) ($_GET['msg'] ?? ''), // Nachricht jetzt aus der URL (GET) laden
         ]);
     }
 
