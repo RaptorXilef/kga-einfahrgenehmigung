@@ -175,7 +175,8 @@ final readonly class HolidayService
             return 'nach Vereinbarung';
         }
 
-        $daysMap = [
+        $useFullList = (bool) $this->config->get('holiday_service_use_full_list', false);
+        $daysMap     = [
             'mon' => 'Mo',
             'tue' => 'Di',
             'wed' => 'Mi',
@@ -185,24 +186,50 @@ final readonly class HolidayService
             'sun' => 'So',
         ];
 
-        $resultStrings = [];
+        if ($useFullList) {
+            // Klassische Ansicht: Jeden Tag einzeln auflisten
+            $resultStrings = [];
+            foreach ($daysMap as $key => $label) {
+                $slots = $hours[$key] ?? [];
+                if ($slots === []) {
+                    $resultStrings[] = "{$label}: Keine Einfahrt";
 
-        foreach ($daysMap as $key => $label) {
-            $slots = $hours[$key] ?? [];
-            if ($slots === []) {
-                $resultStrings[] = "{$label}: Keine Einfahrt";
-
-                continue;
+                    continue;
+                }
+                $daySlots        = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $slots);
+                $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
             }
 
-            $daySlots = [];
-            foreach ($slots as $slot) {
-                $daySlots[] = $slot[0] . ' - ' . $slot[1];
-            }
-            $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
+            return \implode(' | ', $resultStrings);
         }
 
-        // Formatiert die Ausgabe leserlich mit Trennstrichen
-        return \implode(' | ', $resultStrings);
+        // Intelligente Ansicht: Gruppieren nach gleichen Zeiten
+        $groups = [];
+        foreach ($daysMap as $key => $label) {
+            $slots = $hours[$key] ?? [];
+            // Erzeuge einen eindeutigen String-Key für den Slot-Vergleich
+            $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(
+                fn ($s) => $s[0] . '-' . $s[1],
+                $slots,
+            ));
+
+            if (! isset($groups[$slotKey])) {
+                $groups[$slotKey] = ['labels' => [], 'slots' => $slots];
+            }
+            $groups[$slotKey]['labels'][] = $label;
+        }
+
+        $finalParts = [];
+        foreach ($groups as $slotKey => $data) {
+            $daysText = \implode(', ', $data['labels']);
+            if ($slotKey === 'none') {
+                $finalParts[] = "{$daysText}: Keine Einfahrt";
+            } else {
+                $slotStrings  = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $data['slots']);
+                $finalParts[] = "{$daysText}: " . \implode(', ', $slotStrings);
+            }
+        }
+
+        return \implode(' | ', $finalParts);
     }
 }

@@ -59,9 +59,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        position: sticky;
+        /*position: sticky;
         top: 0;
-        z-index: 100;
+        z-index: 100;*/
     }
 
     </style>
@@ -91,7 +91,7 @@ $data = [
     'templateKey'       => $permit->templateKey,
     'vereinsName'       => $settings['vereins_name'],
     'jahresFarbe'       => $settings['jahresFarbe'],
-    'opening'           => $opening,
+    'opening'           => $this->holidayService->getGeneralOpeningHoursText(), // Nutzt jetzt den gruppierten Text
     'terminkalenderUrl' => $settings['terminkalender_url'],
     'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
     'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,

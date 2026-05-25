@@ -15,11 +15,11 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Core\Entity\Permit           $permit   Die auszudruckende Genehmigung.
- * @var array                             $settings  Design-Schnittstellen (Base-URL, Vereinsname).
- * @var string                            $appRoot   Wurzelverzeichnis der Anwendung.
- * @var string                            $opening   Allgemeiner Öffnungszeitentext.
- * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Core\Entity\Permit               $permit   Die zu druckende Genehmigungs-Entität.
+ * @var array                                 $settings Einstellungen für das Layout (z.B. jahresFarbe).
+ * @var \App\Contracts\Config\ConfigInterface $config   Globale System-Konfiguration.
+ * @var string                                $appRoot  Absoluter Pfad zum Root-Verzeichnis.
+ * @var string                                $opening  Formatierter Text der allgemeinen Öffnungszeiten.
  */
 ?>
 <!DOCTYPE html>
@@ -27,7 +27,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Druckansicht - <?php echo \htmlspecialchars($permit->code); ?></title>
+    <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
@@ -75,6 +75,8 @@
     // Mapping der Value Objects auf flache Variablen für das A4-Dokument
     $openingHours = $settings['opening_hours'];
 
+// WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->validity->von),
+// damit das A4-Template die Quartale berechnen kann!
 $data = [
     'fullIdentifier'    => $permit->code,
     'von_formatted'     => $permit->validity->von->format('d.m.Y'),
@@ -86,14 +88,17 @@ $data = [
     'templateKey'       => $permit->templateKey,
     'vereinsName'       => $settings['vereins_name'],
     'jahresFarbe'       => $settings['jahresFarbe'],
+    'opening'           => $this->holidayService->getGeneralOpeningHoursText(), // Nutzt jetzt den gruppierten Text
     'terminkalenderUrl' => $settings['terminkalender_url'],
     'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
     'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
-    // 'config'            => $config, // Falls das Template die Config für Preise o.ä. braucht
-    'opening' => $opening,
+    'config'            => $config,
 ];
 
+// Variablen in den lokalen Scope extrahieren
 \extract($data);
+
+// Das Sub-Template einbinden
 include $appRoot . '/templates/emails/permit_a4_document.phtml';
 include $appRoot . '/templates/components/_footer.phtml';
 ?>
