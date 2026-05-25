@@ -69,14 +69,20 @@ final readonly class JsonStorage implements StorageInterface
         $data = $this->loadRaw();
         $hash = \strtoupper(\trim($hash));
 
-        // 1. Exakter Match (ML-0020-B-HD-123-6Y5C)
+        // 1. Direkter Match (falls exakter kurzer oder langer Code eingegeben wurde)
         if (isset($data[$hash])) {
             return $this->mapToEntity($data[$hash]);
         }
 
-        // 2. Teil-Match (Suche nach der 4-stelligen Zufalls-ID am Ende)
+        // 2. Extrahiere die hinterste ID für den formatübergreifenden Vergleich
+        $searchParts = \explode('-', $hash);
+        $searchId    = \end($searchParts);
+
         foreach ($data as $item) {
-            if (\str_ends_with((string) $item['code'], $hash)) {
+            $itemParts = \explode('-', (string) $item['code']);
+            $itemId    = \end($itemParts);
+
+            if ($itemId === $searchId) {
                 return $this->mapToEntity($item);
             }
         }

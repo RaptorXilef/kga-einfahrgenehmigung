@@ -106,16 +106,23 @@ final readonly class PermitService
             // Wir nehmen den Typ-Key als Teil des Codes, falls kein Kennzeichen da ist (z.B. "ABWASSER")
             $platePart = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
 
-            $fullIdentifier = \sprintf(
-                '%s-%s-%s-%s',
-                $this->config->get('prefix', 'ML'),
-                \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
-                $platePart,
-                $randomId,
-            );
+            // Konfiguration prüfen und Code formatieren
+            $useLongCode = (bool) $this->config->get('use_long_permit_code', false);
+
+            if ($useLongCode) {
+                $fullIdentifier = \sprintf(
+                    '%s-%s-%s-%s',
+                    $this->config->get('prefix', 'ML'),
+                    \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
+                    $platePart,
+                    $randomId,
+                );
+            } else {
+                $fullIdentifier = $randomId;
+            }
 
             // Wir prüfen, ob der Code bereits existiert (Storage oder Warteräume)
-            // NEU: Globale Prüfung über alle Archive hinweg
+            // Globale Prüfung über alle Archive hinweg
         } while (! $this->isCodeGloballyUnique($fullIdentifier));
 
         /** @var array<string, string> $purposes */

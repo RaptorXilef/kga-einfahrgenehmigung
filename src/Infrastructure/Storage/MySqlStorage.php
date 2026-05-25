@@ -63,8 +63,24 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function findByHash(string $hash): ?Permit
     {
+        $hash = \strtoupper(\trim($hash));
+
+        // 1. Direkter Match
         $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = ?');
         $stmt->execute([$hash]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($row) {
+            return $this->mapToEntity($row);
+        }
+
+        // 2. Fallback: Suche nach der extrahierten ID am Ende des Codes
+        $searchParts = \explode('-', $hash);
+        $searchId    = \end($searchParts);
+
+        // Sucht nach %-ID (langer Code) ODER genau der ID (kurzer Code)
+        $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code LIKE ? OR code = ?');
+        $stmt->execute(['%-' . $searchId, $searchId]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         return $row ? $this->mapToEntity($row) : null;

@@ -48,13 +48,13 @@ require_once $appRoot . '/vendor/autoload.php';
 
 // 2. Alle Konfigurationen laden & mergen
 $configFiles = [
-    'club'      => $appRoot . '/config/club.php',
-    'colors'    => $appRoot . '/config/colors.php',
-    'purposes'  => $appRoot . '/config/purposes.php',
-    'vehicles'  => $appRoot . '/config/vehicles.php',
-    'times'     => $appRoot . '/config/times.php',
-    'templates' => $appRoot . '/config/templates.php',
-    'reasons'   => $appRoot . '/config/reasons.php',
+    'organization' => $appRoot . '/config/organization.php',
+    'colors'       => $appRoot . '/config/colors.php',
+    'purposes'     => $appRoot . '/config/purposes.php',
+    'vehicles'     => $appRoot . '/config/vehicles.php',
+    'times'        => $appRoot . '/config/times.php',
+    'templates'    => $appRoot . '/config/templates.php',
+    'reasons'      => $appRoot . '/config/reasons.php',
 
     // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
     'main'    => $appRoot . '/config/config.php',
