@@ -33,12 +33,12 @@ return [
 
     /**
      * Zahlungsziel für Überfälligkeit
-     * Ist der Zeitraum, den der Nutezr hat, um die Überweisung zu tätigen (Steht in E-Mail als Stichtag mit Datum)
+     * Ist der Zeitraum, den der Nutzer hat, um die Überweisung zu tätigen (Steht in E-Mail als Stichtag mit Datum)
      */
     'payment_due_days' => 14, // Tage bis zur Überfälligkeit
     /**
-     * Nach überschreitung dieser Zeit (payment_due_days +2 Tage)
-     * werden die Buchhalter im System über die Überfälligkeit informeirt.
+     * Nach Überschreitung dieser Zeit (payment_due_days +2 Tage)
+     * werden die Buchhalter im System über die Überfälligkeit informiert.
      */
     'payment_due_days_notify' => 2,  // Zusatztage bis die Verwaltung gewarnt wird
 

@@ -78,6 +78,25 @@ trait StorageMapperTrait
         $bis     = (string) ($item['bis'] ?? ($item['datum_bis'] ?? 'now'));
         $created = (string) ($item['erstellt'] ?? ($item['erstellt_am'] ?? 'now'));
 
+        // Rigorose Absicherung der Datums-Parser gegen korrupte Strings:
+        try {
+            $dtVon = new \DateTimeImmutable($von);
+        } catch (\Exception) {
+            $dtVon = new \DateTimeImmutable('today'); // Ausfall-Sicherheit
+        }
+
+        try {
+            $dtBis = new \DateTimeImmutable($bis);
+        } catch (\Exception) {
+            $dtBis = new \DateTimeImmutable('tomorrow');
+        }
+
+        try {
+            $dtCreated = new \DateTimeImmutable($created);
+        } catch (\Exception) {
+            $dtCreated = new \DateTimeImmutable('now');
+        }
+
         return new Permit(
             code: (string) ($item['code'] ?? ''),
             templateKey: (string) ($item['templateKey'] ?? 'std_7'),
@@ -92,8 +111,8 @@ trait StorageMapperTrait
                 $item['firma'] ?? null,
             ),
             validity: new Validity(
-                new \DateTimeImmutable($von),
-                new \DateTimeImmutable($bis),
+                $dtVon,
+                $dtBis,
                 (float) ($item['preisSnapshot'] ?? 0.0),
                 (string) ($item['zweck'] ?? 'Privat'),
             ),
@@ -102,7 +121,7 @@ trait StorageMapperTrait
                 (bool) ($item['isSuspended'] ?? false),
                 $item['suspensionReason'] ?? null,
             ),
-            erstellt: new \DateTimeImmutable($created),
+            erstellt: $dtCreated,
             internerKommentar: $item['internerKommentar'] ?? null,
         );
     }

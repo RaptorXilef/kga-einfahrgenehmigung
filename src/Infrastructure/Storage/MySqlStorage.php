@@ -40,7 +40,7 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
-        $sql = 'REPLACE INTO permits (
+        $sql = 'INSERT INTO permits (
             code, templateKey, name, email, kennzeichen, parzelle, typ,
             firma, zweck, preisSnapshot, von, bis, status, isSuspended,
             suspensionReason, erstellt, internerKommentar
@@ -48,9 +48,24 @@ final readonly class MySqlStorage implements StorageInterface
             :code, :templateKey, :name, :email, :kennzeichen, :parzelle, :typ,
             :firma, :zweck, :preisSnapshot, :von, :bis, :status, :isSuspended,
             :suspensionReason, :erstellt, :internerKommentar
-        )';
+        ) ON DUPLICATE KEY UPDATE
+            templateKey = VALUES(templateKey),
+            name = VALUES(name),
+            email = VALUES(email),
+            kennzeichen = VALUES(kennzeichen),
+            parzelle = VALUES(parzelle),
+            typ = VALUES(typ),
+            firma = VALUES(firma),
+            zweck = VALUES(zweck),
+            preisSnapshot = VALUES(preisSnapshot),
+            von = VALUES(von),
+            bis = VALUES(bis),
+            status = VALUES(status),
+            isSuspended = VALUES(isSuspended),
+            suspensionReason = VALUES(suspensionReason),
+            internerKommentar = VALUES(internerKommentar);';
+        // 'erstellt' wird beim Update weggelassen, da sich das Erstelldatum nicht ändern soll!
 
-        // Trait liefert das fertige Array für PDO
         return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));
     }
 

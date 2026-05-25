@@ -46,15 +46,36 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
-        $data = $this->loadRaw();
-        // Nutzt den Trait für die Umwandlung
-        $data[$permit->code] = $this->flattenEntity($permit);
+        // Sicherer Datei-Handle-Lock zur Vermeidung von Lese-/Schreibkonflikten (Race Conditions)
+        $fp = \fopen($this->filePath, 'c+');
+        if (! $fp) {
+            return false;
+        }
 
-        return (bool) \file_put_contents(
-            $this->filePath,
-            \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-            \LOCK_EX,
-        );
+        // Warte, bis wir exklusiven Zugriff (Schreibrecht) auf die Datei haben
+        if (\flock($fp, \LOCK_EX)) {
+            // Hole die aktuellen Daten, während die Datei gesperrt ist
+            $size = \filesize($this->filePath);
+            $raw  = $size > 0 ? \fread($fp, $size) : '';
+            $data = \json_decode((string) $raw, true) ?? [];
+
+            // Füge die abgeflachte Entität hinzu
+            $data[$permit->code] = $this->flattenEntity($permit);
+
+            // Inhalt leeren und neu schreiben
+            \ftruncate($fp, 0);
+            \fseek($fp, 0);
+            \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            \fflush($fp);            // Erzwinge die physische Ausgabe auf die Festplatte
+            \flock($fp, \LOCK_UN);   // Sperre aufheben
+            \fclose($fp);
+
+            return true;
+        }
+
+        \fclose($fp);
+
+        return false;
     }
 
     /**

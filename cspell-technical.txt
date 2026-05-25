@@ -38,3 +38,5 @@ vlucas
 waivable
 wcag
 windir
+Inno
+TINYINT
