@@ -65,7 +65,7 @@ if (isset($settings['base_url']) && \is_string($settings['base_url'])) {
     $baseUrl  = $protocol . $_SERVER['HTTP_HOST'] . '/';
 }
 
-// --- NEU: Robuste Formatierung der Öffnungszeiten direkt im Template ---
+// --- Robuste Formatierung der Öffnungszeiten direkt im Template ---
 $openingText = 'Siehe Aushang';
 if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     $daysMap = [
@@ -80,13 +80,20 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     $formattedDays = [];
     foreach ($daysMap as $k => $label) {
         if (! empty($opening[$k])) {
-            $times           = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $opening[$k]);
-            $formattedDays[] = "<strong>{$label}:</strong> " . \implode(', ', $times);
+            $times = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $opening[$k]);
+            // Jedes Segment wird in ein span mit der CSS-Klasse "opening-segment" gepackt
+            $formattedDays[] = "<span class=\"opening-segment\"><strong>{$label}:</strong> " . \implode(', ', $times) . '</span>';
         }
     }
     $openingText = \implode(' &nbsp;|&nbsp; ', $formattedDays);
 } elseif (isset($opening) && \is_string($opening) && $opening !== '') {
-    $openingText = $opening;
+    // Falls ein fertiger String (aus getGeneralOpeningHoursText()) kommt,
+    // teilen wir ihn am Pipe-Symbol auf und verpacken die Teile in unzerbrechliche Spans
+    $parts        = \explode('|', $opening);
+    $wrappedParts = \array_map(function ($part) {
+        return '<span class="opening-segment">' . \trim($part) . '</span>';
+    }, $parts);
+    $openingText = \implode(' &nbsp;|&nbsp; ', $wrappedParts);
 }
 ?>
 
@@ -265,6 +272,11 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         margin-bottom: 25px;
         border-radius: 4px;
         font-size: 11pt;
+    }
+
+    .opening-segment {
+        display: inline-block;
+        white-space: nowrap;
     }
 
     .conditions {

@@ -163,8 +163,8 @@ final readonly class HolidayService
     /**
      * Generiert eine vollständige, strukturierte Wochenübersicht aller regulären Öffnungszeiten.
      *
-     * Erstellt eine detaillierte Textmatrix aller erlaubten Einfahrtszeiten.
-     * Ausgabeformat: Mo - Fr: 08:00 - 12:00, 15:00 - 20:00 | Sat: ... | Sun: Geschlossen
+     * Erstellt eine detaillierte Textmatrix aller erlaubten Einfahrtszeiten mit intelligenter Perioden-Zusammenfassung.
+     * Ausgabeformat z.B.: Mo - Di, Do - Fr: 08:00 - 13:00 | Mi: ... | So: Keine Einfahrt
      *
      * @return string Mit Pipes getrennter String aller Wochentage (Mo - So) und deren Slots für Print-Views/Infoseiten.
      */
@@ -203,25 +203,71 @@ final readonly class HolidayService
             return \implode(' | ', $resultStrings);
         }
 
-        // Intelligente Ansicht: Gruppieren nach gleichen Zeiten
-        $groups = [];
+        // --- Start der neuen, intelligenten Gruppierung ---
+
+        $chronologicalGroups = [];
+        $currentGroup        = null;
+
         foreach ($daysMap as $key => $label) {
             $slots = $hours[$key] ?? [];
-            // Erzeuge einen eindeutigen String-Key für den Slot-Vergleich
+            // Eindeutigen Key für die Timeslots generieren
             $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(
                 fn ($s) => $s[0] . '-' . $s[1],
                 $slots,
             ));
 
-            if (! isset($groups[$slotKey])) {
-                $groups[$slotKey] = ['labels' => [], 'slots' => $slots];
+            // Wenn es der erste Tag ist oder sich die Zeiten zum Vortag geändert haben: Neue Gruppe starten
+            if ($currentGroup === null || $currentGroup['slotKey'] !== $slotKey) {
+                if ($currentGroup !== null) {
+                    $chronologicalGroups[] = $currentGroup;
+                }
+                $currentGroup = [
+                    'slotKey' => $slotKey,
+                    'slots'   => $slots,
+                    'days'    => [$label],
+                ];
+            } else {
+                // Zeiten sind gleich wie am Vortag -> Tag zur aktuellen Gruppe hinzufügen
+                $currentGroup['days'][] = $label;
             }
-            $groups[$slotKey]['labels'][] = $label;
+        }
+        // Letzte Gruppe sichern
+        if ($currentGroup !== null) {
+            $chronologicalGroups[] = $currentGroup;
         }
 
+        // Jetzt führen wir Gruppen mit identischen Zeiten zusammen, die chronologisch getrennt wurden
+        $finalMerged = [];
+        foreach ($chronologicalGroups as $group) {
+            $slotKey = $group['slotKey'];
+
+            // Formatierung der Tage für diese Kette (z.B. ["Mo", "Di", "Mi"] -> "Mo - Mi")
+            $count = \count($group['days']);
+            if ($count === 1) {
+                $dayString = $group['days'][0];
+            } elseif ($count === 2) {
+                $dayString = $group['days'][0] . ', ' . $group['days'][1];
+            } else {
+                $dayString = $group['days'][0] . ' - ' . $group['days'][$count - 1];
+            }
+
+            if (! isset($finalMerged[$slotKey])) {
+                $finalMerged[$slotKey] = [
+                    'dayParts' => [$dayString],
+                    'slots'    => $group['slots'],
+                ];
+            } else {
+                // Gleiche Zeiten gab es schon mal (z.B. Mo-Di und Do-Fr haben dieselbe Zeit)
+                $finalMerged[$slotKey]['dayParts'][] = $dayString;
+            }
+        }
+
+        // Finale Text-Generierung
         $finalParts = [];
-        foreach ($groups as $slotKey => $data) {
-            $daysText = \implode(', ', $data['labels']);
+        foreach ($finalMerged as $slotKey => $data) {
+            // Verbindet getrennte Ketten sauber mit Komma (z.B. "Mo - Di, Do - Fr")
+            $daysText = \implode(', ', $data['dayParts']);
+
             if ($slotKey === 'none') {
                 $finalParts[] = "{$daysText}: Keine Einfahrt";
             } else {
