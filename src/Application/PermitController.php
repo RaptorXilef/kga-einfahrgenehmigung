@@ -63,12 +63,32 @@ final readonly class PermitController
 
         // 3. View rendern (wie gehabt)
         $this->render('formular', [
-            'message'  => $message,
-            'success'  => $success,
-            'config'   => $this->config,
-            'settings' => $this->getSettingsArray(),
-            'appRoot'  => $this->config->get('root_path'),
+            'message'           => $message,
+            'success'           => $success,
+            'config'            => $this->config,
+            'settings'          => $this->getSettingsArray(),
+            'appRoot'           => $this->config->get('root_path'),
+            'hasActiveVouchers' => $this->checkAvailableVouchers(), // Prüfen, ob einlösbare Gutscheine existieren
         ]);
+    }
+
+    /**
+     * Prüft, ob mindestens ein Gutschein im System ist, der aktuell gültig ist.
+     *
+     * @return bool True, wenn mindestens ein einlösbarer Gutschein vorhanden ist.
+     */
+    private function checkAvailableVouchers(): bool
+    {
+        $voucherService = $this->permitService->getVoucherService();
+        $vouchers       = $voucherService->loadVouchers();
+
+        foreach ($vouchers as $v) {
+            if ($voucherService->isValid($v)) {
+                return true; // Sobald einer gefunden wurde, reicht das für die Anzeige
+            }
+        }
+
+        return false;
     }
 
     /**

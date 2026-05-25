@@ -42,6 +42,7 @@ return [
         `created_by` VARCHAR(50),
         `created_at` DATETIME,
         `data` TEXT
+        INDEX `idx_voucher_validity` (`expires_at`, `uses_count`, `max_uses`);
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'permits' => 'CREATE TABLE IF NOT EXISTS `permits` (
