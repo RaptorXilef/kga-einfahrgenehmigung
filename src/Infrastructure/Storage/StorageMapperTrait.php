@@ -98,7 +98,7 @@ trait StorageMapperTrait
                 (string) ($item['zweck'] ?? 'Privat'),
             ),
             status: new Status(
-                (string) ($item['status'] ?? 'wartend'),
+                (string) ($item['status'] ?? 'offen'),
                 (bool) ($item['isSuspended'] ?? false),
                 $item['suspensionReason'] ?? null,
             ),

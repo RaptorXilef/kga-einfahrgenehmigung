@@ -43,7 +43,7 @@ try {
 
     // Verschiebt Daten von verified_pending(.json) nach permits_active(.json)
     // und triggert den Mail-Versand an Nutzer & Vorstand
-    $permit = $service->finaliseRequest($token, 'wartend', 'Zahlung per Überweisung gewählt');
+    $permit = $service->finaliseRequest($token, 'offen', 'Zahlung per Überweisung gewählt');
 
     echo \json_encode([
         'success' => true,

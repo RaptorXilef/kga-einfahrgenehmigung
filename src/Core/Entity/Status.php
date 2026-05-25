@@ -6,7 +6,7 @@ namespace App\Core\Entity;
 
 /**
  * Werteobjekt / Status-Entität für administrative Workflows.
- * Kapselt den Bezahl- und Verarbeitungsstatus (z.B. 'wartend', 'bezahlt') sowie optionale,
+ * Kapselt den Bezahl- und Verarbeitungsstatus (z.B. 'offen', 'bezahlt') sowie optionale,
  * vom Administrator verhängte Kontroll-Sperren inklusive Begründungstext.
  * Kontext: Workflow- und Lebenszyklussteuerung einer Genehmigung.
  *
@@ -22,7 +22,7 @@ namespace App\Core\Entity;
 final readonly class Status
 {
     public function __construct(
-        public string $current = 'wartend',       // technischer Status (wartend, bezahlt, storniert)
+        public string $current = 'offen',       // technischer Status (offen, bezahlt, storniert)
         public bool $isSuspended = false,         // Manuelle Sperre durch Admin
         public ?string $suspensionReason = null,  // Begründung der Sperre
     ) {

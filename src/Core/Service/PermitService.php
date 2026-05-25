@@ -133,7 +133,7 @@ final readonly class PermitService
             ),
             vehicle: new Vehicle($typ, $displayPlate, $data['firma'] ?? null),
             validity: new Validity($startDate, $endDate, $preis, $zweck),
-            status: new Status((string) ($data['status'] ?? 'wartend')),
+            status: new Status((string) ($data['status'] ?? 'offen')),
             erstellt: new \DateTimeImmutable(),
             internerKommentar: $data['internerKommentar'] ?? null,
         );
@@ -400,12 +400,12 @@ final readonly class PermitService
      * Überführt einen erfolgreich verifizierten/bezahlten Vorab-Antrag in eine echte Genehmigung.
      *
      * @param string      $token     Das aktive Sitzungs-Token aus der verifizierten Queue.
-     * @param string      $status    Der zu vergebende Ziel-Status (z.B. 'bezahlt', 'wartend').
+     * @param string      $status    Der zu vergebende Ziel-Status (z.B. 'bezahlt', 'offen').
      * @param string|null $kommentar Optionaler interner Vermerk für das Audit-Protokoll.
      *
      * @return Permit Die final generierte Genehmigungs-Entität.
      */
-    public function finaliseRequest(string $token, string $status = 'wartend', ?string $kommentar = null): Permit
+    public function finaliseRequest(string $token, string $status = 'offen', ?string $kommentar = null): Permit
     {
         $verifiedPath = $this->getStoragePath('verified_pending');
         $allVerified  = $this->loadJson($verifiedPath);

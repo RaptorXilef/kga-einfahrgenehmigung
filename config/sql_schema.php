@@ -57,7 +57,7 @@ return [
         `preisSnapshot` decimal(10,2) NOT NULL,
         `von` date NOT NULL,
         `bis` date NOT NULL,
-        `status` varchar(20) NOT NULL DEFAULT 'wartend',
+        `status` varchar(20) NOT NULL DEFAULT 'offen',
         `isSuspended` tinyint(1) NOT NULL DEFAULT 0,
         `suspensionReason` text DEFAULT NULL,
         `erstellt` datetime NOT NULL,
@@ -80,7 +80,7 @@ return [
         `preisSnapshot` decimal(10,2) NOT NULL,
         `von` date NOT NULL,
         `bis` date NOT NULL,
-        `status` varchar(20) NOT NULL DEFAULT 'wartend',
+        `status` varchar(20) NOT NULL DEFAULT 'offen',
         `erstellt` datetime NOT NULL,
         `internerKommentar` text DEFAULT NULL,
         PRIMARY KEY (`code`)

@@ -698,7 +698,7 @@ final readonly class AdminController
 
         foreach ($allPermits as $permit) {
             // 1. FINANZ-LOGIK (Unbezahlte sammeln)
-            // Wir prüfen auf 'bezahlt'. Alles andere (offen, wartend, leer, NULL)
+            // Wir prüfen auf 'bezahlt'. Alles andere (offen, leer, NULL)
             // gilt als "unbezahlt" und landet im Finanz-Tab.
             if (\strtolower(\trim($permit->status->current)) !== 'bezahlt') {
                 $groups['unpaid'][] = $permit;
