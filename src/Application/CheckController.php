@@ -121,10 +121,14 @@ final readonly class CheckController
         // Fall 3: Genehmigung gefunden
         if ($permit instanceof Permit) {
             $showAdminView = $this->determineViewPrivileges($permit, $get);
+
+            // Config auslesen
+            $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
+
             // Pfade angepasst auf Unterordner check/
             $this->render($showAdminView ? 'check/admin' : 'check/public', \array_merge($adminData, [
                 'permit'        => $permit,
-                'isDateValid'   => $permit->isValid(),
+                'isDateValid'   => $permit->isValid($requirePayment),
                 'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
                 'allowedToday'  => $nextAllowedSlotText, // Variable wird hier übergeben
                 'showAdminView' => $showAdminView,

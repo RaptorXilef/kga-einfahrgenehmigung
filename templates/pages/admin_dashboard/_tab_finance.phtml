@@ -202,7 +202,8 @@ $now           = new \DateTimeImmutable('today');
 
                                             <?php if ($auth->hasPermission('dashboard.finance.mark_paid')) { ?>
                                                 <form method="POST"
-                                                      style="margin:0;">
+                                                      style="margin:0;"
+                                                      onsubmit="return confirm('Sind Sie sicher, dass Sie den Status auf Bezahlt ändern möchten?');">
                                                     <input type="hidden"
                                                            name="action"
                                                            value="mark_as_paid">

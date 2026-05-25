@@ -41,12 +41,17 @@ final readonly class Permit
      *
      * @return bool True, wenn die Genehmigung jetzt aktiv und für Kontrollen gültig ist.
      */
-    public function isValid(): bool
+    public function isValid(bool $requirePayment = false): bool
     {
         $now = new \DateTimeImmutable();
 
         // 1. Check: Manuell gesperrt?
         if ($this->status->isSuspended) {
+            return false;
+        }
+
+        // Zahlungsstatus prüfen, falls gefordert
+        if ($requirePayment && \strtolower($this->status->current) !== 'bezahlt') {
             return false;
         }
 

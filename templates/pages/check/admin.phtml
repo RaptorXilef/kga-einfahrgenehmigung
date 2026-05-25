@@ -96,7 +96,7 @@ if ($permit) {
             <?php } else { ?>
                 <div style="color: var(--text-muted);">
                     <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""></span>
-                    <h2 style="margin-top: 10px; margin-bottom: 0;">ZEITRAUM UNGÜLTIG</h2>
+                    <h2 style="margin-top: 10px; margin-bottom: 0;">GENEHMIGUNG UNGÜLTIG <!--ZEITRAUM UNGÜLTIG / ZAHLUNG OFFEN--></h2>
                 </div>
             <?php } ?>
         </div>
@@ -192,9 +192,10 @@ if ($permit) {
                 <?php if ($permit->status->current !== 'bezahlt') { ?>
                     <footer class="u-padding-around-m u-border-top"
                             style="background: rgba(255,255,255,0.5);">
-                        <form action="admin.php"
+                        <form
                               method="POST"
-                              class="u-flex u-justify-center">
+                              class="u-flex u-justify-center"
+                              onsubmit="return confirm('Sind Sie sicher, dass Sie den Status auf Bezahlt ändern möchten?');">
                             <input type="hidden"
                                    name="action"
                                    value="mark_as_paid">
@@ -204,7 +205,7 @@ if ($permit) {
                             <button type="submit"
                                     class="c-button--primary"
                                     style="background: var(--success-color); width: 100%; max-width: 400px; border-radius: 10px;">
-                                ✔ Zahlung erhalten & freischalten
+                                ✔ Zahlung erhalten, jetzt freischalten
                             </button>
                         </form>
                     </footer>

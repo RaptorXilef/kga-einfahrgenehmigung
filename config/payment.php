@@ -24,6 +24,24 @@ return [
     'kontoinhaber'          => 'KGA e.V.',
     'usage_pattern'         => 'EFG-{{nachname}}-{{vorname}}-{{code}}', // Dynamisches Muster
 
+    /**
+     * Genehmigung erst gültig wenn bezahlt oder sofort?
+     * true = Erst gültig wenn bezahlt
+     * true = Sofort gültig, auch wenn noch nicht bezahlt
+     */
+    'require_payment_for_validity' => true,
+
+    /**
+     * Zahlungsziel für Überfälligkeit
+     * Ist der Zeitraum, den der Nutezr hat, um die Überweisung zu tätigen (Steht in E-Mail als Stichtag mit Datum)
+     */
+    'payment_due_days' => 14, // Tage bis zur Überfälligkeit
+    /**
+     * Nach überschreitung dieser Zeit (payment_due_days +2 Tage)
+     * werden die Buchhalter im System über die Überfälligkeit informeirt.
+     */
+    'payment_due_days_notify' => 2,  // Zusatztage bis die Verwaltung gewarnt wird
+
     // --- PAYPAL (Optional) ---
     'paypal' => [
         'enabled' => false, // AUF TRUE SETZEN für die Nutzung von Paypal
@@ -36,15 +54,4 @@ return [
             'secret'    => 'LIVE_SECRET_HIER', // Hier Secret aus dem PayPal Business Portal
         ],
     ],
-
-    /**
-     * Zahlungsziel für Überfälligkeit
-     * Ist der Zeitraum, den der Nutezr hat, um die Überweisung zu tätigen (Steht in E-Mail als Stichtag mit Datum)
-     */
-    'payment_due_days' => 14, // Tage bis zur Überfälligkeit
-    /**
-     * Nach überschreitung dieser Zeit (payment_due_days +2 Tage)
-     * werden die Buchhalter im System über die Überfälligkeit informeirt.
-     */
-    'payment_due_days_notify' => 2,  // Zusatztage bis die Verwaltung gewarnt wird
 ];
