@@ -10,12 +10,16 @@
 /**
  * Page: Print Preview (Admin)
  *
- * Baut die Druckansicht eines A4 Dokuments mit Admin-Toolbar.
+ * Druckansicht einer Genehmigung für das administrative Personal.
+ * Generiert ein optimiertes A4-Layout einer einzelnen Genehmigung direkt aus dem Dashboard heraus.
  *
- * @var \App\Core\Entity\Permit           $permit
- * @var array                             $settings
- * @var string                            $appRoot
- * @var \App\Infrastructure\Config\Config $config
+ * Path: templates/pages/admin_print_view.phtml
+ *
+ * @var \App\Core\Entity\Permit               $permit   Die zu druckende Genehmigungs-Entität.
+ * @var array                                 $settings Einstellungen für das Layout (z.B. jahresFarbe).
+ * @var \App\Contracts\Config\ConfigInterface $config   Globale System-Konfiguration.
+ * @var string                                $appRoot  Absoluter Pfad zum Root-Verzeichnis.
+ * @var string                                $opening  Formatierter Text der allgemeinen Öffnungszeiten.
  */
 ?>
 

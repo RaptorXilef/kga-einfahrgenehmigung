@@ -1,24 +1,27 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/admin_users.phtml
-
 /**
  * Page: User & Group Management Wrapper
  *
  * Container für die Benutzer- und Rechte-Matrix.
  *
+ * Verwaltungsoberfläche für Systembenutzer, Gruppen und Rechte.
+ * Bietet Masken für Passwörtrücksetzungen, Gruppen-Rechte-Zuweisungen (Matrix) sowie Avatar-/Icon-Uploads.
+ *
+ * Path: templates/pages/admin_users.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @var array                                $users       Vollständige Liste aller registrierten Benutzerkonten im System.
+ * @var array                                $groups      Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
+ * @var string                               $message     Operations-Meldung nach Datenmanipulationen.
  * @var array                                $settings
  * @var string                               $appRoot
- * @var string                               $message
  * @var \App\Infrastructure\Config\Config    $config
  * @var \App\Infrastructure\Auth\AuthService $auth
- * @var array                                $groups
- * @var array                                $users
  */
 ?>
 <!DOCTYPE html>

@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Payment/PayPalService.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Payment;
@@ -19,6 +12,18 @@ use App\Infrastructure\Config\Config;
  *
  * Kommuniziert mit der PayPal REST API v2 zur sicheren Verifizierung von Zahlungen.
  * Gleicht den tatsächlich gezahlten Betrag mit dem erwarteten Betrag ab.
+ *
+ * Infrastruktur-Treiber für die PayPal REST-API (v2 Checkout Orders).
+ * Wickelt die OAuth2-Bearer-Token-Generierung ab, erstellt Zahlungsaufträge (Orders) via cURL
+ * und validiert Transaktionen beim Capture-Prozess durch harten Abgleich mit dem System-Soll-Betrag.
+ * Kontext: Schnittstelle für bargeldlose Online-Zahlungsabwicklungen.
+ *
+ * Path: src/Infrastructure/Payment/PayPalService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class PayPalService implements PaymentProviderInterface
 {
@@ -30,6 +35,13 @@ final readonly class PayPalService implements PaymentProviderInterface
     ) {
     }
 
+    /**
+     * Erstellt eine transaktionsbereite Order in der PayPal-Cloud für den Checkout.
+     *
+     * @param float $amount Der einzuziehende Bruttobetrag (wird auf 2 Dezimalstellen formatiert).
+     *
+     * @return string|false Die von PayPal vergebene Order-ID (z.B. 'EC-xxxx') oder False bei API-Fehlern.
+     */
     public function createOrder(float $amount): string|false
     {
         $accessToken = $this->getAccessToken();
@@ -62,9 +74,16 @@ final readonly class PayPalService implements PaymentProviderInterface
     }
 
     /**
+     * Erfasst (captured) und verifiziert eine vom Kunden freigegebene PayPal-Zahlung.
+     * Prüft den Status auf 'COMPLETED' und vergleicht den real eingezogenen Betrag
+     * mit dem erwarteten Preis der Genehmigung, um Betrug/Manipulationen auszuschließen.
+     *
      * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
      *
-     * @param float $expectedAmount Der serverseitig erwartete Betrag (z.B. 3.00 oder 10.00).
+     * @param string $orderId        Die zu buchende PayPal-Order-ID.
+     * @param float  $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung (z.B. 3.00 oder 10.00).
+     *
+     * @return bool True, wenn das Geld erfolgreich eingezogen wurde und der Betrag exakt stimmt.
      */
     public function captureOrder(string $orderId, float $expectedAmount): bool
     {
@@ -107,6 +126,11 @@ final readonly class PayPalService implements PaymentProviderInterface
 
     /**
      * Holt den temporären OAuth2 Access Token von PayPal.
+     *
+     * Fordert ein zeitlich begrenztes OAuth2-Bearer-Access-Token via Client-Credentials an.
+     * Unterscheidet anhand des Testmodus automatisch zwischen Sandbox- und Live-API-Schlüsseln.
+     *
+     * @return string Der Autorisierungs-Token für nachfolgende API-Header.
      */
     private function getAccessToken(): string
     {

@@ -1,17 +1,23 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
 /**
- * Zentraler Bootstrapper
+ * Globaler Anwendungs-Bootstrap und Initialisierungs-Skript.
+ * Startet die PHP-Sitzung, ermittelt dynamisch den App-Root-Pfad, lädt und aggregiert
+ * die Konfigurationsdateien, berechnet Berechtigungsstrukturen, initialisiert CSRF-Token
+ * und erzwingt bei Bedarf den globalen Wartungsmodus (HTTP 503).
+ * Kontext: Der zentrale System-Einstiegspunkt vor dem Routing.
  *
  * Findet den Root-Pfad, lädt den Autoloader, mergt die Konfigurationen
  * (config.php + config.local.php) und initialisiert den Dependency Container.
  *
  * Path: src/Bootstrap/app.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * return App\Bootstrap\Container Gibt die fertig konfigurierte Dependency-Injection-Container-Instanz zurück.
  */
 
 declare(strict_types=1);
@@ -77,39 +83,45 @@ if (! \file_exists($configFiles['dev'])) {
 }
 
 foreach ($configFiles as $key => $file) {
-    if (\file_exists($file)) {
-        $loaded = require $file;
-        if (\is_array($loaded)) {
-            if ($key === 'perms') {
-                // Da die neue permissions.php kein 'list' mehr hat, nutzen wir die structure direkt
-                $settings['structure'] = $loaded['structure'] ?? [];
-                $settings['admin_ui']  = $loaded['admin_ui'] ?? [];
+    if (! \file_exists($file)) {
+        continue;
+    }
 
-                // Hilfs-Mapping für die flache Liste im User-Dropdown-UI
-                $flatPerms = [];
-                if (! empty($settings['structure'])) {
-                    $flatten = function ($nodes) use (&$flatten, &$flatPerms): void {
-                        foreach ($nodes as $node) {
-                            if (isset($node['key'])) {
-                                $flatPerms[$node['key']] = $node['label'] ?? $node['key'];
-                            }
-                            if (isset($node['children'])) {
-                                $flatten($node['children']);
-                            }
-                        }
-                    };
-                    $flatten($settings['structure']);
+    $loaded = require $file;
+    if (! \is_array($loaded)) {
+        continue;
+    }
+
+    if ($key === 'perms') {
+        // Da die neue permissions.php kein 'list' mehr hat, nutzen wir die structure direkt
+        $settings['structure'] = $loaded['structure'] ?? [];
+        $settings['admin_ui']  = $loaded['admin_ui'] ?? [];
+
+        // Hilfs-Mapping für die flache Liste im User-Dropdown-UI
+        $flatPerms = [];
+        if (! empty($settings['structure'])) {
+            $flatten = function ($nodes) use (&$flatten, &$flatPerms): void {
+                foreach ($nodes as $node) {
+                    if (isset($node['key'])) {
+                        $flatPerms[$node['key']] = $node['label'] ?? $node['key'];
+                    }
+                    if (! isset($node['children'])) {
+                        continue;
+                    }
+
+                    $flatten($node['children']);
                 }
-                $settings['permissions'] = $flatPerms;
-            } elseif ($key === 'dev') {
-                $settings['superadmin'] = $loaded;
-            } elseif ($key === 'schema') {
-                $settings['db_schema'] = $loaded;
-            } else {
-                // Nutze array_replace_recursive nur für main (config) und storage
-                $settings = \array_replace_recursive($settings, $loaded);
-            }
+            };
+            $flatten($settings['structure']);
         }
+        $settings['permissions'] = $flatPerms;
+    } elseif ($key === 'dev') {
+        $settings['superadmin'] = $loaded;
+    } elseif ($key === 'schema') {
+        $settings['db_schema'] = $loaded;
+    } else {
+        // Nutze array_replace_recursive nur für main (config) und storage
+        $settings = \array_replace_recursive($settings, $loaded);
     }
 }
 
@@ -159,4 +171,7 @@ if (! $isMaintenancePage) {
 // --- Ende Wartungsmodus ---
 
 // Wir geben direkt die Container-Instanz zurück
+/**
+ * @return Container Gibt die fertig konfigurierte Dependency-Injection-Container-Instanz zurück.
+ */
 return new Container(new Config($settings));

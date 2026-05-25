@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Application/CheckController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
@@ -19,7 +12,17 @@ use App\Core\Service\PermitService;
 use App\Infrastructure\Auth\AuthService;
 
 /**
- * Orchestriert die Validierung von Genehmigungen für Pächter und Vorstand.
+ * Controller zur Überprüfung von Genehmigungen und Kennzeichen.
+ *
+ * Erlaubt die öffentliche und administrative Abfrage von Gültigkeiten (z.B. via QR-Code).
+ * Kontext: Einstiegspunkt für Kontroll-Infrastruktur oder manuelle Suchen.
+ *
+ * Path: src/Application/CheckController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class CheckController
 {
@@ -33,6 +36,10 @@ final readonly class CheckController
     }
 
     /**
+     * Haupt-Request-Handler für den Validierungs- und Suchprozess.
+     * Identifiziert Genehmigungen per Hash oder Kennzeichen, wertet temporäre Token aus
+     * und steuert die Ausgabe (Admin-Ansicht, öffentliche Ansicht oder Suchformular).
+     *
      * @param array<string, mixed> $get Entspricht $_GET
      */
     public function handleRequest(array $get): void
@@ -132,9 +139,13 @@ final readonly class CheckController
     }
 
     /**
-     * Prüft, ob der Nutzer erweiterte Details sehen darf.
+     * Bestimmt die Rechte des aktuellen Betrachters für die Detailansicht.
+     * Evaluierte Bedingungen: Admin-Dev-Mode aktiv, Admin eingeloggt oder gültiger Signatur-Hash.
      *
-     * @param array<string, mixed> $get
+     * @param Permit               $permit Das zu prüfende Genehmigungs-Objekt.
+     * @param array<string, mixed> $get    Entspricht $_GET (für Token-Abgleich).
+     *
+     * @return bool True, wenn erweiterte Admin-Informationen angezeigt werden dürfen.
      */
     private function determineViewPrivileges(Permit $permit, array $get): bool
     {
@@ -157,7 +168,9 @@ final readonly class CheckController
     }
 
     /**
-     * @return array<string, mixed>
+     * Liefert standardisierte Konfigurationswerte für die Layout-Generierung.
+     *
+     * @return array<string, mixed> Array mit Vereinsmetadaten und Fahrzeugtypen.
      */
     private function getSettingsArray(): array
     {
@@ -172,7 +185,10 @@ final readonly class CheckController
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Extrahiert Daten-Arrays und bindet die PHTML-Layoutdatei ein.
+     *
+     * @param string               $templatePath Relativer Pfad zum Template.
+     * @param array<string, mixed> $data         Injektionsdaten für den View-Scope.
      */
     private function render(string $templatePath, array $data = []): void
     {

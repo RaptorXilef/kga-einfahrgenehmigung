@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Application/AdminController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
@@ -23,9 +16,17 @@ use App\Infrastructure\Config\Config;
 
 /**
  * Haupt-Controller für die Administration.
- * Zuständig für: Authentifizierung, Dashboard-Rendering, Finanz-Export,
- * Gutschein-Verwaltung und System-Wartung (Migration/Restore).
- * Kontext: Einstiegspunkt für Admin-Anfragen. Verwaltet den gesamten Admin-Lifecycle.
+ *
+ * Zentrale Steuereinheit für alle administrativen Aufgaben wie Authentifizierung,
+ * Dashboard-Rendering, Finanz-Exporte, Gutscheinverwaltung und Systemwartung.
+ * Dient als Einstiegspunkt für den Admin-Lifecycle.
+ *
+ * Path: src/Application/AdminController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class AdminController
 {
@@ -44,9 +45,10 @@ final readonly class AdminController
     }
 
     /**
-     * Haupt-Einstiegspunkt für alle Admin-Requests.
+     * Haupt-Request-Handler für Admin-Routen.
+     *
+     * Steuert Authentifizierung, System-Initialisierung und Weiterleitung.
      * Orchestriert: Authentifizierung -> Wartungs-Checks -> POST-Aktionen -> Rendering.
-     * Kontext: PRG-Pattern (Post-Redirect-Get) wird hier angewendet.
      *
      * @param array<string, mixed> $get  Entspricht $_GET
      * @param array<string, mixed> $post Entspricht $_POST
@@ -115,13 +117,13 @@ final readonly class AdminController
     }
 
     /**
-     * Behandelt Login-Versuche und Logout-Aktionen.
-     * Kontext: Gibt true zurück, wenn ein Redirect erfolgt ist (Request beenden).
+     * Prüft und verarbeitet Authentifizierungs-Aktionen (Login/Logout).
+     * Gibt true zurück, wenn ein Redirect erfolgt ist (Request beenden).
      *
      * @param array<string, mixed> $get
      * @param array<string, mixed> $post
      *
-     * @return bool True wenn Request gestoppt werden soll.
+     * @return bool True wenn die Aktion den Request abgeschlossen hat.
      */
     private function handleAuthActions(array $get, array $post): bool
     {
@@ -146,12 +148,13 @@ final readonly class AdminController
     }
 
     /**
-     * Zentrale Weiche für alle POST-Aktionen (z.B. Gutscheine, Status-Änderungen).
-     * Kontext: Nutzt 'match' für sauberes Routing. Leitet an action-Methoden weiter.
+     * Router für POST-basierte Daten-Aktionen (Migration, Gutscheine, Status-Updates).
+     *
+     * Nutzt 'match' für sauberes Routing. Leitet an action-Methoden weiter.
      *
      * @param array<string, mixed> $post
      *
-     * @return string Nachricht für die UI.
+     * @return string Ergebnisnachricht oder Fehlermeldung für die UI.
      */
     private function handleDataActions(array $post): string
     {
@@ -178,7 +181,11 @@ final readonly class AdminController
     }
 
     /**
-     * Sendet eine E-Mail aus den Logs basierend auf dem Zeitstempel erneut ab.
+     * Trigger für den Neuversand von E-Mails basierend auf den System-Logs.
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Statusmeldung über den Erfolg des Neuversands.
      */
     private function actionResendMail(array $post): string
     {
@@ -190,36 +197,43 @@ final readonly class AdminController
         $logs      = $this->mailService->loadLogs();
 
         foreach ($logs as $log) {
-            if (($log['timestamp'] ?? '') === $timestamp) {
-                $payload = $log['data'] ?? [];
-
-                // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
-                if (\is_string($payload)) {
-                    $payload = \json_decode($payload, true) ?? [];
-                }
-
-                if (empty($payload)) {
-                    return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
-                }
-
-                // Erneuter Versand über das Template-System
-                $this->mailService->sendTemplate(
-                    $log['recipient'],
-                    $log['subject'],
-                    $log['template'],
-                    $payload,
-                );
-
-                return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
+            if (! (($log['timestamp'] ?? '') === $timestamp)) {
+                continue;
             }
+
+            $payload = $log['data'] ?? [];
+
+            // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
+            if (\is_string($payload)) {
+                $payload = \json_decode($payload, true) ?? [];
+            }
+
+            if (empty($payload)) {
+                return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
+            }
+
+            // Erneuter Versand über das Template-System
+            $this->mailService->sendTemplate(
+                $log['recipient'],
+                $log['subject'],
+                $log['template'],
+                $payload,
+            );
+
+            return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
         }
 
         return 'Fehler: Log-Eintrag nicht gefunden.';
     }
 
     /**
-     * Markiert eine Genehmigung als bezahlt im Storage.
-     * Kontext: Nutzt PermitService::manualActivate().
+     * Markiert eine Genehmigung manuell als bezahlt im Storage.
+     *
+     * Nutzt PermitService::manualActivate().
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Erfolgsmeldung oder leerer String bei Fehler.
      */
     private function actionMarkAsPaid(array $post): string
     {
@@ -229,8 +243,13 @@ final readonly class AdminController
     }
 
     /**
-     * Erstellt einen Gutschein über VoucherService.
+     * Erstellt einen neuen Gutschein mit spezifischen Konditionen über VoucherService.
+     *
      * Kontext: Beinhaltet Sicherheitsprüfung (hasPermission). Übergibt diverse Gutschein-Parameter.
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Bestätigung mit dem generierten Gutscheincode.
      */
     private function actionCreateVoucher(array $post): string
     {
@@ -262,8 +281,8 @@ final readonly class AdminController
                 'firma'       => \trim((string) ($post['firma'] ?? '')),
                 'zweck'       => (string) ($post['zweck'] ?? ''),
                 // Nur wenn Mode 'fixed', senden wir die Daten aus Schritt 1 mit
-                'datum_von' => ($dateMode === 'fixed') ? (string) ($post['datum_von'] ?? '') : '',
-                'datum_bis' => ($dateMode === 'fixed') ? (string) ($post['datum_bis'] ?? '') : '',
+                'datum_von' => $dateMode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
+                'datum_bis' => $dateMode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
             ];
 
             // Service-Aufruf mit neuen Parametern
@@ -288,8 +307,13 @@ final readonly class AdminController
     }
 
     /**
-     * Manuelle Erstellung einer Genehmigung ohne Online-Zahlung.
-     * Kontext: Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
+     * Erstellt eine Genehmigung ohne vorangegangenen automatisierten Bezahlprozess.
+     *
+     * Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Bestätigung mit dem generierten Genehmigungscode.
      */
     private function actionCreateManual(array $post): string
     {
@@ -316,7 +340,11 @@ final readonly class AdminController
     }
 
     /**
-     * Ändert den aktiven/deaktivierten Status eines Gutscheins.
+     * Setzt den Sperrstatus einer bestehenden Genehmigung.
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Statusänderungs-Meldung.
      */
     private function actionToggleVoucher(array $post): string
     {
@@ -341,8 +369,9 @@ final readonly class AdminController
     }
 
     /**
-     * Fängt Print-Requests für Genehmigungen ab.
-     * Kontext: Überprüft Zugriff und rendert 'admin_print_view'.
+     * Prüft, ob ein spezieller Request (z.B. Druckansicht) abgebrochen werden muss.
+     *
+     * Überprüft Zugriff und rendert 'admin_print_view'.
      *
      * @param array<string, mixed> $get
      *
@@ -371,9 +400,9 @@ final readonly class AdminController
     }
 
     /**
-     * /**
-     * Rendert das Admin-Dashboard mit Statistiken und Tabellen.
-     * Kontext: Berechnet YearlyStats, ruft calculateDetailedStats auf, verarbeitet Exporte und übergibt diverse Services.
+     * Rendert die Admin-Dashboard-Oberfläche mit allen Statistiken und Filterdaten (Tabellen).
+     *
+     * Berechnet YearlyStats, ruft calculateDetailedStats auf, verarbeitet Exporte und übergibt diverse Services.
      *
      * @param array<string, mixed> $get
      */
@@ -473,12 +502,14 @@ final readonly class AdminController
     }
 
     /**
-     * Berechnet Finanz-KPIs (Revenue) und Parzellen-Ranking.
-     * Kontext: Aggregiert Daten aus Permit-Array. Nutzt uasort zur Sortierung nach Plot-Ranking.
+     * Berechnet detaillierte Finanz- und Nutzertyp-Statistiken für eine Liste von Genehmigungen.
+     *
+     * Finanz-KPIs (Revenue) und Parzellen-Ranking
+     * Aggregiert Daten aus Permit-Array. Nutzt uasort zur Sortierung nach Plot-Ranking.
      *
      * @param Permit[] $permits
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed> Statistik-Array.
      */
     private function calculateDetailedStats(array $permits): array
     {
@@ -537,16 +568,20 @@ final readonly class AdminController
                 $stats['revenue_unpaid'] += $p->validity->preisSnapshot;
             }
         }
-        \uasort($stats['plots'], fn ($a, $b) => ($b['count'] === $a['count']) ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
+        \uasort($stats['plots'], fn ($a, $b) => $b['count'] === $a['count'] ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
 
         return $stats;
     }
 
     /**
-     * Erzeugt CSV- oder JSON-Dateiexporte.
-     * Kontext: Setzt Header und UTF-8-BOM für Excel-Kompatibilität.
+     * Exportiert gefilterte Genehmigungsdaten als CSV oder JSON.
      *
-     * @param Permit[] $filtered
+     * Setzt Header und UTF-8-BOM für Excel-Kompatibilität.
+     *
+     * @param string             $format   'csv' oder 'json'.
+     * @param array<int, Permit> $filtered
+     * @param string             $start    Startdatum (Y-m-d).
+     * @param string             $end      Enddatum (Y-m-d).
      */
     private function handleExport(string $format, array $filtered, string $start, string $end): void
     {
@@ -602,18 +637,21 @@ final readonly class AdminController
             return;
         }
 
-        if ($format === 'json') {
-            \header('Content-Type: application/json');
-            \header('Content-Disposition: attachment; filename="' . $filename . '"');
-            echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+        if ($format !== 'json') {
+            return;
         }
+
+        \header('Content-Type: application/json');
+        \header('Content-Disposition: attachment; filename="' . $filename . '"');
+        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
     }
 
     /**
      * Berechnet zusammenfassende Statistiken für einen gefilterten Datensatz.
-     * Kontext: Reduziert Permits auf Gesamtanzahl und Umsatz.
      *
-     * @param Permit[] $filtered
+     * Reduziert Permits auf Gesamtanzahl und Umsatz.
+     *
+     * @param array<int, Permit> $filtered
      *
      * @return array<string, mixed>
      */
@@ -640,10 +678,11 @@ final readonly class AdminController
     }
 
     /**
-     * Gruppiert Permits für die Dashboard-Tabs (Active, Future, Expired, Unpaid).
-     * Kontext: Logik-Kern für die tabellarische Übersicht.
+     * Gruppiert Genehmigungen nach ihrem aktuellen Gültigkeitsstatus (aktiv/future/expired/unpaid).
      *
-     * @param Permit[] $allPermits
+     * Logik-Kern für die tabellarische Übersicht.
+     *
+     * @param array<int, Permit> $allPermits
      *
      * @return array<string, array<Permit>>
      */
@@ -681,16 +720,15 @@ final readonly class AdminController
 
         // 3. SORTIERUNG FÜR FINANZEN
         // Die neuesten Anträge (erstellt am) sollen oben stehen.
-        \usort($groups['unpaid'], function ($permitEntryA, $permitEntryB) {
-            return $permitEntryB->erstellt <=> $permitEntryA->erstellt;
-        });
+        \usort($groups['unpaid'], fn ($permitEntryA, $permitEntryB) => $permitEntryB->erstellt <=> $permitEntryA->erstellt);
 
         return $groups;
     }
 
     /**
-     * Baut das Konfigurations-Array für Templates.
-     * Kontext: Schnittstelle zwischen Config-Objekt und UI.
+     * Liefert Konfigurations-Settings für das Frontend-Mapping/Templates.
+     *
+     * Schnittstelle zwischen Config-Objekt und UI.
      *
      * @return array<string, mixed>
      */
@@ -708,8 +746,11 @@ final readonly class AdminController
     }
 
     /**
-     * Trigger für Datenmigrationen (Sync SQL/JSON).
-     * Kontext: Level-0 Sicherheitscheck (Dev-Admin only).
+     * Führt Daten-Migrationen (Sync/Backup) durch (Sync SQL/JSON).
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Ergebnis der Migration.
      */
     private function actionMigrateData(array $post): string
     {
@@ -726,9 +767,11 @@ final readonly class AdminController
     }
 
     /**
-     * Rendert das PHTML-Template und stellt Variablen zur Verfügung.
-     * Kontext: Nutzt 'extract' um Array-Keys zu lokalen Variablen zu machen.
+     * Rendert ein Template-File mit den übergebenen Daten.
      *
+     * Nutzt 'extract' um Array-Keys zu lokalen Variablen zu machen.
+     *
+     * @param string               $templatePath Pfad zum .phtml Template.
      * @param array<string, mixed> $data
      */
     private function render(string $templatePath, array $data = []): void
@@ -750,8 +793,12 @@ final readonly class AdminController
     }
 
     /**
-     * Führt eine Wiederherstellung aus einem Backup durch.
-     * Kontext: Sicherheitsprüfung über hasPermission und Level-Check.
+     * Führt eine System-Wiederherstellung (Restore) aus deinem Backup durch.
+     * Sicherheitsprüfung über hasPermission und Level-Check.
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Ergebnis der Restore-Aktion.
      */
     private function actionRestoreData(array $post): string
     {

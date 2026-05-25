@@ -1,21 +1,24 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/check/search.phtml
-
 /**
  * Page: Manual Code Input (Search)
  *
  * Formular zur manuellen Verifizierung eines SmartCodes.
  *
+ * Suchmaske für die manuelle Genehmigungsprüfung.
+ * Bietet Kontrolleuren ein Eingabefeld zur Eingabe von System-Codes oder Kennzeichen.
+ *
+ * Path: templates/pages/check/search.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
  * @var array                             $settings
  * @var string                            $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var string|null                       $error
+ * @var string|null                       $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
 ?>
 <!DOCTYPE html>

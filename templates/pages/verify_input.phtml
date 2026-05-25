@@ -1,22 +1,25 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/verify_input.phtml
-
 /**
  * Page: Verification Code Input
  *
  * Formular zur Eingabe des 6-stelligen Bestätigungscodes nach Antragstellung.
  *
- * @var array                             $settings
+ * Manuelle Eingabemaske für E-Mail-Verifikationscodes (Double-Opt-In).
+ * Wird aufgerufen, wenn der Nutzer den Link nicht direkt klickt, sondern den 6-stelligen Code manuell eingibt.
+ *
+ * Path: templates/pages/verify_input.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @var string                            $message  Status- oder Fehlermeldung.
+ * @var bool                              $isError  Gibt an, ob die Nachricht ein Fehlerzustand ist (steuert CSS-Alert-Klassen).
+ * @var array                             $settings Globale Einstellungen (z.B. base_url für Icons, vereins_name).
  * @var string                            $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var string                            $message
- * @var bool                              $isError
  */
 ?>
 <!DOCTYPE html>

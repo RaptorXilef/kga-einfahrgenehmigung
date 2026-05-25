@@ -1,20 +1,24 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Core/Entity/Permit.php
-
 declare(strict_types=1);
 
 namespace App\Core\Entity;
 
 /**
- * Kern-Entität für eine Einfahr-/Ausnahmegenehmigung.
+ * Haupt-Aggregatwurzel (Entity) für eine Einfahr-/Ausnahme-Genehmigung.
+ *
+ * Verknüpft den eindeutigen Systemcode, das zugrundeliegende Tarif-Template, den Besitzer,
+ * das Fahrzeug, den Gültigkeitszeitraum sowie den aktuellen Bezahl- und Sperrstatus.
+ * Kontext: Zentrales Datenmodell für sämtliche Validierungs-, Prüf- und Abrechnungsprozesse.
  *
  * Repräsentiert eine einzelne Genehmigung mit allen relevanten Daten.
+ *
+ * Path: src/Core/Entity/Permit.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class Permit
 {
@@ -31,7 +35,11 @@ final readonly class Permit
     }
 
     /**
-     * Prüft die Gültigkeit (v0.32.0: Inklusive des gesamten Endtages)
+     * Ermittelt die aktuelle zeitliche und administrative Gültigkeit der Genehmigung.
+     * Prüft, ob das Ticket manuell gesperrt (Suspended) wurde und ob sich die aktuelle
+     * Systemzeit innerhalb des definierten Von-Bis-Fensters (bis 23:59:59 Uhr des Endtages) befindet.
+     *
+     * @return bool True, wenn die Genehmigung jetzt aktiv und für Kontrollen gültig ist.
      */
     public function isValid(): bool
     {

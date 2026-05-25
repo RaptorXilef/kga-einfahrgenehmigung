@@ -1,16 +1,18 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-
-// Path: config/secrets.php
+/**
+ * Hier sind alle Softwarespezifischen Geheimnisse / Passwörter zu finden
+ *
+ * Path: config/secrets.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 
 declare(strict_types=1);
 
-/**
- * Hier sind alle Softwarespezifischen Geheimnisse / Passwörter zu finden
- */
 return [
     // --- SICHERHEIT ---
     // fungiert als "Salt" für die Sicherheit des token in der Zugriffs-URL die per E-Mail versandt wird

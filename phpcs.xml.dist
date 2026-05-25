@@ -76,7 +76,8 @@
         </properties>
     </rule>
 
-    <rule ref="Generic.Commenting.DocComment">
+    <!--<rule
+    ref="Generic.Commenting.DocComment">
         <exclude name="Generic.Commenting.DocComment.SpacingBeforeTagValue" />
         <exclude name="Generic.Commenting.DocComment.TagValueIndent" />
 
@@ -86,7 +87,9 @@
 
         <exclude name="Generic.Commenting.DocComment.ContentAfterOpen" />
         <exclude name="Generic.Commenting.DocComment.ContentBeforeClose" />
-    </rule>
+    </rule>-->
+    <!--<rule
+    ref="SlevomatCodingStandard.Commenting.DocCommentRequired"></rule>-->
 
     <rule ref="SlevomatCodingStandard.Commenting.DocCommentSpacing">
         <properties>
@@ -95,7 +98,6 @@
             <property name="linesCountBetweenDescriptionAndAnnotations" value="1" />
             <property name="linesCountBetweenAnnotationsGroups" value="1" />
             <property name="annotationsGroups" type="array">
-                <element value="@file" />
                 <element value="@copyright, @license" />
                 <element value="@link" />
                 <element value="@author" />

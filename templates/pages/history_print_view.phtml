@@ -1,22 +1,25 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/history_print_view.phtml
-
 /**
  * Page: Print Preview (Tenant)
  *
  * Ansicht, über die Pächter ihr eigenes Dokument erneut ausdrucken können.
  *
- * @var \App\Core\Entity\Permit           $permit
- * @var array                             $settings
- * @var string                            $appRoot
+ * Endnutzer-Druckansicht einer Genehmigung.
+ * Ermöglicht dem Pächter das saubere Ausdrucken seines gültigen A4-Dokuments aus seiner Historie heraus.
+ *
+ * Path: templates/pages/history_print_view.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @var \App\Core\Entity\Permit           $permit   Die auszudruckende Genehmigung.
+ * @var array                             $settings  Design-Schnittstellen (Base-URL, Vereinsname).
+ * @var string                            $appRoot   Wurzelverzeichnis der Anwendung.
+ * @var string                            $opening   Allgemeiner Öffnungszeitentext.
  * @var \App\Infrastructure\Config\Config $config
- * @var array                             $opening
  */
 ?>
 <!DOCTYPE html>
@@ -28,7 +31,6 @@
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
-    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 
     <script>
     window.KGA_CONFIG = {
@@ -63,7 +65,6 @@
 
 <body>
     <div class="print-toolbar u-no-print">
-        <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
         <a href="history.php" class="c-button c-button--secondary">← Zurück zur Übersicht</a>
         <div class="u-font-bold">Ausnahmegenehmigung: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()"

@@ -1,13 +1,17 @@
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
 /**
+ * Modulares Management des öffentlichen Antragsformulars.
+ * Übernimmt die dynamische Sichtbarkeit von Firmenfeldern, die Validierung von Terminen gegen
+ * Berliner Sonn- und Feiertage (Gauß-Osterformel) sowie asynchrone Tarifpreis-Berechnungen
+ * inklusive Gutschein-Livechecks über die API.
+ * Kontext: Validierungs- und Berechnungs-Layer des clientseitigen Antrags-Formulars.
+ *
  * Path: src/assets/js/form-handler.js
  * Path: public/assets/js/form-handler.min.js
  *
- * Modulares Management des Antragsformulars
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  *
  * Beinhaltet:
  * - Fahrzeugtyp-Umschaltung
@@ -36,6 +40,12 @@ export class PermitFormHandler {
         }
     }
 
+    /**
+     * Registriert sämtliche Interaktions-Listener (blur, change) für Formular-Elemente.
+     * Triggert zudem die initiale Preiskalkulation und die initiale Feldsteuerung für Fahrzeuge.
+     *
+     * @return {void}
+     */
     init() {
         // Event-Listener registrieren
         this.typSelect?.addEventListener('change', (e) => this.toggleVehicleFields(e.target.value));
@@ -62,7 +72,12 @@ export class PermitFormHandler {
     }
 
     /**
+     * Steuert die Sichtbarkeit und Pflichtfeld-Attribute firmenrelevanter Eingabefelder.
      * Schaltet Felder zwischen PKW und LKW/Firma um.
+     *
+     * @param {string} type Der gewählte Fahrzeugtyp-Key (z.B. 'pkw', 'lkw').
+     *
+     * @return {void}
      */
     toggleVehicleFields(type) {
         // Holen der Info aus der v0.28.0 Config (pkw)
@@ -80,8 +95,12 @@ export class PermitFormHandler {
     }
 
     /**
-     * Intelligente Kennzeichen-Formatierung (v0.4.1)
-     * Berücksichtigt die Priorität für Berlin-Kennzeichen.
+     * Normalisiert Kennzeichen-Eingaben über Regex-Ersetzungen auf deutsche Standard-Formate.
+     * Fügt Bindestriche und Leerzeichen ein (z.B. "B-MW 1234E") bei Blur des Feldes.
+     *
+     * @param {HTMLInputElement} input Das DOM-Objekt des Kennzeichen-Textfelds.
+     *
+     * @return {void} Modifiziert den Value des Elements direkt.
      */
     formatLicensePlate(input) {
         const val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -105,7 +124,11 @@ export class PermitFormHandler {
     }
 
     /**
-     * Stellt sicher, dass die Parzelle immer 4-stellig ist (0020).
+     * Formatiert die Parzellennummer via Left-Padding mit Nullen auf exakt 4 Stellen (z.B. "0042").
+     *
+     * @param {HTMLInputElement} input Das Parzellen-Eingabefeld.
+     *
+     * @return {void}
      */
     formatPlotNumber(input) {
         if (input.value) {
@@ -114,7 +137,10 @@ export class PermitFormHandler {
     }
 
     /**
-     * Prüft auf Sonntage und Berliner Feiertage.
+     * Überprüft die gewählten Datumsfelder und warnt den Nutzer bei Sonn- und Feiertagen.
+     * Erzeugt bei einem Treffer ein natives Browser-Alert-Fenster.
+     *
+     * @return {void}
      */
     validateBerlinRestrictions() {
         this.dateInputs.forEach((input) => {
@@ -133,6 +159,14 @@ export class PermitFormHandler {
 
     /**
      * Logik zur Erkennung von Sperrtagen in Berlin.
+     *
+     * Kern-Prüfalgorithmus zur Identifizierung von Berliner Restriktionstagen.
+     * Gleicht das Datum gegen Sonntage (Day 0), feste Feiertage (Frauentag, Knaben, etc.)
+     * und variable, Oster-abhängige Feiertage (Karfreitag, Ostermontag, Himmelfahrt, Pfingsten) ab.
+     *
+     * @param {Date} date Das zu evaluierende JavaScript Date-Objekt.
+     *
+     * @return {boolean} True, wenn an diesem Tag ein Einfahrtsverbot vorliegt.
      */
     isRestrictedDay(date) {
         // Zeit auf 0 setzen für sauberen Vergleich
@@ -175,6 +209,12 @@ export class PermitFormHandler {
 
     /**
      * Gauß-Formel zur Berechnung des Ostersonntags.
+     *
+     * Berechnet den Ostersonntag für ein bestimmtes Jahr (Meeus/Jones/Butcher-Algorithmus).
+     *
+     * @param {number} year Das Zieljahr (z.B. 2026).
+     *
+     * @return {Date} Das berechnete Date-Objekt des Ostersonntags für das Jahr.
      */
     getEaster(year) {
         const a = year % 19,
@@ -194,6 +234,13 @@ export class PermitFormHandler {
         return new Date(year, month - 1, day);
     }
 
+    /**
+     * Fragt asynchron den finalen Bruttobetrag inklusive Gutschein-Abschlägen über die REST-API ab.
+     * Übergibt den CSRF-Token im Header und aktualisiert das UI-Element `priceDisplay` sowie dessen Title-Attribut.
+     *
+     * @async
+     * @return {Promise<void>}
+     */
     async updatePrice() {
         if (!this.tplSelect || !this.typSelect) return;
 

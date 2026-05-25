@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Application/UserController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
@@ -16,7 +9,17 @@ use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 
 /**
- * Orchestriert die Benutzerverwaltung für v0.9.7.
+ * Controller zur Administration von System-Benutzern, Gruppen und Berechtigungen.
+ *
+ * Regelt zudem die Profilverwaltung (Avatar-Upload, Passwortänderung) des aktuell eingeloggten Admins.
+ * Kontext: Kern-Sicherheitsmodul für Benutzerkonten und Rollenarchitektur.
+ *
+ * Path: src/Application/UserController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class UserController
 {
@@ -27,7 +30,10 @@ final readonly class UserController
     }
 
     /**
-     * @param array<string, mixed> $post
+     * Haupt-Routing-Handler für Benutzer- und Gruppenmanipulationen.
+     * Validiert globale Management-Rechte, fängt POST-Aktionen ab und delegiert an spezifische Worker-Methoden.
+     *
+     * @param array<string, mixed> $post Entspricht $_POST
      */
     public function handleRequest(array $post): void
     {
@@ -77,6 +83,14 @@ final readonly class UserController
         ]);
     }
 
+    /**
+     * Erstellt einen neuen Datensatz in der Benutzerverwaltung inklusive Passwort-Hashing.
+     *
+     * @param array<string, mixed>      $post Formulardaten (username, password, group).
+     * @param array<string, mixed>|null $file Optionaler Datei-Array ($_FILES['avatar']).
+     *
+     * @return string Status- oder Fehlermeldung für die UI.
+     */
     private function handleSaveUser(array $post, ?array $file = null): string
     {
         $loginName = \trim((string) ($post['username'] ?? ''));
@@ -109,6 +123,15 @@ final readonly class UserController
         return "Benutzer '$loginName' erfolgreich erstellt.";
     }
 
+    /**
+     * Erstellt eine neue Benutzergruppe oder aktualisiert bestehende Rechte-Zuordnungen.
+     * Aktualisiert die Session-Rechte zur Laufzeit, falls die eigene Gruppe modifiziert wurde.
+     *
+     * @param array<string, mixed>      $post Rechte- und Gruppendaten.
+     * @param array<string, mixed>|null $file Optionales Gruppen-Icon ($_FILES).
+     *
+     * @return string Operations-Ergebnistext.
+     */
     private function handleSaveGroup(array $post, ?array $file = null): string
     {
         $groups = $this->auth->loadGroups();
@@ -164,6 +187,13 @@ final readonly class UserController
         return "Neue Gruppe '$displayName' wurde erstellt.";
     }
 
+    /**
+     * Benennt den Login-Namen eines existierenden Benutzers um.
+     *
+     * @param array<string, mixed> $post Datensatz mit user_id und new_username.
+     *
+     * @return string Erfolgs- oder Fehlermeldung.
+     */
     private function handleRenameUser(array $post): string
     {
         $userId   = (string) ($post['user_id'] ?? '');
@@ -180,6 +210,13 @@ final readonly class UserController
         return 'Fehler: Benutzer nicht gefunden.';
     }
 
+    /**
+     * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
+     *
+     * @param array<string, mixed> $post Datensatz mit user_id und Passwörtern.
+     *
+     * @return string Ergebnisnachricht.
+     */
     private function handleResetPassword(array $post): string
     {
         $userId = (string) ($post['user_id'] ?? '');
@@ -201,6 +238,14 @@ final readonly class UserController
         return 'Fehler.';
     }
 
+    /**
+     * Verarbeitet den Upload und die Skalierung/Speicherung eines Benutzer-Profilbildes.
+     *
+     * @param array<string, mixed>      $post Das Post-Array mit der Ziel-User-ID.
+     * @param array<string, mixed>|null $file Der native $_FILES-Avatar-Eintrag.
+     *
+     * @return string UI-Meldungstext.
+     */
     private function handleUploadAvatar(array $post, ?array $file): string
     {
         if (! $file || $file['error'] !== 0) {
@@ -212,6 +257,14 @@ final readonly class UserController
         return $this->auth->uploadImage('user', $userId, $file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
     }
 
+    /**
+     * Verarbeitet den Upload eines Bildes für Gruppen-Icons.
+     *
+     * @param array<string, mixed>      $post Das Post-Array mit der group_id.
+     * @param array<string, mixed>|null $file Der Datei-Eintrag aus $_FILES.
+     *
+     * @return string UI-Meldungstext.
+     */
     private function handleUploadGroupImage(array $post, ?array $file): string
     {
         if (! $file || $file['error'] !== 0) {
@@ -222,6 +275,13 @@ final readonly class UserController
         return $this->auth->uploadImage('group_images', $gid, $file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
     }
 
+    /**
+     * Ändert den Anzeigenamen einer spezifischen Gruppe im System.
+     *
+     * @param array<string, mixed> $post Datensatz mit group_id und new_group_name.
+     *
+     * @return string Statusnachricht.
+     */
     private function handleRenameGroup(array $post): string
     {
         $gid     = (string) ($post['group_id'] ?? '');
@@ -241,6 +301,13 @@ final readonly class UserController
         return "Gruppe wurde in '$newName' umbenannt.";
     }
 
+    /**
+     * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
+     *
+     * @param array<string, mixed> $post Datensatz mit der Ziel-user_id.
+     *
+     * @return string Erfolgs- oder Fehlermeldung.
+     */
     private function handleDeleteUser(array $post): string
     {
         $userId = (string) ($post['user_id'] ?? '');
@@ -262,6 +329,13 @@ final readonly class UserController
         return 'Fehler: Benutzer nicht gefunden.';
     }
 
+    /**
+     * Löscht eine Gruppe aus dem Berechtigungssystem. Schützt die Kern-Gruppe 'admin'.
+     *
+     * @param array<string, mixed> $post Datensatz mit group_id.
+     *
+     * @return string Ergebnisnachricht.
+     */
     private function handleDeleteGroup(array $post): string
     {
         $id = (string) ($post['group_id'] ?? '');
@@ -276,12 +350,24 @@ final readonly class UserController
         return 'Gruppe gelöscht.';
     }
 
+    /**
+     * Schreibt den modifizierten Gruppen- und Rechtedatensatz permanent in das JSON-Storage.
+     *
+     * @param array<string, mixed> $groups Das vollständige Gruppen-Rechte-Array.
+     */
     private function saveGroups(array $groups): void
     {
         $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
         \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT));
     }
 
+    /**
+     * Weist einem Benutzer eine neue Berechtigungsgruppe/Rolle zu.
+     *
+     * @param array<string, mixed> $post Datensatz mit user_id und group.
+     *
+     * @return string Bestätigungstext.
+     */
     private function handleChangeUserGroup(array $post): string
     {
         $userId = (string) ($post['user_id'] ?? ''); // ID aus dem Formular
@@ -299,9 +385,10 @@ final readonly class UserController
     }
 
     /**
-     * Behandelt die Profil-Seite für JEDEN eingeloggten Nutzer.
+     * Steuert die Profil-Einstellungsseite des aktuell angemeldeten Benutzers.
+     * Erlaubt Eigenmanipulationen von Namen, Passwort und Avatar im aktiven Session-Kontext.
      *
-     * @param array<string, mixed> $post
+     * @param array<string, mixed> $post Entspricht $_POST
      */
     public function handleProfileRequest(array $post): void
     {
@@ -337,6 +424,14 @@ final readonly class UserController
         ]);
     }
 
+    /**
+     * Validiert das alte Kennwort und ändert das Passwort des aktuell angemeldeten Benutzers.
+     *
+     * @param string               $userId Die aktive Benutzer-ID aus der Session.
+     * @param array<string, mixed> $post   Datensatz mit alten und neuen Kennwörtern.
+     *
+     * @return string Ergebnisnachricht.
+     */
     private function processOwnPasswordChange(string $userId, array $post): string
     {
         $oldPass = (string) ($post['old_password'] ?? '');
@@ -360,6 +455,14 @@ final readonly class UserController
         return 'Erfolg: Ihr Passwort wurde geändert.';
     }
 
+    /**
+     * Aktualisiert den eigenen Anzeigenamen/Login-Namen des angemeldeten Benutzers.
+     *
+     * @param string               $userId Die aktive Benutzer-ID aus der Session.
+     * @param array<string, mixed> $post   Datensatz mit new_username.
+     *
+     * @return string Ergebnisnachricht.
+     */
     private function processOwnUsernameChange(string $userId, array $post): string
     {
         $newName = \trim((string) ($post['new_username'] ?? ''));
@@ -377,6 +480,14 @@ final readonly class UserController
         return 'Erfolg: Ihr Anzeigename wurde aktualisiert.';
     }
 
+    /**
+     * Ermöglicht dem aktuell angemeldeten Benutzer das Ändern seines eigenen Profilbildes.
+     *
+     * @param string                    $userId Die aktive Benutzer-ID aus der Session.
+     * @param array<string, mixed>|null $file   Das hochgeladene File-Objekt aus $_FILES.
+     *
+     * @return string UI-Ergebnistext.
+     */
     private function processOwnAvatarUpload(string $userId, ?array $file): string
     {
         if (! $file || $file['error'] !== 0) {
@@ -391,9 +502,11 @@ final readonly class UserController
     }
 
     /**
+     * Bindet Administrations- und Profil-Templates im User-Kontext ein.
      * Rendert ein Template und stellt sicher, dass alle Pfade und Objekte da sind.
      *
-     * @param array<string, mixed> $data
+     * @param string               $template Pfadname der Layout-Datei.
+     * @param array<string, mixed> $data     Zusatzdaten für den View-Scope.
      */
     private function render(string $template, array $data): void
     {

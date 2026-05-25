@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Storage/StorageMapperTrait.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
@@ -17,12 +10,31 @@ use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 
+/**
+ * Trait für die bidirektionale Transformation zwischen Objekten und relationalen Arrays.
+ *
+ * Kapselt Konvertierungslogiken, um geschachtelte Domain-Entitäten (Permit, Owner, Vehicle, Validity, Status)
+ * in flache, speicherbare String/Float-Arrays zu transformieren und umgekehrt (Hydrierung).
+ * Kontext: Data Mapper Hilfskomponente für die Storage-Engines.
+ *
+ * Path: src/Infrastructure/Storage/StorageMapperTrait.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 trait StorageMapperTrait
 {
     /**
      * Wandelt eine Permit-Entität in ein flaches Array um.
      *
-     * @return array<string, mixed>
+     * Transformiert eine hochkomplexe Permit-Entität in ein eindimensionales, primitives Datenarray.
+     * Formatiert DateTime-Objekte in ISO-Strings für SQL- oder JSON-Schreibvorgänge.
+     *
+     * @param Permit $permit Die zu dekonstruierende Entität.
+     *
+     * @return array<string, mixed> Flaches Konvertierungs-Array für Treiber-Injektionen.
      */
     private function flattenEntity(Permit $permit): array
     {
@@ -50,7 +62,13 @@ trait StorageMapperTrait
     /**
      * Baut aus einem flachen Array eine Permit-Entität mit Value Objects.
      *
-     * @param array<string, mixed> $item
+     * Hydriert ein primitives, assoziatives Rohdaten-Array in ein stark typisiertes Permit-Objekt.
+     * Unterstützt Legacy-Feldnamen (Abwärtskompatibilität für Altdaten wie 'pächter' oder 'erstellt_am'),
+     * padded Parzellennummern auf 4 Stellen auf und baut rekursiv alle benötigten Unter-Werteobjekte auf.
+     *
+     * @param array<string, mixed> $item Zeilen-Rohdaten aus einer JSON-Datei oder SQL-Abfrage.
+     *
+     * @return Permit Die fertig zusammengesetzte, einsatzbereite Domain-Entität.
      */
     public function mapToEntity(array $item): Permit
     {

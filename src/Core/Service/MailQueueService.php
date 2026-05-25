@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Core/Service/MailQueueService.php
-
 declare(strict_types=1);
 
 namespace App\Core\Service;
@@ -14,8 +7,31 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 
+/**
+ * Service zur zeitversetzten E-Mail-Verarbeitung via Queueing.
+ *
+ * Abstrahiert und entkoppelt den physischen SMTP-Verbindungsprozess von Web-Requests.
+ * Speichert ausgehende E-Mails als JSON-Spool oder DB-Queue und wickelt den Versand blockweise ab.
+ * Kontext: Performance- und Ausfallsicherheits-Layer für den E-Mail-Subversand.
+ *
+ * Verwaltet den E-Mail-Versand über eine Queue, um Systemressourcen zu schonen.
+ * Unterstützt die Speicherung von E-Mails in einer MySQL-Datenbank oder in einer JSON-Datei,
+ * bevor sie durch den eigentlichen SMTP-Service verarbeitet werden.
+ *
+ * Path: src/Core/Service/MailQueueService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class MailQueueService implements MailServiceInterface
 {
+    /**
+     * @var ConfigInterface
+     * @var \PDO|null
+     * @var MailServiceInterface
+     */
     public function __construct(
         private ConfigInterface $config,
         private ?\PDO $pdo,
@@ -23,6 +39,16 @@ final readonly class MailQueueService implements MailServiceInterface
     ) {
     }
 
+    /**
+     * Reiht eine neue E-Mail mit Template-Referenz und Variablen-Payload in die Warteschlange ein.
+     *
+     * @param string $recipient Empfängeradresse.
+     * @param string $subject   E-Mail-Betreff.
+     * @param string $template  Pfad zum E-Mail-Template.
+     * @param array  $data      Daten-Payload für das Template.
+     *
+     * @return bool|string True bei Erfolg, Fehlermeldung als String bei Misserfolg.
+     */
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
         $cfg     = $this->config->get('storage_config')['mail_queue'];
@@ -49,6 +75,15 @@ final readonly class MailQueueService implements MailServiceInterface
         return true; // "Erfolg", da in Queue gespeichert
     }
 
+    /**
+     * Verarbeitet blockweise die anstehenden Mails aus der Warteschlange.
+     * Verwendet bei MySQL einen Locking-Mechanismus (attempts + 100) gegen Race-Conditions,
+     * zählt Fehlversuche (max 3 Attempts) hoch und protokolliert Fehlermeldungen bei Abbruch.
+     *
+     * @param int $limit Maximale Anzahl der in diesem Durchlauf zu verarbeitenden Mails.
+     *
+     * @return int Anzahl der real erfolgreich versendeten E-Mails.
+     */
     public function processQueue(int $limit = 5): int
     {
         $cfg       = $this->config->get('storage_config')['mail_queue'];
@@ -71,14 +106,14 @@ final readonly class MailQueueService implements MailServiceInterface
                         $item['template'],
                         \json_decode($item['data'], true),
                     );
-                    if ($result === true) {
-                        $this->pdo->prepare('DELETE FROM mail_queue WHERE id = ?')->execute([$item['id']]);
-                        ++$sentCount;
-                    } else {
+                    if ($result !== true) {
                         throw new \Exception((string) $result);
                     }
+
+                    $this->pdo->prepare('DELETE FROM mail_queue WHERE id = ?')->execute([$item['id']]);
+                    ++$sentCount;
                 } catch (\Throwable $t) {
-                    $origAttempts = ($item['attempts'] - 100) + 1;
+                    $origAttempts = $item['attempts'] - 100 + 1;
                     $this->pdo->prepare('UPDATE mail_queue SET attempts = ?, last_error = ? WHERE id = ?')
                         ->execute([$origAttempts, $t->getMessage(), $item['id']]);
                 }
@@ -109,13 +144,13 @@ final readonly class MailQueueService implements MailServiceInterface
                         $item['data'],
                     );
 
-                    if ($result === true) {
-                        \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
-                        ++$sentCount;
-                    } else {
+                    if ($result !== true) {
                         throw new \Exception((string) $result);
                     }
-                } catch (\Throwable $t) {
+
+                    \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                    ++$sentCount;
+                } catch (\Throwable) {
                     $item['attempts'] = ($item['attempts'] ?? 0) + 1;
                     if ($item['attempts'] < 3) {
                         $queue[] = $item;
@@ -128,11 +163,22 @@ final readonly class MailQueueService implements MailServiceInterface
         return $sentCount;
     }
 
+    /**
+     * Delegiert den Lesezugriff auf historische Versand-Logs an den zugrundeliegenden SMTP-Service.
+     *
+     * @return array<int, array<string, mixed>> Array mit Log-Einträgen.
+     */
     public function loadLogs(): array
     {
         return $this->realMailService->loadLogs();
     }
 
+    /**
+     * Speichert Protokolle für den E-Mail-Versand.
+     * Delegiert den Schreibzugriff für Log-Dateien an den SMTP-Dienst weiter.
+     *
+     * @param array<int, array<string, mixed>> $logs Liste der zu speichernden Log-Einträge.
+     */
     public function saveLogs(array $logs): void
     {
         // Die Queue selbst speichert keine Logs, sie leitet den Befehl

@@ -2,19 +2,33 @@
 
 declare(strict_types=1);
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Core/Service/PermissionCompiler.php
-
 namespace App\Core\Service;
 
+/**
+ * Performanz-Compiler für verschachtelte RBAC (Role-Based Access Control) Berechtigungsbäume.
+ *
+ * Evaluiert verschachtelte Modulbäume gegen flache Gruppenrechte, unterstützt Wildcards ('*')
+ * sowie explizite Verbote ('-') und kompiliert daraus eine flache Boolean-Lookup-Tabelle.
+ * Kontext: Kernkomponente zur schnellen, O(1)-basierten Rechteprüfung in der Applikation.
+ *
+ * Path: src/Core/Service/PermissionCompiler.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final class PermissionCompiler
 {
     /**
-     * Wandelt den Baum in ein flaches Array um, basierend auf den Gruppen-Einstellungen.
+     * Kompiliert eine hierarchische Menü-/Rechtestruktur in eine flache Key-Value-Map.
+     *
+     * Wandelt den Permissions-Baum in ein flaches Array um, basierend auf den Gruppen-Einstellungen.
+     *
+     * @param array<int, array<string, mixed>> $structure        Der hierarchische Baum aus der permissions-Konfiguration.
+     * @param array<int, string>               $groupPermissions Die ungefilterten Berechtigungs-Strings der Benutzergruppe.
+     *
+     * @return array<string, bool> Flache Map, bei der Berechtigungs-Keys direkt auf True/False mappen.
      */
     public function compile(array $structure, array $groupPermissions): array
     {
@@ -24,6 +38,17 @@ final class PermissionCompiler
         return $flat;
     }
 
+    /**
+     * Rekursiver Tree-Walker zur Vererbung und Auswertung von Rechten über Knotenebenen hinweg.
+     * Beachtet hierarchische Parent-Sperren, verarbeitet Wildcards und wertet Negierungen (Präfix '-') aus.
+     *
+     * @param array<int, array<string, mixed>> $nodes         Aktuelle Knoten-Ebene des Baums.
+     * @param array<int, string>               $groupPerms    Die Rechte-Vorgaben der Gruppe.
+     * @param bool                             $parentAllowed Vererbter Freigabestatus der übergeordneten Ebene.
+     * @param array<string, bool>              $result        Referenzierte Ergebnisliste für den Output.
+     *
+     * @return void Modifiziert das Ergebnis-Array per Referenz.
+     */
     private function walk(array $nodes, array $groupPerms, bool $parentAllowed, array &$result): void
     {
         foreach ($nodes as $node) {
@@ -31,7 +56,6 @@ final class PermissionCompiler
             $key = $node['key'] ?? null;
 
             if ($key !== null) {
-
                 // Ein Recht ist nur erlaubt, wenn:
                 // 1. Der Vater erlaubt ist
                 // 2. Es explizit in der Gruppe steht ODER die Gruppe den Master '*' hat
@@ -48,9 +72,11 @@ final class PermissionCompiler
                 $isAllowed = $parentAllowed;
             }
 
-            if (isset($node['children'])) {
-                $this->walk($node['children'], $groupPerms, $isAllowed, $result);
+            if (! isset($node['children'])) {
+                continue;
             }
+
+            $this->walk($node['children'], $groupPerms, $isAllowed, $result);
         }
     }
 }

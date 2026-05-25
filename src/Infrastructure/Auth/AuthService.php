@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Auth/AuthService.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Auth;
@@ -15,7 +8,18 @@ use App\Core\Service\PermissionCompiler;
 use App\Infrastructure\Config\Config;
 
 /**
- * Service für die Admin-Authentifizierung
+ * Service für die Authentifizierung und Autorisierung von Administratoren.
+ *
+ * Steuert Login-Validierungen (inklusive Backdoor- und Superadmin-Fallbacks),
+ * Session-Management, feingranulare RBAC-Rechteprüfungen und Avatar-/Icon-Bild-Uploads via GD.
+ * Kontext: Das primäre Sicherheits-Gateway für alle administrativen UI- und API-Aufrufe.
+ *
+ * Path: src/Infrastructure/Auth/AuthService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class AuthService
 {
@@ -23,13 +27,21 @@ final readonly class AuthService
         private Config $config,
         private ?\PDO $pdo, // Das '?' erlaubt NULL
     ) {
-        if (\session_status() === \PHP_SESSION_NONE) {
-            \session_start();
+        if (\session_status() !== \PHP_SESSION_NONE) {
+            return;
         }
+
+        \session_start();
     }
 
     /**
-     * Prüft Benutzername und Passwort.
+     * Verifiziert Anmeldedaten und initialisiert bei Erfolg die Admin-Sitzung.
+     * Prüft nacheinander: Inhaber-Backdoor, konfigurierte Superadmin-Credentials und die Benutzer-JSON.
+     *
+     * @param string $username Der eingegebene Login-Name.
+     * @param string $password Das Klartext-Passwort des Benutzers.
+     *
+     * @return bool True bei erfolgreicher Authentifizierung.
      */
     public function login(string $username, string $password): bool
     {
@@ -71,6 +83,13 @@ final readonly class AuthService
         return false;
     }
 
+    /**
+     * Schreibt Identifikationsmerkmale in die globale $_SESSION Supervariable.
+     *
+     * @param string $userId  Eindeutige ID (z.B. 'usr_7c13b491' oder 'sys_backdoor').
+     * @param string $groupId Die zugehörige Rechtegruppe (z.B. 'grp_71cb1c0d').
+     * @param string $label   Der Anzeigename des Benutzers.
+     */
     private function setSession(string $userId, string $groupId, string $label): void
     {
         $_SESSION['user_id']     = $userId;
@@ -79,8 +98,16 @@ final readonly class AuthService
     }
 
     /**
-     * Die Herzstück-Methode für das Rechtesystem v0.30.0
+     * Die Herzstück-Methode für das Rechtesystem
      * Implementiert Live-Abfrage und strikte "Deny-First" Priorität.
+     *
+     * Prüft, ob der angemeldete Benutzer eine bestimmte Berechtigung besitzt.
+     * Gewährt System-Konten und dem Admin-Dev-Mode sowie Inhabern von '*' generellen Vollzugriff.
+     * Alternativ wird die im Session-Cache vorkompilierte Rechte-Map abgefragt.
+     *
+     * @param string $permission Der gesuchte Berechtigungs-Key (z.B. 'dashboard.logs.view').
+     *
+     * @return bool True, wenn die Aktion für diesen Benutzer erlaubt ist.
      */
     public function hasPermission(string $permission): bool
     {
@@ -106,6 +133,11 @@ final readonly class AuthService
         return $_SESSION['compiled_permissions'][$permission] ?? false;
     }
 
+    /**
+     * Kompiliert die Modul-Rechte für die Gruppe neu und cached sie im aktuellen Session-Scope.
+     *
+     * @param string $groupId Die ID der Gruppe, deren Berechtigungsbaum kompiliert werden soll.
+     */
     public function refreshSessionPermissions(string $groupId): void
     {
         $groups                           = $this->loadGroups();
@@ -117,16 +149,22 @@ final readonly class AuthService
 
     // --- IDENTITY & MEDIA ---
 
-    // --- DIE RETTUNGS-BRÜCKE (Verhindert White Screen) ---
+    /**
+     * Gibt den Browser-Pfad zum Profilbild des aktuell angemeldeten Benutzers zurück.
+     */
     public function getProfilePicture(string $username = ''): string
     {
         return $this->getImage('user', (string) ($_SESSION['user_id'] ?? 'default'));
     }
 
     /**
-     * GEREINIGTE BILD-LOGIK
-     * Akzeptiert 'user' oder 'group'
-     * Sucht jetzt korrekt im 'public' Unterordner
+     * Ermittelt den Web-Pfad für Ressourcen (User-Avatare oder Gruppen-Icons) und handhabt Fallbacks.
+     * Hängt zur Cache-Busting-Sicherheit den Unix-Zeitstempel der Dateimodifikation als Version an.
+     *
+     * @param string $type Die Kategorie ('user' oder 'group').
+     * @param string $id   Der Dateiname ohne Endung (ID des Objekts).
+     *
+     * @return string Vollständig qualifizierte URL zum Bild.
      */
     public function getImage(string $type, string $id): string
     {
@@ -149,53 +187,148 @@ final readonly class AuthService
         return $baseUrl . 'assets/img/icons/' . $fallback;
     }
 
+    /**
+     * Generiert eine pseudo-zufällige, eindeutige alphanumerische ID mit spezifischem Suffix.
+     *
+     * @param string $prefix Präfix für die ID (z.B. 'usr_' oder 'grp_').
+     *
+     * @return string Die generierte ID-Zeichenkette.
+     */
     public function generateId(string $prefix = ''): string
     {
         return $prefix . \substr(\bin2hex(\random_bytes(4)), 0, 8);
     }
 
     /**
-     * Lädt Benutzer mit Pfadsicherung
-     * (Fix für file_get_contents Warnung)
+     * Lädt alle Benutzerkonten aus der konfigurierten JSON-Datenbank.
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<string, array<string, mixed>> Liste der Benutzer, indiziert nach User-ID.
      */
     public function loadUsers(): array
     {
-        $cfg  = $this->config->get('storage_config')['users'];
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $cfg = $this->config->get('storage_config')['users'];
 
-        return (\file_exists($path) && ! \is_dir($path)) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+            $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $users = [];
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $users[$row['id']] = [
+                    'username' => $row['username'],
+                    'group'    => $row['group'],
+                    'pass'     => $row['pass'],
+                ];
+            }
+
+            return $users;
+        }
+
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+
+        return \file_exists($path) && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     /**
-     * @param array<string, array<string, mixed>> $users
+     * Überschreibt die Benutzer-JSON-Datei permanent mit dem übergebenen Array.
+     *
+     * @param array<string, array<string, mixed>> $users Das vollständige Benutzer-Array.
      */
     public function saveUsers(array $users): void
     {
-        $cfg  = $this->config->get('storage_config')['users'];
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $cfg = $this->config->get('storage_config')['users'];
+
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+            $this->pdo->beginTransaction();
+
+            try {
+                // Bei kompletten Array-Updates löschen wir vorher alles, um auch gelöschte Nutzer zu entfernen
+                $this->pdo->exec("DELETE FROM {$cfg['table']}");
+                // Wichtig: `group` ist in MySQL ein reserviertes Wort und muss in Backticks ` ` gesetzt werden!
+                $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (id, username, `group`, pass) VALUES (?, ?, ?, ?)");
+                foreach ($users as $id => $u) {
+                    $stmt->execute([$id, $u['username'], $u['group'], $u['pass']]);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
+
+                throw $e;
+            }
+
+            return;
+        }
+
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     /**
-     * Lädt die Gruppen-Definitionen LIVE aus dem konfigurierten Speicher.
+     * Lädt alle Berechtigungsgruppen und Rollen aus Live aus der 'groups.json' bzw. dem konfigurierten Speicher.
+     *
+     * @return array<string, array<string, mixed>>
      */
     public function loadGroups(): array
     {
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
+        $cfg = $this->config->get('storage_config')['groups'];
 
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+            $stmt   = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $groups = [];
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $groups[$row['id']] = [
+                    'name'        => $row['name'],
+                    'permissions' => \json_decode((string) $row['permissions'], true) ?? [],
+                ];
+            }
+
+            return $groups;
+        }
+
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+
+        return \file_exists($path) && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
+    /**
+     * Persistiert das Gruppen- und Rollen-Array im Dateisystem.
+     *
+     * @param array<string, array<string, mixed>> $groups
+     */
     public function saveGroups(array $groups): void
     {
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
+        $cfg = $this->config->get('storage_config')['groups'];
+
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+            $this->pdo->beginTransaction();
+
+            try {
+                $this->pdo->exec("DELETE FROM {$cfg['table']}");
+                $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (id, name, permissions) VALUES (?, ?, ?)");
+                foreach ($groups as $id => $g) {
+                    $stmt->execute([$id, $g['name'], \json_encode($g['permissions'] ?? [])]);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
+
+                throw $e;
+            }
+
+            return;
+        }
+
+        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     /**
-     * Verarbeitet Bild-Uploads (User/Group) inkl. WebP-Konvertierung.
+     * Verarbeitet Bild-Uploads, konvertiert sie in das WebP-Format und skaliert sie transparent via GD.
+     * Unterstützt JPEG, PNG, GIF und native WebP-Quellen. Sichert Kompatibilität durch Raw-Move bei fehlender GD-Erweiterung.
+     *
+     * @param string               $type 'user' oder 'group' zur Verzeichnissteuerung.
+     * @param string               $id   Die ID des Ziel-Objekts (wird zum Dateinamen).
+     * @param array<string, mixed> $file Das native $_FILES['avatar'] Upload-Array.
+     *
+     * @return bool True bei erfolgreicher Konvertierung und Speicherung auf dem Datenträger.
      */
     public function uploadImage(string $type, string $id, array $file): bool
     {
@@ -249,36 +382,49 @@ final readonly class AuthService
         \imagecopyresampled($dst, $src, 0, 0, 0, 0, $width, $height, $width, $height);
 
         // 2. Als WebP mit 75% Qualität speichern
-        $success = \imagewebp($dst, $outputPath, 75);
-
-        // FIX: imagedestroy() entfernt, da GdImage Objekte in PHP 8.0+
-        // automatisch bereinigt werden und die Funktion deprecated ist.
-
-        return $success;
+        return \imagewebp($dst, $outputPath, 75);
     }
 
+    /**
+     * Gibt den Anzeigenamen des aktuell angemeldeten Benutzers zurück.
+     *
+     * @return string Der Name aus $_SESSION oder 'Unbekannt'.
+     */
     public function getUsername(): string
     {
         return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
     }
 
+    /**
+     * Gibt die aktive Gruppen-ID des Benutzers zurück.
+     *
+     * @return string Die ID oder 'guest' bei anonymen Requests.
+     */
     public function getGroup(): string
     {
         return (string) ($_SESSION['admin_group'] ?? 'guest');
     }
 
+    /**
+     * Abfrage-Schnittstelle zur schnellen Prüfung des Login-Status.
+     *
+     * @return bool True, wenn eine gültige Admin-Sitzung existiert.
+     */
     public function isLoggedIn(): bool
     {
         return isset($_SESSION['user_id']);
     }
 
+    /**
+     * Zerstört die aktuelle Session vollständig (Logout).
+     */
     public function logout(): void
     {
         \session_destroy();
     }
 
     /**
-     * Gibt die interne ID des aktuell angemeldeten Benutzers zurück.
+     * Ruft die eindeutige Benutzer-ID der aktiven Sitzung ab.
      */
     public function getUserId(): string
     {

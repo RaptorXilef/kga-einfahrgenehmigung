@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Mail/SmtpMailService.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Mail;
@@ -15,9 +8,18 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
 
 /**
- * SMTP-Implementierung des Mail-Services.
+ * Low-Level SMTP-E-Mail-Dienst zur Direktübertragung über Sockets.
+ * Baut native Netzwerkverbindungen via 'fsockopen' auf, implementiert das RFC-konforme SMTP-Protokoll
+ * (EHLO, AUTH LOGIN, MAIL FROM, RCPT TO, DATA) inklusive Base64-Verschlüsselung,
+ * verarbeitet PHTML-E-Mail-Templates mit String-Platzhaltern und führt Auditing-Logs im gewählten Backend.
+ * Kontext: Die physische Mail-Engine der Anwendung.
  *
- * Rendert Templates und versendet diese über eine Socket-Verbindung basierend auf SimpleSMTP.
+ * Path: src/Infrastructure/Mail/SmtpMailService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class SmtpMailService implements MailServiceInterface
 {
@@ -27,6 +29,18 @@ final readonly class SmtpMailService implements MailServiceInterface
     ) {
     }
 
+    /**
+     * Verarbeitet und versendet eine E-Mail basierend auf einem Template.
+     * Fängt leere Empfänger ab, liest Mail-Konfigurationen aus, prüft den Testmodus-Status
+     * und übergibt an den Socket-Dispatcher, bevor ein Log-Eintrag generiert wird.
+     *
+     * @param string               $recipient Der Ziel-Empfänger.
+     * @param string               $subject   Der E-Mail-Betreff.
+     * @param string               $template  Das .phtml-Template im Ordner templates/emails/.
+     * @param array<string, mixed> $data      Variablen zur Injektion in das Template.
+     *
+     * @return bool|string True bei Erfolg, andernfalls eine Fehlermeldung als String.
+     */
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
@@ -61,7 +75,13 @@ final readonly class SmtpMailService implements MailServiceInterface
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Rendert das PHTML-E-Mail-Template über den Output-Buffer und ersetzt Platzhalter.
+     * Sucht im gerenderten HTML nach `{{key}}` Mustern und ersetzt diese mit skalaren Array-Inhalten.
+     *
+     * @param string               $templatePath Der Dateiname des Templates.
+     * @param array<string, mixed> $data         Die Injektionsvariablen.
+     *
+     * @return string Das finale, versandbereite HTML-Markup.
      */
     private function render(string $templatePath, array $data): string
     {
@@ -83,16 +103,26 @@ final readonly class SmtpMailService implements MailServiceInterface
         // 3. Legacy-Support: Falls noch {{variable}} Syntax im Template ist
         foreach ($data as $key => $value) {
             // Nur skalare Werte (Text/Zahlen) ersetzen, keine Objekte!
-            if (\is_scalar($value)) {
-                $content = \str_replace("{{{$key}}}", (string) $value, (string) $content);
+            if (! \is_scalar($value)) {
+                continue;
             }
+
+            $content = \str_replace("{{{$key}}}", (string) $value, (string) $content);
         }
 
         return (string) $content;
     }
 
     /**
-     * @param array<string, mixed> $smtpConfig
+     * Führt die physische SMTP-Socket-Kommunikation mit dem Mailserver durch.
+     * Abstrahiert SSL-Protokolle, authentifiziert sich via AUTH LOGIN und überträgt UTF-8 / Base64-kodierte Header.
+     *
+     * @param string               $recipient  Empfänger-E-Mail.
+     * @param string               $subject    Betreff-Zeile.
+     * @param string               $body       Der gerenderte HTML-Textkörper.
+     * @param array<string, mixed> $smtpConfig Serverdaten (host, port, user, pass, from).
+     *
+     * @return bool|string True bei SMTP-Erfolg (Code 250), andernfalls Fehlermeldung.
      */
     private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig): bool|string
     {
@@ -163,7 +193,9 @@ final readonly class SmtpMailService implements MailServiceInterface
     }
 
     /**
-     * Hilfsmethode: Prüft ob der Server mit dem erwarteten Code antwortet
+     * Prüft, ob die Server-Antwort mit dem erwarteten numerischen SMTP-Statuscode beginnt.
+     *
+     * @param resource $socket
      */
     private function checkResponse($socket, string $expectedCode): bool
     {
@@ -173,7 +205,11 @@ final readonly class SmtpMailService implements MailServiceInterface
     }
 
     /**
+     * Liest zeilenweise die Antwort-Buffer des SMTP-Servers bis zum abschließenden Statuscode aus.
+     *
      * @param resource $socket
+     *
+     * @return string Die gesammelte Serverantwort.
      */
     private function getServerResponse($socket): string
     {
@@ -189,6 +225,16 @@ final readonly class SmtpMailService implements MailServiceInterface
         return $response;
     }
 
+    /**
+     * Schreibt einen Eintrag in das E-Mail-Versandprotokoll und begrenzt die Historie (Capping).
+     * Unterstützt MySQL-Einträge inklusive Tabellen-Bereinigung via Subquery oder historisierende JSON-Dateien.
+     *
+     * @param string               $recipient Empfänger.
+     * @param string               $subject   Betreff.
+     * @param string               $template  Genutztes Template.
+     * @param bool|string          $status    Das Ergebnis der dispatch-Methode.
+     * @param array<string, mixed> $data      Mitgesendete Rohdaten-Payload.
+     */
     private function logEmail(string $recipient, string $subject, string $template, bool|string $status, array $data = []): void
     {
         $cfg        = $this->config->get('storage_config')['mail_log'];
@@ -234,7 +280,12 @@ final readonly class SmtpMailService implements MailServiceInterface
     }
 
     /**
+     * Ermöglicht das Batch-Überschreiben / Wiederherstellen von E-Mail-Logs (z.B. bei System-Restores).
+     * Verwendet SQL-Transaktionen (Commit/Rollback) für hohe Konsistenz im DB-Betrieb.
+     *
      * Speichert eine Liste von Mail-Logs (wichtig für Migration/Sync).
+     *
+     * @param array<int, array<string, mixed>> $logs
      */
     public function saveLogs(array $logs): void
     {
@@ -271,6 +322,11 @@ final readonly class SmtpMailService implements MailServiceInterface
         }
     }
 
+    /**
+     * Lädt die chronologische Liste aller E-Mail-Logs absteigend nach Zeitstempel.
+     *
+     * @return array<int, array<string, mixed>>
+     */
     public function loadLogs(): array
     {
         $cfg = $this->config->get('storage_config')['mail_log'];

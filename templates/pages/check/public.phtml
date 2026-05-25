@@ -1,26 +1,25 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/check/public.phtml
-
 /**
  * Page: Verification & Payment (Public View)
  *
  * Zeigt Pächtern den Status an und wickelt Zahlungen (PayPal/Überweisung) ab.
  *
+ * Öffentliche Kontrollansicht (z.B. bei QR-Code-Scan durch externe Personen).
+ * Zeigt reduzierte, datenschutzkonforme Status-Informationen einer Genehmigung oder
+ * eines noch unbezahlten, aber verifizierten Antrags an.
+ *
+ * Path: templates/pages/check/public.phtml
+ *
  * @var string                            $appRoot
- * @var \App\Core\Entity\Permit|null      $permit
- * @var bool                              $isDateValid
- * @var bool                              $isTimeAllowed
- * @var array|null                        $tempData
+ * @var \App\Core\Entity\Permit|null      $permit             Die Genehmigung (null, falls noch im Bezahlstatus 'pending').
+ * @var bool                              $isDateValid        Ob das Ticket zeitlich gültig ist.
+ * @var bool                              $isTimeAllowed      Ob das Befahren der Anlage zum aktuellen Zeitpunkt erlaubt ist.
+ * @var array|null                        $tempData           Temporäre Antragsdaten, falls $isWaitingForPayment true ist.
  * @var array                             $settings
  * @var \App\Infrastructure\Config\Config $config
- * @var string                            $allowedToday
- * @var string|null                       $token
+ * @var string                            $allowedToday       Textuelle Info zum nächsten erlaubten Einfahrts-Slot.
+ * @var string|null                       $token              Sitzungs-Token des wartenden Antrags.
  */
 
 // 1. Logo-Logik

@@ -1,27 +1,31 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/history_list.phtml
-
 /**
  * Page: Tenant History
  *
  * Listet alle jemals abgewickelten Genehmigungen eines Pächters auf.
  *
- * @var \App\Core\Entity\Permit[]         $permits
- * @var array                             $settings
- * @var string                            $appRoot
- * @var \App\Infrastructure\Config\Config $config
- * @var string                            $email
- * @var string                            $message
- * @var bool                              $isSuccess
- * @var \DateTimeImmutable                $now
- * @var \App\Core\Service\PermitService   $permitService
- * @var int                               $currentArchiveYear
+ * Historische Antragsübersicht für den Endnutzer.
+ * Listet alle Genehmigungen einer verifizierten E-Mail-Adresse auf. Bietet Optionen zum
+ * Nachladen von Jahresarchiven sowie Verknüpfungen zur PDF-A4-Druckansicht.
+ *
+ * Path: templates/pages/history_list.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @var string                                $appRoot
+ * @var \DateTimeImmutable                    $now
+ * @var array<int, \App\Core\Entity\Permit>   $permits           Gefilterte und sortierte Genehmigungen des Nutzers.
+ * @var string                                $email             Die verifizierte E-Mail-Adresse aus der Session.
+ * @var array                                 $settings          Layout-Optionen (Farben, URLs).
+ * @var int                                   $currentArchiveYear Das aktuell geladene Archivjahr (0 = nur Live-Daten).
+ * @var string                                $message           Optionale Infomeldung.
+ * @var bool                                  $isSuccess         Status-Flag.
+ * @var \App\Contracts\Config\ConfigInterface $config         Globale Konfiguration.
+ * @var \App\Core\Service\PermitService       $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
  */
 $now = new \DateTimeImmutable('today');
 \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);

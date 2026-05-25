@@ -1,17 +1,18 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path:      config/config.php
+/**
+ * E-Mail Server Daten um Versandt (Post-Ausgangsserver)
+ *
+ * Path: config/email.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 
 declare(strict_types=1);
 
-/**
- * E-Mail Server Daten um Versandt (Post-Ausgangsserver)
- */
 return [
     // --- E-MAIL (Zwei Welten System) ---
     'mail' => [

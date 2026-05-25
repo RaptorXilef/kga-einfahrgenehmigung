@@ -1,23 +1,26 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/history_login.phtml
-
 /**
  * Page: History Magic Link Login
  *
  * 2-Step Login-Formular (OTP Anforderung und Eingabe).
  *
- * @var array                             $settings
+ * Login-Maske für die Endnutzer-Historie (Passwortloses Login).
+ * Schritt 1: Eingabe der E-Mail-Adresse. Schritt 2: Eingabe des 6-stelligen Login-Codes.
+ *
+ * Path: templates/pages/history_login.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
  * @var string                            $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var string                            $message
- * @var bool                              $isSuccess
- * @var int                               $step
+ * @var string                            $message   Status- oder Fehlermeldung (z.B. Code abgelaufen).
+ * @var bool                              $isSuccess Flag für grüne Erfolgsmeldungen (z.B. Code erfolgreich versendet).
+ * @var int                               $step      Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
+ * @var array                             $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
  */
 ?>
 <!DOCTYPE html>

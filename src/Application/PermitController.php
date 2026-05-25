@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src\Application\PermitController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
@@ -15,7 +8,16 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
 /**
- * Orchestriert den Antragsprozess für Pächter (Hauptformular).
+ * Controller für den regulären, öffentlichen Genehmigungs-Beantragungsprozess.
+ *
+ * Verarbeitet die Formularübermittlung und leitet die E-Mail-Validierungsschleife ein.
+ *
+ * Path: src/Application/PermitController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class PermitController
 {
@@ -26,8 +28,11 @@ final readonly class PermitController
     }
 
     /**
-     * @param array<string, mixed> $post
-     * @param array<string, mixed> $get
+     * Nimmt Antragsdaten entgegen oder zeigt die Erfolgsmeldung nach Erstübermittlung an.
+     * Führt bei POST-Aktionen ein `createPendingVerification` aus und triggert Redirects.
+     *
+     * @param array<string, mixed> $post Entspricht $_POST
+     * @param array<string, mixed> $get  Entspricht $_GET
      */
     public function handleRequest(array $post, array $get): void
     {
@@ -67,6 +72,8 @@ final readonly class PermitController
     }
 
     /**
+     * Baut Einstellungen, Sichtbarkeiten und Farbcodes für das Antragsformular zusammen.
+     *
      * @return array<string, mixed>
      */
     private function getSettingsArray(): array
@@ -85,7 +92,10 @@ final readonly class PermitController
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Integriert Variablen-Scope und bindet PHTML-Antragsformulare ein.
+     *
+     * @param string               $templatePath Template-Name.
+     * @param array<string, mixed> $data         UI-Daten.
      */
     private function render(string $templatePath, array $data = []): void
     {

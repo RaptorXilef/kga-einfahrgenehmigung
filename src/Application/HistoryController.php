@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Application/HistoryController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
@@ -18,7 +11,17 @@ use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
 
 /**
- * Dieser Controller steuert die Anzeige der Historie.
+ * Controller für die historische Antragsübersicht von Endnutzern.
+ *
+ * Realisiert passwortlose Authentifizierung via Magic-Link / Login-Code per E-Mail
+ * und bündelt aktive Genehmigungen sowie historische Archivdaten für den Nutzer.
+ *
+ * Path: src/Application/HistoryController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class HistoryController
 {
@@ -32,8 +35,12 @@ final readonly class HistoryController
     }
 
     /**
-     * @param array<string, mixed> $get
-     * @param array<string, mixed> $post
+     * Haupt-Request-Handler für die Benutzerhistorie.
+     * Steuert den Login-Prozess (Token-Generierung, Code-Verifizierung), Logout-Routen,
+     * Druckansichten und die Aggregration der Benutzerdaten.
+     *
+     * @param array<string, mixed> $get  Entspricht $_GET
+     * @param array<string, mixed> $post Entspricht $_POST
      */
     public function handleRequest(array $get, array $post): void
     {
@@ -115,7 +122,16 @@ final readonly class HistoryController
         $this->renderView($emailInSession, $displayMessage, $get, $isSuccess, $currentStep);
     }
 
-    // In renderView den neuen Parameter $isSuccess hinzufügen:
+    /**
+     * Bereitet die Benutzeroberfläche (Login oder Datenliste) vor und lädt optionale Archivdaten.
+     * Kombiniert Live-Daten mit historischen JSON-Jahresarchiven bei Bedarf.
+     *
+     * @param string               $email     E-Mail-Adresse des authentifizierten Nutzers.
+     * @param string               $message   Status- oder Fehlermeldung für die UI.
+     * @param array<string, mixed> $get       Entspricht $_GET (für Archiv-Filterung).
+     * @param bool                 $isSuccess Flag für visuelle Erfolgsdarstellung.
+     * @param int                  $step      Aktueller UI-Schritt (1 = E-Mail-Eingabe, 2 = Code-Eingabe).
+     */
     private function renderView(string $email, string $message, array $get, bool $isSuccess, int $step): void
     {
         if ($email === '') {
@@ -142,18 +158,18 @@ final readonly class HistoryController
                 $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
                 // Filter für E-Mail im Archiv
                 foreach ($archiveData as $item) {
-                    if (\strtolower((string) $item['email']) === \strtolower($email)) {
-                        $permits[] = $this->permitService->arrayToEntity($item);
+                    if (\strtolower((string) $item['email']) !== \strtolower($email)) {
+                        continue;
                     }
+
+                    $permits[] = $this->permitService->arrayToEntity($item);
                 }
             }
         }
 
         // --- Sortierung der Genehmigungen (Neueste zuerst) ---
         // Der Spaceship-Operator (<=>) funktioniert perfekt mit DateTime Objekten!
-        \usort($permits, function ($a, $b) {
-            return $b->erstellt <=> $a->erstellt;
-        });
+        \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
 
         $this->render('history_list', [
             'permits'            => $permits,
@@ -167,6 +183,13 @@ final readonly class HistoryController
         ]);
     }
 
+    /**
+     * Verarbeitet den Logout-Prozess für die History-Sitzung.
+     *
+     * @param array<string, mixed> $get Entspricht $_GET
+     *
+     * @return bool True, wenn ein Logout durchgeführt und weitergeleitet wurde.
+     */
     private function processLogout(array $get): bool
     {
         if (isset($get['action']) && $get['action'] === 'logout') {
@@ -179,6 +202,12 @@ final readonly class HistoryController
         return false;
     }
 
+    /**
+     * Validiert den Zugriff und rendert die Druckansicht einer spezifischen Genehmigung.
+     *
+     * @param string $code           Der eindeutige Hash der Genehmigung.
+     * @param string $emailInSession Die verifizierte E-Mail-Adresse aus der Session.
+     */
     private function handlePrintAction(string $code, string $emailInSession): void
     {
         $permit = $this->permitService->getStorage()->findByHash($code);
@@ -196,6 +225,8 @@ final readonly class HistoryController
     }
 
     /**
+     * Liefert Konfigurations-Settings für das History-Frontend.
+     *
      * @return array<string, mixed>
      */
     private function getSettingsArray(): array
@@ -210,7 +241,10 @@ final readonly class HistoryController
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Extrahiert Datenvariablen und bindet das History-Template ein.
+     *
+     * @param string               $template Name der .phtml Datei.
+     * @param array<string, mixed> $data     Variablen für das Template.
      */
     private function render(string $template, array $data): void
     {

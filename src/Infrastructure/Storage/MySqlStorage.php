@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Storage/MySqlStorage.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
@@ -16,6 +9,18 @@ use App\Core\Entity\Permit;
 
 /**
  * MySQL-Implementierung des Storage-Interfaces.
+ *
+ * Persistenz-Engine für relationale SQL-Datenbanken (MySQL / MariaDB).
+ * Nutzt vorbereitete Statements (Prepared Statements) mit benannten Parametern zum Schutz
+ * vor SQL-Injections und implementiert performante, datenbankseitige String-Säuberungen bei Suchen.
+ * Kontext: Enterprise-Datenhaltungs-Backend für performante Großbetriebe.
+ *
+ * Path: src/Infrastructure/Storage/MySqlStorage.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class MySqlStorage implements StorageInterface
 {
@@ -25,6 +30,14 @@ final readonly class MySqlStorage implements StorageInterface
     {
     }
 
+    /**
+     * Speichert oder aktualisiert eine Genehmigung via SQL-`REPLACE INTO` Statement.
+     * Flacht die Objektstrukturen über das integrierte Trait ab.
+     *
+     * @param Permit $permit Das zu persistierende Genehmigungs-Objekt.
+     *
+     * @return bool True bei fehlerfreier SQL-Ausführung.
+     */
     public function save(Permit $permit): bool
     {
         $sql = 'REPLACE INTO permits (
@@ -41,6 +54,13 @@ final readonly class MySqlStorage implements StorageInterface
         return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));
     }
 
+    /**
+     * Holt eine Genehmigung über eine direkte Primärschlüsselabfrage (`code`) aus der DB.
+     *
+     * @param string $hash Der eindeutige Code.
+     *
+     * @return Permit|null Die hydrierte Entität oder null.
+     */
     public function findByHash(string $hash): ?Permit
     {
         $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = ?');
@@ -51,8 +71,13 @@ final readonly class MySqlStorage implements StorageInterface
     }
 
     /**
-     * Findet eine Genehmigung anhand des Kennzeichens.
-     * Implementiert für v0.24.5 zur Erfüllung des StorageInterface.
+     * Findet eine Genehmigung über das amtliche Kennzeichen direkt auf DB-Ebene.
+     * Nutzt geschachtelte SQL-`REPLACE` Aufrufe zur Entfernung von Leerzeichen und Bindestrichen im Index
+     * und sortiert Treffer-Kandidaten im PHP-Scope nach Gültigkeits-Relevanz.
+     *
+     * @param string $plate Das Such-Kennzeichen.
+     *
+     * @return Permit|null Die am besten passende Genehmigung oder null.
      */
     public function findByLicensePlate(string $plate): ?Permit
     {
@@ -97,6 +122,11 @@ final readonly class MySqlStorage implements StorageInterface
         return $candidates[0];
     }
 
+    /**
+     * Ruft alle in der Tabelle `permits` hinterlegten Zeilen ab.
+     *
+     * @return array<int, Permit> Liste aller hydrierten Genehmigungs-Objekte.
+     */
     public function getAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM permits');
@@ -105,6 +135,13 @@ final readonly class MySqlStorage implements StorageInterface
         return \array_map($this->mapToEntity(...), $rows);
     }
 
+    /**
+     * Migriert alle Datenbank-Datensätze in eine alternative Speicher-Engine.
+     *
+     * @param StorageInterface $target Das Ziel-Repository (z.B. JsonStorage).
+     *
+     * @return int Anzahl transferierter Datensätze.
+     */
     public function migrateTo(StorageInterface $target): int
     {
         $count = 0;

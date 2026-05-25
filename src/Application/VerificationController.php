@@ -1,22 +1,25 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Application/VerificationController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
 
 /**
- * Orchestriert den Double-Opt-In Verifizierungsprozess.
+ * Controller zur Verifizierung von E-Mail-Adressen (Double-Opt-In).
+ * Verarbeitet die Validierungscodes aus Links oder manuellen Formulareingaben,
+ * finalisiert die Anträge und stößt die Mail-Warteschlange (MailQueueService) an.
+ *
+ * Path: src/Application/VerificationController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class VerificationController
 {
@@ -27,8 +30,12 @@ final readonly class VerificationController
     }
 
     /**
+     * Haupt-Request-Handler für den Double-Opt-In-Prozess.
+     * Überprüft Token aus $_GET oder Eingabecodes aus $_POST. Bei erfolgreicher Verifizierung
+     * wird die Mail-Queue getriggert und der Nutzer zur Statusprüfung weitergeleitet.
+     *
      * @param array<string, mixed> $get  Entspricht $_GET
-     * @param array<string, mixed> $post
+     * @param array<string, mixed> $post Entspricht $_POST
      */
     public function handleRequest(array $get, array $post): void
     {
@@ -47,7 +54,7 @@ final readonly class VerificationController
 
             // --- NEU: HIER TRIGGERN (Bevor wir die Methode verlassen) ---
             $mailService = $this->permitService->getMailService();
-            if ($mailService instanceof \App\Core\Service\MailQueueService) {
+            if ($mailService instanceof MailQueueService) {
                 $mailService->processQueue(3); // Dokumente sofort losschicken!
             }
 
@@ -87,6 +94,8 @@ final readonly class VerificationController
     }
 
     /**
+     * Generiert standardisierte Konfigurationsparameter für das Verifizierungs-Frontend.
+     *
      * @return array<string, mixed>
      */
     private function getSettingsArray(): array
@@ -99,7 +108,10 @@ final readonly class VerificationController
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Extrahiert Daten-Arrays und bindet die Eingabemasken für Verifizierungscodes ein.
+     *
+     * @param string               $templatePath Name der Layout-Datei.
+     * @param array<string, mixed> $data         Injektionsdaten.
      */
     private function render(string $templatePath, array $data = []): void
     {

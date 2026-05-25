@@ -1,23 +1,28 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/formular.phtml
-
 /**
  * Page: Public Application Form
  *
  * Das interaktive Antragsformular für neue Genehmigungen inkl. Code-Einlösung.
  *
- * @var array|null                        $prefill
- * @var array                             $settings
- * @var string                            $appRoot
- * @var \App\Infrastructure\Config\Config $config
- * @var bool                              $success
- * @var string                            $message
+ * Öffentliches Beantragungs-Formular (wird von PermitController & PaymentController genutzt).
+ * Erfasst Anträge für Ausnahmegenehmigungen. Integriert PayPal-Smart-Buttons für Online-Zahlungen,
+ * falls ein Tarif kostenpflichtig ist und unterstützt Vorbefüllungen durch Gutscheincodes.
+ *
+ * Path: templates/pages/formular.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @var string                                $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
+ * @var bool                                  $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
+ * @var array                                 $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
+ * @var string                                $appRoot   System-Root-Pfad.
+ * @var array|null                            $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
+ * @var \App\Contracts\Config\ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
+ * @var string                                $appRoot
  */
 $prefill ??= null;
 $tplMetadata = [];
@@ -623,18 +628,22 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         if (source === 'von' && inputVon.readOnly) return;
         const config = templates[selectTpl.value];
         if (!config) return;
+
         const isCustom = config.days === 'custom';
         const duration = isCustom ? 0 : parseInt(config.days);
+        const durationOffset = Math.max(0, duration - 1); // FIX: -1 Tag
+
         if (warningBox) warningBox.style.display = 'none';
 
         if (!isCustom) {
             // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
             let minBisDate = new window.Date(today); // TODO wenn in eigener JS Datei das "window." entfernen
-            minBisDate.setDate(minBisDate.getDate() + duration);
+            minBisDate.setDate(minBisDate.getDate() + durationOffset);
             const minBisStr = minBisDate.toISOString().split('T')[0];
 
             // Sperre im Kalender setzen
             inputBis.min = minBisStr;
+
             if (source === 'bis') {
                 // BIS wurde geändert -> Berechne VON (BIS - Dauer)
                 if (inputBis.value < minBisStr) {
@@ -645,13 +654,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     }
                 }
                 let d = new window.Date(inputBis.value); // TODO wenn in eigener JS Datei das "window." entfernen
-                d.setDate(d.getDate() - duration);
+                d.setDate(d.getDate() - durationOffset);
                 inputVon.value = d.toISOString().split('T')[0];
             } else {
                 // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
                 if (inputVon.value < todayStr) inputVon.value = todayStr;
                 let d = new window.Date(inputVon.value); // TODO wenn in eigener JS Datei das "window." entfernen
-                d.setDate(d.getDate() + duration);
+                d.setDate(d.getDate() + durationOffset);
                 inputBis.value = d.toISOString().split('T')[0];
             }
         } else {
@@ -722,7 +731,8 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
     // Falls ein Gutschein in der URL steht, aber kein $prefill aktiv ist (z.B. Fehlermeldung)
     // öffnen wir das Eingabefeld automatisch, damit der User den Code sieht/korrigieren kann.
-    const urlParams = new window.URLSearchParams(window.location.search); // TODO wenn in eigener JS Datei das "window." entfernen
+    const urlParams = new window.URLSearchParams(window.location
+    .search); // TODO wenn in eigener JS Datei das "window." entfernen
     if (urlParams.has('voucher') && !isVoucherActive) toggleVoucher();
 
     </script>

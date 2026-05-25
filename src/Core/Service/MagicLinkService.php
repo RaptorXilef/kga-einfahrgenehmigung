@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Core/Service/MagicLinkService.php
-
 declare(strict_types=1);
 
 namespace App\Core\Service;
@@ -14,7 +7,18 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * Dieser neue Service verwaltet die temporären Token für den Login.
+ * Service für das passwortlose Benutzer-Login-Verfahren (Magic-Links / Login-Codes).
+ *
+ * Erstellt hochfeste Krypto-Token sowie kurze 6-stellige Codes, überwacht deren
+ * Ablaufzeitfenster (TTL) und persistiert diese sitzungsübergreifend per JSON oder MySQL.
+ * Kontext: Authentifizierungskomponente für Endbenutzer-Historienzugriffe.
+ *
+ * Path: src/Core/Service/MagicLinkService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class MagicLinkService
 {
@@ -29,6 +33,14 @@ final readonly class MagicLinkService
         $this->storagePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
     }
 
+    /**
+     * Generiert ein neues passwortloses Login-Paket für eine E-Mail-Adresse.
+     * Erzeugt ein SHA-256 fähiges Lang-Token und einen kurzen alphanumerischen Code mit konfigurierter TTL.
+     *
+     * @param string $email Die Ziel-E-Mail-Adresse des Nutzers.
+     *
+     * @return array{token: string, code: string} Assoziatives Array aus Lang-Token und Kurz-Code.
+     */
     public function createToken(string $email): array
     {
         $token = \bin2hex(\random_bytes(32));
@@ -49,6 +61,15 @@ final readonly class MagicLinkService
         return ['token' => $token, 'code' => $code];
     }
 
+    /**
+     * Überprüft eine Benutzereingabe gegen offene Login-Tokens oder Kurz-Codes.
+     * Verwendet 'hash_equals' gegen Timing-Attacks, bereinigt abgelaufene Einträge (Garbage Collection)
+     * und löscht verbrauchte Tokens sofort nach erfolgreichem Treffer (Single-Use-Garantie).
+     *
+     * @param string $input Das eingegebene Kurz-Code-Fragment oder das vollständige URL-Token.
+     *
+     * @return string|null Die E-Mail-Adresse des authentifizierten Inhabers oder null bei Ungültigkeit.
+     */
     public function verifyAny(string $input): ?string
     {
         $links      = $this->loadLinks();
@@ -88,7 +109,9 @@ final readonly class MagicLinkService
     }
 
     /**
-     * @return array<string, array{email: string, expires: int}>
+     * Lädt den aktuellen Bestand an ungelösten Token-Referenzen aus dem konfigurierten Backend.
+     *
+     * @return array<string, array{email: string, code: string, expires: int}> Liste aktiver Tokens indiziert nach Krypto-Hash.
      */
     private function loadLinks(): array
     {
@@ -116,9 +139,9 @@ final readonly class MagicLinkService
     }
 
     /**
-     * Macht den Service kompatibel für die Migration
+     * Persistiert die übergebene Token-Liste im aktiven Speicher-Subsystem (MySQL-Truncate/Insert oder JSON).
      *
-     * @param array<string, array{email: string, code: string, expires: int}> $links
+     * @param array<string, array{email: string, code: string, expires: int}> $links Das zu schreibende Token-Array.
      */
     public function saveLinks(array $links): void
     {

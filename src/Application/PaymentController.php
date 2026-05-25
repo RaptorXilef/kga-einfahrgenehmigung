@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Application/PaymentController.php
-
 declare(strict_types=1);
 
 namespace App\Application;
@@ -15,7 +8,16 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
 /**
- * Verarbeitet Zahlungs-relevante API-Anfragen.
+ * Controller zur Abwicklung und Erfassung externer Zahlungen (z.B. PayPal-Webhook/Capture).
+ *
+ * Verwaltet zusätzlich die Erstellung von Erstanträgen sowie Vorbefüllungen durch Gutscheine.
+ *
+ * Path: src/Application/PaymentController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class PaymentController
 {
@@ -26,8 +28,13 @@ final readonly class PaymentController
     }
 
     /**
+     * Verarbeitet asynchrone REST-Zahlungsbestätigungen (JSON-Input stream).
+     * Finalisiert die Genehmigung bei erfolgreicher Transaktions-Verifizierung.
+     *
      * Verarbeitet das Capture (Geldeinzug) von PayPal-Bestellungen.
      * Nutzt das 'token' zur Identifizierung im Warteraum.
+     *
+     * @return void Schreibt JSON direkt in den Output-Stream.
      */
     public function handleCapture(): void
     {
@@ -63,9 +70,12 @@ final readonly class PaymentController
     }
 
     /**
-     * @param array<string, mixed>|null $prefill
+     * Generiert Template-Einstellungen und filtert öffentliche Antragsformulare.
+     * Berücksichtigt pre-filled Datensätze bei aktiven Gutscheincodes.
      *
-     * @return array<string, mixed>
+     * @param array<string, mixed>|null $prefill Optionale Gutschein-Stammdaten.
+     *
+     * @return array<string, mixed> Template-Konfigurationsarray.
      */
     private function getSettingsArray(?array $prefill = null): array
     {
@@ -90,6 +100,12 @@ final readonly class PaymentController
         ];
     }
 
+    /**
+     * Verarbeitet das Absenden des öffentlichen Antragsformulars per POST.
+     * Initiiert die Verifikationskette oder wertet vorausgefüllte Gutschein-Parameter aus $_GET aus.
+     *
+     * @param array<string, mixed> $post Entspricht $_POST
+     */
     public function handleRequest(array $post): void
     {
         $message = '';
@@ -127,7 +143,10 @@ final readonly class PaymentController
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Rendert die Bezahl- und Antragsformulare.
+     *
+     * @param string               $templatePath Dateiname des Page-Templates.
+     * @param array<string, mixed> $data         Injektionsvariablen.
      */
     private function render(string $templatePath, array $data = []): void
     {

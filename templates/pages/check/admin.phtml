@@ -1,25 +1,29 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/check/admin.phtml
-
 /**
  * Page: Verification Details (Admin View)
  *
  * Erweiterte Prüfseite für Schrankenpersonal und Vorstand.
  *
- * @var \App\Core\Entity\Permit|null         $permit
- * @var bool                                 $isDateValid
- * @var bool                                 $isTimeAllowed
+ * Erweiterte administrative Kontrollansicht für Platzwarte und Vorstände.
+ * Zeigt neben dem Gültigkeitsstatus auch sensible Daten wie Pächtername, Parzelle,
+ * interne Kommentare sowie administrative Schnell-Aktionen (z.B. Sperren/Drucken).
+ *
+ * Path: templates/pages/check/admin.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @var \App\Core\Entity\Permit|null         $permit        Die gefundene Genehmigungs-Entität.
+ * @var bool                                 $isDateValid   Ob das Ticket im Datumsbereich liegt.
+ * @var bool                                 $isTimeAllowed Ob laut HolidayService jetzt geöffnet ist.
+ * @var string                               $allowedToday  Nächster regulärer Einfahrts-Slot als Text.
  * @var array                                $settings
  * @var string                               $appRoot
  * @var \App\Infrastructure\Config\Config    $config
  * @var \App\Infrastructure\Auth\AuthService $auth
- * @var string                               $allowedToday
  */
 
 // Status-Farbe bestimmen (Logik synchron zur public.phtml)

@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Core/Service/MigrationService.php
-
 declare(strict_types=1);
 
 namespace App\Core\Service;
@@ -17,6 +10,20 @@ use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
 
+/**
+ * Service für Daten-Migrationen, automatisierte Datensicherungen (Backups) und System-Recovery.
+ *
+ * Überträgt relationale und flache Dateistrukturen (JSON <-> MySQL) bidirektional,
+ * steuert automatische Backup-Zyklen und stellt Tabellen-Schemata sowie Initialdaten (Seeding) her.
+ * Kontext: Administrativer Wartungs- und Backup-Manager der Anwendung.
+ *
+ * Path: src/Core/Service/MigrationService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class MigrationService
 {
     public function __construct(
@@ -30,6 +37,15 @@ final readonly class MigrationService
     ) {
     }
 
+    /**
+     * Orchestriert eine Migrationsaktion für einen Datenbereich.
+     * Erstellt vorab zwingend ein Sicherheitsbackup und verzweigt dann in die Sub-Migrationsschritte.
+     *
+     * @param string $target Der Schlüssel des Speicherbereichs (z.B. 'permits', 'users', 'vouchers').
+     * @param string $action Die Migrationsart ('json_to_mysql', 'mysql_to_json', 'sync').
+     *
+     * @return string HTML-formatierte Erfolgs- oder Fehlermeldung für das Admin-Interface.
+     */
     public function execute(string $target, string $action): string
     {
         // 1. Sicherheit: Backup erstellen, bevor wir IRGENDWAS anfassen
@@ -56,7 +72,12 @@ final readonly class MigrationService
     }
 
     /**
-     * Erstellt einen timestamped Ordner und sichert beide Datenquellen als JSON
+     * Generiert ein synchronisiertes Datei- und Datenbank-Abbild eines Zielbereichs im Backup-Ordner.
+     * Erzeugt Zeitstempel-Ordner und exportiert JSON-formatierte Rohdaten-Dumps.
+     *
+     * @param string $target Der zu sichernde Konfigurationsbereich.
+     *
+     * @return string Relativer Pfad zum erstellten Backup-Ordner.
      */
     private function createAutoBackup(string $target): string
     {
@@ -95,6 +116,14 @@ final readonly class MigrationService
         return $prefix . $subFolder . '/' . $timestamp;
     }
 
+    /**
+     * Exportiert Tabellendaten aus MySQL in eine flache JSON-Datei.
+     * Nutzt bei Permits das optimierte StorageInterface::migrateTo().
+     *
+     * @param string $target Der zu exportierende Bereich.
+     *
+     * @return string Statusmeldung über die Anzahl exportierter Datensätze.
+     */
     private function migrateSqlToJson(string $target): string
     {
         if ($target === 'permits') {
@@ -116,6 +145,13 @@ final readonly class MigrationService
         return \count($data) . ' Datensätze von MySQL nach JSON kopiert.';
     }
 
+    /**
+     * Importiert flache JSON-Datensätze in die relationale MySQL-Struktur.
+     *
+     * @param string $target Der zu importierende Bereich.
+     *
+     * @return string Statusmeldung über die importierten Zeilen.
+     */
     private function migrateJsonToSql(string $target): string
     {
         if ($target === 'permits') {
@@ -137,6 +173,13 @@ final readonly class MigrationService
         return \count($data) . ' Datensätze von JSON nach MySQL kopiert.';
     }
 
+    /**
+     * Führt JSON- und MySQL-Bestände über ein rekursives Array-Merging zusammen und gleicht beide Backends an.
+     *
+     * @param string $target Der zu konsolidierende Datenbereich.
+     *
+     * @return string Erfolgsmeldung inklusive Gesamtanzahl der Datensätze.
+     */
     private function syncBoth(string $target): string
     {
         // 1. Daten aus beiden Quellen laden
@@ -155,6 +198,13 @@ final readonly class MigrationService
 
     // --- Helfer für direkten Zugriff ohne Rücksicht auf die aktuelle Config-Einstellung ---
 
+    /**
+     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
+     *
+     * @param string $key Speicher-Key aus der Konfiguration.
+     *
+     * @return array<string, mixed> Ungefiltertes Datenarray.
+     */
     private function loadRawJson(string $key): array
     {
         $cfg  = $this->config->get('storage_config')[$key];
@@ -163,6 +213,12 @@ final readonly class MigrationService
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
+    /**
+     * Schreibt Daten-Arrays formatiert zurück in die physische JSON-Zieldatei.
+     *
+     * @param string               $key  Speicher-Key.
+     * @param array<string, mixed> $data Die zu serialisierenden Daten.
+     */
     private function saveToJson(string $key, array $data): void
     {
         $cfg  = $this->config->get('storage_config')[$key];
@@ -170,6 +226,13 @@ final readonly class MigrationService
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
+     *
+     * @param string $key Tabellen-Key.
+     *
+     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel (id/token/code).
+     */
     private function loadRawSql(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
@@ -200,7 +263,11 @@ final readonly class MigrationService
     }
 
     /**
+     * Routet Rohdaten an die zuständigen Service-Klassen zur korrekten SQL-Persistierung weiter.
      * Schreibt Rohdaten (Arrays) in die SQL-Tabellen
+     *
+     * @param string               $key  Ziel-Domainkomponente.
+     * @param array<string, mixed> $data Liste der zu injectenden Datensätze.
      */
     private function saveToSql(string $key, array $data): void
     {
@@ -218,6 +285,11 @@ final readonly class MigrationService
 
     // Kleine Hilfsmethoden, um saveToSql sauber zu halten:
 
+    /**
+     * Hilfsmethode zur spezifischen SQL-Hydrierung und Speicherung von Genehmigungs-Entitäten.
+     *
+     * @param array<int, array<string, mixed>> $data
+     */
     private function migratePermitsToSql(array $data): void
     {
         if (! $this->pdo) {
@@ -229,6 +301,13 @@ final readonly class MigrationService
         }
     }
 
+    /**
+     * Löst den vollen Absolut-Pfad einer JSON-Speicherdatei auf.
+     *
+     * @param string $key Speicherbereich.
+     *
+     * @return string Physischer Dateipfad.
+     */
     private function getFilePath(string $key): string
     {
         $cfg = $this->config->get('storage_config')[$key];
@@ -237,8 +316,10 @@ final readonly class MigrationService
     }
 
     /**
+     * Scannt das Backup-Verzeichnis und listet alle verfügbaren Backup-Stände und deren Dateiinhalte auf.
      * Listet alle verfügbaren Backup-Ordner sortiert nach Datum (neuere zuerst).
-     * @return array<string, array<string>>
+     *
+     * @return array<string, array<int, string>> Absteigend sortiertes Array (neueste zuerst) von Datei-Listen.
      */
     public function listBackups(): array
     {
@@ -252,11 +333,13 @@ final readonly class MigrationService
 
         foreach ($folders as $folder) {
             $fullPath = $backupPath . '/' . $folder;
-            if (\is_dir($fullPath)) {
-                // Prüfen, welche Dateien im Backup liegen
-                $files           = \array_diff(\scandir($fullPath), ['.', '..']);
-                $result[$folder] = \array_values($files);
+            if (! \is_dir($fullPath)) {
+                continue;
             }
+
+            // Prüfen, welche Dateien im Backup liegen
+            $files           = \array_diff(\scandir($fullPath), ['.', '..']);
+            $result[$folder] = \array_values($files);
         }
 
         \krsort($result); // Neueste Backups oben
@@ -265,7 +348,13 @@ final readonly class MigrationService
     }
 
     /**
-     * Stellt einen Datentyp aus einem Backup wieder her.
+     * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
+     * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
+     *
+     * @param string $timestamp Der Ordnername (Zeitstempel) des Quell-Backups.
+     * @param string $target    Der Zielbereich, welcher überschrieben werden soll.
+     *
+     * @return string Status-Ergebnistext für das Admin-Frontend.
      */
     public function restore(string $timestamp, string $target): string
     {
@@ -306,7 +395,9 @@ final readonly class MigrationService
     }
 
     /**
-     * Prüft das Zeit-Intervall und führt ggf. ein Backup mit Rotation durch.
+     * Überwacht und steuert automatisierte Backup-Intervalle im Hintergrund.
+     * Prüft anhand eines Timestamps in `last_auto_backup.txt`, ob ein konfiguriertes Intervall abgelaufen ist,
+     * stößt die Sicherung an und rotiert alte Backups (Retention Rate) aus.
      */
     public function checkAutoBackup(): void
     {
@@ -322,18 +413,22 @@ final readonly class MigrationService
 
         $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
 
-        if (\time() - $lastBackup > $interval) {
-            // 1. Neues Backup erstellen
-            $this->createAutoBackup('auto_maintenance');
-            \file_put_contents($stateFile, (string) \time());
-
-            // 2. Alte Backups löschen (Rotation)
-            $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
+        if (\time() - $lastBackup <= $interval) {
+            return;
         }
+
+        // 1. Neues Backup erstellen
+        $this->createAutoBackup('auto_maintenance');
+        \file_put_contents($stateFile, (string) \time());
+
+        // 2. Alte Backups löschen (Rotation)
+        $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
     }
 
     /**
-     * Löscht die ältesten Backup-Ordner, wenn das Limit überschritten ist.
+     * Rotiert Backup-Ordner basierend auf der maximal zulässigen Anzahl im System (FIFO-Verfahren).
+     *
+     * @param int $max Die Obergrenze für aufzubewahrende Backups (z.B. 10).
      */
     private function rotateBackups(int $max): void
     {
@@ -348,23 +443,29 @@ final readonly class MigrationService
         $folders   = \array_diff(\scandir($backupPath), ['.', '..']);
         $fullPaths = [];
         foreach ($folders as $f) {
-            if (\is_dir($backupPath . '/' . $f)) {
-                $fullPaths[$f] = $backupPath . '/' . $f;
+            if (! \is_dir($backupPath . '/' . $f)) {
+                continue;
             }
+
+            $fullPaths[$f] = $backupPath . '/' . $f;
         }
 
         \ksort($fullPaths); // Sortiert chronologisch (älteste zuerst)
 
-        if (\count($fullPaths) > $max) {
-            $toDelete = \array_slice($fullPaths, 0, \count($fullPaths) - $max);
-            foreach ($toDelete as $dir) {
-                $this->recursiveDelete($dir);
-            }
+        if (\count($fullPaths) <= $max) {
+            return;
+        }
+
+        $toDelete = \array_slice($fullPaths, 0, \count($fullPaths) - $max);
+        foreach ($toDelete as $dir) {
+            $this->recursiveDelete($dir);
         }
     }
 
     /**
-     * Hilfsfunktion zum Löschen eines Ordners inkl. Inhalt
+     * Löscht Verzeichnisstrukturen inklusive aller enthaltenen Dateien rekursiv vom Datenträger.
+     *
+     * @param string $dir Absoluter Pfad zum Ziel-Verzeichnis.
      */
     private function recursiveDelete(string $dir): void
     {
@@ -373,13 +474,14 @@ final readonly class MigrationService
         }
         $files = \array_diff(\scandir($dir), ['.', '..']);
         foreach ($files as $file) {
-            (\is_dir("$dir/$file")) ? $this->recursiveDelete("$dir/$file") : \unlink("$dir/$file");
+            \is_dir("$dir/$file") ? $this->recursiveDelete("$dir/$file") : \unlink("$dir/$file");
         }
         \rmdir($dir);
     }
 
     /**
-     * Erstellt die Tabellen basierend auf der config/schema.php
+     * Erstellt die physischen MySQL-Tabellenstrukturen zur Laufzeit, falls diese nicht existieren.
+     * Nutzt das in der Konfiguration geladene SQL-Schema.
      */
     public function ensureTablesExist(): void
     {
@@ -391,13 +493,15 @@ final readonly class MigrationService
         foreach ($schema as $tableName => $sql) {
             try {
                 $this->pdo->exec($sql);
-            } catch (\PDOException $e) {
+            } catch (\PDOException) {
                 // Fehler silent loggen oder behandeln, falls nötig
             }
         }
     }
 
     /**
+     * Initiiert das Seeding von Grunddaten (Gruppen-Rechte und Core-Administratoren).
+     *
      * Füllt die Datenbank/JSON-Dateien beim Erststart mit Standardwerten
      * ODER übernimmt Daten aus der jeweils anderen Quelle.
      */
@@ -407,6 +511,9 @@ final readonly class MigrationService
         $this->seedUsers();
     }
 
+    /**
+     * Erstellt Standard-Rollen (Admin, Finanzen, Sachbearbeitung, Prüfer) inklusive fein-granularer Rechte.
+     */
     private function seedGroups(): void
     {
         $cfg         = $this->config->get('storage_config')['groups'];
@@ -417,7 +524,7 @@ final readonly class MigrationService
         $sqlData  = $this->loadRawSql('groups');
 
         // 2. Prüfen, ob die AKTIVE Welt leer ist
-        $activeData = ($currentType === 'json') ? $jsonData : $sqlData;
+        $activeData = $currentType === 'json' ? $jsonData : $sqlData;
 
         if (! empty($activeData)) {
             return; // Nichts tun, wir haben schon Daten
@@ -562,6 +669,9 @@ final readonly class MigrationService
         }
     }
 
+    /**
+     * Erstellt den initialen System-Admin-Benutzer accountseitig, falls die Tabellen/Dateien leer sind.
+     */
     private function seedUsers(): void
     {
         $cfg         = $this->config->get('storage_config')['users'];
@@ -570,7 +680,7 @@ final readonly class MigrationService
         $jsonData = $this->loadRawJson('users');
         $sqlData  = $this->loadRawSql('users');
 
-        $activeData = ($currentType === 'json') ? $jsonData : $sqlData;
+        $activeData = $currentType === 'json' ? $jsonData : $sqlData;
         if (! empty($activeData)) {
             return;
         }

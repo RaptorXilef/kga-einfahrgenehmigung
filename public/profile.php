@@ -1,20 +1,21 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: public/profile.php
+/**
+ * Entry Point: My Profile
+ *
+ * Path: public/profile.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 
 declare(strict_types=1);
 
 use App\Application\UserController;
 use App\Contracts\Mail\MailServiceInterface;
-
-/**
- * Entry Point: My Profile
- */
+use App\Core\Service\MailQueueService;
 
 // 1. Nutze den zentralen Bootstrapper (garantiert alle Pfade und den Container)
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
@@ -28,9 +29,9 @@ $controller->handleProfileRequest($_POST);
 // 4. Mail-Queue verarbeiten
 try {
     $mailService = $container->get(MailServiceInterface::class);
-    if ($mailService instanceof \App\Core\Service\MailQueueService) {
+    if ($mailService instanceof MailQueueService) {
         $mailService->processQueue(10);
     }
-} catch (\Throwable $e) {
+} catch (\Throwable) {
     // Silent fail für Mails
 }

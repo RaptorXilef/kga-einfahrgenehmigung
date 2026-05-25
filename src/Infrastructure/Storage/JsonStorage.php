@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Storage/JsonStorage.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
@@ -18,16 +11,39 @@ use App\Core\Entity\Permit;
  * JSON-Implementierung des Storage-Interfaces.
  *
  * Verwaltet den Lese- und Schreibzugriff auf die lokale permits_active.json.
+ *
+ * Persistenz-Engine für dateibasierte Datenhaltung im JSON-Format.
+ * Implementiert das StorageInterface und nutzt exklusive Dateisperren (`LOCK_EX`)
+ * beim Schreiben sowie Kennzeichen-Suchalgorithmen mit Relevanz-Sortierung.
+ * Kontext: Leichtgewichtiges NoSQL-Datei-Backend für kleine Umgebungen ohne MySQL-Server.
+ *
+ * Path: src/Infrastructure/Storage/JsonStorage.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class JsonStorage implements StorageInterface
 {
     use StorageMapperTrait;
 
+    /**
+     * @param string $filePath Absoluter oder relativer Pfad zur JSON-Zieldatei auf dem Server.
+     */
     public function __construct(
         private string $filePath,
     ) {
     }
 
+    /**
+     * Serialisiert und speichert eine Genehmigungs-Entität in der JSON-Datei.
+     * Verwendet das StorageMapperTrait zum Abflachen der Objektstruktur.
+     *
+     * @param Permit $permit Das zu speichernde Permit-Objekt.
+     *
+     * @return bool True, wenn der Schreibvorgang erfolgreich war.
+     */
     public function save(Permit $permit): bool
     {
         $data = $this->loadRaw();
@@ -41,6 +57,13 @@ final readonly class JsonStorage implements StorageInterface
         );
     }
 
+    /**
+     * Sucht eine Genehmigung anhand des vollständigen Codes oder des zufälligen Suffix-Endstücks.
+     *
+     * @param string $hash Der Code oder Suffix-Teilstring für die Suche.
+     *
+     * @return Permit|null Die hydrierte Entität oder null, falls kein Treffer erzielt wurde.
+     */
     public function findByHash(string $hash): ?Permit
     {
         $data = $this->loadRaw();
@@ -61,11 +84,23 @@ final readonly class JsonStorage implements StorageInterface
         return null;
     }
 
+    /**
+     * Lädt den gesamten JSON-Inhalt und konvertiert alle Zeilen in starke Permit-Entitäten.
+     *
+     * @return array<int, Permit> Liste aller Genehmigungen im Dokument.
+     */
     public function getAll(): array
     {
         return \array_map($this->mapToEntity(...), $this->loadRaw());
     }
 
+    /**
+     * Migriert alle enthaltenen JSON-Datensätze in eine andere Storage-Ziel-Engine.
+     *
+     * @param StorageInterface $target Das Ziel-Repository (z.B. MySqlStorage).
+     *
+     * @return int Die Anzahl erfolgreich migrierter Datensätze.
+     */
     public function migrateTo(StorageInterface $target): int
     {
         $count = 0;
@@ -81,7 +116,9 @@ final readonly class JsonStorage implements StorageInterface
     }
 
     /**
-     * @return array<string, mixed>
+     * Liest die rohen, unstrukturierten JSON-Arrayinhalte direkt von der Festplatte.
+     *
+     * @return array<string, mixed> Das assoziative Rohdaten-Array.
      */
     private function loadRaw(): array
     {
@@ -92,6 +129,15 @@ final readonly class JsonStorage implements StorageInterface
         return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
     }
 
+    /**
+     * Findet eine Genehmigung über das amtliche Kennzeichen.
+     * Bereinigt Leer- und Sonderzeichen für den Abgleich und sortiert bei Mehrfachtreffern
+     * nach Priorität: Aktive/Gültige zuerst, danach absteigend nach dem Ablaufdatum (`bis`).
+     *
+     * @param string $plate Das gesuchte Fahrzeugkennzeichen.
+     *
+     * @return Permit|null Die relevanteste passende Genehmigung oder null.
+     */
     public function findByLicensePlate(string $plate): ?Permit
     {
         $all         = $this->getAll();
@@ -105,9 +151,11 @@ final readonly class JsonStorage implements StorageInterface
 
         foreach ($all as $permit) {
             $storedPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($permit->vehicle->kennzeichen));
-            if ($storedPlate === $searchPlate) {
-                $candidates[] = $permit;
+            if ($storedPlate !== $searchPlate) {
+                continue;
             }
+
+            $candidates[] = $permit;
         }
 
         if ($candidates === []) {

@@ -1,8 +1,17 @@
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-
 /**
- * Universal Table Sorter (3-State: ASC, DESC, RESET)
+ * Engine für clientseitige interaktive Tabellensortierungen.
+ * Scannt strukturierte Klassen (`.js-sort-table`), injiziert grafische Sortierungs-Indikatoren (⇅, ↓, ↑),
+ * speichert die Standard-Reihenfolge (`originalRows`) für Resets und sortiert Spalten dynamisch
+ * nach numerischen Werten (mittels data-sort-val) oder alphanumerischen Strings.
+ * Kontext: Universelles Usability-Plugin für Admin- und Statistik-Tabellen.
+ *
+ * Path: src/assets/js/table-sorter.js
+ * Path: public/assets/js/table-sorter.min.js
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 class TableSorter {
     constructor() {
@@ -10,6 +19,13 @@ class TableSorter {
         this.init();
     }
 
+    /**
+     * Scannt DOM-Tabellen, cached die Initial-Reihenfolge der Zeilen in `table.originalRows`
+     * und bindet Klick-Listener an sortierfähige Tabellenköpfe (`th.js-sort-header`).
+     * Skips Tabellen, die Colspans (z.B. leere Tabellen-Meldungen) enthalten.
+     *
+     * @return {void}
+     */
     init() {
         this.tables.forEach((table) => {
             const tbody = table.querySelector('tbody');
@@ -35,6 +51,17 @@ class TableSorter {
         });
     }
 
+    /**
+     * Steuert den Sortierungsprozess einer Spalte nach dem Drei-Wege-Prinzip (Aufsteigend -> Absteigend -> Reset).
+     * Setzt Zustandsklassen an Header-Elementen, aktualisiert visuelle SVG/Unicode-Pfeile,
+     * liest `data-sort-val` Attribute aus und ordnet die Tabellenzeilen (TRs) über Array-Mutationen neu an.
+     *
+     * @param {HTMLTableElement} table       Das betroffene Tabellen-DOM-Objekt.
+     * @param {HTMLTableCellElement} th      Der geklickte Tabellenkopf (Spaltenüberschrift).
+     * @param {number}           columnIndex Der nullbasierte Index der Spalte im Zeilen-Verbund.
+     *
+     * @return {void}
+     */
     sortTable(table, th, columnIndex) {
         const tbody = table.querySelector('tbody');
         const rows = Array.from(tbody.querySelectorAll('tr'));

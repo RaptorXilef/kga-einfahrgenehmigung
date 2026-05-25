@@ -1,16 +1,16 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/profile.phtml
-
 /**
  * Component: Drag & Drop Avatar Upload
  *
  * Stellt CSS und JS für interaktive Bild-Uploads (Dropzones mit Preview) bereit.
+ *
+ * Path: templates/pages/profile.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 ?>
 
@@ -84,12 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const inp = zone.querySelector('input[type="file"]'),
-            frm = zone.closest('form');
+            frm = zone.closest('form') || zone.querySelector('form');
 
         const handleFile = f => {
             if (!f || !f.type.startsWith('image/')) return alert('Bitte nur Bilder hochladen!');
             if (zone.classList.contains('js-preview-only')) {
-                const r = new window.FileReader(); // TODO Wenn in eigener JS Datei, das "window." wieder entfernen.
+                const r = new window
+            .FileReader(); // TODO Wenn in eigener JS Datei, das "window." wieder entfernen.
                 r.onload = e => {
                     const img = zone.querySelector('.js-preview-img'),
                         txt = zone.querySelector('.js-preview-text');

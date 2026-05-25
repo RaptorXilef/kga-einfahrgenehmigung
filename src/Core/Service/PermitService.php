@@ -22,11 +22,20 @@ use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 
 /**
+ * Domain-Zentraldienst für den Lebenszyklus von Befahrungs-Genehmigungen.
+ *
+ * Steuert Kollisionsprüfungen, Validierungsketten, Kennzeichen-Formatierung, E-Mail-Verifikationen,
+ * Rechnungsstellungen, PayPal-Zahlungsabschlüsse und automatisierte Archivierungsprozesse.
+ * Kontext: Der zentrale Business-Logik-Kern (Domain Service) des gesamten Genehmigungssystems.
+ *
  * Service zur Verwaltung des Genehmigungsprozesses. / Zentraler Service für Ausnahmegenehmigungen.
  *
- * Orchestriert die Erstellung, Validierung, Speicherung und Benachrichtigung.
- * Unterstützt PayPal-Verifizierung (Instant) und Banküberweisungen (Pending)
- * mit konfigurierbaren Sicherheits-Features und dynamischem Pricing.
+ * Path: src/Core/Service/PermitService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class PermitService
 {
@@ -42,10 +51,16 @@ final readonly class PermitService
     }
 
     /**
-     * Erstellt eine neue Genehmigung basierend auf Vorlagen. v0.14.0
+     * Erstellt eine neue Genehmigung basierend auf Vorlagen.
      *
-     * @param array<string, mixed> $data
-     * @param bool                 $sendMails Steuert den sofortigen Mailversand.
+     * Fabrikmethode zur Generierung und direkten Speicherung einer voll-hydrierten Permit-Entität.
+     * Berechnet Ablaufdaten, formatiert Kennzeichen, erzeugt eindeutige System-Identifikatoren,
+     * zieht Tarife heran und stößt optionale Benachrichtigungs-Mails an den Nutzer und Vorstand an.
+     *
+     * @param array<string, mixed> $data      Eingabedaten des Antrags (Name, E-Mail, Parzelle, Kennzeichen, Typ).
+     * @param bool                 $sendMails Flag, ob Dokumente und Benachrichtigungen direkt versendet werden sollen.
+     *
+     * @return Permit Die erstellte und persistierte Genehmigungs-Entität.
      */
     public function createPermit(array $data, bool $sendMails = true): Permit
     {
@@ -60,9 +75,12 @@ final readonly class PermitService
         $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
 
         // Automatische Berechnung der Tage aus der Vorlage
-        $endDate = $startDate->modify('+' . $template['days'] . ' days');
+        // --- FIX: -1 Tag für Inklusiv-Zählung (z.B. 7 Tage = heute + 6) ---
         if ($template['days'] === 'custom') {
             $endDate = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
+        } else {
+            $daysToAdd = \max(0, (int) $template['days'] - 1);
+            $endDate   = $startDate->modify('+' . $daysToAdd . ' days');
         }
 
         // 2. Preis bestimmen (Template-Preis oder Admin-Override) (pkw)
@@ -132,9 +150,13 @@ final readonly class PermitService
     }
 
     /**
-     * Erstellt einen temporären Antrag, der erst bestätigt werden muss.
+     * Erstellt eine temporäre, unbestätigte Sitzung für das Double-Opt-In-Verfahren des Antragsformulars.
+     * Führt eine zeitliche Vorab-Kollisionsprüfung durch, berechnet den vorläufigen Preis,
+     * generiert Krypto-Verifikationstoken und versendet die Bestätigungs-E-Mail an den Antragsteller.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $data Formulardaten aus dem Web-Request.
+     *
+     * @return string Das erzeugte 32-Byte Verifikations-Token für Redirects.
      */
     public function createPendingVerification(array $data): string
     {
@@ -179,6 +201,13 @@ final readonly class PermitService
 
     // --- INTERNE LOGIK & HELFER ---
 
+    /**
+     * Hilfsmethode zur Ermittlung des absoluten Speicherpfads temporärer Antrags-JSON-Dateien.
+     *
+     * @param string $key Speicher-Bezeichner ('pending_verification' oder 'verified_pending').
+     *
+     * @return string Physischer Dateipfad.
+     */
     private function getStoragePath(string $key): string
     {
         $cfg = $this->config->get('storage_config')[$key];
@@ -189,6 +218,16 @@ final readonly class PermitService
     /**
      * Prüft, ob für eine Parzelle bereits Genehmigungen im Zeitraum vorliegen.
      * Wir prüfen bestätigte Genehmigungen UND offene Verifizierungen.
+     *
+     * Validiert Anträge auf Überschneidungsfreiheit pro Parzelle (Kollisionsschutz).
+     * Blockiert Anträge, falls für die Parzelle im Zielzeitraum bereits eine aktive Genehmigung
+     * existiert oder eine offene Double-Opt-In-Verifikation blockiert wird (Spam-/Double-Booking-Schutz).
+     *
+     * @param string             $parzelle Die Parzellennummer.
+     * @param \DateTimeImmutable $start    Gewünschtes Startdatum.
+     * @param \DateTimeImmutable $end      Gewünschtes Enddatum.
+     *
+     * @return void Wirft eine Exception bei Überschneidungskonflikten.
      */
     private function validateNoCollisions(string $parzelle, \DateTimeImmutable $start, \DateTimeImmutable $end): void
     {
@@ -230,7 +269,7 @@ final readonly class PermitService
     }
 
     /**
-     * Die mathematische Formel für Zeit-Überschneidungen.
+     * Prüft, ob zwei Datumsbereiche miteinander überlappen.
      */
     private function datesOverlap(
         \DateTimeImmutable $startA,
@@ -242,10 +281,13 @@ final readonly class PermitService
     }
 
     /**
-     * Schritt 2: Verschiebt von unbestätigt (24h) nach verifiziert (48h).
-     * Berücksichtigt nun Rabatte und Teilzahlungen durch Gutscheine.
+     * Verarbeitet den Klick auf den E-Mail-Bestätigungslink (Double-Opt-In Abschluss).
+     * Überführt Daten von 'pending' nach 'verified', rechnet optionale Gutscheincodes ab,
+     * finalisiert den Antrag sofort bei 100%-Rabatten (0 € Tickets) und setzt andernfalls die Zahlungsfrist in Gang.
      *
-     * @return array<string, mixed>|null
+     * @param string $input Das übermittelte Verifikations-Token oder der 6-stellige Kurzcode.
+     *
+     * @return array<string, mixed>|null Assoziatives Datensatz-Array des Antrags oder ein Finalisierungs-Array.
      */
     public function confirmEmail(string $input): ?array
     {
@@ -329,8 +371,15 @@ final readonly class PermitService
     }
 
     /**
-     * Berechnet den Endpreis für einen Gutschein.
+     * Berechnet den finalen Ticketpreis unter Berücksichtigung von Gutschein-Rabattierungsmodellen.
+     * Unterstützt Gratis-Tickets ('free'), Festpreis-Überschreibungen ('fixed') und prozentuale Abschläge ('percent').
+     *
      * Robust gegen fehlende Array-Keys.
+     *
+     * @param float                $originalPrice Der reguläre Basispreis des Fahrzeugtarifs.
+     * @param array<string, mixed> $voucher       Die Gutschein-Konfigurationsdaten.
+     *
+     * @return float Der rabattierte Bruttobetrag (garantiert >= 0.0).
      */
     public function calculateDiscountedPrice(float $originalPrice, array $voucher): float
     {
@@ -348,7 +397,13 @@ final readonly class PermitService
     }
 
     /**
-     * Schritt 3: Der eigentliche Umzug in die Datenbank und Mail-Versand.
+     * Überführt einen erfolgreich verifizierten/bezahlten Vorab-Antrag in eine echte Genehmigung.
+     *
+     * @param string      $token     Das aktive Sitzungs-Token aus der verifizierten Queue.
+     * @param string      $status    Der zu vergebende Ziel-Status (z.B. 'bezahlt', 'wartend').
+     * @param string|null $kommentar Optionaler interner Vermerk für das Audit-Protokoll.
+     *
+     * @return Permit Die final generierte Genehmigungs-Entität.
      */
     public function finaliseRequest(string $token, string $status = 'wartend', ?string $kommentar = null): Permit
     {
@@ -374,7 +429,10 @@ final readonly class PermitService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * Speichert temporäre Antragssitzungen ab (Unterstützt flache JSONs oder relationale MySQL-Tabellen).
+     *
+     * @param string               $path Absoluter Dateipfad oder Tabellenname.
+     * @param array<string, mixed> $data Die zu serialisierende Datenmenge.
      */
     private function saveJson(string $path, array $data): void
     {
@@ -382,10 +440,10 @@ final readonly class PermitService
         $isPending  = \str_contains($path, 'pending_verification');
         $isVerified = \str_contains($path, 'verified_pending');
 
-        if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
+        if (
+            ($isPending && $mapping['pending_verification']['type'] === 'mysql')
             || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')
         ) {
-
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
             if (! $this->pdo) {
                 return;
@@ -404,7 +462,11 @@ final readonly class PermitService
     }
 
     /**
-     * @return array<string, mixed>
+     * Lädt temporäre Antragssitzungen und filtert im 'pending'-Status abgelaufene TTLs automatisch heraus.
+     *
+     * @param string $path Speicherpfad.
+     *
+     * @return array<string, mixed> Liste aktiver Anträge indiziert nach Token.
      */
     private function loadJson(string $path): array
     {
@@ -412,10 +474,10 @@ final readonly class PermitService
         $isPending  = \str_contains($path, 'pending_verification');
         $isVerified = \str_contains($path, 'verified_pending');
 
-        if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
+        if (
+            ($isPending && $mapping['pending_verification']['type'] === 'mysql')
             || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')
         ) {
-
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
             if (! $this->pdo) {
                 return [];
@@ -445,7 +507,12 @@ final readonly class PermitService
     }
 
     /**
-     * Orchestriert den Versand der unterschiedlichen E-Mails.
+     * Versendet automatisierte E-Mail-Pakete nach der Erstellung einer Genehmigung.
+     * Generiert EPC-konforme QR-Überweisungsdaten (SEPA-Stuzza), berechnet verschlüsselte Admin-Validierungslinks
+     * und verschickt die PDF/A4-Dokumenten-E-Mail an den Nutzer sowie die Infomail an den Vereinsvorstand.
+     *
+     * @param Permit $permit    Das erstellte Genehmigungs-Objekt.
+     * @param string $shortCode Der zufällige Suffix-Code für den Verwendungszweck.
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
@@ -483,55 +550,65 @@ final readonly class PermitService
         );
 
         // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---
-        if (! empty(\trim($permit->owner->email))) {
+        if (empty(\trim($permit->owner->email))) {
+            return;
+        }
 
-            // 2. ZAHLUNGSAUFFORDERUNG (Nur wenn noch nicht bezahlt)
-            if ($permit->status->current !== 'bezahlt') {
-                $usage     = $this->generateUsageText($permit, $shortCode);
-                $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
+        // 2. ZAHLUNGSAUFFORDERUNG (Nur wenn noch nicht bezahlt)
+        if ($permit->status->current !== 'bezahlt') {
+            $usage     = $this->generateUsageText($permit, $shortCode);
+            $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
 
-                $this->mailService->sendTemplate(
-                    $permit->owner->email,
-                    "Zahlung erforderlich: {$permit->code}",
-                    'payment_request',
-                    [
-                        'name'           => $permit->owner->name,
-                        'fullIdentifier' => $permit->code,
-                        'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
-                        'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
-                        'kontoinhaber'   => $this->config->get('kontoinhaber'),
-                        'iban'           => $this->config->get('iban'),
-                        'usage'          => $usage,
-                        'epcData'        => \urlencode($epcQrData),
-                    ],
-                );
-            }
-
-            // 3. DAS A4 DOKUMENT (KEINE DUPLIKATE MEHR!)
             $this->mailService->sendTemplate(
                 $permit->owner->email,
-                'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
-                'permit_a4_document',
+                "Zahlung erforderlich: {$permit->code}",
+                'payment_request',
                 [
-                    'fullIdentifier'    => $permit->code,
-                    'von_formatted'     => $permit->validity->von->format('d.m.Y'),
-                    'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
-                    'kennzeichen'       => $permit->vehicle->kennzeichen,
-                    'firma'             => $permit->vehicle->firma ?? '',
-                    'parzelle'          => $permit->owner->parzelle,
-                    'zweck'             => $permit->validity->zweck,
-                    'templateKey'       => $permit->templateKey,
-                    'vereinsName'       => $this->config->get('vereins_name'),
-                    'jahresFarbe'       => $this->config->get('jahresFarbe'),
-                    'opening'           => $opening,
-                    'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-                    'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
-                    'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
+                    'name'           => $permit->owner->name,
+                    'fullIdentifier' => $permit->code,
+                    'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                    'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
+                    'kontoinhaber'   => $this->config->get('kontoinhaber'),
+                    'iban'           => $this->config->get('iban'),
+                    'usage'          => $usage,
+                    'epcData'        => \urlencode($epcQrData),
                 ],
             );
         }
+
+        // 3. DAS A4 DOKUMENT (KEINE DUPLIKATE MEHR!)
+        $this->mailService->sendTemplate(
+            $permit->owner->email,
+            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
+            'permit_a4_document',
+            [
+                'fullIdentifier'    => $permit->code,
+                'von_formatted'     => $permit->validity->von->format('d.m.Y'),
+                'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
+                'kennzeichen'       => $permit->vehicle->kennzeichen,
+                'firma'             => $permit->vehicle->firma ?? '',
+                'parzelle'          => $permit->owner->parzelle,
+                'zweck'             => $permit->validity->zweck,
+                'templateKey'       => $permit->templateKey,
+                'vereinsName'       => $this->config->get('vereins_name'),
+                'jahresFarbe'       => $this->config->get('jahresFarbe'),
+                'opening'           => $opening,
+                'terminkalenderUrl' => $this->config->get('terminkalender_url'),
+                'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+                'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
+            ],
+        );
     }
 
+    /**
+     * Generiert den eindeutigen, standardisierten Verwendungszweck für Banküberweisungen.
+     * Aufbau-Schema: EFG-[Nachname]-[Vorname]-[Kurzcode]
+     *
+     * @param Permit $permit    Die Genehmigung.
+     * @param string $shortCode Der Suffix-Code.
+     *
+     * @return string Der bereinigte Verwendungszweck-String.
+     */
     private function generateUsageText(Permit $permit, string $shortCode): string
     {
         $nameParts = \explode(' ', $permit->owner->name);
@@ -541,6 +618,14 @@ final readonly class PermitService
         return "EFG-{$nachname}-{$vorname}-{$shortCode}";
     }
 
+    /**
+     * Erzeugt einen rohen EPC-QR-Code Payload (GiroCode) nach der SEPA-Dokumentation für Banking-Apps.
+     *
+     * @param float  $amount    Der Überweisungsbetrag.
+     * @param string $reference Der strukturierte Verwendungszweck.
+     *
+     * @return string Zeilenumbruch-getrennter EPC-Payload.
+     */
     private function generateEpcData(float $amount, string $reference): string
     {
         // SEPA EPC-QR-Code (BezahlCode) Standard
@@ -555,9 +640,17 @@ final readonly class PermitService
     }
 
     /**
+     * Formatiert und normalisiert rohe Kennzeichen-Eingaben in ein standardisiertes, deutsches Kennzeichenformat.
+     * Bereinigt Sonderzeichen, trennt Ortskennungen per Bindestrich ab und setzt Leerzeichen vor die Erkennungsnummer
+     * (inkl. Berücksichtigung von E- und H-Kennzeichen sowie Sonderregeln für Berlin 'B').
+     *
      * Formatiert Kennzeichen (z.B. BHD7398 -> B-HD 7398).
      * Erkennt manuelle Bindestriche und unterstützt 4-er Blöcke (LL-LL).
      * Unterstützt jetzt auch E- und H-Zusätze am Ende.
+     *
+     * @param string $plate Die rohe Benutzereingabe (z.B. "b-mw1234e" oder "M  XY 999").
+     *
+     * @return string Das sauber formatierte Kennzeichen (z.B. "B-MW 1234E" oder "M-XY 999").
      */
     private function formatLicensePlate(string $plate): string
     {
@@ -595,7 +688,12 @@ final readonly class PermitService
     }
 
     /**
+     * Generiert einen kryptografisch sicheren, zufälligen 6-stelligen alphanumerischen Identifikations-Suffix.
+     * Schließt zur Vermeidung von Lesefehlern verwechslungsanfällige Zeichen wie '0', '1', 'I' und 'O' strukturell aus.
+     *
      * Generiert den neuen v4 Code: [PREFIX]-[YY]-[0000]-[RAND]
+     *
+     * @return string Der generierte Suffix (z.B. "XF7R9A").
      */
     private function generateV4Suffix(): string
     {
@@ -609,6 +707,11 @@ final readonly class PermitService
         return $res;
     }
 
+    /**
+     * Validiert E-Mail-Adressen formal über native PHP-Filter.
+     *
+     * @return void Wirft eine Exception bei ungültiger Syntax.
+     */
     private function validateEmail(string $email): void
     {
         // Wenn das Feld leer ist, überspringen wir die Prüfung (da optional)
@@ -622,7 +725,12 @@ final readonly class PermitService
     }
 
     /**
-     * Prüft, ob ein Code in der aktuellen DB oder in irgendwelchen Archiven existiert.
+     * Überprüft die globale, systemweite Einzigartigkeit eines Genehmigungs-Codes.
+     * Scannt hierzu das aktive Storage, die SQL-Archivtabellen sowie alle historischen JSON-Jahresarchive auf der Festplatte.
+     *
+     * @param string $fullIdentifier Der zu prüfende Gesamt-Code.
+     *
+     * @return bool True, wenn der Code im gesamten System noch nie vergeben wurde.
      */
     private function isCodeGloballyUnique(string $fullIdentifier): bool
     {
@@ -667,7 +775,13 @@ final readonly class PermitService
     }
 
     /**
-     * Aktiviert eine Genehmigung manuell (Zahlungseingang bestätigt).
+     * Aktiviert eine Genehmigung manuell über das Admin-Dashboard nach Zahlungseingang auf dem Bankkonto.
+     * Setzt den Status auf 'bezahlt' und loggt optionale Begründungen/Kommentare ein.
+     *
+     * @param string      $code  Der Code der Genehmigung.
+     * @param string|null $grund Optionaler interner Buchungsvermerk.
+     *
+     * @return bool True bei erfolgreicher Speicherung des Updates.
      */
     public function manualActivate(string $code, ?string $grund = null): bool
     {
@@ -695,8 +809,12 @@ final readonly class PermitService
     }
 
     /**
-     * Schließt eine PayPal-Zahlung ab und finalisiert den Antrag.
-     * NEU in v0.12.0: Nutzt das Token, um im Warteraum 2 zu suchen.
+     * Finalisiert eine Online-Zahlung nach erfolgreichem PayPal-API-Capture.
+     *
+     * @param string $token   Das aktive Verifikations-Token der Session.
+     * @param string $orderId Die verifizierte PayPal-Order-ID.
+     *
+     * @return bool True, wenn die Zahlung autorisiert, eingezogen und das Ticket freigeschaltet wurde.
      */
     public function completePayment(string $token, string $orderId): bool
     {
@@ -721,10 +839,14 @@ final readonly class PermitService
     }
 
     /**
-     * Ermittelt den Überfälligkeits-Status.
-     * 0 = Pünktlich
-     * 1 = Zahlungsziel überschritten (Gelbe Warnung)
-     * 2 = Benachrichtigungs-Zeitraum überschritten (Roter Alarm für Buchhaltung)
+     * Berechnet die Eskalations- / Verzugsstufe für unbezahlte Genehmigungen.
+     * Stufe 0: Innerhalb der Zahlungsfrist.
+     * Stufe 1: Zahlungsfrist überschritten (Zahlungsverzug für Nutzer) (Gelbe Warnung).
+     * Stufe 2: Kulanzfrist ebenfalls abgelaufen (Warnstufe für das Admin-Personal) (Roter Alarm für Buchhaltung).
+     *
+     * @param Permit $permit Die zu prüfende Genehmigungs-Entität.
+     *
+     * @return int Die Eskalationsstufe (0, 1 oder 2).
      */
     public function getOverdueLevel(Permit $permit): int
     {
@@ -750,15 +872,20 @@ final readonly class PermitService
         return 0;
     }
 
+    /**
+     * Liefert den injizierten Gutschein-Service.
+     */
     public function getVoucherService(): VoucherService
     {
         return $this->voucherService;
     }
 
     /**
-     * Lädt einen verifizierten, aber noch nicht finalisierten Antrag.
+     * Ruft eine verifizierte, aber noch nicht bezahlte/abgeschlossene Antragssitzung ab.
      *
-     * @return array<string, mixed>|null
+     * @param string $token Das Sitzungs-Token.
+     *
+     * @return array<string, mixed>|null Die Antragsdaten oder null.
      */
     public function getVerifiedRequest(string $token): ?array
     {
@@ -771,9 +898,11 @@ final readonly class PermitService
     }
 
     /**
-     * Findet alle finalisierten Genehmigungen einer E-Mail-Adresse.
+     * Filtert alle aktiven Speicherdaten nach Genehmigungen einer spezifischen E-Mail-Adresse.
      *
-     * @return Permit[]
+     * @param string $email Die Such-E-Mail-Adresse.
+     *
+     * @return array<int, Permit> Liste passender Genehmigungen.
      */
     public function getHistoryByEmail(string $email): array
     {
@@ -785,15 +914,20 @@ final readonly class PermitService
         );
     }
 
+    /**
+     * Gibt die aktive Datenhaltungs-Engine (Storage) zurück.
+     */
     public function getStorage(): StorageInterface
     {
         return $this->storage;
     }
 
     /**
-     * Prüft, welche Quartale (1-4) vom Zeitraum der Genehmigung berührt werden.
+     * Berechnet die vom Gültigkeitszeitraum abgedeckten Kalenderquartale (z.B. für Finanzstatistiken) (1-4).
      *
-     * @return array<int>
+     * @param Permit $permit Die Genehmigung.
+     *
+     * @return array<int, int> Array der Quartalsnummern (z.B. [2, 3] bei Laufzeit von Mai bis August).
      */
     public function getCoveredQuarters(Permit $permit): array
     {
@@ -806,7 +940,9 @@ final readonly class PermitService
     }
 
     /**
-     * Prüft und führt die Jahres-Archivierung durch v0.16.0
+     * Archivierungs-Cronjob für abgelaufene Genehmigungen des Vorjahres.
+     * Verschiebt nach Ablauf der Deadline ('archive_deadline', z.B. 01. Februar) alle Datensätze,
+     * deren Erstellungsjahr älter als das aktuelle Jahr ist, in SQL-Archivtabellen oder ein JSON-Jahresarchiv.
      */
     public function checkAndArchive(): void
     {
@@ -877,7 +1013,14 @@ final readonly class PermitService
     }
 
     /**
-     * Sperrt oder entsperrt eine Genehmigung
+     * Schaltet den administrativen Sperrstatus (Suspension) einer Genehmigung um.
+     * Erlaubt Platzwarten oder dem Vorstand das temporäre Entziehen der Einfahrtsrechte bei Verstößen.
+     *
+     * @param string      $code   Der Code der Genehmigung.
+     * @param bool        $status True für sperren, False für freigeben.
+     * @param string|null $reason Angabe der administrativen Begründung.
+     *
+     * @return bool True, wenn das Update erfolgreich gespeichert wurde.
      */
     public function toggleSuspension(string $code, bool $status, ?string $reason = null): bool
     {
@@ -905,7 +1048,7 @@ final readonly class PermitService
     }
 
     /**
-     * Hilfsmethode für Controller, um Rohdaten in eine Entität zu wandeln
+     * Brückenmethode zur Hydrierung von assoziativen Speicher-Arrays in starke Permit-Entitäten.
      *
      * @param array<string, mixed> $data
      */
@@ -915,13 +1058,21 @@ final readonly class PermitService
     }
 
     /**
+     * Schreibt Rohdaten direkt in die internen, temporären Tabellen/Dateien des Registrierungsprozesses.
+     *
      * Öffentliche Brücke für die Migration, um Warteraum-Daten zu speichern.
+     *
+     * @param string               $category Die Tabellen- oder Dateikategorie.
+     * @param array<string, mixed> $data     Das Speicher-Array.
      */
     public function savePendingData(string $category, array $data): void
     {
         $this->saveJson($this->getStoragePath($category), $data);
     }
 
+    /**
+     * Gibt den Mail-Warteschlangen-Dienst zurück.
+     */
     public function getMailService(): MailServiceInterface
     {
         return $this->mailService;

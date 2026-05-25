@@ -1,33 +1,32 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/admin_dashboard.phtml
-
 /**
  * Page: Main Admin Dashboard Wrapper
  *
- * Haupt-Einstiegspunkt der Administration.
+ * Haupt-Dashboard für die Administration (Zentralansicht).
+ * Rendert die Kontrollleiste, Statistiken, Tabellen aktiver/abgelaufener Genehmigungen,
+ * die Gutscheinverwaltung sowie System-Tools (Migration/Logs).
  *
- * @var \App\Infrastructure\Config\Config    $config
- * @var array                                $settings
- * @var string                               $appRoot
- * @var \App\Infrastructure\Auth\AuthService $auth
- * @var string                               $message
- * @var array                                $permitGroups
- * @var string                               $filterStart
- * @var string                               $filterEnd
- * @var string                               $filterType
- * @var array                                $periodStats
- * @var array                                $yearlyStats
- * @var array                                $vouchers
- * @var \App\Core\Service\VoucherService     $voucherService
- * @var array                                $mailLogs
- * @var \App\Core\Service\PermitService      $permitService
- * @var \App\Core\Service\MigrationService   $migrationService
+ * Path: templates/pages/admin_dashboard.phtml
+ *
+ * var \App\Infrastructure\Config\Config    $config
+ * @var \App\Contracts\Config\ConfigInterface              $config          Anwendungs-Konfiguration.
+ * @var string                                             $appRoot         Absoluter Pfad zum Installationsverzeichnis.
+ * @var array                                              $structure       Verschachtelter Berechtigungsbaum.
+ * @var array<string, mixed>                               $periodStats     Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
+ * @var array<string, array<string, mixed>>                $yearlyStats     Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
+ * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups Genehmigungen gruppiert nach Status (active, future, expired, unpaid).
+ * @var array                                              $settings        Globale UI- und Mapping-Einstellungen.
+ * @var \App\Infrastructure\Auth\AuthService               $auth            Service für die Rechteprüfung im Template.
+ * @var string                                             $message         Statusnachricht (z.B. nach Gutscheinerstellung).
+ * @var string                                             $filterStart     Aktives Filter-Startdatum (Y-m-d).
+ * @var string                                             $filterEnd       Aktives Filter-Enddatum (Y-m-d).
+ * @var string                                             $filterType      Aktiver Filter-Fahrzeugtyp ('all' oder spezifisch).
+ * @var array                                              $vouchers        Liste aller aktiven Gutscheine im System.
+ * @var \App\Core\Service\VoucherService                   $voucherService  Dienst zur Validierung/Verwaltung von Gutscheinen.
+ * @var array                                              $mailLogs        Die chronologischen E-Mail-Versandprotokolle.
+ * @var \App\Core\Service\PermitService                    $permitService   Zentraler Genehmigungs-Dienst.
+ * @var \App\Core\Service\MigrationService                 $migrationService Migrations- & Backup-Manager.
  */
 $now = new \DateTimeImmutable();
 

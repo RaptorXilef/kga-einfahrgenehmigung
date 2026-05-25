@@ -1,18 +1,19 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path:      config/config.php
-
-declare(strict_types=1);
-
 /**
  * Technische System-Konfiguration für das Ausnahmegenehmigungs-System.
  * Fachliche Einstellungen (Farben, Typen, Zeiten) liegen in separaten Dateien.
+ *
+ * Path: config/payment.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
+
+declare(strict_types=1);
+
 return [
     // --- ZAHLUNGS-KONFIGURATION ---
 

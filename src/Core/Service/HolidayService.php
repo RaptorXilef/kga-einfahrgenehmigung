@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Core/Service/HolidayService.php
-
 declare(strict_types=1);
 
 namespace App\Core\Service;
@@ -14,7 +7,18 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * Service zur Prüfung von Berliner Feiertagen und Sperrzeiten.
+ * Service zur Prüfung von Feiertagen und zeitlichen Befahrungsbeschränkungen.
+ *
+ * Berechnet Schließtage und dynamische Feiertage (Osterzyklus für Berlin) und gleicht sie
+ * mit den in der Konfiguration hinterlegten Öffnungszeiten-Slots ab.
+ * Kontext: Kern-Validierungskomponente für temporäre Zufahrtsrechte und Kontrollanzeigen.
+ *
+ * Path: src/Core/Service/HolidayService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class HolidayService
 {
@@ -23,8 +27,12 @@ final readonly class HolidayService
     }
 
     /**
-     * Sucht den nächsten befahrbaren Zeitpunkt ab jetzt.
-     * Berücksichtigt Wochentage und Feiertage.
+     * Ermittelt das nächstmögliche reguläre Zeitfenster für eine Einfahrt innerhalb der nächsten 14 Tage.
+     * Iteriert tageweise, überspringt Schließtage und sucht den zeitlich nächsten Slot-Start.
+     *
+     * @param \DateTimeImmutable $now Der aktuelle Bezugs-Zeitstempel für die Berechnung.
+     *
+     * @return \DateTimeImmutable|null Der Start-Zeitstempel des nächsten erlaubten Fensters oder null.
      */
     public function getNextAvailableSlot(\DateTimeImmutable $now): ?\DateTimeImmutable
     {
@@ -52,7 +60,11 @@ final readonly class HolidayService
     }
 
     /**
-     * Prüft, ob ein kompletter Tag gesperrt ist (z.B. Sonntag).
+     * Prüft, ob ein bestimmtes Datum ein Sperrtag (Feiertag oder generell geschlossen) ist.
+     *
+     * @param \DateTimeImmutable $date Das zu prüfende Datum.
+     *
+     * @return bool True, wenn am Ziel-Datum keine Einfahrt erlaubt ist.
      */
     public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
@@ -74,7 +86,10 @@ final readonly class HolidayService
     }
 
     /**
-     * Prüft, ob die aktuelle Uhrzeit laut Matrix erlaubt ist.
+     * Abfrage-Schnittstelle zur Echtzeitvalidierung des aktuellen Zeitpunkts.
+     * Prüft, ob JETZT ein Restricted Day vorliegt oder ob die aktuelle Uhrzeit in einem Freigabe-Slot liegt.
+     *
+     * @return bool True, wenn eine Befahrung zum aktuellen Zeitpunkt zulässig ist.
      */
     public function isTimeAllowedNow(): bool
     {
@@ -97,7 +112,9 @@ final readonly class HolidayService
     }
 
     /**
-     * Gibt die erlaubten Zeiten für heute als Text zurück (für die Anzeige)
+     * Erstellt eine textuelle Zusammenfassung der heutigen Einfahrtsfenster für UI-Meldungen.
+     *
+     * @return string Formatierter Text der heutigen Slots (z.B. "08:00 - 12:00 Uhr") oder Absage.
      */
     public function getTodayAllowedSlots(): string
     {
@@ -118,9 +135,11 @@ final readonly class HolidayService
     }
 
     /**
-     * Berechnet alle gesetzlichen Feiertage für Berlin.
+     * Berechnet alle gesetzlichen Feiertage für das Land Berlin im Zieljahr inklusive variabler Osterfeiertage.
      *
-     * @return string[]
+     * @param int $year Das Berechnungsjahr (z.B. 2026).
+     *
+     * @return array<int, string> Liste von Datumsstrings im ISO-Format 'Y-m-d'.
      */
     private function getBerlinHolidays(int $year): array
     {
@@ -142,8 +161,12 @@ final readonly class HolidayService
     }
 
     /**
+     * Generiert eine vollständige, strukturierte Wochenübersicht aller regulären Öffnungszeiten.
+     *
      * Erstellt eine detaillierte Textmatrix aller erlaubten Einfahrtszeiten.
      * Ausgabeformat: Mo - Fr: 08:00 - 12:00, 15:00 - 20:00 | Sat: ... | Sun: Geschlossen
+     *
+     * @return string Mit Pipes getrennter String aller Wochentage (Mo - So) und deren Slots für Print-Views/Infoseiten.
      */
     public function getGeneralOpeningHoursText(): string
     {

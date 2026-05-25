@@ -1,26 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-/**
- * Service Container (Dependency Injector).
- *
- * Zentraler Bootstrapping-Punkt der Anwendung. Erstellt Instanzen
- * und verwaltet Abhängigkeiten (DI).
- *
- * Path:      src/Bootstrap/Container.php
- *
- * @copyright (c) 2026 Felix Maywald. All rights reserved.
- * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE
- *
- * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
- *
- * @author    Felix Maywald (@RaptorXilef)
- */
-
 declare(strict_types=1);
 
 namespace App\Bootstrap;
@@ -48,10 +27,27 @@ use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
-use PDO;
 
 /**
- * Service Container (Dependency Injector) v0.10.4.
+ * Dependency Injection (DI) Container der Anwendung.
+ *
+ * Verwaltet den Objekt-Lifecycle durch Lazy Loading. Registriert Infrastruktur-Komponenten,
+ * Core-Services und Controller und injiziert benötigte Abhängigkeiten.
+ * Kontext: Zentraler Registry- und Inversion-of-Control (IoC) Knotenpunkt der Applikation.
+ *
+ * Path: src/Bootstrap/Container.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * @copyright (c) 2026 Felix Maywald. All rights reserved.
+ * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE
+ *
+ * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
+ *
+ * @author    Felix Maywald (@RaptorXilef)
  *
  * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
@@ -72,6 +68,10 @@ class Container
         $this->setup();
     }
 
+    /**
+     * Initialisiert den internen Registrierungsprozess.
+     * Mappt die Konfigurations-Instanzen und stößt die funktionsspezifischen Register-Methoden an.
+     */
     private function setup(): void
     {
         // 1. Konfiguration
@@ -84,6 +84,11 @@ class Container
         $this->registerControllers();
     }
 
+    /**
+     * Registriert technologische Kernkomponenten und Basis-Schnittstellen.
+     * Definiert die Factory-Closures für die PDO-Datenbankverbindung, Storage-Engines
+     * (Wechsel zwischen MySQL und JSON), Mail-Services und Zahlungsanbieter.
+     */
     private function registerInfrastructure(): void
     {
         // 1. Zentrale PDO Verbindung (Jetzt intelligent & blitzschnell)
@@ -117,7 +122,7 @@ class Container
                     // ZUSATZ-SICHERHEIT: Timeout auf 2 Sekunden begrenzen
                     \PDO::ATTR_TIMEOUT => 2,
                 ]);
-            } catch (\PDOException $e) {
+            } catch (\PDOException) {
                 return null;
             }
         };
@@ -168,6 +173,10 @@ class Container
         );
     }
 
+    /**
+     * Registriert die fachlichen Kern-Dienste (Domain Business Logik).
+     * Mappt Services für Kalenderdaten, Gutscheine, Magic-Links, Antragslogiken und Systemmigrationen.
+     */
     private function registerCoreServices(): void
     {
         // HolidayService benötigt jetzt das Config-Interface
@@ -210,6 +219,10 @@ class Container
         );
     }
 
+    /**
+     * Registriert sämtliche Application-Controller im Container.
+     * Bereitet die HTTP-Einstiegspunkte mit ihren jeweiligen Service-Abhängigkeiten für das Routing vor.
+     */
     private function registerControllers(): void
     {
         // Admin Controller
@@ -264,6 +277,15 @@ class Container
         );
     }
 
+    /**
+     * Löst eine Abhängigkeit auf und liefert eine shared (Singleton) Instanz zurück.
+     * Erstellt das Objekt beim ersten Aufruf über die hinterlegte Closure (Lazy Loading)
+     * und cached es für nachfolgende Zugriffe im System.
+     *
+     * @param string $id Die vollqualifizierte Klasse oder der Identifikations-String des Services.
+     *
+     * @return mixed Die instanziierte Service- oder Controller-Komponente.
+     */
     public function get(string $id): mixed
     {
         if (! isset($this->instances[$id])) {

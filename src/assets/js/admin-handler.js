@@ -1,13 +1,19 @@
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
 /**
+ * UI-Handler für das administrative Dashboard.
+ *
+ * Steuert das Client-seitige Tab-Switching inklusive Zustandsspeicherung (localStorage),
+ * die Echtzeit-Tabellenfilterung bei Suchen, dynamische Formular-Sichtbarkeiten
+ * sowie den administrativen Workflow für Genehmigungssperren über Prompts.
+ * Kontext: Kernkomponente für die Interaktivität des Admin-Backends.
+ *
  * Path: src/assets/js/admin-handler.js
  * Path: public/assets/js/admin-handler.min.js
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
-
 class AdminDashboardHandler {
     constructor() {
         this.tabs = document.querySelectorAll('[data-tab-target]');
@@ -19,6 +25,13 @@ class AdminDashboardHandler {
         this.restoreLastTab();
     }
 
+    /**
+     * Initialisiert die Event-Listener für das Dashboard.
+     * Bindet Klick-Events für Tabs, Input-Events für die Filterung, Change-Events für Custom-Tarife
+     * und fängt Delegated Clicks für den Sperren-Button (`.js-suspend-btn`) ab.
+     *
+     * @return {void}
+     */
     init() {
         // 1. Tabs initialisieren
         this.tabs.forEach((btn) => {
@@ -64,6 +77,14 @@ class AdminDashboardHandler {
         });
     }
 
+    /**
+     * Schaltet die aktive Ansicht (Tab) um und persistiert die ID.
+     *
+     * @param {string}      tabId     Die ID des Ziel-Inhaltselements (z.B. 'tab-active').
+     * @param {HTMLElement} activeBtn Der geklickte Tab-Button zur optischen Aktivierung.
+     *
+     * @return {void}
+     */
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
 
@@ -82,6 +103,14 @@ class AdminDashboardHandler {
         }
     }
 
+    /**
+     * Filtert alle Zeilen aller Datentabellen basierend auf dem Suchbegriff (Case-Insensitive).
+     * Blendet Zeilen aus (`display: none`), die das Fragment nicht im Text enthalten.
+     *
+     * @param {string} searchTerm Der rohe Suchbegriff aus dem Textfeld.
+     *
+     * @return {void}
+     */
     filterTables(searchTerm) {
         const query = searchTerm.toLowerCase().trim();
         document.querySelectorAll('.c-table tbody tr').forEach((row) => {
@@ -89,6 +118,12 @@ class AdminDashboardHandler {
         });
     }
 
+    /**
+     * Stellt den zuletzt geöffneten Tab nach einem Page-Reload wieder her.
+     * Holt die ID aus dem localStorage (Fallback: 'tab-active') und triggert den Wechsel.
+     *
+     * @return {void}
+     */
     restoreLastTab() {
         const lastTab = localStorage.getItem('lastAdminTab') || 'tab-active';
         const targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);

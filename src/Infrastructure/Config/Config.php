@@ -1,12 +1,5 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Infrastructure/Config/Config.php
-
 declare(strict_types=1);
 
 namespace App\Infrastructure\Config;
@@ -14,29 +7,51 @@ namespace App\Infrastructure\Config;
 use App\Contracts\Config\ConfigInterface;
 
 /**
+ * Konfigurations-Infrastruktur-Provider der Anwendung.
+ * Kapselt das aggregierte Einstellungs-Array und berechnet bei Bedarf dynamisch
+ * die korrekten HTTPS-Basis-URLs sowie Tarifpreise für Fahrzeugtypen.
+ * Kontext: Technische Implementierung des Config-Dienstes.
+ *
  * Zentrales Konfigurations-Objekt.
  *
  * Verwaltet alle Anwendungseinstellungen und ermöglicht den Zugriff auf
  * Mail-Templates und Provider-Daten.
  *
  * @immutable
+ *
+ * Path: src/Infrastructure/Config/Config.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class Config implements ConfigInterface
 {
     /**
-     * @param array<string, mixed> $settings
+     * @param array<string, mixed> $settings Das rohe, zusammengeführte Konfigurations-Array.
      */
     public function __construct(
         private array $settings,
     ) {
     }
 
+    /**
+     * Holt einen Wert direkt aus dem Einstellungs-Array.
+     *
+     * @param string $key     Der exakte Array-Schlüssel.
+     * @param mixed  $default Fallback bei Nichtexistenz.
+     *
+     * @return mixed Der gespeicherte Wert.
+     */
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->settings[$key] ?? $default;
     }
 
     /**
+     * Liefert den Mail- und SMTP-Spezifischen Konfigurationsblock.
+     *
      * @return array<string, mixed>
      */
     public function getMailSettings(): array
@@ -45,17 +60,31 @@ final readonly class Config implements ConfigInterface
         return (array) $this->get('mail', []);
     }
 
+    /**
+     * Gibt an, ob das System im Test- oder Sandbox-Modus operiert.
+     */
     public function isTestMode(): bool
     {
         return (bool) $this->get('test_mode', true);
     }
 
+    /**
+     * Gibt die Standard-Dauer für Genehmigungen zurück.
+     */
     public function getPermitDuration(): int
     {
         // Standardmäßig 5 Tage, falls nichts in der config.php steht
         return (int) $this->get('permit_duration', 5);
     }
 
+    /**
+     * Ermittelt den Preis für einen Fahrzeugtyp. Falls kein expliziter Preis
+     * hinterlegt ist, wird der Preis des ersten konfigurierten Fahrzeugtyps als Fallback genutzt.
+     *
+     * @param string $type Der Typ-Schlüssel (z.B. 'pkw', 'lkw').
+     *
+     * @return float Der Brutto-Preis.
+     */
     public function getPriceForType(string $type): float
     {
         $vConfig     = $this->get('vehicle_types', []);
@@ -68,6 +97,13 @@ final readonly class Config implements ConfigInterface
         return (float) ($prices[$type] ?? ($prices[$defaultType] ?? 0.00));
     }
 
+    /**
+     * Ermittelt die Basis-URL der Installation.
+     * Falls 'base_url' in der Konfiguration leer ist, wird die URL automatisch
+     * anhand der $_SERVER-Umgebungsvariablen (Protokoll, Host, Script-Name) dynamisch generiert.
+     *
+     * @return string Bereinigte URL mit abschließendem Schrägstrich.
+     */
     public function getBaseUrl(): string
     {
         // Falls in Config gesetzt, nimm die, sonst erkenne sie automatisch

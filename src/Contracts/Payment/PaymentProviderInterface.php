@@ -1,38 +1,44 @@
 <?php
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: src/Contracts/Payment/PaymentProviderInterface.php
-
 declare(strict_types=1);
 
 namespace App\Contracts\Payment;
 
 /**
- * Interface für Zahlungsanbieter.
+ * Interface für externe Zahlungsabwickler-Schnittstellen.
+ *
+ * Regelt die Initiierung von Bezahlvorgängen (Order-Erstellung) sowie die
+ * finale Verifizierung und Erfassung (Capture) von Transaktionen.
+ * Kontext: Abstraktion der Zahlungs-Gateway-API (z.B. für PayPal-Integrationen).
  *
  * Definiert die notwendigen Methoden zur Verifizierung und Abwicklung von Zahlungen.
+ *
+ * Path: src/Contracts/Payment/PaymentProviderInterface.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 interface PaymentProviderInterface
 {
     /**
-     * Erstellt eine Transaktion/Order/Bestellung beim Anbieter.
+     * Erstellt eine Zahlungs-Order Transaktion/Bestellung beim Zahlungsdienstleister.
      *
-     * @param  float       $amount Der zu zahlende Betrag
-     * @return string|null Die Order-ID des Anbieters oder null bei Fehler
+     * @param float $amount Der zu zahlende Bruttobetrag.
+     *
+     * @return string|false Die vom Provider generierte Order-ID bei Erfolg, andernfalls false.
      */
     public function createOrder(float $amount): string|false;
 
     /**
-     * Verifiziert eine Zahlung beim Anbieter und schließt diese ab.
+     * Verifiziert und finalisiert eine vom Kunden autorisierte Zahlung.
+     * Schützt das System vor Manipulationen durch Abgleich des realen Betrags mit der Erwartung.
      *
-     * @param string $orderId        Die vom Client übermittelte Order-ID.
-     * @param float  $expectedAmount Der Betrag, der laut deiner Config gezahlt werden muss.
+     * @param string $orderId        Die zu erfassende Order-ID des Zahlungsanbieters.
+     * @param float  $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung.
      *
-     * @return bool True, wenn die Zahlung erfolgreich verifiziert und abgeschlossen wurde.
+     * @return bool True, wenn die Zahlung erfolgreich eingezogen und stimmig ist.
      */
     public function captureOrder(string $orderId, float $expectedAmount): bool;
 }
