@@ -439,7 +439,7 @@ final readonly class AdminController
 
             // Check Typ (wenn nicht 'all')
             if ($filterType !== 'all') {
-                $tplType = $permitTemplates[$p->templateKey]['type'] ?? 'standard';
+                $tplType = $permitTemplates[$p->template_key]['type'] ?? 'standard';
                 if ($tplType !== $filterType) {
                     return false;
                 }

@@ -132,7 +132,7 @@ final readonly class PermitService
         // Value Objects-Instanziierung
         $permit = new Permit(
             code: $fullIdentifier,
-            templateKey: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
+            template_key: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
             owner: new Owner(
                 (string) $data['name'],
                 (string) $data['email'],
@@ -596,7 +596,7 @@ final readonly class PermitService
                 'firma'             => $permit->vehicle->firma ?? '',
                 'parzelle'          => $permit->owner->parzelle,
                 'zweck'             => $permit->validity->zweck,
-                'templateKey'       => $permit->templateKey,
+                'template_key'       => $permit->template_key,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'opening'           => $opening,
@@ -800,7 +800,7 @@ final readonly class PermitService
 
         $updated = new Permit(
             $permit->code,
-            $permit->templateKey,
+            $permit->template_key,
             $permit->owner,
             $permit->vehicle,
             $permit->validity,
@@ -988,13 +988,13 @@ final readonly class PermitService
 
         // --- WEICHE: Wo wird archiviert? ---
         if ($arcCfg['type'] === 'mysql' && $this->pdo) {
-            $sql = "REPLACE INTO {$arcCfg['table']} (code, templateKey, name, email, kennzeichen, parzelle, typ, firma, zweck, preisSnapshot, von, bis, status, erstellt, internerKommentar)
+            $sql = "REPLACE INTO {$arcCfg['table']} (code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preisSnapshot, von, bis, status, erstellt, internerKommentar)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             foreach ($toArchive as $item) {
                 $stmt->execute([
                     $item['code'],
-                    $item['templateKey'],
+                    $item['template_key'],
                     $item['name'],
                     $item['email'],
                     $item['kennzeichen'],
@@ -1039,7 +1039,7 @@ final readonly class PermitService
 
         $updated = new Permit(
             $permit->code,
-            $permit->templateKey,
+            $permit->template_key,
             $permit->owner,
             $permit->vehicle,
             $permit->validity,

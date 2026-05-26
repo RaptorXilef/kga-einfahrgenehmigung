@@ -41,13 +41,14 @@ return [
         `date_mode` VARCHAR(20),
         `created_by` VARCHAR(50),
         `created_at` DATETIME,
+        `status` VARCHAR(20) DEFAULT \'aktiv\',
         `data` TEXT,
         INDEX `idx_voucher_validity` (`expires_at`, `uses_count`, `max_uses`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'permits' => 'CREATE TABLE IF NOT EXISTS `permits` (
         `code` VARCHAR(50) NOT NULL,
-        `templateKey` VARCHAR(50) NOT NULL,
+        `template_key` VARCHAR(50) NOT NULL,
         `name` VARCHAR(255) NOT NULL,
         `email` VARCHAR(255) DEFAULT NULL,
         `kennzeichen` VARCHAR(20) DEFAULT NULL,
@@ -70,7 +71,7 @@ return [
 
     'permits_archive' => 'CREATE TABLE IF NOT EXISTS `permits_archive` (
         `code` VARCHAR(50) NOT NULL,
-        `templateKey` VARCHAR(50) NOT NULL,
+        `template_key` VARCHAR(50) NOT NULL,
         `name` VARCHAR(255) NOT NULL,
         `email` VARCHAR(255) DEFAULT NULL,
         `kennzeichen` VARCHAR(20) DEFAULT NULL,

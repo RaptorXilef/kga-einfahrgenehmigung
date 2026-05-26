@@ -13,7 +13,7 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var string       $templateKey
+ * @var string       $template_key
  * @var string       $jahresFarbe
  * @var string       $von_formatted
  * @var string       $bis_formatted
@@ -32,7 +32,7 @@
  * @var array        $settings
  * @var string|null  $holidayNotice
  */
-$isPermanent = \str_contains(\strtolower($templateKey), 'perm');
+$isPermanent = \str_contains(\strtolower($template_key), 'perm');
 $headerColor = $isPermanent ? '#3498db' : $jahresFarbe;
 $title       = $isPermanent ? 'DAUER&shy;EINFAHRT&shy;GENEHMIGUNG' : 'AUSNAHME&shy;GENEHMIGUNG';
 

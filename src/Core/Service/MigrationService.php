@@ -215,6 +215,7 @@ final readonly class MigrationService
 
     /**
      * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
+     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
      *
      * @param string $key Speicher-Key aus der Konfiguration.
      *
@@ -222,7 +223,13 @@ final readonly class MigrationService
      */
     private function loadRawJson(string $key): array
     {
-        $cfg  = $this->config->get('storage_config')[$key];
+        $cfg = $this->config->get('storage_config')[$key];
+
+        // FIX: Prüfen, ob überhaupt ein Dateiname konfiguriert ist
+        if (! isset($cfg['file'])) {
+            return [];
+        }
+
         $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
 
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
@@ -230,21 +237,29 @@ final readonly class MigrationService
 
     /**
      * Schreibt Daten-Arrays formatiert zurück in die physische JSON-Zieldatei.
+     * Robust gegen fehlende 'file'-Keys.
      *
      * @param string               $key  Speicher-Key.
      * @param array<string, mixed> $data Die zu serialisierenden Daten.
      */
     private function saveToJson(string $key, array $data): void
     {
-        $cfg  = $this->config->get('storage_config')[$key];
+        $cfg = $this->config->get('storage_config')[$key];
+
+        // FIX: Nur speichern, wenn ein Dateiname definiert ist
+        if (! isset($cfg['file'])) {
+            return;
+        }
+
         $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     /**
      * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
+     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
      *
-     * @param string $key Tabellen-Key.
+     * @param string $key Tabellen-Key aus der storage_config.
      *
      * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
      */
@@ -255,12 +270,25 @@ final readonly class MigrationService
             return [];
         }
 
-        $stmt = $this->pdo->query("SELECT * FROM {$cfg['table']}");
-        $rows = $stmt->fetchAll();
-        $res  = [];
+        try {
+            // Wir loggen kurz den Tabellennamen zur Sicherheit
+            $tableName = $cfg['table'];
+            $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
+            $rows      = $stmt->fetchAll();
 
+            if (empty($rows)) {
+                \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
+
+                return [];
+            }
+        } catch (\PDOException $e) {
+            \error_log("Bootstrap: MySQL-Query Fehler bei Tabelle `$tableName`: " . $e->getMessage());
+
+            return [];
+        }
+
+        $res = [];
         // Dynamische Bestimmung des ID-Feldes
-        // FIX: Alle Tabellen, die 'id' als Primary Key nutzen, müssen hier stehen!
         $idField = match ($key) {
             'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
             'magic_links', 'pending_verification', 'verified_pending'       => 'token',
@@ -268,6 +296,11 @@ final readonly class MigrationService
         };
 
         foreach ($rows as $r) {
+            // ROBUSTHEIT: Überspringe Zeilen ohne den erwarteten Primärschlüssel
+            if (! isset($r[$idField])) {
+                continue;
+            }
+
             if (isset($r['data'])) {
                 $r['data'] = \json_decode((string) $r['data'], true);
             }
@@ -279,23 +312,79 @@ final readonly class MigrationService
 
     /**
      * Routet Rohdaten an die zuständigen Service-Klassen zur korrekten SQL-Persistierung weiter.
-     * Schreibt Rohdaten (Arrays) in die SQL-Tabellen
+     * Nutzt einen generischen Fallback für Tabellen ohne spezifischen Service.
      *
      * @param string               $key  Ziel-Domainkomponente.
      * @param array<string, mixed> $data Liste der zu injectenden Datensätze.
      */
     private function saveToSql(string $key, array $data): void
     {
+        // Wir delegieren an die Services, da diese bereits die Logik für "Save" haben!
+        // Das ist sauberer als genericSqlInsert, da die Services die Spalten kennen.
         match ($key) {
             'users'                => $this->authService->saveUsers($data),
+            'groups'               => $this->authService->saveGroups($data),
             'vouchers'             => $this->voucherService->saveVouchers($data),
             'magic_links'          => $this->magicLinkService->saveLinks($data),
-            'mail_log'             => $this->mailService->saveLogs($data), // JETZT SAUBER ÜBER SERVICE
+            'mail_log'             => $this->mailService->saveLogs($data),
             'pending_verification' => $this->permitService->savePendingData('pending_verification', $data),
             'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data),
             'permits'              => $this->migratePermitsToSql($data),
-            default                => null
+            default                => $this->genericSqlInsert($key, $data)
         };
+    }
+
+    /**
+     * Generischer SQL-Importer für beliebige Tabellen.
+     * Erzeugt dynamisch ein REPLACE INTO Statement anhand der Keys des zu importierenden Arrays.
+     *
+     * @param string $key  Speicher-Key aus der Config.
+     * @param array  $data Die zu importierenden Rohdaten.
+     */
+    private function genericSqlInsert(string $key, array $data): void
+    {
+        if (empty($data) || ! $this->pdo) {
+            return;
+        }
+
+        $cfg       = $this->config->get('storage_config')[$key];
+        $tableName = $cfg['table'];
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $this->pdo->exec("DELETE FROM `$tableName`");
+
+            foreach ($data as $id => $row) {
+                // Sicherstellen, dass der Key in der Row ist (falls JSON assoziativ)
+                if (! isset($row['id']) && ! isset($row['code']) && ! isset($row['token'])) {
+                    $row['id'] = $id;
+                }
+
+                // Mapping: Falls alte Keys vorliegen, anpassen (z.B. templateKey -> template_key)
+                if (isset($row['templateKey'])) {
+                    $row['template_key'] = $row['templateKey'];
+                    unset($row['templateKey']);
+                }
+
+                $columns      = \array_keys($row);
+                $colNames     = \implode(', ', \array_map(fn ($c) => "`$c`", $columns));
+                $placeholders = \implode(', ', \array_fill(0, \count($columns), '?'));
+                $stmt         = $this->pdo->prepare("REPLACE INTO `$tableName` ($colNames) VALUES ($placeholders)");
+
+                $values = [];
+                foreach ($columns as $col) {
+                    $val = $row[$col];
+                    // Arrays (z.B. bei 'data' Feld) müssen JSON-String sein
+                    $values[] = \is_array($val) ? \json_encode($val, \JSON_UNESCAPED_UNICODE) : $val;
+                }
+                $stmt->execute($values);
+            }
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            \error_log("Generic Migration Error for $key: " . $e->getMessage());
+        }
     }
 
     // Kleine Hilfsmethoden, um saveToSql sauber zu halten:
@@ -311,7 +400,13 @@ final readonly class MigrationService
             return;
         }
         $storage = new MySqlStorage($this->pdo);
-        foreach ($data as $item) {
+
+        foreach ($data as $key => $item) {
+            // Falls das Array assoziativ ist (Key=Code), nutze $item
+            // Wir müssen sicherstellen, dass 'code' im Item gesetzt ist
+            if (! isset($item['code'])) {
+                $item['code'] = $key;
+            }
             $storage->save($this->permitService->arrayToEntity($item));
         }
     }
@@ -515,15 +610,99 @@ final readonly class MigrationService
     }
 
     /**
-     * Initiiert das Seeding von Grunddaten (Gruppen-Rechte und Core-Administratoren).
+     * Initiiert das Seeding und automatische Migrieren von Grunddaten für ALLE konfigurierten Speicherbereiche.
+     * Wenn 'auto_migration' in der Config auf false steht, wird dieser Prozess (bis auf ensureTablesExist) übersprungen.
      *
      * Füllt die Datenbank/JSON-Dateien beim Erststart mit Standardwerten
-     * ODER übernimmt Daten aus der jeweils anderen Quelle.
+     * ODER übernimmt Daten automatisch bidirektional aus der jeweils anderen (inaktiven) Quelle.
+     *
+     * TODO @param und @return einfügen
      */
     public function seedInitialData(): void
     {
-        $this->seedGroups();
-        $this->seedUsers();
+        // Ressourcen-Schoner: Nur ausführen, wenn in der Config aktiviert
+        if (! $this->config->get('auto_migration', true)) {
+            return;
+        }
+
+        $storageKeys = [
+            'groups',
+            'users',
+            'vouchers',
+            'vouchers_archive',
+            'permits',
+            'permits_archive',
+            'mail_log',
+            'mail_queue',
+            'magic_links',
+            'pending_verification',
+            'verified_pending',
+        ];
+
+        foreach ($storageKeys as $key) {
+            $this->autoBootstrapStorage($key);
+        }
+    }
+
+    /**
+     * Universelle Bootstrap-Logik für jeden einzelnen Speicherbereich.
+     * Erkennt leere aktive Speicher und füllt diese mit Daten aus dem passiven Speicher oder mit Defaults.
+     * TODO @param und @return einfügen
+     */
+    private function autoBootstrapStorage(string $key): void
+    {
+        $cfg = $this->config->get('storage_config')[$key] ?? null;
+        if (! $cfg) {
+            return;
+        }
+
+        $currentType = $cfg['type'] ?? 'json';
+
+        // 1. Daten laden
+        $jsonData = $this->loadRawJson($key);
+        $sqlData  = $this->loadRawSql($key);
+
+        // 2. Ziel-Check: Ist der AKTIVE Speicher leer?
+        $activeData = ($currentType === 'mysql') ? $sqlData : $jsonData;
+
+        // 3. Ist der aktive Speicher befüllt? -> Nichts tun!
+        if (! empty($activeData)) {
+            return; // Ziel voll -> Alles okay
+        }
+
+        // 3. Quell-Check: Gibt es im anderen Speicher Daten?
+        // Wenn currentType mysql, dann ist JSON (jsonData) unsere Quelle
+        $sourceData = ($currentType === 'mysql') ? $jsonData : $sqlData;
+
+        // DEBUG-Logging
+        if (empty($sourceData)) {
+            // Defaults nur für User/Groups
+            if ($key === 'groups') {
+                $sourceData = $this->getDefaultGroups();
+                \error_log("Bootstrap: Schreibe Default-Daten für $key.");
+            } elseif ($key === 'users') {
+                $sourceData = $this->getDefaultUsers();
+                \error_log("Bootstrap: Schreibe Default-Daten für $key.");
+            } else {
+                \error_log("Bootstrap: Keine Daten für $key gefunden (weder JSON noch SQL noch Default). Überspringe.");
+
+                return;
+            }
+        } else {
+            \error_log("Bootstrap: Migriere $key von " . ($currentType === 'mysql' ? 'JSON' : 'SQL') . ' zu ' . ($currentType === 'mysql' ? 'SQL' : 'JSON'));
+        }
+
+        // 4. Echte Migration
+        try {
+            if ($currentType === 'mysql') {
+                $this->saveToSql($key, $sourceData);
+            } else {
+                $this->saveToJson($key, $sourceData);
+            }
+            \error_log("Bootstrap: $key erfolgreich migriert/befüllt.");
+        } catch (\Exception $e) {
+            \error_log("Bootstrap: FEHLER bei Migration von $key: " . $e->getMessage());
+        }
     }
 
     /**

@@ -24,7 +24,7 @@ final readonly class Permit
 {
     public function __construct(
         public string $code,        // ML-26-0020-X8Y1
-        public string $templateKey, // Welches Template wurde genutzt?
+        public string $template_key, // Welches Template wurde genutzt?
         public Owner $owner,
         public Vehicle $vehicle,
         public Validity $validity,

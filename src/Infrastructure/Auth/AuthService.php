@@ -382,7 +382,9 @@ final readonly class AuthService
         \imagecopyresampled($dst, $src, 0, 0, 0, 0, $width, $height, $width, $height);
 
         // 2. Als WebP mit 75% Qualität speichern
-        return \imagewebp($dst, $outputPath, 75);
+        $result = \imagewebp($dst, $outputPath, 75);
+
+        return $result;
     }
 
     /**

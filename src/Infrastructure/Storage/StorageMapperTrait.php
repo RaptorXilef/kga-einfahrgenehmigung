@@ -40,7 +40,7 @@ trait StorageMapperTrait
     {
         return [
             'code'              => $permit->code,
-            'templateKey'       => $permit->templateKey,
+            'template_key'      => $permit->template_key,
             'name'              => $permit->owner->name,
             'email'             => $permit->owner->email,
             'parzelle'          => $permit->owner->parzelle,
@@ -72,6 +72,10 @@ trait StorageMapperTrait
      */
     public function mapToEntity(array $item): Permit
     {
+
+        // Rückwärts-Mapping für JSON-Dateien, die noch "templateKey" haben könnten
+        $tKey = $item['template_key'] ?? ($item['templateKey'] ?? 'std_7');
+
         // Wir suchen flexibel nach alten und neuen Keys
         $name    = (string) ($item['name'] ?? ($item['pächter'] ?? 'Unbekannt'));
         $von     = (string) ($item['von'] ?? ($item['datum_von'] ?? 'now'));
@@ -99,7 +103,7 @@ trait StorageMapperTrait
 
         return new Permit(
             code: (string) ($item['code'] ?? ''),
-            templateKey: (string) ($item['templateKey'] ?? 'std_7'),
+            template_key: (string) $tKey,
             owner: new Owner(
                 $name,
                 (string) ($item['email'] ?? ''),

@@ -41,15 +41,15 @@ final readonly class MySqlStorage implements StorageInterface
     public function save(Permit $permit): bool
     {
         $sql = 'INSERT INTO permits (
-            code, templateKey, name, email, kennzeichen, parzelle, typ,
+            code, template_key, name, email, kennzeichen, parzelle, typ,
             firma, zweck, preisSnapshot, von, bis, status, isSuspended,
             suspensionReason, erstellt, internerKommentar
         ) VALUES (
-            :code, :templateKey, :name, :email, :kennzeichen, :parzelle, :typ,
+            :code, :template_key, :name, :email, :kennzeichen, :parzelle, :typ,
             :firma, :zweck, :preisSnapshot, :von, :bis, :status, :isSuspended,
             :suspensionReason, :erstellt, :internerKommentar
         ) ON DUPLICATE KEY UPDATE
-            templateKey = VALUES(templateKey),
+            template_key = VALUES(template_key),
             name = VALUES(name),
             email = VALUES(email),
             kennzeichen = VALUES(kennzeichen),

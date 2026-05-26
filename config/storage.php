@@ -103,4 +103,7 @@ return [
         'max_backups'    => 15,       // Wie viele Backup-Ordner behalten? (Rotation)
         'sub_folder'     => 'sql_backup', // Ordnername innerhalb des storage-Pfads
     ],
+
+    // True = prüft bei jedem Start auf leere Bestände und zieht Daten nach. False = spart Ressourcen.
+    'auto_migration' => false, // Nur einmalig aktivieren wenn Umstieg von JSON auf MySQL
 ];

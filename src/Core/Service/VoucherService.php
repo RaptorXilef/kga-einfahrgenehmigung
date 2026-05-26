@@ -34,24 +34,24 @@ final readonly class VoucherService
      * Generiert einen neuen Gutschein im System mit individuellen Restriktionen.
      * Überprüft Wunsch-Codes auf Einzigartigkeit gegen Live- und Archivbestände oder generiert ein 'GUT-'-Krypto-Token.
      *
-     * @param string               $reason      Der Ausstellungsgrund (z.B. "Vorstandsentlastung").
-     * @param string               $createdBy   Die ID oder der Name des ausstellenden Administrators.
-     * @param string               $templateKey Das verknüpfte Tarif-Template (z.B. 'std_7').
-     * @param array<string, mixed> $prefillData Optionale Stammdaten zur Zwangs-Vorbefüllung des Formulars.
-     * @param string               $type        Der Rabatt-Typ ('free', 'fixed', 'percent').
-     * @param float                $value       Der numerische Rabattwert (Betrag oder Prozentsatz).
-     * @param bool                 $multiUse    True, wenn der Gutschein von mehreren Personen genutzt werden darf.
-     * @param int|null             $maxUses     Maximale Einlösungsanzahl bei Multi-Use.
-     * @param string|null          $customCode  Optionaler Wunsch-Code (z.B. "SOMMER2026").
-     * @param string|null          $expiresAt   Optionales Ablaufdatum (Y-m-d).
-     * @param string               $dateMode    Gültigkeitsmodus für Termine ('fixed' oder flexibel).
+     * @param string               $reason       Der Ausstellungsgrund (z.B. "Vorstandsentlastung").
+     * @param string               $createdBy    Die ID oder der Name des ausstellenden Administrators.
+     * @param string               $template_key Das verknüpfte Tarif-Template (z.B. 'std_7').
+     * @param array<string, mixed> $prefillData  Optionale Stammdaten zur Zwangs-Vorbefüllung des Formulars.
+     * @param string               $type         Der Rabatt-Typ ('free', 'fixed', 'percent').
+     * @param float                $value        Der numerische Rabattwert (Betrag oder Prozentsatz).
+     * @param bool                 $multiUse     True, wenn der Gutschein von mehreren Personen genutzt werden darf.
+     * @param int|null             $maxUses      Maximale Einlösungsanzahl bei Multi-Use.
+     * @param string|null          $customCode   Optionaler Wunsch-Code (z.B. "SOMMER2026").
+     * @param string|null          $expiresAt    Optionales Ablaufdatum (Y-m-d).
+     * @param string               $dateMode     Gültigkeitsmodus für Termine ('fixed' oder flexibel).
      *
      * @return string Der finale, registrierte Gutscheincode im System.
      */
     public function createVoucher(
         string $reason,
         string $createdBy,
-        string $templateKey,
+        string $template_key,
         array $prefillData = [],
         string $type = 'free', // NEU: free, fixed, percent
         float $value = 0.0,    // NEU: Betrag oder Prozent
@@ -86,7 +86,7 @@ final readonly class VoucherService
         $activeVouchers[$newGeneratedCode] = [
             'code'         => $newGeneratedCode,
             'reason'       => $reason,
-            'template_key' => $templateKey,
+            'template_key' => $template_key,
             'type'         => $type,
             'value'        => $value,
             'multi_use'    => $multiUse,
@@ -210,25 +210,45 @@ final readonly class VoucherService
     public function saveVouchers(array $vouchers): void
     {
         $cfg = $this->config->get('storage_config')['vouchers'];
-
         if ($cfg['type'] === 'mysql') {
-            // Wir löschen die Tabelle und füllen sie neu (Einfachste Sync-Logik für REPLACE)
             $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $sql = "INSERT INTO {$cfg['table']} (code, reason, template_key, type, value, multi_use, max_uses, uses_count, expires_at, date_mode, created_by, created_at, data)
-                    VALUES (:code, :reason, :template_key, :type, :value, :multi_use, :max_uses, :uses_count, :expires_at, :date_mode, :created_by, :created_at, :data)";
+
+            // Neues SQL-Statement inkl. status
+            $sql = "INSERT INTO {$cfg['table']} (
+                code, reason, template_key, type, value, multi_use, max_uses,
+                uses_count, expires_at, date_mode, created_by, created_at, status, data
+            ) VALUES (
+                :code, :reason, :template_key, :type, :value, :multi_use, :max_uses,
+                :uses_count, :expires_at, :date_mode, :created_by, :created_at, :status, :data
+            )";
+
             $stmt = $this->pdo->prepare($sql);
 
             foreach ($vouchers as $v) {
-                $v['data']      = \json_encode($v['data'] ?? []); // Array für DB serialisieren
-                $v['multi_use'] = (int) ($v['multi_use'] ?? 0);
-                $stmt->execute($v);
+                // Explizites Mapping schützt vor HY093 und fehlenden Keys
+                $stmt->execute([
+                    'code'         => $v['code'] ?? '',
+                    'reason'       => $v['reason'] ?? '',
+                    'template_key' => $v['template_key'] ?? 'std_7',
+                    'type'         => $v['type'] ?? 'free',
+                    'value'        => (float) ($v['value'] ?? 0.0),
+                    'multi_use'    => (int) ($v['multi_use'] ?? 0),
+                    'max_uses'     => (int) ($v['max_uses'] ?? 1),
+                    'uses_count'   => (int) ($v['uses_count'] ?? 0),
+                    'expires_at'   => $v['expires_at'] ?? null,
+                    'date_mode'    => $v['date_mode'] ?? 'fixed',
+                    'created_by'   => $v['created_by'] ?? '',
+                    'created_at'   => $v['created_at'] ?? \date('Y-m-d H:i:s'),
+                    'status'       => $v['status'] ?? 'aktiv',
+                    'data'         => \json_encode($v['data'] ?? [], \JSON_UNESCAPED_UNICODE),
+                ]);
             }
 
             return;
         }
 
         $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-        \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT));
+        \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     /**
