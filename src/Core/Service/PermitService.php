@@ -248,7 +248,8 @@ final readonly class PermitService
             ) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                        $permit->validity->von->format('d.m.Y') . ' bis ' . $permit->validity->bis->format('d.m.Y') . '.',
+                        $permit->validity->von->format('d.m.Y') . ' bis ' .
+                        $permit->validity->bis->format('d.m.Y') . '.',
                 );
             }
         }
@@ -354,7 +355,11 @@ final readonly class PermitService
 
                     // Wir müssen es hier nicht in verified_pending speichern,
                     // sondern können es sofort finalisieren.
-                    return ['finalised' => $this->finaliseRequest($token, 'bezahlt', 'Gutschein (Voll-Rabatt): ' . $voucherCode)];
+                    return ['finalised' => $this->finaliseRequest(
+                        $token,
+                        'bezahlt',
+                        'Gutschein (Voll-Rabatt): ' . $voucherCode,
+                    )];
                 }
 
                 // Fall B: Restbetrag bleibt offen (Teil-Rabatt)
@@ -589,18 +594,21 @@ final readonly class PermitService
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
             'permit_a4_document',
             [
-                'fullIdentifier'    => $permit->code,
-                'von_formatted'     => $permit->validity->von->format('d.m.Y'),
-                'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
-                'kennzeichen'       => $permit->vehicle->kennzeichen,
-                'firma'             => $permit->vehicle->firma ?? '',
-                'parzelle'          => $permit->owner->parzelle,
-                'zweck'             => $permit->validity->zweck,
-                'template_key'       => $permit->template_key,
-                'vereinsName'       => $this->config->get('vereins_name'),
-                'jahresFarbe'       => $this->config->get('jahresFarbe'),
-                'opening'           => $opening,
-                'holidayNotice'     => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
+                'fullIdentifier' => $permit->code,
+                'von_formatted'  => $permit->validity->von->format('d.m.Y'),
+                'bis_formatted'  => $permit->validity->bis->format('d.m.Y'),
+                'kennzeichen'    => $permit->vehicle->kennzeichen,
+                'firma'          => $permit->vehicle->firma ?? '',
+                'parzelle'       => $permit->owner->parzelle,
+                'zweck'          => $permit->validity->zweck,
+                'template_key'   => $permit->template_key,
+                'vereinsName'    => $this->config->get('vereins_name'),
+                'jahresFarbe'    => $this->config->get('jahresFarbe'),
+                'opening'        => $opening,
+                'holidayNotice'  => $this->holidayService->getHolidaysInRangeText(
+                    $permit->validity->von,
+                    $permit->validity->bis,
+                ),
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
@@ -734,7 +742,8 @@ final readonly class PermitService
 
     /**
      * Überprüft die globale, systemweite Einzigartigkeit eines Genehmigungs-Codes.
-     * Scannt hierzu das aktive Storage, die SQL-Archivtabellen sowie alle historischen JSON-Jahresarchive auf der Festplatte.
+     * Scannt hierzu das aktive Storage, die SQL-Archivtabellen sowie alle historischen
+     * JSON-Jahresarchive auf der Festplatte.
      *
      * @param string $fullIdentifier Der zu prüfende Gesamt-Code.
      *
@@ -988,7 +997,22 @@ final readonly class PermitService
 
         // --- WEICHE: Wo wird archiviert? ---
         if ($arcCfg['type'] === 'mysql' && $this->pdo) {
-            $sql = "REPLACE INTO {$arcCfg['table']} (code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preisSnapshot, von, bis, status, erstellt, internerKommentar)
+            $sql = "REPLACE INTO {$arcCfg['table']} (
+                code,
+                template_key,
+                name,
+                email,
+                kennzeichen,
+                parzelle,
+                typ,
+                firma,
+                zweck,
+                preisSnapshot,
+                von,
+                bis,
+                status,
+                erstellt,
+                internerKommentar)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             foreach ($toArchive as $item) {
@@ -1012,8 +1036,16 @@ final readonly class PermitService
             }
         } else {
             // Klassisch JSON
-            $yearPath = \str_replace('{YEAR}', (string) $lastYear, $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file_pattern']);
-            $existing = \file_exists($yearPath) ? (array) \json_decode((string) \file_get_contents($yearPath), true) : [];
+            $yearPath = \str_replace(
+                '{YEAR}',
+                (string) $lastYear,
+                $this->config->get('root_path') . '/' .
+                    $this->config->get('storage_path_prefix') . $arcCfg['file_pattern'],
+            );
+            $existing = \file_exists($yearPath) ? (array) \json_decode(
+                (string) \file_get_contents($yearPath),
+                true,
+            ) : [];
             $this->saveJson($yearPath, \array_merge($existing, $toArchive));
         }
 

@@ -72,7 +72,10 @@ final readonly class AuthService
         // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
         $users = $this->loadUsers();
         foreach ($users as $userId => $userData) {
-            if (($userData['username'] ?? '') === $username && \password_verify($password, (string) $userData['pass'])) {
+            if (
+                ($userData['username'] ?? '') === $username
+                && \password_verify($password, (string) $userData['pass'])
+            ) {
                 $this->setSession($userId, (string) $userData['group'], $username);
                 $this->refreshSessionPermissions((string) $userData['group']);
 
@@ -151,8 +154,9 @@ final readonly class AuthService
 
     /**
      * Gibt den Browser-Pfad zum Profilbild des aktuell angemeldeten Benutzers zurück.
+     * public function getProfilePicture(string $username = ''): string
      */
-    public function getProfilePicture(string $username = ''): string
+    public function getProfilePicture(): string
     {
         return $this->getImage('user', (string) ($_SESSION['user_id'] ?? 'default'));
     }
@@ -175,7 +179,10 @@ final readonly class AuthService
 
         // Pfad für file_exists (absolut auf dem Server inkl. public/)
         // Fix: Pfad muss absolut zum 'public' Ordner sein
-        $serverPath = \rtrim($this->config->get('root_path'), '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
+        $serverPath = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/public/assets/img/' . $folder . '/' . $id . '.webp';
 
         // URL für den Browser (relativ zur baseUrl)
         $browserPath = 'assets/img/' . $folder . '/' . $id . '.webp';
@@ -222,9 +229,17 @@ final readonly class AuthService
             return $users;
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
 
-        return \file_exists($path) && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return \file_exists($path)
+            && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true)
+                ?? []) : [];
     }
 
     /**
@@ -243,7 +258,9 @@ final readonly class AuthService
                 // Bei kompletten Array-Updates löschen wir vorher alles, um auch gelöschte Nutzer zu entfernen
                 $this->pdo->exec("DELETE FROM {$cfg['table']}");
                 // Wichtig: `group` ist in MySQL ein reserviertes Wort und muss in Backticks ` ` gesetzt werden!
-                $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (id, username, `group`, pass) VALUES (?, ?, ?, ?)");
+                $stmt = $this->pdo->prepare(
+                    "INSERT INTO {$cfg['table']} (id, username, `group`, pass) VALUES (?, ?, ?, ?)",
+                );
                 foreach ($users as $id => $u) {
                     $stmt->execute([$id, $u['username'], $u['group'], $u['pass']]);
                 }
@@ -257,8 +274,17 @@ final readonly class AuthService
             return;
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-        \file_put_contents($path, \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
+        \file_put_contents(
+            $path,
+            \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+        );
     }
 
     /**
@@ -283,9 +309,17 @@ final readonly class AuthService
             return $groups;
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
 
-        return \file_exists($path) && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return \file_exists($path)
+            && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true)
+                ?? []) : [];
     }
 
     /**
@@ -316,13 +350,20 @@ final readonly class AuthService
             return;
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
         \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
     /**
      * Verarbeitet Bild-Uploads, konvertiert sie in das WebP-Format und skaliert sie transparent via GD.
-     * Unterstützt JPEG, PNG, GIF und native WebP-Quellen. Sichert Kompatibilität durch Raw-Move bei fehlender GD-Erweiterung.
+     * Unterstützt JPEG, PNG, GIF und native WebP-Quellen. Sichert Kompatibilität durch Raw-Move bei
+     * fehlender GD-Erweiterung.
      *
      * @param string               $type 'user' oder 'group' zur Verzeichnissteuerung.
      * @param string               $id   Die ID des Ziel-Objekts (wird zum Dateinamen).
@@ -382,9 +423,7 @@ final readonly class AuthService
         \imagecopyresampled($dst, $src, 0, 0, 0, 0, $width, $height, $width, $height);
 
         // 2. Als WebP mit 75% Qualität speichern
-        $result = \imagewebp($dst, $outputPath, 75);
-
-        return $result;
+        return \imagewebp($dst, $outputPath, 75);
     }
 
     /**

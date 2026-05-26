@@ -23,6 +23,8 @@ return [
         'charset' => 'utf8mb4',
     ],
 
+    // WICHTIG: Aktuell bitte bei json bleiben, da die Migration von MySQl zurück zu json noch nicht fertig ist!
+
     // Speicher-Strategie pro Bereich
     'storage_config' => [
         // Haupt-Datenbank für fertige Genehmigungen (ehemals daten.json)

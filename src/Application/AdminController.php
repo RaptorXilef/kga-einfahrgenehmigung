@@ -398,7 +398,10 @@ final readonly class AdminController
                     'config'        => $config,
                     'appRoot'       => $config->get('root_path'),
                     'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
-                    'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
+                    'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    ),
                 ]);
 
                 return true;
@@ -429,24 +432,27 @@ final readonly class AdminController
         $permitTemplates = $this->config->get('permit_templates', []);
 
         // 1. Filterung für den gewählten Zeitraum & Typ
-        $filtered = \array_filter($allPermits, function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates): bool {
-            $date = $p->erstellt->format('Y-m-d');
+        $filtered = \array_filter(
+            $allPermits,
+            function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates): bool {
+                $date = $p->erstellt->format('Y-m-d');
 
-            // Check Zeitraum
-            if ($date < $filterStart || $date > $filterEnd) {
-                return false;
-            }
-
-            // Check Typ (wenn nicht 'all')
-            if ($filterType !== 'all') {
-                $tplType = $permitTemplates[$p->template_key]['type'] ?? 'standard';
-                if ($tplType !== $filterType) {
+                // Check Zeitraum
+                if ($date < $filterStart || $date > $filterEnd) {
                     return false;
                 }
-            }
 
-            return true;
-        });
+                // Check Typ (wenn nicht 'all')
+                if ($filterType !== 'all') {
+                    $tplType = $permitTemplates[$p->template_key]['type'] ?? 'standard';
+                    if ($tplType !== $filterType) {
+                        return false;
+                    }
+                }
+
+                return true;
+            },
+        );
 
         // Export abfangen
         if (isset($get['export'])) {
@@ -577,7 +583,11 @@ final readonly class AdminController
                 $stats['revenue_unpaid'] += $p->validity->preisSnapshot;
             }
         }
-        \uasort($stats['plots'], fn ($a, $b) => $b['count'] === $a['count'] ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count']);
+        \uasort(
+            $stats['plots'],
+            fn ($a, $b) => $b['count'] === $a['count']
+                ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count'],
+        );
 
         return $stats;
     }
@@ -595,7 +605,13 @@ final readonly class AdminController
     private function handleExport(string $format, array $filtered, string $start, string $end): void
     {
         // FIX: Wir nutzen den Vereinsnamen aus der Config für den Dateinamen (statt hartkodiert "kga")
-        $slug = \strtolower(\preg_replace('/[^A-Za-z0-9]/', '_', (string) $this->config->get('vereins_name', 'export')));
+        $slug = \strtolower(
+            \preg_replace(
+                '/[^A-Za-z0-9]/',
+                '_',
+                (string) $this->config->get('vereins_name', 'export'),
+            ),
+        );
 
         // FIX: Die Endung wird jetzt dynamisch über $format angehängt
         $filename = "export_{$slug}_{$start}_bis_{$end}.{$format}";
@@ -623,7 +639,7 @@ final readonly class AdminController
                     'Einnahme (€)',
                     'Status',
                     'Erstellt am',
-                ], ';');
+                ], ';', '"', '\\');
 
                 foreach ($filtered as $permit) {
                     \fputcsv($output, [
@@ -638,7 +654,7 @@ final readonly class AdminController
                         \number_format($permit->validity->preisSnapshot, 2, ',', ''),
                         \strtoupper($permit->status->current),
                         $permit->erstellt->format('d.m.Y H:i'),
-                    ], ';');
+                    ], ';', '"', '\\');
                 }
                 \fclose($output);
             }
@@ -729,7 +745,10 @@ final readonly class AdminController
 
         // 3. SORTIERUNG FÜR FINANZEN
         // Die neuesten Anträge (erstellt am) sollen oben stehen.
-        \usort($groups['unpaid'], fn ($permitEntryA, $permitEntryB) => $permitEntryB->erstellt <=> $permitEntryA->erstellt);
+        \usort(
+            $groups['unpaid'],
+            fn ($permitEntryA, $permitEntryB) => $permitEntryB->erstellt <=> $permitEntryA->erstellt,
+        );
 
         return $groups;
     }

@@ -74,7 +74,9 @@ final readonly class VoucherService
         if ($customCode !== null && \trim($customCode) !== '') {
             $newGeneratedCode = \strtoupper(\trim($customCode));
             if (\in_array($newGeneratedCode, $alreadyUsedCodes, true)) {
-                throw new \RuntimeException("Der Code '{$newGeneratedCode}' wurde bereits verwendet oder existiert schon.");
+                throw new \RuntimeException(
+                    "Der Code '{$newGeneratedCode}' wurde bereits verwendet oder existiert schon.",
+                );
             }
         } else {
             // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
@@ -149,16 +151,27 @@ final readonly class VoucherService
             ]);
         } else {
             // Klassisch JSON
-            $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file'];
-            $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
-            $archive[]   = $archiveEntry;
-            \file_put_contents($archivePath, \json_encode($archive, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            $archivePath = $this->config->get('root_path') . '/' .
+                $this->config->get('storage_path_prefix') . $arcCfg['file'];
+            $archive = \file_exists($archivePath) ? \json_decode(
+                (string) \file_get_contents($archivePath),
+                true,
+            ) : [];
+            $archive[] = $archiveEntry;
+            \file_put_contents(
+                $archivePath,
+                \json_encode($archive, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            );
         }
         // --- ENDE ARCHIV-LOGIK ---
 
         // Lösch-Logik für den aktiven Gutschein
         $shouldDelete = ! ($voucher['multi_use'] ?? false);
-        if (($voucher['multi_use'] ?? false) && (int) $voucher['max_uses'] > 0 && $voucher['uses_count'] >= $voucher['max_uses']) {
+        if (
+            ($voucher['multi_use'] ?? false)
+            && (int) $voucher['max_uses'] > 0
+            && $voucher['uses_count'] >= $voucher['max_uses']
+        ) {
             $shouldDelete = true;
         }
 

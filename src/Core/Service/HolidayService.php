@@ -174,7 +174,8 @@ final readonly class HolidayService
      */
     private function getStateHolidays(int $year): array
     {
-        // UTC verhindert, dass bei +50 Tagen eine Stunde durch Sommerzeit verloren geht und wir am Vortag um 23:00 Uhr landen
+        // UTC verhindert, dass bei +50 Tagen eine Stunde durch Sommerzeit verloren geht und
+        // wir am Vortag um 23:00 Uhr landen
         $base   = new \DateTimeImmutable("$year-03-21", new \DateTimeZone('UTC'));
         $easter = $base->modify('+' . \easter_days($year) . ' days');
 
@@ -194,30 +195,102 @@ final readonly class HolidayService
         // Bundeslandspezifische Feiertage
         $state = $this->config->get('holiday_check', 'Berlin');
 
-        if (\in_array($state, ['Baden-Württemberg', 'Bayern', 'Sachsen-Anhalt'], true)) {
+        if (
+            \in_array(
+                $state,
+                [
+                    'Baden-Württemberg',
+                    'Bayern',
+                    'Sachsen-Anhalt',
+                ],
+                true,
+            )
+        ) {
             $holidays[] = $year . '-01-06'; // Heilige Drei Könige
         }
-        if (\in_array($state, ['Berlin', 'Mecklenburg-Vorpommern'], true)) {
+        if (
+            \in_array(
+                $state,
+                [
+                    'Berlin',
+                    'Mecklenburg-Vorpommern',
+                ],
+                true,
+            )
+        ) {
             $holidays[] = $year . '-03-08'; // Frauentag
         }
-        if (\in_array($state, ['Baden-Württemberg', 'Bayern', 'Hessen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland'], true)) {
+        if (
+            \in_array(
+                $state,
+                [
+                    'Baden-Württemberg',
+                    'Bayern',
+                    'Hessen',
+                    'Nordrhein-Westfalen',
+                    'Rheinland-Pfalz',
+                    'Saarland',
+                ],
+                true,
+            )
+        ) {
             $holidays[] = $easter->modify('+60 days')->format('Y-m-d'); // Fronleichnam
         }
-        if (\in_array($state, ['Saarland', 'Bayern'], true)) {
+        if (
+            \in_array(
+                $state,
+                [
+                    'Saarland',
+                    'Bayern',
+                ],
+                true,
+            )
+        ) {
             $holidays[] = $year . '-08-15'; // Mariä Himmelfahrt
         }
         if ($state === 'Thüringen') {
             $holidays[] = $year . '-09-20'; // Weltkindertag
         }
-        if (\in_array($state, ['Brandenburg', 'Bremen', 'Hamburg', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'], true)) {
+        if (
+            \in_array(
+                $state,
+                [
+                    'Brandenburg',
+                    'Bremen',
+                    'Hamburg',
+                    'Mecklenburg-Vorpommern',
+                    'Niedersachsen',
+                    'Sachsen',
+                    'Sachsen-Anhalt',
+                    'Schleswig-Holstein',
+                    'Thüringen',
+                ],
+                true,
+            )
+        ) {
             $holidays[] = $year . '-10-31'; // Reformationstag
         }
-        if (\in_array($state, ['Baden-Württemberg', 'Bayern', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland'], true)) {
+        if (
+            \in_array(
+                $state,
+                [
+                    'Baden-Württemberg',
+                    'Bayern',
+                    'Nordrhein-Westfalen',
+                    'Rheinland-Pfalz',
+                    'Saarland',
+                ],
+                true,
+            )
+        ) {
             $holidays[] = $year . '-11-01'; // Allerheiligen
         }
         if ($state === 'Sachsen') {
             // Buß- und Bettag: Mittwoch vor dem 23. November
-            $holidays[] = (new \DateTimeImmutable("$year-11-23", new \DateTimeZone('UTC')))->modify('last wednesday')->format('Y-m-d');
+            $holidays[] = (new \DateTimeImmutable(
+                "$year-11-23",
+                new \DateTimeZone('UTC'),
+            ))->modify('last wednesday')->format('Y-m-d');
         }
 
         return $holidays;
@@ -352,8 +425,11 @@ final readonly class HolidayService
      *
      * @return string Formatierte Liste oder Bereiche der Feiertage.
      */
-    public function getHolidaysInRangeText(\DateTimeImmutable $von, \DateTimeImmutable $bis, bool $withPrefix = true): string
-    {
+    public function getHolidaysInRangeText(
+        \DateTimeImmutable $von,
+        \DateTimeImmutable $bis,
+        bool $withPrefix = true,
+    ): string {
         $startYear = (int) $von->format('Y');
         $endYear   = (int) $bis->format('Y');
         $holidays  = [];
@@ -365,9 +441,11 @@ final readonly class HolidayService
             foreach ($yearlyHolidays as $dateStr) {
                 $date = new \DateTimeImmutable($dateStr);
                 // Prüfen, ob der Feiertag in den Gültigkeitszeitraum fällt
-                if ($date >= $von->setTime(0, 0, 0) && $date <= $bis->setTime(23, 59, 59)) {
-                    $holidays[] = $date->format('Y-m-d');
+                if ($date < $von->setTime(0, 0, 0) || $date > $bis->setTime(23, 59, 59)) {
+                    continue;
                 }
+
+                $holidays[] = $date->format('Y-m-d');
             }
         }
 
@@ -413,13 +491,17 @@ final readonly class HolidayService
         foreach ($customHolidays as $customDate) {
             $cleanDate = \str_replace('.', '-', $customDate); // Macht aus 26.05.2026 -> 26-05-2026
             $time      = \strtotime($cleanDate);
-            if ($time !== false) {
-                $parsedDate = \date('Y-m-d', $time);
-                // Nur übernehmen, wenn es das angefragte Jahr betrifft
-                if (\str_starts_with($parsedDate, (string) $year)) {
-                    $holidays[] = $parsedDate;
-                }
+            if ($time === false) {
+                continue;
             }
+
+            $parsedDate = \date('Y-m-d', $time);
+            // Nur übernehmen, wenn es das angefragte Jahr betrifft
+            if (! \str_starts_with($parsedDate, (string) $year)) {
+                continue;
+            }
+
+            $holidays[] = $parsedDate;
         }
 
         // Duplikate entfernen (falls ein Custom-Date zufällig auf einen Feiertag fällt)

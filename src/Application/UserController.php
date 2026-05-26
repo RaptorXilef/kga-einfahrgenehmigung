@@ -168,7 +168,8 @@ final readonly class UserController
 
         // 5. Icon-Handling
         // Wir schauen nach 'group_icon' (aus dem Neu-Formular) ODER 'avatar' (aus dem Bearbeiten-Formular)
-        $iconFile = $_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null);
+        // $iconFile = $_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null);
+        $iconFile = $file ?? ($_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null));
         if ($iconFile && $iconFile['error'] === 0) {
             $this->auth->uploadImage('group', $groupId, $iconFile);
         }
@@ -254,7 +255,9 @@ final readonly class UserController
         // FIX: Wir nutzen jetzt die user_id statt username
         $userId = (string) ($post['user_id'] ?? '');
 
-        return $this->auth->uploadImage('user', $userId, $file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->auth->uploadImage('user', $userId, $file)
+            ? 'Profilbild aktualisiert.'
+            : 'Fehler beim Verarbeiten.';
     }
 
     /**
@@ -272,7 +275,9 @@ final readonly class UserController
         }
         $gid = (string) ($post['group_id'] ?? '');
 
-        return $this->auth->uploadImage('group_images', $gid, $file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->auth->uploadImage('group_images', $gid, $file)
+            ? 'Gruppen-Icon aktualisiert.'
+            : 'Fehler beim Verarbeiten.';
     }
 
     /**

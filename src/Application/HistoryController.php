@@ -153,7 +153,8 @@ final readonly class HistoryController
         if ($loadedYear > 0) {
             $arcCfg      = $this->config->get('storage_config')['permits_archive'];
             $yearFile    = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern']);
-            $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $yearFile;
+            $archivePath = $this->config->get('root_path') . '/' .
+                $this->config->get('storage_path_prefix') . $yearFile;
             if (\file_exists($archivePath)) {
                 $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
                 // Filter für E-Mail im Archiv
@@ -217,7 +218,10 @@ final readonly class HistoryController
                 'settings'      => $this->getSettingsArray(),
                 'appRoot'       => $this->config->get('root_path'),
                 'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
-                'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
+                'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
+                    $permit->validity->von,
+                    $permit->validity->bis,
+                ),
             ]);
         } else {
             \header('Location: history.php');

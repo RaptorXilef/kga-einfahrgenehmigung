@@ -78,7 +78,14 @@ $settings['backdoor'] = [
 
 // --- AUTO-CREATION: dev_admin.php wenn sie fehlt ---
 if (! \file_exists($configFiles['dev'])) {
-    $defaultDevContent = "<?php\nreturn [\n    'user' => 'Systembetreuer',\n    'pass' => 'admin123',\n    'label' => 'Systembetreuer'\n];";
+    $defaultDevContent = <<<'PHP'
+        <?php
+        return [
+            'user' => 'Systembetreuer',
+            'pass' => 'mein_passwort_123',
+            'label' => 'Systembetreuer'
+        ];
+        PHP;
     \file_put_contents($configFiles['dev'], $defaultDevContent);
 }
 
@@ -152,7 +159,10 @@ if (! $isMaintenancePage) {
 
         // Hinweis: API-Anrufe lassen wir durch, da sie oft vom Admin-Panel
         // oder für die Preisberechnung im Hintergrund genutzt werden.
-        if (! \in_array($currentScript, $allowedAdminScripts, true) && ! \str_contains($_SERVER['SCRIPT_NAME'], '/api/')) {
+        if (
+            ! \in_array($currentScript, $allowedAdminScripts, true)
+            && ! \str_contains($_SERVER['SCRIPT_NAME'], '/api/')
+        ) {
             $shouldShowMaintenance = true;
         }
     }

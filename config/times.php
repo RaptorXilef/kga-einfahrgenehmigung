@@ -29,8 +29,11 @@ return [
         'sun' => [], // Sonntag keine Einfahrt
     ],
 
-    // Automatischer Berlin-Feiertags-Check
-    // Berechnet: Neujahr, Frauentag (8.3.), Karfreitag, Ostermontag, Tag der Arbeit (1.5.), Christi Himmelfahrt, Pfingstmontag, Tag der Dt. Einheit (3.10.), 1. & 2. Weihnachtsfeiertag
+    /**
+     * Automatischer Berlin-Feiertags-Check
+     * Berechnet: Neujahr, Frauentag (8.3.), Karfreitag, Ostermontag, Tag der Arbeit (1.5.),
+     * Christi Himmelfahrt, Pfingstmontag, Tag der Dt. Einheit (3.10.), 1. & 2. Weihnachtsfeiertag
+     */
     'use_auto_holidays' => true,
 
     /**

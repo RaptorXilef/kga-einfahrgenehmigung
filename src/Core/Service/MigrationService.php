@@ -99,13 +99,18 @@ final readonly class MigrationService
         if (! isset($storageConfig[$target])) {
             $keysToBackup = ['permits', 'users', 'groups', 'vouchers'];
             foreach ($keysToBackup as $key) {
-                if (isset($storageConfig[$key])) {
-                    $path = \rtrim((string) $root, '/\\') . '/' . \ltrim((string) $prefix, '/\\') . $storageConfig[$key]['file'];
-                    if (\file_exists($path)) {
-                        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
-                        \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
-                    }
+                if (! isset($storageConfig[$key])) {
+                    continue;
                 }
+
+                $path = \rtrim((string) $root, '/\\') . '/' .
+                    \ltrim((string) $prefix, '/\\') . $storageConfig[$key]['file'];
+                if (! \file_exists($path)) {
+                    continue;
+                }
+
+                $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+                \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
             }
 
             return $prefix . $subFolder . '/' . $timestamp;
@@ -230,7 +235,13 @@ final readonly class MigrationService
             return [];
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
 
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
@@ -251,7 +262,13 @@ final readonly class MigrationService
             return;
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
     }
 
@@ -603,15 +620,18 @@ final readonly class MigrationService
         foreach ($schema as $tableName => $sql) {
             try {
                 $this->pdo->exec($sql);
-            } catch (\PDOException) {
+            } catch (\PDOException $e) {
                 // Fehler silent loggen oder behandeln, falls nötig
+                // Jetzt wird `$tableName` sinnvoll genutzt!
+                \error_log("Bootstrap: Fehler beim Erstellen der Tabelle '$tableName': " . $e->getMessage());
             }
         }
     }
 
     /**
      * Initiiert das Seeding und automatische Migrieren von Grunddaten für ALLE konfigurierten Speicherbereiche.
-     * Wenn 'auto_migration' in der Config auf false steht, wird dieser Prozess (bis auf ensureTablesExist) übersprungen.
+     * Wenn 'auto_migration' in der Config auf false steht, wird dieser Prozess (bis auf ensureTablesExist)
+     * übersprungen.
      *
      * Füllt die Datenbank/JSON-Dateien beim Erststart mit Standardwerten
      * ODER übernimmt Daten automatisch bidirektional aus der jeweils anderen (inaktiven) Quelle.
@@ -663,7 +683,7 @@ final readonly class MigrationService
         $sqlData  = $this->loadRawSql($key);
 
         // 2. Ziel-Check: Ist der AKTIVE Speicher leer?
-        $activeData = ($currentType === 'mysql') ? $sqlData : $jsonData;
+        $activeData = $currentType === 'mysql' ? $sqlData : $jsonData;
 
         // 3. Ist der aktive Speicher befüllt? -> Nichts tun!
         if (! empty($activeData)) {
@@ -672,7 +692,7 @@ final readonly class MigrationService
 
         // 3. Quell-Check: Gibt es im anderen Speicher Daten?
         // Wenn currentType mysql, dann ist JSON (jsonData) unsere Quelle
-        $sourceData = ($currentType === 'mysql') ? $jsonData : $sqlData;
+        $sourceData = $currentType === 'mysql' ? $jsonData : $sqlData;
 
         // DEBUG-Logging
         if (empty($sourceData)) {
@@ -689,7 +709,11 @@ final readonly class MigrationService
                 return;
             }
         } else {
-            \error_log("Bootstrap: Migriere $key von " . ($currentType === 'mysql' ? 'JSON' : 'SQL') . ' zu ' . ($currentType === 'mysql' ? 'SQL' : 'JSON'));
+            \error_log(
+                "Bootstrap: Migriere $key von " .
+                    ($currentType === 'mysql' ? 'JSON' : 'SQL') . ' zu ' .
+                    ($currentType === 'mysql' ? 'SQL' : 'JSON'),
+            );
         }
 
         // 4. Echte Migration

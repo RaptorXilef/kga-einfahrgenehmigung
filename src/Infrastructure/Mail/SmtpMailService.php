@@ -235,15 +235,27 @@ final readonly class SmtpMailService implements MailServiceInterface
      * @param bool|string          $status    Das Ergebnis der dispatch-Methode.
      * @param array<string, mixed> $data      Mitgesendete Rohdaten-Payload.
      */
-    private function logEmail(string $recipient, string $subject, string $template, bool|string $status, array $data = []): void
-    {
+    private function logEmail(
+        string $recipient,
+        string $subject,
+        string $template,
+        bool|string $status,
+        array $data = [],
+    ): void {
         $cfg        = $this->config->get('storage_config')['mail_log'];
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
         $statusStr  = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
 
         if ($cfg['type'] === 'mysql') {
             // Hier wird das data-Array als JSON-String in die DB geladen
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (timestamp, recipient, subject, template, status, data) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (
+                timestamp,
+                recipient,
+                subject,
+                template,
+                status,
+                data
+            ) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 \date('Y-m-d H:i:s'),
                 $recipient,
@@ -265,7 +277,10 @@ final readonly class SmtpMailService implements MailServiceInterface
         }
 
         // --- Alter JSON Code ---
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         $logs = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
         \array_unshift($logs, [
             'timestamp' => \date('Y-m-d H:i:s'),
@@ -296,7 +311,15 @@ final readonly class SmtpMailService implements MailServiceInterface
 
             try {
                 // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
-                $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (id, timestamp, recipient, subject, template, status, data) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (
+                    id,
+                    timestamp,
+                    recipient,
+                    subject,
+                    template,
+                    status,
+                    data
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 foreach ($logs as $id => $log) {
                     $rawPayload = $log['data'] ?? null;
                     $stmt->execute([
@@ -317,8 +340,17 @@ final readonly class SmtpMailService implements MailServiceInterface
             }
         } else {
             // Fallback: Normales JSON-Speichern
-            $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-            \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            $path = \rtrim(
+                $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            );
         }
     }
 
@@ -340,7 +372,13 @@ final readonly class SmtpMailService implements MailServiceInterface
             return $this->pdo->query("SELECT * FROM {$cfg['table']} ORDER BY timestamp DESC")->fetchAll();
         }
 
-        $path = \rtrim($this->config->get('root_path'), '/\\') . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = \rtrim(
+            $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
         if (! \file_exists($path)) {
             return [];
         }

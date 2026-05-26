@@ -30,7 +30,8 @@ final readonly class MagicLinkService
     ) {
         // storagePath wird für JSON weiter berechnet
         $cfg               = $this->config->get('storage_config')['magic_links'];
-        $this->storagePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $this->storagePath = $this->config->get('root_path') . '/' .
+            $this->config->get('storage_path_prefix') . $cfg['file'];
     }
 
     /**
@@ -111,7 +112,8 @@ final readonly class MagicLinkService
     /**
      * Lädt den aktuellen Bestand an ungelösten Token-Referenzen aus dem konfigurierten Backend.
      *
-     * @return array<string, array{email: string, code: string, expires: int}> Liste aktiver Tokens indiziert nach Krypto-Hash.
+     * @return array<string, array{email: string, code: string, expires: int}> Liste aktiver Tokens indiziert nach
+     *                                                                         Krypto-Hash.
      */
     private function loadLinks(): array
     {
@@ -152,7 +154,9 @@ final readonly class MagicLinkService
                 throw new \RuntimeException('MySQL offline');
             }
             $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)");
+            $stmt = $this->pdo->prepare(
+                "INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)",
+            );
             foreach ($links as $token => $d) {
                 $stmt->execute([$token, $d['email'], $d['code'], (int) $d['expires']]);
             }

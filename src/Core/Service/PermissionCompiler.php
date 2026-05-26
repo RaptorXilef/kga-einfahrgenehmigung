@@ -25,8 +25,8 @@ final class PermissionCompiler
      *
      * Wandelt den Permissions-Baum in ein flaches Array um, basierend auf den Gruppen-Einstellungen.
      *
-     * @param array<int, array<string, mixed>> $structure        Der hierarchische Baum aus der permissions-Konfiguration.
-     * @param array<int, string>               $groupPermissions Die ungefilterten Berechtigungs-Strings der Benutzergruppe.
+     * @param array<int, array<string, mixed>> $structure        Der hierarchische Baum aus der permissions-Config.
+     * @param array<int, string>               $groupPermissions Ungefilterte Berechtigungs-Strings der Benutzergruppe.
      *
      * @return array<string, bool> Flache Map, bei der Berechtigungs-Keys direkt auf True/False mappen.
      */

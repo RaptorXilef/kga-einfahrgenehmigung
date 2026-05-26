@@ -55,11 +55,19 @@ final readonly class MailQueueService implements MailServiceInterface
         $payload = \json_encode($data);
 
         if ($cfg['type'] === 'mysql' && $this->pdo) {
-            $stmt = $this->pdo->prepare('INSERT INTO mail_queue (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)');
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO mail_queue (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)',
+            );
             $stmt->execute([$recipient, $subject, $template, $payload, \date('Y-m-d H:i:s')]);
         } else {
             // BUGFIX: Sicherer Pfad mit Schrägstrich
-            $path    = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
             $queue   = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
             $queue[] = [
                 'recipient'  => $recipient,
@@ -92,7 +100,9 @@ final readonly class MailQueueService implements MailServiceInterface
         // --- A. MYSQL LOGIK ---
         if ($cfg['type'] === 'mysql' && $this->pdo) {
             // Markieren (Locking)
-            $this->pdo->prepare("UPDATE mail_queue SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit")->execute();
+            $this->pdo->prepare(
+                "UPDATE mail_queue SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit",
+            )->execute();
 
             // Jetzt holen wir uns die markierten Mails
             $stmt  = $this->pdo->query('SELECT * FROM mail_queue WHERE attempts >= 100 ORDER BY created_at ASC');
@@ -118,11 +128,17 @@ final readonly class MailQueueService implements MailServiceInterface
                         ->execute([$origAttempts, $t->getMessage(), $item['id']]);
                 }
             }
-        }
-        // --- B. JSON LOGIK ---
-        else {
+        } else {
+            // --- B. JSON LOGIK ---
+
             // BUGFIX: Sicherer Pfad mit Schrägstrich
-            $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
             if (! \file_exists($path)) {
                 return 0;
             }

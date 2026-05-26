@@ -43,7 +43,9 @@ try {
     $holidayService = $container->get(HolidayService::class);
 
     // Generiert exakt das Wording aus den E-Mails
-    $openingHtml   = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br><span style="color: #333;">' . $holidayService->getGeneralOpeningHoursText() . '</span>';
+    $openingHtml = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
+        'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>' .
+        '<span style="color: #333;">' . $holidayService->getGeneralOpeningHoursText() . '</span>';
     $holidayNotice = $holidayService->getHolidaysInRangeText($von, $bis, true);
 
     echo \json_encode([

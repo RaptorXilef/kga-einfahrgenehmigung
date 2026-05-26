@@ -126,27 +126,30 @@ class Container
                 ]);
             } catch (\PDOException $e) {
                 // 1049 = Unknown database (Datenbank existiert nicht)
-                if ($e->getCode() == 1049) {
-                    $dsnWithoutDb = "mysql:host={$db['host']};charset={$db['charset']}";
-
-                    try {
-                        // Verbinden OHNE Datenbanknamen
-                        $pdo = new \PDO($dsnWithoutDb, $db['user'], $db['pass'], [
-                            \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-                            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                            \PDO::ATTR_EMULATE_PREPARES   => false,
-                            \PDO::ATTR_TIMEOUT            => 2,
-                        ]);
-                        // Datenbank anlegen und anwählen
-                        $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` CHARACTER SET {$db['charset']} COLLATE {$db['charset']}_unicode_ci");
-                        $pdo->exec("USE `{$db['dbname']}`");
-                    } catch (\PDOException $e2) {
-                        \error_log('MySQL Auto-Install Error (DB Create): ' . $e2->getMessage());
-
-                        return null;
-                    }
-                } else {
+                if ($e->getCode() != 1049) {
                     \error_log('MySQL Connection Error: ' . $e->getMessage());
+
+                    return null;
+                }
+
+                $dsnWithoutDb = "mysql:host={$db['host']};charset={$db['charset']}";
+
+                try {
+                    // Verbinden OHNE Datenbanknamen
+                    $pdo = new \PDO($dsnWithoutDb, $db['user'], $db['pass'], [
+                        \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+                        \PDO::ATTR_EMULATE_PREPARES   => false,
+                        \PDO::ATTR_TIMEOUT            => 2,
+                    ]);
+                    // Datenbank anlegen und anwählen
+                    $sql = "CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` " .
+                        "CHARACTER SET {$db['charset']} COLLATE {$db['charset']}_unicode_ci";
+
+                    $pdo->exec($sql);
+                    $pdo->exec("USE `{$db['dbname']}`");
+                } catch (\PDOException $e2) {
+                    \error_log('MySQL Auto-Install Error (DB Create): ' . $e2->getMessage());
 
                     return null;
                 }
@@ -155,7 +158,7 @@ class Container
             // High-Performance Tabellen-Check (kostet <0.1ms) & Auto-Setup
             try {
                 $pdo->query('SELECT 1 FROM `users` LIMIT 1');
-            } catch (\PDOException $e) {
+            } catch (\PDOException) {
                 // Tabelle existiert nicht -> Es ist ein frisches System! Schema ausrollen!
                 $schema = $this->config->get('db_schema', []);
                 foreach ($schema as $tableName => $sql) {
@@ -185,8 +188,8 @@ class Container
             // FIX: Dynamische Pfad-Ermittlung aus der Config
             $fileName = $mapping['file'] ?? 'permits_active.json';
             $path     = $this->config->get('root_path') . '/' .
-                    $this->config->get('storage_path_prefix') .
-                    $fileName;
+                $this->config->get('storage_path_prefix') .
+                $fileName;
 
             return new JsonStorage($path);
         };
