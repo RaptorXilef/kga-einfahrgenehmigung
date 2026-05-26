@@ -41,28 +41,99 @@
 
     </script>
     <style>
+    body {
+        background: #f1f5f9;
+        /* Hintergrund für die Bildschirm-Vorschau */
+    }
+
     @media print {
         .u-no-print {
             display: none !important;
         }
 
         body {
-            background: white;
-            padding: 0;
+            background: #fff !important;
+            /* Entfernt den grauen Hintergrund beim Drucken */
+            padding: 0 !important;
+            margin: 0 !important;
         }
     }
 
     .print-toolbar {
-        background: #2c3e50;
+        background: #1e293b;
         color: white;
         padding: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        /*position: sticky;
-        top: 0;
-        z-index: 100;*/
     }
+
+.c-button--primary {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    display: block;
+    /* Neu: Damit der Button sich wie ein Block verhält */
+    margin: 0 auto;
+    /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
+}
+
+.c-button--primary:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.c-button--secondary {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    display: block;
+    /* Neu: Damit der Button sich wie ein Block verhält */
+    margin: 0 auto;
+    /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
+}
+
+.c-button--secondary:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+/* Universal-Klasse für Icons */
+.c-icon {
+    display: inline-block;
+    width: 1em;
+    /* Passt sich der Textgröße an */
+    height: 1em;
+    vertical-align: middle;
+    margin-top: -2px;
+    /* Optische Korrektur */
+    object-fit: contain;
+}
+
+/* Die Icon-Größe innerhalb der Buttons */
+.c-button .c-icon {
+    width: 2.2em;
+    height: 2.2em;
+    margin: 0;
+    /* Kein Margin nötig, da der Button zentriert */
+}
+
+/* Icons in der Navigation */
+.c-tabs__btn .c-icon {
+    width: 1.4em;
+    height: 1.4em;
+    margin-right: 4px;
+}
 
     </style>
 </head>
@@ -72,10 +143,11 @@
         <a href="admin.php" class="c-button c-button--secondary">← Zurück zum Dashboard</a>
         <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()"
-                class="c-button c-button--primary">Dokument jetzt drucken</button>
+                class="c-button c-button--primary"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="Drucken"></a> Dokument jetzt drucken</button>
     </div>
 
     <?php
+    // Mapping der Value Objects auf flache Variablen für das A4-Dokument
     $opening = $settings['opening_hours'];
 
 // WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->validity->von),
@@ -104,7 +176,7 @@ $data = [
 
 // Das Sub-Template einbinden
 include $appRoot . '/templates/emails/permit_a4_document.phtml';
-include $appRoot . '/templates/components/_footer.phtml';
+// include $appRoot . '/templates/components/_footer.phtml';
 ?>
 </body>
 

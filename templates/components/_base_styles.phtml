@@ -87,27 +87,6 @@ body.l-public-body {
     overflow: hidden;
 }
 
-/* BUTTONS */
-.c-button--primary {
-    background: var(--primary-color);
-    color: #fff;
-    border: none;
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
-    display: block;
-    /* Neu: Damit der Button sich wie ein Block verhält */
-    margin: 0 auto;
-    /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
-}
-
-.c-button--primary:hover {
-    background: #2980b9;
-    transform: translateY(-1px);
-}
-
 /* NEU: Fehlende Utility Klassen für Zentrierung und Abstände */
 .u-margin-auto {
     margin-left: auto !important;
@@ -154,10 +133,12 @@ body.l-public-body {
     object-fit: contain;
 }
 
-/* Icons in Buttons etwas größer */
+/* Die Icon-Größe innerhalb der Buttons */
 .c-button .c-icon {
     width: 1.2em;
     height: 1.2em;
+    margin: 0;
+    /* Kein Margin nötig, da der Button zentriert */
 }
 
 /* Icons in der Navigation */
@@ -196,6 +177,26 @@ body.l-public-body {
 }
 
 /* Varianten */
+.c-button--primary {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    display: block;
+    /* Neu: Damit der Button sich wie ein Block verhält */
+    margin: 0 auto;
+    /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
+}
+
+.c-button--primary:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
 .c-button--secondary {
     background: #fff;
 }
@@ -218,14 +219,6 @@ body.l-public-body {
 
 .c-button--danger:hover {
     background: #fee2e2;
-}
-
-/* Die Icon-Größe innerhalb der Buttons */
-.c-button .c-icon {
-    width: 1.2em;
-    height: 1.2em;
-    margin: 0;
-    /* Kein Margin nötig, da der Button zentriert */
 }
 
 /* Status-Hintergründe für die gesamte Seite */

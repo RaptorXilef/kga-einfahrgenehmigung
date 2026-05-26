@@ -6,7 +6,7 @@
  * Das offizielle Genehmigungsdokument als HTML/PDF.
  * Diese Version ist optimiert für den Versand via Mail-Queue und die Druckansicht.
  *
- *  Path: templates/emails/permit_a4_document.phtml
+ * Path: templates/emails/permit_a4_document.phtml
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -30,22 +30,15 @@
  * @var string       $vereinsName
  * @var array|string $opening
  * @var array        $settings
+ * @var string|null  $holidayNotice
  */
-
-// 1. Bestimmung des Typs und der Farben
-// Da wir kein $config Objekt mehr haben, prüfen wir den Key einfach auf "perm"
 $isPermanent = \str_contains(\strtolower($templateKey), 'perm');
-
-// Die permanent_color war in der config meist #3498db (Blau)
 $headerColor = $isPermanent ? '#3498db' : $jahresFarbe;
-$title       = $isPermanent ? 'DAUEREINFAHRGENEHMIGUNG' : 'AUSNAHMEGENEHMIGUNG';
+$title       = $isPermanent ? 'DAUER&shy;EINFAHRT&shy;GENEHMIGUNG' : 'AUSNAHME&shy;GENEHMIGUNG';
 
-// Falls die Variablen als Objekte kommen (Druckvorschau), formatieren wir sie.
-// Falls sie als Strings kommen (E-Mail Queue), nutzen wir sie direkt.
 $displayVon = ($von_formatted ?? '') ?: ($von instanceof \DateTimeInterface ? $von->format('d.m.Y') : $von);
 $displayBis = ($bis_formatted ?? '') ?: ($bis instanceof \DateTimeInterface ? $bis->format('d.m.Y') : $bis);
 
-// Quartals-Logik auf die neuen Variablen umstellen
 $dtVon = \DateTimeImmutable::createFromFormat('d.m.Y', $von_formatted);
 $dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', $bis_formatted);
 
@@ -56,7 +49,6 @@ if ($dtVon && $dtBis) {
     $activeQuarters = \range($qStart, $qEnd);
 }
 
-// Sichere Ermittlung der Basis-URL ohne Array-Konvertierungsfehler
 $baseUrl = '';
 if (isset($settings['base_url']) && \is_string($settings['base_url'])) {
     $baseUrl = $settings['base_url'];
@@ -65,7 +57,6 @@ if (isset($settings['base_url']) && \is_string($settings['base_url'])) {
     $baseUrl  = $protocol . $_SERVER['HTTP_HOST'] . '/';
 }
 
-// --- Robuste Formatierung der Öffnungszeiten direkt im Template ---
 $openingText = 'Siehe Aushang';
 if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     $daysMap = [
@@ -80,15 +71,12 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     $formattedDays = [];
     foreach ($daysMap as $k => $label) {
         if (! empty($opening[$k])) {
-            $times = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $opening[$k]);
-            // Jedes Segment wird in ein span mit der CSS-Klasse "opening-segment" gepackt
+            $times           = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $opening[$k]);
             $formattedDays[] = "<span class=\"opening-segment\"><strong>{$label}:</strong> " . \implode(', ', $times) . '</span>';
         }
     }
     $openingText = \implode(' &nbsp;|&nbsp; ', $formattedDays);
 } elseif (isset($opening) && \is_string($opening) && $opening !== '') {
-    // Falls ein fertiger String (aus getGeneralOpeningHoursText()) kommt,
-    // teilen wir ihn am Pipe-Symbol auf und verpacken die Teile in unzerbrechliche Spans
     $parts        = \explode('|', $opening);
     $wrappedParts = \array_map(function ($part) {
         return '<span class="opening-segment">' . \trim($part) . '</span>';
@@ -96,38 +84,17 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     $openingText = \implode(' &nbsp;|&nbsp; ', $wrappedParts);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <style>
-    @media print {
-        body {
-            background: white;
-            margin: 0;
-            padding: 0;
-        }
-
-        .no-print {
-            display: none;
-        }
-
-        .page-container {
-            border: none !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            width: 100% !important;
-        }
-    }
-
     body {
         font-family: Arial, sans-serif;
         color: #000;
         line-height: 1.4;
         padding: 20px;
-        background: #f0f0f0;
+        background: #f1f5f9;
     }
 
     .page-container {
@@ -135,18 +102,17 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         width: 210mm;
         min-height: 297mm;
         margin: auto;
-        padding: 20mm;
+        padding: 15mm;
         box-sizing: border-box;
-        border: 1px solid #ccc;
+        border: 1px solid #cbd5e1;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    /* Neuer Header mit integriertem QR-Code Layout */
     .header-box {
-        background-color: <?php echo $headerColor; ?>;
-        padding: 20px;
+        background-color: <?php echo $headerColor; ?> !important;
+        padding: 15px;
         border: 3px solid #000;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         display: table;
         width: 100%;
         box-sizing: border-box;
@@ -162,28 +128,30 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         display: table-cell;
         vertical-align: middle;
         text-align: right;
-        width: 130px;
+        width: 160px;
     }
 
     .title {
-        font-size: 22pt;
+        font-size: 2.1em;
         font-weight: bold;
         margin: 0;
         letter-spacing: 0.5px;
+        hyphens: manual;
+        word-break: keep-all;
     }
 
     .subtitle {
         margin: 5px 0 0 0;
-        font-size: 12pt;
+        font-size: 1.4em;
         font-weight: bold;
     }
 
     .full-code {
         font-family: 'Courier New', Courier, monospace;
-        font-size: 16pt;
-        margin-top: 12px;
+        font-size: 1.6em;
+        margin-top: 10px;
         font-weight: bold;
-        background: rgba(255, 255, 255, 0.75);
+        background: rgba(255, 255, 255, 0.75) !important;
         display: inline-block;
         padding: 4px 12px;
         border: 1px solid #000;
@@ -199,18 +167,18 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     .quarter {
         border: 2px solid #000;
         padding: 2px 8px;
-        background: #fff;
+        background: #fff !important;
         font-size: 10pt;
+        color: #000;
     }
 
     .quarter--active {
-        background: #000;
-        color: #fff;
+        background: #000 !important;
+        color: #fff !important;
     }
 
-    /* QR-Code als integriertes Siegel im Header */
     .header-qr {
-        background: #fff;
+        background: #fff !important;
         padding: 6px;
         border: 2px solid #000;
         display: inline-block;
@@ -228,50 +196,51 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         text-transform: uppercase;
         display: block;
         margin-top: 4px;
+        color: #000;
     }
 
     .data-section {
-        margin-bottom: 25px;
+        margin-bottom: 15px;
     }
 
     .data-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14pt;
+        font-size: 13pt;
     }
 
     .data-table td {
-        padding: 12px 5px;
-        border-bottom: 1px solid #eee;
+        padding: 8px 5px;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .label {
-        color: #555;
+        color: #475569;
         width: 35%;
     }
 
     .value {
-        font-weight: bold;
+        font-weight: bold !important;
     }
 
     .parking-note {
-        background: #fff3cd;
+        background: #fff3cd !important;
         border: 2px solid #ffeeba;
-        padding: 10px;
-        margin-bottom: 20px;
-        font-weight: bold;
+        padding: 8px;
+        margin-bottom: 15px;
+        font-weight: bold !important;
         color: #856404;
         text-align: center;
-        font-size: 13pt;
+        font-size: 12pt;
     }
 
     .info-notice-box {
-        background: #e8f4fd;
-        border: 1px solid #b3d7ff;
-        padding: 15px;
-        margin-bottom: 25px;
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1;
+        padding: 12px;
+        margin-bottom: 15px;
         border-radius: 4px;
-        font-size: 11pt;
+        font-size: 10.5pt;
     }
 
     .opening-segment {
@@ -280,14 +249,14 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     }
 
     .conditions {
-        font-size: 10.5pt;
+        font-size: 9.5pt;
         border-top: 2px solid #000;
-        padding-top: 15px;
-        margin-top: 20px;
+        padding-top: 10px;
+        margin-top: 15px;
     }
 
     .conditions h4 {
-        margin: 0 0 10px 0;
+        margin: 0 0 5px 0;
         text-transform: uppercase;
     }
 
@@ -297,23 +266,23 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
     }
 
     .conditions li {
-        margin-bottom: 5px;
+        margin-bottom: 4px;
     }
 
     .route-box {
-        background: #e8f5e9;
-        border: 1px solid #2e7d32;
-        padding: 15px;
-        margin-top: 15px;
-        color: #1b5e20;
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1;
+        padding: 10px;
+        margin-top: 10px;
+        color: #475569;
     }
 
     .footer-info {
-        margin-top: 30px;
+        margin-top: 20px;
         text-align: center;
         font-size: 9pt;
-        color: #666;
-        border-top: 1px solid #ccc;
+        color: #64748b;
+        border-top: 1px solid #e2e8f0;
         padding-top: 10px;
     }
 
@@ -321,13 +290,75 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         clear: both;
     }
 
+    @media print {
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        body {
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .page-container {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 8mm 12mm !important; /* Etwas kompakterer Rand für garantierte 1 Seite */
+            width: 210mm !important;
+            height: 297mm !important;
+            page-break-inside: avoid;
+        }
+
+        .data-table {
+            font-size: 11pt !important;
+        }
+
+        .data-table td {
+            padding: 5px 5px !important; /* Platzsparend im echten Druck */
+        }
+
+        .value {
+            font-weight: bold !important; /* Erzwingt fette Schrift bei älteren Browsern */
+        }
+
+        .info-notice-box {
+            margin-bottom: 10px !important;
+            padding: 8px !important;
+            font-size: 10pt !important;
+        }
+
+        .conditions {
+            font-size: 8.5pt !important;
+            margin-top: 8px !important;
+            padding-top: 8px !important;
+        }
+
+        .route-box {
+            padding: 6px !important;
+            margin-top: 6px !important;
+        }
+
+        .parking-note {
+            padding: 5px !important;
+            margin-bottom: 10px !important;
+            font-size: 11pt !important;
+        }
+    }
     </style>
 </head>
 
 <body>
     <div class="page-container">
 
-        <!-- HEADER BOX MIT INTEGRIERTEM QR CODE -->
         <div class="header-box">
             <div class="header-left">
                 <h1 class="title"><?php echo $title; ?></h1>
@@ -348,57 +379,54 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
 
             <div class="header-right">
                 <div class="header-qr">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=<?php echo $checkUrl; ?>"
-                         alt="Prüf-Code">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo $checkUrl; ?>"
+                         alt="Prüf-Code" style="width: 150px; height: 150px;">
                     <span class="header-qr-text">Scan zur Prüfung</span>
                 </div>
             </div>
         </div>
 
-        <!-- DEUTLICHER HINWEIS ZU DEN ERLAUBTEN EINFAHRZEITEN -->
         <div class="info-notice-box">
             <strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
             Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
-            <span style="font-size: 11pt; color: #1e3a8a; display: block; margin-top: 8px; line-height: 1.6;">
+            <span style="font-size: 11pt; color: #1e3a8a; display: block; margin-top: 6px; line-height: 1.5;">
                 <?php echo $openingText; ?>
             </span>
 
             <?php if (! empty($holidayNotice)) { ?>
-                <div
-                     style="margin-top: 12px; color: #d32f2f; font-weight: bold; font-size: 10.5pt; padding: 6px; background: rgba(211, 47, 47, 0.05); border-radius: 4px; border-left: 3px solid #d32f2f;">
-                    🚫 <?php echo $holidayNotice; ?>
+                <div style="margin-top: 10px; color: #d32f2f; font-weight: bold; font-size: 10.5pt; padding: 6px; background: rgba(211, 47, 47, 0.05); border-radius: 4px; border-left: 3px solid #d32f2f;">
+                    <?php echo $holidayNotice; ?>
                 </div>
             <?php } ?>
         </div>
 
-        <!-- REINE DATEN-SECTION OHNE QR-CODE-REPEATS ODER DOPPELTE SMARTCODES -->
         <div class="data-section">
             <table class="data-table">
                 <tr>
-                    <td class="label">Gültig von:</td>
-                    <td class="value"><?php echo $von_formatted; ?></td>
+                    <td class="label">Zeitraum<!--Gültig von-->:</td>
+                    <td class="value"><strong><?php echo $displayVon; ?> - <?php echo $displayBis; ?></strong></td>
                 </tr>
-                <tr>
+                <!--<tr>
                     <td class="label">Gültig bis:</td>
-                    <td class="value"><?php echo $bis_formatted; ?></td>
-                </tr>
+                    <td class="value"><strong><?php echo $displayBis; ?></strong></td>
+                </tr>-->
                 <tr>
                     <td class="label">Amtl. Kennzeichen:</td>
-                    <td class="value"><?php echo \htmlspecialchars($kennzeichen); ?></td>
+                    <td class="value"><strong><?php echo \htmlspecialchars($kennzeichen); ?></strong></td>
                 </tr>
                 <?php if (! empty($firma)) { ?>
                     <tr>
                         <td class="label">Firma / Lieferant:</td>
-                        <td class="value"><?php echo \htmlspecialchars($firma); ?></td>
+                        <td class="value"><strong><?php echo \htmlspecialchars($firma); ?></strong></td>
                     </tr>
                 <?php } ?>
                 <tr>
                     <td class="label">Parzelle Nr.:</td>
-                    <td class="value"><?php echo \htmlspecialchars($parzelle); ?></td>
+                    <td class="value"><strong><?php echo \htmlspecialchars($parzelle); ?></strong></td>
                 </tr>
                 <tr>
                     <td class="label">Zweck der Einfahrt:</td>
-                    <td class="value"><?php echo \htmlspecialchars($zweck); ?></td>
+                    <td class="value"><strong><?php echo \htmlspecialchars($zweck); ?></strong></td>
                 </tr>
             </table>
         </div>
@@ -411,11 +439,9 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
             </div>
         <?php } ?>
 
-        <!-- FORMULIERTER HINWEIS AUF DIE HISTORY.PHP URL -->
-        <div
-             style="margin: 20px 0; background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; text-align: center; font-size: 11pt;">
+        <div style="margin: 15px 0; background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; text-align: center; font-size: 11pt;">
             🖨️ <strong>Tipp:</strong> Sie können dieses Dokument jederzeit erneut herunterladen oder drucken unter:<br>
-            <a href="<?php echo \htmlspecialchars($baseUrl); ?>history.php" style="color: var(--primary-color); font-weight: bold; text-decoration: none; display: inline-block; margin-top: 5px;">
+            <a href="<?php echo \htmlspecialchars($baseUrl); ?>history.php" style="color: #3498db; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 5px;">
                 <?php echo \htmlspecialchars($baseUrl); ?>history.php
             </a>
         </div>
@@ -423,21 +449,18 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         <div class="conditions">
             <h4>Bedingungen & Sicherheitshinweise:</h4>
             <ul>
-                <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im
-                    Fahrzeug (Windschutzscheibe) auszulegen.</li>
-                <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo ! $isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten sowie an Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
-                <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10
-                        km/h</strong>).</li>
+                <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im Fahrzeug (Windschutzscheibe) auszulegen.</li>
+                <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo ! $isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten, Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
+                <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10 km/h</strong>).</li>
                 <li><strong>Parken:</strong> <?php echo $isPermanent ? 'Berechtigt zum Parken auf ausgewiesenen Flächen / Vereinshaus.' : 'Berechtigt zum Be- und Entladen, jedoch <strong>nicht zum Parken</strong>.'; ?></li>
-                <li><strong>Nutzungskreis:</strong> Die Genehmigung gilt ausdrücklich auch für Liefer- und Baufahrzeuge.
-                </li>
-                <li><strong>Entzug:</strong> Bei Nichteinhaltung der Gartenordnung wird die Genehmigung sofort entzogen.
-                </li>
+                <li><strong>Schranke:</strong> Die Schranke ist nach dem Ein- und Ausfahren direkt wieder zu verschließen.</li>
+                <li><strong>Nutzungskreis:</strong> Die Genehmigung gilt ausdrücklich auch für Liefer- und Baufahrzeuge.</li>
+                <li><strong>Entzug:</strong> Bei Nichteinhaltung der Gartenordnung wird die Genehmigung sofort entzogen.</li>
             </ul>
 
             <div class="route-box">
-                <strong>Genehmigte Zufahrt ausschließlich über:</strong>
-                <ul style="margin-top: 5px; font-size: 10pt;">
+                <strong>Genehmigte Zufahrt ausschließlich über die Schranken:</strong>
+                <ul style="margin-top: 3px; font-size: 9.5pt;">
                     <li>Nachtalbenweg - Andersenweg - Reineke-Fuchs-Weg</li>
                     <li>Malchower Aue - Reineke-Fuchs-Weg</li>
                     <li>Märchenweg - Rübezahlweg</li>
@@ -445,10 +468,9 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
                 </ul>
             </div>
 
-            <p style="margin-top: 15px; font-size: 10pt;">
-                <strong>Torschlüssel:</strong> Kann gegen Kaution im Vereinshaus geliehen werden (offizielle
-                Sprechstunden).
-                Termine unter: <a href="<?php echo $terminkalenderUrl; ?>"><?php echo $terminkalenderUrl; ?></a>.
+            <p style="margin-top: 10px; font-size: 9.5pt; margin-bottom: 0;">
+                <strong>Torschlüssel:</strong> Kann gegen Kaution im Vereinshaus geliehen werden (offizielle Sprechstunden).
+                <br>Die Sprechzeiten finden Sie unter: <a href="<?php echo $terminkalenderUrl; ?>"><?php echo $terminkalenderUrl; ?></a>.
             </p>
         </div>
 
@@ -458,5 +480,4 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
         </div>
     </div>
 </body>
-
 </html>
