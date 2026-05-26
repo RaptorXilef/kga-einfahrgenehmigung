@@ -133,7 +133,7 @@ final readonly class CheckController
                 'allowedToday'  => $nextAllowedSlotText, // Variable wird hier übergeben
                 'showAdminView' => $showAdminView,
                 'tempData'      => null,
-                'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
+                'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis, false),
             ]));
 
             return;

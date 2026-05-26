@@ -343,14 +343,16 @@ final readonly class HolidayService
     }
 
     /**
-     * Generiert einen formatierten Hinweistext über alle Feiertage in einem gegebenen Zeitraum.
+     * Generiert eine Liste von Feier- und Ruhetagen, wobei zusammenhängende Tage
+     * zu Bereichen (z.B. 24.12. - 26.12.2026) zusammengefasst werden.
      *
-     * @param \DateTimeImmutable $von Startdatum des Zeitraums.
-     * @param \DateTimeImmutable $bis Enddatum des Zeitraums.
+     * @param \DateTimeImmutable $von        Startdatum des Zeitraums.
+     * @param \DateTimeImmutable $bis        Enddatum des Zeitraums.
+     * @param bool               $withPrefix Ob der erklärende Satz davor stehen soll.
      *
-     * @return string HTML-formatierter Hinweistext oder ein leerer String, wenn keine Feiertage im Zeitraum liegen.
+     * @return string Formatierte Liste oder Bereiche der Feiertage.
      */
-    public function getHolidaysInRangeText(\DateTimeImmutable $von, \DateTimeImmutable $bis): string
+    public function getHolidaysInRangeText(\DateTimeImmutable $von, \DateTimeImmutable $bis, bool $withPrefix = true): string
     {
         $startYear = (int) $von->format('Y');
         $endYear   = (int) $bis->format('Y');
@@ -364,7 +366,7 @@ final readonly class HolidayService
                 $date = new \DateTimeImmutable($dateStr);
                 // Prüfen, ob der Feiertag in den Gültigkeitszeitraum fällt
                 if ($date >= $von->setTime(0, 0, 0) && $date <= $bis->setTime(23, 59, 59)) {
-                    $holidays[$date->format('Y-m-d')] = $date;
+                    $holidays[] = $date->format('Y-m-d');
                 }
             }
         }
@@ -376,10 +378,17 @@ final readonly class HolidayService
         }
 
         // Chronologisch sortieren und formatieren
-        \ksort($holidays);
-        $formattedDates = \array_map(fn ($d) => $d->format('d.m.Y'), \array_values($holidays));
+        \sort($holidays);
+        $holidays = \array_unique($holidays);
 
-        return '🚫 An folgenden Feier- und Ruhetagen ist die Einfahrt untersagt:<br>' . \implode(', ', $formattedDates) . '.';
+        $formattedRanges = $this->formatDateRanges($holidays);
+        $dateString      = \implode(', ', $formattedRanges);
+
+        if (! $withPrefix) {
+            return $dateString;
+        }
+
+        return '🚫 An folgenden Feier- und Ruhetagen ist die Einfahrt untersagt:<br>' . $dateString . '.';
     }
 
     /**
@@ -415,5 +424,45 @@ final readonly class HolidayService
 
         // Duplikate entfernen (falls ein Custom-Date zufällig auf einen Feiertag fällt)
         return \array_unique($holidays);
+    }
+
+    /**
+     * Gruppiert eine Liste von Datums-Strings in kompakte Bereiche.
+     *
+     * @param array $dates Liste von Daten im Format 'Y-m-d'.
+     *
+     * @return array Liste von formatierten Einzeldaten oder Bereichen.
+     */
+    private function formatDateRanges(array $dates): array
+    {
+        if (empty($dates)) {
+            return [];
+        }
+
+        $ranges = [];
+        $start  = $current = new \DateTimeImmutable($dates[0]);
+
+        for ($i = 1; $i <= \count($dates); ++$i) {
+            $next = isset($dates[$i]) ? new \DateTimeImmutable($dates[$i]) : null;
+
+            // Prüfen, ob der nächste Tag direkt auf den aktuellen folgt
+            if ($next && $next->modify('-1 day')->format('Y-m-d') === $current->format('Y-m-d')) {
+                $current = $next;
+            } else {
+                // Bereich abschließen
+                if ($start->format('Y-m-d') === $current->format('Y-m-d')) {
+                    $ranges[] = $start->format('d.m.Y');
+                } else {
+                    // Wenn Jahre gleich sind, evtl. Jahr am Ende sparen (optional),
+                    // hier bleiben wir beim Standard-Format für Klarheit
+                    $ranges[] = $start->format('d.m.') . ' - ' . $current->format('d.m.Y');
+                }
+                if ($next) {
+                    $start = $current = $next;
+                }
+            }
+        }
+
+        return $ranges;
     }
 }
