@@ -246,7 +246,7 @@ final readonly class MigrationService
      *
      * @param string $key Tabellen-Key.
      *
-     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel (id/token/code).
+     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
      */
     private function loadRawSql(string $key): array
     {
@@ -260,11 +260,11 @@ final readonly class MigrationService
         $res  = [];
 
         // Dynamische Bestimmung des ID-Feldes
+        // FIX: Alle Tabellen, die 'id' als Primary Key nutzen, müssen hier stehen!
         $idField = match ($key) {
-            'users'                                                   => 'id', // Von username auf id geändert!
-            'mail_log'                                                => 'id',
-            'magic_links', 'pending_verification', 'verified_pending' => 'token',
-            default                                                   => 'code'
+            'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
+            'magic_links', 'pending_verification', 'verified_pending'       => 'token',
+            default                                                         => 'code'
         };
 
         foreach ($rows as $r) {
@@ -552,128 +552,10 @@ final readonly class MigrationService
         } elseif ($currentType === 'json' && ! empty($sqlData)) {
             $sourceData = $sqlData; // Von SQL zu JSON umgezogen
         } else {
-            // 4. Beide Welten leer? Dann modernisierte Standard-Impfung mit neuen UUIDs
-            $sourceData = [
-                'grp_71cb1c0d' => [
-                    'name'        => 'Administrator',
-                    'permissions' => ['*'],
-                ],
-                'grp_180a3ec6' => [
-                    'name'        => 'Finanzen',
-                    'permissions' => [
-                        'privacy.finance.reveal',
-                        'privacy.email.reveal',
-                        'check.admin.print',
-                        'dashboard.view',
-                        'dashboard.control_bar.view',
-                        'dashboard.control_bar.future',
-                        'dashboard.control_bar.search',
-                        'dashboard.info_alert.view',
-                        'dashboard.info_alert.print',
-                        'dashboard.info_alert.details',
-                        'dashboard.active.view',
-                        'dashboard.active.print',
-                        'dashboard.active.details',
-                        'dashboard.active.suspend',
-                        'dashboard.finance.view',
-                        'dashboard.finance.details',
-                        'dashboard.finance.suspend',
-                        'dashboard.finance.mark_paid',
-                        'dashboard.future.view',
-                        'dashboard.future.print',
-                        'dashboard.future.details',
-                        'dashboard.future.suspend',
-                        'dashboard.expired.view',
-                        'dashboard.expired.print',
-                        'dashboard.expired.details',
-                        'dashboard.stats.view',
-                        'dashboard.stats.current',
-                        'dashboard.stats.charts',
-                        'dashboard.stats.history',
-                        'dashboard.ranking.view',
-                        'dashboard.export.view',
-                        'finance.export.execute',
-                        'dashboard.export.csv',
-                        'dashboard.export.json',
-                        'dashboard.vouchers.view',
-                        'dashboard.vouchers.open',
-                        'dashboard.vouchers.suspend',
-                        'dashboard.vouchers.remove',
-                        'dashboard.vouchers.archive',
-                        'dashboard.tools.view',
-                        'dashboard.tools.direct_issue.reveal',
-                        'dashboard.tools.direct_issue.execute',
-                        'dashboard.tools.voucher_gen.reveal',
-                        'dashboard.tools.voucher_gen.execute',
-                        'template.manage',
-                        'template.std.7',
-                        'template.std.14',
-                        'template.std.30',
-                        'template.perm.3',
-                        'template.perm.6',
-                        'template.perm.9',
-                        'template.perm.12',
-                        'template.custom.std',
-                        'template.custom.perm',
-                    ],
-                ],
-                'grp_fd72d38c' => [
-                    'name'        => 'Sachbearbeitung',
-                    'permissions' => [
-                        'privacy.email.reveal',
-                        'check.admin.print',
-                        'dashboard.view',
-                        'dashboard.control_bar.view',
-                        'dashboard.control_bar.future',
-                        'dashboard.control_bar.search',
-                        'dashboard.info_alert.view',
-                        'dashboard.info_alert.print',
-                        'dashboard.info_alert.details',
-                        'dashboard.active.view',
-                        'dashboard.active.print',
-                        'dashboard.active.details',
-                        'dashboard.finance.view',
-                        'dashboard.finance.details',
-                        'dashboard.future.view',
-                        'dashboard.future.print',
-                        'dashboard.future.details',
-                        'dashboard.expired.view',
-                        'dashboard.vouchers.view',
-                        'dashboard.vouchers.open',
-                        'dashboard.vouchers.suspend',
-                        'dashboard.tools.view',
-                        'dashboard.tools.direct_issue.reveal',
-                        'dashboard.tools.direct_issue.execute',
-                        'dashboard.tools.voucher_gen.reveal',
-                        'dashboard.tools.voucher_gen.execute',
-                        'dashboard.logs.view',
-                        'template.manage',
-                        'template.std.7',
-                        'template.std.14',
-                        'template.std.30',
-                        'template.perm.3',
-                        'template.perm.6',
-                        'template.perm.9',
-                        'template.perm.12',
-                        'template.custom.std',
-                        'template.custom.perm',
-                    ],
-                ],
-                'grp_a53d6b56' => [
-                    'name'        => 'Prüfer vor Ort',
-                    'permissions' => [
-                        'dashboard.view',
-                        'dashboard.control_bar.view',
-                        'dashboard.control_bar.future',
-                        'dashboard.control_bar.search',
-                        'dashboard.active.view',
-                        'dashboard.active.details',
-                    ],
-                ],
-            ];
+            // Ausgelagerte Methode für Standard-Daten nutzen
+            $sourceData = $this->getDefaultGroups();
         }
 
-        // 5. In die aktive Welt schreiben
         if ($currentType === 'mysql') {
             foreach ($sourceData as $id => $data) {
                 $stmt = $this->pdo->prepare('REPLACE INTO `groups` (id, name, permissions) VALUES (?, ?, ?)');
@@ -706,21 +588,158 @@ final readonly class MigrationService
         } elseif ($currentType === 'json' && ! empty($sqlData)) {
             $sourceData = $sqlData;
         } else {
-            // Erststart-Impfung mit neuem ID-Schema und nativem, vorberechnetem Hash
-            $sourceData = [
-                'usr_7c13b491' => [
-                    'username' => 'Admin',
-                    'group'    => 'grp_71cb1c0d',
-                    'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
-                ],
-            ];
+            // Ausgelagerte Methode für Standard-Daten nutzen
+            $sourceData = $this->getDefaultUsers();
         }
 
-        // Speichern
         if ($currentType === 'mysql') {
             $this->authService->saveUsers($sourceData);
         } else {
             $this->saveToJson('users', $sourceData);
         }
+    }
+
+    /**
+     * Liefert das Standard-Rechtesetup für einen frischen Systemstart.
+     * Ausgelagert für bessere Lesbarkeit und Code-Wiederverwendung.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function getDefaultGroups(): array
+    {
+        return [
+            'grp_71cb1c0d' => [
+                'name'        => 'Administrator',
+                'permissions' => ['*'],
+            ],
+            'grp_180a3ec6' => [
+                'name'        => 'Finanzen',
+                'permissions' => [
+                    'privacy.finance.reveal',
+                    'privacy.email.reveal',
+                    'check.admin.print',
+                    'dashboard.view',
+                    'dashboard.control_bar.view',
+                    'dashboard.control_bar.future',
+                    'dashboard.control_bar.search',
+                    'dashboard.info_alert.view',
+                    'dashboard.info_alert.print',
+                    'dashboard.info_alert.details',
+                    'dashboard.active.view',
+                    'dashboard.active.print',
+                    'dashboard.active.details',
+                    'dashboard.active.suspend',
+                    'dashboard.finance.view',
+                    'dashboard.finance.details',
+                    'dashboard.finance.suspend',
+                    'dashboard.finance.mark_paid',
+                    'dashboard.future.view',
+                    'dashboard.future.print',
+                    'dashboard.future.details',
+                    'dashboard.future.suspend',
+                    'dashboard.expired.view',
+                    'dashboard.expired.print',
+                    'dashboard.expired.details',
+                    'dashboard.stats.view',
+                    'dashboard.stats.current',
+                    'dashboard.stats.charts',
+                    'dashboard.stats.history',
+                    'dashboard.ranking.view',
+                    'dashboard.export.view',
+                    'finance.export.execute',
+                    'dashboard.export.csv',
+                    'dashboard.export.json',
+                    'dashboard.vouchers.view',
+                    'dashboard.vouchers.open',
+                    'dashboard.vouchers.suspend',
+                    'dashboard.vouchers.remove',
+                    'dashboard.vouchers.archive',
+                    'dashboard.tools.view',
+                    'dashboard.tools.direct_issue.reveal',
+                    'dashboard.tools.direct_issue.execute',
+                    'dashboard.tools.voucher_gen.reveal',
+                    'dashboard.tools.voucher_gen.execute',
+                    'template.manage',
+                    'template.std.7',
+                    'template.std.14',
+                    'template.std.30',
+                    'template.perm.3',
+                    'template.perm.6',
+                    'template.perm.9',
+                    'template.perm.12',
+                    'template.custom.std',
+                    'template.custom.perm',
+                ],
+            ],
+            'grp_fd72d38c' => [
+                'name'        => 'Sachbearbeitung',
+                'permissions' => [
+                    'privacy.email.reveal',
+                    'check.admin.print',
+                    'dashboard.view',
+                    'dashboard.control_bar.view',
+                    'dashboard.control_bar.future',
+                    'dashboard.control_bar.search',
+                    'dashboard.info_alert.view',
+                    'dashboard.info_alert.print',
+                    'dashboard.info_alert.details',
+                    'dashboard.active.view',
+                    'dashboard.active.print',
+                    'dashboard.active.details',
+                    'dashboard.finance.view',
+                    'dashboard.finance.details',
+                    'dashboard.future.view',
+                    'dashboard.future.print',
+                    'dashboard.future.details',
+                    'dashboard.expired.view',
+                    'dashboard.vouchers.view',
+                    'dashboard.vouchers.open',
+                    'dashboard.vouchers.suspend',
+                    'dashboard.tools.view',
+                    'dashboard.tools.direct_issue.reveal',
+                    'dashboard.tools.direct_issue.execute',
+                    'dashboard.tools.voucher_gen.reveal',
+                    'dashboard.tools.voucher_gen.execute',
+                    'dashboard.logs.view',
+                    'template.manage',
+                    'template.std.7',
+                    'template.std.14',
+                    'template.std.30',
+                    'template.perm.3',
+                    'template.perm.6',
+                    'template.perm.9',
+                    'template.perm.12',
+                    'template.custom.std',
+                    'template.custom.perm',
+                ],
+            ],
+            'grp_a53d6b56' => [
+                'name'        => 'Prüfer vor Ort',
+                'permissions' => [
+                    'dashboard.view',
+                    'dashboard.control_bar.view',
+                    'dashboard.control_bar.future',
+                    'dashboard.control_bar.search',
+                    'dashboard.active.view',
+                    'dashboard.active.details',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Liefert das Standard-Nutzer-Setup (Initiale Admin-Logins) für einen Systemstart.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function getDefaultUsers(): array
+    {
+        return [
+            'usr_7c13b491' => [
+                'username' => 'Admin',
+                'group'    => 'grp_71cb1c0d',
+                'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
+            ],
+        ];
     }
 }
