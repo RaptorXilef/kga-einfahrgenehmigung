@@ -106,8 +106,13 @@ if ($permit) {
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt/wiederrufen.</p>
 
                             <?php if (! empty($permit->status->suspensionReason)) { ?>
-                                <div style="background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: center;">
-                                    <strong style="font-size: 0.85rem; text-transform: uppercase; color: #991b1b; letter-spacing: 0.5px;">Grund der Sperrung:</strong><br>
+                                <div
+                                     style="background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: center;">
+                                    <strong
+                                            style="font-size: 0.85rem; text-transform: uppercase; color: #991b1b; letter-spacing: 0.5px;">
+                                        Grund der Sperrung:
+                                    </strong>
+                                    <br>
                                     <span style="color: #7f1d1d; font-size: 1.05rem; display: block; margin-top: 5px;">
                                         <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
                                     </span>
@@ -215,17 +220,19 @@ if ($permit) {
                                     </td>
                                 </tr>
                             </table>
-                            <div style="margin-top: 20px; background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem;">
-                                    <strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
-                                    Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
-                                    <span style="color: #333;"><?php echo $opening; ?></span>
+                            <div
+                                 style="margin-top: 20px; background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem;">
+                                <strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
+                                Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
+                                <span style="color: #333;"><?php echo $opening; ?></span>
 
-                                    <?php if (! empty($holidayNotice)) { ?>
-                                        <div style="margin-top: 10px; color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px;">
-                                            <?php echo $holidayNotice; ?>
-                                        </div>
-                                    <?php } ?>
-                                </div>
+                                <?php if (! empty($holidayNotice)) { ?>
+                                    <div
+                                         style="margin-top: 10px; color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px;">
+                                        <?php echo $holidayNotice; ?>
+                                    </div>
+                                <?php } ?>
+                            </div>
                         </div>
                         <p class="u-text-muted u-margin-bottom-l">Nach Auswahl der Zahlungsart erhalten Sie:<br> die
                             Genehmigung und Zahlungsdaten per E-Mail.</p>
@@ -279,7 +286,7 @@ if ($permit) {
                     function finalizeWire() {
                         if (!confirm(
                                 'BITTE BESTÄTIGEN SIE IHREN ANTRAG:\n\nBitte klicken Sie unten auf \"OK\", um zu bestätigen, dass Sie den Betrag zeitnah überweisen.\n\nSie gelangen danach automatisch zur Status-Seite Ihrer Genehmigung. Sobald diese vollständig geladen ist, ist der Vorgang beendet und Sie können die Seite verlassen.'
-                                )) return;
+                            )) return;
 
                         fetch(window.KGA_CONFIG.baseUrl + 'api/finalize_wire.php?token=<?php echo $token; ?>', {
                                 headers: {
@@ -298,11 +305,12 @@ if ($permit) {
             </div>
 
             <?php if ($permit) { ?>
-            <footer class="u-padding-around-m u-text-center u-border-top"
-                    style="background: #fcfdfe;">
-                <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
-                <a href="admin.php?redirect_to_code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Login für Details</a>
-            </footer><?php } ?>
+                <footer class="u-padding-around-m u-text-center u-border-top"
+                        style="background: #fcfdfe;">
+                    <p class="u-text-muted u-margin-bottom-s">SmartCode: <strong><?php echo $permit ? $permit->code : '---'; ?></strong></p>
+                    <a href="admin.php?code=<?php echo $permit ? $permit->code : ''; ?>" class="u-text-link u-text-small">Login für Details</a>
+                </footer>
+            <?php } ?>
         </div>
     </main>
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>

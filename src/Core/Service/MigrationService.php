@@ -81,13 +81,10 @@ final readonly class MigrationService
      */
     private function createAutoBackup(string $target): string
     {
-        $timestamp = \date('Ymd-His'); // YYYYMMDD-HHmmss
-        $root      = $this->config->get('root_path');
-        $prefix    = $this->config->get('storage_path_prefix');
-
-        // Nutzt jetzt den Namen aus der Config (z.B. 'sql_backup')
-        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
-
+        $timestamp  = \date('Ymd-His'); // YYYYMMDD-HHmmss
+        $root       = $this->config->get('root_path');
+        $prefix     = $this->config->get('storage_path_prefix');
+        $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup'; // Nutzt Namen aus Config
         $backupPath = \rtrim($root, '/\\') . '/' . \ltrim($prefix, '/\\') . $subFolder . '/' . $timestamp;
 
         if (! \is_dir($backupPath)) {
@@ -95,8 +92,26 @@ final readonly class MigrationService
         }
 
         // Flags: 128 (PRETTY) + 64 (UNESCAPED_SLASHES) + 256 (UNESCAPED_UNICODE) = 448
-        $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
+        $jsonFlags     = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
+        $storageConfig = $this->config->get('storage_config', []);
 
+        // FIX: Wenn das Target ein virtueller Key wie 'auto_maintenance' ist, sichern wir die Kern-Komponenten pauschal
+        if (! isset($storageConfig[$target])) {
+            $keysToBackup = ['permits', 'users', 'groups', 'vouchers'];
+            foreach ($keysToBackup as $key) {
+                if (isset($storageConfig[$key])) {
+                    $path = \rtrim((string) $root, '/\\') . '/' . \ltrim((string) $prefix, '/\\') . $storageConfig[$key]['file'];
+                    if (\file_exists($path)) {
+                        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+                        \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
+                    }
+                }
+            }
+
+            return $prefix . $subFolder . '/' . $timestamp;
+        }
+
+        // Standard-Logik für existierende, spezifische Keys
         $jsonData = $this->loadRawJson($target);
         if (! empty($jsonData)) {
             \file_put_contents(

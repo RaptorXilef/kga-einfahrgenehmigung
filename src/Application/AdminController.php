@@ -137,7 +137,15 @@ final readonly class AdminController
         if (isset($post['login'])) {
             $user = (string) ($post['user'] ?? '');
             $pass = (string) ($post['pass'] ?? '');
+
             if ($this->auth->login($user, $pass)) {
+                // Wenn ein Code per GET oder POST übergeben wurde, leite direkt zur Prüfung weiter
+                $code = (string) ($_REQUEST['code'] ?? '');
+                if ($code !== '') {
+                    \header('Location: check.php?code=' . \urlencode($code));
+                    exit;
+                }
+
                 \header('Location: admin.php');
 
                 return true;
