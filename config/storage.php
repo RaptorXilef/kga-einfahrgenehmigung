@@ -17,7 +17,7 @@ return [
     // MySQL Zugangsdaten (Optional)
     'database' => [
         'host'    => 'localhost',
-        'dbname'  => 'kga_einfahrt',
+        'dbname'  => 'kga_zufahrts_manager',
         'user'    => 'root',
         'pass'    => '',
         'charset' => 'utf8mb4',

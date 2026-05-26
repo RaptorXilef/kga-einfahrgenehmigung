@@ -141,7 +141,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     data-tab-target="tab-finance">
                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp"
                                      class="c-icon"
-                                     alt=""> Finanzen <?php $openCount = \count($permitGroups['unpaid'] ?? []);
+                                     alt=""> Finanzen
+                                     <?php $openCount = \count($permitGroups['unpaid'] ?? []);
                             if ($openCount > 0) {
                                 echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
                             }
