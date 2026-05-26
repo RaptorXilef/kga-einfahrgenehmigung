@@ -37,7 +37,7 @@ try {
     // --------------------------------
 
     $vehicleTypes = $config->get('vehicle_types', []);
-    $defaultType  = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';
+    $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
 
     $key         = (string) ($_GET['key'] ?? 'std_7');
     $typ         = (string) ($_GET['typ'] ?? $defaultType); // Dynamischer Fallback (pkw)

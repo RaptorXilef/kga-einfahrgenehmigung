@@ -88,7 +88,7 @@ final readonly class Config implements ConfigInterface
     public function getPriceForType(string $type): float
     {
         $vConfig     = $this->get('vehicle_types', []);
-        $defaultType = ! empty($vConfig) ? \array_key_first($vConfig) : 'pkw';
+        $defaultType = empty($vConfig) ? 'pkw' : \array_key_first($vConfig);
 
         // Wir schauen in das Preise-Mapping (pkw)
         $prices = $this->get('prices', []);

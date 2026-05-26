@@ -85,7 +85,7 @@ final readonly class PermitService
 
         // 2. Preis bestimmen (Template-Preis oder Admin-Override) (pkw)
         $vehicleTypes = $this->config->get('vehicle_types', []);
-        $defaultType  = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';
+        $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
         $typ          = (string) ($data['typ'] ?? $defaultType);
 
         $preis = isset($data['manual_price'])
@@ -178,7 +178,7 @@ final readonly class PermitService
         $templates             = (array) $this->config->get('permit_templates', []);
         $template              = $templates[$tKey] ?? $templates['std_7'];
         $vehicleTypes          = (array) $this->config->get('vehicle_types', []);
-        $defaultType           = ! empty($vehicleTypes) ? \array_key_first($vehicleTypes) : 'pkw';
+        $defaultType           = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
         $typ                   = $data['typ'] ?? $defaultType;
         $data['preisSnapshot'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
 
@@ -405,7 +405,7 @@ final readonly class PermitService
             default   => $originalPrice,
         };
 
-        return (float) \max(0.0, $newPrice);
+        return \max(0.0, $newPrice);
     }
 
     /**
@@ -457,7 +457,7 @@ final readonly class PermitService
             || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')
         ) {
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
-            if (! $this->pdo) {
+            if (!$this->pdo instanceof \PDO) {
                 return;
             }
 
@@ -491,7 +491,7 @@ final readonly class PermitService
             || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')
         ) {
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
-            if (! $this->pdo) {
+            if (!$this->pdo instanceof \PDO) {
                 return [];
             }
 
@@ -512,7 +512,7 @@ final readonly class PermitService
 
         if ($isPending) {
             $now  = \time();
-            $data = \array_filter($data, fn ($item) => isset($item['expires']) && (int) $item['expires'] > $now);
+            $data = \array_filter($data, fn (array $item): bool => isset($item['expires']) && (int) $item['expires'] > $now);
         }
 
         return $data;
@@ -562,7 +562,7 @@ final readonly class PermitService
         );
 
         // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---
-        if (empty(\trim($permit->owner->email))) {
+        if (in_array(\trim($permit->owner->email), ['', '0'], true)) {
             return;
         }
 
@@ -759,7 +759,7 @@ final readonly class PermitService
         $arcCfg = $this->config->get('storage_config')['permits_archive'];
 
         // 2. Check in den Archiven
-        if ($arcCfg['type'] === 'mysql' && $this->pdo) {
+        if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $stmt = $this->pdo->prepare("SELECT code FROM {$arcCfg['table']} WHERE code = ?");
             $stmt->execute([$fullIdentifier]);
             if ($stmt->fetch()) {
@@ -991,12 +991,12 @@ final readonly class PermitService
             }
         }
 
-        if (empty($toArchive)) {
+        if ($toArchive === []) {
             return;
         }
 
         // --- WEICHE: Wo wird archiviert? ---
-        if ($arcCfg['type'] === 'mysql' && $this->pdo) {
+        if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $sql = "REPLACE INTO {$arcCfg['table']} (
                 code,
                 template_key,

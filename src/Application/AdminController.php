@@ -585,7 +585,7 @@ final readonly class AdminController
         }
         \uasort(
             $stats['plots'],
-            fn ($a, $b) => $b['count'] === $a['count']
+            fn ($a, $b): int => $b['count'] === $a['count']
                 ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count'],
         );
 
@@ -606,7 +606,7 @@ final readonly class AdminController
     {
         // FIX: Wir nutzen den Vereinsnamen aus der Config für den Dateinamen (statt hartkodiert "kga")
         $slug = \strtolower(
-            \preg_replace(
+            (string) \preg_replace(
                 '/[^A-Za-z0-9]/',
                 '_',
                 (string) $this->config->get('vereins_name', 'export'),
@@ -672,35 +672,34 @@ final readonly class AdminController
     }
 
     /**
+     * TODO Später löschen
      * Berechnet zusammenfassende Statistiken für einen gefilterten Datensatz.
      *
      * Reduziert Permits auf Gesamtanzahl und Umsatz.
      *
-     * @param array<int, Permit> $filtered
-     *
      * @return array<string, mixed>
-     */
-    private function calculateStats(array $filtered): array
-    {
-        $stats = [
-            'total_count'   => \count($filtered),
-            'total_revenue' => \array_reduce(
-                $filtered,
-                fn (float $sum, Permit $permit): float => $sum + $permit->validity->preisSnapshot,
-                0.0,
-            ),
-            'types' => ['pkw' => 0, 'lkw' => 0],
-            'plots' => [],
-        ];
-
-        foreach ($filtered as $permit) {
-            $stats['types'][$permit->vehicle->typ]    = ($stats['types'][$permit->vehicle->typ] ?? 0) + 1;
-            $stats['plots'][$permit->owner->parzelle] = ($stats['plots'][$permit->owner->parzelle] ?? 0) + 1;
-        }
-        \arsort($stats['plots']);
-
-        return $stats;
-    }
+     *
+     * private function calculateStats(array $filtered): array
+     * {
+     * $stats = [
+     * 'total_count'   => \count($filtered),
+     * 'total_revenue' => \array_reduce(
+     * $filtered,
+     * fn (float $sum, Permit $permit): float => $sum + $permit->validity->preisSnapshot,
+     * 0.0,
+     * ),
+     * 'types' => ['pkw' => 0, 'lkw' => 0],
+     * 'plots' => [],
+     * ];
+     *
+     * foreach ($filtered as $permit) {
+     * $stats['types'][$permit->vehicle->typ]    = ($stats['types'][$permit->vehicle->typ] ?? 0) + 1;
+     * $stats['plots'][$permit->owner->parzelle] = ($stats['plots'][$permit->owner->parzelle] ?? 0) + 1;
+     * }
+     * \arsort($stats['plots']);
+     *
+     * return $stats;
+     * }*/
 
     /**
      * Gruppiert Genehmigungen nach ihrem aktuellen Gültigkeitsstatus (aktiv/future/expired/unpaid).
@@ -747,7 +746,7 @@ final readonly class AdminController
         // Die neuesten Anträge (erstellt am) sollen oben stehen.
         \usort(
             $groups['unpaid'],
-            fn ($permitEntryA, $permitEntryB) => $permitEntryB->erstellt <=> $permitEntryA->erstellt,
+            fn ($permitEntryA, $permitEntryB): int => $permitEntryB->erstellt <=> $permitEntryA->erstellt,
         );
 
         return $groups;

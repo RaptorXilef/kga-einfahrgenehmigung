@@ -52,7 +52,7 @@ final readonly class CheckController
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
 
         // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
-        if ($permit === null && $code !== '') {
+        if (!$permit instanceof Permit && $code !== '') {
             $permit = $this->storage->findByLicensePlate($code);
         }
 
@@ -78,7 +78,7 @@ final readonly class CheckController
         $nextAllowedSlotText = 'Keine weitere Einfahrt möglich.';
         $nextSlot            = $this->holidayService->getNextAvailableSlot($now);
 
-        if ($nextSlot !== null) {
+        if ($nextSlot instanceof \DateTimeImmutable) {
             // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
             // Spezialfall: Letzter Tag / Ablaufprüfung
             if ($permit instanceof Permit && $nextSlot > $permit->validity->bis) {

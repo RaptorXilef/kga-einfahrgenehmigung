@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Core\Entity\Permit;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Service\HolidayService;
@@ -170,7 +171,7 @@ final readonly class HistoryController
 
         // --- Sortierung der Genehmigungen (Neueste zuerst) ---
         // Der Spaceship-Operator (<=>) funktioniert perfekt mit DateTime Objekten!
-        \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
+        \usort($permits, fn ($a, $b): int => $b->erstellt <=> $a->erstellt);
 
         $this->render('history_list', [
             'permits'            => $permits,
@@ -212,7 +213,7 @@ final readonly class HistoryController
     private function handlePrintAction(string $code, string $emailInSession): void
     {
         $permit = $this->permitService->getStorage()->findByHash($code);
-        if ($permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
+        if ($permit instanceof Permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
             $this->render('history_print_view', [
                 'permit'        => $permit,
                 'settings'      => $this->getSettingsArray(),

@@ -67,7 +67,7 @@ final readonly class UserController
                 // Wir hängen &focus=... an die URL an
                 $redirectUrl = 'users.php?msg=' . \urlencode($message);
                 if ($focusId !== '') {
-                    $redirectUrl .= '&focus=' . \urlencode($focusId);
+                    $redirectUrl .= '&focus=' . \urlencode((string) $focusId);
                 }
                 \header('Location: ' . $redirectUrl);
                 exit;
@@ -100,7 +100,7 @@ final readonly class UserController
         if ($pw1 !== $pw2) {
             return 'Fehler: Passwörter stimmen nicht überein.';
         }
-        if (empty($pw1)) {
+        if ($pw1 === '' || $pw1 === '0') {
             return 'Fehler: Passwort darf nicht leer sein.';
         }
 
@@ -449,7 +449,7 @@ final readonly class UserController
         $confirm = (string) ($post['confirm_password'] ?? '');
 
         $users = $this->auth->loadUsers();
-        if (! isset($users[$userId]) || ! \password_verify($oldPass, $users[$userId]['pass'])) {
+        if (! isset($users[$userId]) || ! \password_verify($oldPass, (string) $users[$userId]['pass'])) {
             return 'Fehler: Das aktuelle Passwort ist nicht korrekt.';
         }
         if ($newPass !== $confirm) {

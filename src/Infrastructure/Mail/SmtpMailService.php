@@ -44,7 +44,7 @@ final readonly class SmtpMailService implements MailServiceInterface
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
-        if (empty(\trim($recipient))) {
+        if (in_array(\trim($recipient), ['', '0'], true)) {
             // $data am Ende hinzugefügt
             $this->logEmail('System', $subject, $template, 'Übersprungen: Kein Empfänger angegeben', $data);
 
@@ -278,9 +278,9 @@ final readonly class SmtpMailService implements MailServiceInterface
 
         // --- Alter JSON Code ---
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
-        ) . '/' . \ltrim($this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        ) . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         $logs = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
         \array_unshift($logs, [
             'timestamp' => \date('Y-m-d H:i:s'),
@@ -306,7 +306,7 @@ final readonly class SmtpMailService implements MailServiceInterface
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
 
-        if ($cfg['type'] === 'mysql' && $this->pdo) {
+        if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
@@ -341,10 +341,10 @@ final readonly class SmtpMailService implements MailServiceInterface
         } else {
             // Fallback: Normales JSON-Speichern
             $path = \rtrim(
-                $this->config->get('root_path'),
+                (string) $this->config->get('root_path'),
                 '/\\',
             ) . '/' . \ltrim(
-                $this->config->get('storage_path_prefix'),
+                (string) $this->config->get('storage_path_prefix'),
                 '/\\',
             ) . $cfg['file'];
             \file_put_contents(
@@ -364,7 +364,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         $cfg = $this->config->get('storage_config')['mail_log'];
 
         if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
+            if (!$this->pdo instanceof \PDO) {
                 return [];
             }
 
@@ -373,10 +373,10 @@ final readonly class SmtpMailService implements MailServiceInterface
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
         if (! \file_exists($path)) {

@@ -44,7 +44,7 @@ final readonly class HolidayService
                 $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
 
                 foreach ($slots as $slot) {
-                    $slotStart = $current->setTime((int) \substr($slot[0], 0, 2), (int) \substr($slot[0], 3, 2));
+                    $slotStart = $current->setTime((int) \substr((string) $slot[0], 0, 2), (int) \substr((string) $slot[0], 3, 2));
 
                     // Wenn der Slot heute ist, muss er in der Zukunft liegen
                     if ($slotStart > $now) {
@@ -144,25 +144,25 @@ final readonly class HolidayService
      * @param int $year Das Berechnungsjahr (z.B. 2026).
      *
      * @return array<int, string> Liste von Datumsstrings im ISO-Format 'Y-m-d'.
-     */
-    private function getBerlinHolidays(int $year): array
-    {
-        $easter = \DateTimeImmutable::createFromFormat('U', (string) \easter_date($year));
-
-        return [
-            $year . '-01-01', // Neujahr
-            $year . '-03-08', // Frauentag (Berlin Spezial)
-            $year . '-05-01', // Tag der Arbeit
-            $year . '-10-03', // Tag der Deutschen Einheit
-            $year . '-12-25', // 1. Weihnachtstag
-            $year . '-12-26', // 2. Weihnachtstag
-            // Bewegliche Feiertage via Ostern:
-            $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag
-            $easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
-            $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
-            $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
-        ];
-    }
+     *
+     * private function getBerlinHolidays(int $year): array
+     * {
+     * $easter = \DateTimeImmutable::createFromFormat('U', (string) \easter_date($year));
+     *
+     * return [
+     * $year . '-01-01', // Neujahr
+     * $year . '-03-08', // Frauentag (Berlin Spezial)
+     * $year . '-05-01', // Tag der Arbeit
+     * $year . '-10-03', // Tag der Deutschen Einheit
+     * $year . '-12-25', // 1. Weihnachtstag
+     * $year . '-12-26', // 2. Weihnachtstag
+     * // Bewegliche Feiertage via Ostern:
+     * $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag
+     * $easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
+     * $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
+     * $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
+     * ];
+     * }*/
 
     /**
      * Berechnet alle gesetzlichen Feiertage basierend auf dem konfigurierten Bundesland.
@@ -332,7 +332,7 @@ final readonly class HolidayService
 
                     continue;
                 }
-                $daySlots        = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $slots);
+                $daySlots        = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $slots);
                 $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
             }
 
@@ -348,7 +348,7 @@ final readonly class HolidayService
             $slots = $hours[$key] ?? [];
             // Eindeutigen Key für die Timeslots generieren
             $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(
-                fn ($s) => $s[0] . '-' . $s[1],
+                fn (array $s): string => $s[0] . '-' . $s[1],
                 $slots,
             ));
 
@@ -368,9 +368,7 @@ final readonly class HolidayService
             }
         }
         // Letzte Gruppe sichern
-        if ($currentGroup !== null) {
-            $chronologicalGroups[] = $currentGroup;
-        }
+        $chronologicalGroups[] = $currentGroup;
 
         // Jetzt führen wir Gruppen mit identischen Zeiten zusammen, die chronologisch getrennt wurden
         $finalMerged = [];
@@ -407,7 +405,7 @@ final readonly class HolidayService
             if ($slotKey === 'none') {
                 $finalParts[] = "{$daysText}: Keine Einfahrt";
             } else {
-                $slotStrings  = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $data['slots']);
+                $slotStrings  = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $data['slots']);
                 $finalParts[] = "{$daysText}: " . \implode(', ', $slotStrings);
             }
         }
@@ -451,7 +449,7 @@ final readonly class HolidayService
 
         // Wenn gar kein Feiertag im Zeitraum liegt, wird ein Leerstring zurückgegeben.
         // Das UI blendet die Anzeige dann komplett aus.
-        if (empty($holidays)) {
+        if ($holidays === []) {
             return '';
         }
 
@@ -517,18 +515,19 @@ final readonly class HolidayService
      */
     private function formatDateRanges(array $dates): array
     {
-        if (empty($dates)) {
+        if ($dates === []) {
             return [];
         }
 
-        $ranges = [];
-        $start  = $current = new \DateTimeImmutable($dates[0]);
+        $ranges  = [];
+        $start   = $current = new \DateTimeImmutable($dates[0]);
+        $counter = \count($dates);
 
-        for ($i = 1; $i <= \count($dates); ++$i) {
+        for ($i = 1; $i <= $counter; ++$i) {
             $next = isset($dates[$i]) ? new \DateTimeImmutable($dates[$i]) : null;
 
             // Prüfen, ob der nächste Tag direkt auf den aktuellen folgt
-            if ($next && $next->modify('-1 day')->format('Y-m-d') === $current->format('Y-m-d')) {
+            if ($next instanceof \DateTimeImmutable && $next->modify('-1 day')->format('Y-m-d') === $current->format('Y-m-d')) {
                 $current = $next;
             } else {
                 // Bereich abschließen
@@ -539,7 +538,7 @@ final readonly class HolidayService
                     // hier bleiben wir beim Standard-Format für Klarheit
                     $ranges[] = $start->format('d.m.') . ' - ' . $current->format('d.m.Y');
                 }
-                if ($next) {
+                if ($next instanceof \DateTimeImmutable) {
                     $start = $current = $next;
                 }
             }

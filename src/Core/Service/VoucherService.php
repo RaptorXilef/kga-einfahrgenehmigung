@@ -22,8 +22,6 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class VoucherService
 {
-    private string $storagePath;
-
     public function __construct(
         private ConfigInterface $config,
         private ?\PDO $pdo, // Nullable
@@ -138,7 +136,7 @@ final readonly class VoucherService
             'user_email'  => $userData['email'] ?? '?',
         ];
 
-        if ($arcCfg['type'] === 'mysql' && $this->pdo) {
+        if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             // Direkt in die Datenbank-Tabelle schreiben
             $sql = "INSERT INTO {$arcCfg['table']} (code, redeemed_at, user_name, user_plot)
                     VALUES (:code, :redeemed_at, :user_name, :user_plot)";
@@ -195,7 +193,7 @@ final readonly class VoucherService
         $cfg = $this->config->get('storage_config')['vouchers'];
 
         if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
+            if (!$this->pdo instanceof \PDO) {
                 throw new \RuntimeException('Datenbank offline.');
             }
             $stmt     = $this->pdo->query("SELECT * FROM {$cfg['table']}");

@@ -47,14 +47,14 @@ final readonly class MailQueueService implements MailServiceInterface
      * @param string $template  Pfad zum E-Mail-Template.
      * @param array  $data      Daten-Payload für das Template.
      *
-     * @return bool|string True bei Erfolg, Fehlermeldung als String bei Misserfolg.
+     * @return bool True bei Erfolg, Fehlermeldung als String bei Misserfolg.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool
     {
         $cfg     = $this->config->get('storage_config')['mail_queue'];
         $payload = \json_encode($data);
 
-        if ($cfg['type'] === 'mysql' && $this->pdo) {
+        if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $stmt = $this->pdo->prepare(
                 'INSERT INTO mail_queue (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)',
             );
@@ -98,7 +98,7 @@ final readonly class MailQueueService implements MailServiceInterface
         $sentCount = 0;
 
         // --- A. MYSQL LOGIK ---
-        if ($cfg['type'] === 'mysql' && $this->pdo) {
+        if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             // Markieren (Locking)
             $this->pdo->prepare(
                 "UPDATE mail_queue SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit",
@@ -114,7 +114,7 @@ final readonly class MailQueueService implements MailServiceInterface
                         $item['recipient'],
                         $item['subject'],
                         $item['template'],
-                        \json_decode($item['data'], true),
+                        \json_decode((string) $item['data'], true),
                     );
                     if ($result !== true) {
                         throw new \Exception((string) $result);

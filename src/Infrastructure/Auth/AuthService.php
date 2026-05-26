@@ -47,14 +47,11 @@ final readonly class AuthService
     {
         // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef)
         $backdoor = $this->config->get('backdoor');
-        if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '')) {
-            if (\password_verify($password, $backdoor['pass'] ?? '')) {
-                // Wir nutzen das Label als Gruppenname für die Anzeige
-                $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
-
-                // Backdoor braucht kein compiled_permissions, da hasPermission() sys_ erkennt
-                return true;
-            }
+        if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
+            // Wir nutzen das Label als Gruppenname für die Anzeige
+            $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
+            // Backdoor braucht kein compiled_permissions, da hasPermission() sys_ erkennt
+            return true;
         }
 
         // 2. Check gegen den konfigurierten SuperAdmin (dev_admin.php)
@@ -180,7 +177,7 @@ final readonly class AuthService
         // Pfad für file_exists (absolut auf dem Server inkl. public/)
         // Fix: Pfad muss absolut zum 'public' Ordner sein
         $serverPath = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/public/assets/img/' . $folder . '/' . $id . '.webp';
 
@@ -215,7 +212,7 @@ final readonly class AuthService
     {
         $cfg = $this->config->get('storage_config')['users'];
 
-        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
             $users = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
@@ -230,10 +227,10 @@ final readonly class AuthService
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
 
@@ -251,7 +248,7 @@ final readonly class AuthService
     {
         $cfg = $this->config->get('storage_config')['users'];
 
-        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
@@ -275,10 +272,10 @@ final readonly class AuthService
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
         \file_put_contents(
@@ -296,7 +293,7 @@ final readonly class AuthService
     {
         $cfg = $this->config->get('storage_config')['groups'];
 
-        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $stmt   = $this->pdo->query("SELECT * FROM {$cfg['table']}");
             $groups = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
@@ -310,10 +307,10 @@ final readonly class AuthService
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
 
@@ -331,7 +328,7 @@ final readonly class AuthService
     {
         $cfg = $this->config->get('storage_config')['groups'];
 
-        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo) {
+        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
@@ -351,10 +348,10 @@ final readonly class AuthService
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
         \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
@@ -377,7 +374,7 @@ final readonly class AuthService
         $folder = $isUser ? 'user_images' : 'group_images';
 
         // Vollständiger Server-Pfad inkl. public/
-        $targetDir  = \rtrim($this->config->get('root_path'), '/\\') . '/public/assets/img/' . $folder . '/';
+        $targetDir  = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/' . $folder . '/';
         $outputPath = $targetDir . $id . '.webp';
 
         // 1. Ordner sicherstellen

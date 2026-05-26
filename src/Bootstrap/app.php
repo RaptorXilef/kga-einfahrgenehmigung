@@ -140,7 +140,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 // --- Erweiterte Wartungsmodus-Logik v0.24.2 (Internal Load) ---
-$currentScript     = \basename($_SERVER['SCRIPT_NAME']);
+$currentScript     = \basename((string) $_SERVER['SCRIPT_NAME']);
 $isMaintenancePage = $currentScript === 'maintenance.php';
 
 if (! $isMaintenancePage) {
@@ -161,7 +161,7 @@ if (! $isMaintenancePage) {
         // oder für die Preisberechnung im Hintergrund genutzt werden.
         if (
             ! \in_array($currentScript, $allowedAdminScripts, true)
-            && ! \str_contains($_SERVER['SCRIPT_NAME'], '/api/')
+            && ! \str_contains((string) $_SERVER['SCRIPT_NAME'], '/api/')
         ) {
             $shouldShowMaintenance = true;
         }

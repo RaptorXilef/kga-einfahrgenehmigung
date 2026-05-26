@@ -136,7 +136,7 @@ final readonly class MySqlStorage implements StorageInterface
         // Sortierung wie in JsonStorage:
         // 1. Aktive Genehmigungen zuerst
         // 2. Dann nach dem Enddatum (neueste zuerst)
-        \usort($candidates, function (Permit $a, Permit $b) {
+        \usort($candidates, function (Permit $a, Permit $b): int {
             $aValid = $a->isValid();
             $bValid = $b->isValid();
 

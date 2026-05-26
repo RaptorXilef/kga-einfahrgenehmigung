@@ -85,7 +85,7 @@ final readonly class MigrationService
         $root       = $this->config->get('root_path');
         $prefix     = $this->config->get('storage_path_prefix');
         $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup'; // Nutzt Namen aus Config
-        $backupPath = \rtrim($root, '/\\') . '/' . \ltrim($prefix, '/\\') . $subFolder . '/' . $timestamp;
+        $backupPath = \rtrim((string) $root, '/\\') . '/' . \ltrim((string) $prefix, '/\\') . $subFolder . '/' . $timestamp;
 
         if (! \is_dir($backupPath)) {
             \mkdir($backupPath, 0o777, true);
@@ -118,7 +118,7 @@ final readonly class MigrationService
 
         // Standard-Logik für existierende, spezifische Keys
         $jsonData = $this->loadRawJson($target);
-        if (! empty($jsonData)) {
+        if ($jsonData !== []) {
             \file_put_contents(
                 $backupPath . "/{$target}_file.json",
                 \json_encode($jsonData, $jsonFlags),
@@ -126,9 +126,9 @@ final readonly class MigrationService
         }
 
         // --- B. MySQL-Quelle sichern (falls erreichbar) ---
-        if ($this->pdo) {
+        if ($this->pdo instanceof \PDO) {
             $sqlData = $this->loadRawSql($target);
-            if (! empty($sqlData)) {
+            if ($sqlData !== []) {
                 \file_put_contents($backupPath . "/{$target}_sql.json", \json_encode($sqlData, $jsonFlags));
             }
         }
@@ -156,7 +156,7 @@ final readonly class MigrationService
         }
 
         $data = $this->loadRawSql($target);
-        if (empty($data)) {
+        if ($data === []) {
             return "Keine Daten in MySQL-Quelle für $target gefunden.";
         }
 
@@ -184,7 +184,7 @@ final readonly class MigrationService
         }
 
         $data = $this->loadRawJson($target);
-        if (empty($data)) {
+        if ($data === []) {
             return "Keine Daten in JSON-Quelle für $target gefunden.";
         }
 
@@ -236,10 +236,10 @@ final readonly class MigrationService
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
 
@@ -263,10 +263,10 @@ final readonly class MigrationService
         }
 
         $path = \rtrim(
-            $this->config->get('root_path'),
+            (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim(
-            $this->config->get('storage_path_prefix'),
+            (string) $this->config->get('storage_path_prefix'),
             '/\\',
         ) . $cfg['file'];
         \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
@@ -283,7 +283,7 @@ final readonly class MigrationService
     private function loadRawSql(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
-        if (! $this->pdo) {
+        if (! $this->pdo instanceof \PDO) {
             return [];
         }
 
@@ -360,7 +360,7 @@ final readonly class MigrationService
      */
     private function genericSqlInsert(string $key, array $data): void
     {
-        if (empty($data) || ! $this->pdo) {
+        if ($data === [] || ! $this->pdo instanceof \PDO) {
             return;
         }
 
@@ -385,7 +385,7 @@ final readonly class MigrationService
                 }
 
                 $columns      = \array_keys($row);
-                $colNames     = \implode(', ', \array_map(fn ($c) => "`$c`", $columns));
+                $colNames     = \implode(', ', \array_map(fn (int|string $c): string => "`$c`", $columns));
                 $placeholders = \implode(', ', \array_fill(0, \count($columns), '?'));
                 $stmt         = $this->pdo->prepare("REPLACE INTO `$tableName` ($colNames) VALUES ($placeholders)");
 
@@ -413,7 +413,7 @@ final readonly class MigrationService
      */
     private function migratePermitsToSql(array $data): void
     {
-        if (! $this->pdo) {
+        if (! $this->pdo instanceof \PDO) {
             return;
         }
         $storage = new MySqlStorage($this->pdo);
@@ -612,7 +612,7 @@ final readonly class MigrationService
      */
     public function ensureTablesExist(): void
     {
-        if (! $this->pdo) {
+        if (! $this->pdo instanceof \PDO) {
             return;
         }
 
@@ -686,7 +686,7 @@ final readonly class MigrationService
         $activeData = $currentType === 'mysql' ? $sqlData : $jsonData;
 
         // 3. Ist der aktive Speicher befüllt? -> Nichts tun!
-        if (! empty($activeData)) {
+        if ($activeData !== []) {
             return; // Ziel voll -> Alles okay
         }
 
@@ -695,7 +695,7 @@ final readonly class MigrationService
         $sourceData = $currentType === 'mysql' ? $jsonData : $sqlData;
 
         // DEBUG-Logging
-        if (empty($sourceData)) {
+        if ($sourceData === []) {
             // Defaults nur für User/Groups
             if ($key === 'groups') {
                 $sourceData = $this->getDefaultGroups();
@@ -730,77 +730,79 @@ final readonly class MigrationService
     }
 
     /**
+     * TODO Später löschen
      * Erstellt Standard-Rollen (Admin, Finanzen, Sachbearbeitung, Prüfer) inklusive fein-granularer Rechte.
-     */
-    private function seedGroups(): void
-    {
-        $cfg         = $this->config->get('storage_config')['groups'];
-        $currentType = $cfg['type']; // 'json' oder 'mysql'
-
-        // 1. Daten aus beiden Welten "roh" laden
-        $jsonData = $this->loadRawJson('groups');
-        $sqlData  = $this->loadRawSql('groups');
-
-        // 2. Prüfen, ob die AKTIVE Welt leer ist
-        $activeData = $currentType === 'json' ? $jsonData : $sqlData;
-
-        if (! empty($activeData)) {
-            return; // Nichts tun, wir haben schon Daten
-        }
-
-        // 3. Logik: Wenn aktiv leer, schaue ob die andere Welt Daten hat
-        $sourceData = [];
-        if ($currentType === 'mysql' && ! empty($jsonData)) {
-            $sourceData = $jsonData; // Von JSON zu SQL umgezogen
-        } elseif ($currentType === 'json' && ! empty($sqlData)) {
-            $sourceData = $sqlData; // Von SQL zu JSON umgezogen
-        } else {
-            // Ausgelagerte Methode für Standard-Daten nutzen
-            $sourceData = $this->getDefaultGroups();
-        }
-
-        if ($currentType === 'mysql') {
-            foreach ($sourceData as $id => $data) {
-                $stmt = $this->pdo->prepare('REPLACE INTO `groups` (id, name, permissions) VALUES (?, ?, ?)');
-                $stmt->execute([$id, $data['name'], \json_encode($data['permissions'])]);
-            }
-        } else {
-            $this->saveToJson('groups', $sourceData);
-        }
-    }
+     *
+     * private function seedGroups(): void
+     * {
+     * $cfg         = $this->config->get('storage_config')['groups'];
+     * $currentType = $cfg['type']; // 'json' oder 'mysql'
+     *
+     * // 1. Daten aus beiden Welten "roh" laden
+     * $jsonData = $this->loadRawJson('groups');
+     * $sqlData  = $this->loadRawSql('groups');
+     *
+     * // 2. Prüfen, ob die AKTIVE Welt leer ist
+     * $activeData = $currentType === 'json' ? $jsonData : $sqlData;
+     *
+     * if (! empty($activeData)) {
+     * return; // Nichts tun, wir haben schon Daten
+     * }
+     *
+     * // 3. Logik: Wenn aktiv leer, schaue ob die andere Welt Daten hat
+     * $sourceData = [];
+     * if ($currentType === 'mysql' && ! empty($jsonData)) {
+     * $sourceData = $jsonData; // Von JSON zu SQL umgezogen
+     * } elseif ($currentType === 'json' && ! empty($sqlData)) {
+     * $sourceData = $sqlData; // Von SQL zu JSON umgezogen
+     * } else {
+     * // Ausgelagerte Methode für Standard-Daten nutzen
+     * $sourceData = $this->getDefaultGroups();
+     * }
+     *
+     * if ($currentType === 'mysql') {
+     * foreach ($sourceData as $id => $data) {
+     * $stmt = $this->pdo->prepare('REPLACE INTO `groups` (id, name, permissions) VALUES (?, ?, ?)');
+     * $stmt->execute([$id, $data['name'], \json_encode($data['permissions'])]);
+     * }
+     * } else {
+     * $this->saveToJson('groups', $sourceData);
+     * }
+     * }*/
 
     /**
+     * TODO Später löschen
      * Erstellt den initialen System-Admin-Benutzer accountseitig, falls die Tabellen/Dateien leer sind.
-     */
-    private function seedUsers(): void
-    {
-        $cfg         = $this->config->get('storage_config')['users'];
-        $currentType = $cfg['type'];
-
-        $jsonData = $this->loadRawJson('users');
-        $sqlData  = $this->loadRawSql('users');
-
-        $activeData = $currentType === 'json' ? $jsonData : $sqlData;
-        if (! empty($activeData)) {
-            return;
-        }
-
-        $sourceData = [];
-        if ($currentType === 'mysql' && ! empty($jsonData)) {
-            $sourceData = $jsonData;
-        } elseif ($currentType === 'json' && ! empty($sqlData)) {
-            $sourceData = $sqlData;
-        } else {
-            // Ausgelagerte Methode für Standard-Daten nutzen
-            $sourceData = $this->getDefaultUsers();
-        }
-
-        if ($currentType === 'mysql') {
-            $this->authService->saveUsers($sourceData);
-        } else {
-            $this->saveToJson('users', $sourceData);
-        }
-    }
+     *
+     * private function seedUsers(): void
+     * {
+     * $cfg         = $this->config->get('storage_config')['users'];
+     * $currentType = $cfg['type'];
+     *
+     * $jsonData = $this->loadRawJson('users');
+     * $sqlData  = $this->loadRawSql('users');
+     *
+     * $activeData = $currentType === 'json' ? $jsonData : $sqlData;
+     * if (! empty($activeData)) {
+     * return;
+     * }
+     *
+     * $sourceData = [];
+     * if ($currentType === 'mysql' && ! empty($jsonData)) {
+     * $sourceData = $jsonData;
+     * } elseif ($currentType === 'json' && ! empty($sqlData)) {
+     * $sourceData = $sqlData;
+     * } else {
+     * // Ausgelagerte Methode für Standard-Daten nutzen
+     * $sourceData = $this->getDefaultUsers();
+     * }
+     *
+     * if ($currentType === 'mysql') {
+     * $this->authService->saveUsers($sourceData);
+     * } else {
+     * $this->saveToJson('users', $sourceData);
+     * }
+     * }*/
 
     /**
      * Liefert das Standard-Rechtesetup für einen frischen Systemstart.

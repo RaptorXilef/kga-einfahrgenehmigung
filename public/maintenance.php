@@ -28,7 +28,7 @@ if (empty($settings['base_url'])) {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
     $host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
     // Wir ermitteln den Pfad zum Root-Verzeichnis
-    $scriptPath           = \str_replace('\\', '/', \dirname($_SERVER['SCRIPT_NAME']));
+    $scriptPath           = \str_replace('\\', '/', \dirname((string) $_SERVER['SCRIPT_NAME']));
     $rootPath             = \rtrim($scriptPath, '/public');
     $settings['base_url'] = \rtrim($protocol . $host . $rootPath, '/') . '/';
 }

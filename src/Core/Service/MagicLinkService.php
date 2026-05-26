@@ -93,7 +93,7 @@ final readonly class MagicLinkService
                 && \hash_equals(\strtolower($token), \strtolower($trimmed));
 
             $isShortCodeMatch = isset($data['code'])
-                && \strlen((string) $data['code']) === \strlen($trimmed)
+                && \strlen($data['code']) === \strlen($trimmed)
                 && \hash_equals(\strtoupper($data['code']), \strtoupper($trimmed));
 
             if ($isLongTokenMatch || $isShortCodeMatch) {
@@ -150,7 +150,7 @@ final readonly class MagicLinkService
         $cfg = $this->config->get('storage_config')['magic_links'];
 
         if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo) {
+            if (!$this->pdo instanceof \PDO) {
                 throw new \RuntimeException('MySQL offline');
             }
             $this->pdo->exec("DELETE FROM {$cfg['table']}");

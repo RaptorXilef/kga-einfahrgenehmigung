@@ -192,7 +192,7 @@ final readonly class JsonStorage implements StorageInterface
         // Sortierung:
         // 1. Aktive Genehmigungen zuerst
         // 2. Dann nach dem Enddatum (neueste zuerst)
-        \usort($candidates, function (Permit $a, Permit $b) {
+        \usort($candidates, function (Permit $a, Permit $b): int {
             $aValid = $a->isValid();
             $bValid = $b->isValid();
 
