@@ -213,11 +213,11 @@ final readonly class HistoryController
         $permit = $this->permitService->getStorage()->findByHash($code);
         if ($permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
             $this->render('history_print_view', [
-                'permit'   => $permit,
-                'settings' => $this->getSettingsArray(),
-                'appRoot'  => $this->config->get('root_path'),
-                // FIX: Wir übergeben den fertigen Text statt das rohe Array
-                'opening' => $this->holidayService->getGeneralOpeningHoursText(),
+                'permit'        => $permit,
+                'settings'      => $this->getSettingsArray(),
+                'appRoot'       => $this->config->get('root_path'),
+                'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
+                'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
             ]);
         } else {
             \header('Location: history.php');

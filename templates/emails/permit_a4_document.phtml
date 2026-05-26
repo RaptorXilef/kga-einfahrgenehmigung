@@ -362,6 +362,13 @@ if (isset($opening) && \is_array($opening) && ! empty($opening)) {
             <span style="font-size: 11pt; color: #1e3a8a; display: block; margin-top: 8px; line-height: 1.6;">
                 <?php echo $openingText; ?>
             </span>
+
+            <?php if (! empty($holidayNotice)) { ?>
+                <div
+                     style="margin-top: 12px; color: #d32f2f; font-weight: bold; font-size: 10.5pt; padding: 6px; background: rgba(211, 47, 47, 0.05); border-radius: 4px; border-left: 3px solid #d32f2f;">
+                    🚫 <?php echo $holidayNotice; ?>
+                </div>
+            <?php } ?>
         </div>
 
         <!-- REINE DATEN-SECTION OHNE QR-CODE-REPEATS ODER DOPPELTE SMARTCODES -->

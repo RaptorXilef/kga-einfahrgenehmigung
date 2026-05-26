@@ -68,7 +68,7 @@ final readonly class HolidayService
      */
     public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
-        $dayKey       = \strtolower($date->format('D')); // 'mon', 'sun', etc.
+        $dayKey       = \strtolower($date->format('D'));
         $openingHours = $this->config->get('opening_hours', []);
 
         // Wenn für diesen Tag leere Arrays definiert sind (wie bei 'sun'), ist er gesperrt
@@ -77,10 +77,13 @@ final readonly class HolidayService
             return true;
         }
 
+        // Neue zentrale Logik abrufen
+        $allHolidays = $this->getAllHolidaysForYear((int) $date->format('Y'));
+
         // Feiertags-Check (Berlin)
         return \in_array(
             $date->format('Y-m-d'),
-            $this->getBerlinHolidays((int) $date->format('Y')),
+            $allHolidays,
             true,
         );
     }
@@ -135,6 +138,7 @@ final readonly class HolidayService
     }
 
     /**
+     * TODO ggf Löschen, wurde abgelöst von getStateHolidays
      * Berechnet alle gesetzlichen Feiertage für das Land Berlin im Zieljahr inklusive variabler Osterfeiertage.
      *
      * @param int $year Das Berechnungsjahr (z.B. 2026).
@@ -158,6 +162,65 @@ final readonly class HolidayService
             $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
             $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
         ];
+    }
+
+    /**
+     * Berechnet alle gesetzlichen Feiertage basierend auf dem konfigurierten Bundesland.
+     * Nutzt `easter_days` und `UTC`, um Sommerzeit-Bugs (DST) z.B. bei Pfingstmontag (+50 Tage) zu verhindern.
+     *
+     * @param int $year Das Jahr, für das die gesetzlichen Feiertage berechnet werden sollen.
+     *
+     * @return array<int, string> Liste der Feiertagsdaten im Format 'Y-m-d'.
+     */
+    private function getStateHolidays(int $year): array
+    {
+        // UTC verhindert, dass bei +50 Tagen eine Stunde durch Sommerzeit verloren geht und wir am Vortag um 23:00 Uhr landen
+        $base   = new \DateTimeImmutable("$year-03-21", new \DateTimeZone('UTC'));
+        $easter = $base->modify('+' . \easter_days($year) . ' days');
+
+        // Bundesweit einheitliche Feiertage
+        $holidays = [
+            $year . '-01-01', // Neujahr
+            $year . '-05-01', // Tag der Arbeit
+            $year . '-10-03', // Tag der Deutschen Einheit
+            $year . '-12-25', // 1. Weihnachtstag
+            $year . '-12-26', // 2. Weihnachtstag
+            $easter->modify('-2 days')->format('Y-m-d'),  // Karfreitag
+            $easter->modify('+1 day')->format('Y-m-d'),   // Ostermontag
+            $easter->modify('+39 days')->format('Y-m-d'), // Christi Himmelfahrt
+            $easter->modify('+50 days')->format('Y-m-d'), // Pfingstmontag
+        ];
+
+        // Bundeslandspezifische Feiertage
+        $state = $this->config->get('holiday_check', 'Berlin');
+
+        if (\in_array($state, ['Baden-Württemberg', 'Bayern', 'Sachsen-Anhalt'], true)) {
+            $holidays[] = $year . '-01-06'; // Heilige Drei Könige
+        }
+        if (\in_array($state, ['Berlin', 'Mecklenburg-Vorpommern'], true)) {
+            $holidays[] = $year . '-03-08'; // Frauentag
+        }
+        if (\in_array($state, ['Baden-Württemberg', 'Bayern', 'Hessen', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland'], true)) {
+            $holidays[] = $easter->modify('+60 days')->format('Y-m-d'); // Fronleichnam
+        }
+        if (\in_array($state, ['Saarland', 'Bayern'], true)) {
+            $holidays[] = $year . '-08-15'; // Mariä Himmelfahrt
+        }
+        if ($state === 'Thüringen') {
+            $holidays[] = $year . '-09-20'; // Weltkindertag
+        }
+        if (\in_array($state, ['Brandenburg', 'Bremen', 'Hamburg', 'Mecklenburg-Vorpommern', 'Niedersachsen', 'Sachsen', 'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'], true)) {
+            $holidays[] = $year . '-10-31'; // Reformationstag
+        }
+        if (\in_array($state, ['Baden-Württemberg', 'Bayern', 'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland'], true)) {
+            $holidays[] = $year . '-11-01'; // Allerheiligen
+        }
+        if ($state === 'Sachsen') {
+            // Buß- und Bettag: Mittwoch vor dem 23. November
+            $holidays[] = (new \DateTimeImmutable("$year-11-23", new \DateTimeZone('UTC')))->modify('last wednesday')->format('Y-m-d');
+        }
+
+        return $holidays;
     }
 
     /**
@@ -277,5 +340,80 @@ final readonly class HolidayService
         }
 
         return \implode(' | ', $finalParts);
+    }
+
+    /**
+     * Generiert einen formatierten Hinweistext über alle Feiertage in einem gegebenen Zeitraum.
+     *
+     * @param \DateTimeImmutable $von Startdatum des Zeitraums.
+     * @param \DateTimeImmutable $bis Enddatum des Zeitraums.
+     *
+     * @return string HTML-formatierter Hinweistext oder ein leerer String, wenn keine Feiertage im Zeitraum liegen.
+     */
+    public function getHolidaysInRangeText(\DateTimeImmutable $von, \DateTimeImmutable $bis): string
+    {
+        $startYear = (int) $von->format('Y');
+        $endYear   = (int) $bis->format('Y');
+        $holidays  = [];
+
+        for ($year = $startYear; $year <= $endYear; ++$year) {
+            // Neue zentrale Logik abrufen
+            $yearlyHolidays = $this->getAllHolidaysForYear($year);
+
+            foreach ($yearlyHolidays as $dateStr) {
+                $date = new \DateTimeImmutable($dateStr);
+                // Prüfen, ob der Feiertag in den Gültigkeitszeitraum fällt
+                if ($date >= $von->setTime(0, 0, 0) && $date <= $bis->setTime(23, 59, 59)) {
+                    $holidays[$date->format('Y-m-d')] = $date;
+                }
+            }
+        }
+
+        // Wenn gar kein Feiertag im Zeitraum liegt, wird ein Leerstring zurückgegeben.
+        // Das UI blendet die Anzeige dann komplett aus.
+        if (empty($holidays)) {
+            return '';
+        }
+
+        // Chronologisch sortieren und formatieren
+        \ksort($holidays);
+        $formattedDates = \array_map(fn ($d) => $d->format('d.m.Y'), \array_values($holidays));
+
+        return '🚫 An folgenden Feier- und Ruhetagen ist die Einfahrt untersagt:<br>' . \implode(', ', $formattedDates) . '.';
+    }
+
+    /**
+     * Führt automatische bundeslandspezifische Feiertage und manuelle Konfigurations-Feiertage zusammen.
+     * Bereinigt die Liste von Duplikaten und validiert Datumsformate.
+     *
+     * @param int $year Das Jahr, für das die komplette Feiertagsliste benötigt wird.
+     *
+     * @return array<int, string> Bereinigte Liste aller Feier- und Ruhetage im Format 'Y-m-d'.
+     */
+    private function getAllHolidaysForYear(int $year): array
+    {
+        $holidays = [];
+
+        // 1. Automatische Feiertage des Bundeslandes laden
+        if ($this->config->get('use_auto_holidays', true)) {
+            $holidays = $this->getStateHolidays($year);
+        }
+
+        // 2. Eigene Feiertage aus der Config laden (Fehlerrobustes Parsing)
+        $customHolidays = $this->config->get('custom_holidays', []);
+        foreach ($customHolidays as $customDate) {
+            $cleanDate = \str_replace('.', '-', $customDate); // Macht aus 26.05.2026 -> 26-05-2026
+            $time      = \strtotime($cleanDate);
+            if ($time !== false) {
+                $parsedDate = \date('Y-m-d', $time);
+                // Nur übernehmen, wenn es das angefragte Jahr betrifft
+                if (\str_starts_with($parsedDate, (string) $year)) {
+                    $holidays[] = $parsedDate;
+                }
+            }
+        }
+
+        // Duplikate entfernen (falls ein Custom-Date zufällig auf einen Feiertag fällt)
+        return \array_unique($holidays);
     }
 }

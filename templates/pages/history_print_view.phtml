@@ -89,6 +89,7 @@ $data = [
     'vereinsName'       => $settings['vereins_name'],
     'jahresFarbe'       => $settings['jahresFarbe'],
     'opening'           => $this->holidayService->getGeneralOpeningHoursText(), // Nutzt jetzt den gruppierten Text
+    'holidayNotice'     => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
     'terminkalenderUrl' => $settings['terminkalender_url'],
     'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
     'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,

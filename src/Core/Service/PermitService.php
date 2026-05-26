@@ -600,6 +600,7 @@ final readonly class PermitService
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'opening'           => $opening,
+                'holidayNotice'     => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),

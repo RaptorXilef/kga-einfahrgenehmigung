@@ -385,11 +385,12 @@ final readonly class AdminController
                 /** @var Config $config */
                 $config = $this->config;
                 $this->render('admin_print_view', [
-                    'permit'   => $permit,
-                    'settings' => $this->getSettingsArray(),
-                    'config'   => $config,
-                    'appRoot'  => $config->get('root_path'),
-                    'opening'  => $this->holidayService->getGeneralOpeningHoursText(),
+                    'permit'        => $permit,
+                    'settings'      => $this->getSettingsArray(),
+                    'config'        => $config,
+                    'appRoot'       => $config->get('root_path'),
+                    'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
+                    'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
                 ]);
 
                 return true;
