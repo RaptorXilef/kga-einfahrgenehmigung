@@ -104,6 +104,9 @@ final readonly class CheckController
 
         // Fall 2: Warteraum / Bezahlseite
         if ($tempRequest !== null && ! $permit instanceof Permit) {
+            $dtVon = new \DateTimeImmutable($tempRequest['datum_von'] ?? 'now');
+            $dtBis = new \DateTimeImmutable($tempRequest['datum_bis'] ?? 'now');
+
             $this->render('check/public', \array_merge($adminData, [
                 'isWaitingForPayment' => true,
                 'tempData'            => $tempRequest,
@@ -113,6 +116,8 @@ final readonly class CheckController
                 'allowedToday'        => $nextAllowedSlotText,
                 'showAdminView'       => false,
                 'permit'              => null,
+                'opening'             => $this->holidayService->getGeneralOpeningHoursText(),
+                'holidayNotice'       => $this->holidayService->getHolidaysInRangeText($dtVon, $dtBis, true),
             ]));
 
             return;

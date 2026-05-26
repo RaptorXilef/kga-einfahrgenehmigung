@@ -11,15 +11,18 @@
  *
  * Path: templates/pages/check/public.phtml
  *
- * @var string                            $appRoot
- * @var \App\Core\Entity\Permit|null      $permit             Die Genehmigung (null, falls noch im Bezahlstatus 'pending').
- * @var bool                              $isDateValid        Ob das Ticket zeitlich gültig ist.
- * @var bool                              $isTimeAllowed      Ob das Befahren der Anlage zum aktuellen Zeitpunkt erlaubt ist.
- * @var array|null                        $tempData           Temporäre Antragsdaten, falls $isWaitingForPayment true ist.
- * @var array                             $settings
- * @var \App\Infrastructure\Config\Config $config
- * @var string                            $allowedToday       Textuelle Info zum nächsten erlaubten Einfahrts-Slot.
- * @var string|null                       $token              Sitzungs-Token des wartenden Antrags.
+ * @var string                            $appRoot          Absoluter Pfad zum Installationsverzeichnis.
+ * @var \App\Core\Entity\Permit|null      $permit           Die gefundene Genehmigungs-Entität (null bei Wartestatus).
+ * @var bool                              $isDateValid      Ob das Ticket im Datumsbereich liegt.
+ * @var bool                              $isTimeAllowed    Ob laut HolidayService jetzt die Einfahrt erlaubt ist.
+ * @var array|null                        $tempData         Temporäre Antragsdaten bei ausstehender Zahlung.
+ * @var array                             $settings         Globale UI- und App-Einstellungen.
+ * @var \App\Infrastructure\Config\Config $config           Anwendungs-Konfiguration.
+ * @var string                            $allowedToday     Textuelle Info zum nächsten erlaubten Einfahrts-Slot.
+ * @var string|null                       $token            Sitzungs-Token des wartenden Antrags.
+ * @var array|null                        $tempData         Temporäre Antragsdaten bei ausstehender Zahlung.
+ * @var string                            $opening          Textuelle Zusammenfassung der Öffnungszeiten.
+ * @var string|null                       $holidayNotice    Warnung bei Feiertagen im gewählten Zeitraum.
  */
 
 // 1. Logo-Logik
@@ -212,6 +215,17 @@ if ($permit) {
                                     </td>
                                 </tr>
                             </table>
+                            <div style="margin-top: 20px; background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem;">
+                                    <strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
+                                    Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
+                                    <span style="color: #333;"><?php echo $opening; ?></span>
+
+                                    <?php if (! empty($holidayNotice)) { ?>
+                                        <div style="margin-top: 10px; color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px;">
+                                            <?php echo $holidayNotice; ?>
+                                        </div>
+                                    <?php } ?>
+                                </div>
                         </div>
                         <p class="u-text-muted u-margin-bottom-l">Nach Auswahl der Zahlungsart erhalten Sie:<br> die
                             Genehmigung und Zahlungsdaten per E-Mail.</p>

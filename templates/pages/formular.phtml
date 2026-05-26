@@ -39,7 +39,7 @@ foreach ($publicTemplates as $key => $tpl) {
  * FIX: Prüft, ob ein Feld gesperrt werden soll.
  * Bei Daten aus Gutscheinen werden Felder nur gesperrt, wenn sie auch wirklich Inhalt haben.
  */
-$isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
+$isLocked = fn($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
 
 // Suche nach dem Logo mit verschiedenen Endungen
 $logoFile = null;
@@ -69,7 +69,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     window.KGA_CONFIG = {
         baseUrl: '<?php echo $settings['base_url']; ?>',
         vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
-?>,
+                        ?>,
         csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
 
@@ -397,7 +397,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             if (! ($vData['active'] ?? true) && ($prefill['data']['typ'] ?? '') !== $val) {
                                                 continue;
                                             }
-                                            ?>
+                                        ?>
                                             <option value="<?php echo $val; ?>"
                                                     <?php echo ($prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
                                                 <?php echo \htmlspecialchars($vData['label']); ?>
@@ -494,6 +494,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            required
                                            value="<?php echo $prefill['data']['datum_bis'] ?? ''; ?>"
                                            <?php echo $isLocked('datum_bis'); ?>>
+                                </div>
+                            </div>
+                            <div id="dynamic-date-info"
+                                 style="display:none; margin-top: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem; line-height: 1.5;">
+                                <div id="dynamic-opening-hours"
+                                     style="margin-bottom: 8px;"></div>
+                                <div id="dynamic-holiday-notice"
+                                     style="color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px; display: none;">
                                 </div>
                             </div>
                         </div>
@@ -628,6 +636,36 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         });
     }
 
+    // AJAX Call für die Live-Darstellung der Feiertage
+    async function fetchDateInfo() {
+        if (!inputVon || !inputBis) return;
+        try {
+            const res = await fetch(window.KGA_CONFIG.baseUrl +
+                `api/get_date_info.php?von=${inputVon.value}&bis=${inputBis.value}`, {
+                    headers: {
+                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                    }
+                });
+            const data = await res.json();
+            const container = document.getElementById('dynamic-date-info');
+            const openingEl = document.getElementById('dynamic-opening-hours');
+            const holidayEl = document.getElementById('dynamic-holiday-notice');
+
+            if (data.success) {
+                openingEl.innerHTML = data.openingHours;
+                if (data.holidayNotice) {
+                    holidayEl.innerHTML = data.holidayNotice;
+                    holidayEl.style.display = 'block';
+                } else {
+                    holidayEl.style.display = 'none';
+                }
+                container.style.display = 'block';
+            }
+        } catch (e) {
+            console.error('Fehler beim Laden der Datums-Infos', e);
+        }
+    }
+
     function handleDateChange(source) {
         if (!inputBis || !inputVon || !selectTpl) return;
         if (source === 'bis' && inputBis.readOnly) return;
@@ -674,6 +712,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             inputBis.min = inputVon.value;
             if (inputBis.value < inputVon.value) inputBis.value = inputVon.value;
         }
+        fetchDateInfo();
     }
 
     // Preis-Update via API
