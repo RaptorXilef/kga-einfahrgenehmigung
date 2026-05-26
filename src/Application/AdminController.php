@@ -55,23 +55,7 @@ final readonly class AdminController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // 1. Authentifizierung & Globale Aktionen (Logout/Login-Versuch)
-        if ($this->handleAuthActions($get, $post)) {
-            return;
-        }
-
-        // --- AUTH-GATEKEEPER ---
-        if (! $this->auth->isLoggedIn()) {
-            $this->render('admin_login', [
-                'message'  => '',
-                'settings' => $this->getSettingsArray(),
-            ]);
-
-            return; // Hier ist für nicht-eingeloggte User Schluss!
-        }
-
-        // --- FIX ANFRAGE 1: SETUP & WARTUNG HIERHER VERSCHOBEN ---
-        // Wartungsarbeiten werden nur ausgeführt, wenn der Admin EINGELOGGT ist.
+        // 1. SYSTEM-INITIALISIERUNG & SEEDING (Muss VOR dem Login passieren!)
         try {
             // --- SETUP & WARTUNG IMMER ZUERST (Vor dem Login-Check!) ---
             // So werden fehlende JSON-Dateien oder SQL-Tabellen angelegt,
@@ -89,9 +73,25 @@ final readonly class AdminController
             // Fängt Fehler ab, damit das Dashboard nicht abstürzt
             \error_log('MigrationService Warning: ' . $e->getMessage());
         }
+
         // ---------------------------------------------------------------
 
-        // 2. Daten-Aktionen verarbeiten (nur wenn eingeloggt)
+        // 2. AUTH-AKTIONEN VERARBEITEN (z.B. Login-Formular absenden)
+        if ($this->handleAuthActions($get, $post)) {
+            return;
+        }
+
+        // 3. ZUGANGSKONTROLLE / AUTH-GATEKEEPER
+        if (! $this->auth->isLoggedIn()) {
+            $this->render('admin_login', [
+                'message'  => '',
+                'settings' => $this->getSettingsArray(),
+            ]);
+
+            return; // Hier ist für nicht-eingeloggte User Schluss!
+        }
+
+        // 4. EIGENTLICHE DASHBOARD-LOGIK (Nur wenn eingeloggt)
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = $this->handleDataActions($post);
