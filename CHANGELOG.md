@@ -2,6 +2,101 @@
 
 
 
+## [0.32.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.31.1...v0.32.0) (2026-05-27)
+
+### 🚀 Features
+
+* **core:** dynamic holiday calculation with custom overrides and state support ([077db34](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/077db34f83e673b21aba434ddd1d95668fc55b1e))
+* **db:** implement automated MySQL database and schema installation ([67feb2d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/67feb2da4954d1a9a06aa21fec815221ed20dd35))
+* **holiday/ui:** implement smart grouping for opening hours ([110746d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/110746d8067a64ba002b8d50af1464b6dbe0484c))
+* **holiday/ui:** optimize opening hours grouping and template rendering ([b80d890](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b80d890641a7caa529098d574f5967c197149c92))
+* **holiday:** implement date range grouping and conditional prefixing ([5f8088b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5f8088be86ad0ebf99d07665405b295966b3ce2c))
+* **mail/admin:** fix recipient tracking and implement email resend functionality ([ab85b85](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ab85b853cac53207a36c58585d5a60176a51f922))
+* **migration:** implement robust bidirectional storage bootstrap and resource management ([550a2f4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/550a2f4c89f513656e7644e22358bca6f5951df6))
+* **permit/config:** fix configuration loading and introduce optional short permit codes ([786d721](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/786d72197db24a7fc0da751708520699d8b96482))
+* **permit/status:** rename 'wartend' to 'offen' and implement strict payment validation ([6f70642](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6f70642af7fd115a6e37d4ddb5a259e012e644e4))
+* **permit/validity:** introduce strict payment-based validation and confirm-dialogs ([75dadc6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/75dadc694ce6cf149f70acc6d13b11bbd58af608))
+* **scripts:** implement token-optimized file collector for LLM context injection ([09850d1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/09850d16f290939b635fe3c954243d3413e33005))
+* **security:** remove API secret from frontend and implement CSRF protection ([4e7b549](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4e7b5490f921d673a7b1fdded0667f5a6555bffd))
+* **ui/admin:** introduce drag-and-drop file uploads for profile and group avatars ([be8bd39](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/be8bd39251b769b84aa592b869d3b4ab02acad39))
+* **ui/check:** reveal suspension reasons within administrative and public detail views ([c553cc7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c553cc722d30c687afe25d0411661c73eac3a7db))
+* **ui/dashboard:** introduce permit type filtering and expand suspension actions ([1035f49](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1035f4952ea29cf767012899808f1a8dc4fb6474))
+* **ui/history:** elevate tenant history list to dashboard standards ([9842894](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/98428945da383aa347bb3ef1752bcec2c7ba4a80))
+* **ui/layout:** implement global dynamic footer with software branding and version tracking ([04a0b98](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/04a0b988d25ffe944c7c1f05eb6c1d9104dd2092))
+* **ui/navigation:** implement global public navigation bar and unify routing access ([2237b06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2237b06e72b9a2586ffad818ee3ba204dcc55646))
+* **ui/tables:** implement interactive 3-state column sorting for all data grids ([7af793d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7af793d93cde849d66172a7975261b199887bca9))
+* **ui:** conditional display of voucher activation link ([148f131](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/148f13195766bf51c89f69f30e99608fb490620d))
+* **ui:** display dynamic holiday warnings directly in issue forms and summary ([3877d62](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3877d62e348b696d4ffdfdac057bc28501630339))
+
+### 🐛 Bug Fixes
+
+* **api/vouchers:** synchronize frontend price calculation with manual voucher suspension ([ecf8bff](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ecf8bffe8feb5cdef9109aae26b1f435413a2685))
+* **auth:** implement post-login redirect to check view and resolve auto-backup offset crash ([7e7b0b5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e7b0b55ad3d8ad03c7dbfbe26c38964af37c1fb))
+* **auth:** implement post-redirect-get (PRG) pattern for user profile updates ([f839a98](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f839a98df140f89fb866082d69d8a548ae7a3eb4))
+* **config/sql:** complete schema synchronization and harden archiving logic ([37776f4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/37776f46bf0b42959b5831b6476400c726ed5122))
+* **controller/paths:** unify template rendering and modernize session data access ([6a9957f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6a9957fba395ff2b76003aa412c8e95b370fc05d))
+* **controller/ux:** align admin identity strings and normalize template pathing ([4b7e589](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4b7e589abd473707d61f412eb9518813122f5e9d))
+* **core/architecture:** resolve variable collisions, path errors, permission tree anomalies ([9895a82](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9895a82cc8fba8be10abf4e30edc0f74bc8efe06))
+* **core/path:** resolve path concatenation errors and enhance archiving robustness ([aebb7c8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aebb7c86e7cf025f1cf3231ac1883ef9080d7ee5))
+* **core/paths:** resolve template inclusion errors and harden archiving logic ([9a1d800](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9a1d8002c50f1ad5b587e7f60245f10a3387f805))
+* **core/services:** implement resilient vehicle-type mapping and windows-safe path normalization ([4b980d1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4b980d1fd820232a1332ee57cb207b3e2325b149))
+* **core:** move system initialization and data seeding before authentication gate ([e364a04](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e364a0493f0af969289f3e7d17d6667c9c23d990))
+* **core:** prevent hash_equals length warnings and apply chronological sorting to history ([d2d9922](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d2d9922d0773a0709847b53434aa6b2060971f01))
+* **dashboard/ui:** harmonize asset pathing and activate administrative action triggers ([ba79974](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ba79974746069e553b8ee61a72ea8f04bc654822))
+* **database/seeding:** synchronize core database seeds with granular system-ID schemas ([a255ac7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a255ac7cf53a54b55237315e8c65898beb99cbd6))
+* **db:** resolve seeding crash on empty database and refactor default payloads ([7d820cb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7d820cb7aad0b61f056b0d79fd22b1e41709d7a7))
+* **emails:** unify variable mapping for dual-use templates and harden A4 logic ([16356c0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/16356c062c5e619ae866305dcb14099f587aba12))
+* **history:** resolve undefined variable error in permit list view ([6bcd5de](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6bcd5debfdacaec5b0d7e9cc13550620a89f9df4))
+* **infrastructure/mail:** achieve full path consistency across all logging operations ([397fd4c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/397fd4c33998aceaf63d6716d550c60b13b40d11))
+* **infrastructure:** standardize path normalization and harden storage operations ([ef8799f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ef8799f4537a58c2db6465e5421f54e3f66221f0))
+* **js/ui:** synchronize license plate formatting and voucher validation states ([be4bf74](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/be4bf7485aeec058551d456c89de3d14a1756061))
+* **logic/database:** refine temporal validation and complete SQL archive schema ([31a7cd6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/31a7cd63604007bf309519fc82eb5e80e74d607e))
+* **public/entry:** synchronize mail queue thresholds and enhance maintenance resilience ([ed579a4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ed579a4ab2ba41b7b92c087770e733b78f6af6d5))
+* **security/auth:** remove deprecated legacy level checks from migration endpoints ([adf134e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/adf134ec348a86c86bb4fc4b162bdb03b30e5177))
+* **templates/api:** harden asset detection and synchronize pricing UI ([9563af5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9563af5fac525a7b763ac821a8c71f821f9b4a21))
+* **templates/history:** modernize magic-link login and unify print document mapping ([d627781](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d62778190271bfe619a1376ccf9ed56e577c87f8))
+* **templates/ui:** unify sub-inclusion paths and encapsulate session access ([d8a50cf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d8a50cfbdf108ad2dfdb80c7d70da3ec57e43ec6))
+* **ui/history:** recover and modernize history list layout and enhance form navigation ([1c04ce7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1c04ce7ca38ef8ca6bcbcf17db4a45087c701e62))
+* **ui/ux:** resolve group label inconsistencies and finalize media-ID synchronization ([0c9cb2d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0c9cb2df686f3dadaeafdd02d6268d4461384f6c))
+
+### ⚡ Performance
+
+* **scripts:** append minimized suffixes to output files and mirror directories ([59c0b17](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/59c0b177ee1f6d96558eddcd193e1971cb1e805f))
+
+### ⚙️ Refactoring
+
+* **admin:** fix dashboard filter, export handling, migration lifecycle and email notification ([6411e92](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6411e9275ab62b09784c590acade2aec2950be00))
+* **auth/media:** implement failsafe native image pipeline and consolidate ID-based management ([86a16d2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/86a16d2d309230f389c83b394e95b062d75dc085))
+* automate codebase modernization via Rector ([cc081bf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cc081bf048c5fd2b749bb8eaf668ab806a46ea8f))
+* **config:** add project-wide code formatting and style configuration ([6d84976](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6d849767e138a463e74ec47b8b52f19bd839577b))
+* **config:** decouple domain-specific settings from core technical configuration ([af13646](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/af136463e2ee4a9b8a1756b7495f1a8bf8671f10))
+* **config:** decouple internal reasons into dedicated config file and enforce history sorting ([b54e9a2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b54e9a24b91a8e290946fe806d548760b5825962))
+* **entities:** enforce global immutability and strict typing for domain models ([3a18336](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a183363aaf4a54302a368060ccb6c80970ae5b0))
+* **js/admin:** implement event delegation for administrative actions ([a7edf63](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a7edf6322ec5da32b0000ee49278da5c80660345))
+* **js:** resolve linting warnings in form-handler and table-sorter ([dfb2494](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dfb24944545aa003fc387b50e6eac0f4491595da))
+* **mail/print:** unify data keys and standardize temporal formatting ([e4e530b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e4e530bc5cabb2c6be57c6c37d6f7c53789c48f8))
+* **profile/media:** remove deprecated GD functions and resolve template diagnostic errors ([a30c510](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a30c510576ffe9b84a927966ce7c9a794e126a49))
+* resolve coding standard violations and improve code quality ([4ac580b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4ac580bcbe4800ad0f8e4727a5d596f235669950))
+* **security/ux:** persistent ID architecture and hierarchical recursive permission engine ([a04419f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a04419f784fa1f86456d0138213d2f2e3d55e5d6))
+* **storage/media:** align MySQL schema with ID-architecture and stabilize image pipeline ([675d69e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/675d69ef81a06c9f81b9c8e2ec23517f57df6fd9))
+* **storage:** global SQL schema capitalization and defensive architecture refactoring ([6b6b7a4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6b6b7a495074eefacbaec106aa560f6bd6208131))
+* **style:** address PSR12 and coding standard violations ([4f0f2df](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4f0f2dfc876f26f1eb50c5db677574b8718914f9))
+* **templates/emails:** optimize a4 permit document and integrate dynamic opening hours ([d933c38](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d933c386838df04128b35337c7049741bd124838))
+* **ui/admin:** modernize the administrative login interface ([a58624a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a58624a2b457d8cddeac86be3a8ac877837dcf86))
+* **vouchers:** centralize validation logic into VoucherService ([b753e6c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b753e6c9969f15dd2e13cdba9ce42ceb95699b2f))
+
+### 💎 Styling
+
+* **ui:** optimize print layouts and update global CSS styles ([6815ac2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6815ac2e764dd3b0087b9f7347bc30dcde735403))
+
+### 🧪 Tests
+
+* **core/services:** validation of auxiliary services and final path integrity check ([003f998](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/003f99883d08adb6ce7637189b941a58fe6ca08a))
+
+### 🧹 Chore / Maintenance
+
+* **templates:** add standardized file headers and licensing information to all phtml templates ([9384f80](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9384f8022acf6de038e416cc2886d36569c547d4))
+
 ## [0.31.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.31.0...v0.31.1) (2026-05-16)
 
 ### 🐛 Bug Fixes
