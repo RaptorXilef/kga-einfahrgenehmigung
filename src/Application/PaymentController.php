@@ -22,8 +22,8 @@ use App\Core\Service\PermitService;
 final readonly class PaymentController
 {
     public function __construct(
-        private PermitService $permitService,
         private ConfigInterface $config,
+        private PermitService $permitService,
     ) {
     }
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Core\Entity\Permit;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Core\Entity\Permit;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
@@ -28,10 +28,10 @@ final readonly class HistoryController
 {
     public function __construct(
         private ConfigInterface $config,
-        private PermitService $permitService,
+        private HolidayService $holidayService,
         private MagicLinkService $magicLinkService,
         private MailServiceInterface $mailService,
-        private HolidayService $holidayService,
+        private PermitService $permitService,
     ) {
     }
 

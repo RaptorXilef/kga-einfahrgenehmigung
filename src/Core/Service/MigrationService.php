@@ -27,13 +27,14 @@ use App\Infrastructure\Storage\MySqlStorage;
 final readonly class MigrationService
 {
     public function __construct(
-        private ConfigInterface $config,
         private ?\PDO $pdo,
-        private PermitService $permitService,
         private AuthService $authService,
-        private VoucherService $voucherService,
+        private BackupService $backupService,
+        private ConfigInterface $config,
         private MagicLinkService $magicLinkService,
         private MailServiceInterface $mailService,
+        private PermitService $permitService,
+        private VoucherService $voucherService,
     ) {
     }
 
@@ -50,7 +51,7 @@ final readonly class MigrationService
     {
         // 1. Sicherheit: Backup erstellen, bevor wir IRGENDWAS anfassen
         try {
-            $backupFolder = $this->createAutoBackup($target);
+            $backupFolder = $this->backupService->createBackup($target);
         } catch (\Exception $e) {
             return 'Abbruch: Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
         }
@@ -69,71 +70,6 @@ final readonly class MigrationService
         };
 
         return "Backup erstellt in $backupFolder. <br>" . $result;
-    }
-
-    /**
-     * Generiert ein synchronisiertes Datei- und Datenbank-Abbild eines Zielbereichs im Backup-Ordner.
-     * Erzeugt Zeitstempel-Ordner und exportiert JSON-formatierte Rohdaten-Dumps.
-     *
-     * @param string $target Der zu sichernde Konfigurationsbereich.
-     *
-     * @return string Relativer Pfad zum erstellten Backup-Ordner.
-     */
-    private function createAutoBackup(string $target): string
-    {
-        $timestamp  = \date('Ymd-His'); // YYYYMMDD-HHmmss
-        $root       = $this->config->get('root_path');
-        $prefix     = $this->config->get('storage_path_prefix');
-        $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup'; // Nutzt Namen aus Config
-        $backupPath = \rtrim((string) $root, '/\\') . '/' . \ltrim((string) $prefix, '/\\') . $subFolder . '/' . $timestamp;
-
-        if (! \is_dir($backupPath)) {
-            \mkdir($backupPath, 0o777, true);
-        }
-
-        // Flags: 128 (PRETTY) + 64 (UNESCAPED_SLASHES) + 256 (UNESCAPED_UNICODE) = 448
-        $jsonFlags     = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
-        $storageConfig = $this->config->get('storage_config', []);
-
-        // FIX: Wenn das Target ein virtueller Key wie 'auto_maintenance' ist, sichern wir die Kern-Komponenten pauschal
-        if (! isset($storageConfig[$target])) {
-            $keysToBackup = ['permits', 'users', 'groups', 'vouchers'];
-            foreach ($keysToBackup as $key) {
-                if (! isset($storageConfig[$key])) {
-                    continue;
-                }
-
-                $path = \rtrim((string) $root, '/\\') . '/' .
-                    \ltrim((string) $prefix, '/\\') . $storageConfig[$key]['file'];
-                if (! \file_exists($path)) {
-                    continue;
-                }
-
-                $data = \json_decode((string) \file_get_contents($path), true) ?? [];
-                \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
-            }
-
-            return $prefix . $subFolder . '/' . $timestamp;
-        }
-
-        // Standard-Logik für existierende, spezifische Keys
-        $jsonData = $this->loadRawJson($target);
-        if ($jsonData !== []) {
-            \file_put_contents(
-                $backupPath . "/{$target}_file.json",
-                \json_encode($jsonData, $jsonFlags),
-            );
-        }
-
-        // --- B. MySQL-Quelle sichern (falls erreichbar) ---
-        if ($this->pdo instanceof \PDO) {
-            $sqlData = $this->loadRawSql($target);
-            if ($sqlData !== []) {
-                \file_put_contents($backupPath . "/{$target}_sql.json", \json_encode($sqlData, $jsonFlags));
-            }
-        }
-
-        return $prefix . $subFolder . '/' . $timestamp;
     }
 
     /**
@@ -202,6 +138,29 @@ final readonly class MigrationService
      */
     private function syncBoth(string $target): string
     {
+        // Bei Permits nutzen wir die Domain-Objekte für den sauberen Sync
+        if ($target === 'permits') {
+            $json = new JsonStorage($this->getFilePath('permits'));
+            $sql  = new MySqlStorage($this->pdo);
+
+            $jsonPermits = $json->getAll();
+            $sqlPermits  = $sql->getAll();
+
+            $count = 0;
+            // SQL nach JSON syncen
+            foreach ($sqlPermits as $p) {
+                $json->save($p);
+                ++$count;
+            }
+            // JSON nach SQL syncen
+            foreach ($jsonPermits as $p) {
+                $sql->save($p);
+                ++$count;
+            }
+
+            return "Erfolg: '$target' (Domain-Entitäten) synchronisiert.";
+        }
+
         // 1. Daten aus beiden Quellen laden
         $jsonData = $this->loadRawJson($target);
         $sqlData  = $this->loadRawSql($target);
@@ -219,34 +178,6 @@ final readonly class MigrationService
     // --- Helfer für direkten Zugriff ohne Rücksicht auf die aktuelle Config-Einstellung ---
 
     /**
-     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
-     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
-     *
-     * @param string $key Speicher-Key aus der Konfiguration.
-     *
-     * @return array<string, mixed> Ungefiltertes Datenarray.
-     */
-    private function loadRawJson(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key];
-
-        // FIX: Prüfen, ob überhaupt ein Dateiname konfiguriert ist
-        if (! isset($cfg['file'])) {
-            return [];
-        }
-
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim(
-            (string) $this->config->get('storage_path_prefix'),
-            '/\\',
-        ) . $cfg['file'];
-
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
-    }
-
-    /**
      * Schreibt Daten-Arrays formatiert zurück in die physische JSON-Zieldatei.
      * Robust gegen fehlende 'file'-Keys.
      *
@@ -257,74 +188,15 @@ final readonly class MigrationService
     {
         $cfg = $this->config->get('storage_config')[$key];
 
-        // FIX: Nur speichern, wenn ein Dateiname definiert ist
+        // Nur speichern, wenn ein Dateiname definiert ist
         if (! isset($cfg['file'])) {
             return;
         }
 
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim(
-            (string) $this->config->get('storage_path_prefix'),
-            '/\\',
-        ) . $cfg['file'];
-        \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
-    }
-
-    /**
-     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
-     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
-     *
-     * @param string $key Tabellen-Key aus der storage_config.
-     *
-     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
-     */
-    private function loadRawSql(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key];
-        if (! $this->pdo instanceof \PDO) {
-            return [];
-        }
-
-        try {
-            // Wir loggen kurz den Tabellennamen zur Sicherheit
-            $tableName = $cfg['table'];
-            $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
-            $rows      = $stmt->fetchAll();
-
-            if (empty($rows)) {
-                \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
-
-                return [];
-            }
-        } catch (\PDOException $e) {
-            \error_log("Bootstrap: MySQL-Query Fehler bei Tabelle `$tableName`: " . $e->getMessage());
-
-            return [];
-        }
-
-        $res = [];
-        // Dynamische Bestimmung des ID-Feldes
-        $idField = match ($key) {
-            'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
-            'magic_links', 'pending_verification', 'verified_pending'       => 'token',
-            default                                                         => 'code'
-        };
-
-        foreach ($rows as $r) {
-            // ROBUSTHEIT: Überspringe Zeilen ohne den erwarteten Primärschlüssel
-            if (! isset($r[$idField])) {
-                continue;
-            }
-
-            if (isset($r['data'])) {
-                $r['data'] = \json_decode((string) $r['data'], true);
-            }
-            $res[$r[$idField]] = $r;
-        }
-
-        return $res;
+        // Normalisierung vor dem Schreiben ins JSON: Wenn Daten aus SQL kommen, sind 'data' oder 'permissions' Objekte eventuell noch Arrays.
+        // Das sorgt für eine saubere, einheitliche Struktur im Dateisystem.
+        $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
+        \file_put_contents($this->getFilePath($key), \json_encode($data, $jsonFlags));
     }
 
     /**
@@ -336,6 +208,7 @@ final readonly class MigrationService
      */
     private function saveToSql(string $key, array $data): void
     {
+        // Wir nutzen die Services als stark typisierte Bausteine statt einer unsicheren generic-Schleife
         // Wir delegieren an die Services, da diese bereits die Logik für "Save" haben!
         // Das ist sauberer als genericSqlInsert, da die Services die Spalten kennen.
         match ($key) {
@@ -347,61 +220,8 @@ final readonly class MigrationService
             'pending_verification' => $this->permitService->savePendingData('pending_verification', $data),
             'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data),
             'permits'              => $this->migratePermitsToSql($data),
-            default                => $this->genericSqlInsert($key, $data)
+            default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
         };
-    }
-
-    /**
-     * Generischer SQL-Importer für beliebige Tabellen.
-     * Erzeugt dynamisch ein REPLACE INTO Statement anhand der Keys des zu importierenden Arrays.
-     *
-     * @param string $key  Speicher-Key aus der Config.
-     * @param array  $data Die zu importierenden Rohdaten.
-     */
-    private function genericSqlInsert(string $key, array $data): void
-    {
-        if ($data === [] || ! $this->pdo instanceof \PDO) {
-            return;
-        }
-
-        $cfg       = $this->config->get('storage_config')[$key];
-        $tableName = $cfg['table'];
-
-        $this->pdo->beginTransaction();
-
-        try {
-            $this->pdo->exec("DELETE FROM `$tableName`");
-
-            foreach ($data as $id => $row) {
-                // Sicherstellen, dass der Key in der Row ist (falls JSON assoziativ)
-                if (! isset($row['id']) && ! isset($row['code']) && ! isset($row['token'])) {
-                    $row['id'] = $id;
-                }
-
-                // Mapping: Falls alte Keys vorliegen, anpassen (z.B. templateKey -> template_key)
-                if (isset($row['templateKey'])) {
-                    $row['template_key'] = $row['templateKey'];
-                    unset($row['templateKey']);
-                }
-
-                $columns      = \array_keys($row);
-                $colNames     = \implode(', ', \array_map(fn (int|string $c): string => "`$c`", $columns));
-                $placeholders = \implode(', ', \array_fill(0, \count($columns), '?'));
-                $stmt         = $this->pdo->prepare("REPLACE INTO `$tableName` ($colNames) VALUES ($placeholders)");
-
-                $values = [];
-                foreach ($columns as $col) {
-                    $val = $row[$col];
-                    // Arrays (z.B. bei 'data' Feld) müssen JSON-String sein
-                    $values[] = \is_array($val) ? \json_encode($val, \JSON_UNESCAPED_UNICODE) : $val;
-                }
-                $stmt->execute($values);
-            }
-            $this->pdo->commit();
-        } catch (\Exception $e) {
-            $this->pdo->rollBack();
-            \error_log("Generic Migration Error for $key: " . $e->getMessage());
-        }
     }
 
     // Kleine Hilfsmethoden, um saveToSql sauber zu halten:
@@ -417,7 +237,6 @@ final readonly class MigrationService
             return;
         }
         $storage = new MySqlStorage($this->pdo);
-
         foreach ($data as $key => $item) {
             // Falls das Array assoziativ ist (Key=Code), nutze $item
             // Wir müssen sicherstellen, dass 'code' im Item gesetzt ist
@@ -426,6 +245,15 @@ final readonly class MigrationService
             }
             $storage->save($this->permitService->arrayToEntity($item));
         }
+    }
+
+    private function getIdFieldForKey(string $key): string
+    {
+        return match ($key) {
+            'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
+            'magic_links', 'pending_verification', 'verified_pending'       => 'token',
+            default                                                         => 'code'
+        };
     }
 
     /**
@@ -439,39 +267,8 @@ final readonly class MigrationService
     {
         $cfg = $this->config->get('storage_config')[$key];
 
-        return $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-    }
-
-    /**
-     * Scannt das Backup-Verzeichnis und listet alle verfügbaren Backup-Stände und deren Dateiinhalte auf.
-     * Listet alle verfügbaren Backup-Ordner sortiert nach Datum (neuere zuerst).
-     *
-     * @return array<string, array<int, string>> Absteigend sortiertes Array (neueste zuerst) von Datei-Listen.
-     */
-    public function listBackups(): array
-    {
-        $backupPath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . 'backup';
-        if (! \is_dir($backupPath)) {
-            return [];
-        }
-
-        $folders = \array_diff(\scandir($backupPath), ['.', '..']);
-        $result  = [];
-
-        foreach ($folders as $folder) {
-            $fullPath = $backupPath . '/' . $folder;
-            if (! \is_dir($fullPath)) {
-                continue;
-            }
-
-            // Prüfen, welche Dateien im Backup liegen
-            $files           = \array_diff(\scandir($fullPath), ['.', '..']);
-            $result[$folder] = \array_values($files);
-        }
-
-        \krsort($result); // Neueste Backups oben
-
-        return $result;
+        return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
+            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
     }
 
     /**
@@ -485,29 +282,17 @@ final readonly class MigrationService
      */
     public function restore(string $timestamp, string $target): string
     {
-        // 1. Sicherheits-Check: Erst aktuelles Backup ziehen!
-        $this->createAutoBackup($target . '_before_restore');
+        // 1. Sicherheitshalber aktuellen Ist-Zustand sichern
+        $this->backupService->createBackup($target . '_before_restore');
 
-        $root       = $this->config->get('root_path');
-        $backupBase = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
+        // 2. Daten aus Backup abrufen
+        $data = $this->backupService->getBackupData($timestamp, $target);
 
-        // Wir suchen im Backup-Ordner nach der Datei für das Target
-        // Priorität: Wir nehmen die *_file.json (da JSON das universelle Austauschformat ist)
-        $backupFile = $backupBase . "/{$target}_file.json";
-        if (! \file_exists($backupFile)) {
-            $backupFile = $backupBase . "/{$target}_sql.json"; // Fallback auf SQL-Export
-        }
-
-        if (! \file_exists($backupFile)) {
-            return "Fehler: Keine Backup-Datei für '$target' im Ordner $timestamp gefunden.";
-        }
-
-        $data = \json_decode((string) \file_get_contents($backupFile), true);
         if ($data === null) {
-            return 'Fehler: Backup-Datei ist beschädigt.';
+            return "Fehler: Keine gültige Backup-Datei für '$target' im Ordner $timestamp gefunden.";
         }
 
-        // 2. In die aktuell AKTIVE Quelle schreiben (egal ob JSON oder SQL)
+        // 3. Ins Zielsystem schreiben (egal ob JSON oder SQL)
         $storageCfg = $this->config->get('storage_config')[$target];
 
         if ($storageCfg['type'] === 'mysql') {
@@ -522,91 +307,7 @@ final readonly class MigrationService
     }
 
     /**
-     * Überwacht und steuert automatisierte Backup-Intervalle im Hintergrund.
-     * Prüft anhand eines Timestamps in `last_auto_backup.txt`, ob ein konfiguriertes Intervall abgelaufen ist,
-     * stößt die Sicherung an und rotiert alte Backups (Retention Rate) aus.
-     */
-    public function checkAutoBackup(): void
-    {
-        $cfg = $this->config->get('backup_settings');
-        if (! ($cfg['enabled'] ?? false)) {
-            return;
-        }
-
-        $interval  = ($cfg['interval_hours'] ?? 24) * 3600;
-        $root      = $this->config->get('root_path');
-        $prefix    = $this->config->get('storage_path_prefix');
-        $stateFile = $root . $prefix . 'last_auto_backup.txt';
-
-        $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
-
-        if (\time() - $lastBackup <= $interval) {
-            return;
-        }
-
-        // 1. Neues Backup erstellen
-        $this->createAutoBackup('auto_maintenance');
-        \file_put_contents($stateFile, (string) \time());
-
-        // 2. Alte Backups löschen (Rotation)
-        $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
-    }
-
-    /**
-     * Rotiert Backup-Ordner basierend auf der maximal zulässigen Anzahl im System (FIFO-Verfahren).
-     *
-     * @param int $max Die Obergrenze für aufzubewahrende Backups (z.B. 10).
-     */
-    private function rotateBackups(int $max): void
-    {
-        $root       = $this->config->get('root_path');
-        $prefix     = $this->config->get('storage_path_prefix');
-        $backupPath = $root . $prefix . 'backup';
-
-        if (! \is_dir($backupPath)) {
-            return;
-        }
-
-        $folders   = \array_diff(\scandir($backupPath), ['.', '..']);
-        $fullPaths = [];
-        foreach ($folders as $f) {
-            if (! \is_dir($backupPath . '/' . $f)) {
-                continue;
-            }
-
-            $fullPaths[$f] = $backupPath . '/' . $f;
-        }
-
-        \ksort($fullPaths); // Sortiert chronologisch (älteste zuerst)
-
-        if (\count($fullPaths) <= $max) {
-            return;
-        }
-
-        $toDelete = \array_slice($fullPaths, 0, \count($fullPaths) - $max);
-        foreach ($toDelete as $dir) {
-            $this->recursiveDelete($dir);
-        }
-    }
-
-    /**
-     * Löscht Verzeichnisstrukturen inklusive aller enthaltenen Dateien rekursiv vom Datenträger.
-     *
-     * @param string $dir Absoluter Pfad zum Ziel-Verzeichnis.
-     */
-    private function recursiveDelete(string $dir): void
-    {
-        if (! \is_dir($dir)) {
-            return;
-        }
-        $files = \array_diff(\scandir($dir), ['.', '..']);
-        foreach ($files as $file) {
-            \is_dir("$dir/$file") ? $this->recursiveDelete("$dir/$file") : \unlink("$dir/$file");
-        }
-        \rmdir($dir);
-    }
-
-    /**
+     *TODO Prüfen ob diese noch benötigt wird oder gelöschtw erden kann!
      * Erstellt die physischen MySQL-Tabellenstrukturen zur Laufzeit, falls diese nicht existieren.
      * Nutzt das in der Konfiguration geladene SQL-Schema.
      */
@@ -625,107 +326,6 @@ final readonly class MigrationService
                 // Jetzt wird `$tableName` sinnvoll genutzt!
                 \error_log("Bootstrap: Fehler beim Erstellen der Tabelle '$tableName': " . $e->getMessage());
             }
-        }
-    }
-
-    /**
-     * Initiiert das Seeding und automatische Migrieren von Grunddaten für ALLE konfigurierten Speicherbereiche.
-     * Wenn 'auto_migration' in der Config auf false steht, wird dieser Prozess (bis auf ensureTablesExist)
-     * übersprungen.
-     *
-     * Füllt die Datenbank/JSON-Dateien beim Erststart mit Standardwerten
-     * ODER übernimmt Daten automatisch bidirektional aus der jeweils anderen (inaktiven) Quelle.
-     *
-     * TODO @param und @return einfügen
-     */
-    public function seedInitialData(): void
-    {
-        // Ressourcen-Schoner: Nur ausführen, wenn in der Config aktiviert
-        if (! $this->config->get('auto_migration', true)) {
-            return;
-        }
-
-        $storageKeys = [
-            'groups',
-            'users',
-            'vouchers',
-            'vouchers_archive',
-            'permits',
-            'permits_archive',
-            'mail_log',
-            'mail_queue',
-            'magic_links',
-            'pending_verification',
-            'verified_pending',
-        ];
-
-        foreach ($storageKeys as $key) {
-            $this->autoBootstrapStorage($key);
-        }
-    }
-
-    /**
-     * Universelle Bootstrap-Logik für jeden einzelnen Speicherbereich.
-     * Erkennt leere aktive Speicher und füllt diese mit Daten aus dem passiven Speicher oder mit Defaults.
-     * TODO @param und @return einfügen
-     */
-    private function autoBootstrapStorage(string $key): void
-    {
-        $cfg = $this->config->get('storage_config')[$key] ?? null;
-        if (! $cfg) {
-            return;
-        }
-
-        $currentType = $cfg['type'] ?? 'json';
-
-        // 1. Daten laden
-        $jsonData = $this->loadRawJson($key);
-        $sqlData  = $this->loadRawSql($key);
-
-        // 2. Ziel-Check: Ist der AKTIVE Speicher leer?
-        $activeData = $currentType === 'mysql' ? $sqlData : $jsonData;
-
-        // 3. Ist der aktive Speicher befüllt? -> Nichts tun!
-        if ($activeData !== []) {
-            return; // Ziel voll -> Alles okay
-        }
-
-        // 3. Quell-Check: Gibt es im anderen Speicher Daten?
-        // Wenn currentType mysql, dann ist JSON (jsonData) unsere Quelle
-        $sourceData = $currentType === 'mysql' ? $jsonData : $sqlData;
-
-        // DEBUG-Logging
-        if ($sourceData === []) {
-            // Defaults nur für User/Groups
-            if ($key === 'groups') {
-                $sourceData = $this->getDefaultGroups();
-                \error_log("Bootstrap: Schreibe Default-Daten für $key.");
-            } elseif ($key === 'users') {
-                $sourceData = $this->getDefaultUsers();
-                \error_log("Bootstrap: Schreibe Default-Daten für $key.");
-            } else {
-                \error_log("Bootstrap: Keine Daten für $key gefunden (weder JSON noch SQL noch Default). Überspringe.");
-
-                return;
-            }
-        } else {
-            \error_log(
-                "Bootstrap: Migriere $key von " .
-                    ($currentType === 'mysql' ? 'JSON' : 'SQL') . ' zu ' .
-                    ($currentType === 'mysql' ? 'SQL' : 'JSON'),
-            );
-        }
-
-        // 4. Echte Migration
-        try {
-            if ($currentType === 'mysql') {
-                $this->saveToSql($key, $sourceData);
-            } else {
-                $this->saveToJson($key, $sourceData);
-            }
-            \error_log("Bootstrap: $key erfolgreich migriert/befüllt.");
-        } catch (\Exception $e) {
-            \error_log("Bootstrap: FEHLER bei Migration von $key: " . $e->getMessage());
         }
     }
 
@@ -803,148 +403,4 @@ final readonly class MigrationService
      * $this->saveToJson('users', $sourceData);
      * }
      * }*/
-
-    /**
-     * Liefert das Standard-Rechtesetup für einen frischen Systemstart.
-     * Ausgelagert für bessere Lesbarkeit und Code-Wiederverwendung.
-     *
-     * @return array<string, array<string, mixed>>
-     */
-    private function getDefaultGroups(): array
-    {
-        return [
-            'grp_71cb1c0d' => [
-                'name'        => 'Administrator',
-                'permissions' => ['*'],
-            ],
-            'grp_180a3ec6' => [
-                'name'        => 'Finanzen',
-                'permissions' => [
-                    'privacy.finance.reveal',
-                    'privacy.email.reveal',
-                    'check.admin.print',
-                    'dashboard.view',
-                    'dashboard.control_bar.view',
-                    'dashboard.control_bar.future',
-                    'dashboard.control_bar.search',
-                    'dashboard.info_alert.view',
-                    'dashboard.info_alert.print',
-                    'dashboard.info_alert.details',
-                    'dashboard.active.view',
-                    'dashboard.active.print',
-                    'dashboard.active.details',
-                    'dashboard.active.suspend',
-                    'dashboard.finance.view',
-                    'dashboard.finance.details',
-                    'dashboard.finance.suspend',
-                    'dashboard.finance.mark_paid',
-                    'dashboard.future.view',
-                    'dashboard.future.print',
-                    'dashboard.future.details',
-                    'dashboard.future.suspend',
-                    'dashboard.expired.view',
-                    'dashboard.expired.print',
-                    'dashboard.expired.details',
-                    'dashboard.stats.view',
-                    'dashboard.stats.current',
-                    'dashboard.stats.charts',
-                    'dashboard.stats.history',
-                    'dashboard.ranking.view',
-                    'dashboard.export.view',
-                    'finance.export.execute',
-                    'dashboard.export.csv',
-                    'dashboard.export.json',
-                    'dashboard.vouchers.view',
-                    'dashboard.vouchers.open',
-                    'dashboard.vouchers.suspend',
-                    'dashboard.vouchers.remove',
-                    'dashboard.vouchers.archive',
-                    'dashboard.tools.view',
-                    'dashboard.tools.direct_issue.reveal',
-                    'dashboard.tools.direct_issue.execute',
-                    'dashboard.tools.voucher_gen.reveal',
-                    'dashboard.tools.voucher_gen.execute',
-                    'template.manage',
-                    'template.std.7',
-                    'template.std.14',
-                    'template.std.30',
-                    'template.perm.3',
-                    'template.perm.6',
-                    'template.perm.9',
-                    'template.perm.12',
-                    'template.custom.std',
-                    'template.custom.perm',
-                ],
-            ],
-            'grp_fd72d38c' => [
-                'name'        => 'Sachbearbeitung',
-                'permissions' => [
-                    'privacy.email.reveal',
-                    'check.admin.print',
-                    'dashboard.view',
-                    'dashboard.control_bar.view',
-                    'dashboard.control_bar.future',
-                    'dashboard.control_bar.search',
-                    'dashboard.info_alert.view',
-                    'dashboard.info_alert.print',
-                    'dashboard.info_alert.details',
-                    'dashboard.active.view',
-                    'dashboard.active.print',
-                    'dashboard.active.details',
-                    'dashboard.finance.view',
-                    'dashboard.finance.details',
-                    'dashboard.future.view',
-                    'dashboard.future.print',
-                    'dashboard.future.details',
-                    'dashboard.expired.view',
-                    'dashboard.vouchers.view',
-                    'dashboard.vouchers.open',
-                    'dashboard.vouchers.suspend',
-                    'dashboard.tools.view',
-                    'dashboard.tools.direct_issue.reveal',
-                    'dashboard.tools.direct_issue.execute',
-                    'dashboard.tools.voucher_gen.reveal',
-                    'dashboard.tools.voucher_gen.execute',
-                    'dashboard.logs.view',
-                    'template.manage',
-                    'template.std.7',
-                    'template.std.14',
-                    'template.std.30',
-                    'template.perm.3',
-                    'template.perm.6',
-                    'template.perm.9',
-                    'template.perm.12',
-                    'template.custom.std',
-                    'template.custom.perm',
-                ],
-            ],
-            'grp_a53d6b56' => [
-                'name'        => 'Prüfer vor Ort',
-                'permissions' => [
-                    'dashboard.view',
-                    'dashboard.control_bar.view',
-                    'dashboard.control_bar.future',
-                    'dashboard.control_bar.search',
-                    'dashboard.active.view',
-                    'dashboard.active.details',
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Liefert das Standard-Nutzer-Setup (Initiale Admin-Logins) für einen Systemstart.
-     *
-     * @return array<string, array<string, string>>
-     */
-    private function getDefaultUsers(): array
-    {
-        return [
-            'usr_7c13b491' => [
-                'username' => 'Admin',
-                'group'    => 'grp_71cb1c0d',
-                'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
-            ],
-        ];
-    }
 }

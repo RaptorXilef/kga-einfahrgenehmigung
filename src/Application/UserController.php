@@ -24,8 +24,8 @@ use App\Infrastructure\Config\Config;
 final readonly class UserController
 {
     public function __construct(
-        private ConfigInterface $config,
         private AuthService $auth,
+        private ConfigInterface $config,
     ) {
     }
 

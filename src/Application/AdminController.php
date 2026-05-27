@@ -8,9 +8,11 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\BackupService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
+use App\Core\Service\StorageBootstrapper;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 
@@ -34,13 +36,15 @@ final readonly class AdminController
      * Initiiert den Controller mit allen Abhängigkeiten (Dependency Injection).
      */
     public function __construct(
-        private ConfigInterface $config,
         private AuthService $auth,
-        private StorageInterface $storage,
-        private PermitService $permitService,
-        private MigrationService $migrationService,
-        private MailServiceInterface $mailService,
+        private BackupService $backupService,
+        private ConfigInterface $config,
         private HolidayService $holidayService,
+        private MailServiceInterface $mailService,
+        private MigrationService $migrationService,
+        private PermitService $permitService,
+        private StorageBootstrapper $bootstrapper,
+        private StorageInterface $storage,
     ) {
     }
 
@@ -57,21 +61,14 @@ final readonly class AdminController
     {
         // 1. SYSTEM-INITIALISIERUNG & SEEDING (Muss VOR dem Login passieren!)
         try {
-            // --- SETUP & WARTUNG IMMER ZUERST (Vor dem Login-Check!) ---
-            // So werden fehlende JSON-Dateien oder SQL-Tabellen angelegt,
-            // noch bevor die Login-Maske erscheint.
+            // Hier rufen ich jetzt NUR noch den sauberen Bootstrapper auf
+            $this->bootstrapper->bootstrap();
 
-            // Tabellen sicherstellen
-            $this->migrationService->ensureTablesExist();
-
-            // Daten impfen (wenn leer)
-            $this->migrationService->seedInitialData();
-
-            // Auto-Backup prüfen
-            $this->migrationService->checkAutoBackup();
+            // Cronjob für automatische Backups darf bleiben
+            $this->backupService->checkAutoBackup();
         } catch (\Throwable $e) {
             // Fängt Fehler ab, damit das Dashboard nicht abstürzt
-            \error_log('MigrationService Warning: ' . $e->getMessage());
+            \error_log('Bootstrapping Warning: ' . $e->getMessage());
         }
 
         // ---------------------------------------------------------------
@@ -496,23 +493,24 @@ final readonly class AdminController
         // Gefilterte Daten ans Template übergeben
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->render('admin_dashboard', [
-            'structure'        => $this->config->get('structure', []),
-            'periodStats'      => $this->calculateDetailedStats($filtered),
-            'yearlyStats'      => $yearlyStats,
-            'permitGroups'     => $this->groupPermits($filtered), // <-- BUGFIX! GEÄNDERT von $allPermits und groups
-            'settings'         => $this->getSettingsArray(),
-            'auth'             => $this->auth,
-            'message'          => $message,
-            'filterStart'      => $filterStart,
-            'filterEnd'        => $filterEnd,
-            'filterType'       => $filterType, // An die Control-Bar übergeben
-            'config'           => $this->config,
             'appRoot'          => $this->config->get('root_path'),
+            'auth'             => $this->auth,
+            'backupService'    => $this->backupService,
+            'config'           => $this->config,
+            'filterEnd'        => $filterEnd,
+            'filterStart'      => $filterStart,
+            'filterType'       => $filterType, // An die Control-Bar übergeben
+            'mailLogs'         => $this->mailService->loadLogs(),
+            'message'          => $message,
+            'migrationService' => $this->migrationService,
+            'periodStats'      => $this->calculateDetailedStats($filtered),
+            'permitGroups'     => $this->groupPermits($filtered), // <-- BUGFIX! GEÄNDERT von $allPermits und groups
+            'permitService'    => $this->permitService,
+            'settings'         => $this->getSettingsArray(),
+            'structure'        => $this->config->get('structure', []),
             'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
             'voucherService'   => $this->permitService->getVoucherService(),
-            'mailLogs'         => $this->mailService->loadLogs(),
-            'permitService'    => $this->permitService,
-            'migrationService' => $this->migrationService,
+            'yearlyStats'      => $yearlyStats,
         ]);
     }
 

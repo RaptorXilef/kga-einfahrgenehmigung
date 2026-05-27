@@ -25,8 +25,8 @@ final readonly class MagicLinkService
     private string $storagePath;
 
     public function __construct(
+        private ?\PDO $pdo,
         private ConfigInterface $config,
-        private ?\PDO $pdo, // NEU
     ) {
         // storagePath wird für JSON weiter berechnet
         $cfg               = $this->config->get('storage_config')['magic_links'];
@@ -150,7 +150,7 @@ final readonly class MagicLinkService
         $cfg = $this->config->get('storage_config')['magic_links'];
 
         if ($cfg['type'] === 'mysql') {
-            if (!$this->pdo instanceof \PDO) {
+            if (! $this->pdo instanceof \PDO) {
                 throw new \RuntimeException('MySQL offline');
             }
             $this->pdo->exec("DELETE FROM {$cfg['table']}");

@@ -33,8 +33,8 @@ final readonly class MailQueueService implements MailServiceInterface
      * @var MailServiceInterface
      */
     public function __construct(
-        private ConfigInterface $config,
         private ?\PDO $pdo,
+        private ConfigInterface $config,
         private MailServiceInterface $realMailService, // Der echte SMTP-Service
     ) {
     }

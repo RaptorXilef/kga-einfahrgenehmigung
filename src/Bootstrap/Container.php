@@ -15,11 +15,13 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Service\BackupService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
 use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
+use App\Core\Service\StorageBootstrapper;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
@@ -196,14 +198,14 @@ class Container
 
         // 1. Der echte SMTP-Versender (umbenannt, damit wir ihn intern nutzen können)
         $this->services['mail.smtp'] = fn (): SmtpMailService => new SmtpMailService(
-            $this->get(ConfigInterface::class),
             $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
         );
 
         // 2. Das offizielle Interface zeigt nun auf die Queue!
         $this->services[MailServiceInterface::class] = fn (): MailQueueService => new MailQueueService(
-            $this->get(ConfigInterface::class),
             $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
             $this->get('mail.smtp'),
         );
 
@@ -214,8 +216,8 @@ class Container
 
         // AuthService registrieren
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
-            $this->get(Config::class),
             $this->get(\PDO::class),
+            $this->get(Config::class),
         );
     }
 
@@ -232,36 +234,50 @@ class Container
 
         // Service für Gutscheine
         $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
-            $this->get(ConfigInterface::class),
             $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
         );
 
         // Service verwaltet die temporären Token für den Login
         $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
-            $this->get(ConfigInterface::class),
             $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
         );
 
         // FIX P1005: Jetzt mit 7 Argumenten (PDO am Ende hinzugefügt)
         $this->services[PermitService::class] = fn (): PermitService => new PermitService(
-            $this->get(StorageInterface::class),
-            $this->get(MailServiceInterface::class),
+            $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
+            $this->get(MailServiceInterface::class),
             $this->get(PaymentProviderInterface::class),
+            $this->get(StorageInterface::class),
             $this->get(VoucherService::class),
-            $this->get(\PDO::class),
         );
 
-        // NEU: Migration Service
-        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
-            $this->get(ConfigInterface::class),
+        // In src/Bootstrap/Container.php unter registerCoreServices():
+        $this->services[BackupService::class] = fn (): BackupService => new BackupService(
             $this->get(\PDO::class),
-            $this->get(PermitService::class),
+            $this->get(ConfigInterface::class),
+        );
+
+        // Migration Service
+        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
+            $this->get(\PDO::class),
             $this->get(AuthService::class),
-            $this->get(VoucherService::class),
+            $this->get(BackupService::class),
+            $this->get(ConfigInterface::class),
             $this->get(MagicLinkService::class),
             $this->get(MailServiceInterface::class),
+            $this->get(PermitService::class),
+            $this->get(VoucherService::class),
+        );
+
+        // StorageBootstrapper - Verwaltung der Migration
+        $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
+            $this->get(\PDO::class),
+            $this->get(AuthService::class),
+            $this->get(ConfigInterface::class),
         );
     }
 
@@ -273,28 +289,30 @@ class Container
     {
         // Admin Controller
         $this->services[AdminController::class] = fn (): AdminController => new AdminController(
-            $this->get(ConfigInterface::class),
             $this->get(AuthService::class),
-            $this->get(StorageInterface::class),
-            $this->get(PermitService::class),
-            $this->get(MigrationService::class),
-            $this->get(MailServiceInterface::class),
+            $this->get(BackupService::class),
+            $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
+            $this->get(MailServiceInterface::class),
+            $this->get(MigrationService::class),
+            $this->get(PermitService::class),
+            $this->get(StorageBootstrapper::class),
+            $this->get(StorageInterface::class),
         );
 
         // User Controller
         $this->services[UserController::class] = fn (): UserController => new UserController(
-            $this->get(ConfigInterface::class),
             $this->get(AuthService::class),
+            $this->get(ConfigInterface::class),
         );
 
         // CheckController benötigt jetzt den HolidayService für die Live-Prüfung
         $this->services[CheckController::class] = fn (): CheckController => new CheckController(
-            $this->get(ConfigInterface::class),
-            $this->get(StorageInterface::class),
             $this->get(AuthService::class),
+            $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
             $this->get(PermitService::class),
+            $this->get(StorageInterface::class),
         );
 
         // PermitController für index.php
@@ -309,17 +327,17 @@ class Container
         );
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
-            $this->get(PermitService::class),
             $this->get(ConfigInterface::class),
+            $this->get(PermitService::class),
         );
 
         // History Controller für Pächter-Verlauf
         $this->services[HistoryController::class] = fn (): HistoryController => new HistoryController(
             $this->get(ConfigInterface::class),
-            $this->get(PermitService::class),
+            $this->get(HolidayService::class),
             $this->get(MagicLinkService::class),
             $this->get(MailServiceInterface::class),
-            $this->get(HolidayService::class),
+            $this->get(PermitService::class),
         );
     }
 

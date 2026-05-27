@@ -27,11 +27,11 @@ use App\Infrastructure\Auth\AuthService;
 final readonly class CheckController
 {
     public function __construct(
-        private ConfigInterface $config,
-        private StorageInterface $storage,
         private AuthService $auth,
+        private ConfigInterface $config,
         private HolidayService $holidayService,
         private PermitService $permitService,
+        private StorageInterface $storage,
     ) {
     }
 
@@ -52,7 +52,7 @@ final readonly class CheckController
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
 
         // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
-        if (!$permit instanceof Permit && $code !== '') {
+        if (! $permit instanceof Permit && $code !== '') {
             $permit = $this->storage->findByLicensePlate($code);
         }
 

@@ -4,6 +4,7 @@
  * Partial: Dashboard Tab - Data Migration
  *
  * SQL/JSON Synchronisation und Backup-Wiederherstellung.
+ * Modernisiertes Kachel-Design.
  *
  * Path: templates/pages/admin_dashboard/_tab_migration.phtml
  *
@@ -13,205 +14,214 @@
  * See LICENSE.md for full license details.
  *
  * @var \App\Infrastructure\Auth\AuthService $auth
- * @var \App\Core\Service\MigrationService   $migrationService
+ * @var \App\Core\Service\BackupService      $backupService
  * @var array                                $settings
  */
 if ($auth->hasPermission('dashboard.migration.view')) {
-
     $targets = [
-        'users'                => 'Benutzerkonten',
-        'vouchers'             => 'Gutscheine',
-        'permits'              => 'Genehmigungen (Haupt-DB)',
-        'mail_log'             => 'E-Mail Protokolle',
-        'pending_verification' => 'Warteraum (E-Mail Bestätigung)',
-        'magic_links'          => 'Login-Tokens',
+        'users'                => ['label' => 'Benutzerkonten', 'icon' => '👥'],
+        'vouchers'             => ['label' => 'Gutscheine', 'icon' => '🎟️'],
+        'permits'              => ['label' => 'Genehmigungen', 'icon' => '📄'],
+        'mail_log'             => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
+        'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => '⏳'],
+        'magic_links'          => ['label' => 'Login-Tokens', 'icon' => '🔗'],
     ];
 
-    /** @var \App\Core\Service\MigrationService $migrationService */
-    $backups = $migrationService->listBackups();
+    // Achtung: Nutzt jetzt den neuen BackupService!
+    // Falls du die Variable im Controller noch nicht angepasst hast, musst du sie als $backupService übergeben.
+    $backups = $backupService->listBackups();
     ?>
     <div class="c-tab-content-container">
+
         <?php if ($auth->hasPermission('dashboard.migration.sync.view')) { ?>
-            <section class="c-card"
-                     style="border-top: 5px solid var(--json-color);">
-                <header class="c-card__header">
-                    <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
-                             class="c-icon"
-                             alt=""><!-- 🔄 --> Daten-Migration & Synchronisierung</h3>
-                    <p class="u-text-muted">Verschieben Sie Daten zwischen JSON-Dateien und der MySQL-Datenbank.</p>
-                </header>
-                <div class="c-card__body">
-                    <div class="c-alert c-alert--warning u-margin-bottom-l">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp"
-                             class="c-icon"
-                             alt="">
-                        <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Erstellen Sie vorab ein Backup!</span>
+            <div class="u-margin-bottom-l">
+                <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                         class="c-icon u-font-xl"
+                         alt="Sync">
+                    <div>
+                        <h3 class="u-margin-none">Daten-Synchronisation</h3>
+                        <p class="u-text-muted u-text-small u-margin-none">Verschieben oder synchronisieren Sie Daten
+                            zwischen JSON-Dateien und MySQL.</p>
                     </div>
-
-                    <table class="c-table">
-                        <thead>
-                            <tr>
-                                <th>Datentyp</th>
-                                <th class="u-text-center">Aktion: JSON ➔ SQL</th>
-                                <th class="u-text-center">Aktion: SQL ➔ JSON</th>
-                                <th class="u-text-center">Synchronisieren</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($targets as $key => $label) { ?>
-                                <tr>
-                                    <td><strong><?php echo $label; ?></strong></td>
-
-                                    <!-- Aktion: JSON ➔ SQL -->
-                                    <td class="u-text-center">
-                                        <?php if ($auth->hasPermission("dashboard.migration.{$key}.json_to_mysql")) { ?>
-                                            <form method="POST"
-                                                  onsubmit="return confirm('Daten nach MySQL migrieren?')">
-                                                <input type="hidden"
-                                                       name="action"
-                                                       value="migrate_data">
-                                                <input type="hidden"
-                                                       name="target"
-                                                       value="<?php echo $key; ?>">
-                                                <input type="hidden"
-                                                       name="direction"
-                                                       value="json_to_mysql">
-                                                <button type="submit"
-                                                        class="c-button c-button--secondary">➔ SQL</button>
-                                            </form>
-                                        <?php } else { ?>
-                                            <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
-                                        <?php } ?>
-                                    </td>
-
-                                    <!-- Aktion: SQL ➔ JSON -->
-                                    <td class="u-text-center">
-                                        <?php if ($auth->hasPermission("dashboard.migration.{$key}.mysql_to_json")) { ?>
-                                            <form method="POST"
-                                                  onsubmit="return confirm('Daten nach JSON migrieren?')">
-                                                <input type="hidden"
-                                                       name="action"
-                                                       value="migrate_data">
-                                                <input type="hidden"
-                                                       name="target"
-                                                       value="<?php echo $key; ?>">
-                                                <input type="hidden"
-                                                       name="direction"
-                                                       value="mysql_to_json">
-                                                <button type="submit"
-                                                        class="c-button c-button--secondary">➔ JSON</button>
-                                            </form>
-                                        <?php } else { ?>
-                                            <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
-                                        <?php } ?>
-                                    </td>
-
-                                    <!-- Synchronisieren -->
-                                    <td class="u-text-center">
-                                        <?php if ($auth->hasPermission("dashboard.migration.{$key}.sync")) { ?>
-                                            <form method="POST">
-                                                <input type="hidden"
-                                                       name="action"
-                                                       value="migrate_data">
-                                                <input type="hidden"
-                                                       name="target"
-                                                       value="<?php echo $key; ?>">
-                                                <input type="hidden"
-                                                       name="direction"
-                                                       value="sync">
-                                                <button type="submit"
-                                                        class="c-button c-button--primary"
-                                                        style="width: auto; padding: 0 10px;">
-                                                    Zusammenführen (Sync) <img
-                                                         src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
-                                                         class="c-icon"
-                                                         alt="Sync">
-                                                </button>
-                                            </form>
-                                        <?php } else { ?>
-                                            <span class="u-text-muted" title="Keine Berechtigung">🚫</span>
-                                        <?php } ?>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        <?php } ?>
-        <?php if ($auth->hasPermission('dashboard.migration.backups.view')) { ?>
-            <section class="c-card u-margin-top-xl"
-                     style="border-top: 5px solid var(--primary-color);">
-                <header class="c-card__header">
-                    <h3 class="u-margin-none">💾 Verfügbare Backups</h3>
-                    <p class="u-text-muted">Hier können Sie ältere Datenbestände einsehen und wiederherstellen.</p>
                 </header>
-                <div class="c-card__body u-padding-none">
-                    <table class="c-table">
-                        <thead>
-                            <tr>
-                                <th>Zeitpunkt / Ordner</th>
-                                <th>Inhalt</th>
-                                <th class="u-text-right">Aktion (Restore in aktive Quelle)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($backups)) { ?>
-                                <tr>
-                                    <td colspan="3"
-                                        class="u-text-center u-padding-around-l u-text-muted">Keine Backups vorhanden.
-                                    </td>
-                                </tr>
-                            <?php } else { ?>
-                                <?php foreach ($backups as $ts => $files) { ?>
-                                    <tr>
-                                        <td>
-                                            <strong><?php echo \date('d.m.Y H:i:s', \strtotime(\str_replace('-', ' ', $ts))); ?></strong><br>
-                                            <small class="u-text-muted"><?php echo $ts; ?></small>
-                                        </td>
-                                        <td>
-                                            <div class="u-flex u-flex-wrap u-gap-xs">
-                                                <?php foreach ($files as $file) { ?>
-                                                    <span class="c-badge" style="font-size: 0.65rem; background: #f1f5f9;"><?php echo $file; ?></span>
+
+                <div class="c-alert c-alert--warning u-margin-bottom-m">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp"
+                         class="c-icon"
+                         alt="">
+                    <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Es wird automatisch ein Backup erstellt.</span>
+                </div>
+
+                <div class="u-grid"
+                     style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                    <?php foreach ($targets as $key => $data) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--primary-color);">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <span style="font-size: 1.5rem;"><?php echo $data['icon']; ?></span>
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;"><?php echo $data['label']; ?></h4>
+                            </div>
+
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem;">
+                                <div class="u-flex u-gap-s u-width-100">
+                                    <form method="POST"
+                                          onsubmit="return confirm('Daten nach MySQL migrieren?')"
+                                          class="u-width-100">
+                                        <input type="hidden"
+                                               name="action"
+                                               value="migrate_data">
+                                        <input type="hidden"
+                                               name="target"
+                                               value="<?php echo $key; ?>">
+                                        <input type="hidden"
+                                               name="direction"
+                                               value="json_to_mysql">
+                                        <button type="submit"
+                                                class="c-button c-button--secondary u-width-100"
+                                                style="font-size: 0.85rem;"
+                                                <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.json_to_mysql") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
+                                            JSON ➔ SQL
+                                        </button>
+                                    </form>
+
+                                    <form method="POST"
+                                          onsubmit="return confirm('Daten nach JSON migrieren?')"
+                                          class="u-width-100">
+                                        <input type="hidden"
+                                               name="action"
+                                               value="migrate_data">
+                                        <input type="hidden"
+                                               name="target"
+                                               value="<?php echo $key; ?>">
+                                        <input type="hidden"
+                                               name="direction"
+                                               value="mysql_to_json">
+                                        <button type="submit"
+                                                class="c-button c-button--secondary u-width-100"
+                                                style="font-size: 0.85rem;"
+                                                <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.mysql_to_json") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
+                                            SQL ➔ JSON
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <form method="POST"
+                                      class="u-width-100">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="migrate_data">
+                                    <input type="hidden"
+                                           name="target"
+                                           value="<?php echo $key; ?>">
+                                    <input type="hidden"
+                                           name="direction"
+                                           value="sync">
+                                    <button type="submit"
+                                            class="c-button c-button--primary u-width-100"
+                                            style="font-size: 0.9rem; font-weight: 600;"
+                                            <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.sync") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
+                                        🔄 Zusammenführen (Sync)
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div>
+            </div>
+        <?php } ?>
+
+        <?php if ($auth->hasPermission('dashboard.migration.backups.view')) { ?>
+            <div class="u-margin-top-xl">
+                <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                    <span class="u-font-xl">💾</span>
+                    <div>
+                        <h3 class="u-margin-none">Verfügbare Backups</h3>
+                        <p class="u-text-muted u-text-small u-margin-none">Übersicht aller Systemsicherungen zur
+                            Wiederherstellung.</p>
+                    </div>
+                </header>
+
+                <div class="c-card"
+                     style="border-top: 4px solid var(--json-color);">
+                    <div class="c-card__body u-padding-none">
+                        <?php if (empty($backups)) { ?>
+                            <div class="u-padding-around-l u-text-center u-text-muted">
+                                <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📦</span>
+                                Es sind noch keine Backups im System vorhanden.
+                            </div>
+                        <?php } else { ?>
+                            <div class="u-flex u-flex-column">
+                                <?php
+                                    $isFirst = true;
+                            foreach ($backups as $ts => $files) {
+                                $dateObj       = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
+                                $formattedDate = $dateObj ? $dateObj->format('d.m.Y — H:i:s') : $ts;
+                                ?>
+                                    <div class="u-flex u-flex-wrap u-align-center u-justify-between u-gap-m"
+                                         style="padding: 1.25rem 1.5rem; <?php echo ! $isFirst ? 'border-top: 1px solid var(--border-color);' : ''; ?>">
+
+                                        <div class="u-flex u-flex-column u-gap-xs"
+                                             style="flex: 1; min-width: 250px;">
+                                            <strong class="u-font-l"><?php echo $formattedDate; ?></strong>
+                                            <div class="u-flex u-flex-wrap u-gap-xs u-margin-top-xs">
+                                                <?php foreach ($files as $file) {
+                                                    // Farbe basierend auf Dateityp (SQL oder JSON)
+                                                    $badgeColor = \str_contains($file, 'sql.json') ? 'var(--primary-color)' : 'var(--json-color)';
+                                                    $cleanName  = \str_replace(['_file.json', '_sql.json'], '', $file);
+                                                    ?>
+                                                    <span class="c-badge" style="background: <?php echo $badgeColor; ?>; font-size: 0.7rem;">
+                                                <?php echo \htmlspecialchars($cleanName); ?>
+                                            </span>
                                                 <?php } ?>
                                             </div>
-                                        </td>
-                                        <td class="u-text-right">
+                                        </div>
+
+                                        <div style="min-width: 320px;">
                                             <?php if ($auth->hasPermission('dashboard.migration.restore.execute')) { ?>
                                                 <form method="POST"
-                                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten! Fortfahren?')"
-                                                      class="u-flex u-gap-s u-justify-end">
+                                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort! Fortfahren?')"
+                                                      class="u-flex u-gap-s u-align-center u-justify-end">
                                                     <input type="hidden"
                                                            name="action"
                                                            value="restore_data">
                                                     <input type="hidden"
                                                            name="timestamp"
                                                            value="<?php echo $ts; ?>">
+
                                                     <select name="target"
                                                             class="c-form-select"
-                                                            style="width: 180px; height: 32px; font-size: 0.8rem;">
-                                                        <option value="">-- Was wiederherstellen? --</option>
-                                                        <?php foreach ($targets as $key => $label) { ?>
-                                                            <option value="<?php echo $key; ?>"><?php echo $label; ?></option>
+                                                            style="max-width: 200px;"
+                                                            required>
+                                                        <option value="">-- Zielbereich wählen --</option>
+                                                        <?php foreach ($targets as $key => $data) { ?>
+                                                            <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
                                                         <?php } ?>
                                                     </select>
+
                                                     <button type="submit"
                                                             class="c-button c-button--danger"
-                                                            style="width: auto; padding: 0 15px; height: 32px; font-size: 0.8rem;">
-                                                        Restore
+                                                            style="width: auto; padding: 0 16px; font-weight: 600;">
+                                                        Wiederherstellen
                                                     </button>
                                                 </form>
                                             <?php } else { ?>
-                                                <span class="u-text-muted" style="font-size: 0.7rem;">Keine Restore-Rechte</span>
+                                                <span class="u-text-muted u-float-right u-text-small">🚫 Keine Restore-Rechte</span>
                                             <?php } ?>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-                            <?php } ?>
-                        </tbody>
-                    </table>
+                                        </div>
+                                    </div>
+                                <?php
+                                    $isFirst = false;
+                            } ?>
+                            </div>
+                        <?php } ?>
+                    </div>
                 </div>
-            </section>
+            </div>
         <?php } ?>
+
     </div>
 <?php } ?>

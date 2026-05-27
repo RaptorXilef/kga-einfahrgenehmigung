@@ -23,8 +23,8 @@ use App\Contracts\Config\ConfigInterface;
 final readonly class VoucherService
 {
     public function __construct(
-        private ConfigInterface $config,
         private ?\PDO $pdo, // Nullable
+        private ConfigInterface $config,
     ) {
     }
 
@@ -193,7 +193,7 @@ final readonly class VoucherService
         $cfg = $this->config->get('storage_config')['vouchers'];
 
         if ($cfg['type'] === 'mysql') {
-            if (!$this->pdo instanceof \PDO) {
+            if (! $this->pdo instanceof \PDO) {
                 throw new \RuntimeException('Datenbank offline.');
             }
             $stmt     = $this->pdo->query("SELECT * FROM {$cfg['table']}");

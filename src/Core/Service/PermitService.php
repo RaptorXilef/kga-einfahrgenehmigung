@@ -40,13 +40,13 @@ use App\Core\Entity\Vehicle;
 final readonly class PermitService
 {
     public function __construct(
-        private StorageInterface $storage,
-        private MailServiceInterface $mailService,
+        private ?\PDO $pdo,
         private ConfigInterface $config,
         private HolidayService $holidayService,
+        private MailServiceInterface $mailService,
         private PaymentProviderInterface $paymentProvider,
+        private StorageInterface $storage,
         private VoucherService $voucherService,
-        private ?\PDO $pdo,
     ) {
     }
 
@@ -457,7 +457,7 @@ final readonly class PermitService
             || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')
         ) {
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
-            if (!$this->pdo instanceof \PDO) {
+            if (! $this->pdo instanceof \PDO) {
                 return;
             }
 
@@ -491,7 +491,7 @@ final readonly class PermitService
             || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')
         ) {
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
-            if (!$this->pdo instanceof \PDO) {
+            if (! $this->pdo instanceof \PDO) {
                 return [];
             }
 
@@ -562,7 +562,7 @@ final readonly class PermitService
         );
 
         // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---
-        if (in_array(\trim($permit->owner->email), ['', '0'], true)) {
+        if (\in_array(\trim($permit->owner->email), ['', '0'], true)) {
             return;
         }
 

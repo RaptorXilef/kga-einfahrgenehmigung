@@ -24,8 +24,8 @@ use App\Infrastructure\Config\Config;
 final readonly class SmtpMailService implements MailServiceInterface
 {
     public function __construct(
-        private Config $config,
         private ?\PDO $pdo, // Datenbank-Verbindung
+        private Config $config,
     ) {
     }
 
@@ -44,7 +44,7 @@ final readonly class SmtpMailService implements MailServiceInterface
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
-        if (in_array(\trim($recipient), ['', '0'], true)) {
+        if (\in_array(\trim($recipient), ['', '0'], true)) {
             // $data am Ende hinzugefügt
             $this->logEmail('System', $subject, $template, 'Übersprungen: Kein Empfänger angegeben', $data);
 
@@ -364,7 +364,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         $cfg = $this->config->get('storage_config')['mail_log'];
 
         if ($cfg['type'] === 'mysql') {
-            if (!$this->pdo instanceof \PDO) {
+            if (! $this->pdo instanceof \PDO) {
                 return [];
             }
 

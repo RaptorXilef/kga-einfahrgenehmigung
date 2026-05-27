@@ -106,6 +106,7 @@ return [
         'sub_folder'     => 'sql_backup', // Ordnername innerhalb des storage-Pfads
     ],
 
+    // TODO LÖSCHEN!
     // True = prüft bei jedem Start auf leere Bestände und zieht Daten nach. False = spart Ressourcen.
-    'auto_migration' => false, // Nur einmalig aktivieren wenn Umstieg von JSON auf MySQL
+    // 'auto_migration' => false, // Nur einmalig aktivieren wenn Umstieg von JSON auf MySQL
 ];
