@@ -142,7 +142,7 @@ final readonly class PermitService
             validity: new Validity($startDate, $endDate, $preis, $zweck),
             status: new Status((string) ($data['status'] ?? 'offen')),
             erstellt: new \DateTimeImmutable(),
-            internerKommentar: $data['internerKommentar'] ?? null,
+            interner_kommentar: $data['interner_kommentar'] ?? null,
         );
 
         if (! $this->storage->save($permit)) {
@@ -174,13 +174,13 @@ final readonly class PermitService
             new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
 
-        $tKey                  = $data['template_key'] ?? 'std_7';
-        $templates             = (array) $this->config->get('permit_templates', []);
-        $template              = $templates[$tKey] ?? $templates['std_7'];
-        $vehicleTypes          = (array) $this->config->get('vehicle_types', []);
-        $defaultType           = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
-        $typ                   = $data['typ'] ?? $defaultType;
-        $data['preisSnapshot'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
+        $tKey          = $data['template_key'] ?? 'std_7';
+        $templates     = (array) $this->config->get('permit_templates', []);
+        $template      = $templates[$tKey] ?? $templates['std_7'];
+        $vehicleTypes  = (array) $this->config->get('vehicle_types', []);
+        $defaultType   = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
+        $typ           = $data['typ'] ?? $defaultType;
+        $data['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
 
         $token     = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
@@ -346,12 +346,12 @@ final readonly class PermitService
 
             if ($voucher !== null) {
                 // Berechne den Preis nach Abzug des Rabatts
-                $finalPrice = $this->calculateDiscountedPrice((float) $data['preisSnapshot'], $voucher);
+                $finalPrice = $this->calculateDiscountedPrice((float) $data['preis'], $voucher);
 
                 // Fall A: Gutschein deckt alles (0,00 €)
                 if ($finalPrice <= 0.0) {
-                    $data['preisSnapshot'] = 0.0;
-                    $data['status']        = 'bezahlt';
+                    $data['preis']  = 0.0;
+                    $data['status'] = 'bezahlt';
 
                     // Wir müssen es hier nicht in verified_pending speichern,
                     // sondern können es sofort finalisieren.
@@ -363,7 +363,7 @@ final readonly class PermitService
                 }
 
                 // Fall B: Restbetrag bleibt offen (Teil-Rabatt)
-                $data['preisSnapshot']   = $finalPrice;
+                $data['preis']           = $finalPrice;
                 $data['voucher_applied'] = $voucherCode;
                 $data['voucher_details'] = [
                     'type'  => $voucher['type'],
@@ -428,7 +428,7 @@ final readonly class PermitService
 
         $data                      = (array) $allVerified[$token];
         $data['status']            = $status;
-        $data['internerKommentar'] = $kommentar;
+        $data['interner_kommentar'] = $kommentar;
 
         // Echte Permit erstellen
         $permit = $this->createPermit($data, true);
@@ -557,7 +557,7 @@ final readonly class PermitService
                 'von_formatted' => $permit->validity->von->format('d.m.Y'), // Key vereinheitlicht!
                 'bis_formatted' => $permit->validity->bis->format('d.m.Y'), // Key vereinheitlicht!
                 'zweck'         => $permit->validity->zweck,
-                'preis'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                'preis'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
                 'adminLink'     => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
                 'vereinsName'   => $this->config->get('vereins_name'),
             ],
@@ -571,7 +571,7 @@ final readonly class PermitService
         // 2. ZAHLUNGSAUFFORDERUNG (Nur wenn noch nicht bezahlt)
         if ($permit->status->current !== 'bezahlt') {
             $usage     = $this->generateUsageText($permit, $shortCode);
-            $epcQrData = $this->generateEpcData($permit->validity->preisSnapshot, $usage);
+            $epcQrData = $this->generateEpcData($permit->validity->preis, $usage);
 
             $this->mailService->sendTemplate(
                 $permit->owner->email,
@@ -580,7 +580,7 @@ final readonly class PermitService
                 [
                     'name'           => $permit->owner->name,
                     'fullIdentifier' => $permit->code,
-                    'betrag'         => \number_format($permit->validity->preisSnapshot, 2, ',', '.') . ' €',
+                    'betrag'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
                     'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
                     'kontoinhaber'   => $this->config->get('kontoinhaber'),
                     'iban'           => $this->config->get('iban'),
@@ -817,11 +817,11 @@ final readonly class PermitService
             $permit->validity,
             new Status(
                 'bezahlt', // Status-Update
-                $permit->status->isSuspended,
-                $permit->status->suspensionReason,
+                $permit->status->is_suspended,
+                $permit->status->suspension_reason,
             ),
             $permit->erstellt,
-            $grund ?? $permit->internerKommentar, // Grund übernehmen
+            $grund ?? $permit->interner_kommentar, // Grund übernehmen
         );
 
         return $this->storage->save($updated);
@@ -847,7 +847,7 @@ final readonly class PermitService
         $data = (array) $allVerified[$token];
 
         // Zahlung bei PayPal verifizieren
-        if ($this->paymentProvider->captureOrder($orderId, (float) $data['preisSnapshot'])) {
+        if ($this->paymentProvider->captureOrder($orderId, (float) $data['preis'])) {
             // Wenn erfolgreich -> In die echte Datenbank verschieben
             $this->finaliseRequest($token, 'bezahlt', 'Bezahlt via PayPal');
 
@@ -1009,12 +1009,12 @@ final readonly class PermitService
                 typ,
                 firma,
                 zweck,
-                preisSnapshot,
+                preis,
                 von,
                 bis,
                 status,
                 erstellt,
-                internerKommentar)
+                interner_kommentar)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             foreach ($toArchive as $item) {
@@ -1028,12 +1028,12 @@ final readonly class PermitService
                     $item['typ'],
                     $item['firma'],
                     $item['zweck'],
-                    $item['preisSnapshot'],
+                    $item['preis'],
                     $item['von'],
                     $item['bis'],
                     $item['status'],
                     $item['erstellt'],
-                    $item['internerKommentar'],
+                    $item['interner_kommentar'],
                 ]);
             }
         } else {
@@ -1083,7 +1083,7 @@ final readonly class PermitService
                 $reason,
             ),
             $permit->erstellt,
-            $permit->internerKommentar,
+            $permit->interner_kommentar,
         );
 
         return $this->storage->save($updated);

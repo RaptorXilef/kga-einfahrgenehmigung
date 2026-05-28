@@ -33,31 +33,31 @@ final readonly class VoucherService
      * Überprüft Wunsch-Codes auf Einzigartigkeit gegen Live- und Archivbestände oder generiert ein 'GUT-'-Krypto-Token.
      *
      * @param string               $reason       Der Ausstellungsgrund (z.B. "Vorstandsentlastung").
-     * @param string               $createdBy    Die ID oder der Name des ausstellenden Administrators.
+     * @param string               $created_by   Die ID oder der Name des ausstellenden Administrators.
      * @param string               $template_key Das verknüpfte Tarif-Template (z.B. 'std_7').
      * @param array<string, mixed> $prefillData  Optionale Stammdaten zur Zwangs-Vorbefüllung des Formulars.
      * @param string               $type         Der Rabatt-Typ ('free', 'fixed', 'percent').
      * @param float                $value        Der numerische Rabattwert (Betrag oder Prozentsatz).
-     * @param bool                 $multiUse     True, wenn der Gutschein von mehreren Personen genutzt werden darf.
-     * @param int|null             $maxUses      Maximale Einlösungsanzahl bei Multi-Use.
-     * @param string|null          $customCode   Optionaler Wunsch-Code (z.B. "SOMMER2026").
-     * @param string|null          $expiresAt    Optionales Ablaufdatum (Y-m-d).
-     * @param string               $dateMode     Gültigkeitsmodus für Termine ('fixed' oder flexibel).
+     * @param bool                 $multi_use    True, wenn der Gutschein von mehreren Personen genutzt werden darf.
+     * @param int|null             $max_uses     Maximale Einlösungsanzahl bei Multi-Use.
+     * @param string|null          $custom_code  Optionaler Wunsch-Code (z.B. "SOMMER2026").
+     * @param string|null          $expires_at   Optionales Ablaufdatum (Y-m-d).
+     * @param string               $date_mode    Gültigkeitsmodus für Termine ('fixed' oder flexibel).
      *
      * @return string Der finale, registrierte Gutscheincode im System.
      */
     public function createVoucher(
         string $reason,
-        string $createdBy,
+        string $created_by,
         string $template_key,
         array $prefillData = [],
         string $type = 'free', // NEU: free, fixed, percent
         float $value = 0.0,    // NEU: Betrag oder Prozent
-        bool $multiUse = false, // NEU
-        ?int $maxUses = 1,      // NEU
-        ?string $customCode = null, // NEU: Optionaler individueller Code
-        ?string $expiresAt = null, // NEU
-        string $dateMode = 'fixed',  // NEU: 'fixed' oder 'flexible'
+        bool $multi_use = false, // NEU
+        ?int $max_uses = 1,      // NEU
+        ?string $custom_code = null, // NEU: Optionaler individueller Code
+        ?string $expires_at = null, // NEU
+        string $date_mode = 'fixed',  // NEU: 'fixed' oder 'flexible'
     ): string {
         $activeVouchers = $this->loadVouchers();
         $archivedItems  = $this->loadArchive(); // Hier wird die Datei der benutzten Codes geladen!
@@ -69,8 +69,8 @@ final readonly class VoucherService
         }
 
         // Logik für Code-Findung
-        if ($customCode !== null && \trim($customCode) !== '') {
-            $newGeneratedCode = \strtoupper(\trim($customCode));
+        if ($custom_code !== null && \trim($custom_code) !== '') {
+            $newGeneratedCode = \strtoupper(\trim($custom_code));
             if (\in_array($newGeneratedCode, $alreadyUsedCodes, true)) {
                 throw new \RuntimeException(
                     "Der Code '{$newGeneratedCode}' wurde bereits verwendet oder existiert schon.",
@@ -89,13 +89,13 @@ final readonly class VoucherService
             'template_key' => $template_key,
             'type'         => $type,
             'value'        => $value,
-            'multi_use'    => $multiUse,
-            'max_uses'     => $maxUses,
+            'multi_use'    => $multi_use,
+            'max_uses'     => $max_uses,
             'uses_count'   => 0,
-            'expires_at'   => $expiresAt, // NEU
-            'date_mode'    => $dateMode,  // NEU
+            'expires_at'   => $expires_at, // NEU
+            'date_mode'    => $date_mode,  // NEU
             'data'         => $prefillData,
-            'created_by'   => $createdBy,
+            'created_by'   => $created_by,
             'created_at'   => \date('Y-m-d H:i:s'),
         ];
 

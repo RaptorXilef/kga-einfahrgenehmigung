@@ -15,7 +15,6 @@ use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\StorageBootstrapper;
 use App\Infrastructure\Auth\AuthService;
-use App\Infrastructure\Config\Config;
 
 /**
  * Haupt-Controller für die Administration.
@@ -274,13 +273,13 @@ final readonly class AdminController
             $reason = (string) ($post['reason'] ?? 'Gutschein');
             $tplKey = (string) ($post['template_key'] ?? 'std_7');
             // Erweiterte Gutschein-Parameter
-            $type      = (string) ($post['voucher_discount_type'] ?? 'free');
-            $val       = (float) ($post['voucher_discount_value'] ?? 0.0);
-            $multi     = isset($post['voucher_multi_use']);
-            $maxUses   = $multi ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
-            $custom    = (string) ($post['voucher_custom_code'] ?? '');
-            $expiresAt = (string) ($post['voucher_expires_at'] ?? '');
-            $dateMode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
+            $type       = (string) ($post['voucher_discount_type'] ?? 'free');
+            $val        = (float) ($post['voucher_discount_value'] ?? 0.0);
+            $multi      = isset($post['voucher_multi_use']);
+            $max_uses   = $multi ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
+            $custom     = (string) ($post['voucher_custom_code'] ?? '');
+            $expires_at = (string) ($post['voucher_expires_at'] ?? '');
+            $date_mode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
 
             $preData = [
                 'name'        => \trim((string) ($post['name'] ?? '')),
@@ -290,8 +289,8 @@ final readonly class AdminController
                 'firma'       => \trim((string) ($post['firma'] ?? '')),
                 'zweck'       => (string) ($post['zweck'] ?? ''),
                 // Nur wenn Mode 'fixed', senden wir die Daten aus Schritt 1 mit
-                'datum_von' => $dateMode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
-                'datum_bis' => $dateMode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
+                'datum_von' => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
+                'datum_bis' => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
             ];
 
             // Service-Aufruf mit neuen Parametern
@@ -303,10 +302,10 @@ final readonly class AdminController
                 $type,
                 $val,
                 $multi,
-                $maxUses,
+                $max_uses,
                 $custom, // Weitergabe an Service
-                $expiresAt ?: null, // In null wandeln wenn leer
-                $dateMode,
+                $expires_at ?: null, // In null wandeln wenn leer
+                $date_mode,
             );
 
             return "Gutschein erstellt: <strong>$code</strong>";
@@ -337,7 +336,7 @@ final readonly class AdminController
         try {
             $post['status'] = 'bezahlt';
             if (isset($post['reason'])) {
-                $post['internerKommentar'] = $post['reason'];
+                $post['interner_kommentar'] = $post['reason'];
             }
 
             $permit = $this->permitService->createPermit($post, true);
@@ -465,33 +464,6 @@ final readonly class AdminController
         $yearlyStats = [];
         $vConfig     = $this->config->get('vehicle_types', []);
 
-        foreach ($allPermits as $p) {
-            $year = $p->erstellt->format('Y');
-            if (! isset($yearlyStats[$year])) {
-                $yearlyStats[$year] = [
-                    'count'  => 0,
-                    'paid'   => 0.0,
-                    'unpaid' => 0.0,
-                    'types'  => \array_fill_keys(\array_keys($vConfig), 0), // Dynamische Typen-Liste
-                ];
-                $yearlyStats[$year]['types']['__legacy__'] = 0; // Legacy-Support pro Jahr
-            }
-            ++$yearlyStats[$year]['count'];
-
-            // Dynamisches Zählen des Fahrzeugtyps
-            $pType = $p->vehicle->typ;
-            if (isset($yearlyStats[$year]['types'][$pType])) {
-                ++$yearlyStats[$year]['types'][$pType];
-            } else {
-                ++$yearlyStats[$year]['types']['__legacy__'];
-            }
-
-            if (\strtolower($p->status->current) === 'bezahlt') {
-                $yearlyStats[$year]['paid'] += $p->validity->preisSnapshot;
-            } else {
-                $yearlyStats[$year]['unpaid'] += $p->validity->preisSnapshot;
-            }
-        }
         \krsort($yearlyStats); // Neueste Jahre zuerst
 
         // Gefilterte Daten ans Template übergeben
@@ -514,7 +486,7 @@ final readonly class AdminController
             'structure'        => $this->config->get('structure', []),
             'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
             'voucherService'   => $this->permitService->getVoucherService(),
-            'yearlyStats'      => $yearlyStats,
+            'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
     }
 
@@ -577,7 +549,7 @@ final readonly class AdminController
                         $permit->vehicle->kennzeichen,
                         $permit->vehicle->firma ?? '',
                         $permit->validity->zweck,
-                        \number_format($permit->validity->preisSnapshot, 2, ',', ''),
+                        \number_format($permit->validity->preis, 2, ',', ''),
                         \strtoupper($permit->status->current),
                         $permit->erstellt->format('d.m.Y H:i'),
                     ], ';', '"', '\\');
@@ -611,7 +583,7 @@ final readonly class AdminController
      * 'total_count'   => \count($filtered),
      * 'total_revenue' => \array_reduce(
      * $filtered,
-     * fn (float $sum, Permit $permit): float => $sum + $permit->validity->preisSnapshot,
+     * fn (float $sum, Permit $permit): float => $sum + $permit->validity->preis,
      * 0.0,
      * ),
      * 'types' => ['pkw' => 0, 'lkw' => 0],

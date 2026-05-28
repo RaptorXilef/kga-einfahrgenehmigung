@@ -122,7 +122,7 @@ final readonly class ReportingService
 
             // Daten aggregieren
             ++$stats['plots'][$pNum]['count'];
-            $stats['plots'][$pNum]['revenue'] += $p->validity->preisSnapshot;
+            $stats['plots'][$pNum]['revenue'] += $p->validity->preis;
 
             // Zuletzt verwendete Daten speichern
             $stats['plots'][$pNum]['name']  = $p->owner->name;
@@ -130,9 +130,9 @@ final readonly class ReportingService
 
             // Umsätze berechnen
             if (\strtolower($p->status->current) === 'bezahlt') {
-                $stats['revenue_paid'] += $p->validity->preisSnapshot;
+                $stats['revenue_paid'] += $p->validity->preis;
             } else {
-                $stats['revenue_unpaid'] += $p->validity->preisSnapshot;
+                $stats['revenue_unpaid'] += $p->validity->preis;
             }
         }
 
@@ -145,5 +145,47 @@ final readonly class ReportingService
         );
 
         return $stats;
+    }
+
+    /**
+     * TODO DocBlock erstellen!
+     */
+    public function calculateYearlyStats(array $allPermits): array
+    {
+        $yearlyStats = [];
+        $vConfig     = $this->config->get('vehicle_types', []);
+
+        foreach ($allPermits as $p) {
+            $year = $p->erstellt->format('Y');
+            if (! isset($yearlyStats[$year])) {
+                $yearlyStats[$year] = [
+                    'count'  => 0,
+                    'paid'   => 0.0,
+                    'unpaid' => 0.0,
+                    'types'  => \array_fill_keys(\array_keys($vConfig), 0),
+                ];
+                $yearlyStats[$year]['types']['__legacy__'] = 0;
+            }
+
+            ++$yearlyStats[$year]['count'];
+            // Dynamisches Zählen des Fahrzeugtyps
+            $pType = $p->vehicle->typ;
+
+            if (isset($yearlyStats[$year]['types'][$pType])) {
+                ++$yearlyStats[$year]['types'][$pType];
+            } else {
+                ++$yearlyStats[$year]['types']['__legacy__'];
+            }
+
+            if (\strtolower($p->status->current) === 'bezahlt') {
+                $yearlyStats[$year]['paid'] += $p->validity->preis; // Nutze den Fallback-Key deines Traits
+            } else {
+                $yearlyStats[$year]['unpaid'] += $p->validity->preis;
+            }
+        }
+
+        \krsort($yearlyStats);
+
+        return $yearlyStats;
     }
 }

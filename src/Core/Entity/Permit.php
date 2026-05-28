@@ -30,7 +30,7 @@ final readonly class Permit
         public Validity $validity,
         public Status $status,
         public \DateTimeImmutable $erstellt = new \DateTimeImmutable(),
-        public ?string $internerKommentar = null, // Für manuelle Buchung
+        public ?string $interner_kommentar = null, // Für manuelle Buchung
     ) {
     }
 
@@ -46,7 +46,7 @@ final readonly class Permit
         $now = new \DateTimeImmutable();
 
         // 1. Check: Manuell gesperrt?
-        if ($this->status->isSuspended) {
+        if ($this->status->is_suspended) {
             return false;
         }
 

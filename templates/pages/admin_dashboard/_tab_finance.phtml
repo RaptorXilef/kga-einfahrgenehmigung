@@ -66,7 +66,7 @@ $now           = new \DateTimeImmutable('today');
                                 $deadline     = $permit->erstellt->modify("+$dueDaysCfg days");
                                 $diff         = $now->diff($deadline);
                                 $days         = (int) $diff->format('%r%a');
-                                $isSuspended  = $permit->status->isSuspended;
+                                $is_suspended = $permit->status->is_suspended;
 
                                 $vKey     = $permit->vehicle->typ;
                                 $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
@@ -74,7 +74,7 @@ $now           = new \DateTimeImmutable('today');
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade"
-                                    style="<?php echo ($overdueLevel === 2 || $isSuspended) ? 'background-color: #fff1f2;' : ''; ?>">
+                                    style="<?php echo ($overdueLevel === 2 || $is_suspended) ? 'background-color: #fff1f2;' : ''; ?>">
                                     <!-- 1. Name, Code & Parzelle -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"
                                         style="vertical-align: middle;">
@@ -130,12 +130,12 @@ $now           = new \DateTimeImmutable('today');
                                         <?php } ?>
                                         <br><small class="u-text-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
                                     </td>
-                                    <td data-sort-val="<?php echo $isSuspended ? '1' : '0'; ?>"
+                                    <td data-sort-val="<?php echo $is_suspended ? '1' : '0'; ?>"
                                         class="u-text-center"
                                         style="vertical-align: middle;">
-                                        <?php if ($isSuspended) { ?>
+                                        <?php if ($is_suspended) { ?>
                                             <span class="c-badge c-badge--danger"
-                                                  title="<?php echo \htmlspecialchars($permit->status->suspensionReason); ?>">GESPERRT</span>
+                                                  title="<?php echo \htmlspecialchars($permit->status->suspension_reason); ?>">GESPERRT</span>
                                         <?php } else { ?>
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
@@ -143,10 +143,10 @@ $now           = new \DateTimeImmutable('today');
 
                                     <!-- 5. Betrag -->
                                     <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
-                                        <td data-sort-val="<?php echo $permit->validity->preisSnapshot; ?>"
+                                        <td data-sort-val="<?php echo $permit->validity->preis; ?>"
                                             class="u-text-right"
                                             style="vertical-align: middle;">
-                                            <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</strong>
+                                            <strong style="font-size: 1rem;"><?php echo \number_format($permit->validity->preis, 2, ',', '.'); ?> €</strong>
                                         </td>
                                     <?php } ?>
 
@@ -160,7 +160,7 @@ $now           = new \DateTimeImmutable('today');
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
-                                                <?php if ($isSuspended) { ?>
+                                                <?php if ($is_suspended) { ?>
                                                     <form method="POST"
                                                           style="margin:0;">
                                                         <input type="hidden"

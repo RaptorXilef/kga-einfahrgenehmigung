@@ -23,8 +23,8 @@ final readonly class Status
 {
     public function __construct(
         public string $current = 'offen',       // technischer Status (offen, bezahlt, storniert)
-        public bool $isSuspended = false,         // Manuelle Sperre durch Admin
-        public ?string $suspensionReason = null,  // Begründung der Sperre
+        public bool $is_suspended = false,         // Manuelle Sperre durch Admin
+        public ?string $suspension_reason = null,  // Begründung der Sperre
     ) {
     }
 }

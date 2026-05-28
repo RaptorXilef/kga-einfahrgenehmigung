@@ -40,7 +40,7 @@ foreach (['webp', 'png', 'jpg', 'jpeg'] as $ext) {
 // 2. Status-Farbe bestimmen
 $pageStateClass = 'state-bg-error'; // Default: Ungültig
 if ($permit) {
-    if ($permit->status->isSuspended) {
+    if ($permit->status->is_suspended) {
         $pageStateClass = 'state-bg-error';
     } elseif ($isDateValid && $isTimeAllowed) {
         $pageStateClass = 'state-bg-valid';
@@ -97,7 +97,7 @@ if ($permit) {
             <div class="c-card__body u-padding-around-l u-text-center">
 
                 <?php if ($permit) { ?>
-                    <?php if ($permit->status->isSuspended) { ?>
+                    <?php if ($permit->status->is_suspended) { ?>
                         <div style="color: var(--danger-color);">
                             <span style="font-size: 5rem;">
                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="">
@@ -105,7 +105,7 @@ if ($permit) {
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt/wiederrufen.</p>
 
-                            <?php if (! empty($permit->status->suspensionReason)) { ?>
+                            <?php if (! empty($permit->status->suspension_reason)) { ?>
                                 <div
                                      style="background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: center;">
                                     <strong
@@ -114,7 +114,7 @@ if ($permit) {
                                     </strong>
                                     <br>
                                     <span style="color: #7f1d1d; font-size: 1.05rem; display: block; margin-top: 5px;">
-                                        <?php echo \htmlspecialchars($permit->status->suspensionReason); ?>
+                                        <?php echo \htmlspecialchars($permit->status->suspension_reason); ?>
                                     </span>
                                 </div>
                             <?php } ?>
@@ -216,7 +216,7 @@ if ($permit) {
                                         class="u-font-bold">Zu zahlender Betrag:</td>
                                     <td style="padding: 12px 0 0 0; border-top: 1.5px solid #e2e8f0; font-size: 1.25rem; color: var(--primary-color); text-align: right;"
                                         class="u-font-bold">
-                                        <?php echo \number_format((float) $tempData['preisSnapshot'], 2, ',', '.'); ?> €
+                                        <?php echo \number_format((float) $tempData['preis'], 2, ',', '.'); ?> €
                                     </td>
                                 </tr>
                             </table>

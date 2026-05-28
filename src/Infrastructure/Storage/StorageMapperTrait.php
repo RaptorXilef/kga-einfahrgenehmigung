@@ -49,13 +49,13 @@ trait StorageMapperTrait
             'firma'              => $permit->vehicle->firma,
             'von'                => $permit->validity->von->format('Y-m-d'),
             'bis'                => $permit->validity->bis->format('Y-m-d'),
-            'preis'              => $permit->validity->preisSnapshot,     // Harmonisierter Key
+            'preis'              => $permit->validity->preis,     // Harmonisierter Key
             'zweck'              => $permit->validity->zweck,
             'status'             => $permit->status->current,
-            'is_suspended'       => (int) $permit->status->isSuspended,   // Harmonisierter Key
-            'suspension_reason'  => $permit->status->suspensionReason,    // Harmonisierter Key
+            'is_suspended'       => (int) $permit->status->is_suspended,   // Harmonisierter Key
+            'suspension_reason'  => $permit->status->suspension_reason,    // Harmonisierter Key
             'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
-            'interner_kommentar' => $permit->internerKommentar,           // Harmonisierter Key
+            'interner_kommentar' => $permit->interner_kommentar,           // Harmonisierter Key
         ];
     }
 
@@ -73,8 +73,8 @@ trait StorageMapperTrait
     public function mapToEntity(array $item): Permit
     {
         // 1. Daten-Abgleich: Wir prüfen auf den neuen sauberen Key, falls nicht vorhanden, nutzen wir den Legacy-Key
-        // Rückwärts-Mapping für JSON-Dateien, die noch "templateKey" haben könnten
-        $tKey = $item['template_key'] ?? ($item['templateKey'] ?? 'std_7');
+        // Rückwärts-Mapping für JSON-Dateien, die noch "template_key" haben könnten
+        $tKey = $item['template_key'] ?? ($item['template_key'] ?? 'std_7');
 
         // Wir suchen flexibel nach alten und neuen Keys
         $name    = (string) ($item['name'] ?? ($item['pächter'] ?? 'Unbekannt'));
@@ -83,10 +83,10 @@ trait StorageMapperTrait
         $created = (string) ($item['erstellt'] ?? ($item['erstellt_am'] ?? 'now'));
 
         // Die harmonisierten Keys (mit Fallback auf die alten camelCase Bezeichner deiner alten JSONs)
-        $preis       = (float) ($item['preis'] ?? ($item['preisSnapshot'] ?? 0.0));
-        $isSuspended = (bool) ($item['is_suspended'] ?? ($item['isSuspended'] ?? false));
-        $suspReason  = $item['suspension_reason'] ?? ($item['suspensionReason'] ?? null);
-        $kommentar   = $item['interner_kommentar'] ?? ($item['internerKommentar'] ?? null);
+        $preis        = (float) ($item['preis'] ?? ($item['preis'] ?? 0.0));
+        $is_suspended = (bool) ($item['is_suspended'] ?? ($item['is_suspended'] ?? false));
+        $suspReason   = $item['suspension_reason'] ?? ($item['suspension_reason'] ?? null);
+        $kommentar    = $item['interner_kommentar'] ?? ($item['interner_kommentar'] ?? null);
 
         // 2. Datumsobjekte sicher generieren
         try {
@@ -129,11 +129,11 @@ trait StorageMapperTrait
             ),
             status: new Status(
                 (string) ($item['status'] ?? 'offen'),
-                $isSuspended,
+                $is_suspended,
                 $suspReason,
             ),
             erstellt: $dtCreated,
-            internerKommentar: $kommentar,
+            interner_kommentar: $kommentar,
         );
     }
 }

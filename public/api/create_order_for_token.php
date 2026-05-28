@@ -49,7 +49,7 @@ try {
 
     // Preis aus Snapshot nutzen
     $payment = $container->get(PaymentProviderInterface::class);
-    $orderId = $payment->createOrder((float) $tempRequest['preisSnapshot']);
+    $orderId = $payment->createOrder((float) $tempRequest['preis']);
 
     echo \json_encode($orderId ? ['id' => $orderId] : ['success' => false, 'error' => 'PayPal Error']);
 } catch (\Throwable $e) {

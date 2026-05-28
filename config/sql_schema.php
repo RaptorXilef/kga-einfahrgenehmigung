@@ -34,12 +34,12 @@ return [
         `template_key` VARCHAR(50),
         `type` VARCHAR(20),
         `value` DECIMAL(10,2),
-        `multi_use` TINYINT(1),
-        `max_uses` INT,
+        `multi_use` TINYINT(1), -- VORHER: multiUse
+        `max_uses` INT, -- VORHER: maxUses
         `uses_count` INT DEFAULT 0,
-        `expires_at` DATETIME NULL,
-        `date_mode` VARCHAR(20),
-        `created_by` VARCHAR(50),
+        `expires_at` DATETIME NULL, -- VORHER: expiresAt
+        `date_mode` VARCHAR(20), -- VORHER: dateMode
+        `created_by` VARCHAR(50), -- VORHER: createdBy
         `created_at` DATETIME,
         `status` VARCHAR(20) DEFAULT \'aktiv\',
         `data` TEXT,
@@ -48,7 +48,7 @@ return [
 
     'permits' => 'CREATE TABLE IF NOT EXISTS `permits` (
         `code` VARCHAR(50) NOT NULL,
-        `template_key` VARCHAR(50) NOT NULL,
+        `template_key` VARCHAR(50) NOT NULL,  -- VORHER: templateKey
         `name` VARCHAR(255) NOT NULL,
         `email` VARCHAR(255) DEFAULT NULL,
         `kennzeichen` VARCHAR(20) DEFAULT NULL,

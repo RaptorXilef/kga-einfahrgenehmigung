@@ -73,14 +73,14 @@ $futurePermits = $permitGroups['future'] ?? [];
                                 $diff          = $now->diff($permit->validity->von);
                                 $daysUntil     = (int) $diff->format('%r%a');
                                 $countdownText = ($daysUntil === 1) ? 'Morgen' : "In $daysUntil Tagen";
-                                $isSuspended   = $permit->status->isSuspended;
+                                $is_suspended  = $permit->status->is_suspended;
 
                                 $vKey     = $permit->vehicle->typ;
                                 $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
-                                <tr class="u-hover-fade <?php echo $isSuspended ? 'u-bg-suspended' : ''; ?>">
+                                <tr class="u-hover-fade <?php echo $is_suspended ? 'u-bg-suspended' : ''; ?>">
                                     <!-- 1. Antragsteller & Code -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"
                                         style="vertical-align: middle;">
@@ -154,12 +154,12 @@ $futurePermits = $permitGroups['future'] ?? [];
                                     </td>
 
                                     <!-- 5. Finanz-Status -->
-                                    <td data-sort-val="<?php echo $isSuspended ? '1' : '0'; ?>"
+                                    <td data-sort-val="<?php echo $is_suspended ? '1' : '0'; ?>"
                                         class="u-text-center"
                                         style="vertical-align: middle;">
-                                        <?php if ($isSuspended) { ?>
+                                        <?php if ($is_suspended) { ?>
                                             <span class="c-badge c-badge--danger"
-                                                  title="<?php echo \htmlspecialchars($permit->status->suspensionReason); ?>">GESPERRT</span>
+                                                  title="<?php echo \htmlspecialchars($permit->status->suspension_reason); ?>">GESPERRT</span>
                                         <?php } else { ?>
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
@@ -191,7 +191,7 @@ $futurePermits = $permitGroups['future'] ?? [];
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('dashboard.future.suspend')) { ?>
-                                                <?php if ($isSuspended) { ?>
+                                                <?php if ($is_suspended) { ?>
                                                     <form method="POST"
                                                           style="margin:0;">
                                                         <input type="hidden"

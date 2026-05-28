@@ -29,7 +29,7 @@
 // Status-Farbe bestimmen (Logik synchron zur public.phtml)
 $pageStateClass = 'state-bg-error'; // Default: Rot
 if ($permit) {
-    if ($permit->status->isSuspended) {
+    if ($permit->status->is_suspended) {
         $pageStateClass = 'state-bg-error';
     } elseif ($isDateValid && $isTimeAllowed) {
         $pageStateClass = 'state-bg-valid'; // Grün
@@ -68,7 +68,7 @@ if ($permit) {
         <!-- GROSSER STATUS-BANNER (Synchron zur öffentlichen Ansicht) -->
         <div class="c-card u-margin-bottom-l u-text-center u-padding-around-l"
              style="border-top: none;">
-            <?php if ($permit->status->isSuspended) { ?>
+            <?php if ($permit->status->is_suspended) { ?>
                 <div style="color: var(--danger-color);">
                     <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""></span>
                     <h2 style="color: var(--danger-color); margin-top: 10px; margin-bottom: 5px;">ZUTRITT VERWEIGERT
@@ -129,11 +129,11 @@ if ($permit) {
             </header>
             <div class="c-card__body u-padding-none">
                 <table class="c-table">
-                    <?php if ($permit->status->isSuspended && ! empty($permit->status->suspensionReason)) { ?>
+                    <?php if ($permit->status->is_suspended && ! empty($permit->status->suspension_reason)) { ?>
                         <tr style="background: #fff1f2;">
                             <td class="u-font-bold"
                                 style="color: var(--danger-color);">Sperrgrund</td>
-                            <td style="color: var(--danger-color);"><strong><?php echo \htmlspecialchars($permit->status->suspensionReason); ?></strong></td>
+                            <td style="color: var(--danger-color);"><strong><?php echo \htmlspecialchars($permit->status->suspension_reason); ?></strong></td>
                         </tr>
                     <?php } ?>
 
@@ -184,7 +184,7 @@ if ($permit) {
                     <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
                         <tr>
                             <td class="u-font-bold">Gebühr (Snapshot)</td>
-                            <td><?php echo \number_format($permit->validity->preisSnapshot, 2, ',', '.'); ?> €</td>
+                            <td><?php echo \number_format($permit->validity->preis, 2, ',', '.'); ?> €</td>
                         </tr>
                     <?php } ?>
                     <tr>

@@ -70,7 +70,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($activePermits as $permit) {
-                                $isSuspended   = $permit->status->isSuspended;
+                                $is_suspended  = $permit->status->is_suspended;
                                 $diff          = $now->diff($permit->validity->bis);
                                 $remaining     = (int) $diff->format('%r%a');
                                 $remainingText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
@@ -80,7 +80,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp'; // Fallback Icon
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
-                                <tr class="u-hover-fade <?php echo $isSuspended ? 'u-bg-suspended' : ''; ?>">
+                                <tr class="u-hover-fade <?php echo $is_suspended ? 'u-bg-suspended' : ''; ?>">
                                     <!-- 1. Pächter & Parzelle -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"
                                         style="vertical-align: middle;">
@@ -157,12 +157,12 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                     </td>
 
                                     <!-- 5. Status -->
-                                    <td data-sort-val="<?php echo $isSuspended ? '1' : '0'; ?>"
+                                    <td data-sort-val="<?php echo $is_suspended ? '1' : '0'; ?>"
                                         class="u-text-center"
                                         style="vertical-align: middle;">
-                                        <?php if ($isSuspended) { ?>
+                                        <?php if ($is_suspended) { ?>
                                             <span class="c-badge c-badge--danger"
-                                                  title="<?php echo \htmlspecialchars($permit->status->suspensionReason); ?>">GESPERRT</span>
+                                                  title="<?php echo \htmlspecialchars($permit->status->suspension_reason); ?>">GESPERRT</span>
                                         <?php } else { ?>
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
@@ -190,7 +190,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('dashboard.active.suspend')) { ?>
-                                                <?php if ($isSuspended) { ?>
+                                                <?php if ($is_suspended) { ?>
                                                     <form method="POST"
                                                           style="margin:0;">
                                                         <input type="hidden"
