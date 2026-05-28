@@ -39,23 +39,23 @@ trait StorageMapperTrait
     private function flattenEntity(Permit $permit): array
     {
         return [
-            'code'              => $permit->code,
-            'template_key'      => $permit->template_key,
-            'name'              => $permit->owner->name,
-            'email'             => $permit->owner->email,
-            'parzelle'          => $permit->owner->parzelle,
-            'typ'               => $permit->vehicle->typ,
-            'kennzeichen'       => $permit->vehicle->kennzeichen,
-            'firma'             => $permit->vehicle->firma,
-            'von'               => $permit->validity->von->format('Y-m-d'),
-            'bis'               => $permit->validity->bis->format('Y-m-d'),
-            'preisSnapshot'     => $permit->validity->preisSnapshot,
-            'zweck'             => $permit->validity->zweck,
-            'status'            => $permit->status->current,
-            'isSuspended'       => (int) $permit->status->isSuspended,
-            'suspensionReason'  => $permit->status->suspensionReason,
-            'erstellt'          => $permit->erstellt->format('Y-m-d H:i:s'),
-            'internerKommentar' => $permit->internerKommentar,
+            'code'               => $permit->code,
+            'template_key'       => $permit->template_key,
+            'name'               => $permit->owner->name,
+            'email'              => $permit->owner->email,
+            'parzelle'           => $permit->owner->parzelle,
+            'typ'                => $permit->vehicle->typ,
+            'kennzeichen'        => $permit->vehicle->kennzeichen,
+            'firma'              => $permit->vehicle->firma,
+            'von'                => $permit->validity->von->format('Y-m-d'),
+            'bis'                => $permit->validity->bis->format('Y-m-d'),
+            'preis'              => $permit->validity->preisSnapshot,     // Harmonisierter Key
+            'zweck'              => $permit->validity->zweck,
+            'status'             => $permit->status->current,
+            'is_suspended'       => (int) $permit->status->isSuspended,   // Harmonisierter Key
+            'suspension_reason'  => $permit->status->suspensionReason,    // Harmonisierter Key
+            'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
+            'interner_kommentar' => $permit->internerKommentar,           // Harmonisierter Key
         ];
     }
 
@@ -72,7 +72,7 @@ trait StorageMapperTrait
      */
     public function mapToEntity(array $item): Permit
     {
-
+        // 1. Daten-Abgleich: Wir prüfen auf den neuen sauberen Key, falls nicht vorhanden, nutzen wir den Legacy-Key
         // Rückwärts-Mapping für JSON-Dateien, die noch "templateKey" haben könnten
         $tKey = $item['template_key'] ?? ($item['templateKey'] ?? 'std_7');
 
@@ -82,7 +82,13 @@ trait StorageMapperTrait
         $bis     = (string) ($item['bis'] ?? ($item['datum_bis'] ?? 'now'));
         $created = (string) ($item['erstellt'] ?? ($item['erstellt_am'] ?? 'now'));
 
-        // Rigorose Absicherung der Datums-Parser gegen korrupte Strings:
+        // Die harmonisierten Keys (mit Fallback auf die alten camelCase Bezeichner deiner alten JSONs)
+        $preis       = (float) ($item['preis'] ?? ($item['preisSnapshot'] ?? 0.0));
+        $isSuspended = (bool) ($item['is_suspended'] ?? ($item['isSuspended'] ?? false));
+        $suspReason  = $item['suspension_reason'] ?? ($item['suspensionReason'] ?? null);
+        $kommentar   = $item['interner_kommentar'] ?? ($item['internerKommentar'] ?? null);
+
+        // 2. Datumsobjekte sicher generieren
         try {
             $dtVon = new \DateTimeImmutable($von);
         } catch (\Exception) {
@@ -101,6 +107,7 @@ trait StorageMapperTrait
             $dtCreated = new \DateTimeImmutable('now');
         }
 
+        // 3. Entität hydrieren
         return new Permit(
             code: (string) ($item['code'] ?? ''),
             template_key: (string) $tKey,
@@ -117,16 +124,16 @@ trait StorageMapperTrait
             validity: new Validity(
                 $dtVon,
                 $dtBis,
-                (float) ($item['preisSnapshot'] ?? 0.0),
+                $preis,
                 (string) ($item['zweck'] ?? 'Privat'),
             ),
             status: new Status(
                 (string) ($item['status'] ?? 'offen'),
-                (bool) ($item['isSuspended'] ?? false),
-                $item['suspensionReason'] ?? null,
+                $isSuspended,
+                $suspReason,
             ),
             erstellt: $dtCreated,
-            internerKommentar: $item['internerKommentar'] ?? null,
+            internerKommentar: $kommentar,
         );
     }
 }

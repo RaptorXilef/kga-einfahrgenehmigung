@@ -302,23 +302,24 @@ final readonly class SmtpMailService implements MailServiceInterface
      *
      * @param array<int, array<string, mixed>> $logs
      */
-    public function saveLogs(array $logs): void
+    public function saveLogs(array $logs, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];
+        $cfg    = $this->config->get('storage_config')['mail_log'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
-        if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
+        if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
                 // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
                 $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (
-                    id,
-                    timestamp,
-                    recipient,
-                    subject,
-                    template,
-                    status,
-                    data
+                id,
+                timestamp,
+                recipient,
+                subject,
+                template,
+                status,
+                data
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 foreach ($logs as $id => $log) {
                     $rawPayload = $log['data'] ?? null;
@@ -329,7 +330,8 @@ final readonly class SmtpMailService implements MailServiceInterface
                         $log['subject'] ?? null,
                         $log['template'] ?? null,
                         $log['status'] ?? null,
-                        \is_array($rawPayload) ? \json_encode($rawPayload) : $rawPayload,
+                        \is_array($rawPayload) ? \json_encode($rawPayload, \JSON_UNESCAPED_UNICODE)
+                            : $rawPayload,
                     ]);
                 }
                 $this->pdo->commit();
@@ -338,8 +340,12 @@ final readonly class SmtpMailService implements MailServiceInterface
 
                 throw $e;
             }
-        } else {
-            // Fallback: Normales JSON-Speichern
+            if ($forceSql) {
+                return;
+            } // Beenden, falls MySQL via Migration erzwungen wurde
+        }
+
+        if (! $forceSql) {
             $path = \rtrim(
                 (string) $this->config->get('root_path'),
                 '/\\',

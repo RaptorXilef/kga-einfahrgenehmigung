@@ -95,26 +95,14 @@ class Container
     {
         // 1. Zentrale PDO Verbindung (Jetzt intelligent & blitzschnell)
         $this->services[\PDO::class] = function (): ?\PDO {
-            $storageCfg = $this->config->get('storage_config', []);
+            $db = $this->config->get('database', []);
 
-            // SCHNELL-CHECK: Wird MySQL überhaupt irgendwo benötigt?
-            $needsMysql = false;
-
-            foreach ($storageCfg as $area) {
-                if (($area['type'] ?? 'json') === 'mysql') {
-                    $needsMysql = true;
-
-                    break;
-                }
-            }
-
-            // Wenn kein Service MySQL will -> Sofort NULL zurückgeben ohne zu warten!
-            if (! $needsMysql) {
+            // NEU: Prüfen, ob der Admin MySQL explizit aktiviert hat
+            if (! isset($db['enabled']) || $db['enabled'] === false) {
                 return null;
             }
 
-            // Nur wenn MySQL wirklich konfiguriert ist, versuchen wir zu verbinden
-            $db        = $this->config->get('database');
+            // Ab hier bleibt deine bestehende, sehr gute Logik identisch!
             $dsnWithDb = "mysql:host={$db['host']};dbname={$db['dbname']};charset={$db['charset']}";
             $pdo       = null;
 
@@ -127,7 +115,7 @@ class Container
                     \PDO::ATTR_TIMEOUT            => 2,
                 ]);
             } catch (\PDOException $e) {
-                // 1049 = Unknown database (Datenbank existiert nicht)
+                // Fehler 1049 = Unknown database bedeutet: Datenbank existiert nicht
                 if ($e->getCode() != 1049) {
                     \error_log('MySQL Connection Error: ' . $e->getMessage());
 
@@ -157,6 +145,7 @@ class Container
                 }
             }
 
+            // Tabellen-Schema bei Bedarf anlegen
             // High-Performance Tabellen-Check (kostet <0.1ms) & Auto-Setup
             try {
                 $pdo->query('SELECT 1 FROM `users` LIMIT 1');

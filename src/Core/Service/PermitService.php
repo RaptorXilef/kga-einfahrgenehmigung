@@ -446,31 +446,33 @@ final readonly class PermitService
      * @param string               $path Absoluter Dateipfad oder Tabellenname.
      * @param array<string, mixed> $data Die zu serialisierende Datenmenge.
      */
-    private function saveJson(string $path, array $data): void
+    private function saveJson(string $path, array $data, bool $forceSql = false): void
     {
         $mapping    = $this->config->get('storage_config');
         $isPending  = \str_contains($path, 'pending_verification');
         $isVerified = \str_contains($path, 'verified_pending');
 
-        if (
-            ($isPending && $mapping['pending_verification']['type'] === 'mysql')
-            || ($isVerified && $mapping['verified_pending']['type'] === 'mysql')
-        ) {
-            $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
-            if (! $this->pdo instanceof \PDO) {
-                return;
-            }
+        if ($isPending || $isVerified) {
+            $targetKey = $isPending ? 'pending_verification' : 'verified_pending';
+            $table     = $mapping[$targetKey]['table'];
 
-            $this->pdo->exec("DELETE FROM $table");
-            $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
-            foreach ($data as $token => $item) {
-                $stmt->execute([$token, $item['expires'] ?? 0, \json_encode($item)]);
-            }
+            $useSql = $forceSql || ($mapping[$targetKey]['type'] === 'mysql');
 
-            return;
+            if ($useSql && $this->pdo instanceof \PDO) {
+                $this->pdo->exec("DELETE FROM $table");
+                $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
+                foreach ($data as $token => $item) {
+                    $stmt->execute([$token, $item['expires'] ?? 0, \json_encode($item)]);
+                }
+                if ($forceSql) {
+                    return;
+                }
+            }
         }
 
-        \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        if (! $forceSql) {
+            \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        }
     }
 
     /**
@@ -1105,9 +1107,9 @@ final readonly class PermitService
      * @param string               $category Die Tabellen- oder Dateikategorie.
      * @param array<string, mixed> $data     Das Speicher-Array.
      */
-    public function savePendingData(string $category, array $data): void
+    public function savePendingData(string $category, array $data, bool $forceSql = false): void
     {
-        $this->saveJson($this->getStoragePath($category), $data);
+        $this->saveJson($this->getStoragePath($category), $data, $forceSql);
     }
 
     /**

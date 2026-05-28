@@ -41,29 +41,29 @@ final readonly class MySqlStorage implements StorageInterface
     public function save(Permit $permit): bool
     {
         $sql = 'INSERT INTO permits (
-            code, template_key, name, email, kennzeichen, parzelle, typ,
-            firma, zweck, preisSnapshot, von, bis, status, isSuspended,
-            suspensionReason, erstellt, internerKommentar
-        ) VALUES (
-            :code, :template_key, :name, :email, :kennzeichen, :parzelle, :typ,
-            :firma, :zweck, :preisSnapshot, :von, :bis, :status, :isSuspended,
-            :suspensionReason, :erstellt, :internerKommentar
-        ) ON DUPLICATE KEY UPDATE
-            template_key = VALUES(template_key),
-            name = VALUES(name),
-            email = VALUES(email),
-            kennzeichen = VALUES(kennzeichen),
-            parzelle = VALUES(parzelle),
-            typ = VALUES(typ),
-            firma = VALUES(firma),
-            zweck = VALUES(zweck),
-            preisSnapshot = VALUES(preisSnapshot),
-            von = VALUES(von),
-            bis = VALUES(bis),
-            status = VALUES(status),
-            isSuspended = VALUES(isSuspended),
-            suspensionReason = VALUES(suspensionReason),
-            internerKommentar = VALUES(internerKommentar);';
+                    code, template_key, name, email, kennzeichen, parzelle, typ,
+                    firma, zweck, preis, von, bis, status, is_suspended,
+                    suspension_reason, erstellt, interner_kommentar
+                ) VALUES (
+                    :code, :template_key, :name, :email, :kennzeichen, :parzelle, :typ,
+                    :firma, :zweck, :preis, :von, :bis, :status, :is_suspended,
+                    :suspension_reason, :erstellt, :interner_kommentar
+                ) ON DUPLICATE KEY UPDATE
+                    template_key = VALUES(template_key),
+                    name = VALUES(name),
+                    email = VALUES(email),
+                    kennzeichen = VALUES(kennzeichen),
+                    parzelle = VALUES(parzelle),
+                    typ = VALUES(typ),
+                    firma = VALUES(firma),
+                    zweck = VALUES(zweck),
+                    preis = VALUES(preis),
+                    von = VALUES(von),
+                    bis = VALUES(bis),
+                    status = VALUES(status),
+                    is_suspended = VALUES(is_suspended),
+                    suspension_reason = VALUES(suspension_reason),
+                    interner_kommentar = VALUES(interner_kommentar);';
         // 'erstellt' wird beim Update weggelassen, da sich das Erstelldatum nicht ändern soll!
 
         return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));

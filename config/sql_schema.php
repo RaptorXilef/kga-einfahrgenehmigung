@@ -56,14 +56,14 @@ return [
         `typ` VARCHAR(20) NOT NULL,
         `firma` VARCHAR(255) DEFAULT NULL,
         `zweck` VARCHAR(255) NOT NULL,
-        `preisSnapshot` DECIMAL(10,2) NOT NULL,
+        `preis` DECIMAL(10,2) NOT NULL, -- VORHER: preisSnapshot
         `von` DATE NOT NULL,
         `bis` DATE NOT NULL,
         `status` VARCHAR(20) NOT NULL DEFAULT \'offen\',
-        `isSuspended` TINYINT(1) NOT NULL DEFAULT 0,
-        `suspensionReason` TEXT DEFAULT NULL,
+        `is_suspended` TINYINT(1) NOT NULL DEFAULT 0, -- VORHER: isSuspended
+        `suspension_reason` TEXT DEFAULT NULL, -- VORHER: suspensionReason
         `erstellt` DATETIME NOT NULL,
-        `internerKommentar` TEXT DEFAULT NULL,
+        `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
         PRIMARY KEY (`code`),
         INDEX `idx_kennzeichen` (`kennzeichen`),
         INDEX `idx_parzelle` (`parzelle`)
@@ -79,12 +79,12 @@ return [
         `typ` VARCHAR(20) NOT NULL,
         `firma` VARCHAR(255) DEFAULT NULL,
         `zweck` VARCHAR(255) NOT NULL,
-        `preisSnapshot` DECIMAL(10,2) NOT NULL,
+        `preis` DECIMAL(10,2) NOT NULL, -- VORHER: preisSnapshot
         `von` DATE NOT NULL,
         `bis` DATE NOT NULL,
         `status` VARCHAR(20) NOT NULL DEFAULT \'offen\',
         `erstellt` DATETIME NOT NULL,
-        `internerKommentar` TEXT DEFAULT NULL,
+        `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
         PRIMARY KEY (`code`),
         INDEX `idx_kennzeichen` (`kennzeichen`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',

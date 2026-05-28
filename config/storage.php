@@ -16,6 +16,7 @@ declare(strict_types=1);
 return [
     // MySQL Zugangsdaten (Optional)
     'database' => [
+        'enabled' => false,
         'host'    => 'localhost',
         'dbname'  => 'kga_zufahrts_manager',
         'user'    => 'root',

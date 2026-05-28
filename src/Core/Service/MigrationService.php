@@ -212,13 +212,13 @@ final readonly class MigrationService
         // Wir delegieren an die Services, da diese bereits die Logik für "Save" haben!
         // Das ist sauberer als genericSqlInsert, da die Services die Spalten kennen.
         match ($key) {
-            'users'                => $this->authService->saveUsers($data),
-            'groups'               => $this->authService->saveGroups($data),
-            'vouchers'             => $this->voucherService->saveVouchers($data),
-            'magic_links'          => $this->magicLinkService->saveLinks($data),
-            'mail_log'             => $this->mailService->saveLogs($data),
-            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data),
-            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data),
+            'users'                => $this->authService->saveUsers($data, true),
+            'groups'               => $this->authService->saveGroups($data, true),
+            'vouchers'             => $this->voucherService->saveVouchers($data, true),
+            'magic_links'          => $this->magicLinkService->saveLinks($data, true),
+            'mail_log'             => $this->mailService->saveLogs($data, true),
+            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
+            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
             'permits'              => $this->migratePermitsToSql($data),
             default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
         };
@@ -247,6 +247,7 @@ final readonly class MigrationService
         }
     }
 
+    // TODO DocBlock erstellen
     private function getIdFieldForKey(string $key): string
     {
         return match ($key) {
@@ -268,7 +269,7 @@ final readonly class MigrationService
         $cfg = $this->config->get('storage_config')[$key];
 
         return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+               \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
     }
 
     /**
@@ -403,4 +404,75 @@ final readonly class MigrationService
      * $this->saveToJson('users', $sourceData);
      * }
      * }*/
+
+    /**
+     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
+     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
+     *
+     * @param string $key Speicher-Key aus der Konfiguration.
+     *
+     * @return array<string, mixed> Ungefiltertes Datenarray.
+     */
+    private function loadRawJson(string $key): array
+    {
+        $cfg = $this->config->get('storage_config')[$key];
+
+        // FIX: Prüfen, ob überhaupt ein Dateiname konfiguriert ist
+        if (! isset($cfg['file'])) {
+            return [];
+        }
+        $path = $this->getFilePath($key);
+
+        return \file_exists($path) ? (\json_decode(
+            (string) \file_get_contents($path),
+            true,
+        )
+            ?? []) : [];
+    }
+
+    /**
+     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
+     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
+     *
+     * @param string $key Tabellen-Key aus der storage_config.
+     *
+     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
+     */
+    private function loadRawSql(string $key): array
+    {
+        $cfg = $this->config->get('storage_config')[$key];
+        if (! $this->pdo instanceof \PDO) {
+            return [];
+        }
+
+        try {
+            // Wir loggen kurz den Tabellennamen zur Sicherheit
+            $tableName = $cfg['table'];
+            $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
+            $rows      = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($rows)) {
+                \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
+
+                return [];
+            }
+        } catch (\PDOException $e) {
+            \error_log("Migration SQL-Load Fehler ($key): " . $e->getMessage());
+
+            return [];
+        }
+        $res     = [];
+        $idField = $this->getIdFieldForKey($key);
+        foreach ($rows as $r) {
+            if (isset($r['data']) && \is_string($r['data'])) {
+                $r['data'] = \json_decode($r['data'], true);
+            }
+            if (isset($r['permissions']) && \is_string($r['permissions'])) {
+                $r['permissions'] = \json_decode($r['permissions'], true);
+            }
+            $res[$r[$idField]] = $r;
+        }
+
+        return $res;
+    }
 }

@@ -50,6 +50,7 @@ final readonly class AuthService
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
             // Wir nutzen das Label als Gruppenname für die Anzeige
             $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
+
             // Backdoor braucht kein compiled_permissions, da hasPermission() sys_ erkennt
             return true;
         }
@@ -244,11 +245,14 @@ final readonly class AuthService
      *
      * @param array<string, array<string, mixed>> $users Das vollständige Benutzer-Array.
      */
-    public function saveUsers(array $users): void
+    public function saveUsers(array $users, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['users'];
 
-        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
+        // NEU: Wenn $forceSql true ist, erzwingen wir den MySQL-Weg, andernfalls wie bisher über die Config.
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+
+        if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
@@ -267,21 +271,25 @@ final readonly class AuthService
 
                 throw $e;
             }
-
-            return;
+            // Wenn NUR SQL erzwungen wurde, brechen wir hier ab.
+            if ($forceSql) {
+                return;
+            }
         }
 
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim(
-            (string) $this->config->get('storage_path_prefix'),
-            '/\\',
-        ) . $cfg['file'];
-        \file_put_contents(
-            $path,
-            \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-        );
+        if (! $forceSql) {
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            );
+        }
     }
 
     /**
@@ -324,17 +332,19 @@ final readonly class AuthService
      *
      * @param array<string, array<string, mixed>> $groups
      */
-    public function saveGroups(array $groups): void
+    public function saveGroups(array $groups, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['groups'];
+        $cfg    = $this->config->get('storage_config')['groups'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
-        if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
+        if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
                 $this->pdo->exec("DELETE FROM {$cfg['table']}");
                 $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (id, name, permissions) VALUES (?, ?, ?)");
                 foreach ($groups as $id => $g) {
+                    // WICHTIG: Arrays für MySQL als String kodieren!
                     $stmt->execute([$id, $g['name'], \json_encode($g['permissions'] ?? [])]);
                 }
                 $this->pdo->commit();
@@ -343,18 +353,24 @@ final readonly class AuthService
 
                 throw $e;
             }
-
-            return;
+            if ($forceSql) {
+                return;
+            }
         }
 
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim(
-            (string) $this->config->get('storage_path_prefix'),
-            '/\\',
-        ) . $cfg['file'];
-        \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        if (! $forceSql) {
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            );
+        }
     }
 
     /**

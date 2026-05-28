@@ -195,10 +195,10 @@ final readonly class MailQueueService implements MailServiceInterface
      *
      * @param array<int, array<string, mixed>> $logs Liste der zu speichernden Log-Einträge.
      */
-    public function saveLogs(array $logs): void
+    public function saveLogs(array $logs, bool $forceSql = false): void
     {
         // Die Queue selbst speichert keine Logs, sie leitet den Befehl
         // an den echten Mail-Service (SmtpMailService) weiter.
-        $this->realMailService->saveLogs($logs);
+        $this->realMailService->saveLogs($logs, $forceSql);
     }
 }

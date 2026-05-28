@@ -218,10 +218,12 @@ final readonly class VoucherService
      *
      * @param array<string, array<string, mixed>> $vouchers Die zu speichernde Gutscheinliste.
      */
-    public function saveVouchers(array $vouchers): void
+    public function saveVouchers(array $vouchers, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['vouchers'];
-        if ($cfg['type'] === 'mysql') {
+        $cfg    = $this->config->get('storage_config')['vouchers'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+
+        if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->exec("DELETE FROM {$cfg['table']}");
 
             // Neues SQL-Statement inkl. status
@@ -251,15 +253,19 @@ final readonly class VoucherService
                     'created_by'   => $v['created_by'] ?? '',
                     'created_at'   => $v['created_at'] ?? \date('Y-m-d H:i:s'),
                     'status'       => $v['status'] ?? 'aktiv',
-                    'data'         => \json_encode($v['data'] ?? [], \JSON_UNESCAPED_UNICODE),
+                    // WICHTIG: Das data Array für MySQL json-encoden
+                    'data' => \is_array($v['data'] ?? null) ? \json_encode($v['data'], \JSON_UNESCAPED_UNICODE) : '{}',
                 ]);
             }
-
-            return;
+            if ($forceSql) {
+                return;
+            }
         }
 
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-        \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        if (! $forceSql) {
+            $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+            \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        }
     }
 
     /**

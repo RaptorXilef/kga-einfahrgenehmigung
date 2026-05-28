@@ -42,5 +42,5 @@ interface MailServiceInterface
      *
      * @param array<int, array<string, mixed>> $logs Die zu speichernden Log-Datensätze.
      */
-    public function saveLogs(array $logs): void;
+    public function saveLogs(array $logs, bool $forceSql = false): void;
 }

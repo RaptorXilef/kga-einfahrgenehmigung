@@ -145,14 +145,12 @@ final readonly class MagicLinkService
      *
      * @param array<string, array{email: string, code: string, expires: int}> $links Das zu schreibende Token-Array.
      */
-    public function saveLinks(array $links): void
+    public function saveLinks(array $links, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['magic_links'];
+        $cfg    = $this->config->get('storage_config')['magic_links'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo instanceof \PDO) {
-                throw new \RuntimeException('MySQL offline');
-            }
+        if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->exec("DELETE FROM {$cfg['table']}");
             $stmt = $this->pdo->prepare(
                 "INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)",
@@ -160,11 +158,23 @@ final readonly class MagicLinkService
             foreach ($links as $token => $d) {
                 $stmt->execute([$token, $d['email'], $d['code'], (int) $d['expires']]);
             }
-
-            return;
+            if ($forceSql) {
+                return;
+            }
         }
 
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-        \file_put_contents($path, \json_encode($links, \JSON_PRETTY_PRINT));
+        if (! $forceSql) {
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($links, \JSON_PRETTY_PRINT),
+            );
+        }
     }
 }
