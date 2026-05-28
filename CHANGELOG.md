@@ -2,6 +2,20 @@
 
 
 
+## [0.32.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.32.0...v0.32.1) (2026-05-28)
+
+### 🐛 Bug Fixes
+
+* **migration/backup:** correct backup directory listing and implement targeted engine truncation ([29cadfe](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29cadfeb4a248dbcc4a6a590683bb1beb8d79833))
+
+### ⚙️ Refactoring
+
+* **architecture/bootstrap:** decouple initial storage bootstrapping from migration service ([a6c5a18](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a6c5a1806b3420fb2d4e3b220f4ad2ea1828e83f))
+* **core/admin:** finalize JSON decoding, extract reporting logic, and introduce system tools ([fdaae9c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fdaae9c790567d6a991f4e84c44d8497c7da8ecd))
+* **core/application:** enforce global snake_case properties and purge dead code ([a772483](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a7724837cfc9330a89fdf5813241143b7e206ca5))
+* **storage/migration:** harmonize schema mapping and enforce rigid cross-engine data migration ([fa1f835](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fa1f8355bbc7811386627a12946f7f34673f34b8))
+* **ui/migration:** redesign backup history list into a responsive card grid ([e32f7e0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e32f7e0c258192e18582f1c626ef8ead17733224))
+
 ## [0.32.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.31.1...v0.32.0) (2026-05-27)
 
 ### 🚀 Features
