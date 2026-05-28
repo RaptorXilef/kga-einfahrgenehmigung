@@ -461,18 +461,106 @@ final readonly class MigrationService
 
             return [];
         }
+
         $res     = [];
         $idField = $this->getIdFieldForKey($key);
+
         foreach ($rows as $r) {
+            // WICHTIG: Hier entpacken wir MySQL-JSON-Strings in echte PHP-Arrays,
+            // damit file_put_contents später sauberes, verschachteltes JSON schreibt
+            // und keine hässlichen "{\"name\":\"Test\"}" Strings.
+
             if (isset($r['data']) && \is_string($r['data'])) {
-                $r['data'] = \json_decode($r['data'], true);
+                $decoded   = \json_decode($r['data'], true);
+                $r['data'] = $decoded !== null ? $decoded : [];
             }
+
             if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                $r['permissions'] = \json_decode($r['permissions'], true);
+                $decoded          = \json_decode($r['permissions'], true);
+                $r['permissions'] = $decoded !== null ? $decoded : [];
             }
+
+            // Sicherstellen, dass Zahlen auch als Zahlen im JSON landen (optional, aber sauber)
+            if (isset($r['value'])) {
+                $r['value'] = (float) $r['value'];
+            }
+            if (isset($r['uses_count'])) {
+                $r['uses_count'] = (int) $r['uses_count'];
+            }
+            if (isset($r['max_uses'])) {
+                $r['max_uses'] = (int) $r['max_uses'];
+            }
+            if (isset($r['multi_use'])) {
+                $r['multi_use'] = (bool) $r['multi_use'];
+            }
+            if (isset($r['is_suspended'])) {
+                $r['is_suspended'] = (int) $r['is_suspended'];
+            }
+
             $res[$r[$idField]] = $r;
         }
 
         return $res;
+    }
+
+    // TODO DocBlock erstellen
+    public function clearCache(): string
+    {
+        $root = $this->config->get('root_path');
+
+        // 1. Deptrac Cache löschen
+        $deptracCache = $root . '/.cache/deptrac/.deptrac.cache';
+        if (\file_exists($deptracCache)) {
+            \unlink($deptracCache);
+        }
+
+        // 2. Session-Rechte neu kompilieren (für den aktuellen Admin)
+        $this->authService->refreshSessionPermissions($this->authService->getGroup());
+
+        return 'Erfolg: Der System-Cache wurde geleert und die Berechtigungen neu kompiliert.';
+    }
+
+    // TODO DocBlock erstellen
+    public function truncateTarget(string $target): string
+    {
+        // 1. Zwingendes Backup vor der Löschung!
+        try {
+            $this->backupService->createBackup($target . '_before_truncate');
+        } catch (\Exception $e) {
+            return 'Abbruch: Sicherheits-Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
+        }
+
+        // 2. SQL oder JSON leeren
+        $cfg = $this->config->get('storage_config')[$target] ?? null;
+        if (! $cfg) {
+            return "Fehler: Unbekannter Speicherbereich '$target'.";
+        }
+
+        $clearedIn = [];
+
+        // MySQL Tabelle leeren
+        if ($this->pdo instanceof \PDO) {
+            try {
+                $tableName = $cfg['table'];
+                $this->pdo->exec("TRUNCATE TABLE `$tableName`");
+                $clearedIn[] = 'MySQL';
+            } catch (\PDOException $e) {
+                \error_log('Truncate Error MySQL: ' . $e->getMessage());
+            }
+        }
+
+        // JSON Datei leeren (mit einem leeren Array überschreiben)
+        $path = $this->getFilePath($target);
+        if (\file_exists($path)) {
+            $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
+            \file_put_contents($path, \json_encode([], $jsonFlags));
+            $clearedIn[] = 'JSON';
+        }
+
+        if (empty($clearedIn)) {
+            return 'Hinweis: Es wurden keine Daten gefunden, die gelöscht werden konnten.';
+        }
+
+        return "Erfolg: Der Bereich '$target' wurde vollständig geleert (" . \implode(' & ', $clearedIn) . '). Ein Backup wurde erstellt.';
     }
 }

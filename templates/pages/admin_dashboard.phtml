@@ -199,7 +199,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                      alt=""><!-- 🎟️ --> Gutscheincodes
                             </button>
                         <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.tools.view')) { ?>
+                        <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-tools">
                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp"
@@ -284,10 +284,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.tools.view')) { ?>
+                    <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
                         <div id="tab-tools"
                              class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_tools.phtml'; ?>
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_generator_tools.phtml'; ?>
                         </div>
                     <?php } ?>
 

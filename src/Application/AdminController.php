@@ -12,6 +12,7 @@ use App\Core\Service\BackupService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
+use App\Core\Service\ReportingService;
 use App\Core\Service\StorageBootstrapper;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
@@ -43,6 +44,7 @@ final readonly class AdminController
         private MailServiceInterface $mailService,
         private MigrationService $migrationService,
         private PermitService $permitService,
+        private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
     ) {
@@ -171,12 +173,14 @@ final readonly class AdminController
 
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
         return match ($action) {
-            'migrate_data'   => $this->actionMigrateData($post),
-            'restore_data'   => $this->actionRestoreData($post),
-            'resend_mail'    => $this->actionResendMail($post),
-            'mark_as_paid'   => $this->actionMarkAsPaid($post),
-            'create_voucher' => $this->actionCreateVoucher($post),
-            'create_manual'  => $this->actionCreateManual($post),
+            'migrate_data'    => $this->actionMigrateData($post),
+            'restore_data'    => $this->actionRestoreData($post),
+            'clear_cache'     => $this->actionClearCache($post),
+            'truncate_target' => $this->actionTruncateTarget($post),
+            'resend_mail'     => $this->actionResendMail($post),
+            'mark_as_paid'    => $this->actionMarkAsPaid($post),
+            'create_voucher'  => $this->actionCreateVoucher($post),
+            'create_manual'   => $this->actionCreateManual($post),
             'activate_voucher',
             'deactivate_voucher' => $this->actionToggleVoucher($post),
             'unsuspend_permit',
@@ -503,8 +507,8 @@ final readonly class AdminController
             'mailLogs'         => $this->mailService->loadLogs(),
             'message'          => $message,
             'migrationService' => $this->migrationService,
-            'periodStats'      => $this->calculateDetailedStats($filtered),
-            'permitGroups'     => $this->groupPermits($filtered), // <-- BUGFIX! GEÄNDERT von $allPermits und groups
+            'periodStats'      => $this->reportingService->calculateDetailedStats($filtered),
+            'permitGroups'     => $this->reportingService->groupPermits($filtered),
             'permitService'    => $this->permitService,
             'settings'         => $this->getSettingsArray(),
             'structure'        => $this->config->get('structure', []),
@@ -512,82 +516,6 @@ final readonly class AdminController
             'voucherService'   => $this->permitService->getVoucherService(),
             'yearlyStats'      => $yearlyStats,
         ]);
-    }
-
-    /**
-     * Berechnet detaillierte Finanz- und Nutzertyp-Statistiken für eine Liste von Genehmigungen.
-     *
-     * Finanz-KPIs (Revenue) und Parzellen-Ranking
-     * Aggregiert Daten aus Permit-Array. Nutzt uasort zur Sortierung nach Plot-Ranking.
-     *
-     * @param Permit[] $permits
-     *
-     * @return array<string, mixed> Statistik-Array.
-     */
-    private function calculateDetailedStats(array $permits): array
-    {
-        $vConfig = $this->config->get('vehicle_types', []);
-
-        // Initialisierung inklusive Legacy-Speicher
-        // Initialisiert das Array mit allen Keys aus der Config (pkw, lkw, entsorg, etc.)
-        $typeStats = \array_fill_keys(\array_keys($vConfig), 0);
-
-        // NEU: Ein Sammelbecken für gelöschte Typen
-        $typeStats['__legacy__'] = 0;
-
-        $stats = [
-            'count'          => \count($permits),
-            'revenue_paid'   => 0.0,
-            'revenue_unpaid' => 0.0,
-            'types'          => $typeStats, // JETZT DYNAMISCH
-            'plots'          => [],
-        ];
-
-        foreach ($permits as $p) {
-            $pType = $p->vehicle->typ;
-
-            // Wenn Typ existiert, normal zählen, sonst in den Legacy-Topf
-            if (isset($stats['types'][$pType])) {
-                ++$stats['types'][$pType];
-            } else {
-                // Falls der Typ aus der Config gelöscht wurde,
-                // zählen wir ihn hier rein, damit die Summe stimmt.
-                ++$stats['types']['__legacy__'];
-            }
-
-            $pNum = $p->owner->parzelle;
-
-            // Initialisiere Parzelle im Ranking, falls noch nicht vorhanden
-            if (! isset($stats['plots'][$pNum])) {
-                $stats['plots'][$pNum] = [
-                    'count'   => 0,
-                    'revenue' => 0.0,
-                    'email'   => '',
-                    'name'    => '',
-                ];
-            }
-
-            // Daten aggregieren
-            ++$stats['plots'][$pNum]['count'];
-            $stats['plots'][$pNum]['revenue'] += $p->validity->preisSnapshot;
-
-            // Zuletzt verwendete Daten speichern
-            $stats['plots'][$pNum]['name']  = $p->owner->name;
-            $stats['plots'][$pNum]['email'] = $p->owner->email;
-
-            if (\strtolower($p->status->current) === 'bezahlt') {
-                $stats['revenue_paid'] += $p->validity->preisSnapshot;
-            } else {
-                $stats['revenue_unpaid'] += $p->validity->preisSnapshot;
-            }
-        }
-        \uasort(
-            $stats['plots'],
-            fn ($a, $b): int => $b['count'] === $a['count']
-                ? $b['revenue'] <=> $a['revenue'] : $b['count'] <=> $a['count'],
-        );
-
-        return $stats;
     }
 
     /**
@@ -700,57 +628,6 @@ final readonly class AdminController
      * }*/
 
     /**
-     * Gruppiert Genehmigungen nach ihrem aktuellen Gültigkeitsstatus (aktiv/future/expired/unpaid).
-     *
-     * Logik-Kern für die tabellarische Übersicht.
-     *
-     * @param array<int, Permit> $allPermits
-     *
-     * @return array<string, array<Permit>>
-     */
-    private function groupPermits(array $allPermits): array
-    {
-        $now    = new \DateTimeImmutable('today');
-        $groups = [
-            'active'  => [],
-            'future'  => [],
-            'expired' => [],
-            'unpaid'  => [],
-        ];
-
-        foreach ($allPermits as $permit) {
-            // 1. FINANZ-LOGIK (Unbezahlte sammeln)
-            // Wir prüfen auf 'bezahlt'. Alles andere (offen, leer, NULL)
-            // gilt als "unbezahlt" und landet im Finanz-Tab.
-            if (\strtolower(\trim($permit->status->current)) !== 'bezahlt') {
-                $groups['unpaid'][] = $permit;
-            }
-
-            // Zeit-Logik
-            if ($permit->validity->bis < $now) {
-                $groups['expired'][] = $permit;
-
-                continue;
-            }
-            if ($permit->validity->von > $now) {
-                $groups['future'][] = $permit;
-
-                continue;
-            }
-            $groups['active'][] = $permit;
-        }
-
-        // 3. SORTIERUNG FÜR FINANZEN
-        // Die neuesten Anträge (erstellt am) sollen oben stehen.
-        \usort(
-            $groups['unpaid'],
-            fn ($permitEntryA, $permitEntryB): int => $permitEntryB->erstellt <=> $permitEntryA->erstellt,
-        );
-
-        return $groups;
-    }
-
-    /**
      * Liefert Konfigurations-Settings für das Frontend-Mapping/Templates.
      *
      * Schnittstelle zwischen Config-Objekt und UI.
@@ -843,5 +720,38 @@ final readonly class AdminController
         }
 
         return $this->migrationService->restore($timestamp, $target);
+    }
+
+    // TODO DocBlock erstellen
+    private function actionClearCache(array $post): string
+    {
+        // CSRF Prüfung
+        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
+        }
+        if (! $this->auth->hasPermission('dashboard.tools.view')) {
+            return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
+        }
+
+        return $this->migrationService->clearCache();
+    }
+
+    // TODO DocBlock erstellen
+    private function actionTruncateTarget(array $post): string
+    {
+        // CSRF Prüfung
+        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
+        }
+        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
+        }
+
+        $target = (string) ($post['target'] ?? '');
+        if ($target === '') {
+            return 'Fehler: Kein Zielbereich ausgewählt.';
+        }
+
+        return $this->migrationService->truncateTarget($target);
     }
 }

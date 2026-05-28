@@ -5,7 +5,7 @@
  *
  * Manuelle Dokumenten-Ausstellung und Gutschein-Erstellung.
  *
- * Path: templates/pages/admin_dashboard/_tab_tools.phtml
+ * Path: templates/pages/admin_dashboard/_tab_generator_tools.phtml
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -114,7 +114,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
 
 </style>
 
-<?php if ($auth->hasPermission('dashboard.tools.view')) { ?>
+<?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-text-center u-padding-y-l">
@@ -285,7 +285,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                 Ausstellung wählen</h4>
 
                             <div class="c-generator-selector">
-                                <?php if ($auth->hasPermission('dashboard.tools.direct_issue.reveal')) { ?>
+                                <?php if ($auth->hasPermission('dashboard.generator-tools.direct_issue.reveal')) { ?>
                                     <div id="btn_mode_manual"
                                          class="c-gen-mode-card"
                                          onclick="setGeneratorMode('manual')">
@@ -299,7 +299,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                         </div>
                                     </div>
                                 <?php } ?>
-                                <?php if ($auth->hasPermission('dashboard.tools.voucher_gen.reveal')) { ?>
+                                <?php if ($auth->hasPermission('dashboard.generator-tools.voucher_gen.reveal')) { ?>
                                     <div id="btn_mode_voucher"
                                          class="c-gen-mode-card"
                                          onclick="setGeneratorMode('voucher')">
@@ -463,7 +463,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                         <div id="action_grid"
                              class="c-action-grid"
                              style="display:none;">
-                            <?php if ($auth->hasPermission('dashboard.tools.direct_issue.execute')) { ?>
+                            <?php if ($auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) { ?>
                                 <div id="card_submit_voucher"
                                      class="c-action-card c-action-card--voucher"
                                      style="display:none;"
@@ -479,7 +479,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                 </div>
                             <?php } ?>
 
-                            <?php if ($auth->hasPermission('dashboard.tools.voucher_gen.execute')) { ?>
+                            <?php if ($auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) { ?>
                                 <div id="card_submit_manual"
                                      class="c-action-card c-action-card--manual"
                                      style="display:none;"

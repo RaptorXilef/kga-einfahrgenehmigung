@@ -207,27 +207,27 @@ return [
                         ],
                     ],
                 ],
-                'tools' => [
+                'generator-tools' => [
                     'label'    => 'Tab: Werkzeuge sehen',
-                    'key'      => 'dashboard.tools.view',
+                    'key'      => 'dashboard.generator-tools.view',
                     'children' => [
                         'direct_issue' => [
                             'label'    => 'Bereich für manuelle Sofort-Ausstellung aufrufen',
-                            'key'      => 'dashboard.tools.direct_issue.reveal',
+                            'key'      => 'dashboard.generator-tools.direct_issue.reveal',
                             'children' => [
                                 'execute' => [
                                     'label' => 'Manuelle Genehmigungen final erstellen und speichern',
-                                    'key'   => 'dashboard.tools.direct_issue.execute',
+                                    'key'   => 'dashboard.generator-tools.direct_issue.execute',
                                 ],
                             ],
                         ],
                         'voucher_gen' => [
                             'label'    => 'Bereich für den Gutschein-Generator aufrufen',
-                            'key'      => 'dashboard.tools.voucher_gen.reveal',
+                            'key'      => 'dashboard.generator-tools.voucher_gen.reveal',
                             'children' => [
                                 'execute' => [
                                     'label' => 'Neue Gutscheincodes final generieren und speichern',
-                                    'key'   => 'dashboard.tools.voucher_gen.execute',
+                                    'key'   => 'dashboard.generator-tools.voucher_gen.execute',
                                 ],
                             ],
                         ],
@@ -246,19 +246,19 @@ return [
                             'key'      => 'dashboard.migration.sync.view',
                             'children' => [
                                 'users' => [
-                                    'label'    => 'Migration: Alle Benutzer Aktionen',
+                                    'label'    => 'Migration: Alle Datenüberführungen Aktionen',
                                     'key'      => 'dashboard.migration.users.view',
                                     'children' => [
                                         'json_to_mysql' => [
-                                            'label' => 'Migration: Benutzer -> SQL (Überschreibt DB!)',
+                                            'label' => 'Migration: Daten -> SQL (Überschreibt DB!)',
                                             'key'   => 'dashboard.migration.users.json_to_mysql',
                                         ],
                                         'mysql_to_json' => [
-                                            'label' => 'Migration: Benutzer -> JSON (Überschreibt Datei!)',
+                                            'label' => 'Migration: Daten -> JSON (Überschreibt Datei!)',
                                             'key'   => 'dashboard.migration.users.mysql_to_json',
                                         ],
                                         'sync' => [
-                                            'label' => 'Migration: Benutzer Bestände zusammenführen',
+                                            'label' => 'Migration: Daten-Bestände zusammenführen',
                                             'key'   => 'dashboard.migration.users.sync',
                                         ],
                                     ],
@@ -359,10 +359,23 @@ return [
                             'label'    => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
                             'key'      => 'dashboard.migration.backups.view',
                             'children' => [
-
                                 'restore' => [
                                     'label' => 'System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
                                     'key'   => 'dashboard.migration.restore.execute',
+                                ],
+                            ],
+                        ],
+                        'admin-tools' => [
+                            'label'    => 'Admin-Tools: Liste der verfügbaren Admin-Tools',
+                            'key'      => 'dashboard.admin-tools.view',
+                            'children' => [
+                                'delete-cache' => [
+                                    'label' => 'Admin-Tools: Cache und temporäre Dateien löschen',
+                                    'key'   => 'dashboard.migration.delete-cache.execute',
+                                ],
+                                'delete-data' => [
+                                    'label' => 'Admin-Tools: Die kompletten SQL Tabelle oder JSON-Dateien löschen',
+                                    'key'   => 'dashboard.migration.delete-data.execute',
                                 ],
                             ],
                         ],

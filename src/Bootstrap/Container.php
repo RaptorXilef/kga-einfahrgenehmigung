@@ -21,6 +21,7 @@ use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
 use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
+use App\Core\Service\ReportingService;
 use App\Core\Service\StorageBootstrapper;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
@@ -268,6 +269,11 @@ class Container
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
         );
+
+        // Für die Inhalte des AdminDashboard
+        $this->services[ReportingService::class] = fn (): ReportingService => new ReportingService(
+            $this->get(ConfigInterface::class),
+        );
     }
 
     /**
@@ -285,6 +291,7 @@ class Container
             $this->get(MailServiceInterface::class),
             $this->get(MigrationService::class),
             $this->get(PermitService::class),
+            $this->get(ReportingService::class),
             $this->get(StorageBootstrapper::class),
             $this->get(StorageInterface::class),
         );
