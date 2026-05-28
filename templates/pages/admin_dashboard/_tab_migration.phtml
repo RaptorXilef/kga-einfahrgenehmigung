@@ -27,8 +27,6 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         'magic_links'          => ['label' => 'Login-Tokens', 'icon' => '🔗'],
     ];
 
-    // Achtung: Nutzt jetzt den neuen BackupService!
-    // Falls du die Variable im Controller noch nicht angepasst hast, musst du sie als $backupService übergeben.
     $backups = $backupService->listBackups();
     ?>
     <div class="c-tab-content-container">
@@ -57,7 +55,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
                     <?php foreach ($targets as $key => $data) { ?>
                         <div class="c-card"
-                             style="margin-bottom: 0; border-top: 4px solid var(--primary-color);">
+                             style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
                                  style="padding: 1rem 1.5rem;">
                                 <span style="font-size: 1.5rem;"><?php echo $data['icon']; ?></span>
@@ -66,7 +64,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
 
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
-                                 style="padding: 1.25rem 1.5rem;">
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <div class="u-flex u-gap-s u-width-100">
                                     <form method="POST"
                                           onsubmit="return confirm('Daten nach MySQL migrieren?')"
@@ -110,7 +108,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                 </div>
 
                                 <form method="POST"
-                                      class="u-width-100">
+                                      class="u-width-100 u-margin-top-auto">
                                     <input type="hidden"
                                            name="action"
                                            value="migrate_data">
@@ -151,17 +149,16 @@ if ($auth->hasPermission('dashboard.migration.view')) {
 
                     <?php if ($auth->hasPermission('dashboard.migration.delete-cache.execute')) { ?>
                         <div class="c-card"
-                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color);">
+                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
                                  style="padding: 1rem 1.5rem;">
                                 <h4 class="u-margin-none"
                                     style="font-size: 1.1rem;">🧹 System-Cache</h4>
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
-                                 style="padding: 1.25rem 1.5rem;">
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac Caches
-                                    oder
-                                    kompilierte Rechte). Behebt oft Anzeige-Bugs nach Updates.</p>
+                                    oder kompilierte Rechte). Behebt oft Anzeige-Bugs nach Updates.</p>
                                 <form method="POST"
                                       onsubmit="return confirm('Cache jetzt leeren?')"
                                       class="u-margin-top-auto">
@@ -183,19 +180,19 @@ if ($auth->hasPermission('dashboard.migration.view')) {
 
                     <?php if ($auth->hasPermission('dashboard.migration.delete-data.execute')) { ?>
                         <div class="c-card"
-                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color);">
+                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
                                  style="padding: 1rem 1.5rem;">
                                 <h4 class="u-margin-none"
                                     style="font-size: 1.1rem;">🗑️ Datenbestand löschen</h4>
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
-                                 style="padding: 1.25rem 1.5rem;">
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <p class="u-text-small u-margin-none">Leert eine komplette Tabelle oder JSON-Datei. Es
                                     wird automatisch ein Sicherungs-Backup erstellt.</p>
                                 <form method="POST"
                                       onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
-                                      class="u-margin-top-auto">
+                                      class="u-margin-top-auto u-flex u-flex-column u-gap-s">
                                     <input type="hidden"
                                            name="action"
                                            value="truncate_target">
@@ -203,30 +200,28 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                                    <div class="u-flex u-flex-column u-gap-s">
-                                        <select name="target"
+                                    <select name="target"
+                                            class="c-form-select"
+                                            required>
+                                        <option value="">-- Bereich wählen --</option>
+                                        <?php foreach ($targets as $key => $data) { ?>
+                                            <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                        <?php } ?>
+                                    </select>
+
+                                    <div class="u-flex u-gap-s">
+                                        <select name="engine"
                                                 class="c-form-select"
                                                 required>
-                                            <option value="">-- 1. Bereich wählen --</option>
-                                            <?php foreach ($targets as $key => $data) { ?>
-                                                <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
-                                            <?php } ?>
+                                            <option value="all">Aus JSON & MySQL löschen</option>
+                                            <option value="json">NUR aus JSON löschen</option>
+                                            <option value="mysql">NUR aus MySQL löschen</option>
                                         </select>
-
-                                        <div class="u-flex u-gap-s">
-                                            <select name="engine"
-                                                    class="c-form-select"
-                                                    required>
-                                                <option value="all">Aus JSON & MySQL löschen</option>
-                                                <option value="json">NUR aus JSON löschen</option>
-                                                <option value="mysql">NUR aus MySQL löschen</option>
-                                            </select>
-                                            <button type="submit"
-                                                    class="c-button c-button--danger"
-                                                    style="width: auto; padding: 0 16px;">
-                                                Löschen
-                                            </button>
-                                        </div>
+                                        <button type="submit"
+                                                class="c-button c-button--danger"
+                                                style="width: auto; padding: 0 16px;">
+                                            Löschen
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -249,93 +244,94 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                     </div>
                 </header>
 
-                <div class="c-card"
-                     style="border-top: 4px solid var(--json-color);">
-                    <div class="c-card__body u-padding-none">
-                        <?php if (empty($backups)) { ?>
-                            <div class="u-padding-around-l u-text-center u-text-muted">
-                                <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📦</span>
-                                Es sind noch keine Backups im System vorhanden.
-                            </div>
-                        <?php } else { ?>
-                            <div class="u-flex u-flex-column">
-                                <?php
-                                    $isFirst = true;
-                            foreach ($backups as $ts => $files) {
-                                $dateObj       = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
-                                $formattedDate = $dateObj ? $dateObj->format('d.m.Y — H:i:s') : $ts;
-                                ?>
-                                    <div class="u-flex u-flex-wrap u-align-center u-justify-between u-gap-m"
-                                         style="padding: 1.25rem 1.5rem; <?php echo ! $isFirst ? 'border-top: 1px solid var(--border-color);' : ''; ?>">
+                <?php if (empty($backups)) { ?>
+                    <div class="c-card"
+                         style="border-top: 4px solid var(--json-color);">
+                        <div class="c-card__body u-padding-around-l u-text-center u-text-muted">
+                            <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📦</span>
+                            Es sind noch keine Backups im System vorhanden.
+                        </div>
+                    </div>
+                <?php } else { ?>
+                    <div class="u-grid"
+                         style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                        <?php foreach ($backups as $ts => $files) {
+                            $dateObj       = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
+                            $formattedDate = $dateObj ? $dateObj->format('d.m.Y — H:i:s') : $ts;
+                            ?>
+                            <div class="c-card"
+                                 style="margin-bottom: 0; border-top: 4px solid var(--json-color); display: flex; flex-direction: column;">
+                                <div class="c-card__header"
+                                     style="padding: 1rem 1.5rem;">
+                                    <h4 class="u-margin-none"
+                                        style="font-size: 1.1rem;"><?php echo $formattedDate; ?></h4>
+                                    <span class="u-text-muted u-text-small"><?php echo $ts; ?></span>
+                                </div>
 
-                                        <div class="u-flex u-flex-column u-gap-xs"
-                                             style="flex: 1; min-width: 250px;">
-                                            <strong class="u-font-l"><?php echo $formattedDate; ?></strong>
-                                            <div class="u-flex u-flex-wrap u-gap-xs u-margin-top-xs">
-                                                <?php foreach ($files as $file) {
-                                                    // Farbe basierend auf Dateityp (SQL oder JSON)
-                                                    $badgeColor = \str_contains($file, 'sql.json') ? 'var(--primary-color)' : 'var(--json-color)';
-                                                    $cleanName  = \str_replace(['_file.json', '_sql.json'], '', $file);
-                                                    ?>
-                                                    <span class="c-badge" style="background: <?php echo $badgeColor; ?>; font-size: 0.7rem;">
+                                <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                     style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+
+                                    <div class="u-flex u-flex-wrap u-gap-xs">
+                                        <?php foreach ($files as $file) {
+                                            $badgeColor = \str_contains($file, 'sql.json') ? 'var(--primary-color)' : 'var(--json-color)';
+                                            $cleanName  = \str_replace(['_file.json', '_sql.json'], '', $file);
+                                            ?>
+                                            <span class="c-badge" style="background: <?php echo $badgeColor; ?>; font-size: 0.7rem;">
                                                 <?php echo \htmlspecialchars($cleanName); ?>
                                             </span>
-                                                <?php } ?>
-                                            </div>
-                                        </div>
-
-                                        <div style="min-width: 320px;">
-                                            <?php if ($auth->hasPermission('dashboard.migration.restore.execute')) { ?>
-                                                <form method="POST"
-                                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort mit dem alten Backup-Stand! Fortfahren?')"
-                                                      class="u-flex u-gap-s u-align-center u-justify-end">
-                                                    <input type="hidden"
-                                                           name="action"
-                                                           value="restore_data">
-                                                    <input type="hidden"
-                                                           name="timestamp"
-                                                           value="<?php echo $ts; ?>">
-                                                    <input type="hidden"
-                                                           name="csrf_token"
-                                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-
-                                                    <select name="target"
-                                                            class="c-form-select"
-                                                            style="max-width: 180px;"
-                                                            required>
-                                                        <option value="">-- Bereich --</option>
-                                                        <?php foreach ($targets as $key => $data) { ?>
-                                                            <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
-                                                        <?php } ?>
-                                                    </select>
-
-                                                    <select name="engine"
-                                                            class="c-form-select"
-                                                            style="max-width: 120px;"
-                                                            required>
-                                                        <option value="all">In JSON & SQL</option>
-                                                        <option value="json">Nur JSON</option>
-                                                        <option value="mysql">Nur SQL</option>
-                                                    </select>
-
-                                                    <button type="submit"
-                                                            class="c-button c-button--danger"
-                                                            style="width: auto; padding: 0 16px; font-weight: 600;">
-                                                        Restore
-                                                    </button>
-                                                </form>
-                                            <?php } else { ?>
-                                                <span class="u-text-muted u-float-right u-text-small">🚫 Keine Restore-Rechte</span>
-                                            <?php } ?>
-                                        </div>
+                                        <?php } ?>
                                     </div>
-                                <?php
-                                    $isFirst = false;
-                            } ?>
+
+                                    <?php if ($auth->hasPermission('dashboard.migration.restore.execute')) { ?>
+                                        <form method="POST"
+                                              onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort mit dem alten Backup-Stand! Fortfahren?')"
+                                              class="u-flex u-flex-column u-gap-s u-margin-top-auto">
+
+                                            <input type="hidden"
+                                                   name="action"
+                                                   value="restore_data">
+                                            <input type="hidden"
+                                                   name="timestamp"
+                                                   value="<?php echo $ts; ?>">
+                                            <input type="hidden"
+                                                   name="csrf_token"
+                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                                            <select name="target"
+                                                    class="c-form-select"
+                                                    required>
+                                                <option value="">-- Bereich --</option>
+                                                <?php foreach ($targets as $key => $data) { ?>
+                                                    <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                                <?php } ?>
+                                            </select>
+
+                                            <div class="u-flex u-gap-s">
+                                                <select name="engine"
+                                                        class="c-form-select"
+                                                        required>
+                                                    <option value="all">In JSON & SQL</option>
+                                                    <option value="json">Nur JSON</option>
+                                                    <option value="mysql">Nur SQL</option>
+                                                </select>
+
+                                                <button type="submit"
+                                                        class="c-button c-button--danger"
+                                                        style="width: auto; padding: 0 16px; font-weight: 600;">
+                                                    Restore
+                                                </button>
+                                            </div>
+                                        </form>
+                                    <?php } else { ?>
+                                        <div class="u-margin-top-auto u-text-right">
+                                            <span class="u-text-muted u-text-small">🚫 Keine Restore-Rechte</span>
+                                        </div>
+                                    <?php } ?>
+                                </div>
                             </div>
                         <?php } ?>
                     </div>
-                </div>
+                <?php } ?>
             </div>
         <?php } ?>
 
