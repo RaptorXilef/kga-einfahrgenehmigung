@@ -269,10 +269,11 @@ final readonly class MigrationService
         $cfg = $this->config->get('storage_config')[$key];
 
         return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-               \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
     }
 
     /**
+     * TODO DocBlock aktualisieren!
      * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
      * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
      *
@@ -281,30 +282,40 @@ final readonly class MigrationService
      *
      * @return string Status-Ergebnistext für das Admin-Frontend.
      */
-    public function restore(string $timestamp, string $target): string
+    public function restore(string $timestamp, string $target, string $engine = 'all'): string
     {
-        // 1. Sicherheitshalber aktuellen Ist-Zustand sichern
-        $this->backupService->createBackup($target . '_before_restore');
+        // 1. Zwingendes Sicherheitsbackup vor der Wiederherstellung
+        try {
+            $this->backupService->createBackup($target . '_before_restore');
+        } catch (\Exception $e) {
+            return 'Abbruch: Sicherheits-Backup des Ist-Zustands konnte nicht erstellt werden (' . $e->getMessage() . ').';
+        }
 
-        // 2. Daten aus Backup abrufen
+        // 2. Daten aus dem Backup-Archiv abrufen
         $data = $this->backupService->getBackupData($timestamp, $target);
-
         if ($data === null) {
             return "Fehler: Keine gültige Backup-Datei für '$target' im Ordner $timestamp gefunden.";
         }
 
-        // 3. Ins Zielsystem schreiben (egal ob JSON oder SQL)
-        $storageCfg = $this->config->get('storage_config')[$target];
+        $restoredIn = [];
 
-        if ($storageCfg['type'] === 'mysql') {
+        // 3. Nach MySQL wiederherstellen
+        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
             $this->saveToSql($target, $data);
-            $sourceInfo = 'MySQL-Datenbank';
-        } else {
-            $this->saveToJson($target, $data);
-            $sourceInfo = 'JSON-Datei';
+            $restoredIn[] = 'MySQL';
         }
 
-        return "Erfolg: '$target' wurde aus Backup [$timestamp] in $sourceInfo wiederhergestellt.";
+        // 4. Nach JSON wiederherstellen
+        if (\in_array($engine, ['all', 'json'], true)) {
+            $this->saveToJson($target, $data);
+            $restoredIn[] = 'JSON';
+        }
+
+        if (empty($restoredIn)) {
+            return 'Hinweis: Es wurden keine Daten wiederhergestellt (Speicher nicht erreichbar).';
+        }
+
+        return "Erfolg: '$target' wurde aus Backup [$timestamp] in " . \implode(' & ', $restoredIn) . ' wiederhergestellt.';
     }
 
     /**
@@ -521,10 +532,11 @@ final readonly class MigrationService
     }
 
     // TODO DocBlock erstellen
-    public function truncateTarget(string $target): string
+    public function truncateTarget(string $target, string $engine = 'all'): string
     {
         // 1. Zwingendes Backup vor der Löschung!
         try {
+            // Backup erstellt sicherheitshalber immer beide Bestände
             $this->backupService->createBackup($target . '_before_truncate');
         } catch (\Exception $e) {
             return 'Abbruch: Sicherheits-Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
@@ -538,8 +550,8 @@ final readonly class MigrationService
 
         $clearedIn = [];
 
-        // MySQL Tabelle leeren
-        if ($this->pdo instanceof \PDO) {
+        // MySQL Tabelle leeren (Wenn engine 'all' oder 'mysql' ist)
+        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
             try {
                 $tableName = $cfg['table'];
                 $this->pdo->exec("TRUNCATE TABLE `$tableName`");
@@ -549,18 +561,20 @@ final readonly class MigrationService
             }
         }
 
-        // JSON Datei leeren (mit einem leeren Array überschreiben)
+        // JSON Datei leeren (Wenn engine 'all' oder 'json' ist)
         $path = $this->getFilePath($target);
-        if (\file_exists($path)) {
+        if (\in_array($engine, ['all', 'json'], true) && \file_exists($path)) {
             $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
             \file_put_contents($path, \json_encode([], $jsonFlags));
             $clearedIn[] = 'JSON';
         }
 
         if (empty($clearedIn)) {
-            return 'Hinweis: Es wurden keine Daten gefunden, die gelöscht werden konnten.';
+            return 'Hinweis: Es konnte nichts gelöscht werden (Speicher nicht erreichbar).';
         }
 
-        return "Erfolg: Der Bereich '$target' wurde vollständig geleert (" . \implode(' & ', $clearedIn) . '). Ein Backup wurde erstellt.';
+        return "Erfolg: Der Bereich '$target' wurde geleert (" .
+            \implode(' & ', $clearedIn) .
+            '). Ein Backup wurde erstellt.';
     }
 }

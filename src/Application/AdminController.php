@@ -695,6 +695,7 @@ final readonly class AdminController
     }
 
     /**
+     * TODO DocBlock aktualisieren!
      * Führt eine System-Wiederherstellung (Restore) aus deinem Backup durch.
      * Sicherheitsprüfung über hasPermission und Level-Check.
      *
@@ -704,22 +705,24 @@ final readonly class AdminController
      */
     private function actionRestoreData(array $post): string
     {
-        // Die Permission-Sperre bleibt (sie deckt den Dev-Admin via '*' oder 'sys_' automatisch mit ab)
+        // CSRF Prüfung
+        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
+        }
+
         if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
             return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
         }
 
-        // Der alte getLevel() Check wurde hier komplett entfernt, da das Rechtesystem
-        // völlig ausreicht. Wer das Recht hat, darf auch restoren.
-
         $target    = (string) ($post['target'] ?? '');
         $timestamp = (string) ($post['timestamp'] ?? '');
+        $engine    = (string) ($post['engine'] ?? 'all');
 
         if ($target === '' || $timestamp === '') {
             return 'Fehler: Unvollständige Angaben für Restore.';
         }
 
-        return $this->migrationService->restore($timestamp, $target);
+        return $this->migrationService->restore($timestamp, $target, $engine);
     }
 
     // TODO DocBlock erstellen
@@ -743,15 +746,17 @@ final readonly class AdminController
         if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
             return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
         }
-        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
+        if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
             return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
         }
 
         $target = (string) ($post['target'] ?? '');
+        $engine = (string) ($post['engine'] ?? 'all'); // <-- NEU
+
         if ($target === '') {
             return 'Fehler: Kein Zielbereich ausgewählt.';
         }
 
-        return $this->migrationService->truncateTarget($target);
+        return $this->migrationService->truncateTarget($target, $engine); // <-- NEU
     }
 }

@@ -134,6 +134,110 @@ if ($auth->hasPermission('dashboard.migration.view')) {
             </div>
         <?php } ?>
 
+        <!-- Löschen -->
+        <?php if ($auth->hasPermission('dashboard.admin-tools.view')) { ?>
+            <div class="u-margin-top-xl">
+                <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                    <span class="u-font-xl">🛠️</span>
+                    <div>
+                        <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
+                        <p class="u-text-muted u-text-small u-margin-none">Cache leeren und Datenbestände zurücksetzen.
+                        </p>
+                    </div>
+                </header>
+
+                <div class="u-grid"
+                     style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+
+                    <?php if ($auth->hasPermission('dashboard.migration.delete-cache.execute')) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color);">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;">🧹 System-Cache</h4>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem;">
+                                <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac Caches
+                                    oder
+                                    kompilierte Rechte). Behebt oft Anzeige-Bugs nach Updates.</p>
+                                <form method="POST"
+                                      onsubmit="return confirm('Cache jetzt leeren?')"
+                                      class="u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="clear_cache">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <button type="submit"
+                                            class="c-button c-button--secondary u-width-100"
+                                            style="font-size: 0.9rem;">
+                                        Cache leeren
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($auth->hasPermission('dashboard.migration.delete-data.execute')) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color);">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;">🗑️ Datenbestand löschen</h4>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem;">
+                                <p class="u-text-small u-margin-none">Leert eine komplette Tabelle oder JSON-Datei. Es
+                                    wird automatisch ein Sicherungs-Backup erstellt.</p>
+                                <form method="POST"
+                                      onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
+                                      class="u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="truncate_target">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                                    <div class="u-flex u-flex-column u-gap-s">
+                                        <select name="target"
+                                                class="c-form-select"
+                                                required>
+                                            <option value="">-- 1. Bereich wählen --</option>
+                                            <?php foreach ($targets as $key => $data) { ?>
+                                                <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                            <?php } ?>
+                                        </select>
+
+                                        <div class="u-flex u-gap-s">
+                                            <select name="engine"
+                                                    class="c-form-select"
+                                                    required>
+                                                <option value="all">Aus JSON & MySQL löschen</option>
+                                                <option value="json">NUR aus JSON löschen</option>
+                                                <option value="mysql">NUR aus MySQL löschen</option>
+                                            </select>
+                                            <button type="submit"
+                                                    class="c-button c-button--danger"
+                                                    style="width: auto; padding: 0 16px;">
+                                                Löschen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
+
+                </div>
+            </div>
+        <?php } ?>
+
+        <!-- Backups -->
         <?php if ($auth->hasPermission('dashboard.migration.backups.view')) { ?>
             <div class="u-margin-top-xl">
                 <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
@@ -183,7 +287,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         <div style="min-width: 320px;">
                                             <?php if ($auth->hasPermission('dashboard.migration.restore.execute')) { ?>
                                                 <form method="POST"
-                                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort! Fortfahren?')"
+                                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort mit dem alten Backup-Stand! Fortfahren?')"
                                                       class="u-flex u-gap-s u-align-center u-justify-end">
                                                     <input type="hidden"
                                                            name="action"
@@ -191,21 +295,33 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                                     <input type="hidden"
                                                            name="timestamp"
                                                            value="<?php echo $ts; ?>">
+                                                    <input type="hidden"
+                                                           name="csrf_token"
+                                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                                                     <select name="target"
                                                             class="c-form-select"
-                                                            style="max-width: 200px;"
+                                                            style="max-width: 180px;"
                                                             required>
-                                                        <option value="">-- Zielbereich wählen --</option>
+                                                        <option value="">-- Bereich --</option>
                                                         <?php foreach ($targets as $key => $data) { ?>
                                                             <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
                                                         <?php } ?>
                                                     </select>
 
+                                                    <select name="engine"
+                                                            class="c-form-select"
+                                                            style="max-width: 120px;"
+                                                            required>
+                                                        <option value="all">In JSON & SQL</option>
+                                                        <option value="json">Nur JSON</option>
+                                                        <option value="mysql">Nur SQL</option>
+                                                    </select>
+
                                                     <button type="submit"
                                                             class="c-button c-button--danger"
                                                             style="width: auto; padding: 0 16px; font-weight: 600;">
-                                                        Wiederherstellen
+                                                        Restore
                                                     </button>
                                                 </form>
                                             <?php } else { ?>
@@ -219,97 +335,6 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
                         <?php } ?>
                     </div>
-                </div>
-            </div>
-        <?php } ?>
-
-        <?php if ($auth->hasPermission('dashboard.admin-tools.view')) { ?>
-            <div class="u-margin-top-xl">
-                <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                    <span class="u-font-xl">🛠️</span>
-                    <div>
-                        <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
-                        <p class="u-text-muted u-text-small u-margin-none">Cache leeren und Datenbestände zurücksetzen.
-                        </p>
-                    </div>
-                </header>
-
-                <div class="u-grid"
-                     style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-
-                    <?php if ($auth->hasPermission('dashboard.migration.delete-cache.execute')) { ?>
-                    <div class="c-card"
-                         style="margin-bottom: 0; border-top: 4px solid var(--danger-color);">
-                        <div class="c-card__header u-flex u-align-center u-gap-s"
-                             style="padding: 1rem 1.5rem;">
-                            <h4 class="u-margin-none"
-                                style="font-size: 1.1rem;">🧹 System-Cache</h4>
-                        </div>
-                        <div class="c-card__body u-flex u-flex-column u-gap-m"
-                             style="padding: 1.25rem 1.5rem;">
-                            <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac Caches oder
-                                kompilierte Rechte). Behebt oft Anzeige-Bugs.</p>
-                            <form method="POST"
-                                  onsubmit="return confirm('Cache jetzt leeren?')"
-                                  class="u-margin-top-auto">
-                                <input type="hidden"
-                                       name="action"
-                                       value="clear_cache">
-                                <input type="hidden"
-                                       name="csrf_token"
-                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <button type="submit"
-                                        class="c-button c-button--secondary u-width-100"
-                                        style="font-size: 0.9rem;">
-                                    Cache leeren
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.migration.delete-data.execute')) { ?>
-                        <div class="c-card"
-                             style="margin-bottom: 0; border-top: 4px solid var(--danger-color);">
-                            <div class="c-card__header u-flex u-align-center u-gap-s"
-                                 style="padding: 1rem 1.5rem;">
-                                <h4 class="u-margin-none"
-                                    style="font-size: 1.1rem;">🗑️ Datenbestand löschen</h4>
-                            </div>
-                            <div class="c-card__body u-flex u-flex-column u-gap-m"
-                                 style="padding: 1.25rem 1.5rem;">
-                                <p class="u-text-small u-margin-none">Leert eine komplette Tabelle oder JSON-Datei. Es
-                                    wird automatisch ein Sicherungs-Backup erstellt.</p>
-                                <form method="POST"
-                                      onsubmit="return confirm('WARNUNG: Alle Daten dieses Bereichs werden GELÖSCHT! Fortfahren?')"
-                                      class="u-margin-top-auto">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="truncate_target">
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-
-                                    <div class="u-flex u-gap-s">
-                                        <select name="target"
-                                                class="c-form-select"
-                                                required>
-                                            <option value="">-- Bereich wählen --</option>
-                                            <?php foreach ($targets as $key => $data) { ?>
-                                                <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
-                                            <?php } ?>
-                                        </select>
-                                        <button type="submit"
-                                                class="c-button c-button--danger"
-                                                style="width: auto; padding: 0 16px;">
-                                            Löschen
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    <?php } ?>
-
                 </div>
             </div>
         <?php } ?>
