@@ -8,6 +8,7 @@
         "php-cs-fixer.allow-risky": true,
         "files.associations": {
             "*.module": "php"
-        }
+        },
+        "todo-tree.tree.scanMode": "workspace only"
     }
 }

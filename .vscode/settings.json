@@ -161,6 +161,8 @@
         "purple"
     ],
     "todo-tree.filtering.excludeGlobs": ["**/node_modules/**", "**/vendor/**", "**/*.pdf"],
+    // TODO Install winget install -e --id BurntSushi.ripgrep.MSVC
+    "todo-tree.ripgrep.ripgrep": "%USERPROFILE%\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc\\rg.exe",
 
     // --- SPELL CHECK ---
     "cSpell.language": "en,de",
@@ -170,8 +172,68 @@
     "terminal.integrated.defaultProfile.windows": "Git Bash",
 
     // --- THEME ---
-    "workbench.colorTheme": "Monokai Pirokai - Beach Sunset",
-    "errorLens.onInlayHints": true
+    "errorLens.onInlayHints": true,
+
+    // --- Vira Theme ---
+    "files.insertFinalNewline": true,
+    "workbench.iconTheme": "vira-icons-carbon",
+    "workbench.productIconTheme": "viraUIIcons",
+    "workbench.colorTheme": "Vira Carbon High Contrast",
+    "workbench.colorCustomizations": {
+        "[Vira*]": {
+            "statusBar.debuggingBackground": "#FFFFFF33",
+            "statusBar.debuggingForeground": "#FFFFFF",
+            "toolbar.activeBackground": "#FFFFFF26",
+            "button.background": "#FFFFFF",
+            "button.hoverBackground": "#FFFFFFcc",
+            "extensionButton.separator": "#FFFFFF33",
+            "extensionButton.background": "#FFFFFF14",
+            "extensionButton.foreground": "#FFFFFF",
+            "extensionButton.hoverBackground": "#FFFFFF33",
+            "extensionButton.prominentForeground": "#FFFFFF",
+            "extensionButton.prominentBackground": "#FFFFFF14",
+            "extensionButton.prominentHoverBackground": "#FFFFFF33",
+            "activityBarBadge.background": "#FFFFFF",
+            "activityBar.activeBorder": "#FFFFFF",
+            "activityBarTop.activeBorder": "#FFFFFF",
+            "list.inactiveSelectionIconForeground": "#FFFFFF",
+            "list.activeSelectionForeground": "#FFFFFF",
+            "list.inactiveSelectionForeground": "#FFFFFF",
+            "list.highlightForeground": "#FFFFFF",
+            "sash.hoverBorder": "#FFFFFF80",
+            "list.activeSelectionIconForeground": "#FFFFFF",
+            "scrollbarSlider.activeBackground": "#FFFFFF80",
+            "editorSuggestWidget.highlightForeground": "#FFFFFF",
+            "textLink.foreground": "#FFFFFF",
+            "progressBar.background": "#FFFFFF",
+            "pickerGroup.foreground": "#FFFFFF",
+            "tab.activeBorder": "#FFFFFF",
+            "tab.activeBorderTop": "#FFFFFF00",
+            "tab.unfocusedActiveBorder": "#FFFFFF",
+            "tab.unfocusedActiveBorderTop": "#FFFFFF00",
+            "tab.activeModifiedBorder": "#FFFFFF00",
+            "notificationLink.foreground": "#FFFFFF",
+            "editorWidget.resizeBorder": "#FFFFFF",
+            "editorWidget.border": "#FFFFFF",
+            "settings.modifiedItemIndicator": "#FFFFFF",
+            "panelTitle.activeBorder": "#FFFFFF",
+            "breadcrumb.activeSelectionForeground": "#FFFFFF",
+            "menu.selectionForeground": "#FFFFFF",
+            "menubar.selectionForeground": "#FFFFFF",
+            "editor.findMatchBorder": "#FFFFFF",
+            "selection.background": "#FFFFFF40",
+            "statusBarItem.remoteBackground": "#FFFFFF14",
+            "statusBarItem.remoteHoverBackground": "#FFFFFF",
+            "statusBarItem.remoteForeground": "#FFFFFF",
+            "notebook.inactiveFocusedCellBorder": "#FFFFFF80",
+            "chat.slashCommandForeground": "#FFFFFF",
+            "chat.avatarForeground": "#FFFFFF",
+            "activityBarBadge.foreground": "#000000",
+            "button.foreground": "#000000",
+            "statusBarItem.remoteHoverForeground": "#000000"
+        }
+    },
+    "viraTheme.accent": "White"
 
     // -- HINWEISE ---
     // vscode://settings/php-cs-fixer.allow-risky muss auf true gesetzt werden! Also Haken rein!
