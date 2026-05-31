@@ -237,167 +237,6 @@ return [
                     'label' => 'Tab: Mail-Logs sehen',
                     'key'   => 'dashboard.logs.view',
                 ],
-                'migration' => [
-                    'label'    => 'Tab: Migration des Speichers sehen (ADMINISTRATIV!)',
-                    'key'      => 'dashboard.migration.view',
-                    'children' => [
-                        'sync' => [
-                            'label'    => 'Migration: Tabelle für JSON/SQL-Transfer und Synchronisierung anzeigen',
-                            'key'      => 'dashboard.migration.sync.view',
-                            'children' => [
-                                'users' => [
-                                    'label'    => 'Migration: Alle Datenüberführungen Aktionen',
-                                    'key'      => 'dashboard.migration.users.view',
-                                    'children' => [
-                                        'json_to_mysql' => [
-                                            'label' => 'Migration: Daten -> SQL (Überschreibt DB!)',
-                                            'key'   => 'dashboard.migration.users.json_to_mysql',
-                                        ],
-                                        'mysql_to_json' => [
-                                            'label' => 'Migration: Daten -> JSON (Überschreibt Datei!)',
-                                            'key'   => 'dashboard.migration.users.mysql_to_json',
-                                        ],
-                                        'sync' => [
-                                            'label' => 'Migration: Daten-Bestände zusammenführen',
-                                            'key'   => 'dashboard.migration.users.sync',
-                                        ],
-                                    ],
-                                ],
-                                'vouchers' => [
-                                    'label'    => 'Migration: Alle Gutschein Aktionen',
-                                    'key'      => 'dashboard.migration.vouchers.view',
-                                    'children' => [
-                                        'json_to_mysql' => [
-                                            'label' => 'Migration: Gutscheine -> SQL (Überschreibt DB!)',
-                                            'key'   => 'dashboard.migration.vouchers.json_to_mysql',
-                                        ],
-                                        'mysql_to_json' => [
-                                            'label' => 'Migration: Gutscheine -> JSON (Überschreibt Datei!)',
-                                            'key'   => 'dashboard.migration.vouchers.mysql_to_json',
-                                        ],
-                                        'sync' => [
-                                            'label' => 'Migration: Gutscheine Bestände zusammenführen',
-                                            'key'   => 'dashboard.migration.vouchers.sync',
-                                        ],
-                                    ],
-                                ],
-                                'permits' => [
-                                    'label'    => 'Migration: Alle Genehmigungs Aktionen',
-                                    'key'      => 'dashboard.migration.permits.view',
-                                    'children' => [
-                                        'json_to_mysql' => [
-                                            'label' => 'Migration: Genehmigungen -> SQL (Überschreibt DB!)',
-                                            'key'   => 'dashboard.migration.permits.json_to_mysql',
-                                        ],
-                                        'mysql_to_json' => [
-                                            'label' => 'Migration: Genehmigungen -> JSON (Überschreibt Datei!)',
-                                            'key'   => 'dashboard.migration.permits.mysql_to_json',
-                                        ],
-                                        'sync' => [
-                                            'label' => 'Migration: Genehmigungen Bestände zusammenführen',
-                                            'key'   => 'dashboard.migration.permits.sync',
-                                        ],
-                                    ],
-                                ],
-                                'mail_log' => [
-                                    'label'    => 'Migration: Alle Mail-Log Aktionen',
-                                    'key'      => 'dashboard.migration.mail_log.view',
-                                    'children' => [
-                                        'json_to_mysql' => [
-                                            'label' => 'Migration: Mail-Logs -> SQL schieben',
-                                            'key'   => 'dashboard.migration.mail_log.json_to_mysql',
-                                        ],
-                                        'mysql_to_json' => [
-                                            'label' => 'Migration: Mail-Logs -> JSON (Überschreibt Datei!)',
-                                            'key'   => 'dashboard.migration.mail_log.mysql_to_json',
-                                        ],
-                                        'sync' => [
-                                            'label' => 'Migration: Mail-Logs Bestände zusammenführen',
-                                            'key'   => 'dashboard.migration.mail_log.sync',
-                                        ],
-                                    ],
-                                ],
-                                'pending_verification' => [
-                                    'label'    => 'Migration: Alle Warteraum Aktionen',
-                                    'key'      => 'dashboard.migration.pending_verification.view',
-                                    'children' => [
-                                        'json_to_mysql' => [
-                                            'label' => 'Migration: Warteraum -> SQL schieben',
-                                            'key'   => 'dashboard.migration.pending_verification.json_to_mysql',
-                                        ],
-                                        'mysql_to_json' => [
-                                            'label' => 'Migration: Warteraum -> JSON (Überschreibt Datei!)',
-                                            'key'   => 'dashboard.migration.pending_verification.mysql_to_json',
-                                        ],
-                                        'sync' => [
-                                            'label' => 'Migration: Warteraum Bestände zusammenführen',
-                                            'key'   => 'dashboard.migration.pending_verification.sync',
-                                        ],
-                                    ],
-                                ],
-                                'magic_links' => [
-                                    'label'    => 'Migration: Alle Token Aktionen',
-                                    'key'      => 'dashboard.migration.magic_links.view',
-                                    'children' => [
-                                        'json_to_mysql' => [
-                                            'label' => 'Migration: Login-Tokens -> SQL schieben',
-                                            'key'   => 'dashboard.migration.magic_links.json_to_mysql',
-                                        ],
-                                        'mysql_to_json' => [
-                                            'label' => 'Migration: Login-Tokens -> JSON (Überschreibt Datei!)',
-                                            'key'   => 'dashboard.migration.magic_links.mysql_to_json',
-                                        ],
-                                        'sync' => [
-                                            'label' => 'Migration: Login-Tokens Bestände zusammenführen',
-                                            'key'   => 'dashboard.migration.magic_links.sync',
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                        'backups' => [
-                            'label'    => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
-                            'key'      => 'dashboard.migration.backups.view',
-                            'children' => [
-                                'restore' => [
-                                    'label' => 'System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
-                                    'key'   => 'dashboard.migration.restore.execute',
-                                ],
-                            ],
-                        ],
-                        'admin-tools' => [
-                            'label'    => 'Admin-Tools: Liste der verfügbaren Admin-Tools',
-                            'key'      => 'dashboard.admin-tools.view',
-                            'children' => [
-                                'delete-cache' => [
-                                    'label' => 'Admin-Tools: Cache und temporäre Dateien löschen',
-                                    'key'   => 'dashboard.migration.delete-cache.execute',
-                                ],
-                                'delete-data' => [
-                                    'label' => 'Admin-Tools: Die kompletten SQL Tabelle oder JSON-Dateien löschen',
-                                    'key'   => 'dashboard.migration.delete-data.execute',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ],
-
-        'system' => [
-            'label' => 'System- & Benutzer-Verwaltung',
-            /* 'key'      => 'system.manage', */
-            'children' => [
-                'users' => [
-                    'label'    => 'Benutzerverwaltung',
-                    'key'      => 'system.users.manage',
-                    'children' => [
-                        'groups' => [
-                            'label' => 'Benutzer, Gruppen & Rechte verwalten',
-                            'key'   => 'system.groups.manage',
-                        ],
-                    ],
-                ],
             ],
         ],
         'templates' => [
@@ -443,6 +282,262 @@ return [
                 'std_klause' => [
                     'label' => 'Genehmigung: Klause Belieferung Spezialzeiträume ausstellen',
                     'key'   => 'template.std.klause',
+                ],
+            ],
+        ],
+
+        'system' => [
+            'label' => '🔴 System- & Benutzer-Verwaltung (SYSTEM-ZUGRIFF) 🔴',
+            /* 'key'      => 'system.manage', */
+            'children' => [
+                'permissions' => [
+                    'label'    => 'System- & Benutzer-Verwaltung (RECHTE-VERWALTUNG)',
+                    'key'      => 'system.permissions.view',
+                    'children' => [
+                        'users' => [
+                            'label' => 'Benutzerverwaltung',
+                            'key'   => 'system.permissions.users.manage',
+                        ],
+                        'groups' => [
+                            'label' => 'Benutzer, Gruppen & Rechte verwalten',
+                            'key'   => 'system.permissions.groups.manage',
+                        ],
+                    ],
+                ],
+
+                'migration' => [
+                    'label'    => 'Tab: Migration des Speichers sehen (ADMINISTRATIVE-SPEICHERVERWALTUNG!)',
+                    'key'      => 'dashboard.migration.view',
+                    'children' => [
+                        'sync' => [
+                            'label'    => 'Migration: Tabelle für JSON/SQL-Transfer und Synchronisierung anzeigen',
+                            'key'      => 'dashboard.migration.sync.view',
+                            'children' => [
+                                'users' => [
+                                    'label'    => 'Migration: Alle Datenüberführungen Aktionen',
+                                    'key'      => 'dashboard.migration.users.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Daten -> SQL',
+                                            'key'   => 'dashboard.migration.users.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Daten -> JSON',
+                                            'key'   => 'dashboard.migration.users.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Daten-Bestände zusammenführen',
+                                            'key'   => 'dashboard.migration.users.sync',
+                                        ],
+                                    ],
+                                ],
+                                'groups' => [
+                                    'label'    => 'Migration: Gruppen Aktionen',
+                                    'key'      => 'dashboard.migration.groups.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Gruppen -> SQL',
+                                            'key'   => 'dashboard.migration.groups.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Gruppen -> JSON',
+                                            'key'   => 'dashboard.migration.groups.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Gruppen zusammenführen',
+                                            'key'   => 'dashboard.migration.groups.sync',
+                                        ],
+                                    ],
+                                ],
+                                'vouchers' => [
+                                    'label'    => 'Migration: Alle Gutschein Aktionen',
+                                    'key'      => 'dashboard.migration.vouchers.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Gutscheine -> SQL',
+                                            'key'   => 'dashboard.migration.vouchers.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Gutscheine -> JSON',
+                                            'key'   => 'dashboard.migration.vouchers.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Gutscheine Bestände zusammenführen',
+                                            'key'   => 'dashboard.migration.vouchers.sync',
+                                        ],
+                                    ],
+                                ],
+                                'vouchers_archive' => [
+                                    'label'    => 'Migration: Gutschein-Archiv Aktionen',
+                                    'key'      => 'dashboard.migration.vouchers_archive.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Gutschein-Archiv -> SQL',
+                                            'key'   => 'dashboard.migration.vouchers_archive.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Gutschein-Archiv -> JSON',
+                                            'key'   => 'dashboard.migration.vouchers_archive.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Gutschein-Archiv zusammenführen',
+                                            'key'   => 'dashboard.migration.vouchers_archive.sync',
+                                        ],
+                                    ],
+                                ],
+                                'permits' => [
+                                    'label'    => 'Migration: Alle Genehmigungs Aktionen',
+                                    'key'      => 'dashboard.migration.permits.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Genehmigungen -> SQL',
+                                            'key'   => 'dashboard.migration.permits.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Genehmigungen -> JSON',
+                                            'key'   => 'dashboard.migration.permits.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Genehmigungen Bestände zusammenführen',
+                                            'key'   => 'dashboard.migration.permits.sync',
+                                        ],
+                                    ],
+                                ],
+                                'permits_archive' => [
+                                    'label'    => 'Migration: Genehmigungs-Archiv Aktionen',
+                                    'key'      => 'dashboard.migration.permits_archive.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Genehmigungs-Archiv -> SQL',
+                                            'key'   => 'dashboard.migration.permits_archive.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Genehmigungs-Archiv -> JSON',
+                                            'key'   => 'dashboard.migration.permits_archive.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Genehmigungs-Archiv zusammenführen',
+                                            'key'   => 'dashboard.migration.permits_archive.sync',
+                                        ],
+                                    ],
+                                ],
+                                'mail_queue' => [
+                                    'label'    => 'Migration: Mail-Warteschlange Aktionen',
+                                    'key'      => 'dashboard.migration.mail_queue.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Mail-Warteschlange -> SQL',
+                                            'key'   => 'dashboard.migration.mail_queue.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Mail-Warteschlange -> JSON',
+                                            'key'   => 'dashboard.migration.mail_queue.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Mail-Warteschlange zusammenführen',
+                                            'key'   => 'dashboard.migration.mail_queue.sync',
+                                        ],
+                                    ],
+                                ],
+                                'mail_log' => [
+                                    'label'    => 'Migration: Alle Mail-Log Aktionen',
+                                    'key'      => 'dashboard.migration.mail_log.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Mail-Logs -> SQL schieben',
+                                            'key'   => 'dashboard.migration.mail_log.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Mail-Logs -> JSON',
+                                            'key'   => 'dashboard.migration.mail_log.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Mail-Logs Bestände zusammenführen',
+                                            'key'   => 'dashboard.migration.mail_log.sync',
+                                        ],
+                                    ],
+                                ],
+                                'pending_verification' => [
+                                    'label'    => 'Migration: Alle Warteraum Aktionen',
+                                    'key'      => 'dashboard.migration.pending_verification.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Warteraum -> SQL schieben',
+                                            'key'   => 'dashboard.migration.pending_verification.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Warteraum -> JSON',
+                                            'key'   => 'dashboard.migration.pending_verification.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Warteraum Bestände zusammenführen',
+                                            'key'   => 'dashboard.migration.pending_verification.sync',
+                                        ],
+                                    ],
+                                ],
+                                'verified_pending' => [
+                                    'label'    => 'Migration: Warteraum (Zahlung) Aktionen',
+                                    'key'      => 'dashboard.migration.verified_pending.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Warteraum Zahlung -> SQL',
+                                            'key'   => 'dashboard.migration.verified_pending.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Warteraum Zahlung -> JSON',
+                                            'key'   => 'dashboard.migration.verified_pending.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Warteraum Zahlung zusammenführen',
+                                            'key'   => 'dashboard.migration.verified_pending.sync',
+                                        ],
+                                    ],
+                                ],
+                                'magic_links' => [
+                                    'label'    => 'Migration: Alle Token Aktionen',
+                                    'key'      => 'dashboard.migration.magic_links.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Login-Tokens -> SQL schieben',
+                                            'key'   => 'dashboard.migration.magic_links.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Login-Tokens -> JSON',
+                                            'key'   => 'dashboard.migration.magic_links.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Login-Tokens Bestände zusammenführen',
+                                            'key'   => 'dashboard.migration.magic_links.sync',
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        'backups' => [
+                            'label'    => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
+                            'key'      => 'dashboard.migration.backups.view',
+                            'children' => [
+                                'restore' => [
+                                    'label' => 'System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
+                                    'key'   => 'dashboard.migration.restore.execute',
+                                ],
+                            ],
+                        ],
+                        'admin-tools' => [
+                            'label'    => 'Admin-Tools: Liste der verfügbaren Admin-Tools',
+                            'key'      => 'dashboard.admin-tools.view',
+                            'children' => [
+                                'delete-cache' => [
+                                    'label' => 'Admin-Tools: Cache und temporäre Dateien löschen',
+                                    'key'   => 'dashboard.migration.delete-cache.execute',
+                                ],
+                                'delete-data' => [
+                                    'label' => 'Admin-Tools: Die kompletten SQL Tabelle oder JSON-Dateien löschen',
+                                    'key'   => 'dashboard.migration.delete-data.execute',
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ],

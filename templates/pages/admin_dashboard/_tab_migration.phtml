@@ -19,12 +19,17 @@
  */
 if ($auth->hasPermission('dashboard.migration.view')) {
     $targets = [
-        'users'                => ['label' => 'Benutzerkonten', 'icon' => '👥'],
-        'vouchers'             => ['label' => 'Gutscheine', 'icon' => '🎟️'],
-        'permits'              => ['label' => 'Genehmigungen', 'icon' => '📄'],
-        'mail_log'             => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
-        'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => '⏳'],
+        'groups'               => ['label' => 'Benutzergruppen', 'icon' => '🛡️'],
         'magic_links'          => ['label' => 'Login-Tokens', 'icon' => '🔗'],
+        'mail_log'             => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
+        'mail_queue'           => ['label' => 'Mail-Warteschlange', 'icon' => '📤'],
+        'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => '✉️'],
+        'permits'              => ['label' => 'Genehmigungen', 'icon' => '📄'],
+        'permits_archive'      => ['label' => 'Genehmigungs-Archiv', 'icon' => '🗄️'],
+        'users'                => ['label' => 'Benutzerkonten', 'icon' => '👥'],
+        'verified_pending'     => ['label' => 'Warteraum (Zahlung)', 'icon' => '💳'],
+        'vouchers'             => ['label' => 'Gutscheine', 'icon' => '🎟️'],
+        'vouchers_archive'     => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
     ];
 
     $backups = $backupService->listBackups();
@@ -122,7 +127,15 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                             class="c-button c-button--primary u-width-100"
                                             style="font-size: 0.9rem; font-weight: 600;"
                                             <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.sync") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
-                                        🔄 Zusammenführen (Sync)
+                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                                             class="c-icon"
+                                             alt="Sync">
+                                        </a>
+                                        &ensp;Zusammenführen (Sync)&ensp;
+                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp"
+                                             class="c-icon"
+                                             alt="Gefährliche Aktion!">
+                                        </a>
                                     </button>
                                 </form>
                             </div>

@@ -215,11 +215,14 @@ final readonly class MigrationService
             'users'                => $this->authService->saveUsers($data, true),
             'groups'               => $this->authService->saveGroups($data, true),
             'vouchers'             => $this->voucherService->saveVouchers($data, true),
+            'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
             'magic_links'          => $this->magicLinkService->saveLinks($data, true),
             'mail_log'             => $this->mailService->saveLogs($data, true),
+            'mail_queue'           => $this->migrateMailQueueToSql($data),
             'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
             'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
             'permits'              => $this->migratePermitsToSql($data),
+            'permits_archive'      => $this->migratePermitsArchiveToSql($data),
             default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
         };
     }
@@ -244,6 +247,108 @@ final readonly class MigrationService
                 $item['code'] = $key;
             }
             $storage->save($this->permitService->arrayToEntity($item));
+        }
+    }
+
+    // TODO DocBlock erstellen
+    private function migratePermitsArchiveToSql(array $data): void
+    {
+        if (! $this->pdo instanceof \PDO) {
+            return;
+        }
+        $table = $this->config->get('storage_config')['permits_archive']['table'];
+        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (
+            code,
+            template_key,
+            name, email,
+            kennzeichen,
+            parzelle,
+            typ,
+            firma,
+            zweck,
+            preis,
+            von,
+            bis,
+            status,
+            erstellt,
+            interner_kommentar
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        foreach ($data as $code => $item) {
+            $stmt->execute([
+                $item['code'] ?? $code,
+                $item['template_key'] ?? '',
+                $item['name'] ?? '',
+                $item['email'] ?? null,
+                $item['kennzeichen'] ?? null,
+                $item['parzelle'] ?? '',
+                $item['typ'] ?? '',
+                $item['firma'] ?? null,
+                $item['zweck'] ?? '',
+                (float) ($item['preis'] ?? 0),
+                $item['von'] ?? '',
+                $item['bis'] ?? '',
+                $item['status'] ?? 'offen',
+                $item['erstellt'] ?? '',
+                $item['interner_kommentar'] ?? null,
+            ]);
+        }
+    }
+
+    // TODO DocBlock erstellen
+    private function migrateVouchersArchiveToSql(array $data): void
+    {
+        if (! $this->pdo instanceof \PDO) {
+            return;
+        }
+        $table = $this->config->get('storage_config')['vouchers_archive']['table'];
+        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (
+            id,
+            code,
+            redeemed_at,
+            user_name,
+            user_plot
+        ) VALUES (?, ?, ?, ?, ?)");
+
+        foreach ($data as $id => $item) {
+            $stmt->execute([
+                $id,
+                $item['code'] ?? '',
+                $item['redeemed_at'] ?? '',
+                $item['user_name'] ?? '',
+                $item['user_plot'] ?? '',
+            ]);
+        }
+    }
+
+    // TODO DocBlock erstellen
+    private function migrateMailQueueToSql(array $data): void
+    {
+        if (! $this->pdo instanceof \PDO) {
+            return;
+        }
+        $table = $this->config->get('storage_config')['mail_queue']['table'];
+        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (
+            id,
+            recipient,
+            subject,
+            template,
+            data,
+            attempts,
+            created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
+        foreach ($data as $id => $item) {
+            $payload = $item['data'] ?? [];
+            $stmt->execute([
+                $id,
+                $item['recipient'] ?? '',
+                $item['subject'] ?? '',
+                $item['template'] ?? '',
+                \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
+                (int) ($item['attempts'] ?? 0),
+                $item['created_at'] ?? '',
+            ]);
         }
     }
 
