@@ -46,15 +46,14 @@ final readonly class MagicLinkService
     {
         $token = \bin2hex(\random_bytes(32));
         // Kurzer, gut lesbarer Code für manuelle Eingabe
-        $code = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
-
+        $code     = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
         $links    = $this->loadLinks();
         $duration = (int) $this->config->get('magic_link_duration', 15);
 
         $links[$token] = [
             'email'   => $email,
             'code'    => $code,
-            'expires' => \time() + ($duration * 60),
+            'expires' => \date('Y-m-d H:i:s', \time() + ($duration * 60)), // DATETIME statt INT
         ];
 
         $this->saveLinks($links);
@@ -74,7 +73,7 @@ final readonly class MagicLinkService
     public function verifyAny(string $input): ?string
     {
         $links      = $this->loadLinks();
-        $now        = \time();
+        $now        = \date('Y-m-d H:i:s'); // String-Vergleich für DATETIME
         $trimmed    = \trim($input);
         $foundEmail = null;
 
@@ -117,27 +116,36 @@ final readonly class MagicLinkService
      */
     private function loadLinks(): array
     {
-        $cfg = $this->config->get('storage_config')['magic_links'];
+        $cfg   = $this->config->get('storage_config')['magic_links'];
+        $links = [];
+
         if ($cfg['type'] === 'mysql') {
-            $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
-            $rows  = $stmt->fetchAll();
-            $links = [];
-            foreach ($rows as $r) {
-                $links[$r['token']] = [
-                    'email'   => $r['email'],
-                    'code'    => $r['code'],
-                    'expires' => (int) $r['expires'],
-                ];
+            if ($this->pdo instanceof \PDO) {
+                $stmt = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+                $rows = $stmt->fetchAll();
+                foreach ($rows as $r) {
+                    $links[$r['token']] = [
+                        'email'   => $r['email'],
+                        'code'    => $r['code'],
+                        'expires' => (int) $r['expires'],
+                    ];
+                }
             }
-
-            return $links;
+        } elseif (\file_exists($this->storagePath)) {
+            $links = \json_decode(
+                (string) \file_get_contents($this->storagePath),
+                true,
+            ) ?? [];
         }
 
-        if (! \file_exists($this->storagePath)) {
-            return [];
+        // On-the-fly Konvertierung: Alte Unix-Timestamps aus der JSON-Datei heilen
+        foreach ($links as &$l) {
+            if (isset($l['expires']) && \is_numeric($l['expires'])) {
+                $l['expires'] = \date('Y-m-d H:i:s', (int) $l['expires']);
+            }
         }
 
-        return \json_decode((string) \file_get_contents($this->storagePath), true) ?? [];
+        return $links;
     }
 
     /**
@@ -155,8 +163,15 @@ final readonly class MagicLinkService
             $stmt = $this->pdo->prepare(
                 "INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)",
             );
+
             foreach ($links as $token => $d) {
-                $stmt->execute([$token, $d['email'], $d['code'], (int) $d['expires']]);
+                // Falls durch den MigrationService noch ein numerischer String reinrutscht
+                $exp = $d['expires'] ?? \date('Y-m-d H:i:s');
+                if (\is_numeric($exp)) {
+                    $exp = \date('Y-m-d H:i:s', (int) $exp);
+                }
+
+                $stmt->execute([$token, $d['email'], $d['code'], $exp]);
             }
             if ($forceSql) {
                 return;

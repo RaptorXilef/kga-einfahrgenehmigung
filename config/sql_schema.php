@@ -17,7 +17,7 @@ return [
     'groups' => 'CREATE TABLE IF NOT EXISTS `groups` (
         `id` VARCHAR(50) PRIMARY KEY,
         `name` VARCHAR(100) NOT NULL,
-        `permissions` TEXT
+        `permissions` JSON
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'users' => 'CREATE TABLE IF NOT EXISTS `users` (
@@ -42,7 +42,7 @@ return [
         `created_by` VARCHAR(50), -- VORHER: createdBy
         `created_at` DATETIME,
         `status` VARCHAR(20) DEFAULT \'aktiv\',
-        `data` TEXT,
+        `data` JSON,
         INDEX `idx_voucher_validity` (`expires_at`, `uses_count`, `max_uses`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
@@ -96,7 +96,7 @@ return [
         `subject` VARCHAR(255) NOT NULL,
         `template` VARCHAR(100) NOT NULL,
         `status` TEXT,
-        `data` LONGTEXT,
+        `data` JSON,
         INDEX `idx_recipient` (`recipient`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
@@ -105,7 +105,7 @@ return [
         `recipient` VARCHAR(255) NOT NULL,
         `subject` VARCHAR(255) NOT NULL,
         `template` VARCHAR(100) NOT NULL,
-        `data` LONGTEXT NOT NULL,
+        `data` JSON NOT NULL,
         `attempts` INT DEFAULT 0,
         `created_at` DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
@@ -114,20 +114,20 @@ return [
         `token` VARCHAR(64) PRIMARY KEY,
         `email` VARCHAR(255) NOT NULL,
         `code` VARCHAR(10),
-        `expires` INT,
+        `expires` DATETIME,
         INDEX `idx_code` (`code`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'pending_verifications' => 'CREATE TABLE IF NOT EXISTS `pending_verifications` (
         `token` VARCHAR(64) PRIMARY KEY,
-        `expires` INT,
-        `data` LONGTEXT
+        `expires` DATETIME,
+        `data` JSON
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'verified_pending' => 'CREATE TABLE IF NOT EXISTS `verified_pending` (
         `token` VARCHAR(64) PRIMARY KEY,
-        `expires` INT,
-        `data` LONGTEXT
+        `expires` DATETIME,
+        `data` JSON
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'vouchers_archive' => 'CREATE TABLE IF NOT EXISTS `vouchers_archive` (

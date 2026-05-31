@@ -180,28 +180,38 @@ final readonly class PermitService
         $vehicleTypes  = (array) $this->config->get('vehicle_types', []);
         $defaultType   = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
         $typ           = $data['typ'] ?? $defaultType;
-        $data['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
-
+        $data['preis'] = (float) (
+            $template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0)
+        );
         $token     = \bin2hex(\random_bytes(32));
-        $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
-
+        $shortCode = \strtoupper(\substr(
+            \bin2hex(\random_bytes(4)),
+            0,
+            6,
+        ));
         $data['verification_token'] = $token;
         $data['verification_code']  = $shortCode;
         $hours                      = (int) $this->config->get('hours_pending_verify', 24);
-        $data['expires']            = \time() + (3600 * $hours);
-
-        // Wir speichern das in einer separaten Datei oder MySQL
+        $data['expires']            = \date(
+            'Y-m-d H:i:s',
+            \time() + (3600 * $hours),
+        ); // DATETIME String
         $path               = $this->getStoragePath('pending_verification');
         $allPending         = $this->loadJson($path);
         $allPending[$token] = $data;
         $this->saveJson($path, $allPending);
 
-        $this->mailService->sendTemplate((string) $data['email'], 'E-Mail bestätigen', 'verify_email', [
-            'name'        => (string) $data['name'],
-            'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
-            'code'        => $shortCode,
-            'vereinsName' => $this->config->get('vereins_name'),
-        ]);
+        $this->mailService->sendTemplate(
+            (string) $data['email'],
+            'E-Mail bestätigen',
+            'verify_email',
+            [
+                'name'        => (string) $data['name'],
+                'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
+                'code'        => $shortCode,
+                'vereinsName' => $this->config->get('vereins_name'),
+            ],
+        );
 
         return $token;
     }
@@ -256,16 +266,18 @@ final readonly class PermitService
 
         // 2. Check in den ausstehenden E-Mail-Bestätigungen (Pending)
         $allPending = $this->loadJson($this->getStoragePath('pending_verification'));
+        $nowStr     = \date('Y-m-d H:i:s');
 
         foreach ($allPending as $pending) {
-            $pPlot  = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
-            $pStart = new \DateTimeImmutable((string) ($pending['datum_von'] ?? 'now'));
-            $pEnd   = new \DateTimeImmutable((string) ($pending['datum_bis'] ?? 'now'));
+            $pPlot   = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
+            $pStart  = new \DateTimeImmutable((string) ($pending['datum_von'] ?? 'now'));
+            $pEnd    = new \DateTimeImmutable((string) ($pending['datum_bis'] ?? 'now'));
+            $expires = $pending['expires'] ?? '';
 
             // Nur prüfen, wenn die ausstehende Anfrage noch nicht abgelaufen ist
             if (
                 $pPlot === $parzelleFormatted
-                && (int) ($pending['expires'] ?? 0) > \time()
+                && $expires > $nowStr
                 && $this->datesOverlap($pStart, $pEnd, $start, $end)
             ) {
                 throw new \RuntimeException(
@@ -301,10 +313,8 @@ final readonly class PermitService
     {
         $pendingPath  = $this->getStoragePath('pending_verification');
         $verifiedPath = $this->getStoragePath('verified_pending');
-
-        $allPending = $this->loadJson($pendingPath);
-        $input      = \strtoupper(\trim($input));
-
+        $allPending   = $this->loadJson($pendingPath);
+        $input        = \strtoupper(\trim($input));
         $matchedToken = null;
 
         // 1. Suche nach Lang-Token ODER Kurz-Code
@@ -336,8 +346,8 @@ final readonly class PermitService
 
         // 3. Neue Ablaufzeit für Warteraum 2 setzen (z.B. 48h für Zahlung)
         $hours               = (int) $this->config->get('hours_pending_finalize', 48);
-        $data['verified_at'] = \time();
-        $data['expires']     = \time() + (3600 * $hours);
+        $data['verified_at'] = \date('Y-m-d H:i:s'); // Einheitlich auf DATETIME umgestellt
+        $data['expires']     = \date('Y-m-d H:i:s', \time() + (3600 * $hours));
 
         // 4. GUTSCHEIN-LOGIK (ERWEITERT)
         $voucherCode = \trim((string) ($data['voucher'] ?? ''));
@@ -395,9 +405,8 @@ final readonly class PermitService
      */
     public function calculateDiscountedPrice(float $originalPrice, array $voucher): float
     {
-        $type  = $voucher['type'] ?? 'free';
-        $value = (float) ($voucher['value'] ?? 0.0);
-
+        $type     = $voucher['type'] ?? 'free';
+        $value    = (float) ($voucher['value'] ?? 0.0);
         $newPrice = match ($type) {
             'free'    => 0.0,
             'fixed'   => $value,
@@ -426,15 +435,14 @@ final readonly class PermitService
             throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
         }
 
-        $data                      = (array) $allVerified[$token];
-        $data['status']            = $status;
+        $data                       = (array) $allVerified[$token];
+        $data['status']             = $status;
         $data['interner_kommentar'] = $kommentar;
-
-        // Echte Permit erstellen
-        $permit = $this->createPermit($data, true);
+        $permit                     = $this->createPermit($data, true); // Echte Permit erstellen
 
         // Aus Warteraum löschen
         unset($allVerified[$token]);
+
         $this->saveJson($verifiedPath, $allVerified);
 
         return $permit;
@@ -455,14 +463,18 @@ final readonly class PermitService
         if ($isPending || $isVerified) {
             $targetKey = $isPending ? 'pending_verification' : 'verified_pending';
             $table     = $mapping[$targetKey]['table'];
-
-            $useSql = $forceSql || ($mapping[$targetKey]['type'] === 'mysql');
+            $useSql    = $forceSql || ($mapping[$targetKey]['type'] === 'mysql');
 
             if ($useSql && $this->pdo instanceof \PDO) {
                 $this->pdo->exec("DELETE FROM $table");
                 $stmt = $this->pdo->prepare("INSERT INTO $table (token, expires, data) VALUES (?, ?, ?)");
                 foreach ($data as $token => $item) {
-                    $stmt->execute([$token, $item['expires'] ?? 0, \json_encode($item)]);
+                    $exp = $item['expires'] ?? \date('Y-m-d H:i:s');
+                    if (\is_numeric($exp)) {
+                        $exp = \date('Y-m-d H:i:s', (int) $exp);
+                    }
+
+                    $stmt->execute([$token, $exp, \json_encode($item, \JSON_UNESCAPED_UNICODE)]);
                 }
                 if ($forceSql) {
                     return;
@@ -488,33 +500,36 @@ final readonly class PermitService
         $isPending  = \str_contains($path, 'pending_verification');
         $isVerified = \str_contains($path, 'verified_pending');
 
-        if (
-            ($isPending && $mapping['pending_verification']['type'] === 'mysql')
+        $data = [];
+
+        if (($isPending && $mapping['pending_verification']['type'] === 'mysql')
             || ($isVerified && ($mapping['verified_pending']['type'] ?? 'json') === 'mysql')
         ) {
             $table = $isPending ? $mapping['pending_verification']['table'] : $mapping['verified_pending']['table'];
-            if (! $this->pdo instanceof \PDO) {
-                return [];
+            if ($this->pdo instanceof \PDO) {
+                $stmt = $this->pdo->query("SELECT * FROM $table");
+                foreach ($stmt->fetchAll() as $r) {
+                    $data[$r['token']]            = \json_decode((string) $r['data'], true);
+                    $data[$r['token']]['expires'] = (int) $r['expires'];
+                }
             }
-
-            $stmt = $this->pdo->query("SELECT * FROM $table");
-            $res  = [];
-            foreach ($stmt->fetchAll() as $r) {
-                $res[$r['token']]            = \json_decode((string) $r['data'], true);
-                $res[$r['token']]['expires'] = (int) $r['expires'];
-            }
-
-            return $res;
+        } elseif (\file_exists($path)) {
+            $data = (array) \json_decode((string) \file_get_contents($path), true) ?? [];
         }
 
-        if (! \file_exists($path)) {
-            return [];
+        // On-the-fly Konvertierung für alte Unix-Timestamps aus der JSON
+        foreach ($data as &$item) {
+            if (isset($item['expires']) && \is_numeric($item['expires'])) {
+                $item['expires'] = \date('Y-m-d H:i:s', (int) $item['expires']);
+            }
         }
-        $data = (array) \json_decode((string) \file_get_contents($path), true) ?? [];
 
         if ($isPending) {
-            $now  = \time();
-            $data = \array_filter($data, fn (array $item): bool => isset($item['expires']) && (int) $item['expires'] > $now);
+            $nowStr = \date('Y-m-d H:i:s');
+            $data   = \array_filter(
+                $data,
+                fn (array $item): bool => isset($item['expires']) && $item['expires'] > $nowStr,
+            );
         }
 
         return $data;
@@ -533,8 +548,7 @@ final readonly class PermitService
         $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
         $geheimnis = (string) $this->config->get('geheimnis', '');
         $token     = \hash('sha256', $permit->code . $geheimnis);
-        // $opening   = $this->holidayService->getTodayAllowedSlots();
-        $opening = $this->holidayService->getGeneralOpeningHoursText();
+        $opening   = $this->holidayService->getGeneralOpeningHoursText();
 
         // --- 1. MAIL AN VORSTAND (Immer senden) ---
         $this->mailService->sendTemplate(
@@ -546,16 +560,15 @@ final readonly class PermitService
                 'name'           => $permit->owner->name,
                 'email'          => $permit->owner->email ?: 'Keine angegeben',
                 'parzelle'       => $permit->owner->parzelle,
-                // (Sicher gegen gelöschte Fahrzeugtypen):
-                'typLabel' => (function ($typ, $config) {
+                'typLabel'       => (function ($typ, $config) {
                     $vConfigs = $config->get('vehicle_types', []);
 
                     return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
-                })($permit->vehicle->typ, $this->config),
+                })($permit->vehicle->typ, $this->config), // (Sicher gegen gelöschte Fahrzeugtypen):
                 'kennzeichen'   => $permit->vehicle->kennzeichen,
                 'firma'         => $permit->vehicle->firma ?? '',
-                'von_formatted' => $permit->validity->von->format('d.m.Y'), // Key vereinheitlicht!
-                'bis_formatted' => $permit->validity->bis->format('d.m.Y'), // Key vereinheitlicht!
+                'von_formatted' => $permit->validity->von->format('d.m.Y'),
+                'bis_formatted' => $permit->validity->bis->format('d.m.Y'),
                 'zweck'         => $permit->validity->zweck,
                 'preis'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
                 'adminLink'     => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
@@ -769,11 +782,8 @@ final readonly class PermitService
             }
         } else {
             // JSON Archive (DYNAMISCH)
-            $arcCfg     = $this->config->get('storage_config')['permits_archive'];
-            $storageDir = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix');
-
-            // Wir nehmen das Muster aus der Config (z.B. permits_archive_{YEAR}.json)
-            // und ersetzen {YEAR} durch *, damit glob alle Jahre findet.
+            $arcCfg      = $this->config->get('storage_config')['permits_archive'];
+            $storageDir  = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix');
             $globPattern = \str_replace('{YEAR}', '*', (string) $arcCfg['file_pattern']);
             $archives    = \glob($storageDir . $globPattern);
 
@@ -971,11 +981,10 @@ final readonly class PermitService
         }
 
         $lastYear = (int) \date('Y') - 1;
-        // $cfg      = $this->config->get('storage_config')['permits'];
-        $arcCfg = $this->config->get('storage_config')['permits_archive'];
+        $arcCfg   = $this->config->get('storage_config')['permits_archive'];
+        $mainPath = $this->getStoragePath('permits');
+        $all      = $this->loadJson($mainPath);
 
-        $mainPath   = $this->getStoragePath('permits');
-        $all        = $this->loadJson($mainPath);
         $toArchive  = [];
         $stayInMain = [];
 
@@ -1014,8 +1023,8 @@ final readonly class PermitService
                 bis,
                 status,
                 erstellt,
-                interner_kommentar)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                interner_kommentar
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->pdo->prepare($sql);
             foreach ($toArchive as $item) {
                 $stmt->execute([
