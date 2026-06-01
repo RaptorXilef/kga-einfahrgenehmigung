@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
@@ -38,8 +39,6 @@ final readonly class PaymentController
      */
     public function handleCapture(): void
     {
-        \header('Content-Type: application/json');
-
         try {
             $input = \file_get_contents('php://input');
             $data  = \json_decode((string) $input, true);
@@ -56,16 +55,14 @@ final readonly class PaymentController
                 (string) $data['orderID'],
             );
 
-            echo \json_encode([
-                'success' => $success,
-                'message' => $success ? 'Zahlung verarbeitet und Antrag finalisiert' : 'Fehler bei Verifizierung',
-            ]);
+            if ($success) {
+                JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
+            } else {
+                JsonResponse::error('Fehler bei Verifizierung');
+            }
+
         } catch (\Exception $exception) {
-            \http_response_code(400);
-            echo \json_encode([
-                'success' => false,
-                'error'   => $exception->getMessage(),
-            ]);
+            JsonResponse::error($exception->getMessage(), 400);
         }
     }
 

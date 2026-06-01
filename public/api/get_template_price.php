@@ -13,28 +13,17 @@
 
 declare(strict_types=1);
 
+use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
-
-\header('Content-Type: application/json');
 
 try {
     // Hier zwei Ebenen hoch, da wir im Unterordner /api/ sind
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
+    JsonResponse::enforceCsrfProtection();
 
     $config        = $container->get(ConfigInterface::class);
     $permitService = $container->get(PermitService::class);
-
-    // --- CSRF SECURITY GATEKEEPER ---
-    $providedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    $sessionToken  = $_SESSION['csrf_token'] ?? '';
-
-    if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
-        \http_response_code(401);
-        echo \json_encode(['success' => false, 'error' => 'Unauthorized: Invalid Security Token']);
-        exit;
-    }
-    // --------------------------------
 
     $vehicleTypes = $config->get('vehicle_types', []);
     $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
@@ -43,9 +32,8 @@ try {
     $typ         = (string) ($_GET['typ'] ?? $defaultType); // Dynamischer Fallback (pkw)
     $voucherCode = \strtoupper(\trim((string) ($_GET['voucher'] ?? '')));
 
-    $templates = $config->get('permit_templates', []);
-    $template  = $templates[$key] ?? $templates['std_7'];
-
+    $templates     = $config->get('permit_templates', []);
+    $template      = $templates[$key] ?? $templates['std_7'];
     $originalPrice = (float) ($template['prices'][$typ] ?? 0.0);
     $finalPrice    = $originalPrice;
     $discountText  = '';
@@ -78,20 +66,19 @@ try {
         }
     }
 
-    echo \json_encode([
-        'success'      => true,
+    JsonResponse::success([
         'original'     => $originalPrice,
         'price'        => $finalPrice,
         'discountText' => $discountText,
         'formatted'    => \number_format($finalPrice, 2, ',', '.') . ' €',
         'isFree'       => $finalPrice <= 0,
-    ], \JSON_UNESCAPED_UNICODE); // Unicode für das € Zeichen
+    ]);
 } catch (\Throwable $e) {
-    // Falls ein schwerer Fehler auftritt, senden wir ihn als JSON
-    echo \json_encode([
+    // Bei diesem spezifischen Endpoint wollen wir auch im Fehlerfall eine formatierte Antwort
+    JsonResponse::send([
         'success'   => false,
         'error'     => $e->getMessage(),
         'price'     => 0.0,
         'formatted' => 'Fehler',
-    ]);
+    ], 400);
 }

@@ -13,21 +13,12 @@
 
 declare(strict_types=1);
 
+use App\Application\Response\JsonResponse;
 use App\Core\Service\HolidayService;
-
-\header('Content-Type: application/json');
 
 try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
-
-    $providedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    $sessionToken  = $_SESSION['csrf_token'] ?? '';
-
-    if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
-        \http_response_code(401);
-        echo \json_encode(['success' => false, 'error' => 'Unauthorized: Invalid Security Token']);
-        exit;
-    }
+    JsonResponse::enforceCsrfProtection();
 
     $vonStr = (string) ($_GET['von'] ?? 'now');
     $bisStr = (string) ($_GET['bis'] ?? 'now');
@@ -41,18 +32,19 @@ try {
     }
 
     $holidayService = $container->get(HolidayService::class);
+    $holidayNotice  = $holidayService->getHolidaysInRangeText($von, $bis, true);
 
     // Generiert exakt das Wording aus den E-Mails
     $openingHtml = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
         'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>' .
-        '<span style="color: #333;">' . $holidayService->getGeneralOpeningHoursText() . '</span>';
-    $holidayNotice = $holidayService->getHolidaysInRangeText($von, $bis, true);
+        '<span style="color: var(--primary-color); font-weight: bold;">' .
+        $holidayService->getGeneralOpeningHoursText() .
+        '</span>';
 
-    echo \json_encode([
-        'success'       => true,
+    JsonResponse::success([
         'openingHours'  => $openingHtml,
         'holidayNotice' => $holidayNotice,
-    ], \JSON_UNESCAPED_UNICODE);
+    ]);
 } catch (\Throwable $e) {
-    echo \json_encode(['success' => false, 'error' => $e->getMessage()]);
+    JsonResponse::error($e->getMessage());
 }

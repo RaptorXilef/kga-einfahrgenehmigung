@@ -16,20 +16,12 @@
 declare(strict_types=1);
 
 use App\Application\PaymentController;
+use App\Application\Response\JsonResponse;
 
 // Zentraler Bootstrapper laden
 $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
 
-// --- CSRF SECURITY GATEKEEPER ---
-$providedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-$sessionToken  = $_SESSION['csrf_token'] ?? '';
-
-if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
-    \http_response_code(401);
-    echo \json_encode(['success' => false, 'error' => 'Unauthorized: Invalid Security Token']);
-    exit;
-}
-// --------------------------------
+JsonResponse::enforceCsrfProtection();
 
 $controller = $container->get(PaymentController::class);
 $controller->handleCapture();

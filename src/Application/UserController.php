@@ -350,20 +350,9 @@ final readonly class UserController
 
         $groups = $this->auth->loadGroups();
         unset($groups[$id]);
-        $this->saveGroups($groups);
+        $this->auth->saveGroups($groups);
 
         return 'Gruppe gelöscht.';
-    }
-
-    /**
-     * Schreibt den modifizierten Gruppen- und Rechtedatensatz permanent in das JSON-Storage.
-     *
-     * @param array<string, mixed> $groups Das vollständige Gruppen-Rechte-Array.
-     */
-    private function saveGroups(array $groups): void
-    {
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . 'groups.json';
-        \file_put_contents($path, \json_encode($groups, \JSON_PRETTY_PRINT));
     }
 
     /**

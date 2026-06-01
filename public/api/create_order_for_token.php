@@ -13,25 +13,13 @@
 
 declare(strict_types=1);
 
+use App\Application\Response\JsonResponse;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
-\header('Content-Type: application/json');
-
 try {
-    // Bootstrapper laden
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
-
-    // --- CSRF SECURITY GATEKEEPER ---
-    $providedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    $sessionToken  = $_SESSION['csrf_token'] ?? '';
-
-    if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
-        \http_response_code(401);
-        echo \json_encode(['success' => false, 'error' => 'Unauthorized: Invalid Security Token']);
-        exit;
-    }
-    // --------------------------------
+    JsonResponse::enforceCsrfProtection();
 
     $token = (string) ($_GET['token'] ?? '');
     if ($token === '') {
@@ -51,7 +39,12 @@ try {
     $payment = $container->get(PaymentProviderInterface::class);
     $orderId = $payment->createOrder((float) $tempRequest['preis']);
 
-    echo \json_encode($orderId ? ['id' => $orderId] : ['success' => false, 'error' => 'PayPal Error']);
+    if ($orderId) {
+        JsonResponse::success(['id' => $orderId]);
+    } else {
+        JsonResponse::error('PayPal Error', 500);
+    }
+
 } catch (\Throwable $e) {
-    echo \json_encode(['success' => false, 'error' => $e->getMessage()]);
+    JsonResponse::error($e->getMessage());
 }
