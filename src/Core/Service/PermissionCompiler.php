@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 /**
+ * TODO Phase 3 nicht nötig
  * Performanz-Compiler für verschachtelte RBAC (Role-Based Access Control) Berechtigungsbäume.
  *
  * Evaluiert verschachtelte Modulbäume gegen flache Gruppenrechte, unterstützt Wildcards ('*')

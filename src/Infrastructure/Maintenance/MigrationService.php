@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Core\Service\PermitService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
@@ -31,10 +35,11 @@ final readonly class MigrationService
         private AuthService $authService,
         private BackupService $backupService,
         private ConfigInterface $config,
-        private MagicLinkService $magicLinkService,
+        private MagicLinkRepositoryInterface $magicLinkRepository,
         private MailServiceInterface $mailService,
         private PermitService $permitService,
-        private VoucherService $voucherService,
+        private VerificationRepositoryInterface $verificationRepository,
+        private VoucherRepositoryInterface $voucherRepository,
     ) {
     }
 
@@ -214,13 +219,13 @@ final readonly class MigrationService
         match ($key) {
             'users'                => $this->authService->saveUsers($data, true),
             'groups'               => $this->authService->saveGroups($data, true),
-            'vouchers'             => $this->voucherService->saveVouchers($data, true),
+            'vouchers'             => $this->voucherRepository->saveAll($data, true),
             'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
-            'magic_links'          => $this->magicLinkService->saveLinks($data, true),
+            'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
             'mail_log'             => $this->mailService->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
-            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
-            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
+            'pending_verification' => $this->verificationRepository->savePending($data, true),
+            'verified_pending'     => $this->verificationRepository->saveVerified($data, true),
             'permits'              => $this->migratePermitsToSql($data),
             'permits_archive'      => $this->migratePermitsArchiveToSql($data),
             default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")

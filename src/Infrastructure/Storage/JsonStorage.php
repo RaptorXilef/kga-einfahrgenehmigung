@@ -208,4 +208,32 @@ final readonly class JsonStorage implements StorageInterface
 
         return $candidates[0];
     }
+
+    // TODO DocBlock
+    public function delete(string $code): bool
+    {
+        $fp = \fopen($this->filePath, 'c+');
+        if (! $fp) {
+            return false;
+        }
+        if (\flock($fp, \LOCK_EX)) {
+            $size = \filesize($this->filePath);
+            $raw  = $size > 0 ? \fread($fp, $size) : '';
+            $data = \json_decode((string) $raw, true) ?? [];
+            if (isset($data[$code])) {
+                unset($data[$code]);
+                \ftruncate($fp, 0);
+                \fseek($fp, 0);
+                \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            }
+            \fflush($fp);
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
+
+            return true;
+        }
+        \fclose($fp);
+
+        return false;
+    }
 }

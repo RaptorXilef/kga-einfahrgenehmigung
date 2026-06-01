@@ -186,4 +186,10 @@ final readonly class MySqlStorage implements StorageInterface
 
         return $count;
     }
+
+    // TODO DocBlock
+    public function delete(string $code): bool
+    {
+        return $this->pdo->prepare('DELETE FROM permits WHERE code = ?')->execute([$code]);
+    }
 }

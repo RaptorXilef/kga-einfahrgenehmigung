@@ -75,4 +75,7 @@ interface StorageInterface
      * @return Permit Das hydrierte und einsatzbereite Entitäten-Objekt.
      */
     public function mapToEntity(array $item): Permit;
+
+    // TODO DocBlock
+    public function delete(string $code): bool;
 }

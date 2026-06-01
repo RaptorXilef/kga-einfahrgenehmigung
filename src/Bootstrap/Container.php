@@ -14,22 +14,33 @@ use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Contracts\Storage\MailQueueRepositoryInterface;
+use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
-use App\Core\Service\BackupService;
+use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
-use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
-use App\Core\Service\StorageBootstrapper;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
+use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\MigrationService;
+use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Storage\JsonStorage;
+use App\Infrastructure\Storage\MagicLinkRepository;
+use App\Infrastructure\Storage\MailQueueRepository;
 use App\Infrastructure\Storage\MySqlStorage;
+use App\Infrastructure\Storage\PermitArchiveRepository;
+use App\Infrastructure\Storage\VerificationRepository;
+use App\Infrastructure\Storage\VoucherRepository;
+use PDO;
 
 /**
  * Dependency Injection (DI) Container der Anwendung.
@@ -186,6 +197,18 @@ class Container
             return new JsonStorage($path);
         };
 
+        // Voucher
+        $this->services[VoucherRepositoryInterface::class] = fn () => new VoucherRepository(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
+
+        // MagicLink
+        $this->services[MagicLinkRepositoryInterface::class] = fn () => new MagicLinkRepository(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
+
         // 1. Der echte SMTP-Versender (umbenannt, damit wir ihn intern nutzen können)
         $this->services['mail.smtp'] = fn (): SmtpMailService => new SmtpMailService(
             $this->get(\PDO::class),
@@ -194,9 +217,23 @@ class Container
 
         // 2. Das offizielle Interface zeigt nun auf die Queue!
         $this->services[MailServiceInterface::class] = fn (): MailQueueService => new MailQueueService(
+            $this->get(MailQueueRepositoryInterface::class),
+            $this->get('mail.smtp'),
+        );
+
+        $this->services[MailQueueRepositoryInterface::class] = fn () => new MailQueueRepository(
             $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
-            $this->get('mail.smtp'),
+        );
+
+        $this->services[VerificationRepositoryInterface::class] = fn () => new VerificationRepository(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
+
+        $this->services[PermitArchiveRepositoryInterface::class] = fn () => new PermitArchiveRepository(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
         );
 
         // PayPal Service (Nutzt das Config-Interface)
@@ -208,6 +245,32 @@ class Container
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
             $this->get(\PDO::class),
             $this->get(Config::class),
+        );
+
+        // In src/Bootstrap/Container.php unter registerCoreServices():
+        $this->services[BackupService::class] = fn (): BackupService => new BackupService(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
+
+        // Migration Service
+        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
+            $this->get(\PDO::class),
+            $this->get(AuthService::class),
+            $this->get(BackupService::class),
+            $this->get(ConfigInterface::class),
+            $this->get(MagicLinkRepositoryInterface::class),
+            $this->get(MailServiceInterface::class),
+            $this->get(PermitService::class),
+            $this->get(VerificationRepositoryInterface::class),
+            $this->get(VoucherRepositoryInterface::class),
+        );
+
+        // StorageBootstrapper - Verwaltung der Migration
+        $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
+            $this->get(\PDO::class),
+            $this->get(AuthService::class),
+            $this->get(ConfigInterface::class),
         );
     }
 
@@ -224,50 +287,25 @@ class Container
 
         // Service für Gutscheine
         $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
+            $this->get(VoucherRepositoryInterface::class),
         );
 
         // Service verwaltet die temporären Token für den Login
         $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
-            $this->get(\PDO::class),
+            $this->get(MagicLinkRepositoryInterface::class), // <-- Angepasst
             $this->get(ConfigInterface::class),
         );
 
         // FIX P1005: Jetzt mit 7 Argumenten (PDO am Ende hinzugefügt)
         $this->services[PermitService::class] = fn (): PermitService => new PermitService(
-            $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
             $this->get(MailServiceInterface::class),
             $this->get(PaymentProviderInterface::class),
             $this->get(StorageInterface::class),
             $this->get(VoucherService::class),
-        );
-
-        // In src/Bootstrap/Container.php unter registerCoreServices():
-        $this->services[BackupService::class] = fn (): BackupService => new BackupService(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        // Migration Service
-        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
-            $this->get(\PDO::class),
-            $this->get(AuthService::class),
-            $this->get(BackupService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(MagicLinkService::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(PermitService::class),
-            $this->get(VoucherService::class),
-        );
-
-        // StorageBootstrapper - Verwaltung der Migration
-        $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
-            $this->get(\PDO::class),
-            $this->get(AuthService::class),
-            $this->get(ConfigInterface::class),
+            $this->get(VerificationRepositoryInterface::class),
+            $this->get(PermitArchiveRepositoryInterface::class),
         );
 
         // Für die Inhalte des AdminDashboard

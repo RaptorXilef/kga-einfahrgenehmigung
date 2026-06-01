@@ -8,13 +8,13 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
-use App\Core\Service\BackupService;
 use App\Core\Service\HolidayService;
-use App\Core\Service\MigrationService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
-use App\Core\Service\StorageBootstrapper;
 use App\Infrastructure\Auth\AuthService;
+use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\MigrationService;
+use App\Infrastructure\Maintenance\StorageBootstrapper;
 
 /**
  * Haupt-Controller für die Administration.
@@ -390,7 +390,6 @@ final readonly class AdminController
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
             $permit = $this->storage->findByHash((string) $get['code']);
             if ($permit instanceof Permit) {
-                /** @var Config $config */
                 $config = $this->config;
                 $this->render('admin_print_view', [
                     'permit'        => $permit,
@@ -650,7 +649,6 @@ final readonly class AdminController
      */
     private function render(string $templatePath, array $data = []): void
     {
-        /** @var Config $config */
         $config = $this->config;
         // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
         $appRoot = \rtrim((string) $config->get('root_path'), '/\\');

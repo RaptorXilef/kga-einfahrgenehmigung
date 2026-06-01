@@ -39,7 +39,7 @@
         // CODE QUALITY & DOKU
         "aaron-bond.better-comments", // Bessere Kommentare
         "DavidAnson.vscode-markdownlint",
-        "gruntfuggly.todo-tree",
+        "fanaticpythoner.better-todo-tree",
         "oderwat.indent-rainbow",
         "streetsidesoftware.code-spell-checker-german",
         "streetsidesoftware.code-spell-checker",

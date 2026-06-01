@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Entity\Permit;
 
 /**
+ * TODO Phase 3 Bearbeitet
  * TODO DocBlock erstellen
  */
 final readonly class ReportingService

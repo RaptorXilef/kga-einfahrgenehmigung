@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\MagicLinkRepositoryInterface;
 
 /**
+ * TODO Phase 3 Bearbeitet
  * Service für das passwortlose Benutzer-Login-Verfahren (Magic-Links / Login-Codes).
  *
  * Erstellt hochfeste Krypto-Token sowie kurze 6-stellige Codes, überwacht deren
@@ -25,7 +27,7 @@ final readonly class MagicLinkService
     private string $storagePath;
 
     public function __construct(
-        private ?\PDO $pdo,
+        private MagicLinkRepositoryInterface $repository,
         private ConfigInterface $config,
     ) {
         // storagePath wird für JSON weiter berechnet
@@ -47,7 +49,7 @@ final readonly class MagicLinkService
         $token = \bin2hex(\random_bytes(32));
         // Kurzer, gut lesbarer Code für manuelle Eingabe
         $code     = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
-        $links    = $this->loadLinks();
+        $links    = $this->repository->loadAll();
         $duration = (int) $this->config->get('magic_link_duration', 15);
 
         $links[$token] = [
@@ -56,7 +58,7 @@ final readonly class MagicLinkService
             'expires' => \date('Y-m-d H:i:s', \time() + ($duration * 60)), // DATETIME statt INT
         ];
 
-        $this->saveLinks($links);
+        $this->repository->saveAll($links);
 
         return ['token' => $token, 'code' => $code];
     }
@@ -72,7 +74,7 @@ final readonly class MagicLinkService
      */
     public function verifyAny(string $input): ?string
     {
-        $links      = $this->loadLinks();
+        $links      = $this->repository->loadAll();
         $now        = \date('Y-m-d H:i:s'); // String-Vergleich für DATETIME
         $trimmed    = \trim($input);
         $foundEmail = null;
@@ -103,93 +105,8 @@ final readonly class MagicLinkService
             }
         }
 
-        $this->saveLinks($links);
+        $this->repository->saveAll($links);
 
         return $foundEmail;
-    }
-
-    /**
-     * Lädt den aktuellen Bestand an ungelösten Token-Referenzen aus dem konfigurierten Backend.
-     *
-     * @return array<string, array{email: string, code: string, expires: int}> Liste aktiver Tokens indiziert nach
-     *                                                                         Krypto-Hash.
-     */
-    private function loadLinks(): array
-    {
-        $cfg   = $this->config->get('storage_config')['magic_links'];
-        $links = [];
-
-        if ($cfg['type'] === 'mysql') {
-            if ($this->pdo instanceof \PDO) {
-                $stmt = $this->pdo->query("SELECT * FROM {$cfg['table']}");
-                $rows = $stmt->fetchAll();
-                foreach ($rows as $r) {
-                    $links[$r['token']] = [
-                        'email'   => $r['email'],
-                        'code'    => $r['code'],
-                        'expires' => (int) $r['expires'],
-                    ];
-                }
-            }
-        } elseif (\file_exists($this->storagePath)) {
-            $links = \json_decode(
-                (string) \file_get_contents($this->storagePath),
-                true,
-            ) ?? [];
-        }
-
-        // On-the-fly Konvertierung: Alte Unix-Timestamps aus der JSON-Datei heilen
-        foreach ($links as &$l) {
-            if (isset($l['expires']) && \is_numeric($l['expires'])) {
-                $l['expires'] = \date('Y-m-d H:i:s', (int) $l['expires']);
-            }
-        }
-
-        return $links;
-    }
-
-    /**
-     * Persistiert die übergebene Token-Liste im aktiven Speicher-Subsystem (MySQL-Truncate/Insert oder JSON).
-     *
-     * @param array<string, array{email: string, code: string, expires: int}> $links Das zu schreibende Token-Array.
-     */
-    public function saveLinks(array $links, bool $forceSql = false): void
-    {
-        $cfg    = $this->config->get('storage_config')['magic_links'];
-        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
-
-        if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $stmt = $this->pdo->prepare(
-                "INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)",
-            );
-
-            foreach ($links as $token => $d) {
-                // Falls durch den MigrationService noch ein numerischer String reinrutscht
-                $exp = $d['expires'] ?? \date('Y-m-d H:i:s');
-                if (\is_numeric($exp)) {
-                    $exp = \date('Y-m-d H:i:s', (int) $exp);
-                }
-
-                $stmt->execute([$token, $d['email'], $d['code'], $exp]);
-            }
-            if ($forceSql) {
-                return;
-            }
-        }
-
-        if (! $forceSql) {
-            $path = \rtrim(
-                (string) $this->config->get('root_path'),
-                '/\\',
-            ) . '/' . \ltrim(
-                (string) $this->config->get('storage_path_prefix'),
-                '/\\',
-            ) . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($links, \JSON_PRETTY_PRINT),
-            );
-        }
     }
 }

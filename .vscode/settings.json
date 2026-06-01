@@ -148,9 +148,18 @@
     "diffEditor.maxComputationTime": 30000,
 
     // --- TODO TREE ---
-    "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "XXX", "[ ]", "[x]", "VOR_RELEASE"],
-    "todo-tree.highlights.useColourScheme": true,
-    "todo-tree.highlights.backgroundColourScheme": [
+    /*"better-todo-tree.general.tags": [
+        "BUG",
+        "HACK",
+        "FIXME",
+        "TODO",
+        "XXX",
+        "[ ]",
+        "[x]",
+        "VOR_RELEASE"
+    ],
+    "better-todo-tree.highlights.useColourScheme": true,
+    "better-todo-tree.highlights.backgroundColourScheme": [
         "red",
         "orange",
         "yellow",
@@ -159,10 +168,8 @@
         "indigo",
         "violet",
         "purple"
-    ],
-    "todo-tree.filtering.excludeGlobs": ["**/node_modules/**", "**/vendor/**", "**/*.pdf"],
-    // TODO Install winget install -e --id BurntSushi.ripgrep.MSVC
-    "todo-tree.ripgrep.ripgrep": "%USERPROFILE%\\AppData\\Local\\Microsoft\\WinGet\\Packages\\BurntSushi.ripgrep.MSVC_Microsoft.Winget.Source_8wekyb3d8bbwe\\ripgrep-15.1.0-x86_64-pc-windows-msvc\\rg.exe",
+    ],*/
+    //"better-todo-tree.filtering.excludeGlobs": ["**/node_modules/**", "**/vendor/**", "**/*.pdf"],
 
     // --- SPELL CHECK ---
     "cSpell.language": "en,de",

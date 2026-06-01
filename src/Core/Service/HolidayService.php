@@ -7,6 +7,7 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 
 /**
+ * TODO Phase 3 nicht nötig
  * Service zur Prüfung von Feiertagen und zeitlichen Befahrungsbeschränkungen.
  *
  * Berechnet Schließtage und dynamische Feiertage (Osterzyklus für Berlin) und gleicht sie

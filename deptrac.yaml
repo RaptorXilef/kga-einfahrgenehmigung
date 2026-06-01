@@ -55,8 +55,8 @@ deptrac:
       - Infrastructure
 
   # Hier erlauben wir die explizite Ausnahme für unser System-Tool
-  skip_violations:
-    App\Core\Service\MigrationService:
-      - App\Infrastructure\Auth\AuthService
-      - App\Infrastructure\Storage\JsonStorage
-      - App\Infrastructure\Storage\MySqlStorage
+  #skip_violations:
+  #  App\Core\Service\MigrationService:
+  #    - App\Infrastructure\Auth\AuthService
+  #    - App\Infrastructure\Storage\JsonStorage
+  #    - App\Infrastructure\Storage\MySqlStorage
