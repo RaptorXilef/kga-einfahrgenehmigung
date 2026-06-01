@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Auth\AuthService;
+use App\Core\Service\AuthService;
 
 /**
  * TODO DocBlocks anlegen!

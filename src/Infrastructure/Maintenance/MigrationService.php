@@ -9,8 +9,8 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Core\Service\AuthService;
 use App\Core\Service\PermitService;
-use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
 

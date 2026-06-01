@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Auth\AuthService;
+use App\Core\Service\AuthService;
 use App\Infrastructure\Config\Config;
 
 /**

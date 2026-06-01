@@ -7,9 +7,9 @@ namespace App\Application;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
-use App\Infrastructure\Auth\AuthService;
 
 /**
  * Controller zur Überprüfung von Genehmigungen und Kennzeichen.

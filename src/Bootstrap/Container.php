@@ -14,30 +14,34 @@ use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
-use App\Infrastructure\Auth\AuthService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
+use App\Infrastructure\Storage\GroupRepository;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MagicLinkRepository;
 use App\Infrastructure\Storage\MailQueueRepository;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\PermitArchiveRepository;
+use App\Infrastructure\Storage\UserRepository;
 use App\Infrastructure\Storage\VerificationRepository;
 use App\Infrastructure\Storage\VoucherRepository;
 use PDO;
@@ -241,12 +245,6 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
-        // AuthService registrieren
-        $this->services[AuthService::class] = fn (): AuthService => new AuthService(
-            $this->get(\PDO::class),
-            $this->get(Config::class),
-        );
-
         // In src/Bootstrap/Container.php unter registerCoreServices():
         $this->services[BackupService::class] = fn (): BackupService => new BackupService(
             $this->get(\PDO::class),
@@ -270,6 +268,15 @@ class Container
         $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
             $this->get(\PDO::class),
             $this->get(AuthService::class),
+            $this->get(ConfigInterface::class),
+        );
+
+        $this->services[UserRepositoryInterface::class] = fn () => new UserRepository(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
+        $this->services[GroupRepositoryInterface::class] = fn () => new GroupRepository(
+            $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
         );
     }
@@ -310,6 +317,13 @@ class Container
 
         // Für die Inhalte des AdminDashboard
         $this->services[ReportingService::class] = fn (): ReportingService => new ReportingService(
+            $this->get(ConfigInterface::class),
+        );
+
+        // AuthService registrieren
+        $this->services[AuthService::class] = fn (): AuthService => new AuthService(
+            $this->get(UserRepositoryInterface::class),
+            $this->get(GroupRepositoryInterface::class),
             $this->get(ConfigInterface::class),
         );
     }
