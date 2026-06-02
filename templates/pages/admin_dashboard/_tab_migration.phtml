@@ -240,6 +240,36 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
                         </div>
                     <?php } ?>
+                    <?php if ($auth->hasPermission('dashboard.migration.anonymize.execute')) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;">🛡️ DSGVO-Anonymisierung</h4>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                                <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in
+                                    Archiv-Einträgen, die älter als 10 Jahre sind (Aufbewahrungsfrist).</p>
+                                <form method="POST"
+                                      onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
+                                      class="u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="anonymize_archive">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <button type="submit"
+                                            class="c-button c-button--secondary u-width-100"
+                                            style="font-size: 0.9rem;">
+                                        Jetzt prüfen & bereinigen
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
 
                 </div>
             </div>

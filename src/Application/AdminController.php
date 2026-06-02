@@ -172,14 +172,15 @@ final readonly class AdminController
 
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
         return match ($action) {
-            'migrate_data'    => $this->actionMigrateData($post),
-            'restore_data'    => $this->actionRestoreData($post),
-            'clear_cache'     => $this->actionClearCache($post),
-            'truncate_target' => $this->actionTruncateTarget($post),
-            'resend_mail'     => $this->actionResendMail($post),
-            'mark_as_paid'    => $this->actionMarkAsPaid($post),
-            'create_voucher'  => $this->actionCreateVoucher($post),
-            'create_manual'   => $this->actionCreateManual($post),
+            'migrate_data'      => $this->actionMigrateData($post),
+            'restore_data'      => $this->actionRestoreData($post),
+            'clear_cache'       => $this->actionClearCache($post),
+            'truncate_target'   => $this->actionTruncateTarget($post),
+            'anonymize_archive' => $this->actionAnonymizeArchive($post),
+            'resend_mail'       => $this->actionResendMail($post),
+            'mark_as_paid'      => $this->actionMarkAsPaid($post),
+            'create_voucher'    => $this->actionCreateVoucher($post),
+            'create_manual'     => $this->actionCreateManual($post),
             'activate_voucher',
             'deactivate_voucher' => $this->actionToggleVoucher($post),
             'unsuspend_permit',
@@ -741,5 +742,29 @@ final readonly class AdminController
         }
 
         return $this->migrationService->truncateTarget($target, $engine); // <-- NEU
+    }
+
+    // TODO
+    private function actionAnonymizeArchive(array $post): string
+    {
+        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
+        }
+        if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';
+        }
+
+        try {
+            // 10 Jahre gesetzliche Aufbewahrungsfrist
+            $count = $this->permitService->anonymizeOldArchiveRecords(10);
+
+            if ($count === 0) {
+                return 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.';
+            }
+
+            return "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.";
+        } catch (\Exception $e) {
+            return 'Fehler bei der Anonymisierung: ' . $e->getMessage();
+        }
     }
 }

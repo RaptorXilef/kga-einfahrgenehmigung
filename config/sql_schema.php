@@ -67,6 +67,7 @@ return [
         PRIMARY KEY (`code`),
         INDEX `idx_kennzeichen` (`kennzeichen`),
         INDEX `idx_parzelle` (`parzelle`)
+        INDEX `idx_email` (`email`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'permits_archive' => 'CREATE TABLE IF NOT EXISTS `permits_archive` (
@@ -85,8 +86,11 @@ return [
         `status` VARCHAR(20) NOT NULL DEFAULT \'offen\',
         `erstellt` DATETIME NOT NULL,
         `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
+        `is_anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- NEU: DSGVO-Flag
         PRIMARY KEY (`code`),
-        INDEX `idx_kennzeichen` (`kennzeichen`)
+        INDEX `idx_kennzeichen` (`kennzeichen`),
+        INDEX `idx_anonymized` (`is_anonymized`) -- NEU: Index für schnelle Cronjob-Suche
+        INDEX `idx_email` (`email`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'mail_logs' => 'CREATE TABLE IF NOT EXISTS `mail_logs` (

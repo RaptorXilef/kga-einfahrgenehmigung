@@ -535,6 +535,10 @@ return [
                                     'label' => 'Admin-Tools: Die kompletten SQL Tabelle oder JSON-Dateien löschen',
                                     'key'   => 'dashboard.migration.delete-data.execute',
                                 ],
+                                'anonymize-data' => [
+                                    'label' => 'Admin-Tools: Alte Archiv-Einträge DSGVO-konform anonymisieren',
+                                    'key'   => 'dashboard.migration.anonymize.execute',
+                                ],
                             ],
                         ],
                     ],

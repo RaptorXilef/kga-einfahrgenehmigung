@@ -36,9 +36,9 @@ return [
         ],
         // Archiv für abgelaufene Genehmigungen aus vergangenen Jahren
         'permits_archive' => [
-            'type'         => 'json', // Auch hier: 'json' oder 'mysql'
-            'table'        => 'permits_archive', // In SQL eine (1) Tabelle für alle alten Jahre
-            'file_pattern' => 'permits_archive_{YEAR}.json', // Pattern für die Dateinamen
+            'type'  => 'json', // Auch hier: 'json' oder 'mysql'
+            'table' => 'permits_archive', // In SQL eine (1) Tabelle für alle alten Jahre
+            'file'  => 'permits_archive.json', // Pattern für die Dateinamen
         ],
         // Benutzerkonten für den Admin-Bereich
         'users' => [

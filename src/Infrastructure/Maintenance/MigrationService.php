@@ -224,11 +224,12 @@ final readonly class MigrationService
             'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
             'mail_log'             => $this->mailService->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
-            'pending_verification' => $this->verificationRepository->savePending($data, true),
-            'verified_pending'     => $this->verificationRepository->saveVerified($data, true),
+            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
+            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
             'permits'              => $this->migratePermitsToSql($data),
-            'permits_archive'      => $this->migratePermitsArchiveToSql($data),
-            default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
+            // permits_archive nutzt jetzt den schönen, sauberen Archive-Repository-Aufruf!
+            'permits_archive' => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
+            default           => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
         };
     }
 
@@ -252,55 +253,6 @@ final readonly class MigrationService
                 $item['code'] = $key;
             }
             $storage->save($this->permitService->arrayToEntity($item));
-        }
-    }
-
-    /**
-     * Migriert das Genehmigungs-Archiv (Permits) in die MySQL-Datenbank.
-     *
-     * @param array<string, array<string, mixed>> $data Rohdaten aus der Quelle.
-     */
-    private function migratePermitsArchiveToSql(array $data): void
-    {
-        if (! $this->pdo instanceof \PDO) {
-            return;
-        }
-        $table = $this->config->get('storage_config')['permits_archive']['table'];
-        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (
-            code,
-            template_key,
-            name, email,
-            kennzeichen,
-            parzelle,
-            typ,
-            firma,
-            zweck,
-            preis,
-            von,
-            bis,
-            status,
-            erstellt,
-            interner_kommentar
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-        foreach ($data as $code => $item) {
-            $stmt->execute([
-                $item['code'] ?? $code,
-                $item['template_key'] ?? '',
-                $item['name'] ?? '',
-                $item['email'] ?? null,
-                $item['kennzeichen'] ?? null,
-                $item['parzelle'] ?? '',
-                $item['typ'] ?? '',
-                $item['firma'] ?? null,
-                $item['zweck'] ?? '',
-                (float) ($item['preis'] ?? 0),
-                $item['von'] ?? '',
-                $item['bis'] ?? '',
-                $item['status'] ?? 'offen',
-                $item['erstellt'] ?? '',
-                $item['interner_kommentar'] ?? null,
-            ]);
         }
     }
 
@@ -381,6 +333,7 @@ final readonly class MigrationService
         return match ($key) {
             'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
             'magic_links', 'pending_verification', 'verified_pending'       => 'token',
+            'permits', 'permits_archive'                                    => 'code',
             default                                                         => 'code'
         };
     }

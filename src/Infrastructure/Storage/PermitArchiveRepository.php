@@ -47,17 +47,11 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
             return (bool) $stmt->fetch();
         }
 
-        $storageDir  = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix');
-        $globPattern = \str_replace('{YEAR}', '*', (string) $arcCfg['file_pattern']);
-        $archives    = \glob($storageDir . $globPattern);
+        $archivePath = $this->getFilePath($arcCfg['file']);
+        if (\file_exists($archivePath)) {
+            $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
 
-        if ($archives !== false) {
-            foreach ($archives as $archivePath) {
-                $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
-                if (isset($archiveData[$code])) {
-                    return true;
-                }
-            }
+            return isset($archiveData[$code]);
         }
 
         return false;
@@ -81,9 +75,10 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $sql = "REPLACE INTO {$arcCfg['table']} (
                 code, template_key, name, email, kennzeichen, parzelle, typ,
-                firma, zweck, preis, von, bis, status, erstellt, interner_kommentar
+                firma, zweck, preis, von, bis, status, erstellt, interner_kommentar,
+                is_anonymized
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )";
             $stmt = $this->pdo->prepare($sql);
             foreach ($permitsToArchive as $item) {
@@ -103,26 +98,83 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                     $item['status'],
                     $item['erstellt'],
                     $item['interner_kommentar'],
+                    $item['is_anonymized'] ?? 0,
                 ]);
             }
         } else {
-            $yearPath = \str_replace(
-                '{YEAR}',
-                (string) $year,
-                $this->config->get('root_path') . '/' .
-                    $this->config->get('storage_path_prefix') . $arcCfg['file_pattern'],
-            );
-            $existing = \file_exists($yearPath) ? (array) \json_decode(
-                (string) \file_get_contents($yearPath),
-                true,
-            ) : [];
-            \file_put_contents(
-                $yearPath,
-                \json_encode(
-                    \array_merge($existing, $permitsToArchive),
-                    \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE,
-                ),
-            );
+            $archivePath = $this->getFilePath($arcCfg['file']);
+            $existing    = \file_exists($archivePath) ? (array) \json_decode((string) \file_get_contents($archivePath), true) : [];
+
+            // Mit Array-Keys arbeiten für schnelles Überschreiben
+            foreach ($permitsToArchive as $permit) {
+                $existing[$permit['code']] = $permit;
+            }
+
+            \file_put_contents($archivePath, \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
         }
+    }
+
+    /**
+     * Anonymisiert nach DSGVO-Vorgaben alte Archiv-Einträge (Aufbewahrungsfrist).
+     *
+     * @param int $yearsThreshold Die Aufbewahrungsfrist in Jahren (Standard: 10).
+     *
+     * @return int Die Anzahl der anonymisierten Datensätze.
+     */
+    public function anonymizeOldRecords(int $yearsThreshold = 10): int
+    {
+        $arcCfg          = $this->config->get('storage_config')['permits_archive'];
+        $cutoffDate      = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years"));
+        $anonymizedCount = 0;
+
+        if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
+            $sql = "UPDATE {$arcCfg['table']}
+                    SET name = '[ANONYMISIERT]',
+                        email = '[ANONYMISIERT]',
+                        kennzeichen = '[ANONYMISIERT]',
+                        parzelle = '0000',
+                        is_anonymized = 1
+                    WHERE erstellt <= ? AND is_anonymized = 0";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$cutoffDate]);
+            $anonymizedCount = $stmt->rowCount();
+        } else {
+            $archivePath = $this->getFilePath($arcCfg['file']);
+            if (\file_exists($archivePath)) {
+                $existing = (array) \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+                $changed  = false;
+
+                foreach ($existing as $code => &$item) {
+                    if (isset($item['erstellt']) && $item['erstellt'] <= $cutoffDate && empty($item['is_anonymized'])) {
+                        $item['name']          = '[ANONYMISIERT]';
+                        $item['email']         = '[ANONYMISIERT]';
+                        $item['kennzeichen']   = '[ANONYMISIERT]';
+                        $item['parzelle']      = '0000';
+                        $item['is_anonymized'] = 1;
+                        $changed               = true;
+                        ++$anonymizedCount;
+                    }
+                }
+
+                if ($changed) {
+                    \file_put_contents($archivePath, \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                }
+            }
+        }
+
+        return $anonymizedCount;
+    }
+
+    /**
+     * Baut den absoluten Speicherpfad für eine Archiv-Datei zusammen.
+     *
+     * @param string $fileName Der Dateiname (z.B. permits_archive.json)
+     *
+     * @return string Absoluter Pfad.
+     */
+    private function getFilePath(string $fileName): string
+    {
+        return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
+            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $fileName;
     }
 }

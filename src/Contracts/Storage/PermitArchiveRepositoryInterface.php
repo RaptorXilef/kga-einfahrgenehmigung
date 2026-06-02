@@ -33,4 +33,7 @@ interface PermitArchiveRepositoryInterface
      * @param array<string, mixed> $permitsToArchive Die zu archivierenden Datensätze.
      */
     public function archivePermits(int $year, array $permitsToArchive): void;
+
+    // TODO DOCBLOCK
+    public function anonymizeOldRecords(int $yearsThreshold = 10): int;
 }

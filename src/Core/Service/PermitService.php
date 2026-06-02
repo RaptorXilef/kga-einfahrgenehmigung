@@ -909,4 +909,16 @@ final readonly class PermitService
     {
         return $this->mailService;
     }
+
+    // TODO DOCBLOCK
+    public function getArchiveRepository(): PermitArchiveRepositoryInterface
+    {
+        return $this->archiveRepository;
+    }
+
+    // TODO DOCBLOCK
+    public function anonymizeOldArchiveRecords(int $yearsThreshold = 10): int
+    {
+        return $this->archiveRepository->anonymizeOldRecords($yearsThreshold);
+    }
 }
