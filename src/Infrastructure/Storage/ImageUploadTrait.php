@@ -4,7 +4,18 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
-// TODO DocBlock
+/**
+ * Trait für das Hochladen, Skalieren und Konvertieren von Bildern.
+ * Bietet wiederverwendbare Methoden zur transparenten Umwandlung von
+ * Profil- und Gruppenbildern in das speichereffiziente WebP-Format.
+ *
+ * Path: src/Infrastructure/Storage/ImageUploadTrait.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 trait ImageUploadTrait
 {
     /**
@@ -60,7 +71,17 @@ trait ImageUploadTrait
         return \imagewebp($dst, $outputPath, 75);
     }
 
-    // TODO DocBlock
+    /**
+     * Generiert eine Cache-busting URL für ein hochgeladenes Bild.
+     *
+     * @param string $folder       Zielordner (z.B. 'user_images').
+     * @param string $id           ID des Objekts.
+     * @param string $fallbackIcon Name des Fallback-Icons.
+     * @param string $rootPath     Root-Pfad der Anwendung.
+     * @param string $baseUrl      Basis-URL der Anwendung.
+     *
+     * @return string Cache-gebustete URL.
+     */
     protected function doGetImageUrl(string $folder, string $id, string $fallbackIcon, string $rootPath, string $baseUrl): string
     {
         $serverPath  = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';

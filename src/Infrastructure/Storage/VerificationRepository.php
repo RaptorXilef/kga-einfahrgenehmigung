@@ -7,7 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 
-// TODO DocBlock
+/**
+ * Implementierung des Verification-Repositories (Warteraum).
+ * Hält Anträge zwischen, deren E-Mail-Adresse (Opt-In) noch nicht bestätigt wurde
+ * oder die noch auf den Abschluss einer PayPal-Zahlung warten.
+ *
+ * Path: src/Infrastructure/Storage/VerificationRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class VerificationRepository implements VerificationRepositoryInterface
 {
     public function __construct(
@@ -16,6 +27,11 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
     ) {
     }
 
+    /**
+     * Lädt ausstehende E-Mail-Verifizierungen und filtert abgelaufene (TTL) heraus.
+     *
+     * @return array<string, array<string, mixed>> Ausstehende Anträge.
+     */
     public function loadPending(): array
     {
         $data   = $this->loadJson('pending_verification');
@@ -24,22 +40,45 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
         return \array_filter($data, fn (array $item): bool => isset($item['expires']) && $item['expires'] > $nowStr);
     }
 
+    /**
+     * Speichert unbestätigte Anträge ab.
+     *
+     * @param array<string, array<string, mixed>> $data     Daten.
+     * @param bool                                $forceSql Erzwingt MySQL.
+     */
     public function savePending(array $data, bool $forceSql = false): void
     {
         $this->saveJson('pending_verification', $data, $forceSql);
     }
 
+    /**
+     * Lädt E-Mail-bestätigte Anträge, die auf Zahlung warten.
+     *
+     * @return array<string, array<string, mixed>> Bestätigte Anträge.
+     */
     public function loadVerified(): array
     {
         return $this->loadJson('verified_pending');
     }
 
+    /**
+     * Speichert Anträge ab, die auf Zahlung warten.
+     *
+     * @param array<string, array<string, mixed>> $data     Daten.
+     * @param bool                                $forceSql Erzwingt MySQL.
+     */
     public function saveVerified(array $data, bool $forceSql = false): void
     {
         $this->saveJson('verified_pending', $data, $forceSql);
     }
 
-    // Lädt temporäre Antragssitzungen und filtert im 'pending'-Status abgelaufene TTLs automatisch heraus.
+    /**
+     * Interne Methode zum dynamischen Laden von temporären Warteraum-Daten
+     * aus MySQL oder JSON, inklusive Timestamp-Konvertierung und Filterung abgelaufener Tokens.
+     *
+     * @param  string                              $targetKey Der Schlüssel ('pending_verification' oder 'verified_pending').
+     * @return array<string, array<string, mixed>> Die formatierten Daten.
+     */
     private function loadJson(string $targetKey): array
     {
         $cfg  = $this->config->get('storage_config')[$targetKey];
@@ -70,7 +109,14 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
         return $data;
     }
 
-    // Speichert temporäre Antragssitzungen ab (Unterstützt flache JSONs oder relationale MySQL-Tabellen).
+    /**
+     * Interne Methode zum Schreiben temporärer Antragssitzungen.
+     * Konvertiert Timestamps und schreibt in MySQL oder JSON.
+     *
+     * @param string                              $targetKey Der Schlüssel ('pending_verification' oder 'verified_pending').
+     * @param array<string, array<string, mixed>> $data      Die abzuspeichernden Daten.
+     * @param bool                                $forceSql  Erzwingt das Speichern in MySQL.
+     */
     private function saveJson(string $targetKey, array $data, bool $forceSql = false): void
     {
         $cfg    = $this->config->get('storage_config')[$targetKey];
@@ -97,6 +143,13 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
         }
     }
 
+    /**
+     * Löst den physischen Dateipfad basierend auf der Konfiguration auf.
+     *
+     * @param string $fileName Name der JSON-Datei.
+     *
+     * @return string Der absolute Pfad.
+     */
     private function getFilePath(string $fileName): string
     {
         return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .

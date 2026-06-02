@@ -187,7 +187,13 @@ final readonly class MySqlStorage implements StorageInterface
         return $count;
     }
 
-    // TODO DocBlock
+    /**
+     * Löscht eine Genehmigung unwiderruflich aus der MySQL-Datenbank.
+     *
+     * @param string $code Der eindeutige Hash/Code der Genehmigung.
+     *
+     * @return bool True, wenn der Datensatz erfolgreich gelöscht wurde.
+     */
     public function delete(string $code): bool
     {
         return $this->pdo->prepare('DELETE FROM permits WHERE code = ?')->execute([$code]);

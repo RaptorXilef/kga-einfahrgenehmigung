@@ -17,8 +17,8 @@ use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 
 /**
- * TODO Phase 3 Bearbeitet
- * Domain-Zentraldienst für den Lebenszyklus von Befahrungs-Genehmigungen.
+ * Haupt-Service für die Erstellung, Prüfung und Verwaltung von Einfahrtsgenehmigungen.
+ * Handhabt den Workflow von der initialen Anfrage bis zur finalen Genehmigung.
  *
  * Steuert Kollisionsprüfungen, Validierungsketten, Kennzeichen-Formatierung, E-Mail-Verifikationen,
  * Rechnungsstellungen, PayPal-Zahlungsabschlüsse und automatisierte Archivierungsprozesse.
@@ -48,16 +48,18 @@ final readonly class PermitService
     }
 
     /**
-     * Erstellt eine neue Genehmigung basierend auf Vorlagen.
+     * Erstellt eine neue Genehmigung basierend auf Vorlagen und versendet ggf. E-Mails..
      *
      * Fabrikmethode zur Generierung und direkten Speicherung einer voll-hydrierten Permit-Entität.
      * Berechnet Ablaufdaten, formatiert Kennzeichen, erzeugt eindeutige System-Identifikatoren,
      * zieht Tarife heran und stößt optionale Benachrichtigungs-Mails an den Nutzer und Vorstand an.
      *
-     * @param array<string, mixed> $data      Eingabedaten des Antrags (Name, E-Mail, Parzelle, Kennzeichen, Typ).
-     * @param bool                 $sendMails Flag, ob Dokumente und Benachrichtigungen direkt versendet werden sollen.
+     * @param array $data      Die genehmigungsrelevanten Daten.
+     * @param bool  $sendMails Gibt an, ob Benachrichtigungs-E-Mails gesendet werden sollen.
      *
-     * @return Permit Die erstellte und persistierte Genehmigungs-Entität.
+     * @return Permit Die neu erstellte Genehmigungs-Entität.
+     *
+     * @throws \RuntimeException Bei Speicherfehlern.
      */
     public function createPermit(array $data, bool $sendMails = true): Permit
     {
@@ -153,13 +155,13 @@ final readonly class PermitService
     }
 
     /**
-     * Erstellt eine temporäre, unbestätigte Sitzung für das Double-Opt-In-Verfahren des Antragsformulars.
-     * Führt eine zeitliche Vorab-Kollisionsprüfung durch, berechnet den vorläufigen Preis,
-     * generiert Krypto-Verifikationstoken und versendet die Bestätigungs-E-Mail an den Antragsteller.
+     * Erstellt eine neue Genehmigungsanfrage (Warteraum) und sendet die Verifizierungs-E-Mail.
      *
-     * @param array<string, mixed> $data Formulardaten aus dem Web-Request.
+     * @param array $data Die Formulardaten des Antrags.
      *
-     * @return string Das erzeugte 32-Byte Verifikations-Token für Redirects.
+     * @return string Das generierte Verifizierungs-Token.
+     *
+     * @throws \RuntimeException Bei Datumskollisionen mit bestehenden oder ausstehenden Anträgen.
      */
     public function createPendingVerification(array $data): string
     {
@@ -272,13 +274,12 @@ final readonly class PermitService
     }
 
     /**
-     * Verarbeitet den Klick auf den E-Mail-Bestätigungslink (Double-Opt-In Abschluss).
-     * Überführt Daten von 'pending' nach 'verified', rechnet optionale Gutscheincodes ab,
-     * finalisiert den Antrag sofort bei 100%-Rabatten (0 € Tickets) und setzt andernfalls die Zahlungsfrist in Gang.
+     * Bestätigt eine E-Mail-Verifizierung mittels Token oder Short-Code.
+     * Zieht ggf. Gutscheincodes ab.
      *
-     * @param string $input Das übermittelte Verifikations-Token oder der 6-stellige Kurzcode.
+     * @param string $input Das 64-stellige Token oder der 6-stellige Short-Code.
      *
-     * @return array<string, mixed>|null Assoziatives Datensatz-Array des Antrags oder ein Finalisierungs-Array.
+     * @return array|null Das Array mit den finalisierten oder aktualisierten Daten, oder null bei Fehlschlag.
      */
     public function confirmEmail(string $input): ?array
     {
@@ -359,15 +360,12 @@ final readonly class PermitService
     }
 
     /**
-     * Berechnet den finalen Ticketpreis unter Berücksichtigung von Gutschein-Rabattierungsmodellen.
-     * Unterstützt Gratis-Tickets ('free'), Festpreis-Überschreibungen ('fixed') und prozentuale Abschläge ('percent').
+     * Berechnet den rabattierten Preis basierend auf den Gutscheindaten.
      *
-     * Robust gegen fehlende Array-Keys.
+     * @param float $originalPrice Der ursprüngliche Preis.
+     * @param array $voucher       Die Gutscheindaten.
      *
-     * @param float                $originalPrice Der reguläre Basispreis des Fahrzeugtarifs.
-     * @param array<string, mixed> $voucher       Die Gutschein-Konfigurationsdaten.
-     *
-     * @return float Der rabattierte Bruttobetrag (garantiert >= 0.0).
+     * @return float Der berechnete Endpreis (kann nicht < 0 fallen).
      */
     public function calculateDiscountedPrice(float $originalPrice, array $voucher): float
     {
@@ -384,13 +382,15 @@ final readonly class PermitService
     }
 
     /**
-     * Überführt einen erfolgreich verifizierten/bezahlten Vorab-Antrag in eine echte Genehmigung.
+     * Finalisiert einen ausstehenden Antrag und überführt ihn in den regulären Speicher.
      *
-     * @param string      $token     Das aktive Sitzungs-Token aus der verifizierten Queue.
-     * @param string      $status    Der zu vergebende Ziel-Status (z.B. 'bezahlt', 'offen').
-     * @param string|null $kommentar Optionaler interner Vermerk für das Audit-Protokoll.
+     * @param string      $token     Das Verifizierungs-Token.
+     * @param string      $status    Der Status der neuen Genehmigung (z.B. 'offen' oder 'bezahlt').
+     * @param string|null $kommentar Ein optionaler interner Kommentar für das System.
      *
-     * @return Permit Die final generierte Genehmigungs-Entität.
+     * @return Permit Die erstellte Genehmigungs-Entität.
+     *
+     * @throws \RuntimeException Wenn das Token ungültig oder der Antrag bereits abgeschlossen ist.
      */
     public function finaliseRequest(string $token, string $status = 'offen', ?string $kommentar = null): Permit
     {
@@ -653,13 +653,12 @@ final readonly class PermitService
     }
 
     /**
-     * Aktiviert eine Genehmigung manuell über das Admin-Dashboard nach Zahlungseingang auf dem Bankkonto.
-     * Setzt den Status auf 'bezahlt' und loggt optionale Begründungen/Kommentare ein.
+     * Markiert eine Genehmigung manuell als bezahlt.
      *
      * @param string      $code  Der Code der Genehmigung.
-     * @param string|null $grund Optionaler interner Buchungsvermerk.
+     * @param string|null $grund Optionaler Kommentar zum Vorgang.
      *
-     * @return bool True bei erfolgreicher Speicherung des Updates.
+     * @return bool True bei Erfolg, false bei nicht gefundener Genehmigung.
      */
     public function manualActivate(string $code, ?string $grund = null): bool
     {
@@ -687,12 +686,12 @@ final readonly class PermitService
     }
 
     /**
-     * Finalisiert eine Online-Zahlung nach erfolgreichem PayPal-API-Capture.
+     * Schließt eine Online-Zahlung (z.B. PayPal) ab und finalisiert den Antrag.
      *
-     * @param string $token   Das aktive Verifikations-Token der Session.
-     * @param string $orderId Die verifizierte PayPal-Order-ID.
+     * @param string $token   Das Verifizierungs-Token.
+     * @param string $orderId Die ID der Zahlung/Bestellung des Payment-Providers.
      *
-     * @return bool True, wenn die Zahlung autorisiert, eingezogen und das Ticket freigeschaltet wurde.
+     * @return bool True bei erfolgreicher Transaktion, sonst false.
      */
     public function completePayment(string $token, string $orderId): bool
     {
@@ -716,14 +715,15 @@ final readonly class PermitService
     }
 
     /**
-     * Berechnet die Eskalations- / Verzugsstufe für unbezahlte Genehmigungen.
+     * Ermittelt die Eskalationsstufe für überfällige Zahlungen.
+     *
      * Stufe 0: Innerhalb der Zahlungsfrist.
      * Stufe 1: Zahlungsfrist überschritten (Zahlungsverzug für Nutzer) (Gelbe Warnung).
      * Stufe 2: Kulanzfrist ebenfalls abgelaufen (Warnstufe für das Admin-Personal) (Roter Alarm für Buchhaltung).
      *
-     * @param Permit $permit Die zu prüfende Genehmigungs-Entität.
+     * @param Permit $permit Die zu prüfende Genehmigung.
      *
-     * @return int Die Eskalationsstufe (0, 1 oder 2).
+     * @return int Die Eskalationsstufe (0, 1, 2).
      */
     public function getOverdueLevel(Permit $permit): int
     {
@@ -842,14 +842,13 @@ final readonly class PermitService
     }
 
     /**
-     * Schaltet den administrativen Sperrstatus (Suspension) einer Genehmigung um.
-     * Erlaubt Platzwarten oder dem Vorstand das temporäre Entziehen der Einfahrtsrechte bei Verstößen.
+     * Setzt oder entfernt die Sperre einer Genehmigung.
      *
      * @param string      $code   Der Code der Genehmigung.
-     * @param bool        $status True für sperren, False für freigeben.
-     * @param string|null $reason Angabe der administrativen Begründung.
+     * @param bool        $status True zum Sperren, False zum Entsperren.
+     * @param string|null $reason Begründung für die Sperre.
      *
-     * @return bool True, wenn das Update erfolgreich gespeichert wurde.
+     * @return bool True wenn erfolgreich, false wenn nicht gefunden.
      */
     public function toggleSuspension(string $code, bool $status, ?string $reason = null): bool
     {

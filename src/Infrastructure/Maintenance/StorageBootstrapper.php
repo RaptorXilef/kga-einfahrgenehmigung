@@ -8,7 +8,16 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuthService;
 
 /**
- * TODO DocBlocks anlegen!
+ * Bootstrapper für die Initialisierung der Speicher-Infrastruktur.
+ * Stellt sicher, dass Datenbanktabellen oder JSON-Dateien beim Start vorhanden sind,
+ * und führt bei Bedarf initiale Auto-Setups aus.
+ *
+ * Path: src/Infrastructure/Maintenance/StorageBootstrapper.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class StorageBootstrapper
 {
@@ -37,6 +46,10 @@ final readonly class StorageBootstrapper
         $this->initDefaultGroupsAndUsers();
     }
 
+    /**
+     * Initialisiert Standard-Gruppen und einen Standard-Admin,
+     * falls das System (Datenbank oder JSON) komplett leer ist.
+     */
     private function initDefaultGroupsAndUsers(): void
     {
         // Wir prüfen, ob die Benutzerverwaltung komplett leer ist (egal ob JSON oder SQL aktiv ist)
@@ -55,6 +68,11 @@ final readonly class StorageBootstrapper
         }
     }
 
+    /**
+     * Liefert die Berechtigungs-Struktur der Standard-Gruppen (Admin, Finanzen, etc.).
+     *
+     * @return array<string, array<string, mixed>> Die Standard-Gruppen.
+     */
     private function getDefaultGroups(): array
     {
         // phpcs:disable Generic.Files.LineLength.TooLong
@@ -67,6 +85,11 @@ final readonly class StorageBootstrapper
         // phpcs:enable Generic.Files.LineLength.TooLong
     }
 
+    /**
+     * Liefert die Zugangsdaten für den Standard-Administrator (Systembetreuer).
+     *
+     * @return array<string, array<string, mixed>> Der initiale Benutzer.
+     */
     private function getDefaultUsers(): array
     {
         return [

@@ -7,7 +7,15 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * TODO DocBlocks anlegen
+ * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
+ * Handhabt die automatisierte Ausführung, sowie Datei- und Datenbankdumps.
+ *
+ * Path: src/Infrastructure/Maintenance/BackupService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class BackupService
 {
@@ -107,7 +115,14 @@ final readonly class BackupService
         return $result;
     }
 
-    // TODO DocBlock
+    /**
+     * Ruft die Daten eines spezifischen Backups ab.
+     *
+     * @param string $timestamp Der Zeitstempel (Ordnername) des Backups.
+     * @param string $target    Der Schlüssel des Speicherbereichs.
+     *
+     * @return array|null Die Backup-Daten oder null, wenn nicht gefunden.
+     */
     public function getBackupData(string $timestamp, string $target): ?array
     {
         $root       = $this->config->get('root_path');

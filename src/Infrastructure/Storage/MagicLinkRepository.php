@@ -7,7 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 
-// TODO DocBlocks
+/**
+ * Implementierung des Magic-Link-Repositories.
+ * Kümmert sich um die Persistierung von temporären Login-Tokens und E-Mail-Codes
+ * für den passwortlosen Zugang zum Pächter-Verlauf.
+ *
+ * Path: src/Infrastructure/Storage/MagicLinkRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
 {
     public function __construct(

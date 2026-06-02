@@ -8,24 +8,28 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Entity\Permit;
 
 /**
- * TODO Phase 3 Bearbeitet
- * TODO DocBlock erstellen
+ * Service für die Auswertung, Gruppierung und Bereitstellung von Statistik-Daten für das Dashboard.
+ *
+ * Path: src/Core/Service/ReportingService.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class ReportingService
 {
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+    ) {
     }
 
     /**
-     * Gruppiert Genehmigungen nach ihrem aktuellen Status.
+     * Gruppiert alle Genehmigungen in 'active', 'future', 'expired' und 'unpaid'.
      *
-     * (aktiv/future/expired/unpaid).
-     * Logik-Kern für die tabellarische Übersicht.
+     * @param array $allPermits Array aller Permit-Entitäten.
      *
-     * @param array<int, Permit> $allPermits
-     *
-     * @return array<string, array<int, Permit>>
+     * @return array<string, array<int, Permit>> Assoziatives Array mit den gebündelten Genehmigungen.
      */
     public function groupPermits(array $allPermits): array
     {
@@ -67,14 +71,11 @@ final readonly class ReportingService
     }
 
     /**
-     * Berechnet detaillierte Finanz-, Fahrzeugtyp- und Parzellen-Statistiken.
+     * Berechnet tiefergehende Umsatz- und Fahrzeugstatistiken für einen gefilterten Zeitraum.
      *
-     * Finanz-KPIs (Revenue) und Parzellen-Ranking
-     * Aggregiert Daten aus Permit-Array. Nutzt uasort zur Sortierung nach Plot-Ranking.
+     * @param array<int, Permit> $permits Array der zu berücksichtigenden Permit-Entitäten.
      *
-     * @param array<int, Permit> $permits
-     *
-     * @return array<string, mixed>
+     * @return array<string, mixed> Metriken wie Umsatz, Fahrzeugtypen-Count und Ranking nach Parzellen.
      */
     public function calculateDetailedStats(array $permits): array
     {
@@ -149,7 +150,11 @@ final readonly class ReportingService
     }
 
     /**
-     * TODO DocBlock erstellen!
+     * Gruppiert und berechnet die Finanz- und Antrags-Statistiken nach Jahren.
+     *
+     * @param array $allPermits Array aller Permit-Entitäten.
+     *
+     * @return array Assoziatives Array, indexiert nach Jahreszahlen (Y).
      */
     public function calculateYearlyStats(array $allPermits): array
     {

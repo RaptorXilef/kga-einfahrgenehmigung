@@ -255,7 +255,11 @@ final readonly class MigrationService
         }
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Migriert das Genehmigungs-Archiv (Permits) in die MySQL-Datenbank.
+     *
+     * @param array<string, array<string, mixed>> $data Rohdaten aus der Quelle.
+     */
     private function migratePermitsArchiveToSql(array $data): void
     {
         if (! $this->pdo instanceof \PDO) {
@@ -300,7 +304,11 @@ final readonly class MigrationService
         }
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Migriert das Gutschein-Archiv (Vouchers) in die MySQL-Datenbank.
+     *
+     * @param array<int|string, array<string, mixed>> $data Rohdaten aus der Quelle.
+     */
     private function migrateVouchersArchiveToSql(array $data): void
     {
         if (! $this->pdo instanceof \PDO) {
@@ -326,7 +334,11 @@ final readonly class MigrationService
         }
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Migriert die E-Mail-Warteschlange (Mail Queue) in die MySQL-Datenbank.
+     *
+     * @param array<int|string, array<string, mixed>> $data Rohdaten aus der Quelle.
+     */
     private function migrateMailQueueToSql(array $data): void
     {
         if (! $this->pdo instanceof \PDO) {
@@ -357,7 +369,13 @@ final readonly class MigrationService
         }
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Ermittelt den Namen der Primärschlüssel-Spalte (ID) für einen bestimmten Speicherbereich.
+     *
+     * @param string $key Der Schlüssel des Speicherbereichs.
+     *
+     * @return string Der Name der Spalte ('id', 'token' oder 'code').
+     */
     private function getIdFieldForKey(string $key): string
     {
         return match ($key) {
@@ -383,7 +401,6 @@ final readonly class MigrationService
     }
 
     /**
-     * TODO DocBlock aktualisieren!
      * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
      * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
      *
@@ -526,7 +543,11 @@ final readonly class MigrationService
         return $res;
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Leert den Deptrac-Cache und kompiliert die Session-Berechtigungen neu.
+     *
+     * @return string Statusmeldung.
+     */
     public function clearCache(): string
     {
         $root = $this->config->get('root_path');
@@ -543,7 +564,14 @@ final readonly class MigrationService
         return 'Erfolg: Der System-Cache wurde geleert und die Berechtigungen neu kompiliert.';
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Löscht alle Daten eines Zielbereichs (Truncate) und erstellt vorher ein Backup.
+     *
+     * @param string $target Der zu leerende Speicherbereich.
+     * @param string $engine 'all', 'json' oder 'mysql'.
+     *
+     * @return string Statusmeldung über den Vorgang.
+     */
     public function truncateTarget(string $target, string $engine = 'all'): string
     {
         // 1. Zwingendes Backup vor der Löschung!

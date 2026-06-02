@@ -13,9 +13,9 @@ use App\Core\Entity\Vehicle;
 /**
  * Trait für die bidirektionale Transformation zwischen Objekten und relationalen Arrays.
  *
- * Kapselt Konvertierungslogiken, um geschachtelte Domain-Entitäten (Permit, Owner, Vehicle, Validity, Status)
- * in flache, speicherbare String/Float-Arrays zu transformieren und umgekehrt (Hydrierung).
- * Kontext: Data Mapper Hilfskomponente für die Storage-Engines.
+ * Kapselt Konvertierungslogiken, um geschachtelte Domain-Entitäten (Permit, Owner, Vehicle...)
+ * in flache, speicherbare Array-Strukturen zu transformieren und umgekehrt (Hydrierung).
+ * Dient als Data Mapper für alle Storage-Engines.
  *
  * Path: src/Infrastructure/Storage/StorageMapperTrait.php
  *

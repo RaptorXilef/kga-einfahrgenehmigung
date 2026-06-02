@@ -7,7 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 
-// TODO DocBlock
+/**
+ * Implementierung des Permit-Archive-Repositories.
+ * Schiebt alte, abgelaufene Genehmigungen in ein separates Langzeit-Archiv,
+ * um die Hauptdatenbank / das Haupt-JSON klein und performant zu halten.
+ *
+ * Path: src/Infrastructure/Storage/PermitArchiveRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class PermitArchiveRepository implements PermitArchiveRepositoryInterface
 {
     public function __construct(
@@ -17,14 +28,13 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
     }
 
     /**
-     * TODO DocBlock Überarbeiten
-     * Überprüft die globale, systemweite Einzigartigkeit eines Genehmigungs-Codes.
-     * Scannt hierzu das aktive Storage, die SQL-Archivtabellen sowie alle historischen
-     * JSON-Jahresarchive auf der Festplatte.
+     * Überprüft die systemweite Einzigartigkeit eines Genehmigungs-Codes.
+     * Scannt hierzu das aktive SQL-Archiv oder alle historischen JSON-Jahresarchive
+     * auf der Festplatte, um Duplikate auszuschließen.
      *
      * @param string $code Der zu prüfende Gesamt-Code.
      *
-     * @return bool True, wenn der Code im gesamten System noch nie vergeben wurde.
+     * @return bool True, wenn der Code bereits im Archiv existiert.
      */
     public function isCodeInArchive(string $code): bool
     {
@@ -53,7 +63,13 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         return false;
     }
 
-    // TODO DocBlock
+    /**
+     * Verschiebt eine Liste von abgelaufenen Genehmigungen in das Langzeit-Archiv.
+     * Speichert die Daten je nach Konfiguration in einer SQL-Tabelle oder in jahresbasierten JSON-Dateien.
+     *
+     * @param int                  $year             Das Jahr, dem die Archivdaten zugeordnet werden sollen.
+     * @param array<string, mixed> $permitsToArchive Die zu archivierenden Datensätze.
+     */
     public function archivePermits(int $year, array $permitsToArchive): void
     {
         if (empty($permitsToArchive)) {

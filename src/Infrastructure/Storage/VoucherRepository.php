@@ -7,6 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 
+/**
+ * Implementierung des Voucher-Repositories.
+ * Speichert aktive Gutscheincodes, deren Nutzungsstatistiken und
+ * verschiebt vollständig eingelöste Rabattcodes ins Archiv.
+ *
+ * Path: src/Infrastructure/Storage/VoucherRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class VoucherRepository implements VoucherRepositoryInterface
 {
     public function __construct(
@@ -110,7 +122,12 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
-    // TODO DocBlock
+    /**
+     * Fügt einen vollständig eingelösten Gutschein als Protokoll-Eintrag dem Archiv hinzu.
+     * Schreibt den Eintrag entweder in die MySQL-Archivtabelle oder die entsprechende JSON-Datei.
+     *
+     * @param array<string, mixed> $archiveEntry Der hinzuzufügende Archiv-Datensatz.
+     */
     public function appendToArchive(array $archiveEntry): void
     {
         $arcCfg = $this->config->get('storage_config')['vouchers_archive'];

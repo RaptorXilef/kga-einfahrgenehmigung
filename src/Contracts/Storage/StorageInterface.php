@@ -76,6 +76,12 @@ interface StorageInterface
      */
     public function mapToEntity(array $item): Permit;
 
-    // TODO DocBlock
+    /**
+     * Löscht einen Eintrag rigoros aus dem Speicher anhand seines eindeutigen Codes.
+     *
+     * @param string $code Der Identifikator/Hash des zu löschenden Datensatzes.
+     *
+     * @return bool True, wenn der Datensatz erfolgreich gelöscht wurde.
+     */
     public function delete(string $code): bool;
 }

@@ -7,7 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 
-// TODO DocBlock
+/**
+ * Implementierung des Mail-Queue-Repositories.
+ * Legt ausgehende E-Mails in der Datenbank oder JSON-Datei ab und holt sie
+ * gestaffelt (Batch-Verarbeitung) für den asynchronen Versand wieder ab.
+ *
+ * Path: src/Infrastructure/Storage/MailQueueRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 {
     public function __construct(
@@ -16,7 +27,14 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
     ) {
     }
 
-    // TODO DocBlock
+    /**
+     * Reiht eine E-Mail als JSON-codierten String in die MySQL- oder JSON-Queue ein.
+     *
+     * @param string               $recipient E-Mail-Empfänger.
+     * @param string               $subject   Betreff.
+     * @param string               $template  Template-Key.
+     * @param array<string, mixed> $data      Daten für das Template.
+     */
     public function enqueue(string $recipient, string $subject, string $template, array $data): void
     {
         $cfg     = $this->config->get('storage_config')['mail_queue'];
@@ -40,7 +58,15 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
         }
     }
 
-    // TODO DocBlock
+    /**
+     * Verarbeitet einen Batch ausstehender E-Mails aus der MySQL- oder JSON-Queue.
+     * Erhöht die Versuchsanzahl bei Fehlern.
+     *
+     * @param int      $limit     Max. Anzahl Mails.
+     * @param callable $processor Funktion zum Senden.
+     *
+     * @return int Anzahl erfolgreich versendeter E-Mails.
+     */
     public function processBatch(int $limit, callable $processor): int
     {
         $cfg       = $this->config->get('storage_config')['mail_queue'];

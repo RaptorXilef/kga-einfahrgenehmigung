@@ -7,8 +7,8 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * TODO Phase 3 nicht nötig
- * Service zur Prüfung von Feiertagen und zeitlichen Befahrungsbeschränkungen.
+ * Service zur Prüfung von Feiertagen, Ruhetagen und erlaubten Einfahrtszeiten.
+ * Beinhaltet die Gaußsche Osterformel und dynamische Feiertagsberechnung.
  *
  * Berechnet Schließtage und dynamische Feiertage (Osterzyklus für Berlin) und gleicht sie
  * mit den in der Konfiguration hinterlegten Öffnungszeiten-Slots ab.
@@ -28,12 +28,11 @@ final readonly class HolidayService
     }
 
     /**
-     * Ermittelt das nächstmögliche reguläre Zeitfenster für eine Einfahrt innerhalb der nächsten 14 Tage.
-     * Iteriert tageweise, überspringt Schließtage und sucht den zeitlich nächsten Slot-Start.
+     * Berechnet den nächsten Zeitpunkt in der Zukunft, an dem eine Einfahrt erlaubt ist.
      *
-     * @param \DateTimeImmutable $now Der aktuelle Bezugs-Zeitstempel für die Berechnung.
+     * @param \DateTimeImmutable $now Das Referenzdatum (in der Regel "jetzt").
      *
-     * @return \DateTimeImmutable|null Der Start-Zeitstempel des nächsten erlaubten Fensters oder null.
+     * @return \DateTimeImmutable|null Der Startzeitpunkt des nächsten freien Slots oder null.
      */
     public function getNextAvailableSlot(\DateTimeImmutable $now): ?\DateTimeImmutable
     {
@@ -61,11 +60,11 @@ final readonly class HolidayService
     }
 
     /**
-     * Prüft, ob ein bestimmtes Datum ein Sperrtag (Feiertag oder generell geschlossen) ist.
+     * Prüft, ob ein gegebenes Datum ein Ruhetag (Sonntag oder Feiertag) ist.
      *
      * @param \DateTimeImmutable $date Das zu prüfende Datum.
      *
-     * @return bool True, wenn am Ziel-Datum keine Einfahrt erlaubt ist.
+     * @return bool True, wenn das Datum ein Ruhetag ist.
      */
     public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
@@ -90,10 +89,9 @@ final readonly class HolidayService
     }
 
     /**
-     * Abfrage-Schnittstelle zur Echtzeitvalidierung des aktuellen Zeitpunkts.
-     * Prüft, ob JETZT ein Restricted Day vorliegt oder ob die aktuelle Uhrzeit in einem Freigabe-Slot liegt.
+     * Ermittelt, ob basierend auf den aktuellen Öffnungszeiten jetzt eine Einfahrt erlaubt ist.
      *
-     * @return bool True, wenn eine Befahrung zum aktuellen Zeitpunkt zulässig ist.
+     * @return bool True, wenn das aktuelle Zeitfenster gültig ist.
      */
     public function isTimeAllowedNow(): bool
     {
@@ -415,14 +413,12 @@ final readonly class HolidayService
     }
 
     /**
-     * Generiert eine Liste von Feier- und Ruhetagen, wobei zusammenhängende Tage
-     * zu Bereichen (z.B. 24.12. - 26.12.2026) zusammengefasst werden.
+     * Gibt einen formatierten Text der anstehenden Ruhetage innerhalb eines Zeitraums zurück.
      *
-     * @param \DateTimeImmutable $von        Startdatum des Zeitraums.
-     * @param \DateTimeImmutable $bis        Enddatum des Zeitraums.
-     * @param bool               $withPrefix Ob der erklärende Satz davor stehen soll.
-     *
-     * @return string Formatierte Liste oder Bereiche der Feiertage.
+     * @param  \DateTimeImmutable $von        Startdatum.
+     * @param  \DateTimeImmutable $bis        Enddatum.
+     * @param  bool               $withPrefix Ob Warnhinweis-Präfix ("🚫 An folgenden Feier-...") vorangestellt wird.
+     * @return string             Formatierte Ruhetags-Auflistung.
      */
     public function getHolidaysInRangeText(
         \DateTimeImmutable $von,

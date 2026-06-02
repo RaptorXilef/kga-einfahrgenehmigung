@@ -570,6 +570,7 @@ final readonly class AdminController
 
     /**
      * TODO Später löschen
+     * REMOVE
      * Berechnet zusammenfassende Statistiken für einen gefilterten Datensatz.
      *
      * Reduziert Permits auf Gesamtanzahl und Umsatz.
@@ -665,13 +666,12 @@ final readonly class AdminController
     }
 
     /**
-     * TODO DocBlock aktualisieren!
-     * Führt eine System-Wiederherstellung (Restore) aus deinem Backup durch.
-     * Sicherheitsprüfung über hasPermission und Level-Check.
+     * Führt eine System-Wiederherstellung (Restore) aus einem Backup durch.
+     * Stellt Daten für das angegebene Ziel aus dem gewählten Zeitstempel wieder her.
      *
-     * @param array<string, mixed> $post
+     * @param array<string, mixed> $post Formulardaten mit Ziel (target), Zeitstempel (timestamp) und Engine.
      *
-     * @return string Ergebnis der Restore-Aktion.
+     * @return string Statusmeldung über den Erfolg oder Misserfolg des Restores.
      */
     private function actionRestoreData(array $post): string
     {
@@ -695,7 +695,13 @@ final readonly class AdminController
         return $this->migrationService->restore($timestamp, $target, $engine);
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Leert den Anwendungs-Cache und löscht temporäre System-Dateien.
+     *
+     * @param array<string, mixed> $post Formulardaten inklusive CSRF-Token.
+     *
+     * @return string Statusmeldung über die Ausführung.
+     */
     private function actionClearCache(array $post): string
     {
         // CSRF Prüfung
@@ -709,7 +715,14 @@ final readonly class AdminController
         return $this->migrationService->clearCache();
     }
 
-    // TODO DocBlock erstellen
+    /**
+     * Löscht alle Daten eines bestimmten Speicher-Ziels rigoros (Truncate).
+     * Wird für administrative System-Resets oder vor großen Migrationen verwendet.
+     *
+     * @param array<string, mixed> $post Formulardaten mit Zielbereich (target) und Speicher-Engine (engine).
+     *
+     * @return string Statusmeldung über die Löschung.
+     */
     private function actionTruncateTarget(array $post): string
     {
         // CSRF Prüfung

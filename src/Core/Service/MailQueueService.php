@@ -8,16 +8,8 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 
 /**
- * TODO Phase 3 Bearbeitet
- * Service zur zeitversetzten E-Mail-Verarbeitung via Queueing.
- *
- * Abstrahiert und entkoppelt den physischen SMTP-Verbindungsprozess von Web-Requests.
- * Speichert ausgehende E-Mails als JSON-Spool oder DB-Queue und wickelt den Versand blockweise ab.
- * Kontext: Performance- und Ausfallsicherheits-Layer für den E-Mail-Subversand.
- *
- * Verwaltet den E-Mail-Versand über eine Queue, um Systemressourcen zu schonen.
- * Unterstützt die Speicherung von E-Mails in einer MySQL-Datenbank oder in einer JSON-Datei,
- * bevor sie durch den eigentlichen SMTP-Service verarbeitet werden.
+ * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
+ * Speichert ausgehende E-Mails zunächst im Repository und verarbeitet sie gestaffelt.
  *
  * Path: src/Core/Service/MailQueueService.php
  *
@@ -34,7 +26,16 @@ final readonly class MailQueueService implements MailServiceInterface
     ) {
     }
 
-    // TODO DocBlock
+    /**
+     * Reiht eine neue E-Mail in die Warteschlange ein.
+     *
+     * @param string               $recipient Die E-Mail-Adresse des Empfängers.
+     * @param string               $subject   Der Betreff der E-Mail.
+     * @param string               $template  Der Schlüssel/Name des zu verwendenden E-Mail-Templates.
+     * @param array<string, mixed> $data      Die dynamischen Daten für das Template.
+     *
+     * @return bool|string True bei erfolgreicher Einreihung.
+     */
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
         $this->repository->enqueue($recipient, $subject, $template, $data);
@@ -42,7 +43,13 @@ final readonly class MailQueueService implements MailServiceInterface
         return true;
     }
 
-    // TODO DocBlock
+    /**
+     * Verarbeitet einen Stapel von E-Mails aus der Warteschlange und versendet diese.
+     *
+     * @param int $limit Maximale Anzahl der zu verarbeitenden E-Mails in diesem Durchlauf.
+     *
+     * @return int Die Anzahl der erfolgreich verarbeiteten und versendeten E-Mails.
+     */
     public function processQueue(int $limit = 5): int
     {
         // Wir übergeben eine Closure an das Repository, die den echten Mailversand triggert.
@@ -55,9 +62,9 @@ final readonly class MailQueueService implements MailServiceInterface
     }
 
     /**
-     * Delegiert den Lesezugriff auf historische Versand-Logs an den zugrundeliegenden SMTP-Service.
+     * Lädt alle gespeicherten E-Mail-Protokolle (Logs).
      *
-     * @return array<int, array<string, mixed>> Array mit Log-Einträgen.
+     * @return array<int, array<string, mixed>> Ein Array mit den historischen E-Mail-Log-Einträgen.
      */
     public function loadLogs(): array
     {
@@ -65,10 +72,11 @@ final readonly class MailQueueService implements MailServiceInterface
     }
 
     /**
-     * Speichert Protokolle für den E-Mail-Versand.
-     * Delegiert den Schreibzugriff für Log-Dateien an den SMTP-Dienst weiter.
+     * Speichert oder überschreibt E-Mail-Protokolle im System.
      *
-     * @param array<int, array<string, mixed>> $logs Liste der zu speichernden Log-Einträge.
+     * @param array<int, array<string, mixed>> $logs     Die zu speichernden Log-Einträge.
+     * @param bool                             $forceSql Erzwingt das Speichern in der SQL-Datenbank
+     *                                                   (hilfreich für Migrationen).
      */
     public function saveLogs(array $logs, bool $forceSql = false): void
     {

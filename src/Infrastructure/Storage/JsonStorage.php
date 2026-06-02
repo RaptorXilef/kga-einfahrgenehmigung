@@ -209,7 +209,13 @@ final readonly class JsonStorage implements StorageInterface
         return $candidates[0];
     }
 
-    // TODO DocBlock
+    /**
+     * Löscht eine Genehmigung unwiderruflich aus der JSON-Datei.
+     *
+     * @param string $code Der eindeutige Hash/Code der Genehmigung.
+     *
+     * @return bool True, wenn der Datensatz erfolgreich aus dem Array entfernt und gespeichert wurde.
+     */
     public function delete(string $code): bool
     {
         $fp = \fopen($this->filePath, 'c+');

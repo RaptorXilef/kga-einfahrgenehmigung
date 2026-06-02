@@ -7,7 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 
-// TODO DocBlock
+/**
+ * Implementierung des Gruppen-Repositories.
+ * Verwaltet Berechtigungsrollen und deren Icons. Erleichtert die Migration
+ * zwischen den Speicher-Engines (JSON/MySQL).
+ *
+ * Path: src/Infrastructure/Storage/GroupRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class GroupRepository implements GroupRepositoryInterface
 {
     use ImageUploadTrait;
@@ -90,11 +101,26 @@ final readonly class GroupRepository implements GroupRepositoryInterface
         }
     }
 
+    /**
+     * Lädt das Gruppen-Icon hoch und konvertiert es.
+     *
+     * @param string               $groupId Die ID der Gruppe.
+     * @param array<string, mixed> $file    Upload-Daten.
+     *
+     * @return bool True bei Erfolg.
+     */
     public function uploadImage(string $groupId, array $file): bool
     {
         return $this->doUploadImage('group_images', $groupId, $file, (string) $this->config->get('root_path'));
     }
 
+    /**
+     * Gibt die URL des Gruppen-Icons zurück. Fällt auf ein Standard-Icon zurück, falls keines existiert.
+     *
+     * @param string $groupId Die ID der Gruppe.
+     *
+     * @return string URL zum Bild.
+     */
     public function getImageUrl(string $groupId): string
     {
         return $this->doGetImageUrl(

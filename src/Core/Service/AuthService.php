@@ -9,7 +9,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 
 /**
- * Service für die Authentifizierung und Autorisierung von Administratoren.
+ * Service für die Authentifizierung, Sitzungsverwaltung und Berechtigungsprüfung von Administratoren.
  *
  * Steuert Login-Validierungen (inklusive Backdoor- und Superadmin-Fallbacks),
  * Session-Management, feingranulare RBAC-Rechteprüfungen und Avatar-/Icon-Bild-Uploads via GD.
@@ -37,13 +37,13 @@ final readonly class AuthService
     }
 
     /**
-     * Verifiziert Anmeldedaten und initialisiert bei Erfolg die Admin-Sitzung.
+     * Führt den Login-Prozess für einen Benutzer aus.
      * Prüft nacheinander: Inhaber-Backdoor, konfigurierte Superadmin-Credentials und die Benutzer-JSON.
      *
-     * @param string $username Der eingegebene Login-Name.
-     * @param string $password Das Klartext-Passwort des Benutzers.
+     * @param string $username Der eingegebene Benutzername.
+     * @param string $password Das eingegebene Passwort im Klartext.
      *
-     * @return bool True bei erfolgreicher Authentifizierung.
+     * @return bool True wenn der Login erfolgreich war, sonst false.
      */
     public function login(string $username, string $password): bool
     {
@@ -101,16 +101,11 @@ final readonly class AuthService
     }
 
     /**
-     * Die Herzstück-Methode für das Rechtesystem
-     * Implementiert Live-Abfrage und strikte "Deny-First" Priorität.
+     * Prüft, ob der aktuell eingeloggte Benutzer eine bestimmte Berechtigung besitzt.
      *
-     * Prüft, ob der angemeldete Benutzer eine bestimmte Berechtigung besitzt.
-     * Gewährt System-Konten und dem Admin-Dev-Mode sowie Inhabern von '*' generellen Vollzugriff.
-     * Alternativ wird die im Session-Cache vorkompilierte Rechte-Map abgefragt.
+     * @param string $permission Der Berechtigungsschlüssel (z.B. 'dashboard.view').
      *
-     * @param string $permission Der gesuchte Berechtigungs-Key (z.B. 'dashboard.logs.view').
-     *
-     * @return bool True, wenn die Aktion für diesen Benutzer erlaubt ist.
+     * @return bool True, wenn die Berechtigung vorhanden ist (oder Dev-Mode aktiv ist).
      */
     public function hasPermission(string $permission): bool
     {
@@ -137,9 +132,9 @@ final readonly class AuthService
     }
 
     /**
-     * Kompiliert die Modul-Rechte für die Gruppe neu und cached sie im aktuellen Session-Scope.
+     * Kompiliert und speichert die Berechtigungen der Gruppe in der aktuellen Session.
      *
-     * @param string $groupId Die ID der Gruppe, deren Berechtigungsbaum kompiliert werden soll.
+     * @param string $groupId Die ID der Gruppe, deren Berechtigungen geladen werden sollen.
      */
     public function refreshSessionPermissions(string $groupId): void
     {
@@ -190,11 +185,11 @@ final readonly class AuthService
     }
 
     /**
-     * Generiert eine pseudo-zufällige, eindeutige alphanumerische ID mit spezifischem Suffix.
+     * Generiert eine eindeutige ID (z.B. für neue User oder Gruppen).
      *
-     * @param string $prefix Präfix für die ID (z.B. 'usr_' oder 'grp_').
+     * @param string $prefix Ein optionaler Prefix (z.B. 'usr_').
      *
-     * @return string Die generierte ID-Zeichenkette.
+     * @return string Die generierte ID.
      */
     public function generateId(string $prefix = ''): string
     {

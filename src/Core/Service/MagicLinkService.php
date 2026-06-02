@@ -8,7 +8,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 
 /**
- * TODO Phase 3 Bearbeitet
  * Service für das passwortlose Benutzer-Login-Verfahren (Magic-Links / Login-Codes).
  *
  * Erstellt hochfeste Krypto-Token sowie kurze 6-stellige Codes, überwacht deren

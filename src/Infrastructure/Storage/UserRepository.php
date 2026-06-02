@@ -7,7 +7,18 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 
-// TODO DocBlock
+/**
+ * Implementierung des User-Repositories.
+ * Regelt den lesenden und schreibenden Zugriff auf die Systemadministratoren,
+ * unabhängig davon, ob JSON oder MySQL als Speicher-Backend dient.
+ *
+ * Path: src/Infrastructure/Storage/UserRepository.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class UserRepository implements UserRepositoryInterface
 {
     use ImageUploadTrait;
@@ -17,7 +28,7 @@ final readonly class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * Lädt alle Benutzerkonten aus der konfigurierten JSON-Datenbank.
+     * Lädt alle Benutzerkonten aus der konfigurierten JSON- oder MySQL-Datenbank.
      *
      * @return array<string, array<string, mixed>> Liste der Benutzer, indiziert nach User-ID.
      */
@@ -44,9 +55,10 @@ final readonly class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     * Überschreibt die Benutzer-JSON-Datei permanent mit dem übergebenen Array.
+     * Überschreibt die Benutzer-JSON-Datei oder MySQL-Tabelle permanent mit dem übergebenen Array.
      *
-     * @param array<string, array<string, mixed>> $users Das vollständige Benutzer-Array.
+     * @param array<string, array<string, mixed>> $users    Das vollständige Benutzer-Array.
+     * @param bool                                $forceSql Erzwingt das Speichern in MySQL.
      */
     public function saveAll(array $users, bool $forceSql = false): void
     {
@@ -93,11 +105,26 @@ final readonly class UserRepository implements UserRepositoryInterface
         }
     }
 
+    /**
+     * Lädt einen Avatar für den Benutzer hoch.
+     *
+     * @param string               $userId Benutzer-ID.
+     * @param array<string, mixed> $file   Upload-Daten.
+     *
+     * @return bool True bei Erfolg.
+     */
     public function uploadImage(string $userId, array $file): bool
     {
         return $this->doUploadImage('user_images', $userId, $file, (string) $this->config->get('root_path'));
     }
 
+    /**
+     * Ruft die URL zum Avatar des Benutzers ab.
+     *
+     * @param string $userId Benutzer-ID.
+     *
+     * @return string Bild-URL.
+     */
     public function getImageUrl(string $userId): string
     {
         return $this->doGetImageUrl('user_images', $userId, 'icon-user-default.webp', (string) $this->config->get('root_path'), $this->config->getBaseUrl());

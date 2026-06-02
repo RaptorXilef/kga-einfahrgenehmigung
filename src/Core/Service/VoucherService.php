@@ -7,8 +7,8 @@ namespace App\Core\Service;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 
 /**
- * TODO Phase 3 Bearbeitet
- * Service für das Erstellen, Verwalten und Einlösen von Aktions- und Freigutscheinen.
+ * Service zur Verwaltung von Gutscheincodes und Rabatten.
+ * Übernimmt die Erstellung, Einlösung und Validierung von Codes.
  *
  * Erzeugt fälschungssichere Gutscheincodes, unterstützt Mehrfachnutzung ('multi_use'),
  * Verfallsdaten, Vorbefüllungs-Schablonen für Anträge und protokolliert Einlösungen revisionssicher im Archiv.
@@ -32,19 +32,21 @@ final readonly class VoucherService
      * Generiert einen neuen Gutschein im System mit individuellen Restriktionen.
      * Überprüft Wunsch-Codes auf Einzigartigkeit gegen Live- und Archivbestände oder generiert ein 'GUT-'-Krypto-Token.
      *
-     * @param string               $reason       Der Ausstellungsgrund (z.B. "Vorstandsentlastung").
-     * @param string               $created_by   Die ID oder der Name des ausstellenden Administrators.
-     * @param string               $template_key Das verknüpfte Tarif-Template (z.B. 'std_7').
-     * @param array<string, mixed> $prefillData  Optionale Stammdaten zur Zwangs-Vorbefüllung des Formulars.
-     * @param string               $type         Der Rabatt-Typ ('free', 'fixed', 'percent').
-     * @param float                $value        Der numerische Rabattwert (Betrag oder Prozentsatz).
-     * @param bool                 $multi_use    True, wenn der Gutschein von mehreren Personen genutzt werden darf.
-     * @param int|null             $max_uses     Maximale Einlösungsanzahl bei Multi-Use.
-     * @param string|null          $custom_code  Optionaler Wunsch-Code (z.B. "SOMMER2026").
-     * @param string|null          $expires_at   Optionales Ablaufdatum (Y-m-d).
-     * @param string               $date_mode    Gültigkeitsmodus für Termine ('fixed' oder flexibel).
+     * @param string      $reason       Der Grund oder Verwendungszweck des Gutscheins.
+     * @param string      $created_by   Kennung des Erstellers.
+     * @param string      $template_key Der zugehörige Vorlagen-Schlüssel.
+     * @param array       $prefillData  Optionale Formulardaten zum Vorbefüllen.
+     * @param string      $type         Die Art des Gutscheins ('free', 'percent', 'fixed').
+     * @param float       $value        Der Wert des Gutscheins (z.B. Prozent oder fester Euro-Betrag).
+     * @param bool        $multi_use    Gibt an, ob der Gutschein mehrfach verwendet werden kann.
+     * @param int|null    $max_uses     Maximale Anzahl der Verwendungen (null = unbegrenzt).
+     * @param string|null $custom_code  Ein benutzerdefinierter Code (optional).
+     * @param string|null $expires_at   Verfallsdatum (YYYY-MM-DD HH:MM:SS) oder null.
+     * @param string      $date_mode    Der Modus der Datumsberechnung ('fixed' etc.).
      *
-     * @return string Der finale, registrierte Gutscheincode im System.
+     * @return string Der generierte oder übergebene Gutscheincode.
+     *
+     * @throws \RuntimeException Wenn ein benutzerdefinierter Code bereits existiert.
      */
     public function createVoucher(
         string $reason,
@@ -105,13 +107,12 @@ final readonly class VoucherService
     }
 
     /**
-     * Löst einen Gutscheincode ein, inkrementiert Nutzungszähler und schreibt ein Revisionsprotokoll ins Archiv.
-     * Löscht Single-Use-Gutscheine oder erschöpfte Multi-Use-Gutscheine direkt aus dem Live-Bestand.
+     * Löst einen Gutschein ein, inkrementiert den Zähler und verschiebt ihn bei Erschöpfung ins Archiv.
      *
      * @param string               $code     Der einzulösende Gutscheincode.
-     * @param array<string, mixed> $userData Daten des einlösenden Antragstellers für das Log-Archiv.
+     * @param array<string, mixed> $userData Daten des Nutzers für das Archiv (Name, Parzelle, E-Mail).
      *
-     * @return array<string, mixed>|null Die Gutschein-Konfigurationsdaten bei Erfolg, andernfalls null.
+     * @return array<string, mixed>|null Die Daten des Gutscheins bei Erfolg, sonst null.
      */
     public function useVoucher(string $code, array $userData = []): ?array
     {
@@ -157,10 +158,10 @@ final readonly class VoucherService
     /**
      * Deaktiviert (Sperrt) einen aktiven Gutschein vorzeitig unter Angabe einer Begründung.
      *
-     * @param string $code   Der zu sperrende Code.
-     * @param string $reason Die administrative Begründung der Sperrung.
+     * @param string $code   Der zu deaktivierende Gutscheincode.
+     * @param string $reason Die Begründung für die Deaktivierung.
      *
-     * @return bool True bei erfolgreicher Sperrung.
+     * @return bool True bei Erfolg, false wenn der Code nicht gefunden wurde.
      */
     public function deactivateVoucher(string $code, string $reason): bool
     {
@@ -178,12 +179,12 @@ final readonly class VoucherService
     }
 
     /**
-     * Universelle Methode zum schnellen Umschalten des Gutschein-Status (z.B. 'aktiv', 'deaktiviert').
+     * Ändert den Status eines Gutscheins.
      *
-     * @param string $code   Der Ziel-Code.
-     * @param string $status Der neue Statusname.
+     * @param string $code   Der Gutscheincode.
+     * @param string $status Der neue Status ('aktiv' oder 'deaktiviert').
      *
-     * @return bool True bei Erfolg.
+     * @return bool True bei Erfolg, false wenn der Code nicht gefunden wurde.
      */
     public function toggleStatus(string $code, string $status): bool
     {
@@ -199,13 +200,11 @@ final readonly class VoucherService
     }
 
     /**
-     * Validiert die formale Verwendbarkeit eines Gutscheins.
-     * Prüft das logische Lösch-Flag, evaluiert Ablaufdaten gegen die aktuelle Systemzeit
-     * und gleicht den Nutzungszähler (`uses_count`) gegen das konfigurierte Limit ab.
+     * Prüft, ob ein gegebener Gutschein aktuell gültig ist (Verfallsdatum, Status & Nutzungen).
      *
-     * @param array<string, mixed> $voucher Der zu validierende Gutschein-Datensatz.
+     * @param array<string, mixed> $voucher Das Gutschein-Daten-Array.
      *
-     * @return bool True, wenn der Gutschein aktuell uneingeschränkt einlösbar ist.
+     * @return bool True, wenn der Gutschein noch eingelöst werden kann.
      */
     public function isValid(array $voucher): bool
     {
@@ -235,9 +234,26 @@ final readonly class VoucherService
         return ! $multi || $max <= 0 || $count < $max;
     }
 
-    // Die folgenden Methoden leiten wir vorübergehend durch, damit Controller (die noch darauf zugreifen) nicht kaputt gehen
+    // TODO Die folgenden 2 Methoden leiten wir vorübergehend durch, damit Controller (die noch darauf zugreifen) nicht kaputt gehen
+    /**
+     * Lädt alle derzeit aktiven Gutscheine.
+     *
+     * @return array Ein Array aller aktiven Gutscheine.
+     */
+    // public function loadVouchers()
     public function loadVouchers(): array
     {
         return $this->repository->loadAll();
+    }
+
+    /**
+     * Lädt das Archiv der bereits vollständig eingelösten Gutscheine.
+     *
+     * @return array Ein Array aller archivierten Gutscheine.
+     */
+    // public function loadArchive()
+    public function loadArchive(): array
+    {
+        return $this->repository->loadArchive();
     }
 }
