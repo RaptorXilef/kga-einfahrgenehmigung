@@ -2,6 +2,27 @@
 
 
 
+## [0.33.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.32.1...v0.33.0) (2026-06-02)
+
+### 🚀 Features
+
+* **admin/migration:** complete dashboard targets, add dedicated mappers and update permissions ([70f280d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/70f280d9fefdfa6fd132b3a426bd46d1e6a4dbaa))
+
+### ⚙️ Refactoring
+
+* **api/controllers:** implement JsonResponse standardization and purge residual I/O from ... ([6e7acda](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6e7acda82db23c465cf2dea207dbe5f5dc51d346))
+* **core/architecture:** implement repository pattern, relocate maintenance services ([090757b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/090757b1a5e2381e5bee02d9460296e65ab156e8))
+* **core/auth:** apply repository pattern to AuthService and relocate to Core layer ([fb52661](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fb52661addb4c2d3c2f39c842624d735a99f4a7e))
+* **storage/schema:** upgrade to native JSON and DATETIME types with on-the-fly data healing ([b282a9c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b282a9cc3e5fb5dcc5b8192fe46750f6eacbf32b))
+
+### 📚 Dokumentation
+
+* **core/infrastructure:** implement missing DocBlocks ([1bf1c11](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1bf1c115ef161818edc2404d7b1be00a715b51b0))
+
+### 🧹 Chore / Maintenance
+
+* update composer.lock and vendor packages ([c18da0f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c18da0f86fe2a2550670eb598a6b4a4989cee6fd))
+
 ## [0.32.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.32.0...v0.32.1) (2026-05-28)
 
 ### 🐛 Bug Fixes
