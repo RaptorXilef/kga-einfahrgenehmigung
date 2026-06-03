@@ -816,32 +816,6 @@ final readonly class PermitService
     }
 
     /**
-     * Archivierungs-Cronjob für abgelaufene Genehmigungen des Vorjahres.
-     * Verschiebt nach Ablauf der Deadline ('archive_deadline', z.B. 01. Februar) alle Datensätze,
-     * deren Erstellungsjahr älter als das aktuelle Jahr ist, in SQL-Archivtabellen oder ein JSON-Jahresarchiv.
-     */
-    public function checkAndArchive(): void
-    {
-        $archiveDeadline = (string) $this->config->get('archive_deadline', '02-01');
-        if (\date('m-d') < $archiveDeadline) {
-            return;
-        }
-        $lastYear  = (int) \date('Y') - 1;
-        $all       = $this->storage->getAll();
-        $toArchive = [];
-        foreach ($all as $permit) {
-            $year = (int) $permit->erstellt->format('Y');
-            if ($year <= $lastYear) {
-                $toArchive[] = ['code' => $permit->code, 'template_key' => $permit->template_key, 'name' => $permit->owner->name, 'email' => $permit->owner->email, 'kennzeichen' => $permit->vehicle->kennzeichen, 'parzelle' => $permit->owner->parzelle, 'typ' => $permit->vehicle->typ, 'firma' => $permit->vehicle->firma, 'zweck' => $permit->validity->zweck, 'preis' => $permit->validity->preis, 'von' => $permit->validity->von->format('Y-m-d'), 'bis' => $permit->validity->bis->format('Y-m-d'), 'status' => $permit->status->current, 'is_suspended' => (int) $permit->status->is_suspended, 'suspension_reason' => $permit->status->suspension_reason, 'erstellt' => $permit->erstellt->format('Y-m-d H:i:s'), 'interner_kommentar' => $permit->interner_kommentar];
-                $this->storage->delete($permit->code);
-            }
-        }
-        if ($toArchive !== []) {
-            $this->archiveRepository->archivePermits($lastYear, $toArchive);
-        }
-    }
-
-    /**
      * Setzt oder entfernt die Sperre einer Genehmigung.
      *
      * @param string      $code   Der Code der Genehmigung.
@@ -922,7 +896,6 @@ final readonly class PermitService
         return $this->archiveRepository->anonymizeOldRecords($yearsThreshold);
     }
 
-    // TODO DOCBLOCK
     /**
      * Verschiebt abgelaufene und abgeschlossene Genehmigungen ins Archiv.
      */
@@ -956,5 +929,137 @@ final readonly class PermitService
         }
 
         return \count($toArchive);
+    }
+
+    /**
+     * Wandelt eine Permit-Entität in ein flaches Array für das Archiv um.
+     */
+    public function entityToArray(Permit $permit): array
+    {
+        return [
+            'code'               => $permit->code,
+            'template_key'       => $permit->template_key,
+            'name'               => $permit->owner->name,
+            'email'              => $permit->owner->email,
+            'kennzeichen'        => $permit->vehicle->kennzeichen,
+            'parzelle'           => $permit->owner->parzelle,
+            'typ'                => $permit->vehicle->typ,
+            'firma'              => $permit->vehicle->firma,
+            'zweck'              => $permit->validity->zweck,
+            'preis'              => $permit->validity->preis,
+            'von'                => $permit->validity->von->format('Y-m-d'),
+            'bis'                => $permit->validity->bis->format('Y-m-d'),
+            'status'             => $permit->status->current,
+            'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
+            'interner_kommentar' => $permit->interner_kommentar,
+            'is_anonymized'      => 0,
+        ];
+    }
+
+    /**
+     * Sucht, filtert und paginiert Genehmigungen (inkl. Archiv).
+     *
+     * @return array{items: array, total: int}
+     */
+    public function searchAndPaginate(string $query, string $tab, string $templateType, int $page, int $limit): array
+    {
+        // 1. Alle aktiven Genehmigungen laden (Hauptspeicher)
+        $allActive = $this->storage->getAll();
+
+        // 2. Archiv laden, falls explizit danach gesucht wird oder 'all' gewählt ist
+        // HINWEIS: Bei sehr großen JSON-Archiven optimieren wir das später noch auf reine DB-Queries
+        $archived = [];
+        if (\in_array($tab, ['all', 'archive'], true)) {
+            $arcCfg      = $this->config->get('storage_config')['permits_archive'];
+            $archivePath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
+                \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . ($arcCfg['file'] ?? 'permits_archive.json');
+
+            if (\file_exists($archivePath)) {
+                $rawArchive = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+                foreach ($rawArchive as $item) {
+                    $archived[] = $this->arrayToEntity($item);
+                }
+            }
+        }
+
+        // 3. Zusammenführen und filtern
+        $combined   = \array_merge($allActive, $archived);
+        $filtered   = [];
+        $queryLower = \strtolower($query);
+        $now        = new \DateTimeImmutable();
+
+        $permitTemplates = $this->config->get('permit_templates', []);
+
+        foreach ($combined as $permit) {
+            // A. Template-Typ Filter
+            if ($templateType !== 'all') {
+                $tplType = $permitTemplates[$permit->template_key]['type'] ?? 'standard';
+                if ($tplType !== $templateType) {
+                    continue;
+                }
+            }
+
+            // B. Tab-Filter (Aktiv, Abgelaufen, Archiv)
+            $isArchived = $this->archiveRepository->isCodeInArchive($permit->code);
+            $isExpired  = $permit->validity->bis < $now;
+
+            if ($tab === 'active' && ($isArchived || $isExpired)) {
+                continue;
+            }
+            if ($tab === 'expired' && (! $isExpired || $isArchived)) {
+                continue;
+            }
+            if ($tab === 'archive' && ! $isArchived) {
+                continue;
+            }
+
+            // C. Text-Suche (falls ein Suchbegriff existiert)
+            if ($queryLower !== '') {
+                $searchString = \strtolower(
+                    $permit->code . ' ' .
+                        $permit->owner->name . ' ' .
+                        $permit->owner->email . ' ' .
+                        $permit->vehicle->kennzeichen . ' ' .
+                        $permit->owner->parzelle . ' ' .
+                        $permit->validity->zweck,
+                );
+
+                if (! \str_contains($searchString, $queryLower)) {
+                    continue;
+                }
+            }
+
+            $filtered[] = $permit;
+        }
+
+        // 4. Sortieren (Neueste zuerst)
+        \usort($filtered, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
+
+        // 5. Paginierung (Array zuschneiden)
+        $total  = \count($filtered);
+        $offset = ($page - 1) * $limit;
+        $items  = \array_slice($filtered, $offset, $limit);
+
+        // 6. Für die API als flache Arrays formatieren
+        $formattedItems = \array_map(fn ($p) => [
+            'code'         => $p->code,
+            'name'         => $p->owner->name,
+            'email'        => $p->owner->email,
+            'parzelle'     => $p->owner->parzelle,
+            'kennzeichen'  => $p->vehicle->kennzeichen,
+            'zweck'        => $p->validity->zweck,
+            'preis'        => $p->validity->preis,
+            'status'       => $p->status->current,
+            'erstellt'     => $p->erstellt->format('d.m.Y H:i'),
+            'von'          => $p->validity->von->format('d.m.Y'),
+            'bis'          => $p->validity->bis->format('d.m.Y'),
+            'is_archived'  => $this->archiveRepository->isCodeInArchive($p->code),
+            'template_key' => $p->template_key,
+        ], $items);
+
+        return [
+            'items' => $formattedItems,
+            'total' => $total,
+        ];
     }
 }
