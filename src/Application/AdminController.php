@@ -13,6 +13,7 @@ use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\CronScheduler;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 
@@ -39,6 +40,7 @@ final readonly class AdminController
         private AuthService $auth,
         private BackupService $backupService,
         private ConfigInterface $config,
+        private CronScheduler $cronScheduler,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
         private MigrationService $migrationService,
@@ -64,6 +66,9 @@ final readonly class AdminController
         try {
             // Hier rufen ich jetzt NUR noch den sauberen Bootstrapper auf
             $this->bootstrapper->bootstrap();
+
+            // Orchestriert Backup & Archivierung über Pseudo-Cron
+            $this->cronScheduler->runIfNeeded();
 
             // Cronjob für automatische Backups darf bleiben
             $this->backupService->checkAutoBackup();

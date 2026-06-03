@@ -921,4 +921,40 @@ final readonly class PermitService
     {
         return $this->archiveRepository->anonymizeOldRecords($yearsThreshold);
     }
+
+    // TODO DOCBLOCK
+    /**
+     * Verschiebt abgelaufene und abgeschlossene Genehmigungen ins Archiv.
+     */
+    public function autoArchiveExpiredPermits(int $graceDays = 0): int
+    {
+        $allPermits = $this->storage->getAll();
+        $toArchive  = [];
+
+        // Stichtag berechnen (Mitternacht)
+        $cutoffDate = (new \DateTimeImmutable())->modify("-{$graceDays} days")->setTime(0, 0, 0);
+
+        foreach ($allPermits as $permit) {
+            // 1. Bedingung: Ist das "bis" Datum kleiner als unser Stichtag?
+            if ($permit->validity->bis < $cutoffDate) {
+
+                // 2. Bedingung: Ist der Status endgültig abgeschlossen? (bezahlt oder storniert)
+                if (\in_array($permit->status->current, ['bezahlt', 'storniert'], true)) {
+                    $toArchive[] = $this->entityToArray($permit);
+                }
+            }
+        }
+
+        if (! empty($toArchive)) {
+            // Ins Archiv schreiben
+            $this->archiveRepository->archivePermits(0, $toArchive);
+
+            // Aus dem Hauptspeicher löschen
+            foreach ($toArchive as $item) {
+                $this->storage->delete($item['code']);
+            }
+        }
+
+        return \count($toArchive);
+    }
 }

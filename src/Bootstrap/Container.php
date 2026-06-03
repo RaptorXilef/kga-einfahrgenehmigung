@@ -33,6 +33,7 @@ use App\Core\Service\VoucherService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\CronScheduler;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
@@ -286,6 +287,12 @@ class Container
             $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
         );
+
+        $this->services[CronScheduler::class] = fn () => new CronScheduler(
+            $this->get(BackupService::class),
+            $this->get(ConfigInterface::class),
+            $this->get(PermitService::class),
+        );
     }
 
     /**
@@ -347,6 +354,7 @@ class Container
             $this->get(AuthService::class),
             $this->get(BackupService::class),
             $this->get(ConfigInterface::class),
+            $this->get(CronScheduler::class),
             $this->get(HolidayService::class),
             $this->get(MailServiceInterface::class),
             $this->get(MigrationService::class),
