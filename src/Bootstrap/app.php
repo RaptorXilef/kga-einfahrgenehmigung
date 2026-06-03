@@ -180,8 +180,17 @@ if (! $isMaintenancePage) {
 }
 // --- Ende Wartungsmodus ---
 
+// --- EXCEPTIONS / FEHLERMELDUNGEN ---
+$configInstance   = new Config($settings);
+$errorLogger      = new \App\Infrastructure\Logging\ErrorLogger($configInstance);
+$exceptionHandler = new \App\Application\Exception\GlobalExceptionHandler($errorLogger, $configInstance);
+
+// Aktiviert das globale Error-Handling ab sofort!
+$exceptionHandler->register();
+// --- ENDE EXCEPTIONS ---
+
 // Wir geben direkt die Container-Instanz zurück
 /**
  * @return Container Gibt die fertig konfigurierte Dependency-Injection-Container-Instanz zurück.
  */
-return new Container(new Config($settings));
+return new Container($configInstance);
