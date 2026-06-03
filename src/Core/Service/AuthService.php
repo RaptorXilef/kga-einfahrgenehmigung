@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 
@@ -25,9 +26,10 @@ use App\Contracts\Storage\UserRepositoryInterface;
 final readonly class AuthService
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private GroupRepositoryInterface $groupRepository,
         private ConfigInterface $config,
+        private GroupRepositoryInterface $groupRepository,
+        private RateLimiterInterface $rateLimiter,
+        private UserRepositoryInterface $userRepository,
     ) {
         if (\session_status() !== \PHP_SESSION_NONE) {
             return;
@@ -47,11 +49,18 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($this->rateLimiter->isBlocked($ip)) {
+            throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde für 15 Minuten aus Sicherheitsgründen gesperrt.');
+        }
+
         // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef)
         $backdoor = $this->config->get('backdoor');
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
             // Wir nutzen das Label als Gruppenname für die Anzeige
             $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
+            $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
 
             // Backdoor braucht kein compiled_permissions, da hasPermission() sys_ erkennt
             return true;
@@ -64,6 +73,7 @@ final readonly class AuthService
             // Erlaubt Klartext (für den allerersten Start) ODER Hash
             if ($password === $storedPass || \password_verify($password, $storedPass)) {
                 $this->setSession('sys_superadmin', 'admin', $superCfg['label'] ?? 'Dev-Admin');
+                $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
 
                 return true;
             }
@@ -78,10 +88,14 @@ final readonly class AuthService
             ) {
                 $this->setSession($userId, (string) $userData['group'], $username);
                 $this->refreshSessionPermissions((string) $userData['group']);
+                $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
 
                 return true;
             }
         }
+
+        // Fehlschlag -> Versuch protokollieren
+        $this->rateLimiter->recordFailedAttempt($ip);
 
         return false;
     }

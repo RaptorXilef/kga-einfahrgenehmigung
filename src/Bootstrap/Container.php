@@ -14,6 +14,7 @@ use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
@@ -35,6 +36,7 @@ use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
+use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\GroupRepository;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MagicLinkRepository;
@@ -279,6 +281,11 @@ class Container
             $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
         );
+
+        $this->services[RateLimiterInterface::class] = fn () => new RateLimiter(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
     }
 
     /**
@@ -322,9 +329,10 @@ class Container
 
         // AuthService registrieren
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
-            $this->get(UserRepositoryInterface::class),
-            $this->get(GroupRepositoryInterface::class),
             $this->get(ConfigInterface::class),
+            $this->get(GroupRepositoryInterface::class),
+            $this->get(RateLimiterInterface::class),
+            $this->get(UserRepositoryInterface::class),
         );
     }
 

@@ -13,9 +13,9 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Infrastructure\Auth\AuthService $auth
- * @var \App\Core\Service\BackupService      $backupService
- * @var array                                $settings
+ * @var \App\Core\Service\AuthService                 $auth
+ * @var \App\Infrastructure\Maintenance\BackupService $backupService
+ * @var array                                         $settings
  */
 if ($auth->hasPermission('dashboard.migration.view')) {
     $targets = [
@@ -30,6 +30,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         'verified_pending'     => ['label' => 'Warteraum (Zahlung)', 'icon' => '💳'],
         'vouchers'             => ['label' => 'Gutscheine', 'icon' => '🎟️'],
         'vouchers_archive'     => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
+        'login_attempts'       => ['label' => 'Login-Versuche', 'icon' => '🛡'],
     ];
 
     $backups = $backupService->listBackups();

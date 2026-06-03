@@ -12,11 +12,11 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var array                                $permitGroups
- * @var \App\Infrastructure\Config\Config    $config
- * @var \App\Infrastructure\Auth\AuthService $auth
- * @var \App\Core\Service\PermitService      $permitService
- * @var array                                $settings
+ * @var array                             $permitGroups
+ * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Core\Service\PermitService   $permitService
+ * @var array                             $settings
  */
 $unpaidPermits = $permitGroups['unpaid'] ?? [];
 $dueDaysCfg    = (int) $config->get('payment_due_days', 14);

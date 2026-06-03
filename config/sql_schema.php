@@ -142,4 +142,10 @@ return [
         `user_plot` VARCHAR(10),
         INDEX `idx_code` (`code`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
+
+    'login_attempts' => 'CREATE TABLE IF NOT EXISTS `login_attempts` (
+        `ip_address` VARCHAR(45) PRIMARY KEY,
+        `attempts` INT NOT NULL DEFAULT 1,
+        `last_attempt` DATETIME NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 ];

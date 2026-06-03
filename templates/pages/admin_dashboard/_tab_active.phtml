@@ -12,10 +12,10 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var array                                $permitGroups
- * @var \App\Infrastructure\Auth\AuthService $auth
- * @var array                                $settings
- * @var \App\Infrastructure\Config\Config    $config
+ * @var array                             $permitGroups
+ * @var \App\Core\Service\AuthService     $auth
+ * @var array                             $settings
+ * @var \App\Infrastructure\Config\Config $config
  */
 $now           = new \DateTimeImmutable('today');
 $activePermits = $permitGroups['active'] ?? [];

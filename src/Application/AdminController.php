@@ -152,17 +152,33 @@ final readonly class AdminController
             $user = (string) ($post['user'] ?? '');
             $pass = (string) ($post['pass'] ?? '');
 
-            if ($this->auth->login($user, $pass)) {
-                // Wenn ein Code per GET oder POST übergeben wurde, leite direkt zur Prüfung weiter
-                $code = (string) ($_REQUEST['code'] ?? '');
-                if ($code !== '') {
-                    \header('Location: check.php?code=' . \urlencode($code));
-                    exit;
+            try {
+                if ($this->auth->login($user, $pass)) {
+                    // Wenn ein Code per GET oder POST übergeben wurde, leite direkt zur Prüfung weiter
+                    $code = (string) ($_REQUEST['code'] ?? '');
+                    if ($code !== '') {
+                        \header('Location: check.php?code=' . \urlencode($code));
+                        exit;
+                    }
+
+                    \header('Location: admin.php');
+
+                    return true;
                 }
+                // Normaler Fehler (Passwort falsch)
+                $this->render('admin_login', [
+                    'message'  => 'Benutzername oder Passwort ist falsch.',
+                    'settings' => $this->getSettingsArray(),
+                ]);
+                exit;
 
-                \header('Location: admin.php');
-
-                return true;
+            } catch (\RuntimeException $e) {
+                // Rate Limit Fehler abfangen
+                $this->render('admin_login', [
+                    'message'  => $e->getMessage(),
+                    'settings' => $this->getSettingsArray(),
+                ]);
+                exit;
             }
         }
 

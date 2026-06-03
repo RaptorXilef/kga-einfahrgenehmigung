@@ -94,6 +94,12 @@ return [
             'table' => 'verified_pending',
             'file'  => 'verified_pending.json',
         ],
+        // Ort, um die fehlerhafte Login-Versuche zu speichern
+        'login_attempts' => [
+            'type'  => 'json',
+            'table' => 'login_attempts',
+            'file'  => 'login_attempts.json',
+        ],
     ],
 
     // Pfad zum Storage-Ordner (relativ zum Root)

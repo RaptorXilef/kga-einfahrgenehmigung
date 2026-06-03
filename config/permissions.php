@@ -511,6 +511,24 @@ return [
                                         ],
                                     ],
                                 ],
+                                'login_attempts' => [
+                                    'label'    => 'Migration: Alle fehlgeschlagenen Login-Versuche',
+                                    'key'      => 'dashboard.migration.login_attempts.view',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Fehlgeschlagene Login-Versuche -> SQL schieben',
+                                            'key'   => 'dashboard.migration.login_attempts.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Fehlgeschlagene Login-Versuche -> JSON',
+                                            'key'   => 'dashboard.migration.login_attempts.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Fehlgeschlagene Login-Versuche zusammenführen',
+                                            'key'   => 'dashboard.migration.login_attempts.sync',
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                         'backups' => [

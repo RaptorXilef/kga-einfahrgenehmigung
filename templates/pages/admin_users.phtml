@@ -15,13 +15,13 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var array                                $users       Vollständige Liste aller registrierten Benutzerkonten im System.
- * @var array                                $groups      Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
- * @var string                               $message     Operations-Meldung nach Datenmanipulationen.
- * @var array                                $settings
- * @var string                               $appRoot
- * @var \App\Infrastructure\Config\Config    $config
- * @var \App\Infrastructure\Auth\AuthService $auth
+ * @var array                             $users       Vollständige Liste aller registrierten Benutzerkonten im System.
+ * @var array                             $groups      Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
+ * @var string                            $message     Operations-Meldung nach Datenmanipulationen.
+ * @var array                             $settings
+ * @var string                            $appRoot
+ * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Core\Service\AuthService     $auth
  */
 if ($auth->hasPermission('system.permissions.view')) {
     ?>
