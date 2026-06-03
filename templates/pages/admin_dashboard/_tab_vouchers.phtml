@@ -31,7 +31,8 @@
                         <h3 class="u-margin-none">
                             <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
                                  class="c-icon"
-                                 alt=""><!-- 🎟️ --> Offene Gutscheincodes</h3>
+                                 alt=""><!-- 🎟️ --> Offene Gutscheincodes
+                        </h3>
                         <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
                     </header>
                     <div class="u-padding-none"
@@ -139,6 +140,9 @@
                                                         <form method="POST"
                                                               style="margin:0;">
                                                             <input type="hidden"
+                                                                   name="csrf_token"
+                                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                            <input type="hidden"
                                                                    name="code"
                                                                    value="<?php echo $v['code']; ?>">
                                                             <?php if ($isDeactivated) { ?>
@@ -169,6 +173,9 @@
                                                         <form method="POST"
                                                               style="margin:0;"
                                                               onsubmit="return confirm('Soll dieser Gutscheincode unwiderruflich gelöscht werden?')">
+                                                            <input type="hidden"
+                                                                   name="csrf_token"
+                                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                             <input type="hidden"
                                                                    name="action"
                                                                    value="delete_voucher">

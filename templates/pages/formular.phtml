@@ -39,7 +39,7 @@ foreach ($publicTemplates as $key => $tpl) {
  * FIX: Prüft, ob ein Feld gesperrt werden soll.
  * Bei Daten aus Gutscheinen werden Felder nur gesperrt, wenn sie auch wirklich Inhalt haben.
  */
-$isLocked = fn($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
+$isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
 
 // Suche nach dem Logo mit verschiedenen Endungen
 $logoFile = null;
@@ -69,7 +69,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     window.KGA_CONFIG = {
         baseUrl: '<?php echo $settings['base_url']; ?>',
         vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
-                        ?>,
+?>,
         csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
 
@@ -335,6 +335,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                           id="permitForm"
                           class="c-form">
                         <input type="hidden"
+                               name="csrf_token"
+                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <input type="hidden"
                                name="voucher"
                                value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ($prefill['code'] ?? '')); ?>">
 
@@ -397,7 +400,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             if (! ($vData['active'] ?? true) && ($prefill['data']['typ'] ?? '') !== $val) {
                                                 continue;
                                             }
-                                        ?>
+                                            ?>
                                             <option value="<?php echo $val; ?>"
                                                     <?php echo ($prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
                                                 <?php echo \htmlspecialchars($vData['label']); ?>

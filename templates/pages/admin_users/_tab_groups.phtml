@@ -86,6 +86,9 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                       class="u-grid u-gap-m"
                       style="grid-template-columns: 1.5fr 1.5fr 1fr auto;">
                     <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <input type="hidden"
                            name="action"
                            value="save_group">
                     <div class="c-form-group">
@@ -184,6 +187,9 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                   onsubmit="return confirm('Gruppe löschen?')"
                                   style="margin: 0;">
                                 <input type="hidden"
+                                       name="csrf_token"
+                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                <input type="hidden"
                                        name="action"
                                        value="delete_group"><input type="hidden"
                                        name="group_id"
@@ -211,6 +217,9 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                 <form method="POST"
                                       enctype="multipart/form-data">
                                     <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
                                            name="action"
                                            value="upload_group_image">
                                     <input type="hidden"
@@ -231,6 +240,9 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                             <div class="u-flex u-flex-column u-justify-center">
                                 <form method="POST"
                                       class="u-flex u-gap-s u-align-end">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
                                            name="action"
                                            value="rename_group">
@@ -255,6 +267,9 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
 
                         <form method="POST"
                               class="permission-container">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <input type="hidden"
                                    name="action"
                                    value="save_group">

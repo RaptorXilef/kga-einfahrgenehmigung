@@ -45,6 +45,12 @@ final readonly class VerificationController
         if (isset($get['token'])) {
             $input = (string) $get['token'];
         } elseif (isset($post['submit_code'])) {
+            // CSRF-Check für das OTP-Formular (POST)
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                \header('Location: verify.php?error=1&msg=' . \urlencode('Sicherheits-Token ungültig (CSRF). Bitte Seite neu laden.'));
+
+                return;
+            }
             $input = (string) ($post['verification_code'] ?? '');
         }
 
@@ -52,8 +58,9 @@ final readonly class VerificationController
         if ($input !== '') {
             $result = $this->permitService->confirmEmail($input);
 
-            // --- NEU: HIER TRIGGERN (Bevor wir die Methode verlassen) ---
+            // --- HIER TRIGGERN (Bevor wir die Methode verlassen) ---
             $mailService = $this->permitService->getMailService();
+
             if ($mailService instanceof MailQueueService) {
                 $mailService->processQueue(3); // Dokumente sofort losschicken!
             }

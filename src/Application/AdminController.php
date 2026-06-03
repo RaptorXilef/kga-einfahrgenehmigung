@@ -90,9 +90,15 @@ final readonly class AdminController
         }
 
         // 4. EIGENTLICHE DASHBOARD-LOGIK (Nur wenn eingeloggt)
+        // Neu mit CSRF-Schutz
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $message = $this->handleDataActions($post);
+            // Globale CSRF-Prüfung für alle administrativen POST-Aktionen
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+            } else {
+                $message = $this->handleDataActions($post);
+            }
 
             // WICHTIG: Wenn eine Aktion verarbeitet wurde -> Redirect (PRG Pattern)
             if ($message !== '') {
@@ -132,7 +138,17 @@ final readonly class AdminController
             return true;
         }
 
+        // Neu mit CSRF-Schutz
         if (isset($post['login'])) {
+            // CSRF-Schutz auch für das Login-Formular
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $this->render('admin_login', [
+                    'message'  => 'Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu.',
+                    'settings' => $this->getSettingsArray(),
+                ]);
+                exit;
+            }
+
             $user = (string) ($post['user'] ?? '');
             $pass = (string) ($post['pass'] ?? '');
 
@@ -270,10 +286,8 @@ final readonly class AdminController
         }
 
         try {
-            // Gutschein erstellen
-            $reason = (string) ($post['reason'] ?? 'Gutschein');
-            $tplKey = (string) ($post['template_key'] ?? 'std_7');
-            // Erweiterte Gutschein-Parameter
+            // Gutschein erstellen und Erweiterte Gutschein-Parameter
+            $reason     = (string) ($post['reason'] ?? 'Gutschein');
             $type       = (string) ($post['voucher_discount_type'] ?? 'free');
             $val        = (float) ($post['voucher_discount_value'] ?? 0.0);
             $multi      = isset($post['voucher_multi_use']);
@@ -289,9 +303,8 @@ final readonly class AdminController
                 'typ'         => (string) ($post['typ'] ?? ''),
                 'firma'       => \trim((string) ($post['firma'] ?? '')),
                 'zweck'       => (string) ($post['zweck'] ?? ''),
-                // Nur wenn Mode 'fixed', senden wir die Daten aus Schritt 1 mit
-                'datum_von' => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
-                'datum_bis' => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
+                'datum_von'   => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
+                'datum_bis'   => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
             ];
 
             // Service-Aufruf mit neuen Parametern
@@ -570,37 +583,6 @@ final readonly class AdminController
     }
 
     /**
-     * TODO Später löschen
-     * REMOVE
-     * Berechnet zusammenfassende Statistiken für einen gefilterten Datensatz.
-     *
-     * Reduziert Permits auf Gesamtanzahl und Umsatz.
-     *
-     * @return array<string, mixed>
-     *
-     * private function calculateStats(array $filtered): array
-     * {
-     * $stats = [
-     * 'total_count'   => \count($filtered),
-     * 'total_revenue' => \array_reduce(
-     * $filtered,
-     * fn (float $sum, Permit $permit): float => $sum + $permit->validity->preis,
-     * 0.0,
-     * ),
-     * 'types' => ['pkw' => 0, 'lkw' => 0],
-     * 'plots' => [],
-     * ];
-     *
-     * foreach ($filtered as $permit) {
-     * $stats['types'][$permit->vehicle->typ]    = ($stats['types'][$permit->vehicle->typ] ?? 0) + 1;
-     * $stats['plots'][$permit->owner->parzelle] = ($stats['plots'][$permit->owner->parzelle] ?? 0) + 1;
-     * }
-     * \arsort($stats['plots']);
-     *
-     * return $stats;
-     * }*/
-
-    /**
      * Liefert Konfigurations-Settings für das Frontend-Mapping/Templates.
      *
      * Schnittstelle zwischen Config-Objekt und UI.
@@ -632,7 +614,7 @@ final readonly class AdminController
         $direction = (string) ($post['direction'] ?? 'sync');
         $target    = (string) ($post['target'] ?? '');
 
-        // NEU: Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
+        // Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
         // Prüft exakt das Recht, z.B. 'dashboard.migration.users.json_to_mysql'
         if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$direction}")) {
             return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
@@ -676,11 +658,6 @@ final readonly class AdminController
      */
     private function actionRestoreData(array $post): string
     {
-        // CSRF Prüfung
-        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
-            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
-        }
-
         if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
             return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
         }
@@ -705,10 +682,6 @@ final readonly class AdminController
      */
     private function actionClearCache(array $post): string
     {
-        // CSRF Prüfung
-        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
-            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
-        }
         if (! $this->auth->hasPermission('dashboard.tools.view')) {
             return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
         }
@@ -726,30 +699,23 @@ final readonly class AdminController
      */
     private function actionTruncateTarget(array $post): string
     {
-        // CSRF Prüfung
-        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
-            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
-        }
         if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
             return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
         }
 
         $target = (string) ($post['target'] ?? '');
-        $engine = (string) ($post['engine'] ?? 'all'); // <-- NEU
+        $engine = (string) ($post['engine'] ?? 'all');
 
         if ($target === '') {
             return 'Fehler: Kein Zielbereich ausgewählt.';
         }
 
-        return $this->migrationService->truncateTarget($target, $engine); // <-- NEU
+        return $this->migrationService->truncateTarget($target, $engine);
     }
 
-    // TODO
+    // TODO DOCBLOCK
     private function actionAnonymizeArchive(array $post): string
     {
-        if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
-            return 'Fehler: Ungültiges Sicherheits-Token (CSRF).';
-        }
         if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
             return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';
         }

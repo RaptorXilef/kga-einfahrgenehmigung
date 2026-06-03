@@ -37,6 +37,9 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                       class="u-grid u-gap-m"
                       style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
                     <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <input type="hidden"
                            name="action"
                            value="save_user">
                     <div class="c-form-group">
@@ -133,6 +136,9 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                               onsubmit="return confirm('Soll der Benutzer \'<?php echo \addslashes((string) $displayLogin); ?>\' wirklich gelöscht werden?')"
                               style="margin: 0;">
                             <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <input type="hidden"
                                    name="action"
                                    value="delete_user">
                             <input type="hidden"
@@ -161,6 +167,9 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                 <form method="POST"
                                       enctype="multipart/form-data">
                                     <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
                                            name="action"
                                            value="upload_avatar">
                                     <input type="hidden"
@@ -179,6 +188,9 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                 </form>
                                 <hr style="border:none; border-top:1px solid #eee; margin: 15px 0;">
                                 <form method="POST">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
                                            name="action"
                                            value="rename_user">
@@ -202,6 +214,9 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                             <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
                                       class="u-flex u-flex-column u-gap-s">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
                                            name="action"
                                            value="change_user_password">
@@ -227,6 +242,9 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                             <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
                                       class="u-flex u-flex-column u-gap-s">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
                                            name="action"
                                            value="change_user_group">

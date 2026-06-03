@@ -194,6 +194,9 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                     <form method="POST"
                                                           style="margin:0;">
                                                         <input type="hidden"
+                                                               name="csrf_token"
+                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                        <input type="hidden"
                                                                name="action"
                                                                value="unsuspend_permit">
                                                         <input type="hidden"
@@ -219,6 +222,9 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                     <form id="form_suspend_<?php echo $permit->code; ?>"
                                                           method="POST"
                                                           style="display:none;">
+                                                        <input type="hidden"
+                                                               name="csrf_token"
+                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                         <input type="hidden"
                                                                name="action"
                                                                value="suspend_permit">

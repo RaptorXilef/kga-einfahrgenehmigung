@@ -50,6 +50,16 @@ final readonly class HistoryController
         }
 
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
+
+        // Globale CSRF-Prüfung für POST-Requests
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $msg = 'Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+                \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
+                exit;
+            }
+        }
+
         $displayMessage = (string) ($get['msg'] ?? '');
         $isSuccess      = ($get['sent'] ?? '') === '1';
 
@@ -84,6 +94,7 @@ final readonly class HistoryController
         // --- B. POST-AKTION: Manueller Code-Submit ---
         if (isset($post['submit_code'])) {
             $verifiedEmail = $this->magicLinkService->verifyAny((string) ($post['login_code'] ?? ''));
+
             if ($verifiedEmail) {
                 $_SESSION['user_history_email'] = $verifiedEmail;
                 \header('Location: history.php'); // Erfolgreich eingeloggt -> Saubere URL
@@ -151,11 +162,13 @@ final readonly class HistoryController
 
         // 2. Archive laden, falls angefordert (?load_archive=2025)
         $loadedYear = (int) ($get['load_archive'] ?? 0);
+
         if ($loadedYear > 0) {
             $arcCfg      = $this->config->get('storage_config')['permits_archive'];
-            $yearFile    = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern']);
+            $yearFile    = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern'] ?? $arcCfg['file']); // Fallback eingefügt
             $archivePath = $this->config->get('root_path') . '/' .
                 $this->config->get('storage_path_prefix') . $yearFile;
+
             if (\file_exists($archivePath)) {
                 $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
                 // Filter für E-Mail im Archiv

@@ -140,6 +140,9 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                     <form id="unifiedToolsForm"
                           method="POST"
                           class="c-form">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                         <!-- 1. ZEITRAUM & VORLAGE -->
                         <div class="c-form-section">
@@ -616,9 +619,12 @@ $hasAnyTemplate = ! empty($allowedTemplates);
     async function fetchDateInfo() {
         if (!inputVon || !inputBis) return;
         try {
-            const res = await fetch(window.KGA_CONFIG.baseUrl + `api/get_date_info.php?von=${inputVon.value}&bis=${inputBis.value}`, {
-                headers: { 'X-CSRF-Token': window.KGA_CONFIG.csrfToken }
-            });
+            const res = await fetch(window.KGA_CONFIG.baseUrl +
+                `api/get_date_info.php?von=${inputVon.value}&bis=${inputBis.value}`, {
+                    headers: {
+                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                    }
+                });
             const data = await res.json();
             const container = document.getElementById('dynamic-date-info');
             const openingEl = document.getElementById('dynamic-opening-hours');
@@ -634,7 +640,9 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                 }
                 container.style.display = 'block';
             }
-        } catch (e) { console.error('Fehler beim Laden der Datums-Infos', e); }
+        } catch (e) {
+            console.error('Fehler beim Laden der Datums-Infos', e);
+        }
     }
 
     // --- BEIBEHALTENE LOGIKEN (Formatierung & Datum) ---

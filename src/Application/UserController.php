@@ -6,7 +6,6 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Config\Config;
 
 /**
  * Controller zur Administration von System-Benutzern, Gruppen und Berechtigungen.
@@ -45,28 +44,35 @@ final readonly class UserController
 
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $action = $post['action'] ?? '';
 
-            // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
-            $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
-            $message = match ($action) {
-                'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
-                'delete_user'          => $this->handleDeleteUser($post),
-                'rename_user'          => $this->handleRenameUser($post),
-                'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
-                'change_user_group'    => $this->handleChangeUserGroup($post),
-                'change_user_password' => $this->handleResetPassword($post),
-                'save_group'           => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
-                'rename_group'         => $this->handleRenameGroup($post),
-                'delete_group'         => $this->handleDeleteGroup($post),
-                'upload_group_image'   => $this->handleUploadGroupImage($post, $_FILES['avatar'] ?? null),
-                default                => ''
-            };
+            // Globale CSRF-Prüfung für die Benutzerverwaltung
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+            } else {
+                $action = $post['action'] ?? '';
+
+                // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
+                $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
+
+                $message = match ($action) {
+                    'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
+                    'delete_user'          => $this->handleDeleteUser($post),
+                    'rename_user'          => $this->handleRenameUser($post),
+                    'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
+                    'change_user_group'    => $this->handleChangeUserGroup($post),
+                    'change_user_password' => $this->handleResetPassword($post),
+                    'save_group'           => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
+                    'rename_group'         => $this->handleRenameGroup($post),
+                    'delete_group'         => $this->handleDeleteGroup($post),
+                    'upload_group_image'   => $this->handleUploadGroupImage($post, $_FILES['avatar'] ?? null),
+                    default                => ''
+                };
+            }
 
             if ($message !== '') {
                 // Wir hängen &focus=... an die URL an
                 $redirectUrl = 'users.php?msg=' . \urlencode($message);
-                if ($focusId !== '') {
+                if (isset($focusId) && $focusId !== '') {
                     $redirectUrl .= '&focus=' . \urlencode((string) $focusId);
                 }
                 \header('Location: ' . $redirectUrl);
@@ -82,6 +88,57 @@ final readonly class UserController
             'message'     => (string) ($_GET['msg'] ?? ''),
         ]);
     }
+
+    /**
+     * Steuert die Profil-Einstellungsseite des aktuell angemeldeten Benutzers.
+     * Erlaubt Eigenmanipulationen von Namen, Passwort und Avatar im aktiven Session-Kontext.
+     *
+     * @param array<string, mixed> $post Entspricht $_POST
+     */
+    public function handleProfileRequest(array $post): void
+    {
+        if (! $this->auth->isLoggedIn()) {
+            \header('Location: admin.php');
+
+            return;
+        }
+
+        $userId  = $_SESSION['user_id'] ?? '';
+        $action  = $post['action'] ?? '';
+        $message = '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Globale CSRF-Prüfung für das Eigene Profil
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+            } else {
+                $message = match ($action) {
+                    'change_own_password' => $this->processOwnPasswordChange($userId, $post),
+                    'change_own_username' => $this->processOwnUsernameChange($userId, $post),
+                    'change_own_avatar'   => $this->processOwnAvatarUpload($userId, $_FILES['avatar'] ?? null),
+                    default               => ''
+                };
+            }
+
+            if ($message !== '') {
+                \header('Location: profile.php?msg=' . \urlencode($message));
+                exit;
+            }
+        }
+
+        $users       = $this->auth->loadUsers();
+        $groups      = $this->auth->loadGroups();
+        $userGroupId = $users[$userId]['group'] ?? 'guest';
+
+        $this->render('profile', [
+            'userId'   => $userId,
+            'username' => $users[$userId]['username'] ?? 'Unbekannt',
+            'group'    => $groups[$userGroupId]['name'] ?? $userGroupId,
+            'message'  => (string) ($_GET['msg'] ?? ''),
+        ]);
+    }
+
+    // --- Private Helper Methoden bleiben identisch ---
 
     /**
      * Erstellt einen neuen Datensatz in der Benutzerverwaltung inklusive Passwort-Hashing.
@@ -137,9 +194,8 @@ final readonly class UserController
         $groups = $this->auth->loadGroups();
 
         // 1. Prüfen: Bestehende Gruppe (Update) oder Neue Gruppe (Create)?
-        $groupId  = (string) ($post['group_id'] ?? '');
-        $isUpdate = $groupId !== '' && isset($groups[$groupId]);
-
+        $groupId     = (string) ($post['group_id'] ?? '');
+        $isUpdate    = $groupId !== '' && isset($groups[$groupId]);
         $displayName = \trim((string) ($post['group_name'] ?? ''));
         $inheritFrom = (string) ($post['inherit_group'] ?? '');
 
@@ -256,8 +312,8 @@ final readonly class UserController
         $userId = (string) ($post['user_id'] ?? '');
 
         return $this->auth->uploadImage('user', $userId, $file)
-            ? 'Profilbild aktualisiert.'
-            : 'Fehler beim Verarbeiten.';
+        ? 'Profilbild aktualisiert.'
+        : 'Fehler beim Verarbeiten.';
     }
 
     /**
@@ -275,9 +331,9 @@ final readonly class UserController
         }
         $gid = (string) ($post['group_id'] ?? '');
 
-        return $this->auth->uploadImage('group_images', $gid, $file)
-            ? 'Gruppen-Icon aktualisiert.'
-            : 'Fehler beim Verarbeiten.';
+        return $this->auth->uploadImage('group', $gid, $file)
+        ? 'Gruppen-Icon aktualisiert.'
+        : 'Fehler beim Verarbeiten.';
     }
 
     /**
@@ -379,51 +435,6 @@ final readonly class UserController
     }
 
     /**
-     * Steuert die Profil-Einstellungsseite des aktuell angemeldeten Benutzers.
-     * Erlaubt Eigenmanipulationen von Namen, Passwort und Avatar im aktiven Session-Kontext.
-     *
-     * @param array<string, mixed> $post Entspricht $_POST
-     */
-    public function handleProfileRequest(array $post): void
-    {
-        if (! $this->auth->isLoggedIn()) {
-            \header('Location: admin.php');
-
-            return;
-        }
-
-        $userId = $_SESSION['user_id'] ?? '';
-        $action = $post['action'] ?? '';
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $message = match ($action) {
-                'change_own_password' => $this->processOwnPasswordChange($userId, $post),
-                'change_own_username' => $this->processOwnUsernameChange($userId, $post),
-                'change_own_avatar'   => $this->processOwnAvatarUpload($userId, $_FILES['avatar'] ?? null),
-                default               => ''
-            };
-
-            // PRG-Pattern Fix: Wenn eine Aktion verarbeitet wurde -> per Redirect neu laden
-            if ($message !== '') {
-                \header('Location: profile.php?msg=' . \urlencode($message));
-                exit;
-            }
-        }
-
-        $users       = $this->auth->loadUsers();
-        $groups      = $this->auth->loadGroups();
-        $userGroupId = $users[$userId]['group'] ?? 'guest';
-
-        $this->render('profile', [
-            'userId'   => $userId,
-            'username' => $users[$userId]['username'] ?? 'Unbekannt',
-            // Hier den Anzeigenamen der Gruppe holen
-            'group'   => $groups[$userGroupId]['name'] ?? $userGroupId,
-            'message' => (string) ($_GET['msg'] ?? ''), // Nachricht jetzt aus der URL (GET) laden
-        ]);
-    }
-
-    /**
      * Validiert das alte Kennwort und ändert das Passwort des aktuell angemeldeten Benutzers.
      *
      * @param string               $userId Die aktive Benutzer-ID aus der Session.
@@ -509,7 +520,6 @@ final readonly class UserController
      */
     private function render(string $template, array $data): void
     {
-        /** @var Config $config */
         $config = $this->config;
         // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
         $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
@@ -517,7 +527,7 @@ final readonly class UserController
         $templateData = \array_merge([
             'auth'     => $this->auth,
             'config'   => $this->config,
-            'appRoot'  => $appRoot . '/', // Für Partials im Template
+            'appRoot'  => $appRoot . '/',
             'settings' => [
                 'base_url'     => $this->config->getBaseUrl(),
                 'vereins_name' => $this->config->get('vereins_name'),

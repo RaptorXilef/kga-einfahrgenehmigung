@@ -96,7 +96,8 @@ if ($permit) {
             <?php } else { ?>
                 <div style="color: var(--text-muted);">
                     <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""></span>
-                    <h2 style="margin-top: 10px; margin-bottom: 0;">GENEHMIGUNG UNGÜLTIG <!--ZEITRAUM UNGÜLTIG / ZAHLUNG OFFEN--></h2>
+                    <h2 style="margin-top: 10px; margin-bottom: 0;">GENEHMIGUNG UNGÜLTIG
+                        <!--ZEITRAUM UNGÜLTIG / ZAHLUNG OFFEN--></h2>
                 </div>
             <?php } ?>
         </div>
@@ -177,7 +178,8 @@ if ($permit) {
 
                     <?php if (! empty($holidayNotice)) { ?>
                         <tr style="background: rgba(211, 47, 47, 0.05);">
-                            <td class="u-font-bold" style="color: var(--danger-color);">Enthaltene Ruhe- und Feiertage</td>
+                            <td class="u-font-bold"
+                                style="color: var(--danger-color);">Enthaltene Ruhe- und Feiertage</td>
                             <td style="color: var(--danger-color);"><strong><?php echo $holidayNotice; ?></strong></td>
                         </tr>
                     <?php } ?>
@@ -199,10 +201,12 @@ if ($permit) {
                 <?php if ($permit->status->current !== 'bezahlt') { ?>
                     <footer class="u-padding-around-m u-border-top"
                             style="background: rgba(255,255,255,0.5);">
-                        <form
-                              method="POST"
+                        <form method="POST"
                               class="u-flex u-justify-center"
                               onsubmit="return confirm('Sind Sie sicher, dass Sie den Status auf Bezahlt ändern möchten?');">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <input type="hidden"
                                    name="action"
                                    value="mark_as_paid">

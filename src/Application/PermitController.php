@@ -41,24 +41,28 @@ final readonly class PermitController
 
         // 1. Verarbeitung (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                // Wir speichern den Antrag nur zwischen und senden die Bestätigungsmail.
-                // Erst nach Klick auf den Link wird der Gutschein oder die Zahlung relevant.
-                $this->permitService->createPendingVerification($post);
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+            } else {
+                try {
+                    // Wir speichern den Antrag nur zwischen und senden die Bestätigungsmail.
+                    // Erst nach Klick auf den Link wird der Gutschein oder die Zahlung relevant.
+                    $this->permitService->createPendingVerification($post);
 
-                // Nach Erfolg: Redirect, um F5-Doppelabsendung zu verhindern
-                \header('Location: index.php?sent=1');
-                exit;
-            } catch (\Exception $exception) {
-                $message = 'Fehler: ' . $exception->getMessage();
+                    // Nach Erfolg: Redirect, um F5-Doppelabsendung zu verhindern
+                    \header('Location: index.php?sent=1');
+                    exit;
+                } catch (\Exception $exception) {
+                    $message = 'Fehler: ' . $exception->getMessage();
+                }
             }
         }
 
         // 2. Nachricht nach Redirect abfangen (GET)
         if (isset($get['sent'])) {
             $success = true;
-            $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. '
-                . 'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
+            $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
+                'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
         }
 
         // 3. View rendern (wie gehabt)

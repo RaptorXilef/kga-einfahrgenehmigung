@@ -120,12 +120,16 @@ final readonly class PaymentController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                $this->permitService->createPendingVerification($post);
-                $success = true;
-                $message = 'E-Mail wurde versandt. Bitte bestätigen Sie den Link.';
-            } catch (\Exception $e) {
-                $message = 'Fehler: ' . $e->getMessage();
+            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+            } else {
+                try {
+                    $this->permitService->createPendingVerification($post);
+                    $success = true;
+                    $message = 'E-Mail wurde versandt. Bitte bestätigen Sie den Link.';
+                } catch (\Exception $e) {
+                    $message = 'Fehler: ' . $e->getMessage();
+                }
             }
         }
 

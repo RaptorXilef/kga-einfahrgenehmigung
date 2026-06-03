@@ -82,6 +82,9 @@
                 <form method="POST"
                       action="verify.php"
                       class="c-form u-text-center">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <div class="c-form-group">
                         <input type="text"
                                name="verification_code"

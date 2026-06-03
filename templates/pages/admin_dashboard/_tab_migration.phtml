@@ -75,6 +75,9 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                           onsubmit="return confirm('Daten nach MySQL migrieren?')"
                                           class="u-width-100">
                                         <input type="hidden"
+                                               name="csrf_token"
+                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                        <input type="hidden"
                                                name="action"
                                                value="migrate_data">
                                         <input type="hidden"
@@ -95,6 +98,9 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                           onsubmit="return confirm('Daten nach JSON migrieren?')"
                                           class="u-width-100">
                                         <input type="hidden"
+                                               name="csrf_token"
+                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                        <input type="hidden"
                                                name="action"
                                                value="migrate_data">
                                         <input type="hidden"
@@ -114,6 +120,9 @@ if ($auth->hasPermission('dashboard.migration.view')) {
 
                                 <form method="POST"
                                       class="u-width-100 u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
                                            name="action"
                                            value="migrate_data">
@@ -176,11 +185,11 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                       onsubmit="return confirm('Cache jetzt leeren?')"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
-                                           name="action"
-                                           value="clear_cache">
-                                    <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="clear_cache">
                                     <button type="submit"
                                             class="c-button c-button--secondary u-width-100"
                                             style="font-size: 0.9rem;">
@@ -207,11 +216,11 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                       onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
                                       class="u-margin-top-auto u-flex u-flex-column u-gap-s">
                                     <input type="hidden"
-                                           name="action"
-                                           value="truncate_target">
-                                    <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="truncate_target">
 
                                     <select name="target"
                                             class="c-form-select"
@@ -256,11 +265,11 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                       onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
-                                           name="action"
-                                           value="anonymize_archive">
-                                    <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="anonymize_archive">
                                     <button type="submit"
                                             class="c-button c-button--secondary u-width-100"
                                             style="font-size: 0.9rem;">
@@ -331,14 +340,14 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                               class="u-flex u-flex-column u-gap-s u-margin-top-auto">
 
                                             <input type="hidden"
+                                                   name="csrf_token"
+                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                            <input type="hidden"
                                                    name="action"
                                                    value="restore_data">
                                             <input type="hidden"
                                                    name="timestamp"
                                                    value="<?php echo $ts; ?>">
-                                            <input type="hidden"
-                                                   name="csrf_token"
-                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                                             <select name="target"
                                                     class="c-form-select"
