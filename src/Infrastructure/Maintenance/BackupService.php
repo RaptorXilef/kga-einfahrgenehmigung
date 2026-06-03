@@ -142,30 +142,46 @@ final readonly class BackupService
 
     /**
      * Überwacht und steuert automatisierte Backup-Intervalle im Hintergrund.
-     * Prüft anhand eines Timestamps in `last_auto_backup.txt`, ob ein konfiguriertes Intervall abgelaufen ist,
+     * Prüft anhand eines Timestamps in storage/logs/last_auto_backup.txt, ob ein konfiguriertes Intervall abgelaufen ist,
      * stößt die Sicherung an und rotiert alte Backups (Retention Rate) aus.
      */
     public function checkAutoBackup(): void
     {
-        $cfg = $this->config->get('backup_settings');
+        $cfg = $this->config->get('backup_settings', []);
+
+        // Ist Auto-Backup überhaupt aktiviert?
         if (! ($cfg['enabled'] ?? false)) {
             return;
         }
 
-        $interval  = ($cfg['interval_hours'] ?? 24) * 3600;
-        $root      = $this->config->get('root_path');
-        $prefix    = $this->config->get('storage_path_prefix');
-        $stateFile = $root . '/' . $prefix . 'last_auto_backup.txt';
+        // Intervall von Stunden in Sekunden umrechnen (Standard: 24h)
+        $interval = (int) ($cfg['interval_hours'] ?? 24) * 3600;
 
-        $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
-
-        if (\time() - $lastBackup <= $interval) {
-            return;
+        // Pfad in den /storage/logs/ Ordner setzen!
+        $logDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs';
+        if (! \is_dir($logDir)) {
+            @\mkdir($logDir, 0o755, true);
         }
 
-        $this->createBackup('auto_maintenance');
-        \file_put_contents($stateFile, (string) \time());
-        $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
+        $stateFile  = $logDir . '/last_auto_backup.txt';
+        $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
+        $now        = \time();
+
+        // Prüfen, ob das Intervall abgelaufen ist
+        if (($now - $lastBackup) >= $interval) {
+            try {
+                // BUGFIX: Ziel 'auto_maintenance' übergeben, damit alles gesichert wird
+                $this->createBackup('auto_maintenance');
+
+                // Zeitstempel aktualisieren
+                \file_put_contents($stateFile, (string) $now);
+
+                // Veraltete Backups löschen
+                $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
+            } catch (\Throwable $e) {
+                \error_log('Auto-Backup fehlgeschlagen: ' . $e->getMessage());
+            }
+        }
     }
 
     /**
