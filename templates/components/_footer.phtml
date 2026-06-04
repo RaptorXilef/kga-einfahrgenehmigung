@@ -59,9 +59,11 @@ $issuesUrl     = $githubUrl . '/issues';
                 <?php echo \htmlspecialchars($softwareName); ?>
             </a>
 
-            <span style="background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; letter-spacing: 0.5px;">
-                <?php echo \htmlspecialchars($version); ?>
-            </span>
+            <a href="<?php echo \htmlspecialchars($settings['base_url'] ?? '/'); ?>changelog.php"
+               style="background: rgba(52, 152, 219, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.2); text-decoration: none;"
+               title="Versionshistorie / Changelog ansehen">
+            <?php echo \htmlspecialchars($version); ?>
+        </a>
         </div>
 
         <div style="margin-top: 5px;">
