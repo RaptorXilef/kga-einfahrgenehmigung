@@ -459,6 +459,17 @@ final readonly class AdminController
         $filterType  = (string) ($get['type'] ?? 'all'); // Den Typ-Filter aus der URL auslesen (Standard: 'all')
         $searchQuery = \strtolower(\trim((string) ($get['q'] ?? ''))); // NEU: Die Suche
 
+        // Konfiguration für Paginierung auslesen
+        $paginationCfg = $this->config->get('pagination', []);
+        $allowedLimits = $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100];
+        $defaultLimit  = (int) ($paginationCfg['default_limit'] ?? 25);
+
+        // Prüfen, ob ein Limit übergeben wurde und ob es in der erlaubten Liste steht
+        $requestedLimit = (int) ($get['limit'] ?? $defaultLimit);
+        $itemsPerPage   = \in_array($requestedLimit, $allowedLimits, true) ? $requestedLimit : $defaultLimit;
+
+        $currentPage = \max(1, (int) ($get['page'] ?? 1));
+
         $allPermits      = $this->storage->getAll();
         $permitTemplates = $this->config->get('permit_templates', []); // Vorlagen laden, um den Typ abzugleichen
 
@@ -533,6 +544,9 @@ final readonly class AdminController
             'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
             'voucherService'   => $this->permitService->getVoucherService(),
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
+            'currentPage'      => $currentPage, // Paginierungs-Werte
+            'itemsPerPage'     => $itemsPerPage, // Paginierungs-Werte
+            'allowedLimits'    => $allowedLimits, // Paginierungs-Werte
         ]);
     }
 

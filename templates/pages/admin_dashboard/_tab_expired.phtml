@@ -17,9 +17,17 @@
  * @var array                             $settings
  * @var \App\Infrastructure\Config\Config $config
  */
-$allExpired        = $permitGroups['expired'] ?? [];
-$totalExpiredCount = \count($allExpired);
-$expiredPermits    = \array_slice($allExpired, 0, 50);
+$allExpired = $permitGroups['expired'] ?? [];
+
+// Paginierungs-Logik
+$limit      = $itemsPerPage ?? 25;
+$page       = $currentPage ?? 1;
+$totalCount = \count($allExpired);
+$totalPages = \max(1, (int) \ceil($totalCount / $limit));
+$page       = \min($page, $totalPages);
+$offset     = ($page - 1) * $limit;
+
+$expiredPermits = \array_slice($allExpired, $offset, $limit);
 ?>
 <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
     <div class="c-tab-content-container">
@@ -35,7 +43,7 @@ $expiredPermits    = \array_slice($allExpired, 0, 50);
                     <p class="u-text-muted u-text-small">Abgelaufene Genehmigungen aus dem gewählten Zeitraum.</p>
                 </div>
                 <span class="c-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
-                    ARCHIV: <?php echo \count($expiredPermits); ?>
+                    ARCHIV: <?php echo \count($allExpired); ?>
                 </span>
             </header>
 
@@ -160,12 +168,98 @@ $expiredPermits    = \array_slice($allExpired, 0, 50);
                         <?php } ?>
                     </tbody>
                 </table>
-                <?php if ($totalExpiredCount > 50) { ?>
-                <div class="u-text-center u-padding-around-m u-text-muted" style="background: var(--bg-light); font-size: 0.85rem;">
-                    Es werden die neuesten 50 von <strong><?php echo $totalExpiredCount; ?></strong> abgelaufenen Einträgen angezeigt.<br>
-                    Nutzen Sie die Suchleiste oben, um ältere Einträge zu finden.
-                </div>
-            <?php } ?>
+
+                <?php if ($totalPages > 1) {
+                    $queryParams = $_GET;
+                    unset($queryParams['page']);
+                    $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
+
+                    // --- Smarte Paginierungs-Logik ---
+                    $adjacents   = 2; // Zeige 2 Seiten links und rechts der aktuellen
+                    $pagesToShow = [];
+                    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
+                        for ($i = 1; $i <= $totalPages; ++$i) {
+                            $pagesToShow[] = $i;
+                        }
+                    } else {
+                        if ($page <= $adjacents + 2) {
+                            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
+                                $pagesToShow[] = $i;
+                            }
+                            $pagesToShow[] = '...';
+                            $pagesToShow[] = $totalPages;
+                        } elseif ($totalPages - $page <= $adjacents + 1) {
+                            $pagesToShow[] = 1;
+                            $pagesToShow[] = '...';
+                            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
+                                $pagesToShow[] = $i;
+                            }
+                        } else {
+                            $pagesToShow[] = 1;
+                            $pagesToShow[] = '...';
+                            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
+                                $pagesToShow[] = $i;
+                            }
+                            $pagesToShow[] = '...';
+                            $pagesToShow[] = $totalPages;
+                        }
+                    }
+                    ?>
+                    <div class="u-flex u-justify-between u-align-center u-padding-around-m"
+                         style="background: var(--bg-light); border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span class="u-text-muted" style="font-size: 0.85rem;">
+                        Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
+                    </span>
+                        </div>
+                        <div class="u-flex u-gap-xs u-align-center">
+                            <?php if ($page > 1) { ?>
+                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>"
+                                   class="c-button c-button--secondary"
+                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                    &larr;
+                                </a>
+                            <?php } else { ?>
+                                <button class="c-button c-button--secondary"
+                                        style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
+                                        disabled>&larr;</button>
+                            <?php } ?>
+
+                            <?php foreach ($pagesToShow as $p) {
+                                if ($p === '...') { ?>
+                                    <span class="u-text-muted" style="padding: 4px 8px;">&hellip;</span>
+                                <?php } elseif ($p === $page) { ?>
+                                    <button class="c-button c-button--primary"
+                                            style="padding: 6px 12px; font-size: 0.85rem; pointer-events: none;"><?php echo $p; ?></button>
+                                <?php } else { ?>
+                                    <a href="<?php echo $baseUrlStr . $p; ?>"
+                                       class="c-button c-button--secondary"
+                                       style="padding: 6px 12px; font-size: 0.85rem;">
+                                        <?php echo $p; ?>
+                                    </a>
+                            <?php }
+                                } ?>
+
+                            <?php if ($page < $totalPages) { ?>
+                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>"
+                                   class="c-button c-button--secondary"
+                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                    &rarr;
+                                </a>
+                            <?php } else { ?>
+                                <button class="c-button c-button--secondary"
+                                        style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
+                                        disabled>&rarr;</button>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } elseif ($totalCount > 0) { ?>
+                    <div class="u-text-center u-padding-around-s u-text-muted"
+                         style="background: var(--bg-light); font-size: 0.85rem; border-top: 1px solid var(--border-color);">
+                        Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
+                    </div>
+                <?php } ?>
+
             </div>
         </section>
     </div>

@@ -48,6 +48,8 @@ require_once $appRoot . '/vendor/autoload.php';
 
 // 2. Alle Konfigurationen laden & mergen
 $configFiles = [
+    'settings' => $appRoot . '/config/settings.php',
+
     'organization' => $appRoot . '/config/organization.php',
     'colors'       => $appRoot . '/config/colors.php',
     'purposes'     => $appRoot . '/config/purposes.php',

@@ -28,6 +28,10 @@ $filterType ??= 'all'; // Fallback
                   class="u-flex u-align-center u-gap-s u-flex-wrap u-width-100 u-justify-center"
                   style="margin: 0; background: transparent;">
 
+                <input type="hidden"
+                       name="page"
+                       value="1">
+
                 <?php if ($auth->hasPermission('dashboard.control_bar.future')) { ?>
                     <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">
                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt="">
@@ -52,21 +56,31 @@ $filterType ??= 'all'; // Fallback
                             onchange="this.form.submit()">
                         <option value="all"
                                 <?php echo $filterType === 'all' ? 'selected' : ''; ?>>
-                                Alle Genehmigungen
+                            Alle Genehmigungen
                         </option>
                         <option value="standard"
                                 <?php echo $filterType === 'standard' ? 'selected' : ''; ?>>
-                                Nur Standard
+                            Nur Standard
                         </option>
                         <option value="permanent"
                                 <?php echo $filterType === 'permanent' ? 'selected' : ''; ?>>
-                                Nur Dauerkarten
+                            Nur Dauerkarten
                         </option>
+                    </select>
+                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">PRO SEITE:</span>
+                    <select name="limit"
+                            class="c-control-bar-input"
+                            style="width: auto !important; cursor: pointer;"
+                            onchange="this.form.submit()">
+                        <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
+                            <option value="<?php echo $l; ?>"
+                                    <?php echo ($itemsPerPage ?? 25) === $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
+                        <?php } ?>
                     </select>
                 <?php } ?>
 
                 <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
-                    <div style="position: relative; min-width: 280px; margin-left: auto;">
+                    <div style="position: relative; min-width: 200px; margin-left: auto;">
                         <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
                             <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt="">
                         </span>
