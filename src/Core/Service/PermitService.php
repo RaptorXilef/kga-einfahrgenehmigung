@@ -36,14 +36,16 @@ use App\Core\Entity\Vehicle;
 final readonly class PermitService
 {
     public function __construct(
+        private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
         private HolidayService $holidayService,
+        private LicensePlateFormatter $plateFormatter,
         private MailServiceInterface $mailService,
         private PaymentProviderInterface $paymentProvider,
-        private StorageInterface $storage,
-        private VoucherService $voucherService,
-        private VerificationRepositoryInterface $verificationRepository,
         private PermitArchiveRepositoryInterface $archiveRepository,
+        private StorageInterface $storage,
+        private VerificationRepositoryInterface $verificationRepository,
+        private VoucherService $voucherService,
     ) {
     }
 
@@ -95,7 +97,7 @@ final readonly class PermitService
             $randomId = $this->generateV4Suffix();
 
             // 1. Kennzeichen formatieren für die Anzeige (B-HD 7398)
-            $displayPlate = $this->formatLicensePlate((string) ($data['kennzeichen'] ?? ''));
+            $displayPlate = $this->plateFormatter->format((string) ($data['kennzeichen'] ?? ''));
 
             // 2. Identifier-Plate: Leerzeichen durch Bindestriche ersetzen (B-HD-7398)
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
@@ -462,7 +464,7 @@ final readonly class PermitService
         // 2. ZAHLUNGSAUFFORDERUNG (Nur wenn noch nicht bezahlt)
         if ($permit->status->current !== 'bezahlt') {
             $usage     = $this->generateUsageText($permit, $shortCode);
-            $epcQrData = $this->generateEpcData($permit->validity->preis, $usage);
+            $epcQrData = $this->bankQrGenerator->generate($permit->validity->preis, $usage);
 
             $this->mailService->sendTemplate(
                 $permit->owner->email,
@@ -525,75 +527,6 @@ final readonly class PermitService
         $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
 
         return "EFG-{$nachname}-{$vorname}-{$shortCode}";
-    }
-
-    /**
-     * Erzeugt einen rohen EPC-QR-Code Payload (GiroCode) nach der SEPA-Dokumentation für Banking-Apps.
-     *
-     * @param float  $amount    Der Überweisungsbetrag.
-     * @param string $reference Der strukturierte Verwendungszweck.
-     *
-     * @return string Zeilenumbruch-getrennter EPC-Payload.
-     */
-    private function generateEpcData(float $amount, string $reference): string
-    {
-        // SEPA EPC-QR-Code (BezahlCode) Standard
-        return "BCD\n001\n1\nSCT\n" .
-            $this->config->get('bic') . "\n" .
-            $this->config->get('kontoinhaber') . "\n" .
-            $this->config->get('iban') . "\n" .
-            'EUR' . \number_format($amount, 2, '.', '') . "\n" .
-            "\n" . // Purpose Code leer
-            "\n" . // Structured Reference leer
-            $reference;
-    }
-
-    /**
-     * Formatiert und normalisiert rohe Kennzeichen-Eingaben in ein standardisiertes, deutsches Kennzeichenformat.
-     * Bereinigt Sonderzeichen, trennt Ortskennungen per Bindestrich ab und setzt Leerzeichen vor die Erkennungsnummer
-     * (inkl. Berücksichtigung von E- und H-Kennzeichen sowie Sonderregeln für Berlin 'B').
-     *
-     * Formatiert Kennzeichen (z.B. BHD7398 -> B-HD 7398).
-     * Erkennt manuelle Bindestriche und unterstützt 4-er Blöcke (LL-LL).
-     * Unterstützt jetzt auch E- und H-Zusätze am Ende.
-     *
-     * @param string $plate Die rohe Benutzereingabe (z.B. "b-mw1234e" oder "M  XY 999").
-     *
-     * @return string Das sauber formatierte Kennzeichen (z.B. "B-MW 1234E" oder "M-XY 999").
-     */
-    private function formatLicensePlate(string $plate): string
-    {
-        $original = \trim(\strtoupper($plate));
-        if ($original === '') {
-            return '';
-        }
-
-        // 1. Wenn der Nutzer bereits ein Minus gesetzt hat -> Automatik deaktivieren
-        if (\str_contains($original, '-')) {
-            // Nur sicherstellen, dass zwischen letztem Buchstaben und Zahl ein Leerzeichen ist
-            return (string) \preg_replace('/([A-Z])(\d)/', '$1 $2', $original);
-        }
-
-        // 2. Komplettreinigung für die Automatik (nur Buchstaben und Zahlen)
-        $val = (string) \preg_replace('/[^A-Z0-9]/', '', $original);
-
-        // 3. Sonderfall: 4 Buchstaben am Anfang (z.B. BBDW123E -> BB-DW 123E)
-        if (\preg_match('/^([A-Z]{2})([A-Z]{2})(\d{1,4}[E|H]?)$/', $val, $matches)) {
-            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
-        }
-
-        // 4. Berlin-Priorität (B-XX 1234E)
-        if (\preg_match('/^(B)([A-Z]{1,2})(\d{1,4}[E|H]?)$/', $val, $matches)) {
-            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
-        }
-
-        // 5. Standard: 1-3 Buchstaben (Region) + 1-2 Buchstaben + Zahlen (+E/H)
-        if (\preg_match('/^([A-Z]{1,3})([A-Z]{1,2})(\d{1,4}[E|H]?)$/', $val, $matches)) {
-            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
-        }
-
-        // 6. Fallback: Region + Zahlen (+E/H)
-        return (string) \preg_replace('/^([A-Z]{1,3})(\d{1,4}[E|H]?)$/', '$1 $2', $val);
     }
 
     /**

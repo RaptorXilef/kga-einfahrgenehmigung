@@ -24,7 +24,9 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
+use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
+use App\Core\Service\LicensePlateFormatter;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
@@ -248,7 +250,6 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
-        // In src/Bootstrap/Container.php unter registerCoreServices():
         $this->services[BackupService::class] = fn (): BackupService => new BackupService(
             $this->get(\PDO::class),
             $this->get(ConfigInterface::class),
@@ -317,16 +318,24 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        $this->services[LicensePlateFormatter::class] = fn () => new LicensePlateFormatter();
+
+        $this->services[BankQrGenerator::class] = fn () => new BankQrGenerator(
+            $this->get(ConfigInterface::class),
+        );
+
         // FIX P1005: Jetzt mit 7 Argumenten (PDO am Ende hinzugefügt)
-        $this->services[PermitService::class] = fn (): PermitService => new PermitService(
+        $this->services[PermitService::class] = fn () => new PermitService(
+            $this->get(BankQrGenerator::class),
             $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
+            $this->get(LicensePlateFormatter::class),
             $this->get(MailServiceInterface::class),
             $this->get(PaymentProviderInterface::class),
-            $this->get(StorageInterface::class),
-            $this->get(VoucherService::class),
-            $this->get(VerificationRepositoryInterface::class),
             $this->get(PermitArchiveRepositoryInterface::class),
+            $this->get(StorageInterface::class),
+            $this->get(VerificationRepositoryInterface::class),
+            $this->get(VoucherService::class),
         );
 
         // Für die Inhalte des AdminDashboard
