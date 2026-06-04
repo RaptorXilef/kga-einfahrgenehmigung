@@ -2,6 +2,27 @@
 
 
 
+## [0.34.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.33.0...v0.34.0) (2026-06-04)
+
+### 🚀 Features
+
+* **admin/dashboard:** implement configurable smart pagination across all data tabs ([f14bce3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f14bce330ab109bf047011166a4383b99d3a6ab9))
+* **core/exception:** implement global error handling and centralized logging ([78cae60](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/78cae600c5b28af7f95816de8e3945cb851db7fd))
+* **maintenance/cron:** implement hybrid cron scheduler for automated archiving and backups ([94e56f5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/94e56f56966d0fd6f9c1c083bff32ceb3748efe1))
+* **security/auth:** implement brute-force protection and IP rate limiting for admin login ([d56f4c3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d56f4c3527830afe4662041b52364d00d39bb490))
+* **security/csrf:** enforce global CSRF protection across all controllers and templates ([1e98c5a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1e98c5a7f5bbdebfe4bdced67339991a49dd6d6b))
+* **storage/archive:** implement single-archive strategy and GDPR-compliant data anonymization ([dd5444a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dd5444a2fc07edaab214ec0206518dd121e3f2ff))
+
+### 🐛 Bug Fixes
+
+* **maintenance/backup:** resolve parameter mismatch and restore functional auto-backup rotation ([139f4be](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/139f4be463fc9c430616920cfb82c1064537a884))
+
+### ⚙️ Refactoring
+
+* **admin/dashboard:** implement server-side search and HTML-over-the-Wire pagination ([823a91e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/823a91e1dc91185b6b16b401189af472b5fd5013))
+* **core/service:** decouple formatting logic to adhere to Single Responsibility Principle ([4867629](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/486762976317e37e2815de61a7eee0b0fd314a27))
+* **maintenance/backup:** integrate auto-backup with hybrid cron scheduler and migrate logs ([cd073dc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cd073dca74d019061009cc655b0e64d44ad4dc64))
+
 ## [0.33.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.32.1...v0.33.0) (2026-06-02)
 
 ### 🚀 Features
