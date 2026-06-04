@@ -12,15 +12,42 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Core\Service\AuthService $auth
- * @var array                                $settings
- * @var string                               $filterStart
- * @var string                               $filterEnd
- * @var array                                $periodStats
- * @var array                                $yearlyStats
- * @var \App\Infrastructure\Config\Config    $config
+ * @var \App\Core\Service\AuthService     $auth
+ * @var array                             $settings
+ * @var string                            $filterStart
+ * @var string                            $filterEnd
+ * @var array                             $periodStats
+ * @var array                             $yearlyStats
+ * @var \App\Core\Service\PermitService   $permitService
+ * @var \App\Infrastructure\Config\Config $config
  */
+
+// --- NEU: Monatliche Statistiken für den Chart berechnen ---
+$allPermitsForStats = $permitService->getStorage()->getAll();
+$monthlyStats       = [];
+foreach ($allPermitsForStats as $p) {
+    $mKey = $p->erstellt->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
+    if (! isset($monthlyStats[$mKey])) {
+        // Wir nutzen den Zeitstempel für die korrekte Sortierung, da m.Y textuell falsch sortiert würde
+        $monthlyStats[$mKey] = [
+            'sort_key' => $p->erstellt->format('Y-m'),
+            'count'    => 0,
+            'revenue'  => 0.0,
+        ];
+    }
+    ++$monthlyStats[$mKey]['count'];
+    $monthlyStats[$mKey]['revenue'] += $p->validity->preis;
+}
+
+// Nach dem unsichtbaren sort_key (Y-m) aufsteigend sortieren
+\uasort($monthlyStats, fn ($a, $b) => $a['sort_key'] <=> $b['sort_key']);
+
+$monthLabels  = \array_keys($monthlyStats);
+$monthRevenue = \array_map(fn ($d) => $d['revenue'], $monthlyStats);
+$monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
+// -----------------------------------------------------------
 ?>
+
 <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
     <div class="c-tab-content-container">
 
@@ -50,7 +77,7 @@
                         <span class="u-text-muted u-text-small u-font-bold">BEREITS BEZAHLT</span>
                         <div class="u-font-xl u-font-bold"
                              style="color: var(--success-color); font-size: 2.2rem; margin-top: 5px;">
-                            <?php echo \number_format($periodStats['revenue_paid'], 2, ',', '.'); ?> €
+                            <?php echo \number_format($periodStats['revenue_paid'] ?? 0, 2, ',', '.'); ?> €
                         </div>
                     </div>
                 </div>
@@ -61,7 +88,7 @@
                         <span class="u-text-muted u-text-small u-font-bold">NOCH OFFEN</span>
                         <div class="u-font-xl u-font-bold"
                              style="color: #f39c12; font-size: 2.2rem; margin-top: 5px;">
-                            <?php echo \number_format($periodStats['revenue_unpaid'], 2, ',', '.'); ?> €
+                            <?php echo \number_format($periodStats['revenue_unpaid'] ?? 0, 2, ',', '.'); ?> €
                         </div>
                     </div>
                 </div>
@@ -71,12 +98,12 @@
                     <div class="c-card__body u-text-center">
                         <span class="u-text-muted u-text-small u-font-bold">GENEHMIGUNGEN</span>
                         <div class="u-font-xl u-font-bold"
-                             style="font-size: 2.2rem; margin: 5px 0;"><?php echo $periodStats['count']; ?></div>
+                             style="font-size: 2.2rem; margin: 5px 0;"><?php echo $periodStats['count'] ?? 0; ?></div>
 
                         <div class="u-flex u-justify-center u-gap-s u-flex-wrap">
                             <?php
                             $vConfig = $config->get('vehicle_types', []);
-            foreach ($periodStats['types'] as $typeKey => $count) {
+            foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
                 if ($count === 0) {
                     continue;
                 }
@@ -106,7 +133,7 @@
                         <span class="u-text-muted u-text-small u-font-bold">GESAMTUMSATZ (SOLL)</span>
                         <div class="u-font-xl u-font-bold"
                              style="font-size: 2.2rem; margin-top: 5px;">
-                            <?php echo \number_format($periodStats['revenue_paid'] + $periodStats['revenue_unpaid'], 2, ',', '.'); ?> €
+                            <?php echo \number_format(($periodStats['revenue_paid'] ?? 0) + ($periodStats['revenue_unpaid'] ?? 0), 2, ',', '.'); ?> €
                         </div>
                     </div>
                 </div>
@@ -125,7 +152,20 @@
                         Wachstums-Trend & Jahresvergleich (Grafik einblenden)
                     </summary>
                     <div class="u-padding-around-m"
-                         style="background: #fcfdfe;">
+                         style="background: #fcfdfe; border-top: 1px solid var(--border-color);">
+
+                        <div class="u-flex u-gap-xs u-margin-bottom-m u-justify-end">
+                            <div
+                                 style="background: #fff; padding: 4px; border-radius: 6px; border: 1px solid var(--border-color); display: inline-flex;">
+                                <button id="chartToggleMonth"
+                                        class="c-button c-button--primary"
+                                        style="padding: 4px 12px; font-size: 0.8rem;">Monatlich</button>
+                                <button id="chartToggleYear"
+                                        class="c-button c-button--secondary"
+                                        style="padding: 4px 12px; font-size: 0.8rem;">Jährlich</button>
+                            </div>
+                        </div>
+
                         <canvas id="yearlyStatsChart"
                                 style="max-height: 350px; width: 100%;"></canvas>
                     </div>
@@ -147,7 +187,7 @@
                 <details class="u-margin-bottom-s">
                     <summary
                              style="background: #fff; padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 1.1rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp" class="c-icon" alt=""><!-- 📆 --> Geschäftsjahr <strong><?php echo $year; ?></strong></span>
+                        <span style="font-size: 1.1rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp" class="c-icon" alt="">Geschäftsjahr <strong><?php echo $year; ?></strong></span>
                         <div style="display: flex; gap: 15px; align-items: center;">
                             <span style="font-size: 0.9rem; color: var(--success-color); font-weight: 700;">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
                             <span class="c-badge" style="background: #f1f5f9; color: #475569; font-weight: 800;"><?php echo $data['count']; ?> Genehmigungen</span>
@@ -225,23 +265,34 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <?php /* <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> */ ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('yearlyStatsChart');
         if (!ctx) return;
 
-        const years = <?php echo \json_encode(\array_reverse(\array_keys($yearlyStats))); ?>;
-        const revenueTotal = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats))); ?>;
-        const permitCounts = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats))); ?>;
+        // --- Daten aus PHP generieren ---
 
-        new window.Chart(ctx, { // TODO wenn in eigener JS Datei das "window." entfernen
+        // Paket 1: Jahresdaten (wie bisher)
+        const yearLabels = <?php echo \json_encode(\array_reverse(\array_keys($yearlyStats))); ?>;
+        const yearRevenue = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats))); ?>;
+        const yearCounts = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats))); ?>;
+
+        // Paket 2: Monatsdaten (NEU)
+        const monthLabels = <?php echo \json_encode(\array_values($monthLabels)); ?>;
+        const monthRevenue = <?php echo \json_encode(\array_values($monthRevenue)); ?>;
+        const monthCounts = <?php echo \json_encode(\array_values($monthCounts)); ?>;
+
+        // Chart initialisieren (Standardmäßig Monatlich)
+        let currentChart = new window.Chart(ctx, {
             type: 'bar',
             data: {
-                labels: years,
+                labels: monthLabels,
                 datasets: [{
                         label: 'Umsatz Soll (€)',
-                        data: revenueTotal,
+                        data: monthRevenue,
                         backgroundColor: 'rgba(52, 152, 219, 0.6)',
                         borderColor: '#3498db',
                         borderWidth: 2,
@@ -250,7 +301,7 @@
                     },
                     {
                         label: 'Anzahl Genehmigungen',
-                        data: permitCounts,
+                        data: monthCounts,
                         borderColor: '#6366f1',
                         backgroundColor: '#6366f1',
                         borderWidth: 3,
@@ -263,9 +314,29 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 0) {
+                                    label += new window.Intl.NumberFormat('de-DE', {
+                                        style: 'currency',
+                                        currency: 'EUR'
+                                    }).format(context.raw);
+                                } else {
+                                    label += context.raw + ' Stück';
+                                }
+                                return label;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -299,6 +370,36 @@
                     }
                 }
             }
+        });
+
+        // --- Toggle Logik (Monatlich / Jährlich) ---
+        const btnMonth = document.getElementById('chartToggleMonth');
+        const btnYear = document.getElementById('chartToggleYear');
+
+        btnMonth.addEventListener('click', (e) => {
+            e.preventDefault();
+            // UI anpassen
+            btnMonth.classList.replace('c-button--secondary', 'c-button--primary');
+            btnYear.classList.replace('c-button--primary', 'c-button--secondary');
+
+            // Chart-Daten austauschen & updaten
+            currentChart.data.labels = monthLabels;
+            currentChart.data.datasets[0].data = monthRevenue;
+            currentChart.data.datasets[1].data = monthCounts;
+            currentChart.update();
+        });
+
+        btnYear.addEventListener('click', (e) => {
+            e.preventDefault();
+            // UI anpassen
+            btnYear.classList.replace('c-button--secondary', 'c-button--primary');
+            btnMonth.classList.replace('c-button--primary', 'c-button--secondary');
+
+            // Chart-Daten austauschen & updaten
+            currentChart.data.labels = yearLabels;
+            currentChart.data.datasets[0].data = yearRevenue;
+            currentChart.data.datasets[1].data = yearCounts;
+            currentChart.update();
         });
     });
 
