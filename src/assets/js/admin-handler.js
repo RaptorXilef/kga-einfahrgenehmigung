@@ -20,7 +20,6 @@ class AdminDashboardHandler {
         this.contents = document.querySelectorAll('.c-tabs__content');
         this.searchInput = document.getElementById('adminSearch');
         this.templateSelect = document.getElementById('manual_template_key');
-
         this.init();
         this.restoreLastTab();
     }
@@ -33,7 +32,7 @@ class AdminDashboardHandler {
      * @return {void}
      */
     init() {
-        // 1. Tabs initialisieren
+        // 1. Tab-Steuerung
         this.tabs.forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -41,12 +40,26 @@ class AdminDashboardHandler {
             });
         });
 
-        // 2. Suche initialisieren
+        // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
-            this.searchInput.addEventListener('input', (e) => this.filterTables(e.target.value));
+            let debounceTimer;
+            this.searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    document.getElementById('dashboardFilterForm').submit();
+                }, 600); // Sendet das Formular 0.6 Sek nach dem letzten Tastendruck
+            });
+
+            // Cursor nach dem Neuladen ans Ende des Textes setzen
+            if (this.searchInput.value) {
+                const val = this.searchInput.value;
+                this.searchInput.value = '';
+                this.searchInput.value = val;
+                this.searchInput.focus();
+            }
         }
 
-        // 3. Spezial-Zeitraum Umschaltung
+        // 3. Vorlagen-Wechsel
         if (this.templateSelect) {
             this.templateSelect.addEventListener('change', (e) => {
                 const wrapper = document.getElementById('custom_end_wrapper');
@@ -56,7 +69,7 @@ class AdminDashboardHandler {
             });
         }
 
-        // 4. Sperr-Buttons (Event Delegation - Sicher für AJAX/DOM-Wechsel)
+        // 4. Sperr-Logik (Prompts)
         document.addEventListener('click', (e) => {
             // Prüfen, ob das geklickte Element (oder ein Elternteil davon) die Klasse hat
             const btn = e.target.closest('.js-suspend-btn');
@@ -87,7 +100,6 @@ class AdminDashboardHandler {
      */
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-
         this.contents.forEach((c) => {
             c.classList.remove('c-tabs__content--active');
         });
@@ -101,21 +113,6 @@ class AdminDashboardHandler {
             activeBtn.classList.add('c-tabs__btn--active');
             localStorage.setItem('lastAdminTab', tabId);
         }
-    }
-
-    /**
-     * Filtert alle Zeilen aller Datentabellen basierend auf dem Suchbegriff (Case-Insensitive).
-     * Blendet Zeilen aus (`display: none`), die das Fragment nicht im Text enthalten.
-     *
-     * @param {string} searchTerm Der rohe Suchbegriff aus dem Textfeld.
-     *
-     * @return {void}
-     */
-    filterTables(searchTerm) {
-        const query = searchTerm.toLowerCase().trim();
-        document.querySelectorAll('.c-table tbody tr').forEach((row) => {
-            row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
-        });
     }
 
     /**

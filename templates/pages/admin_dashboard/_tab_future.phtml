@@ -17,10 +17,12 @@
  * @var array                             $settings
  * @var \App\Infrastructure\Config\Config $config
  */
-$now           = new \DateTimeImmutable('today');
-$futurePermits = $permitGroups['future'] ?? [];
-?>
-<?php if ($auth->hasPermission('dashboard.future.view')) { ?>
+
+$now = new \DateTimeImmutable('today');
+$allActive = $permitGroups['future'] ?? [];
+$totalActiveCount = \count($allActive);
+$futurePermits = \array_slice($allActive, 0, 50); // Nur die ersten 50 laden!
+if ($auth->hasPermission('dashboard.future.view')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">
@@ -242,6 +244,13 @@ $futurePermits = $permitGroups['future'] ?? [];
                         <?php } ?>
                     </tbody>
                 </table>
+                <?php if ($totalActiveCount > 50) { ?>
+                    <div class="u-text-center u-padding-around-m u-text-muted"
+                         style="background: var(--bg-light); font-size: 0.85rem;">
+                        Es werden die neuesten 50 von <strong><?php echo $totalActiveCount; ?></strong> zukünftigen Einträgen angezeigt.<br>
+                        Nutzen Sie die Suchleiste oben, um ältere Einträge zu finden.
+                    </div>
+                <?php } ?>
             </div>
         </section>
     </div>

@@ -12,12 +12,14 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var array                                $permitGroups
- * @var \App\Core\Service\AuthService $auth
- * @var array                                $settings
- * @var \App\Infrastructure\Config\Config    $config
+ * @var array                             $permitGroups
+ * @var \App\Core\Service\AuthService     $auth
+ * @var array                             $settings
+ * @var \App\Infrastructure\Config\Config $config
  */
-$expiredPermits = $permitGroups['expired'] ?? [];
+$allExpired        = $permitGroups['expired'] ?? [];
+$totalExpiredCount = \count($allExpired);
+$expiredPermits    = \array_slice($allExpired, 0, 50);
 ?>
 <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
     <div class="c-tab-content-container">
@@ -158,6 +160,12 @@ $expiredPermits = $permitGroups['expired'] ?? [];
                         <?php } ?>
                     </tbody>
                 </table>
+                <?php if ($totalExpiredCount > 50) { ?>
+                <div class="u-text-center u-padding-around-m u-text-muted" style="background: var(--bg-light); font-size: 0.85rem;">
+                    Es werden die neuesten 50 von <strong><?php echo $totalExpiredCount; ?></strong> abgelaufenen Einträgen angezeigt.<br>
+                    Nutzen Sie die Suchleiste oben, um ältere Einträge zu finden.
+                </div>
+            <?php } ?>
             </div>
         </section>
     </div>

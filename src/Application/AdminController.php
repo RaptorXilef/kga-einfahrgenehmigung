@@ -456,19 +456,16 @@ final readonly class AdminController
     {
         $filterStart = (string) ($get['start'] ?? \date('Y-01-01'));
         $filterEnd   = (string) ($get['end'] ?? \date('Y-12-31'));
+        $filterType  = (string) ($get['type'] ?? 'all'); // Den Typ-Filter aus der URL auslesen (Standard: 'all')
+        $searchQuery = \strtolower(\trim((string) ($get['q'] ?? ''))); // NEU: Die Suche
 
-        // Den Typ-Filter aus der URL auslesen (Standard: 'all')
-        $filterType = (string) ($get['type'] ?? 'all');
-
-        $allPermits = $this->storage->getAll();
-
-        // Vorlagen laden, um den Typ abzugleichen
-        $permitTemplates = $this->config->get('permit_templates', []);
+        $allPermits      = $this->storage->getAll();
+        $permitTemplates = $this->config->get('permit_templates', []); // Vorlagen laden, um den Typ abzugleichen
 
         // 1. Filterung für den gewählten Zeitraum & Typ
         $filtered = \array_filter(
             $allPermits,
-            function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates): bool {
+            function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $searchQuery): bool {
                 $date = $p->erstellt->format('Y-m-d');
 
                 // Check Zeitraum
@@ -480,6 +477,21 @@ final readonly class AdminController
                 if ($filterType !== 'all') {
                     $tplType = $permitTemplates[$p->template_key]['type'] ?? 'standard';
                     if ($tplType !== $filterType) {
+                        return false;
+                    }
+                }
+
+                // Volltextsuche über alle relevanten Felder
+                if ($searchQuery !== '') {
+                    $haystack = \strtolower(
+                        $p->code . ' ' .
+                        $p->owner->name . ' ' .
+                        $p->owner->email . ' ' .
+                        $p->owner->parzelle . ' ' .
+                        $p->vehicle->kennzeichen . ' ' .
+                        $p->validity->zweck,
+                    );
+                    if (! \str_contains($haystack, $searchQuery)) {
                         return false;
                     }
                 }
