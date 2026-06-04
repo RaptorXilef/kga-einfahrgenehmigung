@@ -12,11 +12,11 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Core\Service\AuthService $auth
- * @var array                                $settings
- * @var array                                $vouchers
- * @var \App\Infrastructure\Config\Config    $config
- * @var \App\Core\Service\VoucherService     $voucherService
+ * @var \App\Core\Service\AuthService     $auth
+ * @var array                             $settings
+ * @var array                             $vouchers
+ * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Core\Service\VoucherService  $voucherService
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
@@ -31,7 +31,7 @@
                         <h3 class="u-margin-none">
                             <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
                                  class="c-icon"
-                                 alt=""><!-- 🎟️ --> Offene Gutscheincodes
+                                 alt=""> Offene Gutscheincodes
                         </h3>
                         <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
                     </header>
@@ -40,7 +40,7 @@
                         <table class="c-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 110px;">QR / Code</th>
+                                    <th style="width: 110px;">Code / QR</th>
                                     <th>Details & Konditionen</th>
                                     <th class="u-text-right">Aktion</th>
                                 </tr>
@@ -82,37 +82,43 @@
                                         <tr class="<?php echo ! $isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
                                             <td>
                                                 <div class="u-text-center">
-                                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo \urlencode($url); ?>"
-                                                         class="qr-mini"
-                                                         style="border: 1px solid #eee; border-radius: 4px;"
-                                                         alt="QR">
-                                                    <code style="display:block; margin-top: 5px; font-size: 0.7rem; font-weight: bold;"><?php echo $v['code']; ?></code>
+                                                    <button type="button"
+                                                            class="c-button c-button--secondary"
+                                                            style="padding: 4px 8px; font-size: 0.75rem;"
+                                                            title="QR-Code anzeigen"
+                                                            onclick="showVoucherQr('<?php echo \htmlspecialchars($v['code']); ?>', '<?php echo \htmlspecialchars($url); ?>')">
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                             class="c-icon"
+                                                             alt=""
+                                                             style="width: 14px;"> QR
+                                                    </button>
+                                                    <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;"><?php echo $v['code']; ?></code>
                                                 </div>
                                             </td>
                                             <td>
-                                                <strong style="display:block; font-size: 1rem; color: #1e293b;">
+                                                <strong
+                                                        style="display:block; font-size: 1rem; color: var(--text-dark);">
                                                     <?php echo \htmlspecialchars($v['reason']); ?>
                                                     <?php if ($isExpired) {
                                                         echo '<span style="color: var(--danger-color); font-size: 0.8rem; margin-left: 10px;">(Abgelaufen)</span>';
                                                     } ?>
                                                 </strong>
-
                                                 <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap"
                                                      style="font-size: 0.8rem;">
-                                                    <span class="c-badge" style="background: #e0e7ff; color: #4338ca;">🏷️ <?php echo $discountText; ?></span>
+                                                    <span class="c-badge" style="background: #e0f2fe; color: #0ea5e9; border: 1px solid #bae6fd; font-weight: 700;"><?php echo $discountText; ?></span>
 
                                                     <?php if ($v['multi_use'] ?? false) { ?>
-                                                        <span class="c-badge" style="background: #fef08a; color: #854d0e;">
+                                                        <span class="c-badge" style="background: #fef9c3; color: #0284c7; font-weight: 700;">
                                                             🔄 Mehrfach (<?php echo $v['uses_count'] ?? 0; ?>/<?php echo $v['max_uses'] ?? '&infin;'; ?>)
                                                         </span>
                                                     <?php } else { ?>
-                                                        <span class="c-badge" style="background: #f1f5f9; color: #64748b;">1x Einlösbar</span>
+                                                        <span class="c-badge" style="background: #f1f5f9; color: #475569; font-weight: 700;">Einmalig</span>
                                                     <?php } ?>
 
                                                     <?php if (($v['date_mode'] ?? 'fixed') === 'flexible') { ?>
-                                                        <span class="c-badge" style="background: #dcfce7; color: #166534;">📅 Zeitraum offen</span>
+                                                        <span class="c-badge" style="background: #f3e8ff; color: #7e22ce; font-weight: 700;">Ab Einlösung</span>
                                                     <?php } else { ?>
-                                                        <span class="c-badge" style="background: #fee2e2; color: #991b1b;">📅 Zeitraum fixiert</span>
+                                                        <span class="c-badge" style="background: #f3e8ff; color: #7e22ce; font-weight: 700;">Fixe Daten</span>
                                                     <?php } ?>
                                                 </div>
 
@@ -128,9 +134,9 @@
 
                                                 <div class="u-margin-top-s">
                                                     <span class="u-text-link"
-                                                        style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
-                                                        onclick="copyVoucherLink('<?php echo $url; ?>', this)">
-                                                        Link kopieren <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp" class="c-icon" alt=""><!-- 📋 -->
+                                                          style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
+                                                          onclick="copyVoucherLink('<?php echo $url; ?>', this)">
+                                                        Link kopieren <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp" class="c-icon" alt="">
                                                     </span>
                                                 </div>
                                             </td>
@@ -154,7 +160,7 @@
                                                                         title="Aktivieren"><img
                                                                          src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
                                                                          class="c-icon"
-                                                                         alt=""><!-- 🔓 --></button>
+                                                                         alt=""></button>
                                                             <?php } else { ?>
                                                                 <input type="hidden"
                                                                        name="action"
@@ -164,7 +170,7 @@
                                                                         title="Sperren"><img
                                                                          src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
                                                                          class="c-icon"
-                                                                         alt=""><!-- ⛔ --></button>
+                                                                         alt=""></button>
                                                             <?php } ?>
                                                         </form>
                                                     <?php } ?>
@@ -184,11 +190,11 @@
                                                                    value="<?php echo $v['code']; ?>">
                                                             <button type="submit"
                                                                     class="c-button c-button--small"
-                                                                    style="background:#f1f5f9; color: #64748b;"
+                                                                    style="background: #f1f5f9; border: 1px solid #cbd5e1;"
                                                                     title="Löschen"><img
                                                                      src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
                                                                      class="c-icon"
-                                                                     alt=""><!-- 🗑️ --></button>
+                                                                     alt=""></button>
                                                         </form>
                                                     <?php } ?>
                                                 </div>
@@ -208,7 +214,7 @@
                     <header class="c-card__header">
                         <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
                                  class="c-icon"
-                                 alt=""><!-- 📜 --> Archiv</h3>
+                                 alt=""> Archiv</h3>
                         <p class="u-text-muted">Bereits vollständig eingelöste Codes.</p>
                     </header>
                     <div class="u-padding-none"
@@ -245,7 +251,7 @@
                                                 </div>
                                             </td>
                                             <td class="u-text-right">
-                                                <code style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 5px; border-radius: 4px;"><?php echo $arc['code']; ?></code>
+                                                <code style="font-size: 0.75rem; background: var(--bg-light); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;"><?php echo $arc['code']; ?></code>
                                             </td>
                                         </tr>
                                     <?php } ?>
@@ -255,10 +261,69 @@
                     </div>
                 </section>
             <?php } ?>
-
         </div>
     </div>
+
+    <div id="qrModal"
+         style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+        <div class="c-card"
+             style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 320px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+            <h4 class="u-margin-top-none u-margin-bottom-s">QR-Code scannen</h4>
+            <code id="qrModalCode" style="display:inline-block; margin-bottom: 20px; padding: 4px 10px; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; font-size: 1rem;"></code>
+
+            <div
+                 style="min-height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 25px; padding: 10px;">
+                <img id="qrModalImg"
+                     src=""
+                     alt="QR Code"
+                     style="display: none; max-width: 200px; height: auto;">
+                <div id="qrModalLoader"
+                     class="u-text-muted">Wird generiert...</div>
+            </div>
+
+            <button type="button"
+                    class="c-button c-button--primary u-width-100"
+                    onclick="closeVoucherQr()"
+                    style="padding: 12px;">Schließen</button>
+        </div>
+    </div>
+
     <script>
+    // --- NEU: JS für das QR-Modal ---
+    function showVoucherQr(code, url) {
+        const modal = document.getElementById('qrModal');
+        const img = document.getElementById('qrModalImg');
+        const loader = document.getElementById('qrModalLoader');
+
+        document.getElementById('qrModalCode').innerText = code;
+
+        // UI Reset
+        img.style.display = 'none';
+        loader.style.display = 'block';
+        modal.style.display = 'flex';
+
+        // API Abruf erst HIER beim Klick
+        const encodedUrl = encodeURIComponent(url);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
+
+        img.onload = () => {
+            loader.style.display = 'none';
+            img.style.display = 'block';
+        };
+        img.src = qrUrl;
+    }
+
+    function closeVoucherQr() {
+        document.getElementById('qrModal').style.display = 'none';
+        document.getElementById('qrModalImg').src = ''; // src leeren, damit beim nächsten Mal der Lader kommt
+    }
+
+    // Klick außerhalb des Popups schließt es auch
+    document.getElementById('qrModal').addEventListener('click', function(e) {
+        if (e.target === this) closeVoucherQr();
+    });
+
+    // --- Bestehende Copy-Logik ---
     function copyVoucherLink(url, element) {
         // Funktion für das visuelle Feedback
         const successAction = () => {
