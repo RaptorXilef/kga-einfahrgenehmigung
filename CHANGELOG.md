@@ -2,6 +2,12 @@
 
 
 
+## [0.35.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.35.0...v0.35.1) (2026-06-05)
+
+### 🐛 Bug Fixes
+
+* **history:** resolve undefined variable `$config` in print view ([e3151ee](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e3151ee68cc0136b735d1b8dd1b41eb31d0dbce2))
+
 ## [0.35.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.34.0...v0.35.0) (2026-06-05)
 
 ### 🚀 Features
