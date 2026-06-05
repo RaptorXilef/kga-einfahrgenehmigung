@@ -24,6 +24,11 @@ $currentPage = \basename($_SERVER['PHP_SELF']);
          style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div class="u-margin-bottom-m u-flex u-justify-center">
+                    <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
+                         alt="KGA Einfahrts-Manager Logo"
+                         style="max-width: 40px; max-height: 40px; object-fit: contain;">
+                </div>
             <span style="font-weight: 800; color: var(--primary-color); margin-right: 15px; letter-spacing: 0.5px;">
                 <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
             </span>

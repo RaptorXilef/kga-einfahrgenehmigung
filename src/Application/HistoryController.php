@@ -194,7 +194,7 @@ final readonly class HistoryController
             'message'            => $message,
             'isSuccess'          => $isSuccess,
             'config'             => $this->config,        // Für Fahrzeug-Icons
-            'permitService'      => $this->permitService,  // Für Überfälligkeits-Prüfung
+            'permitService'      => $this->permitService, // Für Überfälligkeits-Prüfung
         ]);
     }
 
@@ -236,6 +236,7 @@ final readonly class HistoryController
                     $permit->validity->von,
                     $permit->validity->bis,
                 ),
+                'config' => $this->config, // BUGFIX: $config hinzugefügt!
             ]);
         } else {
             \header('Location: history.php');
