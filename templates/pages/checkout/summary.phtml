@@ -1,0 +1,164 @@
+<?php
+// TODO DOCBLOCK
+?>
+
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Zusammenfassung - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+</head>
+
+<body class="u-bg-light l-public-body">
+    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
+
+    <div class="c-tab-content-container u-padding-y-xl"
+         style="max-width: 650px;">
+        <div class="u-text-center u-margin-bottom-l">
+            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                 alt="Erfolg"
+                 style="width: 64px; margin-bottom: 15px;">
+            <h1 class="u-margin-none"
+                style="color: var(--success-color);">E-Mail bestätigt!</h1>
+            <p class="u-text-muted u-font-l u-margin-top-xs">Bitte prüfen Sie Ihre Daten ein letztes Mal und schließen
+                Sie den Antrag ab.</p>
+        </div>
+
+        <div class="c-card"
+             style="border-top: 5px solid var(--primary-color);">
+            <div class="c-card__body u-padding-around-xl">
+
+                <h3 class="u-margin-top-none u-margin-bottom-m u-text-muted"
+                    style="text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px;">
+                    Zusammenfassung Ihrer Daten
+                </h3>
+
+                <div
+                     style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 25px 30px; margin-bottom: 20px;">
+                    <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.95rem;">
+                        <tr>
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted); width: 35%;">Antragsteller:
+                            </td>
+                            <td style="padding: 12px 0; font-weight: 600;"><?php echo \htmlspecialchars($tempData['name'] ?? ''); ?></td>
+                        </tr>
+                        <tr style="border-top: 1px solid #e2e8f0;">
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">E-Mail-Adresse:</td>
+                            <td style="padding: 12px 0; font-weight: 600; color: var(--primary-color);"><?php echo \htmlspecialchars($tempData['email'] ?? ''); ?></td>
+                        </tr>
+                        <tr style="border-top: 1px solid #e2e8f0;">
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Parzelle:</td>
+                            <td style="padding: 12px 0; font-weight: 600;">Nr. <?php echo \htmlspecialchars($tempData['parzelle'] ?? ''); ?></td>
+                        </tr>
+                        <tr style="border-top: 1px solid #e2e8f0;">
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Fahrzeugtyp:</td>
+                            <td style="padding: 12px 0; font-weight: 600;"><?php $vKey = $tempData['typ'] ?? '';
+echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey); ?></td>
+                        </tr>
+                        <tr style="border-top: 1px solid #e2e8f0;">
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Kennzeichen:</td>
+                            <td
+                                style="padding: 12px 0; font-weight: 700; text-transform: uppercase; font-family: monospace; font-size: 1.05rem;">
+                                <?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
+                        </tr>
+                        <?php if (! empty($tempData['firma'])) { ?><tr style="border-top: 1px solid #e2e8f0;">
+                                <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Firma / Lieferant:</td>
+                                <td style="padding: 12px 0; font-weight: 600;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
+                            </tr><?php } ?>
+                        <tr style="border-top: 1px solid #e2e8f0;">
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Grund der Einfahrt:</td>
+                            <td style="padding: 12px 0; font-weight: 600;"><?php $zKey = $tempData['zweck'] ?? '';
+echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
+                        </tr>
+                        <tr style="border-top: 1px solid #e2e8f0;">
+                            <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Zeitraum:</td>
+                            <td style="padding: 12px 0; font-weight: 600;"><?php echo \date('d.m.Y', \strtotime($tempData['datum_von'] ?? 'now')); ?> bis <?php echo \date('d.m.Y', \strtotime($tempData['datum_bis'] ?? 'now')); ?></td>
+                        </tr>
+                        <tr style="border-top: 2px solid #cbd5e1;">
+                            <td
+                                style="padding: 18px 15px 18px 0; color: var(--text-main); font-weight: 700; font-size: 1.05rem;">
+                                Zu zahlender Betrag:</td>
+                            <td
+                                style="padding: 18px 0; font-weight: 800; color: var(--primary-color); font-size: 1.4rem;">
+                                <?php echo \number_format((float) ($tempData['preis'] ?? 0), 2, ',', '.'); ?> €</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div
+                     style="background: #fff; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem; margin-bottom: 30px;">
+                    <strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>
+                    Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
+                    <span style="color: #333;"><?php echo $opening ?? ''; ?></span>
+
+                    <?php if (! empty($holidayNotice)) { ?>
+                        <div
+                             style="margin-top: 10px; color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px;">
+                            <?php echo $holidayNotice; ?>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <div class="u-flex u-gap-m u-flex-wrap u-justify-center"
+                     style="align-items: stretch;">
+                    <a href="index.php?edit=1&token=<?php echo $token; ?>" class="c-button c-button--secondary" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0;">
+                        📝 Daten korrigieren
+                    </a>
+
+                    <?php if ((float) ($tempData['preis'] ?? 0) <= 0.0) { ?>
+                        <button onclick="finalizeWire()"
+                                class="c-button c-button--success"
+                                style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0; padding: 0 15px;">
+                            ✅ Kostenlos abschließen
+                        </button>
+                    <?php } else { ?>
+                        <button onclick="finalizeWire()"
+                                class="c-button c-button--primary"
+                                style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0; padding: 0 15px;">
+                            Bestellen & per Überweisung zahlen
+                        </button>
+                    <?php } ?>
+                </div>
+
+                <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+                    <div class="u-text-center u-margin-top-m">
+                        <small class="u-text-muted">Sie erhalten im nächsten Schritt alle Bankdaten für die Überweisung
+                            angezeigt.</small>
+                    </div>
+                <?php } ?>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function finalizeWire() {
+        fetch('<?php echo $settings['base_url']; ?>api/finalize_wire.php?token=<?php echo $token; ?>', {
+                headers: {
+                    'X-CSRF-Token': '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'success.php?code=' + data.code + '&method=wire';
+                } else {
+                    alert('Fehler beim Abschluss: ' + data.error);
+                }
+            })
+            .catch(err => {
+                alert('Ein Netzwerkfehler ist aufgetreten.');
+                console.error(err);
+            });
+    }
+
+    </script>
+</body>
+
+</html>

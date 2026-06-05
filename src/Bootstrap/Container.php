@@ -6,9 +6,11 @@ namespace App\Bootstrap;
 
 use App\Application\AdminController;
 use App\Application\CheckController;
+use App\Application\CheckoutController;
 use App\Application\HistoryController;
 use App\Application\PaymentController;
 use App\Application\PermitController;
+use App\Application\SuccessController;
 use App\Application\UserController;
 use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
@@ -392,6 +394,21 @@ class Container
         $this->services[PermitController::class] = fn (): PermitController => new PermitController(
             $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
+            $this->get(VerificationRepositoryInterface::class),
+        );
+
+        // NEU: CheckoutController für checkout.php
+        $this->services[CheckoutController::class] = fn (): CheckoutController => new CheckoutController(
+            $this->get(ConfigInterface::class),
+            $this->get(HolidayService::class), // <-- Das hier hinzufügen!
+            $this->get(PermitService::class),
+        );
+
+        // NEU: SuccessController für success.php
+        $this->services[SuccessController::class] = fn (): SuccessController => new SuccessController(
+            $this->get(BankQrGenerator::class),
+            $this->get(ConfigInterface::class),
+            $this->get(StorageInterface::class),
         );
 
         $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(

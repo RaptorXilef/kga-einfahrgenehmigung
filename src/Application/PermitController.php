@@ -1,10 +1,12 @@
 <?php
 
+// Path: src\Application\PermitController.php
 declare(strict_types=1);
 
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -24,6 +26,7 @@ final readonly class PermitController
     public function __construct(
         private ConfigInterface $config,
         private PermitService $permitService,
+        private VerificationRepositoryInterface $verificationRepo, // <-- NEU: Das Repository!
     ) {
     }
 
@@ -36,20 +39,81 @@ final readonly class PermitController
      */
     public function handleRequest(array $post, array $get): void
     {
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
+        }
+
         $message = '';
         $success = false;
 
+        // Wenn der Nutzer vom Checkout auf "Daten korrigieren" klickt
+        if (isset($get['edit'], $get['token'])) {
+            $tempData = $this->permitService->getVerifiedRequest((string) $get['token']);
+            if ($tempData !== null) {
+                $_SESSION['form_data']      = $tempData;
+                $_SESSION['verified_email'] = $tempData['email']; // Wir merken uns: Diese E-Mail ist safe!
+                $_SESSION['edit_token']     = $get['token'];
+            }
+            \header('Location: index.php');
+            exit;
+        }
+
         // 1. Verarbeitung (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Formulardaten sicherheitshalber zwischenspeichern (Sticky Forms)
+            $_SESSION['form_data'] = $post;
+
             if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 try {
-                    // Wir speichern den Antrag nur zwischen und senden die Bestätigungsmail.
-                    // Erst nach Klick auf den Link wird der Gutschein oder die Zahlung relevant.
+                    // Prüfen, ob eine Korrektur vorliegt und die E-Mail NICHT geändert wurde
+                    // KORREKTUR-MODUS
+                    if (
+                        isset($_SESSION['verified_email'], $_SESSION['edit_token'])
+                        && \strtolower(\trim($post['email'] ?? '')) === \strtolower(\trim($_SESSION['verified_email']))
+                    ) {
+
+                        $token   = $_SESSION['edit_token'];
+                        $oldData = $this->permitService->getVerifiedRequest($token);
+
+                        if ($oldData !== null) {
+                            // Prüfen ob sich preisrelevante Dinge geändert haben
+                            $priceRelevantChanged = ($oldData['template_key'] ?? '') !== ($post['template_key'] ?? '')
+                                || ($oldData['typ'] ?? '') !== ($post['typ'] ?? '')
+                                || ($oldData['voucher'] ?? '') !== ($post['voucher'] ?? '');
+
+                            if (! $priceRelevantChanged) {
+                                // Nur Name/Kennzeichen geändert -> Alter Preis bleibt erhalten!
+                                $merged           = \array_merge($oldData, $post);
+                                $merged['preis']  = $oldData['preis'] ?? 0;
+                                $merged['status'] = 'offen'; // Status für Checkout zurücksetzen
+
+                                // FIX: Sauber über das VerificationRepository speichern!
+                                $allVerified         = $this->verificationRepo->loadVerified();
+                                $allVerified[$token] = $merged;
+                                $this->verificationRepo->saveVerified($allVerified);
+
+                                unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
+                                \header('Location: checkout.php?token=' . $token);
+                                exit;
+                            }
+                            // Preisrelevante Änderung -> Neustart der Bestätigung nötig
+                            $this->permitService->createPendingVerification($post);
+                            unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
+
+                            $msg = 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Zu Ihrer Sicherheit müssen Sie Ihre E-Mail kurz erneut bestätigen, da sich der Preis geändert hat.';
+                            \header('Location: index.php?sent=1&msg=' . \urlencode($msg));
+                            exit;
+                        }
+                    }
+
+                    // NORMALER DURCHLAUF (Neuer Antrag)
                     $this->permitService->createPendingVerification($post);
 
-                    // Nach Erfolg: Redirect, um F5-Doppelabsendung zu verhindern
+                    // Bei Erfolg: Speicher leeren!
+                    unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
+
                     \header('Location: index.php?sent=1');
                     exit;
                 } catch (\Exception $exception) {
@@ -58,10 +122,10 @@ final readonly class PermitController
             }
         }
 
-        // 2. Nachricht nach Redirect abfangen (GET)
+        // Dynamische Bestätigungsnachricht abfangen
         if (isset($get['sent'])) {
             $success = true;
-            $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
+            $message = $get['msg'] ?? 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
                 'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
         }
 
@@ -73,6 +137,7 @@ final readonly class PermitController
             'settings'          => $this->getSettingsArray(),
             'appRoot'           => $this->config->get('root_path'),
             'hasActiveVouchers' => $this->checkAvailableVouchers(), // Prüfen, ob einlösbare Gutscheine existieren
+            'formData'          => $_SESSION['form_data'] ?? [], // Ans Template übergeben
         ]);
     }
 
@@ -110,7 +175,7 @@ final readonly class PermitController
             'vehicle_types'    => $this->config->get('vehicle_types'),
             'purposes'         => $this->config->get('purposes'),
             'public_templates' => $public,
-            'base_url'         => $this->config->getBaseUrl(), // FIX: Das war der Grund für die Fehlermeldungen!
+            'base_url'         => $this->config->getBaseUrl(),
             'jahresFarbe'      => $this->config->get('jahresFarbe'),
         ];
     }
@@ -123,8 +188,7 @@ final readonly class PermitController
      */
     private function render(string $templatePath, array $data = []): void
     {
-        $appRoot = (string) $this->config->get('root_path');
         \extract($data);
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
+        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 }

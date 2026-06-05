@@ -37,16 +37,15 @@ final readonly class CheckController
 
     /**
      * Haupt-Request-Handler für den Validierungs- und Suchprozess.
-     * Identifiziert Genehmigungen per Hash oder Kennzeichen, wertet temporäre Token aus
-     * und steuert die Ausgabe (Admin-Ansicht, öffentliche Ansicht oder Suchformular).
+     * Identifiziert Genehmigungen per Hash oder Kennzeichen und steuert
+     * die Ausgabe (Admin-Ansicht, öffentliche Ansicht oder Suchformular).
      *
      * @param array<string, mixed> $get Entspricht $_GET
      */
     public function handleRequest(array $get): void
     {
-        $code  = \strtoupper(\trim((string) ($get['code'] ?? '')));
-        $token = (string) ($get['token'] ?? ''); // Wir brauchen das Token aus der E-Mail
-        $now   = new \DateTimeImmutable();
+        $code = \strtoupper(\trim((string) ($get['code'] ?? '')));
+        $now  = new \DateTimeImmutable();
 
         // 1. Suche in echten Permits (zuerst via Code/Hash)
         $permit = $code !== '' ? $this->storage->findByHash($code) : null;
@@ -56,18 +55,14 @@ final readonly class CheckController
             $permit = $this->storage->findByLicensePlate($code);
         }
 
-        // 2. Suche in verifizierten Anträgen (Warteraum 2) via PermitService
-        // Wir nutzen den PermitService, um den Warteraum zu prüfen
-        $tempRequest = $this->permitService->getVerifiedRequest($token);
-
-        // Fall 1: Nichts eingegeben -> Suchmaske (Ordner-Pfad angepasst!)
-        if ($code === '' && $tempRequest === null) {
+        // Fall 1: Nichts eingegeben -> Suchmaske
+        if ($code === '') {
             $this->render('check/search', ['error' => null]);
 
             return;
         }
 
-        // Standard-Daten für die Header-Navigation (falls eingeloggt) Nutzt den AuthService
+        // Standard-Daten für die Header-Navigation (falls eingeloggt)
         $adminData = [
             'adminUser'  => $this->auth->getUsername(),
             'adminId'    => $this->auth->getUserId(),
@@ -102,28 +97,7 @@ final readonly class CheckController
             }
         }
 
-        // Fall 2: Warteraum / Bezahlseite
-        if ($tempRequest !== null && ! $permit instanceof Permit) {
-            $dtVon = new \DateTimeImmutable($tempRequest['datum_von'] ?? 'now');
-            $dtBis = new \DateTimeImmutable($tempRequest['datum_bis'] ?? 'now');
-
-            $this->render('check/public', \array_merge($adminData, [
-                'isWaitingForPayment' => true,
-                'tempData'            => $tempRequest,
-                'token'               => $token,
-                'isDateValid'         => true,
-                'isTimeAllowed'       => $this->holidayService->isTimeAllowedNow(),
-                'allowedToday'        => $nextAllowedSlotText,
-                'showAdminView'       => false,
-                'permit'              => null,
-                'opening'             => $this->holidayService->getGeneralOpeningHoursText(),
-                'holidayNotice'       => $this->holidayService->getHolidaysInRangeText($dtVon, $dtBis, true),
-            ]));
-
-            return;
-        }
-
-        // Fall 3: Genehmigung gefunden
+        // Fall 2: Genehmigung gefunden
         if ($permit instanceof Permit) {
             $showAdminView = $this->determineViewPrivileges($permit, $get);
 
@@ -135,9 +109,8 @@ final readonly class CheckController
                 'permit'        => $permit,
                 'isDateValid'   => $permit->isValid($requirePayment),
                 'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                'allowedToday'  => $nextAllowedSlotText, // Variable wird hier übergeben
+                'allowedToday'  => $nextAllowedSlotText,
                 'showAdminView' => $showAdminView,
-                'tempData'      => null,
                 'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
                     $permit->validity->von,
                     $permit->validity->bis,
@@ -148,7 +121,7 @@ final readonly class CheckController
             return;
         }
 
-        // Fall 4: Code nicht gefunden
+        // Fall 3: Code/Kennzeichen nicht gefunden
         $this->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 
@@ -173,7 +146,7 @@ final readonly class CheckController
             return true;
         }
 
-        // C. Token im Link (SHA256 Abgleich)
+        // C. Token im Link (SHA256 Abgleich) für Vorstandsansicht
         $token     = (string) ($get['token'] ?? '');
         $geheimnis = (string) $this->config->get('geheimnis', '');
         $expected  = \hash('sha256', $permit->code . $geheimnis);

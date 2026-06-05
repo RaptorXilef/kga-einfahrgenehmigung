@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * Page: Checkout Success
+ *
+ * Erfolgsmeldung nach erfolgreicher Beantragung/Bestätigung.
+ *
+ * Path: templates/pages/checkout/success.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
+?>
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Antrag erfolgreich - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet"
+          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+</head>
+
+<body class="u-bg-light l-public-body">
+    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
+
+    <div class="c-tab-content-container u-padding-y-xl"
+         style="max-width: 650px;">
+        <div class="c-card u-text-center"
+             style="border-top: 5px solid var(--success-color);">
+            <div class="c-card__body u-padding-around-xl">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                     alt="Erfolg"
+                     style="width: 80px; margin-bottom: 20px;">
+                <h1 class="u-margin-top-none"
+                    style="color: var(--success-color); font-size: 2rem;">Antrag erfolgreich!</h1>
+                <p class="u-text-muted u-font-l">Ihr Antrag wurde sicher an uns übermittelt.</p>
+
+                <div
+                     style="background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin: 25px 0;">
+                    <span class="u-text-muted u-text-small u-font-bold u-display-block">Ihre Vorgangs-Nummer:</span>
+                    <code style="font-size: 1.3rem; color: var(--text-dark); font-weight: 800;"><?php echo $permit->code; ?></code>
+                </div>
+
+                <?php if ($method === 'wire' && $permit->status->current !== 'bezahlt') { ?>
+                    <div
+                         style="text-align: left; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 25px; margin-top: 30px;">
+                        <h3 class="u-margin-top-none"
+                            style="color: #0369a1; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">
+                            Zahlungsinformationen</h3>
+
+                        <?php if ($requirePayment) { ?>
+                            <p style="color: #0c4a6e;">Bitte überweisen Sie die Gebühr auf folgendes Konto. Ihr Antrag
+                                wird nach Zahlungseingang freigeschaltet.</p>
+                        <?php } else { ?>
+                            <p style="color: #0c4a6e;">Bitte überweisen Sie den Betrag bis spätestens
+                                <strong><?php echo $dueDate; ?></strong>.</p>
+                        <?php } ?>
+
+                        <div class="u-grid"
+                             style="grid-template-columns: 1fr auto; gap: 20px; align-items: center;">
+                            <div>
+                                <table style="width: 100%; font-size: 0.95rem; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #0c4a6e;">Betrag:</td>
+                                        <td style="font-weight: 800; font-size: 1.1rem; color: var(--primary-color);">
+                                            <?php echo \number_format($permit->validity->preis, 2, ',', '.'); ?> €</td>
+                                    </tr>
+                                    <tr style="border-top: 1px solid #bae6fd;">
+                                        <td style="padding: 5px 0; color: #0c4a6e;">Empfänger:</td>
+                                        <td style="font-weight: 600;"><?php echo \htmlspecialchars($settings['kontoinhaber']); ?></td>
+                                    </tr>
+                                    <tr style="border-top: 1px solid #bae6fd;">
+                                        <td style="padding: 5px 0; color: #0c4a6e;">IBAN:</td>
+                                        <td style="font-weight: 600; font-family: monospace; font-size: 1rem;"><?php echo \htmlspecialchars($settings['iban']); ?>
+                                        </td>
+                                    </tr>
+                                    <tr style="border-top: 1px solid #bae6fd;">
+                                        <td style="padding: 5px 0; color: #0c4a6e;">BIC:</td>
+                                        <td style="font-weight: 600;"><?php echo \htmlspecialchars($settings['bic']); ?></td>
+                                    </tr>
+                                    <tr style="border-top: 1px solid #bae6fd;">
+                                        <td style="padding: 5px 0; color: #0c4a6e;">
+                                            Verwendungszweck:<br><small>(Zwingend erforderlich!)</small></td>
+                                        <td
+                                            style="font-weight: 800; font-family: monospace; font-size: 1rem; color: #db2777;">
+                                            <?php echo \htmlspecialchars($usage); ?></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="u-text-center">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=<?php echo $epcData; ?>"
+                                     alt="GiroCode"
+                                     style="border: 2px solid #bae6fd; border-radius: 8px; width: 130px; height: 130px;">
+                                <div style="font-size: 0.75rem; color: #0c4a6e; margin-top: 5px; font-weight: 600;">
+                                    Banking-App Scan</div>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
+
+                <div class="u-margin-top-xl u-padding-top-l"
+                     style="border-top: 1px solid var(--border-color);">
+                    <p class="u-text-muted u-margin-bottom-m"
+                       style="font-size: 0.95rem;">
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                             class="c-icon"
+                             alt=""
+                             style="width: 18px; vertical-align: middle; margin-right: 5px; opacity: 0.7;">
+                        Wir haben Ihnen diese Informationen sowie die Bestätigung soeben auch an <strong
+                                style="color: var(--text-dark);"><?php echo \htmlspecialchars($permit->owner->email ?: 'Ihre E-Mail-Adresse'); ?></strong> gesendet.
+                    </p>
+
+                    <a href="check.php?code=<?php echo $permit->code; ?>" class="c-button c-button--primary" style="display: inline-block; padding: 15px 20px; font-size: 1.1rem; width: 100%; max-width: 400px; height: 100%; text-decoration: none;">Zum Live-Status der Genehmigung &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

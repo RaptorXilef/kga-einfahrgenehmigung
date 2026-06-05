@@ -67,7 +67,7 @@ final readonly class VerificationController
 
             // Fall A: Sofort finalisiert (z.B. durch Gutschein)
             if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
-                // Erfolg: Weiterleitung zur Check-Seite mit Flag für Erfolgsmeldung
+                // Wenn es schon fertig ist (z.B. durch 100% Rabatt Gutschein), DANN zu check.php
                 \header('Location: check.php?code=' . $result['finalised']->code . '&verified=1');
 
                 return;
@@ -76,7 +76,8 @@ final readonly class VerificationController
             // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung
             if (\is_array($result)) {
                 $redirectToken = $result['actual_token'] ?? $input; // Nutze den echten Key
-                \header('Location: check.php?token=' . $redirectToken . '&verified=1');
+                // Redirect zum Checkout!
+                \header('Location: checkout.php?token=' . $redirectToken . '&verified=1');
 
                 return;
             }

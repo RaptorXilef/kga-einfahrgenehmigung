@@ -24,8 +24,10 @@
  * @var \App\Contracts\Config\ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
  * @var string                                $appRoot
  * @var bool                                  $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
+ * @var array                                 $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
  */
 $prefill ??= null;
+$formData ??= [];
 $tplMetadata = [];
 
 // Zugriff auf $settings['public_templates'] (jetzt vom Controller geliefert)
@@ -287,7 +289,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                     <?php if ($prefill) { ?>
                         <div class="c-voucher-alert">
-                            <span style="font-size: 1.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""><!-- 🎟️ --></span>
+                            <span style="font-size: 1.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""></span>
                             <div>
                                 <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
                                 <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -354,7 +356,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            class="c-form-input"
                                            required
                                            placeholder="Vorname Nachname"
-                                           value="<?php echo $prefill['data']['name'] ?? ''; ?>"
+                                           value="<?php echo \htmlspecialchars((string) ($formData['name'] ?? $prefill['data']['name'] ?? '')); ?>"
                                            <?php echo $isLocked('name'); ?>>
                                 </div>
                                 <div class="c-form-group">
@@ -365,7 +367,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            class="c-form-input"
                                            required
                                            placeholder="Nr."
-                                           value="<?php echo $prefill['data']['parzelle'] ?? ''; ?>"
+                                           value="<?php echo \htmlspecialchars((string) ($formData['parzelle'] ?? $prefill['data']['parzelle'] ?? '')); ?>"
                                            <?php echo $isLocked('parzelle'); ?>>
                                 </div>
                             </div>
@@ -376,7 +378,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                        class="c-form-input"
                                        required
                                        placeholder="ihre@mail.de"
-                                       value="<?php echo $prefill['data']['email'] ?? ''; ?>"
+                                       value="<?php echo \htmlspecialchars((string) ($formData['email'] ?? $prefill['data']['email'] ?? '')); ?>"
                                        <?php echo $isLocked('email'); ?>>
                                 <small class="u-text-muted u-margin-top-xs">An diese Adresse senden wir die
                                     Ausnahmegenehmigung.</small>
@@ -396,13 +398,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             class="c-form-select"
                                             <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
                                         <?php foreach ($config->get('vehicle_types') as $val => $vData) {
-                                            // Pächter sehen NUR aktive Typen
-                                            if (! ($vData['active'] ?? true) && ($prefill['data']['typ'] ?? '') !== $val) {
+                                            // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
+                                            if (! ($vData['active'] ?? true) && ($formData['typ'] ?? $prefill['data']['typ'] ?? '') !== $val) {
                                                 continue;
                                             }
                                             ?>
                                             <option value="<?php echo $val; ?>"
-                                                    <?php echo ($prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
+                                                    <?php echo ($formData['typ'] ?? $prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
                                                 <?php echo \htmlspecialchars($vData['label']); ?>
                                             </option>
                                         <?php } ?>
@@ -417,7 +419,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            class="c-form-input"
                                            required
                                            placeholder="B-HD 123"
-                                           value="<?php echo $prefill['data']['kennzeichen'] ?? ''; ?>"
+                                           value="<?php echo \htmlspecialchars((string) ($formData['kennzeichen'] ?? $prefill['data']['kennzeichen'] ?? '')); ?>"
                                            <?php echo $isLocked('kennzeichen'); ?>>
                                 </div>
                             </div>
@@ -431,7 +433,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                        id="u_firma"
                                        class="c-form-input"
                                        placeholder="Name der Firma"
-                                       value="<?php echo $prefill['data']['firma'] ?? ''; ?>"
+                                       value="<?php echo \htmlspecialchars((string) ($formData['firma'] ?? $prefill['data']['firma'] ?? '')); ?>"
                                        <?php echo $isLocked('firma'); ?>>
                             </div>
                             <div class="c-form-group u-margin-top-m">
@@ -441,7 +443,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                         <?php echo ($prefill['data']['zweck'] ?? '') ? 'readonly' : ''; ?>>
                                     <?php foreach ($config->get('purposes') as $val => $label) { ?>
                                         <option value="<?php echo $val; ?>"
-                                                <?php echo ($prefill['data']['zweck'] ?? '') === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                                <?php echo ($formData['zweck'] ?? $prefill['data']['zweck'] ?? '') === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -461,7 +463,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
                                         <?php foreach ($publicTemplates as $key => $tpl) { ?>
                                             <option value="<?php echo $key; ?>"
-                                                    <?php echo ($prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>>
+                                                    <?php echo ($formData['template_key'] ?? $prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>>
                                                 <?php echo $tpl['label']; ?>
                                             </option>
                                         <?php } ?>
@@ -485,7 +487,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            id="datum_von"
                                            class="c-form-input"
                                            required
-                                           value="<?php echo $prefill['data']['datum_von'] ?? \date('Y-m-d'); ?>"
+                                           value="<?php echo \htmlspecialchars((string) ($formData['datum_von'] ?? $prefill['data']['datum_von'] ?? \date('Y-m-d'))); ?>"
                                            <?php echo $isLocked('datum_von'); ?>>
                                 </div>
                                 <div class="c-form-group">
@@ -495,7 +497,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            id="datum_bis"
                                            class="c-form-input"
                                            required
-                                           value="<?php echo $prefill['data']['datum_bis'] ?? ''; ?>"
+                                           value="<?php echo \htmlspecialchars((string) ($formData['datum_bis'] ?? $prefill['data']['datum_bis'] ?? '')); ?>"
                                            <?php echo $isLocked('datum_bis'); ?>>
                                 </div>
                             </div>

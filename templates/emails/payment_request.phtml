@@ -22,7 +22,11 @@
     <p>vielen Dank für Ihren Antrag auf eine Ausnahmegenehmigung (Kennung: <code>{{fullIdentifier}}</code>).</p>
 
     <div style="background: #fff8e1; border-left: 5px solid #ffc107; padding: 15px; margin: 20px 0;">
-        <strong>Zahlungsziel:</strong> Bitte überweisen Sie den Betrag bis spätestens <strong>{{dueDate}}</strong>.
+        <strong>Wichtige Information zur Zahlung:</strong> Bitte überweisen Sie den Betrag bis spätestens
+        <strong>{{dueDate}}</strong>.<br>
+        <span style="font-size: 0.9em; color: #666; display: inline-block; margin-top: 5px;">
+            Abhängig von den Vorgaben der Verwaltung wird Ihr Antrag entweder sofort oder erst nach vollständigem Zahlungseingang freigeschaltet.
+        </span>
     </div>
 
     <table style="width: 100%; margin-bottom: 20px;">
@@ -45,15 +49,17 @@
     </table>
 
     <div style="text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-        <p style="font-size: 14px; color: #666;">Scannen Sie diesen Code mit Ihrer Banking-App für eine automatische
-            Überweisung:</p>
+        <p style="font-size: 14px; color: #666;">
+            Scannen Sie diesen Code mit Ihrer Banking-App für eine automatische Überweisung:
+        </p>
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{epcData}}"
              alt="BezahlCode"
-             style="border: 1px solid #ccc; padding: 5px;">
+             style="border: 1px solid #ccc; padding: 5px; border-radius: 8px;">
     </div>
 
     <p style="font-size: 13px; color: #7f8c8d; margin-top: 30px;">
-        <em>Hinweis: Ihre Genehmigung wurde Ihnen bereits in einer separaten E-Mail zugestellt.
-            <!--und ist ab sofort gültig.--> Bitte begleichen Sie die Gebühr zeitnah.</em>
+        <em>Hinweis: Den aktuellen Status Ihrer Genehmigung können Sie jederzeit online über den bereitgestellten Link
+            prüfen.
+        </em>
     </p>
 </div>
