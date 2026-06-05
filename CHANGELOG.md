@@ -2,6 +2,22 @@
 
 
 
+## [0.35.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.34.0...v0.35.0) (2026-06-05)
+
+### 🚀 Features
+
+* **admin/stats:** integrate monthly chart toggle and restore historic KPI cards ([b70ee9d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b70ee9db3c11a0dfb792a5b8f329db63bc8aecc4))
+* **checkout:** implement dedicated checkout flow, sticky forms and correction loop ([5006b31](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5006b310f68c9476a97bc18dbf4e5dab20428fe5))
+* **public/changelog:** render markdown changelog securely via marked.js and DOMPurify ([ccb8fa0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ccb8fa0c11d434069eb3212bc4f6f3372dd5c5d9))
+
+### ⚙️ Refactoring
+
+* **admin/vouchers:** implement lazy-loading modal for QR codes ([c18de4f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c18de4f4c05e7d02320753d038401c5ca15ec382))
+
+### 💎 Styling
+
+* **public/changelog:** add responsive padding to markdown body for better readability ([7abf14a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7abf14aeb1ef19bd2dcd79c0c61ace2503ab285d))
+
 ## [0.34.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.33.0...v0.34.0) (2026-06-04)
 
 ### 🚀 Features
