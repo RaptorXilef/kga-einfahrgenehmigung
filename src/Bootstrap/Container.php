@@ -121,14 +121,18 @@ class Container
         $this->services[\PDO::class] = function (): ?\PDO {
             $db = $this->config->get('database', []);
 
-            // NEU: Prüfen, ob der Admin MySQL explizit aktiviert hat
+            // Prüfen, ob der Admin MySQL explizit aktiviert hat
             if (! isset($db['enabled']) || $db['enabled'] === false) {
                 return null;
             }
 
-            // Ab hier bleibt deine bestehende, sehr gute Logik identisch!
-            $dsnWithDb = "mysql:host={$db['host']};dbname={$db['dbname']};charset={$db['charset']}";
-            $pdo       = null;
+            // Optionalen Port-String zusammenbauen
+            $portStr = ! empty($db['port']) ? ";port={$db['port']}" : '';
+
+            // Port-String in DSN integrieren
+            $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
+
+            $pdo = null;
 
             try {
                 // Normaler Verbindungsversuch
@@ -146,7 +150,8 @@ class Container
                     return null;
                 }
 
-                $dsnWithoutDb = "mysql:host={$db['host']};charset={$db['charset']}";
+                // Port-String auch hier in DSN integrieren
+                $dsnWithoutDb = "mysql:host={$db['host']}{$portStr};charset={$db['charset']}";
 
                 try {
                     // Verbinden OHNE Datenbanknamen

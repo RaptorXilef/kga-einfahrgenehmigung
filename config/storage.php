@@ -18,6 +18,7 @@ return [
     'database' => [
         'enabled' => false,
         'host'    => 'localhost',
+        'port'    => '', // Optionaler Port
         'dbname'  => 'kga_zufahrts_manager',
         'user'    => 'root',
         'pass'    => '',
