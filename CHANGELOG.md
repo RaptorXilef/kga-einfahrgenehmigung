@@ -2,6 +2,13 @@
 
 
 
+## [0.36.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.1...v0.36.2) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** optimize release workflow with versioned assets and modern Node.js runtime ([b01d24e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b01d24eba8e4099be561fefcf89199cb6a96c253))
+* **ci:** update action versions and standardize workflow syntax ([b8b140e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b8b140eecb5f5e0cd76e8f121c42498a1d5ae882))
+
 ## [0.36.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.0...v0.36.1) (2026-06-06)
 
 ### 🐛 Bug Fixes
