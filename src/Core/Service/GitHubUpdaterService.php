@@ -32,12 +32,13 @@ final readonly class GitHubUpdaterService
         'public/assets/img/logo/kga.jpeg',
         // Die Datei kga-zm.webp steht absichtlich NICHT hier, damit sie geupdatet wird!
         'src/assets/',
-        'config/', // config wird über secureUserConfig gesichert
         'storage/',
+        'config/config.local.php', // NUR die lokale Benutzer-Config ist tabu!
     ];
 
     // Nur Dateien in diesen Pfaden (aus dem Root des ZIPs) dürfen ins Live-System kopiert werden!
     private const UPDATE_WHITELIST = [
+        'config/', // Erlaubt das Überschreiben der Standard-Configs (z.B. email.php)
         'public/',
         'src/Application/',
         'src/Bootstrap/',
@@ -155,11 +156,11 @@ final readonly class GitHubUpdaterService
         $sourceRoot       = $extractPath; // Default: Direkt im Root entpackt
 
         if (! empty($extractedFolders) && \count(\glob($extractPath . '/*')) === 1) {
-            $sourceRoot = $extractedFolders[0]; // GitHub-Standard: Alles in einem Unterordner
+            $sourceRoot = $extractedFolders[0];
         }
 
-        // 4a. VOR dem Kopieren: Aktuelle Nutzerkonfiguration als config.local.php einfrieren
-        $this->secureUserConfig($rootPath);
+        // 4a. VOR dem Kopieren: Gesamte aktive Laufzeit-Config in die local einfrieren
+        $this->secureAllUserConfigs($rootPath, $sourceRoot);
 
         // 5. Whitelist/Blacklist anwenden und Dateien kopieren
         $this->copyAllowedFiles($sourceRoot, $rootPath);
@@ -171,36 +172,89 @@ final readonly class GitHubUpdaterService
     }
 
     /**
-     * Sichert die bestehende config.php als config.local.php, falls diese noch nicht existiert.
-     * Schützt unbedarfte Nutzer vor dem Überschreiben ihrer Einstellungen.
+     * Ermittelt alle Abweichungen der aktuellen Live-Konfigurationen gegenüber den neuen
+     * Standard-Dateien aus dem ZIP und friert diese dauerhaft in config.local.php ein.
      */
-    private function secureUserConfig(string $rootPath): void
+    private function secureAllUserConfigs(string $rootPath, string $sourceRoot): void
     {
-        $activeConfig = $rootPath . '/config/config.php';
-        $localConfig  = $rootPath . '/config/config.local.php';
+        $localConfigPath = $rootPath . '/config/config.local.php';
 
-        if (\file_exists($activeConfig) && ! \file_exists($localConfig)) {
-            \copy($activeConfig, $localConfig);
+        // Falls der Nutzer bereits eine config.local.php hat, fassen wir nichts an
+        if (\file_exists($localConfigPath)) {
+            return;
+        }
 
-            // Verziere die Datei mit einem klaren systemgenerierten Hinweis-Header
-            $originalContent = \file_get_contents($localConfig);
-            $cleanContent    = \preg_replace('/^<\?php/', '', $originalContent);
+        // Wir lesen alle Konfigurationsdateien aus dem aktuellen Live-System aus,
+        // die der Nutzer manipuliert haben könnte.
+        $configFiles = [
+            'colors.php',
+            'config.php',
+            'dev_admin.php',
+            'email.php',
+            'organization.php',
+            'payment.php',
+            'permissions.php',
+            'purposes.php',
+            'reasons.php',
+            'secrets.php',
+            'settings.php',
+            'sql_schema.php',
+            'storage.php',
+            'templates.php',
+            'times.php',
+            'vehicles.php',
+        ];
 
-            $backupHeader = <<<'PHP'
+        $userOverrides = [];
+
+        foreach ($configFiles as $configFile) {
+            $liveFile = $rootPath . '/config/' . $configFile;
+            $newFile  = $sourceRoot . '/config/' . $configFile;
+
+            if (! \file_exists($liveFile)) {
+                continue;
+            }
+
+            $liveData = require $liveFile;
+            $newData  = \file_exists($newFile) ? require $newFile : [];
+
+            if (! \is_array($liveData)) {
+                continue;
+            }
+
+            // Wenn die neue Datei existiert, berechnen wir die Differenz (was hat der User geändert?)
+            if (! empty($newData) && \is_array($newData)) {
+                $diff = \array_diff_assoc($liveData, $newData);
+                if (! empty($diff)) {
+                    $userOverrides = \array_replace_recursive($userOverrides, $diff);
+                }
+            } else {
+                // Falls es eine komplett eigene/alte Datei war, sichern wir sie ganz
+                $userOverrides = \array_replace_recursive($userOverrides, $liveData);
+            }
+        }
+
+        // Wenn Abweichungen gefunden wurden, schreiben wir sie formatiert in die config.local.php
+        if (! empty($userOverrides)) {
+            $export = \var_export($userOverrides, true);
+
+            $backupContent = <<<PHP
                 <?php
                 /**
                  * --------------------------------------------------------------------------
                  * AUTOMATISCH GENERIERTE CONFIG SNAPSHOT SICHERUNG
                  * --------------------------------------------------------------------------
-                 * Diese Datei wurde vor einem automatischen System-Update generiert, da Sie
-                 * Anpassungen direkt in der config.php vorgenommen hatten.
-                 * * Ihre alten Konfigurationen wurden hierher gerettet und überschreiben nun
-                 * dauerhaft die Standardwerte der neuen Version.
+                 * Diese Datei wurde vor einem automatischen System-Update generiert.
+                 * Das System hat erkannt, dass Einstellungen von den Standardwerten abwichen.
+                 * Ihre individuellen Anpassungen wurden hierher gerettet.
                  */
 
-                PHP;
+                declare(strict_types=1);
 
-            \file_put_contents($localConfig, $backupHeader . \ltrim($cleanContent));
+                return $export;
+
+                PHP;
+            \file_put_contents($localConfigPath, $backupContent);
         }
     }
 
