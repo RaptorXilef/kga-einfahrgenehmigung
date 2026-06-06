@@ -2,6 +2,12 @@
 
 
 
+## [0.37.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.37.1...v0.37.2) (2026-06-06)
+
+### 🧹 Chore / Maintenance
+
+* **infrastructure:** automate asset compilation in GitHub Actions release workflow ([f5d6820](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f5d682059eacc80e91d0c5b17f0aaaa77c9ad5e4))
+
 ## [0.37.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.37.0...v0.37.1) (2026-06-06)
 
 ### 🐛 Bug Fixes
