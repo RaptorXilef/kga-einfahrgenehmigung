@@ -32,7 +32,7 @@ final readonly class GitHubUpdaterService
         'public/assets/img/logo/kga.jpeg',
         // Die Datei kga-zm.webp steht absichtlich NICHT hier, damit sie geupdatet wird!
         'src/assets/',
-        'config/', // config wird später separat gemerged
+        'config/', // config wird über secureUserConfig gesichert
         'storage/',
     ];
 
@@ -150,14 +150,16 @@ final readonly class GitHubUpdaterService
         $zip->extractTo($extractPath);
         $zip->close();
 
-        // 4. Den Hauptordner im ZIP finden (GitHub packt alles in einen Unterordner "Owner-Repo-CommitHash")
-        // Hinweis: Wenn wir das Release-Asset laden, gibt es evtl. keinen Unterordner. Wir prüfen beides.
+        // 4. Den Hauptordner im ZIP finden
         $extractedFolders = \glob($extractPath . '/*', \GLOB_ONLYDIR);
         $sourceRoot       = $extractPath; // Default: Direkt im Root entpackt
 
         if (! empty($extractedFolders) && \count(\glob($extractPath . '/*')) === 1) {
             $sourceRoot = $extractedFolders[0]; // GitHub-Standard: Alles in einem Unterordner
         }
+
+        // 4a. VOR dem Kopieren: Aktuelle Nutzerkonfiguration als config.local.php einfrieren
+        $this->secureUserConfig($rootPath);
 
         // 5. Whitelist/Blacklist anwenden und Dateien kopieren
         $this->copyAllowedFiles($sourceRoot, $rootPath);
@@ -166,6 +168,40 @@ final readonly class GitHubUpdaterService
         $this->cleanup($tempDir);
 
         return true;
+    }
+
+    /**
+     * Sichert die bestehende config.php als config.local.php, falls diese noch nicht existiert.
+     * Schützt unbedarfte Nutzer vor dem Überschreiben ihrer Einstellungen.
+     */
+    private function secureUserConfig(string $rootPath): void
+    {
+        $activeConfig = $rootPath . '/config/config.php';
+        $localConfig  = $rootPath . '/config/config.local.php';
+
+        if (\file_exists($activeConfig) && ! \file_exists($localConfig)) {
+            \copy($activeConfig, $localConfig);
+
+            // Verziere die Datei mit einem klaren systemgenerierten Hinweis-Header
+            $originalContent = \file_get_contents($localConfig);
+            $cleanContent    = \preg_replace('/^<\?php/', '', $originalContent);
+
+            $backupHeader = <<<'PHP'
+                <?php
+                /**
+                 * --------------------------------------------------------------------------
+                 * AUTOMATISCH GENERIERTE CONFIG SNAPSHOT SICHERUNG
+                 * --------------------------------------------------------------------------
+                 * Diese Datei wurde vor einem automatischen System-Update generiert, da Sie
+                 * Anpassungen direkt in der config.php vorgenommen hatten.
+                 * * Ihre alten Konfigurationen wurden hierher gerettet und überschreiben nun
+                 * dauerhaft die Standardwerte der neuen Version.
+                 */
+
+                PHP;
+
+            \file_put_contents($localConfig, $backupHeader . \ltrim($cleanContent));
+        }
     }
 
     /**

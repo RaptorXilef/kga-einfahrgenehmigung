@@ -74,25 +74,27 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php if ($auth->hasPermission('dashboard.view')) { ?>
         <main class="c-container u-padding-y-l">
 
-            <div id="github-update-banner"
-                 class="c-alert c-alert--info u-hidden u-margin-bottom-l"
-                 style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-                <div>
-                    <h3 class="u-margin-none"
-                        style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
-                    <p class="u-margin-top-xs u-margin-bottom-none"
-                       style="color: #1e40af; font-size: 0.95rem;">
-                        Version <strong id="gh-version"></strong> steht zur Installation bereit.<br>
-                        <small id="gh-notes"
-                               style="opacity: 0.8;"></small>
-                    </p>
-                </div>
-                <div>
-                    <button id="gh-install-btn"
-                            class="c-button c-button--primary"
-                            style="background: #2563eb; border: none; padding: 10px 20px;">
-                        Jetzt 1-Klick Update starten
-                    </button>
+            <div class="c-tab-content-container">
+                <div id="github-update-banner"
+                     class="c-alert c-alert--info u-hidden u-margin-bottom-l"
+                     style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1 1 250px;">
+                        <h3 class="u-margin-none"
+                            style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
+                        <p class="u-margin-top-xs u-margin-bottom-none"
+                           style="color: #1e40af; font-size: 0.95rem;">
+                            Version <strong id="gh-version"></strong> steht zur Installation bereit.<br>
+                            <small id="gh-notes"
+                                   style="opacity: 0.8;"></small>
+                        </p>
+                    </div>
+                    <div style="flex-shrink: 0;">
+                        <button id="gh-install-btn"
+                                class="c-button c-button--primary"
+                                style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
+                            Jetzt 1-Klick Update starten
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -364,7 +366,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             installBtn.addEventListener('click', () => {
                 if (!confirm(
                         'Möchten Sie das Update jetzt durchführen? Das System wird für wenige Sekunden nicht erreichbar sein.'
-                        )) return;
+                    )) return;
 
                 installBtn.innerHTML = '⏳ Installiere... Bitte warten!';
                 installBtn.disabled = true;
