@@ -33,10 +33,10 @@ jobs:
           zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
 
           # 2. BASH-MAGIC: Umbenennen der Config-Dateien für das Update
-          # Wir hängen an alle .php Dateien '.default.php' an, AUSSER an sql_schema.php
           for file in config/*.php; do
             filename=$(basename "$file")
-            if [ "$filename" != "sql_schema.php" ]; then
+            # Wir ignorieren jetzt sql_schema.php UND permissions.php
+            if [ "$filename" != "sql_schema.php" ] && [ "$filename" != "permissions.php" ]; then
               mv "$file" "config/${filename%.php}.default.php"
             fi
           done

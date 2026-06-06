@@ -310,6 +310,7 @@ final readonly class GitHubUpdaterService
             // B) Explizite Core-Dateien erlauben, die gnadenlos überschrieben werden dürfen!
             $allowedCoreConfigs = [
                 'config/sql_schema.php',
+                'config/permissions.php',
                 // Hier kannst du zukünftig weitere Dateien eintragen, die nie angepasst werden
             ];
 
