@@ -33,7 +33,6 @@ final readonly class GitHubUpdaterService
         // Die Datei kga-zm.webp steht absichtlich NICHT hier, damit sie geupdatet wird!
         'src/assets/',
         'storage/',
-        'config/config.local.php', // NUR die lokale Benutzer-Config ist tabu!
     ];
 
     // Nur Dateien in diesen Pfaden (aus dem Root des ZIPs) dürfen ins Live-System kopiert werden!
@@ -159,9 +158,7 @@ final readonly class GitHubUpdaterService
             $sourceRoot = $extractedFolders[0];
         }
 
-        // 4a. VOR dem Kopieren: Gesamte aktive Laufzeit-Config in die local einfrieren
-        $this->secureAllUserConfigs($rootPath, $sourceRoot);
-
+        // 5. Wir rufen direkt das Kopieren auf. Der Snapshotter ist Geschichte!
         // 5. Whitelist/Blacklist anwenden und Dateien kopieren
         $this->copyAllowedFiles($sourceRoot, $rootPath);
 
@@ -296,14 +293,25 @@ final readonly class GitHubUpdaterService
      */
     private function isPathAllowed(string $path): bool
     {
-        // 1. Blacklist blockiert strikt (Höchste Priorität)
+        // 1. Blacklist prüfen
         foreach (self::UPDATE_BLACKLIST as $blocked) {
             if (\str_starts_with($path, $blocked)) {
                 return false;
             }
         }
 
-        // 2. Whitelist erlaubt (Wenn nicht blockiert)
+        // 2. SPEZIALREGEL FÜR DEN CONFIG-ORDNER
+        if (\str_starts_with($path, 'config/')) {
+            // Beim Update dürfen NUR Dateien überschrieben werden, die auf .default.php enden!
+            // Dateien wie 'email.php' oder 'config.local.php' werden knallhart abgewiesen.
+            if (\str_ends_with($path, '.default.php')) {
+                return true;
+            }
+
+            return false;
+        }
+
+        // 3. Whitelist prüfen (für den Rest des Systems)
         foreach (self::UPDATE_WHITELIST as $allowed) {
             // Entweder es ist ein Ordner (endet auf /) und der Pfad beginnt damit
             if (\str_ends_with($allowed, '/') && \str_starts_with($path, $allowed)) {
