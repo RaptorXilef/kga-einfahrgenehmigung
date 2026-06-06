@@ -13,6 +13,7 @@ jobs:
       - name: 'Check for CLA Agreement'
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prBody = context.payload.pull_request.body;
             const user = context.payload.pull_request.user.login;
