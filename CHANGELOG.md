@@ -2,6 +2,12 @@
 
 
 
+## [0.36.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.4...v0.36.5) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **core:** update GitHubUpdaterService to support versioned release assets ([139f031](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/139f031f64acfc617635e41363dec555edd4928c))
+
 ## [0.36.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.3...v0.36.4) (2026-06-06)
 
 ### 🐛 Bug Fixes
