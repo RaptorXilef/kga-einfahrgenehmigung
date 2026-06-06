@@ -7,31 +7,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write
+      contents: write # Wichtig für Upload
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Behebt die Node-Warnung
+      VERSION: ${{ github.ref_name }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.3' # anpassen
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
 
-    - name: Install dependencies (No Dev)
-      run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+      - name: Install dependencies (No Dev)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-    - name: Create Release ZIP
-      run: |
-        # Wir packen exakt nur die Whitelist-Ordner/Dateien ins ZIP
-        # Und schließen darin gezielt die Entwicklungs- & Nutzer-Assets aus
-        zip -r kga-update.zip public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*"
+      - name: Create Release ZIPs
+        run: |
+          # ZIP 1: Update-Paket (mit Ausschlüssen)
+          # Wir packen exakt nur die Whitelist-Ordner/Dateien ins ZIP
+          # Und schließen darin gezielt die Entwicklungs- & Nutzer-Assets aus
+          zip -r kga-zufahrts-manager-update-${{ env.VERSION }}.zip public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*"
 
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
-      with:
-        files: kga-update.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # ZIP 2: Install-Paket (mit anderen Ausschlüssen)
+          zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            kga-zufahrts-manager-update-${{ env.VERSION }}.zip
+            kga-zufahrts-manager-install-${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
