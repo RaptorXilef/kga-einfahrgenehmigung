@@ -2,6 +2,12 @@
 
 
 
+## [0.36.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.35.1...v0.36.0) (2026-06-06)
+
+### 🚀 Features
+
+* **system:** implement robust 1-click GitHub ZIP updater with whitelist protection ([586066b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/586066b20e8a1c92867f7b30a8933eabb5e7e50a))
+
 ## [0.35.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.35.0...v0.35.1) (2026-06-05)
 
 ### 🐛 Bug Fixes
