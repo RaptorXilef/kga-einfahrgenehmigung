@@ -2,6 +2,12 @@
 
 
 
+## [0.36.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.6...v0.36.7) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **updater:** implement automated configuration snapshotting before system update ([b20fc44](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b20fc442aec1b0faadc21bc69e4f80a7b789c222))
+
 ## [0.36.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.5...v0.36.6) (2026-06-06)
 
 ### 🐛 Bug Fixes
