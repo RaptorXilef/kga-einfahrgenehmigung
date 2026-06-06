@@ -187,7 +187,7 @@ logs/
 # ==============================================================================
 
 # Sensible Daten & Konfiguration
-/config/config.local.php
+/config/_dev.local.php
 
 /public/assets/css/*.map
 /public/assets/js/*.map
@@ -242,10 +242,11 @@ ToDo*.md
 # TEST-FOLDER
 # ==============================================================================
 
-src/assets/img/test/**
-public/assets/img/test/**
 
 src/assets/img/**
+
+# src/assets/img/test/**
+public/assets/img/test/**
 
 public/assets/img/logo/kga.png
 public/assets/img/logo/kga.webp

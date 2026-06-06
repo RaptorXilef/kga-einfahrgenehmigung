@@ -36,7 +36,7 @@ final readonly class UserRepository implements UserRepositoryInterface
     {
         $cfg = $this->config->get('storage_config')['users'];
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt  = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $stmt  = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
             $users = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
                 $users[$row['id']] = [
@@ -70,10 +70,10 @@ final readonly class UserRepository implements UserRepositoryInterface
 
             try {
                 // Bei kompletten Array-Updates löschen wir vorher alles, um auch gelöschte Nutzer zu entfernen
-                $this->pdo->exec("DELETE FROM {$cfg['table']}");
+                $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
                 // Wichtig: `group` ist in MySQL ein reserviertes Wort und muss in Backticks ` ` gesetzt werden!
                 $stmt = $this->pdo->prepare(
-                    "INSERT INTO {$cfg['table']} (id, username, `group`, pass) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO `{$cfg['table']}` (id, username, `group`, pass) VALUES (?, ?, ?, ?)",
                 );
                 foreach ($users as $id => $u) {
                     $stmt->execute([$id, $u['username'], $u['group'], $u['pass']]);

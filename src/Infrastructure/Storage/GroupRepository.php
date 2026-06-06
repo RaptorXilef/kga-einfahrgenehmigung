@@ -36,7 +36,7 @@ final readonly class GroupRepository implements GroupRepositoryInterface
     {
         $cfg = $this->config->get('storage_config')['groups'];
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt   = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $stmt   = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
             $groups = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
                 $perms = \is_string(
@@ -77,8 +77,8 @@ final readonly class GroupRepository implements GroupRepositoryInterface
             $this->pdo->beginTransaction();
 
             try {
-                $this->pdo->exec("DELETE FROM {$cfg['table']}");
-                $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (id, name, permissions) VALUES (?, ?, ?)");
+                $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+                $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (id, name, permissions) VALUES (?, ?, ?)");
                 foreach ($groups as $id => $g) {
                     // WICHTIG: Arrays für MySQL als String kodieren!
                     $stmt->execute([$id, $g['name'], \json_encode($g['permissions'] ?? [], \JSON_UNESCAPED_UNICODE)]);

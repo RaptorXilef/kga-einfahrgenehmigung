@@ -41,7 +41,7 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
         $payload = \json_encode($data, \JSON_UNESCAPED_UNICODE);
 
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt = $this->pdo->prepare('INSERT INTO mail_queue (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)');
+            $stmt = $this->pdo->prepare('INSERT INTO `mail_queue` (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$recipient, $subject, $template, $payload, \date('Y-m-d H:i:s')]);
         } else {
             $path    = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
@@ -73,17 +73,17 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
         $sentCount = 0;
 
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("UPDATE mail_queue SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit");
-            $items = $this->pdo->query('SELECT * FROM mail_queue WHERE attempts >= 100 ORDER BY created_at ASC')->fetchAll(\PDO::FETCH_ASSOC);
+            $this->pdo->exec("UPDATE `mail_queue` SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit");
+            $items = $this->pdo->query('SELECT * FROM `mail_queue` WHERE attempts >= 100 ORDER BY created_at ASC')->fetchAll(\PDO::FETCH_ASSOC);
 
             foreach ($items as $item) {
                 try {
                     $processor($item['recipient'], $item['subject'], $item['template'], \json_decode((string) $item['data'], true));
-                    $this->pdo->prepare('DELETE FROM mail_queue WHERE id = ?')->execute([$item['id']]);
+                    $this->pdo->prepare('DELETE FROM `mail_queue` WHERE id = ?')->execute([$item['id']]);
                     ++$sentCount;
                 } catch (\Throwable $t) {
                     $origAttempts = $item['attempts'] - 100 + 1;
-                    $this->pdo->prepare('UPDATE mail_queue SET attempts = ? WHERE id = ?')->execute([$origAttempts, $item['id']]);
+                    $this->pdo->prepare('UPDATE `mail_queue` SET attempts = ? WHERE id = ?')->execute([$origAttempts, $item['id']]);
                 }
             }
         } else {

@@ -26,7 +26,7 @@ final readonly class RateLimiter implements RateLimiterInterface
         $now = new \DateTimeImmutable();
 
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt = $this->pdo->prepare("SELECT attempts, last_attempt FROM {$cfg['table']} WHERE ip_address = ?");
+            $stmt = $this->pdo->prepare("SELECT attempts, last_attempt FROM `{$cfg['table']}` WHERE ip_address = ?");
             $stmt->execute([$ip]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -73,7 +73,7 @@ final readonly class RateLimiter implements RateLimiterInterface
         $nowStr = \date('Y-m-d H:i:s');
 
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
-            $sql = "INSERT INTO {$cfg['table']} (ip_address, attempts, last_attempt)
+            $sql = "INSERT INTO `{$cfg['table']}` (ip_address, attempts, last_attempt)
                     VALUES (?, 1, ?)
                     ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt = VALUES(last_attempt)";
             $this->pdo->prepare($sql)->execute([$ip, $nowStr]);
@@ -100,7 +100,7 @@ final readonly class RateLimiter implements RateLimiterInterface
         $cfg = $this->config->get('storage_config')['login_attempts'];
 
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
-            $this->pdo->prepare("DELETE FROM {$cfg['table']} WHERE ip_address = ?")->execute([$ip]);
+            $this->pdo->prepare("DELETE FROM `{$cfg['table']}` WHERE ip_address = ?")->execute([$ip]);
 
             return;
         }

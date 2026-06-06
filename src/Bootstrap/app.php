@@ -92,7 +92,7 @@ $configFiles = [
     'schema'  => $appRoot . '/config/sql_schema.php',
     'secrets' => $appRoot . '/config/secrets.php',
 
-    'local' => $appRoot . '/config/config.local.php', // Überschreibt ALLES (für Passwörter lokal)
+    'local' => $appRoot . '/config/_dev.local.php', // Überschreibt ALLES (für Passwörter lokal)
 ];
 
 $settings = [];

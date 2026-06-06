@@ -66,7 +66,7 @@ return [
         `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
         PRIMARY KEY (`code`),
         INDEX `idx_kennzeichen` (`kennzeichen`),
-        INDEX `idx_parzelle` (`parzelle`)
+        INDEX `idx_parzelle` (`parzelle`),
         INDEX `idx_email` (`email`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
@@ -89,7 +89,7 @@ return [
         `is_anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- NEU: DSGVO-Flag
         PRIMARY KEY (`code`),
         INDEX `idx_kennzeichen` (`kennzeichen`),
-        INDEX `idx_anonymized` (`is_anonymized`) -- NEU: Index für schnelle Cronjob-Suche
+        INDEX `idx_anonymized` (`is_anonymized`), -- NEU: Index für schnelle Cronjob-Suche
         INDEX `idx_email` (`email`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 

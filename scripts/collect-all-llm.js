@@ -28,7 +28,7 @@ const ALWAYS_IGNORE_FILES = [
     '.DS_Store',
     'min.js',
     'min.css',
-    'config.local.php',
+    '_dev.local.php',
     '.local.*',
 ];
 

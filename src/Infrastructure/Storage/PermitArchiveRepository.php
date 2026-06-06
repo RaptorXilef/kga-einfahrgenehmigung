@@ -41,7 +41,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         $arcCfg = $this->config->get('storage_config')['permits_archive'];
 
         if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt = $this->pdo->prepare("SELECT code FROM {$arcCfg['table']} WHERE code = ?");
+            $stmt = $this->pdo->prepare("SELECT code FROM `{$arcCfg['table']}` WHERE code = ?");
             $stmt->execute([$code]);
 
             return (bool) $stmt->fetch();
@@ -73,7 +73,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         $arcCfg = $this->config->get('storage_config')['permits_archive'];
 
         if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $sql = "REPLACE INTO {$arcCfg['table']} (
+            $sql = "REPLACE INTO `{$arcCfg['table']}` (
                 code, template_key, name, email, kennzeichen, parzelle, typ,
                 firma, zweck, preis, von, bis, status, erstellt, interner_kommentar,
                 is_anonymized
@@ -128,7 +128,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         $anonymizedCount = 0;
 
         if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $sql = "UPDATE {$arcCfg['table']}
+            $sql = "UPDATE `{$arcCfg['table']}`
                     SET name = '[ANONYMISIERT]',
                         email = '[ANONYMISIERT]',
                         kennzeichen = '[ANONYMISIERT]',

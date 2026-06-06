@@ -248,7 +248,7 @@ final readonly class SmtpMailService implements MailServiceInterface
 
         if ($cfg['type'] === 'mysql') {
             // Hier wird das data-Array als JSON-String in die DB geladen
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (
+            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (
                 timestamp,
                 recipient,
                 subject,
@@ -267,9 +267,9 @@ final readonly class SmtpMailService implements MailServiceInterface
 
             // 2. Cleanup (Optional: Hält die Datenbank schlank wie bei JSON)
             // Wir löschen alle alten Einträge, die über das Limit hinausgehen
-            $this->pdo->exec("DELETE FROM {$cfg['table']} WHERE id NOT IN (
+            $this->pdo->exec("DELETE FROM `{$cfg['table']}` WHERE id NOT IN (
                 SELECT id FROM (
-                    SELECT id FROM {$cfg['table']} ORDER BY timestamp DESC LIMIT $maxEntries
+                    SELECT id FROM `{$cfg['table']}` ORDER BY timestamp DESC LIMIT $maxEntries
                 ) foo
             )");
 
@@ -312,7 +312,7 @@ final readonly class SmtpMailService implements MailServiceInterface
 
             try {
                 // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
-                $stmt = $this->pdo->prepare("REPLACE INTO {$cfg['table']} (
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (
                 id,
                 timestamp,
                 recipient,
@@ -375,7 +375,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             }
 
             // Wir laden die neuesten zuerst
-            return $this->pdo->query("SELECT * FROM {$cfg['table']} ORDER BY timestamp DESC")->fetchAll();
+            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll();
         }
 
         $path = \rtrim(

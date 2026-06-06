@@ -86,7 +86,7 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
 
         if ($cfg['type'] === 'mysql') {
             if ($this->pdo instanceof \PDO) {
-                $stmt = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+                $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
                 foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $data[$r['token']]            = \json_decode((string) $r['data'], true);
                     $data[$r['token']]['expires'] = $r['expires'];
@@ -123,8 +123,8 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
         $useSql = $forceSql || ($cfg['type'] === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (token, expires, data) VALUES (?, ?, ?)");
+            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, expires, data) VALUES (?, ?, ?)");
             foreach ($data as $token => $item) {
                 $exp = $item['expires'] ?? \date('Y-m-d H:i:s');
                 if (\is_numeric($exp)) {

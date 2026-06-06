@@ -40,7 +40,7 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
-        $sql = 'INSERT INTO permits (
+        $sql = 'INSERT INTO `permits` (
                     code, template_key, name, email, kennzeichen, parzelle, typ,
                     firma, zweck, preis, von, bis, status, is_suspended,
                     suspension_reason, erstellt, interner_kommentar
@@ -81,7 +81,7 @@ final readonly class MySqlStorage implements StorageInterface
         $hash = \strtoupper(\trim($hash));
 
         // 1. Direkter Match
-        $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code = ?');
+        $stmt = $this->pdo->prepare('SELECT * FROM `permits` WHERE code = ?');
         $stmt->execute([$hash]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -94,7 +94,7 @@ final readonly class MySqlStorage implements StorageInterface
         $searchId    = \end($searchParts);
 
         // Sucht nach %-ID (langer Code) ODER genau der ID (kurzer Code)
-        $stmt = $this->pdo->prepare('SELECT * FROM permits WHERE code LIKE ? OR code = ?');
+        $stmt = $this->pdo->prepare('SELECT * FROM `permits` WHERE code LIKE ? OR code = ?');
         $stmt->execute(['%-' . $searchId, $searchId]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -120,7 +120,7 @@ final readonly class MySqlStorage implements StorageInterface
 
         // Wir nutzen SQL REPLACE, um Leerzeichen und Bindestriche in der DB beim Vergleich zu ignorieren
         $stmt = $this->pdo->prepare("
-            SELECT * FROM permits
+            SELECT * FROM `permits`
             WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?
         ");
         $stmt->execute([$searchPlate]);
@@ -160,7 +160,7 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function getAll(): array
     {
-        $stmt = $this->pdo->query('SELECT * FROM permits');
+        $stmt = $this->pdo->query('SELECT * FROM `permits`');
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         return \array_map($this->mapToEntity(...), $rows);
@@ -196,6 +196,6 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function delete(string $code): bool
     {
-        return $this->pdo->prepare('DELETE FROM permits WHERE code = ?')->execute([$code]);
+        return $this->pdo->prepare('DELETE FROM `permits` WHERE code = ?')->execute([$code]);
     }
 }

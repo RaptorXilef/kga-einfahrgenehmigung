@@ -40,7 +40,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             if (! $this->pdo instanceof \PDO) {
                 throw new \RuntimeException('Datenbank offline.');
             }
-            $stmt     = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+            $stmt     = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
             $vouchers = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                 $r['data'] = \is_string($r['data']) ? \json_decode($r['data'], true) : $r['data'];
@@ -67,8 +67,8 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $sql = "INSERT INTO {$cfg['table']} (
+            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+            $sql = "INSERT INTO `{$cfg['table']}` (
                 code, reason, template_key, type, value, multi_use, max_uses,
                 uses_count, expires_at, date_mode, created_by, created_at, status, data
             ) VALUES (
@@ -115,7 +115,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
     {
         $cfg = $this->config->get('storage_config')['vouchers_archive'];
         if ($cfg['type'] === 'mysql') {
-            return $this->pdo->query("SELECT * FROM {$cfg['table']} ORDER BY redeemed_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
+            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY redeemed_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
         }
         $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
 
@@ -133,7 +133,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         $arcCfg = $this->config->get('storage_config')['vouchers_archive'];
 
         if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $sql  = "INSERT INTO {$arcCfg['table']} (code, redeemed_at, user_name, user_plot) VALUES (:code, :redeemed_at, :user_name, :user_plot)";
+            $sql  = "INSERT INTO `{$arcCfg['table']}` (code, redeemed_at, user_name, user_plot) VALUES (:code, :redeemed_at, :user_name, :user_plot)";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([
                 'code'        => $archiveEntry['code'],

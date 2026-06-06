@@ -40,7 +40,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
 
         if ($cfg['type'] === 'mysql') {
             if ($this->pdo instanceof \PDO) {
-                $stmt = $this->pdo->query("SELECT * FROM {$cfg['table']}");
+                $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
                 foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
                     $links[$r['token']] = [
                         'email'   => $r['email'],
@@ -77,8 +77,8 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM {$cfg['table']}");
-            $stmt = $this->pdo->prepare("INSERT INTO {$cfg['table']} (token, email, code, expires) VALUES (?, ?, ?, ?)");
+            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, email, code, expires) VALUES (?, ?, ?, ?)");
 
             foreach ($links as $token => $d) {
                 $exp = $d['expires'] ?? \date('Y-m-d H:i:s');
