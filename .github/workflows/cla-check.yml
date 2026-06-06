@@ -12,7 +12,7 @@ jobs:
       pull-requests: read
     steps:
       - name: 'Check for CLA Agreement'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
