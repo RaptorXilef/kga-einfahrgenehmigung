@@ -294,6 +294,16 @@ return [
                     'label'    => 'System- & Benutzer-Verwaltung (RECHTE-VERWALTUNG)',
                     'key'      => 'system.permissions.view',
                     'children' => [
+                        'update' => [
+                            'label'    => 'Update: Benachrichtigung',
+                            'key'      => 'system.update.view',
+                            'children' => [
+                                'execute' => [
+                                    'label' => 'Update: Installation',
+                                    'key'   => 'system.update.execute',
+                                ],
+                            ],
+                        ],
                         'users' => [
                             'label' => 'Benutzerverwaltung',
                             'key'   => 'system.permissions.users.manage',

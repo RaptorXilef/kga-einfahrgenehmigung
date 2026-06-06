@@ -35,19 +35,21 @@
  */
 $now = new \DateTimeImmutable();
 
-// --- Aktuelle Version aus package.json auslesen ---
-$currentVersion  = 'v0.0.0';
-$packageJsonPath = $appRoot . '/package.json';
-if (\file_exists($packageJsonPath)) {
-    $pkgContent = \file_get_contents($packageJsonPath);
-    if ($pkgContent !== false) {
-        $pkgData = \json_decode($pkgContent, true);
-        if (\is_array($pkgData) && isset($pkgData['version'])) {
-            $currentVersion = 'v' . $pkgData['version'];
+if ($auth->hasPermission('system.update.view')) {
+    // --- Aktuelle Version aus package.json auslesen ---
+    $currentVersion  = 'v0.0.0';
+    $packageJsonPath = $appRoot . '/package.json';
+    if (\file_exists($packageJsonPath)) {
+        $pkgContent = \file_get_contents($packageJsonPath);
+        if ($pkgContent !== false) {
+            $pkgData = \json_decode($pkgContent, true);
+            if (\is_array($pkgData) && isset($pkgData['version'])) {
+                $currentVersion = 'v' . $pkgData['version'];
+            }
         }
     }
+    // --- ENDE ---
 }
-// --- ENDE ---
 
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
@@ -76,6 +78,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); ?>, // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
         csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
+
     </script>
 </head>
 
@@ -87,37 +90,44 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php if ($auth->hasPermission('dashboard.view')) { ?>
         <main class="c-container u-padding-y-l">
 
-            <div class="c-tab-content-container">
-                <div id="github-update-banner"
-                     class="c-alert c-alert--info u-hidden u-margin-bottom-l"
-                     style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-wrap: wrap; gap: 15px;">
-                    <div style="flex: 1 1 250px;">
-                        <h3 class="u-margin-none"
-                            style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
-                        <p class="u-margin-top-xs u-margin-bottom-none"
-                           style="color: #1e40af; font-size: 0.95rem;">
-                            Aktuell installiert: <strong><?php echo \htmlspecialchars($currentVersion); ?></strong> ➔ Neue Version: <strong id="gh-version"></strong><br>
-                            <small id="gh-notes" style="opacity: 0.8;"></small>
-                        </p>
+            <?php if ($auth->hasPermission('system.update.view')) { ?>
+                <div class="c-tab-content-container">
+                    <div id="github-update-banner"
+                         class="c-alert c-alert--info u-hidden u-margin-bottom-l"
+                         style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1 1 250px;">
+                            <h3 class="u-margin-none"
+                                style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
+                            <p class="u-margin-top-xs u-margin-bottom-none"
+                               style="color: #1e40af; font-size: 0.95rem;">
+                                Aktuell installiert: <strong><?php echo \htmlspecialchars($currentVersion); ?></strong> ➔ Neue Version: <strong
+                                        id="gh-version"></strong><br>
+                                <small id="gh-notes"
+                                       style="opacity: 0.8;"></small>
+                            </p>
 
-                        <div class="u-margin-top-s" style="font-size: 0.85rem; display: flex; gap: 15px;">
-                            <a id="gh-release-link" href="#" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                            <div class="u-margin-top-s"
+                                 style="font-size: 0.85rem; display: flex; gap: 15px;">
+                                <a id="gh-release-link" href="#" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
                                 📦 Release-Notes ansehen
                             </a>
-                            <a href="https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/CHANGELOG.md" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                                <a href="https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/CHANGELOG.md" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
                                 📜 Changelog öffnen
                             </a>
+                            </div>
                         </div>
-                    </div>
-                    <div style="flex-shrink: 0;">
-                        <button id="gh-install-btn"
-                                class="c-button c-button--primary"
-                                style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
-                            Jetzt 1-Klick Update starten
-                        </button>
+                        <?php if ($auth->hasPermission('system.update.execute')) { ?>
+                            <div style="flex-shrink: 0;">
+                                <button id="gh-install-btn"
+                                        class="c-button c-button--primary"
+                                        style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
+                                    Jetzt 1-Klick Update starten
+                                </button>
+                            </div>
+                        <?php } ?>
                     </div>
                 </div>
-            </div>
+            <?php } ?>
 
             <?php if ($auth->hasPermission('dashboard.info_alert.view')) { ?>
                 <?php if ($message) { ?>
@@ -361,74 +371,78 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const banner = document.getElementById('github-update-banner');
-        const versionLabel = document.getElementById('gh-version');
-        const notesLabel = document.getElementById('gh-notes');
-        const installBtn = document.getElementById('gh-install-btn');
-        const releaseLink = document.getElementById('gh-release-link');
-        let downloadUrl = '';
+    <?php if ($auth->hasPermission('system.update.view')) { ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const banner = document.getElementById('github-update-banner');
+            const versionLabel = document.getElementById('gh-version');
+            const notesLabel = document.getElementById('gh-notes');
+            const installBtn = document.getElementById('gh-install-btn');
+            const releaseLink = document.getElementById('gh-release-link');
+            let downloadUrl = '';
 
-        // 1. Im Hintergrund prüfen, ob ein Update da ist
-        fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.update_available) {
-                    downloadUrl = data.data.zipball_url;
-                    versionLabel.innerText = data.data.version;
+            // 1. Im Hintergrund prüfen, ob ein Update da ist
+            fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.update_available) {
+                        downloadUrl = data.data.zipball_url;
+                        versionLabel.innerText = data.data.version;
 
-                    // Release Notes dynamisch verlinken
-                    releaseLink.href = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data.data.version;
+                        // Release Notes dynamisch verlinken
+                        releaseLink.href =
+                            'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
+                            .data.version;
 
-                    if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
-                    banner.classList.remove('u-hidden');
-                }
-            })
-            .catch(err => console.error('Update-Check fehlgeschlagen:', err));
+                        if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
+                        banner.classList.remove('u-hidden');
+                    }
+                })
+                .catch(err => console.error('Update-Check fehlgeschlagen:', err));
 
-        // 2. Klick auf den Installieren-Button
-        if (installBtn) {
-            installBtn.addEventListener('click', () => {
-                if (!confirm(
-                        'Möchten Sie das Update jetzt durchführen? Das System wird für wenige Sekunden nicht erreichbar sein.'
-                    )) return;
+            // 2. Klick auf den Installieren-Button
+            if (installBtn) {
+                installBtn.addEventListener('click', () => {
+                    if (!confirm(
+                            'Möchten Sie das Update jetzt durchführen? Das System wird für wenige Sekunden nicht erreichbar sein.'
+                        )) return;
 
-                installBtn.innerHTML = '⏳ Installiere... Bitte warten!';
-                installBtn.disabled = true;
-                installBtn.style.opacity = '0.7';
+                    installBtn.innerHTML = '⏳ Installiere... Bitte warten!';
+                    installBtn.disabled = true;
+                    installBtn.style.opacity = '0.7';
 
-                fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/perform_update.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
-                        },
-                        body: JSON.stringify({
-                            zip_url: downloadUrl
+                    fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/perform_update.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
+                            },
+                            body: JSON.stringify({
+                                zip_url: downloadUrl
+                            })
                         })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('🎉 Update erfolgreich installiert!');
-                            window.location.reload();
-                        } else {
-                            alert('❌ Fehler beim Update: ' + data.error);
-                            installBtn.innerHTML = 'Update fehlgeschlagen';
-                        }
-                    })
-                    .catch(err => {
-                        alert('Netzwerkfehler beim Update.');
-                        installBtn.innerHTML = 'Erneut versuchen';
-                        installBtn.disabled = false;
-                        installBtn.style.opacity = '1';
-                    });
-            });
-        }
-    });
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('🎉 Update erfolgreich installiert!');
+                                window.location.reload();
+                            } else {
+                                alert('❌ Fehler beim Update: ' + data.error);
+                                installBtn.innerHTML = 'Update fehlgeschlagen';
+                            }
+                        })
+                        .catch(err => {
+                            alert('Netzwerkfehler beim Update.');
+                            installBtn.innerHTML = 'Erneut versuchen';
+                            installBtn.disabled = false;
+                            installBtn.style.opacity = '1';
+                        });
+                });
+            }
+        });
 
-    </script>
+        </script>
+    <?php } ?>
 
     <script type="module"
             src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
