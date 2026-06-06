@@ -81,9 +81,14 @@ final readonly class GitHubUpdaterService
         if (\version_compare($cleanLatest, $cleanCurrent, '>')) {
             // Wir suchen in den angehängten Assets nach unserer gebauten ZIP
             $downloadUrl = '';
+
+            // Wir suchen jetzt dynamisch nach dem Update-Paket basierend auf dem aktuellen Tag
+            // Der Name ist jetzt: kga-zufahrts-manager-update-{latestVersion}.zip
+            $expectedFilename = 'kga-zufahrts-manager-update-' . $latestVersion . '.zip';
+
             if (isset($response['assets']) && \is_array($response['assets'])) {
                 foreach ($response['assets'] as $asset) {
-                    if ($asset['name'] === 'kga-update.zip') {
+                    if ($asset['name'] === $expectedFilename) {
                         $downloadUrl = $asset['browser_download_url'];
 
                         break;
@@ -91,9 +96,9 @@ final readonly class GitHubUpdaterService
                 }
             }
 
-            // Fallback, falls die Action mal nicht gelaufen ist
+            // Fallback bleibt, falls die Namenskonvention mal nicht matcht
             if ($downloadUrl === '') {
-                $downloadUrl = $response['zipball_url'] ?? '';
+                return null; // Oder Fallback auf zipball_url
             }
 
             return [
@@ -101,11 +106,10 @@ final readonly class GitHubUpdaterService
                 'name'         => $response['name'] ?? $latestVersion,
                 'notes'        => $response['body'] ?? '',
                 'published_at' => $response['published_at'] ?? '',
-                'zipball_url'  => $downloadUrl, // <--- Nimmt jetzt das fertige Asset!
+                'zipball_url'  => $downloadUrl,
             ];
         }
 
-        // FIX: Hier fehlten der Return-Wert und die Klammer!
         return null;
     }
 
