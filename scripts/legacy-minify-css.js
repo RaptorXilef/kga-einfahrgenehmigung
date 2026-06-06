@@ -36,6 +36,10 @@ for (const entry of config) {
         try {
             // Aufruf von clean-css-cli mit Source-Maps und Optimierungs-Level 2
             execSync(`npx cleancss -O2 --source-map --output "${output}" "${input}"`);
+
+            // NEU: Lösche die unminifizierte Originaldatei nach erfolgreichem Build
+            fs.unlinkSync(input);
+            console.log(`    🗑️ Originaldatei gelöscht: ${file}`);
         } catch (error) {
             console.error(`  ❌ Fehler bei ${file}:`, error.message);
         }
