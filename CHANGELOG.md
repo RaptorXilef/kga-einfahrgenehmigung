@@ -2,6 +2,12 @@
 
 
 
+## [0.38.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.38.0...v0.38.1) (2026-06-06)
+
+### 🧹 Chore / Maintenance
+
+* **security:** implement granular update permissions in configuration and dashboard ([dc28679](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dc2867920e1f2bba2cc0e49f693aada70776406d))
+
 ## [0.38.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.37.2...v0.38.0) (2026-06-06)
 
 ### 🚀 Features
