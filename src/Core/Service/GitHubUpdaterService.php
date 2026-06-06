@@ -293,7 +293,7 @@ final readonly class GitHubUpdaterService
      */
     private function isPathAllowed(string $path): bool
     {
-        // 1. Blacklist prüfen
+        // 1. Blacklist blockiert strikt (Höchste Priorität)
         foreach (self::UPDATE_BLACKLIST as $blocked) {
             if (\str_starts_with($path, $blocked)) {
                 return false;
@@ -302,16 +302,25 @@ final readonly class GitHubUpdaterService
 
         // 2. SPEZIALREGEL FÜR DEN CONFIG-ORDNER
         if (\str_starts_with($path, 'config/')) {
-            // Beim Update dürfen NUR Dateien überschrieben werden, die auf .default.php enden!
-            // Dateien wie 'email.php' oder 'config.local.php' werden knallhart abgewiesen.
+            // A) Kaskadierende Standard-Dateien erlauben (kommen aus der GitHub Action)
             if (\str_ends_with($path, '.default.php')) {
+                return true;
+            }
+
+            // B) Explizite Core-Dateien erlauben, die gnadenlos überschrieben werden dürfen!
+            $allowedCoreConfigs = [
+                'config/sql_schema.php',
+                // Hier kannst du zukünftig weitere Dateien eintragen, die nie angepasst werden
+            ];
+
+            if (\in_array($path, $allowedCoreConfigs, true)) {
                 return true;
             }
 
             return false;
         }
 
-        // 3. Whitelist prüfen (für den Rest des Systems)
+        // 3. Whitelist erlaubt (Wenn nicht blockiert)
         foreach (self::UPDATE_WHITELIST as $allowed) {
             // Entweder es ist ein Ordner (endet auf /) und der Pfad beginnt damit
             if (\str_ends_with($allowed, '/') && \str_starts_with($path, $allowed)) {

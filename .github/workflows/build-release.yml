@@ -28,15 +28,22 @@ jobs:
 
       - name: Create Release ZIPs
         run: |
-          # ZIP 1: Update-Paket
-          # Wir packen config/ komplett ein. Der GitHubUpdaterService.php schützt
-          # die User-Dateien und lässt NUR .default.php durch!
-          zip -r kga-zufahrts-manager-update-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*"
+          # 1. INSTALL-PAKET (Für Neuinstallationen)
+          # Hier packen wir die originalen Dateien (ohne .default) ein.
+          zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
 
-          # ZIP 2: Install-Paket (für Neuinstallationen)
-          # Hier schließen wir bewusst die .default.php Dateien aus, damit der
-          # frische Nutzer nur die fertigen email.php etc. bekommt.
-          zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "config/*.default.php" "src/assets/*"
+          # 2. BASH-MAGIC: Umbenennen der Config-Dateien für das Update
+          # Wir hängen an alle .php Dateien '.default.php' an, AUSSER an sql_schema.php
+          for file in config/*.php; do
+            filename=$(basename "$file")
+            if [ "$filename" != "sql_schema.php" ]; then
+              mv "$file" "config/${filename%.php}.default.php"
+            fi
+          done
+
+          # 3. UPDATE-PAKET (Für Bestandskunden)
+          # Hier sind die config-Dateien nun als .default.php benannt und werden so ins ZIP gepackt.
+          zip -r kga-zufahrts-manager-update-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*"
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v3.0.0

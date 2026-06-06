@@ -48,6 +48,29 @@ require_once $appRoot . '/vendor/autoload.php';
 
 // 2. Alle Konfigurationen laden & mergen
 $configFiles = [
+    // --- Default-Einstellungen ---
+    'default_settings' => $appRoot . '/config/settings.default.php',
+
+    'default_organization' => $appRoot . '/config/organization.default.php',
+    'default_colors'       => $appRoot . '/config/colors.default.php',
+    'default_purposes'     => $appRoot . '/config/purposes.default.php',
+    'default_vehicles'     => $appRoot . '/config/vehicles.default.php',
+    'default_times'        => $appRoot . '/config/times.default.php',
+    'default_templates'    => $appRoot . '/config/templates.default.php',
+    'default_reasons'      => $appRoot . '/config/reasons.default.php',
+
+    // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
+    'default_main' => $appRoot . '/config/config.default.php',
+
+    'default_payment' => $appRoot . '/config/payment.default.php',
+    'default_email'   => $appRoot . '/config/email.default.php',
+    'default_storage' => $appRoot . '/config/storage.default.php',
+    // /config/permissions.php nicht
+    'default_dev' => $appRoot . '/config/dev_admin.default.php',
+    // /config/sql_schema.php nicht
+    'default_secrets' => $appRoot . '/config/secrets.default.php',
+
+    // --- Nutzer-Einstellungen ---
     'settings' => $appRoot . '/config/settings.php',
 
     'organization' => $appRoot . '/config/organization.php',
@@ -59,7 +82,8 @@ $configFiles = [
     'reasons'      => $appRoot . '/config/reasons.php',
 
     // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
-    'main'    => $appRoot . '/config/config.php',
+    'main' => $appRoot . '/config/config.php',
+
     'payment' => $appRoot . '/config/payment.php',
     'email'   => $appRoot . '/config/email.php',
     'storage' => $appRoot . '/config/storage.php',
@@ -67,7 +91,8 @@ $configFiles = [
     'dev'     => $appRoot . '/config/dev_admin.php',
     'schema'  => $appRoot . '/config/sql_schema.php',
     'secrets' => $appRoot . '/config/secrets.php',
-    'local'   => $appRoot . '/config/config.local.php', // Überschreibt ALLES (für Passwörter lokal)
+
+    'local' => $appRoot . '/config/config.local.php', // Überschreibt ALLES (für Passwörter lokal)
 ];
 
 $settings = [];
