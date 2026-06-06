@@ -10,9 +10,14 @@ jobs:
     permissions:
       issues: write
       pull-requests: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Behebt die Node-Warnung
+      VERSION: ${{ github.ref_name }}
+
     steps:
       - name: 'Check for CLA Agreement'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9.0.0
+        # https://github.com/marketplace/actions/github-script
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
