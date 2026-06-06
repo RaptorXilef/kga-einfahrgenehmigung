@@ -15,7 +15,8 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.3
+          # https://github.com/marketplace/actions/checkout
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -36,7 +37,8 @@ jobs:
           zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
 
       - name: Upload Release Assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3.0.0
+          # https://github.com/marketplace/actions/gh-release
         with:
           files: |
             kga-zufahrts-manager-update-${{ env.VERSION }}.zip
