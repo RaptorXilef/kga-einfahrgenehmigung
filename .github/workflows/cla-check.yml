@@ -6,9 +6,10 @@ on:
 jobs:
   cla-check:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     permissions:
       issues: write
-      pull-requests: write
+      pull-requests: read
     steps:
       - name: 'Check for CLA Agreement'
         uses: actions/github-script@v6
