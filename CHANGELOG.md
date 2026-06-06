@@ -2,6 +2,22 @@
 
 
 
+## [0.37.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.8...v0.37.0) (2026-06-06)
+
+### 🚀 Features
+
+* **ci/core:** automate config cascading via CI and allow strict schema updates ([2bc0bcc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2bc0bccf5e2100669547e62e88b1a7af34d68dd0))
+
+### 🐛 Bug Fixes
+
+* **admin:** enhance update banner with version diff and external release links ([a76b537](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a76b537884aed34e774808cafdbffbe531769dbe))
+* **core:** exclude permissions config from cascading and enforce strict overwrite ([19b270f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/19b270fd2a8b22b6735e2d832960db8ff16a249a))
+* **core:** implement robust config cascading architecture for updates ([5727c46](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5727c4616e6bbcfc7589ce94170e9ecf05d23504))
+
+### 🧹 Chore / Maintenance
+
+* **ci:** adjust release zip creation for default config filtering ([b320440](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b3204408ff4fb629ce54a9d0d30729bb0fabbe69))
+
 ## [0.36.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.7...v0.36.8) (2026-06-06)
 
 ### 🐛 Bug Fixes
