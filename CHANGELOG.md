@@ -2,6 +2,16 @@
 
 
 
+## [0.38.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.37.2...v0.38.0) (2026-06-06)
+
+### 🚀 Features
+
+* **build:** implement CSS minification with source maps and refactor build process ([706b44b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/706b44bb9a8c765a325ef557f216c880eb9d36f6))
+
+### ⚙️ Refactoring
+
+* **build:** remove unminified CSS source files after minification ([e4c1017](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e4c10170754cbe6d72a31acfb69861e8e4fc21ee))
+
 ## [0.37.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.37.1...v0.37.2) (2026-06-06)
 
 ### 🧹 Chore / Maintenance
