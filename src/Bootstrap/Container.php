@@ -27,6 +27,7 @@ use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
+use App\Core\Service\GitHubUpdaterService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\LicensePlateFormatter;
 use App\Core\Service\MagicLinkService;
@@ -351,6 +352,11 @@ class Container
             $this->get(GroupRepositoryInterface::class),
             $this->get(RateLimiterInterface::class),
             $this->get(UserRepositoryInterface::class),
+        );
+
+        // UpdateService
+        $this->services[GitHubUpdaterService::class] = fn (): GitHubUpdaterService => new GitHubUpdaterService(
+            $this->get(ConfigInterface::class),
         );
     }
 
