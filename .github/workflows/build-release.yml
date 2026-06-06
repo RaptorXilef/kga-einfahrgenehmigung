@@ -28,13 +28,15 @@ jobs:
 
       - name: Create Release ZIPs
         run: |
-          # ZIP 1: Update-Paket (mit Ausschlüssen)
-          # Wir packen exakt nur die Whitelist-Ordner/Dateien ins ZIP
-          # Und schließen darin gezielt die Entwicklungs- & Nutzer-Assets aus
+          # ZIP 1: Update-Paket
+          # Wir packen config/ komplett ein. Der GitHubUpdaterService.php schützt
+          # die User-Dateien und lässt NUR .default.php durch!
           zip -r kga-zufahrts-manager-update-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*"
 
-          # ZIP 2: Install-Paket (mit anderen Ausschlüssen)
-          zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
+          # ZIP 2: Install-Paket (für Neuinstallationen)
+          # Hier schließen wir bewusst die .default.php Dateien aus, damit der
+          # frische Nutzer nur die fertigen email.php etc. bekommt.
+          zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "config/*.default.php" "src/assets/*"
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v3.0.0
