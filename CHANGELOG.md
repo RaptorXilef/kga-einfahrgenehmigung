@@ -2,6 +2,13 @@
 
 
 
+## [0.36.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.3...v0.36.4) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** exclude dependabot from CLA check to reduce noise and API usage ([0e85b75](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0e85b758a6eddd0104ec0e2ae8799cabc25f9592))
+* **ci:** resolve CLA check 403 error by providing explicit token and fixing event trigger ([4a1bee1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4a1bee18301865b2a40de1c9845a3af783567e50))
+
 ## [0.36.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.2...v0.36.3) (2026-06-06)
 
 ### 🐛 Bug Fixes
