@@ -2,6 +2,12 @@
 
 
 
+## [0.36.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.7...v0.36.8) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **updater:** enable config directory overwrite and aggregate all custom config overrides ([37c9d7f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/37c9d7f933032d20685cb407f8c466ebf750df5d))
+
 ## [0.36.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.6...v0.36.7) (2026-06-06)
 
 ### 🐛 Bug Fixes
