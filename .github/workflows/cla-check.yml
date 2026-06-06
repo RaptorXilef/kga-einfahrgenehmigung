@@ -1,11 +1,14 @@
 name: 'CLA Check'
 on:
   pull_request_target:
-    types: [opened, edited, synchronized, reopened]
+    types: [opened, edited, synchronize, reopened]
 
 jobs:
   cla-check:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: 'Check for CLA Agreement'
         uses: actions/github-script@v6
