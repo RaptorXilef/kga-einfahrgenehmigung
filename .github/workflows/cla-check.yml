@@ -6,7 +6,6 @@ on:
 jobs:
   cla-check:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
     permissions:
       issues: write
       pull-requests: read
@@ -15,7 +14,12 @@ jobs:
       VERSION: ${{ github.ref_name }}
 
     steps:
+      - name: Check if actor is bot
+        id: check_bot
+        run: echo "is_bot=${{ github.actor == 'dependabot[bot]' }}" >> $GITHUB_OUTPUT
+
       - name: 'Check for CLA Agreement'
+        if: steps.check_bot.outputs.is_bot == 'false'
         uses: actions/github-script@v9.0.0
         # https://github.com/marketplace/actions/github-script
         with:
