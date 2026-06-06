@@ -2,6 +2,12 @@
 
 
 
+## [0.37.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.37.0...v0.37.1) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **infrastructure:** add missing backticks to dynamic table identifiers to prevent SQL syntax errors ([b362ff3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b362ff3b2c43b8c5f0fa26d1c2688e3189ae447e))
+
 ## [0.37.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.8...v0.37.0) (2026-06-06)
 
 ### 🚀 Features
