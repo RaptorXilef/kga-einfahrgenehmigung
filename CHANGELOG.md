@@ -2,6 +2,12 @@
 
 
 
+## [0.38.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.38.1...v0.38.2) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **infrastructure:** add optional port support to MySQL connection configuration ([5248f50](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5248f50331a9c4889118243a3c55e9fcf9234834))
+
 ## [0.38.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.38.0...v0.38.1) (2026-06-06)
 
 ### 🧹 Chore / Maintenance
