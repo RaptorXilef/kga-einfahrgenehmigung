@@ -15,25 +15,39 @@
  * See LICENSE.md for full license details.
  *
  * var \App\Infrastructure\Config\Config    $config
- * @var \App\Contracts\Config\ConfigInterface              $config           Anwendungs-Konfiguration.
- * @var string                                             $appRoot          Absoluter Pfad zum Installationsverzeichnis.
- * @var array                                              $structure        Verschachtelter Berechtigungsbaum.
- * @var array<string, mixed>                               $periodStats      Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
- * @var array<string, array<string, mixed>>                $yearlyStats      Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
- * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups     Genehmigungen gruppiert nach Status.
- * @var array                                              $settings         Globale UI- und Mapping-Einstellungen.
- * @var \App\Core\Service\AuthService                      $auth             Service für die Rechteprüfung im Template.
- * @var string                                             $message          Statusnachricht.
- * @var string                                             $filterStart      Aktives Filter-Startdatum (Y-m-d).
- * @var string                                             $filterEnd        Aktives Filter-Enddatum (Y-m-d).
- * @var string                                             $filterType       Aktiver Filter-Fahrzeugtyp.
- * @var array                                              $vouchers         Liste aller aktiven Gutscheine im System.
- * @var \App\Core\Service\VoucherService                   $voucherService   Dienst zur Validierung/Verwaltung von Gutscheinen.
- * @var array                                              $mailLogs         Die chronologischen E-Mail-Versandprotokolle.
- * @var \App\Core\Service\PermitService                    $permitService    Zentraler Genehmigungs-Dienst.
- * @var \App\Infrastructure\Maintenance\MigrationService   $migrationService Migrations- & Backup-Manager.
+ * @var \App\Contracts\Config\ConfigInterface              $config            Anwendungs-Konfiguration.
+ * @var string                                             $appRoot           Absoluter Pfad zum Installationsverzeichnis.
+ * @var array                                              $structure         Verschachtelter Berechtigungsbaum.
+ * @var array<string, mixed>                               $periodStats       Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
+ * @var array<string, array<string, mixed>>                $yearlyStats       Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
+ * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups      Genehmigungen gruppiert nach Status.
+ * @var array                                              $settings          Globale UI- und Mapping-Einstellungen.
+ * @var \App\Core\Service\AuthService                      $auth              Service für die Rechteprüfung im Template.
+ * @var string                                             $message           Statusnachricht.
+ * @var string                                             $filterStart       Aktives Filter-Startdatum (Y-m-d).
+ * @var string                                             $filterEnd         Aktives Filter-Enddatum (Y-m-d).
+ * @var string                                             $filterType        Aktiver Filter-Fahrzeugtyp.
+ * @var array                                              $vouchers          Liste aller aktiven Gutscheine im System.
+ * @var \App\Core\Service\VoucherService                   $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
+ * @var array                                              $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
+ * @var \App\Core\Service\PermitService                    $permitService     Zentraler Genehmigungs-Dienst.
+ * @var \App\Infrastructure\Maintenance\MigrationService   $migrationService  Migrations- & Backup-Manager.
  */
 $now = new \DateTimeImmutable();
+
+// --- Aktuelle Version aus package.json auslesen ---
+$currentVersion  = 'v0.0.0';
+$packageJsonPath = $appRoot . '/package.json';
+if (\file_exists($packageJsonPath)) {
+    $pkgContent = \file_get_contents($packageJsonPath);
+    if ($pkgContent !== false) {
+        $pkgData = \json_decode($pkgContent, true);
+        if (\is_array($pkgData) && isset($pkgData['version'])) {
+            $currentVersion = 'v' . $pkgData['version'];
+        }
+    }
+}
+// --- ENDE ---
 
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
@@ -62,7 +76,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         vehicleConfig: <?php echo \json_encode($config->get('vehicle_types')); ?>, // Wir geben die komplette Fahrzeug-Konfiguration ans Frontend
         csrfToken: '<?php echo $_SESSION['csrf_token'] ?? ''; ?>' // Das API-Secret für AJAX-Calls?>'
     };
-
     </script>
 </head>
 
@@ -83,10 +96,18 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
                         <p class="u-margin-top-xs u-margin-bottom-none"
                            style="color: #1e40af; font-size: 0.95rem;">
-                            Version <strong id="gh-version"></strong> steht zur Installation bereit.<br>
-                            <small id="gh-notes"
-                                   style="opacity: 0.8;"></small>
+                            Aktuell installiert: <strong><?php echo \htmlspecialchars($currentVersion); ?></strong> ➔ Neue Version: <strong id="gh-version"></strong><br>
+                            <small id="gh-notes" style="opacity: 0.8;"></small>
                         </p>
+
+                        <div class="u-margin-top-s" style="font-size: 0.85rem; display: flex; gap: 15px;">
+                            <a id="gh-release-link" href="#" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                                📦 Release-Notes ansehen
+                            </a>
+                            <a href="https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/CHANGELOG.md" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                                📜 Changelog öffnen
+                            </a>
+                        </div>
                     </div>
                     <div style="flex-shrink: 0;">
                         <button id="gh-install-btn"
@@ -346,6 +367,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         const versionLabel = document.getElementById('gh-version');
         const notesLabel = document.getElementById('gh-notes');
         const installBtn = document.getElementById('gh-install-btn');
+        const releaseLink = document.getElementById('gh-release-link');
         let downloadUrl = '';
 
         // 1. Im Hintergrund prüfen, ob ein Update da ist
@@ -355,6 +377,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 if (data.success && data.update_available) {
                     downloadUrl = data.data.zipball_url;
                     versionLabel.innerText = data.data.version;
+
+                    // Release Notes dynamisch verlinken
+                    releaseLink.href = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data.data.version;
+
                     if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
                     banner.classList.remove('u-hidden');
                 }
