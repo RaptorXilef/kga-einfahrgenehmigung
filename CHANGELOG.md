@@ -2,6 +2,13 @@
 
 
 
+## [0.36.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.5...v0.36.6) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** refactor CLA check to show as success for bot PRs ([e08e861](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e08e861165a2c4401c10043a76e7875a1e5f0584))
+* **ci:** update CLA check with explicit token and environment configuration ([f323177](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f323177b15f2c9c65360deb54a542cf41035ba08))
+
 ## [0.36.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.4...v0.36.5) (2026-06-06)
 
 ### 🐛 Bug Fixes
