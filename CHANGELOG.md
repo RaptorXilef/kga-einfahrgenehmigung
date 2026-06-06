@@ -2,6 +2,12 @@
 
 
 
+## [0.36.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.0...v0.36.1) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** grant write permissions to GitHub Actions to allow release asset uploads ([79c93d8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/79c93d8f90b2bb101619deb7ded976c6647804e0))
+
 ## [0.36.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.35.1...v0.36.0) (2026-06-06)
 
 ### 🚀 Features
