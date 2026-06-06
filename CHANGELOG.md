@@ -2,6 +2,12 @@
 
 
 
+## [0.36.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.2...v0.36.3) (2026-06-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** correct pull\_request\_target event type and ensure required permissions ([1679f93](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1679f937fc6defef78e9c2a535f6215fb1e506b5))
+
 ## [0.36.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.36.1...v0.36.2) (2026-06-06)
 
 ### 🐛 Bug Fixes
