@@ -62,9 +62,10 @@ $configFiles = [
     // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
     'default_main' => $appRoot . '/config/config.default.php',
 
-    'default_payment' => $appRoot . '/config/payment.default.php',
-    'default_email'   => $appRoot . '/config/email.default.php',
-    'default_storage' => $appRoot . '/config/storage.default.php',
+    'default_payment'    => $appRoot . '/config/payment.default.php',
+    'default_email'      => $appRoot . '/config/email.default.php',
+    'default_storage'    => $appRoot . '/config/storage.default.php',
+    'default_agreements' => $appRoot . '/config/agreements.default.php',
     // /config/permissions.php nicht
     'default_dev' => $appRoot . '/config/dev_admin.default.php',
     // /config/sql_schema.php nicht
@@ -84,13 +85,14 @@ $configFiles = [
     // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
     'main' => $appRoot . '/config/config.php',
 
-    'payment' => $appRoot . '/config/payment.php',
-    'email'   => $appRoot . '/config/email.php',
-    'storage' => $appRoot . '/config/storage.php',
-    'perms'   => $appRoot . '/config/permissions.php',
-    'dev'     => $appRoot . '/config/dev_admin.php',
-    'schema'  => $appRoot . '/config/sql_schema.php',
-    'secrets' => $appRoot . '/config/secrets.php',
+    'payment'    => $appRoot . '/config/payment.php',
+    'email'      => $appRoot . '/config/email.php',
+    'storage'    => $appRoot . '/config/storage.php',
+    'agreements' => $appRoot . '/config/agreements.php',
+    'perms'      => $appRoot . '/config/permissions.php',
+    'dev'        => $appRoot . '/config/dev_admin.php',
+    'schema'     => $appRoot . '/config/sql_schema.php',
+    'secrets'    => $appRoot . '/config/secrets.php',
 
     'local' => $appRoot . '/config/_dev.local.php', // Überschreibt ALLES (für Passwörter lokal)
 ];

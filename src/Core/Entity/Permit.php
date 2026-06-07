@@ -31,6 +31,7 @@ final readonly class Permit
         public Status $status,
         public \DateTimeImmutable $erstellt = new \DateTimeImmutable(),
         public ?string $interner_kommentar = null, // Für manuelle Buchung
+        public array $agreements = [],
     ) {
     }
 

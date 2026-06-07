@@ -99,6 +99,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                     $item['erstellt'],
                     $item['interner_kommentar'],
                     $item['is_anonymized'] ?? 0,
+                    $item['agreements'] ?? '{}',
                 ]);
             }
         } else {

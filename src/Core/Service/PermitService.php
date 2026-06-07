@@ -143,6 +143,7 @@ final readonly class PermitService
             status: new Status((string) ($data['status'] ?? 'offen')),
             erstellt: new \DateTimeImmutable(),
             interner_kommentar: $data['interner_kommentar'] ?? null,
+            agreements: $data['agreements'] ?? [],
         );
 
         if (! $this->storage->save($permit)) {
@@ -886,6 +887,10 @@ final readonly class PermitService
             'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
             'interner_kommentar' => $permit->interner_kommentar,
             'is_anonymized'      => 0,
+            'agreements'         => \is_array($permit->agreements) ? \json_encode(
+                $permit->agreements,
+                \JSON_UNESCAPED_UNICODE,
+            ) : '{}',
         ];
     }
 

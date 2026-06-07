@@ -56,6 +56,10 @@ trait StorageMapperTrait
             'suspension_reason'  => $permit->status->suspension_reason,    // Harmonisierter Key
             'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
             'interner_kommentar' => $permit->interner_kommentar,           // Harmonisierter Key
+            'agreements'         => \is_array($permit->agreements) ? \json_encode(
+                $permit->agreements,
+                \JSON_UNESCAPED_UNICODE,
+            ) : '{}',
         ];
     }
 
@@ -107,6 +111,12 @@ trait StorageMapperTrait
             $dtCreated = new \DateTimeImmutable('now');
         }
 
+        // JSON-String wieder in ein Array umwandeln
+        $agreements = $item['agreements'] ?? [];
+        if (\is_string($agreements)) {
+            $agreements = \json_decode($agreements, true) ?? [];
+        }
+
         // 3. Entität hydrieren
         return new Permit(
             code: (string) ($item['code'] ?? ''),
@@ -134,6 +144,7 @@ trait StorageMapperTrait
             ),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
+            agreements: $agreements,
         );
     }
 }
