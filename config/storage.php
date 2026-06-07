@@ -102,10 +102,10 @@ return [
             'file'  => 'login_attempts.json',
         ],
 
-        'migrations' => [
-            'type'  => 'json', // Folgt deiner allgemeinen Strategie, kann auf 'mysql' gewechselt werden
-            'table' => 'migrations',
-            'file'  => 'migrations.json',
+        'update_migrations' => [
+            'type'  => 'json',
+            'table' => 'update_migrations',
+            'file'  => 'update_migrations.json',
         ],
     ],
 

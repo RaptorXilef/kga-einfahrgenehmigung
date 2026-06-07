@@ -31,7 +31,7 @@ final readonly class UpdateMigrationService
     public function runAllPending(): array
     {
         $executed      = $this->getExecutedMigrations();
-        $migrationsDir = $this->config->get('root_path') . '/src/Infrastructure/Migrations';
+        $migrationsDir = $this->config->get('root_path') . '/src/Infrastructure/UpdateMigrations';
         $executedNow   = [];
 
         if (! \is_dir($migrationsDir)) {
@@ -71,7 +71,7 @@ final readonly class UpdateMigrationService
      */
     private function getExecutedMigrations(): array
     {
-        $cfg = $this->config->get('storage_config')['migrations'] ?? null;
+        $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
         if (! $cfg) {
             return [];
         }
@@ -104,7 +104,7 @@ final readonly class UpdateMigrationService
      */
     private function markAsExecuted(string $version): void
     {
-        $cfg = $this->config->get('storage_config')['migrations'] ?? null;
+        $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
         $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
 
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
