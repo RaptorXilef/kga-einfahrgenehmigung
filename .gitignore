@@ -251,5 +251,5 @@ public/assets/img/test/**
 public/assets/img/logo/kga.png
 public/assets/img/logo/kga.webp
 
-
-
+public/assets/documents/*.pdf
+public/assets/documents/*.txt

@@ -30,6 +30,7 @@ final readonly class GitHubUpdaterService
         'public/assets/img/logo/kga.png',
         'public/assets/img/logo/kga.jpg',
         'public/assets/img/logo/kga.jpeg',
+        'public/assets/documents/',
         // Die Datei kga-zm.webp steht absichtlich NICHT hier, damit sie geupdatet wird!
         'src/assets/',
         'storage/',

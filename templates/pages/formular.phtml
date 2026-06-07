@@ -518,43 +518,27 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             Wird berechnet...
                         </div>
 
-                        <?php $agreementsConfig = $config->get('agreements', []); ?>
-                        <?php if (! empty($agreementsConfig)) { ?>
+                        <?php if (! empty($agreements)) { ?>
                             <div class="c-form-group u-margin-bottom-l"
                                  style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Notwendige
-                                    Zustimmungen:</p>
+                                <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Rechtliches:</p>
                                 <div class="u-flex u-flex-column u-gap-s">
-                                    <?php foreach ($agreementsConfig as $key => $agree) { ?>
+                                    <?php foreach ($agreements as $key => $agree) { ?>
                                         <div style="display: flex; gap: 12px; align-items: flex-start;">
                                             <input type="checkbox"
                                                    name="agreements[<?php echo $key; ?>]"
                                                    id="agree_<?php echo $key; ?>"
                                                    value="1"
                                                    style="margin-top: 4px; transform: scale(1.2); cursor: pointer;"
-                                                   <?php echo ($agree['required'] ?? false) ? 'required' : ''; ?>
+                                                   <?php echo $agree['required'] ? 'required' : ''; ?>
                                                    <?php echo isset($formData['agreements'][$key]) ? 'checked' : ''; ?>>
+
                                             <label for="agree_<?php echo $key; ?>"
                                                    style="line-height: 1.4; cursor: pointer; font-size: 0.95rem;">
-                                                <?php echo \htmlspecialchars($agree['label']); ?>
+                                                <?php echo $agree['label_html']; ?>
 
-                                                <?php
-                                                    if (! empty($agree['link'])) {
-                                                        // Prüfen, ob es eine valide absolute URL (z.B. mit https://) ist
-                                                        if (\filter_var($agree['link'], \FILTER_VALIDATE_URL)) {
-                                                            $finalLink = $agree['link'];
-                                                        } else {
-                                                            // Wenn nicht, wird die App-Basis-URL davor gehängt.
-                                                            // ltrim entfernt einen eventuellen führenden Slash, damit kein "//" entsteht.
-                                                            $baseUrl   = $settings['base_url'] ?? '/';
-                                                            $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($agree['link'], '/');
-                                                        }
-                                                        ?>
-                                                    <a href="<?php echo \htmlspecialchars($finalLink); ?>" target="_blank" style="color: var(--primary-color); text-decoration: underline; margin-left: 4px;">(Lesen)</a>
-                                                <?php } ?>
-
-                                                <?php if ($agree['required'] ?? false) { ?>
-                                                    <span style="color: var(--danger-color); font-weight: bold;" title="Pflichtfeld">*</span>
+                                                <?php if ($agree['required']) { ?>
+                                                    <span style="color: var(--danger-color); font-weight: bold; margin-left: 2px;" title="Pflichtfeld">*</span>
                                                 <?php } ?>
                                             </label>
                                         </div>

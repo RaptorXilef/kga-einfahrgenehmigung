@@ -138,6 +138,7 @@ final readonly class PermitController
             'appRoot'           => $this->config->get('root_path'),
             'hasActiveVouchers' => $this->checkAvailableVouchers(), // Prüfen, ob einlösbare Gutscheine existieren
             'formData'          => $_SESSION['form_data'] ?? [], // Ans Template übergeben
+            'agreements'        => $this->getParsedAgreements(),
         ]);
     }
 
@@ -178,6 +179,44 @@ final readonly class PermitController
             'base_url'         => $this->config->getBaseUrl(),
             'jahresFarbe'      => $this->config->get('jahresFarbe'),
         ];
+    }
+
+    /**
+     * Bereitet die Agreements aus der Config für die HTML-Ausgabe vor.
+     * Löst Links (relativ/absolut) auf und ersetzt die [Tags] sicher durch HTML-Links.
+     */
+    private function getParsedAgreements(): array
+    {
+        $agreementsConfig = $this->config->get('agreements', []);
+        $baseUrl          = $this->config->getBaseUrl() ?? '/';
+        $parsed           = [];
+
+        foreach ($agreementsConfig as $key => $agree) {
+            $cleanLabel = \htmlspecialchars($agree['label']);
+
+            if (! empty($agree['link'])) {
+                if (\filter_var($agree['link'], \FILTER_VALIDATE_URL)) {
+                    $finalLink = $agree['link'];
+                } else {
+                    $finalLink = \rtrim($baseUrl, '/') . '/' .
+                        \ltrim($agree['link'], '/');
+                }
+
+                $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
+                    '" target="_blank" style="color: var(--primary-color); text-decoration: underline; ' .
+                    'font-weight: 500;">$1</a>';
+                $renderedLabel = \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);
+            } else {
+                $renderedLabel = \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);
+            }
+
+            $parsed[$key] = [
+                'label_html' => $renderedLabel,
+                'required'   => $agree['required'] ?? false,
+            ];
+        }
+
+        return $parsed;
     }
 
     /**
