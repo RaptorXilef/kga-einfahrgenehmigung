@@ -2,6 +2,16 @@
 
 
 
+## [0.40.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.40.0...v0.40.1) (2026-06-07)
+
+### ⚙️ Refactoring
+
+* **permits/agreements:** extract link parsing and markup generation from template to controller ([6a8c7ed](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6a8c7edc357a60b50e6e9b8bef87b970ac03f1e4))
+
+### 📚 Dokumentation
+
+* **legal:** add comprehensive gdpr privacy policy and terms of service templates ([77beeb3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/77beeb3c0d9acc90feeab2cb9b74b1038db4ba87))
+
 ## [0.40.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.39.0...v0.40.0) (2026-06-07)
 
 ### 🚀 Features
