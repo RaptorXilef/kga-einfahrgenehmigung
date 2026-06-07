@@ -36,7 +36,7 @@ final readonly class UserController
      */
     public function handleRequest(array $post): void
     {
-        if (! $this->auth->hasPermission('system.users.manage')) {
+        if (! $this->auth->hasPermission('system.permissions.view')) {
             \header('Location: admin.php');
 
             return;

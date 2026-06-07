@@ -280,6 +280,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                    name="group_name"
                                    value="<?php echo $gData['name']; ?>">
 
+                            <?php if ($auth->hasPermission('*')) { ?>
                             <div class="u-margin-bottom-l"
                                  style="background: #fff1f2; border: 2px solid #fda4af; border-radius: 12px; padding: 15px 20px;">
                                 <div class="u-flex u-justify-between u-align-center">
@@ -302,6 +303,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                     </label>
                                 </div>
                             </div>
+                            <?php } ?>
 
                             <div class="u-margin-bottom-m u-flex u-justify-between u-align-center">
                                 <h4 class="u-margin-none">Berechtigungs-Struktur</h4>

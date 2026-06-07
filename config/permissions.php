@@ -291,19 +291,9 @@ return [
             /* 'key'      => 'system.manage', */
             'children' => [
                 'permissions' => [
-                    'label'    => 'System- & Benutzer-Verwaltung (RECHTE-VERWALTUNG)',
+                    'label'    => 'System- & Benutzer-Verwaltung (RECHTE-VERWALTUNG) 🛑Nur für Admin🛑',
                     'key'      => 'system.permissions.view',
                     'children' => [
-                        'update' => [
-                            'label'    => 'Update: Benachrichtigung',
-                            'key'      => 'system.update.view',
-                            'children' => [
-                                'execute' => [
-                                    'label' => 'Update: Installation',
-                                    'key'   => 'system.update.execute',
-                                ],
-                            ],
-                        ],
                         'users' => [
                             'label' => 'Benutzerverwaltung',
                             'key'   => 'system.permissions.users.manage',
@@ -315,8 +305,19 @@ return [
                     ],
                 ],
 
+                'update' => [
+                    'label'    => 'Update: Benachrichtigung ⛔Kritisches System!⛔',
+                    'key'      => 'system.update.view',
+                    'children' => [
+                        'execute' => [
+                            'label' => 'Update: Installation',
+                            'key'   => 'system.update.execute',
+                        ],
+                    ],
+                ],
+
                 'migration' => [
-                    'label'    => 'Tab: Migration des Speichers sehen (ADMINISTRATIVE-SPEICHERVERWALTUNG!)',
+                    'label'    => 'Tab: Migration des Speichers sehen (ADMINISTRATIVE-SPEICHERVERWALTUNG!) ⛔Kritisches System!⛔',
                     'key'      => 'dashboard.migration.view',
                     'children' => [
                         'sync' => [

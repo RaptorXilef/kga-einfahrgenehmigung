@@ -25,7 +25,7 @@ return [
             'active'       => true, // Sichtbar für neue Buchungen
         ],
         'lkw' => [
-            'label'        => 'LKW / Lieferant / Firma',
+            'label'        => 'Lieferant / Firma / LKW',
             'icon'         => 'assets/img/icons/icon-delivery-truck.webp',
             'show_company' => true,  // Zeigt das Firmenfeld
             'active'       => true,

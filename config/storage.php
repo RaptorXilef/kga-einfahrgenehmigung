@@ -117,5 +117,4 @@ return [
     // -- CronJob - Automatisierte Archivierung ---
     'use_pseudo_cron'    => true, // Pseudo-Cron beim Admin-Login aktivieren
     'archive_grace_days' => 0,    // Tage - 0 = sofort nach Ablauf archivieren (wenn bezahlt)
-    'cron_secret'        => 'geheimes_passwort_123', // Für externen Aufruf via cron.php
 ];

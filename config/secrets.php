@@ -18,6 +18,9 @@ return [
     // fungiert als "Salt" für die Sicherheit des token in der Zugriffs-URL die per E-Mail versandt wird
     'geheimnis' => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER',
 
+    // -- CronJob - Automatisierte Archivierung ---
+    'cron_secret' => 'geheimes_passwort_123', // Für externen Aufruf via cron.php
+
     // TODO API KEY später nachrüsten
     // API-Secret zur Absicherung aller öffentlichen Endpunkte
     // Nur Anfragen, die dieses Secret im Header mitsenden, dürfen die APIs nutzen.
