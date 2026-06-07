@@ -20,7 +20,7 @@ return [
         /*'datenschutz' => [
             // Das Wort in den eckigen Klammern wird automatisch verlinkt:
             'label'    => 'Ich willige in die Datenverarbeitung gemäß [Datenschutzerklärung] ein.',
-            'link'     => 'https://deinedomain.de/datenschutz/datenschutz.pdf',
+            'link'     => 'assets/documents/datenschutz.pdf',
             'required' => true,
         ],*/
         /*'ordnung' => [

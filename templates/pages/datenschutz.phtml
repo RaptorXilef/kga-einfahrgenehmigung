@@ -1,0 +1,57 @@
+<?php
+/**
+ * TODO DOCBLOCK
+ *
+ * Path: templates/pages/datenschutz.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * TODO @var
+ */
+?>
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo \htmlspecialchars($legal['title']); ?> - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+</head>
+<body class="u-bg-light l-public-body">
+    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
+
+    <div class="c-tab-content-container u-padding-y-xl" style="max-width: 750px; background: #fff; padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); margin: 40px auto;">
+        <h1 class="u-margin-top-none" style="color: var(--primary-color); border-bottom: 2px solid var(--border-soft); padding-bottom: 10px;">
+            <?php echo \htmlspecialchars($legal['title']); ?>
+        </h1>
+        <p class="u-text-muted" style="font-size: 0.85rem; margin-top: -5px;">Stand: <?php echo \htmlspecialchars($legal['letzte_aktualisierung']); ?></p>
+
+        <div style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid var(--primary-color);">
+            <p class="u-margin-none"><strong>Verantwortliche Stelle:</strong><br>
+            <?php echo \htmlspecialchars($legal['verantwortlich']['name']); ?>, <?php echo \htmlspecialchars($legal['verantwortlich']['adresse']); ?><br>
+            E-Mail: <?php echo \htmlspecialchars($legal['verantwortlich']['email']); ?></p>
+        </div>
+
+        <div class="u-flex u-flex-column u-gap-l" style="line-height: 1.6; color: var(--text-color);">
+            <?php foreach ($legal['sections'] as $section) { ?>
+                <div style="page-break-inside: avoid;">
+                    <h3 class="u-margin-bottom-xs" style="color: var(--primary-color); font-size: 1.1rem;"><?php echo \htmlspecialchars($section['title']); ?></h3>
+                    <p class="u-margin-top-none" style="text-align: justify; font-size: 0.95rem;"><?php echo \htmlspecialchars($section['text']); ?></p>
+                </div>
+            <?php } ?>
+        </div>
+
+        <h3 class="u-margin-top-xl u-margin-bottom-xs" style="color: var(--text-color); font-size: 1.1rem;">9. Beschwerderecht bei der zuständigen Aufsichtsbehörde</h3>
+        <p class="u-margin-top-none" style="font-size: 0.95rem;">Im Falle datenschutzrechtlicher Verstöße steht Ihnen ein Beschwerderecht bei der zuständigen Aufsichtsbehörde zu. Für Berlin ist dies:<br>
+        <strong><?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['name']); ?></strong>, <?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['adresse']); ?></p>
+    </div>
+
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+</body>
+</html>

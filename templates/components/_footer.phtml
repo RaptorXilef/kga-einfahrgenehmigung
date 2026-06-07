@@ -40,6 +40,11 @@ $softwareName  = 'KGA-Einfahrgenehmigung / KGA Zufahrts-Manager';
 $githubUrl     = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
 $issuesUrl     = $githubUrl . '/issues';
 
+// 5. Rechtliche Links berechnen
+$baseUrl        = $settings['base_url'] ?? '/';
+$impressumUrl   = \rtrim($baseUrl, '/') . '/impressum.php';
+$datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz.php';
+
 ?>
 <footer
         style="padding: 25px 15px; margin-top: auto; border-top: 1px solid var(--border-color); background: transparent; text-align: center;">
@@ -59,19 +64,36 @@ $issuesUrl     = $githubUrl . '/issues';
                 <?php echo \htmlspecialchars($softwareName); ?>
             </a>
 
-            <a href="<?php echo \htmlspecialchars($settings['base_url'] ?? '/'); ?>changelog.php"
+            <a href="<?php echo \htmlspecialchars($baseUrl); ?>changelog.php"
                style="background: rgba(52, 152, 219, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.2); text-decoration: none;"
                title="Versionshistorie / Changelog ansehen">
             <?php echo \htmlspecialchars($version); ?>
         </a>
         </div>
 
-        <div style="margin-top: 5px;">
+        <div style="margin-top: 2px;">
             <a href="<?php echo \htmlspecialchars($issuesUrl); ?>"
                target="_blank"
                rel="noopener noreferrer"
                style="color: var(--text-muted); text-decoration: underline; font-size: 0.8rem;">
                 Fehler melden / Bug Report
+            </a>
+        </div>
+
+        <div
+             style="margin-top: 10px; font-size: 0.8rem; display: flex; gap: 12px; justify-content: center; align-items: center;">
+            <a href="<?php echo \htmlspecialchars($impressumUrl); ?>"
+               style="color: var(--text-muted); text-decoration: none; font-weight: 500;"
+               onmouseover="this.style.textDecoration='underline'; this.style.color='var(--primary-color)';"
+               onmouseout="this.style.textDecoration='none'; this.style.color='var(--text-muted)';">
+                Impressum
+            </a>
+            <span style="color: var(--border-color); font-size: 0.75rem;">&bull;</span>
+            <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>"
+               style="color: var(--text-muted); text-decoration: none; font-weight: 500;"
+               onmouseover="this.style.textDecoration='underline'; this.style.color='var(--primary-color)';"
+               onmouseout="this.style.textDecoration='none'; this.style.color='var(--text-muted)';">
+                Datenschutzerklärung
             </a>
         </div>
 

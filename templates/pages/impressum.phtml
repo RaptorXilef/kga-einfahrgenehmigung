@@ -1,0 +1,63 @@
+<?php
+/**
+ * TODO DOCBLOCK
+ *
+ * Path: templates/pages/impressum.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * TODO @var
+ */
+?>
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo \htmlspecialchars($legal['title']); ?> - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
+    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+</head>
+<body class="u-bg-light l-public-body">
+    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
+
+    <div class="c-tab-content-container u-padding-y-xl" style="max-width: 750px; background: #fff; padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); margin: 40px auto;">
+        <h1 class="u-margin-top-none" style="color: var(--primary-color); border-bottom: 2px solid var(--border-soft); padding-bottom: 10px;">
+            <?php echo \htmlspecialchars($legal['title']); ?>
+        </h1>
+
+        <p class="u-font-bold u-margin-bottom-none"><?php echo \htmlspecialchars($legal['verein']); ?></p>
+        <p class="u-margin-top-xs"><?php echo \htmlspecialchars($legal['adresse']); ?></p>
+
+        <h3 class="u-margin-top-l u-margin-bottom-xs" style="color: var(--text-color);">Vertreten durch den Vorstand:</h3>
+        <ul style="padding-left: 20px; line-height: 1.6;">
+            <?php foreach ($legal['vorstand'] as $mitglied) { ?>
+                <li><?php echo \htmlspecialchars($mitglied); ?></li>
+            <?php } ?>
+        </ul>
+
+        <h3 class="u-margin-top-l u-margin-bottom-xs" style="color: var(--text-color);">Kontakt:</h3>
+        <p class="u-margin-y-xs">Telefon: <?php echo \htmlspecialchars($legal['kontakt']['telefon']); ?></p>
+        <p class="u-margin-y-xs">E-Mail: <a href="mailto:<?php echo \htmlspecialchars($legal['kontakt']['email']); ?>" style="color: var(--primary-color); text-decoration: underline;"><?php echo \htmlspecialchars($legal['kontakt']['email']); ?></a></p>
+
+        <h3 class="u-margin-top-l u-margin-bottom-xs" style="color: var(--text-color);">Registereintrag:</h3>
+        <p class="u-margin-y-xs">Registergericht: <?php echo \htmlspecialchars($legal['register']['gericht']); ?></p>
+        <p class="u-margin-y-xs">Registernummer: <?php echo \htmlspecialchars($legal['register']['nummer']); ?></p>
+
+        <?php if (! empty($legal['ust_id'])) { ?>
+            <p class="u-margin-top-m"><strong>Umsatzsteuer-ID:</strong> <?php echo \htmlspecialchars($legal['ust_id']); ?></p>
+        <?php } ?>
+
+        <h3 class="u-margin-top-l u-margin-bottom-xs" style="color: var(--text-color);">Verantwortlich nach § 18 Abs. 2 MStV:</h3>
+        <p class="u-margin-y-xs"><?php echo \htmlspecialchars($legal['verantwortlich_18_mstv']['name']); ?></p>
+        <p class="u-margin-y-xs" style="color: var(--text-muted); font-size: 0.9rem;"><?php echo \htmlspecialchars($legal['verantwortlich_18_mstv']['adresse']); ?></p>
+    </div>
+
+    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+</body>
+</html>

@@ -8,6 +8,7 @@ use App\Application\AdminController;
 use App\Application\CheckController;
 use App\Application\CheckoutController;
 use App\Application\HistoryController;
+use App\Application\LegalController;
 use App\Application\PaymentController;
 use App\Application\PermitController;
 use App\Application\SuccessController;
@@ -439,6 +440,10 @@ class Container
             $this->get(MagicLinkService::class),
             $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
+        );
+
+        $this->services[LegalController::class] = fn (): LegalController => new LegalController(
+            $this->get(ConfigInterface::class),
         );
     }
 
