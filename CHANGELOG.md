@@ -2,6 +2,12 @@
 
 
 
+## [0.40.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.39.0...v0.40.0) (2026-06-07)
+
+### 🚀 Features
+
+* **permits/agreements:** implement multi-option agreements and tracking system ([8fcfd72](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8fcfd72dd371173029065ca9f75bbcff8fd17e0a))
+
 ## [0.39.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.38.2...v0.39.0) (2026-06-07)
 
 ### 🚀 Features
