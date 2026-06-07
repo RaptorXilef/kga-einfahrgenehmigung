@@ -150,4 +150,11 @@ return [
         `attempts` INT NOT NULL DEFAULT 1,
         `last_attempt` DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
+
+    'migrations' => 'CREATE TABLE IF NOT EXISTS `migrations` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `version` VARCHAR(50) NOT NULL,
+        `executed_at` DATETIME NOT NULL,
+        UNIQUE KEY `idx_version` (`version`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 ];

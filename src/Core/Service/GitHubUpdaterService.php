@@ -16,13 +16,16 @@ use App\Contracts\Config\ConfigInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 final readonly class GitHubUpdaterService
 {
     private const GITHUB_API_URL = 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung';
 
+    // Fallback-Regeln, falls die update_manifest.json im ZIP mal fehlen sollte
     // Absolute Sperrzone! Diese Pfade werden beim Update NIEMALS angerührt.
-    private const UPDATE_BLACKLIST = [
+    private const DEFAULT_BLACKLIST = [
         'public/assets/img/user_images/',
         'public/assets/img/group_images/',
         // Schützt exakt die individuellen Vereinslogos des Nutzers
@@ -37,7 +40,7 @@ final readonly class GitHubUpdaterService
     ];
 
     // Nur Dateien in diesen Pfaden (aus dem Root des ZIPs) dürfen ins Live-System kopiert werden!
-    private const UPDATE_WHITELIST = [
+    private const DEFAULT_WHITELIST = [
         'config/', // Erlaubt das Überschreiben der Standard-Configs (z.B. email.php)
         'public/',
         'src/Application/',
@@ -51,6 +54,7 @@ final readonly class GitHubUpdaterService
         'README.md',
         'composer.json',
         'package.json',
+        'update_manifest.json', // NEU
     ];
 
     public function __construct(
@@ -159,9 +163,21 @@ final readonly class GitHubUpdaterService
             $sourceRoot = $extractedFolders[0];
         }
 
-        // 5. Wir rufen direkt das Kopieren auf. Der Snapshotter ist Geschichte!
-        // 5. Whitelist/Blacklist anwenden und Dateien kopieren
-        $this->copyAllowedFiles($sourceRoot, $rootPath);
+        // --- DER MAGISCHE TEIL: Manifest laden ---
+        $manifestPath = $sourceRoot . '/update_manifest.json';
+        $whitelist    = self::DEFAULT_WHITELIST;
+        $blacklist    = self::DEFAULT_BLACKLIST;
+
+        if (\file_exists($manifestPath)) {
+            $manifestData = \json_decode(\file_get_contents($manifestPath), true);
+            if (\is_array($manifestData)) {
+                $whitelist = $manifestData['whitelist'] ?? self::DEFAULT_WHITELIST;
+                $blacklist = $manifestData['blacklist'] ?? self::DEFAULT_BLACKLIST;
+            }
+        }
+
+        // 5. Dateien mit dynamischen Regeln kopieren
+        $this->copyAllowedFiles($sourceRoot, $rootPath, $whitelist, $blacklist);
 
         // 6. Aufräumen
         $this->cleanup($tempDir);
@@ -170,96 +186,9 @@ final readonly class GitHubUpdaterService
     }
 
     /**
-     * Ermittelt alle Abweichungen der aktuellen Live-Konfigurationen gegenüber den neuen
-     * Standard-Dateien aus dem ZIP und friert diese dauerhaft in config.local.php ein.
-     */
-    private function secureAllUserConfigs(string $rootPath, string $sourceRoot): void
-    {
-        $localConfigPath = $rootPath . '/config/config.local.php';
-
-        // Falls der Nutzer bereits eine config.local.php hat, fassen wir nichts an
-        if (\file_exists($localConfigPath)) {
-            return;
-        }
-
-        // Wir lesen alle Konfigurationsdateien aus dem aktuellen Live-System aus,
-        // die der Nutzer manipuliert haben könnte.
-        $configFiles = [
-            'colors.php',
-            'config.php',
-            'dev_admin.php',
-            'email.php',
-            'organization.php',
-            'payment.php',
-            'permissions.php',
-            'purposes.php',
-            'reasons.php',
-            'secrets.php',
-            'settings.php',
-            'sql_schema.php',
-            'storage.php',
-            'templates.php',
-            'times.php',
-            'vehicles.php',
-        ];
-
-        $userOverrides = [];
-
-        foreach ($configFiles as $configFile) {
-            $liveFile = $rootPath . '/config/' . $configFile;
-            $newFile  = $sourceRoot . '/config/' . $configFile;
-
-            if (! \file_exists($liveFile)) {
-                continue;
-            }
-
-            $liveData = require $liveFile;
-            $newData  = \file_exists($newFile) ? require $newFile : [];
-
-            if (! \is_array($liveData)) {
-                continue;
-            }
-
-            // Wenn die neue Datei existiert, berechnen wir die Differenz (was hat der User geändert?)
-            if (! empty($newData) && \is_array($newData)) {
-                $diff = \array_diff_assoc($liveData, $newData);
-                if (! empty($diff)) {
-                    $userOverrides = \array_replace_recursive($userOverrides, $diff);
-                }
-            } else {
-                // Falls es eine komplett eigene/alte Datei war, sichern wir sie ganz
-                $userOverrides = \array_replace_recursive($userOverrides, $liveData);
-            }
-        }
-
-        // Wenn Abweichungen gefunden wurden, schreiben wir sie formatiert in die config.local.php
-        if (! empty($userOverrides)) {
-            $export = \var_export($userOverrides, true);
-
-            $backupContent = <<<PHP
-                <?php
-                /**
-                 * --------------------------------------------------------------------------
-                 * AUTOMATISCH GENERIERTE CONFIG SNAPSHOT SICHERUNG
-                 * --------------------------------------------------------------------------
-                 * Diese Datei wurde vor einem automatischen System-Update generiert.
-                 * Das System hat erkannt, dass Einstellungen von den Standardwerten abwichen.
-                 * Ihre individuellen Anpassungen wurden hierher gerettet.
-                 */
-
-                declare(strict_types=1);
-
-                return $export;
-
-                PHP;
-            \file_put_contents($localConfigPath, $backupContent);
-        }
-    }
-
-    /**
      * Kopiert rekursiv alle Dateien, die der Whitelist entsprechen und nicht blockiert sind.
      */
-    private function copyAllowedFiles(string $sourceDir, string $targetDir): void
+    private function copyAllowedFiles(string $sourceDir, string $targetDir, array $whitelist, array $blacklist): void
     {
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($sourceDir, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -276,7 +205,7 @@ final readonly class GitHubUpdaterService
             $relativePath = \str_replace('\\', '/', $relativePath); // Für Windows
 
             // Prüfen, ob der Pfad erlaubt ist
-            if ($this->isPathAllowed($relativePath)) {
+            if ($this->isPathAllowed($relativePath, $whitelist, $blacklist)) {
                 $targetFile    = $targetDir . '/' . $relativePath;
                 $targetDirPath = \dirname($targetFile);
 
@@ -292,10 +221,10 @@ final readonly class GitHubUpdaterService
     /**
      * Prüft, ob ein Dateipfad laut BLACKLIST & WHITELIST erlaubt ist.
      */
-    private function isPathAllowed(string $path): bool
+    private function isPathAllowed(string $path, array $whitelist, array $blacklist): bool
     {
         // 1. Blacklist blockiert strikt (Höchste Priorität)
-        foreach (self::UPDATE_BLACKLIST as $blocked) {
+        foreach ($blacklist as $blocked) {
             if (\str_starts_with($path, $blocked)) {
                 return false;
             }
@@ -309,21 +238,14 @@ final readonly class GitHubUpdaterService
             }
 
             // B) Explizite Core-Dateien erlauben, die gnadenlos überschrieben werden dürfen!
-            $allowedCoreConfigs = [
-                'config/sql_schema.php',
-                'config/permissions.php',
-                // Hier kannst du zukünftig weitere Dateien eintragen, die nie angepasst werden
-            ];
+            // Hier kannst du zukünftig weitere Dateien eintragen, die nie angepasst werden
+            $allowedCoreConfigs = ['config/sql_schema.php', 'config/permissions.php'];
 
-            if (\in_array($path, $allowedCoreConfigs, true)) {
-                return true;
-            }
-
-            return false;
+            return \in_array($path, $allowedCoreConfigs, true);
         }
 
         // 3. Whitelist erlaubt (Wenn nicht blockiert)
-        foreach (self::UPDATE_WHITELIST as $allowed) {
+        foreach ($whitelist as $allowed) {
             // Entweder es ist ein Ordner (endet auf /) und der Pfad beginnt damit
             if (\str_ends_with($allowed, '/') && \str_starts_with($path, $allowed)) {
                 return true;

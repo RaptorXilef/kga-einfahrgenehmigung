@@ -1,0 +1,29 @@
+{
+  "whitelist": [
+    "config/",
+    "public/",
+    "src/Application/",
+    "src/Bootstrap/",
+    "src/Contracts/",
+    "src/Core/",
+    "src/Infrastructure/",
+    "templates/",
+    "vendor/",
+    "CHANGELOG.md",
+    "README.md",
+    "composer.json",
+    "package.json",
+    "update_manifest.json"
+  ],
+  "blacklist": [
+    "public/assets/img/user_images/",
+    "public/assets/img/group_images/",
+    "public/assets/img/logo/kga.webp",
+    "public/assets/img/logo/kga.png",
+    "public/assets/img/logo/kga.jpg",
+    "public/assets/img/logo/kga.jpeg",
+    "public/assets/documents/",
+    "src/assets/",
+    "storage/"
+  ]
+}

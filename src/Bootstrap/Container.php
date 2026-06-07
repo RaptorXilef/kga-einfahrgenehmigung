@@ -35,6 +35,7 @@ use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
+use App\Core\Service\UpdateMigrationService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Mail\SmtpMailService;
@@ -363,6 +364,11 @@ class Container
         // UpdateService
         $this->services[GitHubUpdaterService::class] = fn (): GitHubUpdaterService => new GitHubUpdaterService(
             $this->get(ConfigInterface::class),
+        );
+
+        $this->services[UpdateMigrationService::class] = fn (): UpdateMigrationService => new UpdateMigrationService(
+            $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
         );
     }
 

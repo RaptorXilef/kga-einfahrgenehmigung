@@ -119,7 +119,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <?php if ($auth->hasPermission('system.update.execute')) { ?>
                             <div style="flex-shrink: 0;">
                                 <button id="gh-install-btn"
-                                        class="c-button c-button--primary"
+                                        class="c-button c-button--primary js-run-update-btn"
+                                        data-csrf="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                        data-url=""
                                         style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
                                     Jetzt 1-Klick Update starten
                                 </button>
@@ -177,14 +179,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <h1 class="u-margin-none">Dashboard & Statistiken</h1>
             </div>
 
-            <!-- Die globale Kontroll-Leiste -->
             <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
                 <?php include $appRoot . '/templates/pages/admin_dashboard/_control_bar.phtml'; ?>
             <?php } ?>
 
             <div class="u-width-100">
                 <div class="c-tabs">
-                    <!-- Tab-Navigation -->
                     <div class="c-tabs__nav">
                         <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
                             <button class="c-tabs__btn c-tabs__btn--active"
@@ -195,7 +195,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 (<?php echo \count($permitGroups['active'] ?? []); ?>)
                             </button>
                         <?php } ?>
-                        <!-- FINANZEN TAB BUTTON -->
                         <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-finance">
@@ -285,7 +284,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <?php } ?>
                     </div>
 
-                    <!-- Tab-Inhalte -->
                     <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
                         <div id="tab-active"
                              class="c-tabs__content c-tabs__content--active">
@@ -293,7 +291,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     <?php } ?>
 
-                    <!-- FINANZEN TAB INHALT -->
                     <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
                         <div id="tab-finance"
                              class="c-tabs__content">
@@ -329,7 +326,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     <?php } ?>
 
-                    <!-- NEUER TAB: EXPORT -->
                     <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
                         <div id="tab-export"
                              class="c-tabs__content">
@@ -379,14 +375,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             const notesLabel = document.getElementById('gh-notes');
             const installBtn = document.getElementById('gh-install-btn');
             const releaseLink = document.getElementById('gh-release-link');
-            let downloadUrl = '';
 
             // 1. Im Hintergrund prüfen, ob ein Update da ist
             fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.update_available) {
-                        downloadUrl = data.data.zipball_url;
                         versionLabel.innerText = data.data.version;
 
                         // Release Notes dynamisch verlinken
@@ -394,51 +388,19 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
                             .data.version;
 
+                        // NEU: Setze die Download-URL als Data-Attribut für den JS-Handler
+                        if (installBtn) {
+                            installBtn.setAttribute('data-url', data.data.zipball_url);
+                        }
+
                         if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
                         banner.classList.remove('u-hidden');
                     }
                 })
                 .catch(err => console.error('Update-Check fehlgeschlagen:', err));
 
-            // 2. Klick auf den Installieren-Button
-            if (installBtn) {
-                installBtn.addEventListener('click', () => {
-                    if (!confirm(
-                            'Möchten Sie das Update jetzt durchführen? Das System wird für wenige Sekunden nicht erreichbar sein.'
-                        )) return;
-
-                    installBtn.innerHTML = '⏳ Installiere... Bitte warten!';
-                    installBtn.disabled = true;
-                    installBtn.style.opacity = '0.7';
-
-                    fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/perform_update.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-Token': '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
-                            },
-                            body: JSON.stringify({
-                                zip_url: downloadUrl
-                            })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('🎉 Update erfolgreich installiert!');
-                                window.location.reload();
-                            } else {
-                                alert('❌ Fehler beim Update: ' + data.error);
-                                installBtn.innerHTML = 'Update fehlgeschlagen';
-                            }
-                        })
-                        .catch(err => {
-                            alert('Netzwerkfehler beim Update.');
-                            installBtn.innerHTML = 'Erneut versuchen';
-                            installBtn.disabled = false;
-                            installBtn.style.opacity = '1';
-                        });
-                });
-            }
+            // Die Klick-Logik wurde in die admin-handler.js ausgelagert,
+            // weshalb der manuelle Listener hier entfernt wurde.
         });
 
         </script>

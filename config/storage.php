@@ -101,6 +101,12 @@ return [
             'table' => 'login_attempts',
             'file'  => 'login_attempts.json',
         ],
+
+        'migrations' => [
+            'type'  => 'json', // Folgt deiner allgemeinen Strategie, kann auf 'mysql' gewechselt werden
+            'table' => 'migrations',
+            'file'  => 'migrations.json',
+        ],
     ],
 
     // Pfad zum Storage-Ordner (relativ zum Root)
