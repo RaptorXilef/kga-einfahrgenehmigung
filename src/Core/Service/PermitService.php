@@ -428,7 +428,7 @@ final readonly class PermitService
         $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
         $geheimnis = (string) $this->config->get('geheimnis', '');
         $token     = \hash('sha256', $permit->code . $geheimnis);
-        $opening   = $this->holidayService->getGeneralOpeningHoursText();
+        $opening   = $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis);
 
         // --- 1. MAIL AN VORSTAND (Immer senden) ---
         $this->mailService->sendTemplate(

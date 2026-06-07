@@ -111,6 +111,7 @@ final readonly class CheckController
                 'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
                 'allowedToday'  => $nextAllowedSlotText,
                 'showAdminView' => $showAdminView,
+                'opening'       => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis), // <-- NEU HINZUGEFÜGT
                 'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
                     $permit->validity->von,
                     $permit->validity->bis,
@@ -165,7 +166,7 @@ final readonly class CheckController
             'vereins_name'  => $this->config->get('vereins_name'),
             'vehicle_types' => $this->config->get('vehicle_types'),
             'purposes'      => $this->config->get('purposes'),
-            'opening_hours' => $this->config->get('opening_hours'),
+            'opening_hours' => $this->config->get('default_opening_hours'),
             'jahresFarbe'   => $this->config->get('jahresFarbe'),
             'base_url'      => $this->config->getBaseUrl(),
         ];

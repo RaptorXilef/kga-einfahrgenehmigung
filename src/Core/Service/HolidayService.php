@@ -41,7 +41,7 @@ final readonly class HolidayService
         for ($i = 0; $i < 14; ++$i) {
             if (! $this->isRestrictedDay($current)) {
                 $dayKey = \strtolower($current->format('D'));
-                $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
+                $slots  = $this->getOpeningHoursForDate($current)[$dayKey] ?? [];
 
                 foreach ($slots as $slot) {
                     $slotStart = $current->setTime((int) \substr((string) $slot[0], 0, 2), (int) \substr((string) $slot[0], 3, 2));
@@ -69,7 +69,7 @@ final readonly class HolidayService
     public function isRestrictedDay(\DateTimeImmutable $date): bool
     {
         $dayKey       = \strtolower($date->format('D'));
-        $openingHours = $this->config->get('opening_hours', []);
+        $openingHours = $this->getOpeningHoursForDate($date);
 
         // Wenn für diesen Tag leere Arrays definiert sind (wie bei 'sun'), ist er gesperrt
         // FIX: empty() durch strikten Vergleich ersetzt
@@ -101,7 +101,7 @@ final readonly class HolidayService
         }
 
         $dayKey      = \strtolower($now->format('D'));
-        $slots       = $this->config->get('opening_hours')[$dayKey] ?? [];
+        $slots       = $this->getOpeningHoursForDate($now)[$dayKey] ?? [];
         $currentTime = $now->format('H:i');
 
         foreach ($slots as $slot) {
@@ -121,7 +121,7 @@ final readonly class HolidayService
     public function getTodayAllowedSlots(): string
     {
         $dayKey = \strtolower((new \DateTimeImmutable())->format('D'));
-        $slots  = $this->config->get('opening_hours')[$dayKey] ?? [];
+        $slots  = $this->getOpeningHoursForDate(new \DateTimeImmutable())[$dayKey] ?? [];
 
         // FIX: empty() durch strikten Vergleich ersetzt
         if ($slots === []) {
@@ -296,86 +296,61 @@ final readonly class HolidayService
     }
 
     /**
-     * Generiert eine vollständige, strukturierte Wochenübersicht aller regulären Öffnungszeiten.
-     *
-     * Erstellt eine detaillierte Textmatrix aller erlaubten Einfahrtszeiten mit intelligenter Perioden-Zusammenfassung.
-     * Ausgabeformat z.B.: Mo - Di, Do - Fr: 08:00 - 13:00 | Mi: ... | So: Keine Einfahrt
-     *
-     * @return string Mit Pipes getrennter String aller Wochentage (Mo - So) und deren Slots für Print-Views/Infoseiten.
+     * Formatiert ein rohes Array von Öffnungszeiten in den gruppierten HTML-Text.
      */
-    public function getGeneralOpeningHoursText(): string
+    private function formatHoursArrayToText(array $hours): string
     {
-        $hours = $this->config->get('opening_hours', []);
         if (empty($hours)) {
             return 'nach Vereinbarung';
         }
 
         $useFullList = (bool) $this->config->get('holiday_service_use_full_list', false);
         $daysMap     = [
-            'mon' => 'Mo',
-            'tue' => 'Di',
-            'wed' => 'Mi',
-            'thu' => 'Do',
-            'fri' => 'Fr',
-            'sat' => 'Sa',
-            'sun' => 'So',
+            'mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi', 'thu' => 'Do',
+            'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So',
         ];
 
         if ($useFullList) {
-            // Klassische Ansicht: Jeden Tag einzeln auflisten
             $resultStrings = [];
             foreach ($daysMap as $key => $label) {
                 $slots = $hours[$key] ?? [];
                 if ($slots === []) {
-                    $resultStrings[] = "{$label}: Keine Einfahrt";
+                    $resultStrings[] = "<span style=\"white-space: nowrap;\"><strong>{$label}:</strong> Keine Einfahrt</span>";
 
                     continue;
                 }
                 $daySlots        = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $slots);
-                $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
+                $resultStrings[] = "<span style=\"white-space: nowrap;\"><strong>{$label}:</strong> " . \implode(', ', $daySlots) . '</span>';
             }
 
-            return \implode(' | ', $resultStrings);
+            return \implode(' &nbsp;|&nbsp; ', $resultStrings);
         }
-
-        // --- Start der neuen, intelligenten Gruppierung ---
 
         $chronologicalGroups = [];
         $currentGroup        = null;
 
         foreach ($daysMap as $key => $label) {
-            $slots = $hours[$key] ?? [];
-            // Eindeutigen Key für die Timeslots generieren
+            $slots   = $hours[$key] ?? [];
             $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(
                 fn (array $s): string => $s[0] . '-' . $s[1],
                 $slots,
             ));
 
-            // Wenn es der erste Tag ist oder sich die Zeiten zum Vortag geändert haben: Neue Gruppe starten
             if ($currentGroup === null || $currentGroup['slotKey'] !== $slotKey) {
                 if ($currentGroup !== null) {
                     $chronologicalGroups[] = $currentGroup;
                 }
-                $currentGroup = [
-                    'slotKey' => $slotKey,
-                    'slots'   => $slots,
-                    'days'    => [$label],
-                ];
+                $currentGroup = ['slotKey' => $slotKey, 'slots' => $slots, 'days' => [$label]];
             } else {
-                // Zeiten sind gleich wie am Vortag -> Tag zur aktuellen Gruppe hinzufügen
                 $currentGroup['days'][] = $label;
             }
         }
-        // Letzte Gruppe sichern
         $chronologicalGroups[] = $currentGroup;
 
-        // Jetzt führen wir Gruppen mit identischen Zeiten zusammen, die chronologisch getrennt wurden
         $finalMerged = [];
         foreach ($chronologicalGroups as $group) {
             $slotKey = $group['slotKey'];
-
-            // Formatierung der Tage für diese Kette (z.B. ["Mo", "Di", "Mi"] -> "Mo - Mi")
-            $count = \count($group['days']);
+            $count   = \count($group['days']);
             if ($count === 1) {
                 $dayString = $group['days'][0];
             } elseif ($count === 2) {
@@ -385,31 +360,57 @@ final readonly class HolidayService
             }
 
             if (! isset($finalMerged[$slotKey])) {
-                $finalMerged[$slotKey] = [
-                    'dayParts' => [$dayString],
-                    'slots'    => $group['slots'],
-                ];
+                $finalMerged[$slotKey] = ['dayParts' => [$dayString], 'slots' => $group['slots']];
             } else {
-                // Gleiche Zeiten gab es schon mal (z.B. Mo-Di und Do-Fr haben dieselbe Zeit)
                 $finalMerged[$slotKey]['dayParts'][] = $dayString;
             }
         }
 
-        // Finale Text-Generierung
         $finalParts = [];
         foreach ($finalMerged as $slotKey => $data) {
-            // Verbindet getrennte Ketten sauber mit Komma (z.B. "Mo - Di, Do - Fr")
             $daysText = \implode(', ', $data['dayParts']);
 
             if ($slotKey === 'none') {
-                $finalParts[] = "{$daysText}: Keine Einfahrt";
+                $finalParts[] = "<span style=\"white-space: nowrap;\"><strong>{$daysText}:</strong> Keine Einfahrt</span>";
             } else {
                 $slotStrings  = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $data['slots']);
-                $finalParts[] = "{$daysText}: " . \implode(', ', $slotStrings);
+                $finalParts[] = "<span style=\"white-space: nowrap;\"><strong>{$daysText}:</strong> " . \implode(', ', $slotStrings) . '</span>';
             }
         }
 
-        return \implode(' | ', $finalParts);
+        return \implode(' &nbsp;|&nbsp; ', $finalParts);
+    }
+
+    /**
+     * Standard-Methode für allgemeine Texte (z.B. im Footer).
+     */
+    public function getGeneralOpeningHoursText(?\DateTimeInterface $date = null): string
+    {
+        return $this->formatHoursArrayToText($this->getOpeningHoursForDate($date));
+    }
+
+    /**
+     * Erstellt einen HTML-kompatiblen String mit allen Zeitblöcken für eine Genehmigung.
+     * (Wird direkt im Frontend und PDF gerendert)
+     */
+    public function getOpeningHoursTextForDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): string
+    {
+        $blocks  = $this->getOpeningHoursForDateRange($startDate, $endDate);
+        $result  = [];
+        $isMulti = \count($blocks) > 1;
+
+        foreach ($blocks as $block) {
+            $hoursText = $this->formatHoursArrayToText($block['hours']);
+
+            if ($isMulti) {
+                // Zeilenumbruch und Datum-Präfix, falls es mehrere Saisons gibt
+                $result[] = "<div style=\"margin-bottom: 6px;\"><span style=\"color: var(--primary-color);\">{$block['from']} - {$block['to']}:</span><br>" . $hoursText . '</div>';
+            } else {
+                $result[] = '<div>' . $hoursText . '</div>';
+            }
+        }
+
+        return \implode('', $result);
     }
 
     /**
@@ -542,5 +543,87 @@ final readonly class HolidayService
         }
 
         return $ranges;
+    }
+
+    /**
+     * Ermittelt die korrekten Öffnungszeiten für ein bestimmtes Datum.
+     */
+    public function getOpeningHoursForDate(?\DateTimeInterface $date = null): array
+    {
+        $date ??= new \DateTimeImmutable();
+        $seasons = $this->config->get('seasons', []);
+
+        // Wenn Seasons existieren, prüfen in welche wir fallen
+        if (! empty($seasons)) {
+            $currentDayMonth = $date->format('m-d');
+
+            foreach ($seasons as $season) {
+                $start = $season['start'] ?? '01-01';
+                $end   = $season['end'] ?? '12-31';
+
+                // Normales Jahr
+                if ($start <= $end) {
+                    if ($currentDayMonth >= $start && $currentDayMonth <= $end) {
+                        return $season['opening_hours'] ?? [];
+                    }
+                }
+                // Jahresübergreifend (z.B. 11-01 bis 02-28)
+                else {
+                    if ($currentDayMonth >= $start || $currentDayMonth <= $end) {
+                        return $season['opening_hours'] ?? [];
+                    }
+                }
+            }
+        }
+
+        // Fallback: Wenn keine Saison zutrifft oder keine definiert ist
+        return $this->config->get('default_opening_hours', []);
+    }
+
+    /**
+     * Ermittelt alle zutreffenden Öffnungszeiten für einen kompletten Zeitraum (z.B. eine Genehmigung)
+     * und gruppiert diese nach Zeiträumen, falls sich die Saison dazwischen ändert.
+     *
+     * @param  \DateTimeInterface $startDate Beginn der Genehmigung
+     * @param  \DateTimeInterface $endDate   Ende der Genehmigung
+     * @return array              Liste von Blöcken mit 'from', 'to' und den jeweiligen 'hours'
+     */
+    public function getOpeningHoursForDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        $intervals = [];
+        $current   = clone $startDate;
+
+        $currentIntervalStart = clone $current;
+        $lastHours            = null;
+
+        // Wir iterieren Tag für Tag durch die Genehmigung (performant und exakt, auch bei Schaltjahren)
+        while ($current <= $endDate) {
+            $hoursForDay = $this->getOpeningHoursForDate($current);
+            $hoursHash   = \json_encode($hoursForDay); // Einfacher Text-Vergleich der Arrays
+
+            // Wenn sich die Zeiten ändern (Saisonwechsel!) UND wir nicht am allerersten Tag sind
+            if ($lastHours !== null && $hoursHash !== $lastHours) {
+                $intervals[] = [
+                    'from'  => $currentIntervalStart->format('d.m.Y'),
+                    'to'    => (clone $current)->modify('-1 day')->format('d.m.Y'),
+                    'hours' => \json_decode($lastHours, true),
+                ];
+                $currentIntervalStart = clone $current; // Start für die neue Saison merken
+            }
+
+            $lastHours = $hoursHash;
+            $current   = $current->modify('+1 day');
+        }
+
+        // Den letzten verbleibenden Zeitblock (bis zum Ende der Genehmigung) anhängen
+        if ($lastHours !== null) {
+            $intervals[] = [
+                'from'  => $currentIntervalStart->format('d.m.Y'),
+                'to'    => $endDate->format('d.m.Y'),
+                'hours' => \json_decode($lastHours, true),
+            ];
+        }
+
+        return $intervals;
     }
 }

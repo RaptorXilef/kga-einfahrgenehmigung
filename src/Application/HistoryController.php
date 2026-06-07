@@ -228,10 +228,13 @@ final readonly class HistoryController
         $permit = $this->permitService->getStorage()->findByHash($code);
         if ($permit instanceof Permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
             $this->render('history_print_view', [
-                'permit'        => $permit,
-                'settings'      => $this->getSettingsArray(),
-                'appRoot'       => $this->config->get('root_path'),
-                'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
+                'permit'   => $permit,
+                'settings' => $this->getSettingsArray(),
+                'appRoot'  => $this->config->get('root_path'),
+                'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
+                    $permit->validity->von,
+                    $permit->validity->bis,
+                ),
                 'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
                     $permit->validity->von,
                     $permit->validity->bis,
@@ -255,7 +258,7 @@ final readonly class HistoryController
             'jahresFarbe'        => $this->config->get('jahresFarbe'),
             'base_url'           => $this->config->getBaseUrl(),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
-            'opening_hours'      => $this->config->get('opening_hours'),
+            'opening_hours'      => $this->config->get('default_opening_hours'),
         ];
     }
 

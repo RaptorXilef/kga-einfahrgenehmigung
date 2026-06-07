@@ -38,7 +38,7 @@ try {
     $openingHtml = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
         'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>' .
         '<span style="color: var(--primary-color); font-weight: bold;">' .
-        $holidayService->getGeneralOpeningHoursText() .
+        $holidayService->getOpeningHoursTextForDateRange($von, $bis) .
         '</span>';
 
     JsonResponse::success([

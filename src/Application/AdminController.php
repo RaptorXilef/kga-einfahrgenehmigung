@@ -427,11 +427,14 @@ final readonly class AdminController
             if ($permit instanceof Permit) {
                 $config = $this->config;
                 $this->render('admin_print_view', [
-                    'permit'        => $permit,
-                    'settings'      => $this->getSettingsArray(),
-                    'config'        => $config,
-                    'appRoot'       => $config->get('root_path'),
-                    'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
+                    'permit'   => $permit,
+                    'settings' => $this->getSettingsArray(),
+                    'config'   => $config,
+                    'appRoot'  => $config->get('root_path'),
+                    'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    ),
                     'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
                         $permit->validity->von,
                         $permit->validity->bis,
@@ -642,7 +645,7 @@ final readonly class AdminController
             'vereins_name'       => $this->config->get('vereins_name'),
             'vehicle_types'      => $this->config->get('vehicle_types'),
             'purposes'           => $this->config->get('purposes'),
-            'opening_hours'      => $this->config->get('opening_hours'),
+            'opening_hours'      => $this->config->get('default_opening_hours'),
             'jahresFarbe'        => $this->config->get('jahresFarbe'),
             'base_url'           => $this->config->getBaseUrl(),
             'terminkalender_url' => $this->config->get('terminkalender_url'),

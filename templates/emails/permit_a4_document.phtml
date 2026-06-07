@@ -58,30 +58,9 @@ if (isset($settings['base_url']) && \is_string($settings['base_url'])) {
 }
 
 $openingText = 'Siehe Aushang';
-if (isset($opening) && \is_array($opening) && ! empty($opening)) {
-    $daysMap = [
-        'mon' => 'Mo',
-        'tue' => 'Di',
-        'wed' => 'Mi',
-        'thu' => 'Do',
-        'fri' => 'Fr',
-        'sat' => 'Sa',
-        'sun' => 'So',
-    ];
-    $formattedDays = [];
-    foreach ($daysMap as $k => $label) {
-        if (! empty($opening[$k])) {
-            $times           = \array_map(fn ($s) => $s[0] . ' - ' . $s[1], $opening[$k]);
-            $formattedDays[] = "<span class=\"opening-segment\"><strong>{$label}:</strong> " . \implode(', ', $times) . '</span>';
-        }
-    }
-    $openingText = \implode(' &nbsp;|&nbsp; ', $formattedDays);
-} elseif (isset($opening) && \is_string($opening) && $opening !== '') {
-    $parts        = \explode('|', $opening);
-    $wrappedParts = \array_map(function ($part) {
-        return '<span class="opening-segment">' . \trim($part) . '</span>';
-    }, $parts);
-    $openingText = \implode(' &nbsp;|&nbsp; ', $wrappedParts);
+if (isset($opening) && $opening !== '') {
+    // Der HolidayService liefert jetzt bereits perfekt formatiertes HTML!
+    $openingText = $opening;
 }
 ?>
 <!DOCTYPE html>

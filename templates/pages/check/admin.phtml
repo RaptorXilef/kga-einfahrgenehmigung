@@ -16,14 +16,14 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Core\Entity\Permit|null         $permit        Die gefundene Genehmigungs-Entität.
- * @var bool                                 $isDateValid   Ob das Ticket im Datumsbereich liegt.
- * @var bool                                 $isTimeAllowed Ob laut HolidayService jetzt geöffnet ist.
- * @var string                               $allowedToday  Nächster regulärer Einfahrts-Slot als Text.
- * @var array                                $settings
- * @var string                               $appRoot
- * @var \App\Infrastructure\Config\Config    $config
- * @var \App\Core\Service\AuthService $auth
+ * @var \App\Core\Entity\Permit|null      $permit        Die gefundene Genehmigungs-Entität.
+ * @var bool                              $isDateValid   Ob das Ticket im Datumsbereich liegt.
+ * @var bool                              $isTimeAllowed Ob laut HolidayService jetzt geöffnet ist.
+ * @var string                            $allowedToday  Nächster regulärer Einfahrts-Slot als Text.
+ * @var array                             $settings
+ * @var string                            $appRoot
+ * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Core\Service\AuthService     $auth
  */
 
 // Status-Farbe bestimmen (Logik synchron zur public.phtml)
@@ -97,7 +97,8 @@ if ($permit) {
                 <div style="color: var(--text-muted);">
                     <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""></span>
                     <h2 style="margin-top: 10px; margin-bottom: 0;">GENEHMIGUNG UNGÜLTIG
-                        <!--ZEITRAUM UNGÜLTIG / ZAHLUNG OFFEN--></h2>
+                        <!--ZEITRAUM UNGÜLTIG / ZAHLUNG OFFEN-->
+                    </h2>
                 </div>
             <?php } ?>
         </div>
@@ -174,6 +175,10 @@ if ($permit) {
                     <tr>
                         <td class="u-font-bold">Zeitraum</td>
                         <td><?php echo $permit->validity->von->format('d.m.Y'); ?> bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></td>
+
+                    <tr>
+                        <td class="u-font-bold">Erlaubte Zeiten</td>
+                        <td><?php echo $opening ?? ''; ?></td>
                     </tr>
 
                     <?php if (! empty($holidayNotice)) { ?>

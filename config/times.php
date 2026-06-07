@@ -15,18 +15,40 @@ declare(strict_types=1);
 
 return [
     /**
-     * Erlaubte Einfahrzeiten pro Wochentag.
-     * Alles außerhalb dieser Zeiten gilt als "Ruhezeit".
-     * Format: 'tag' => [['Start', 'Ende'], ['Start', 'Ende']]
+     * Standard-Einfahrzeiten (Default).
+     * Diese Zeiten gelten IMMER, es sei denn, das aktuelle Datum fällt in eine
+     * der unten definierten "seasons" (Saison-Zeiten).
      */
-    'opening_hours' => [
-        'mon' => [['08:00', '13:00'], ['15:00', '20:00']],
-        'tue' => [['08:00', '13:00'], ['15:00', '20:00']],
-        'wed' => [['08:00', '13:00'], ['15:00', '20:00']],
-        'thu' => [['08:00', '13:00'], ['15:00', '20:00']],
-        'fri' => [['08:00', '13:00'], ['15:00', '20:00']],
-        'sat' => [['08:00', '13:00'], ['15:00', '20:00']],
+    'default_opening_hours' => [
+        'mon' => [['07:00', '13:00'], ['15:00', '20:00']],
+        'tue' => [['07:00', '13:00'], ['15:00', '20:00']],
+        'wed' => [['07:00', '13:00'], ['15:00', '20:00']],
+        'thu' => [['07:00', '13:00'], ['15:00', '20:00']],
+        'fri' => [['07:00', '13:00'], ['15:00', '20:00']],
+        'sat' => [['07:00', '13:00'], ['15:00', '20:00']],
         'sun' => [], // Sonntag keine Einfahrt
+    ],
+
+    /**
+     * Saison-abhängige Einfahrzeiten (Optional).
+     * Format für start / end: 'MM-DD' (Monat-Tag).
+     * Überschreiben die 'default_opening_hours', wenn das Datum reinpasst.
+     */
+    'seasons' => [
+        // Beispiel 1: Erweiterte Zeiten im Sommer (Mai bis Ende August)
+        [
+            'start'         => '10-01',
+            'end'           => '03-31',
+            'opening_hours' => [
+                'mon' => [['07:00', '20:00']],
+                'tue' => [['07:00', '20:00']],
+                'wed' => [['07:00', '20:00']],
+                'thu' => [['07:00', '20:00']],
+                'fri' => [['07:00', '20:00']], // <-- Freitags früher offen
+                'sat' => [['07:00', '20:00']], // <-- Samstags früher offen
+                'sun' => [],
+            ],
+        ],
     ],
 
     /**

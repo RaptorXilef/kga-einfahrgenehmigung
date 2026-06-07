@@ -51,7 +51,7 @@ final readonly class CheckoutController
             'config'   => $this->config,
             'appRoot'  => $this->config->get('root_path'),
             // Dem Template die Zeiten übergeben
-            'opening'       => $this->holidayService->getGeneralOpeningHoursText(),
+            'opening'       => $this->holidayService->getOpeningHoursTextForDateRange($dtVon, $dtBis),
             'holidayNotice' => $this->holidayService->getHolidaysInRangeText($dtVon, $dtBis, true),
         ]);
     }
