@@ -2,6 +2,12 @@
 
 
 
+## [0.42.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.42.0...v0.42.1) (2026-06-07)
+
+### ⚙️ Refactoring
+
+* **core/updates:** rename migrations storage key to update_migrations for semantic clarity ([e0207db](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e0207dbd3b99708b0acef279694dac6f5efee50c))
+
 ## [0.42.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.41.0...v0.42.0) (2026-06-07)
 
 ### 🚀 Features
