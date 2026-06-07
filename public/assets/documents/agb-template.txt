@@ -1,0 +1,51 @@
+ALLGEMEINE GESCHÄFTSBEDINGUNGEN (AGB) UND NUTZUNGSBEDINGUNGEN
+FÜR DIE BEANTRAGUNG VON AUSNAHMEGENEHMIGUNGEN
+
+(Stand: Juni 2026)
+
+1. Geltungsbereich und Zweck
+Diese Allgemeinen Geschäftsbedingungen (nachfolgend „AGB“) regeln das Vertragsverhältnis zwischen dem [Name des Vereins], ansässig in Berlin (nachfolgend „Verein“), und Personen (nachfolgend „Antragsteller“), die über das digitale Antragsportal eine Ausnahmegenehmigung / Befahrungserlaubnis für das Vereinsgelände beantragen.
+1.1 Mit dem Absenden des Antrags und dem Setzen des entsprechenden Hakens im Formular erkennt der Antragsteller diese AGB sowie die Platz- und Befahrungsordnung des Vereins vollumfänglich an.
+1.2 Mit der erfolgreichen Erteilung der Genehmigung erwirbt der Antragsteller das einfache, zeitlich befristete und widerrufliche Recht, die Anlage (das Vereinsgelände) mit dem im Antrag hinterlegten Fahrzeug zu befahren. Dieses Befahrungsrecht steht unter dem ausdrücklichen Vorbehalt der Einhaltung aller geltenden Regeln. Bei Verstößen gegen die Platzordnung, die Vereinsordnung oder diese AGB kann dieses Recht vom Verein jederzeit und ohne Vorankündigung entzogen oder eingeschränkt werden.
+
+
+2. Zustandekommen des Vertrages und Verifizierungsverfahren
+2.1 Der Antragsteller füllt das digitale Antragsformular wahrheitsgemäß aus. Das Absenden des Formulars stellt ein verbindliches Angebot des Antragstellers auf Erteilung einer Ausnahmegenehmigung dar.
+2.2 Nach dem Absenden wird ein automatisiertes Verifizierungsverfahren (Double-Opt-In) gestartet. Der Antragsteller erhält eine E-Mail mit einem Bestätigungslink. Erst durch das Aufrufen dieses Links wird der Antrag endgültig an das System übermittelt.
+2.3 Ein Anspruch auf Erteilung einer Ausnahmegenehmigung besteht nicht. Der Vertrag über die Erteilung der Genehmigung kommt erst durch die ausdrückliche Freischaltung, den Versand des PDF-Dokuments oder die Statusänderung auf „aktiv“ durch den Verein zustande.
+
+
+3. Gebühren, Zahlung und Gutscheine
+3.1 Für die Erteilung von Ausnahmegenehmigungen können Gebühren anfallen. Die Höhe der Gebühren richtet sich nach dem jeweils gewählten Tarif (Template) und dem beantragten Zeitraum. Die finale Gebühr wird im Formular vor dem Absenden verbindlich angezeigt.
+3.2 Zahlungen können über die angebotenen Online-Zahlungswege (z. B. PayPal) oder per Vorkasse/Überweisung erfolgen.
+3.3 Bei der Zahlungsart Überweisung wird die Genehmigung erst nach vollständigem Zahlungseingang auf dem Bankkonto des Vereins aktiv geschaltet. Bis zum Zahlungseingang verbleibt der Status auf „offen“; eine Befahrung des Geländes ist bis dahin nicht gestattet.
+3.4 Sofern gültige Rabatt- oder Gutscheincodes (Voucher) verwendet werden, reduziert sich die Gebühr entsprechend dem Wert des Gutscheins. Ein Anspruch auf Barauszahlung von Gutscheinwerten besteht nicht. Missbräuchlich verwendete Gutscheincodes führen zur sofortigen und ersatzlosen Stornierung der Genehmigung.
+3.5 Die Gebühr wird für die Bereitstellung und Bearbeitung der Ausnahmegenehmigung erhoben. Sollte der Antragsteller die erteilte Genehmigung – gleich aus welchen Gründen (z. B. wetterbedingter Ausfall, geänderte Reisepläne oder vorzeitige Abreise) – nicht oder nur teilweise nutzen, besteht kein Anspruch auf Rückerstattung, Gutschrift oder anteilige Erstattung der gezahlten Gebühren.
+
+
+4. Pflichten des Antragstellers und Nutzungsregeln für das Gelände
+4.1 Der Antragsteller ist verpflichtet, alle Angaben im Formular (insbesondere Name, Parzelle und Kfz-Kennzeichen) wahrheitsgemäß und fehlerfrei anzugeben. Nachträgliche Änderungen des Kennzeichens sind unverzüglich dem Vorstand mitzuteilen.
+4.2 Die erteilte Genehmigung gilt ausschließlich für das im Antrag hinterlegte Kfz-Kennzeichen und den genehmigten Zeitraum („von“ bis „bis“). Eine Übertragung der Genehmigung auf andere Fahrzeuge oder Personen ist untersagt.
+4.3 Auf dem gesamten Vereinsgelände gilt die Straßenverkehrsordnung (StVO). Es darf ausschließlich mit Schrittgeschwindigkeit gefahren werden.
+4.4 Das Befahren des Geländes ist nur zum Zwecke des Be- und Entladens sowie für behördlich/vereinsseitig genehmigte Zwecke gestattet. Dauerhaftes Parken außerhalb der dafür ausgewiesenen Flächen oder der eigenen Parzelle ist untersagt.
+4.5 Das Kontrollpersonal des Vereins ist berechtigt, die Gültigkeit der Genehmigung anhand des Kennzeichens oder des digitalen/ausgedruckten Belegs vor Ort zu überprüfen. Den Anweisungen des Kontrollpersonals ist Folge zu leisten.
+
+
+5. Entzug, Sperrung und Missbrauch von Genehmigungen
+5.1 Der Verein behält sich das Recht vor, erteilte Genehmigungen bei Vorliegen eines wichtigen Grundes jederzeit temporär zu sperren (Suspension) oder dauerhaft zu entziehen. Ein wichtiger Grund liegt insbesondere vor bei:
+- Verstößen gegen die Schrittgeschwindigkeit oder die Parkordnung.
+- Missbräuchlicher Nutzung der Genehmigung (z. B. Kennzeichen-Unstimmigkeiten).
+- Zahlungsverzug oder Rückbuchung von Zahlungen.
+- Beleidigungen oder Tätlichkeiten gegenüber dem Vereins- oder Kontrollpersonal.
+5.2 Im Falle einer Sperrung wird der Antragsteller per E-Mail unter Angabe von Gründen benachrichtigt. Ein Anspruch auf Rückerstattung bereits gezahlter Gebühren besteht bei einem schuldhaften Verstoß des Antragstellers nicht.
+
+
+6. Haftungsausschluss
+6.1 Das Befahren und Parken auf dem Vereinsgelände erfolgt ausschließlich auf eigene Gefahr.
+6.2 Der Verein übernimmt keine Haftung für Schäden, die durch den Zustand der Wege, durch andere Fahrzeuge, durch Diebstahl oder durch höhere Gewalt an dem Fahrzeug des Antragstellers entstehen, es sei denn, dem Verein ist grobe Fahrlässigkeit oder Vorsatz nachzuweisen.
+
+
+7. Schlussbestimmungen
+7.1 Sollten einzelne Bestimmungen dieser AGB unwirksam oder undurchführbar sein oder werden, bleibt die Wirksamkeit der übrigen Bestimmungen davon unberührt.
+7.2 Es gilt ausschließlich das Recht der Bundesrepublik Deutschland.
+7.3 Gerichtsstand für alle Streitigkeiten aus diesem Vertragsverhältnis ist, soweit gesetzlich zulässig, Berlin.

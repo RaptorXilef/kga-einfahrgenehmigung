@@ -252,4 +252,13 @@ public/assets/img/logo/kga.png
 public/assets/img/logo/kga.webp
 
 public/assets/documents/*.pdf
-public/assets/documents/*.txt
+!public/assets/documents/datenschutzerklärung-template.txt
+!public/assets/documents/datenschutzerklärung-template.docx
+!public/assets/documents/agb-template.txt
+!public/assets/documents/agb-template.docx
+
+public/assets/documents/agb.docx
+public/assets/documents/agb.pdf
+public/assets/documents/datenschutzerklärung.docx
+public/assets/documents/datenschutzerklärung.pdf
+public/assets/documents/Ordnung_KGA_Märchenland_2019.pdf
