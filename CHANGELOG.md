@@ -2,6 +2,13 @@
 
 
 
+## [0.41.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.40.1...v0.41.0) (2026-06-07)
+
+### 🚀 Features
+
+* **legal/consent:** implement dynamic data-driven cookie consent banner with lazy-load tracking ([46ac619](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/46ac6197103294e641b12ec72dfedc3e2ddb52fb))
+* **legal/routing:** modularize imprint and privacy policies into data-driven config-backed routes ([40688be](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/40688be73734e961aee23bd5072575bdb3e54c8a))
+
 ## [0.40.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.40.0...v0.40.1) (2026-06-07)
 
 ### ⚙️ Refactoring
