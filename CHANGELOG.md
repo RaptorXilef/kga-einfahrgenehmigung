@@ -2,6 +2,16 @@
 
 
 
+## [0.39.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.38.2...v0.39.0) (2026-06-07)
+
+### 🚀 Features
+
+* **calendar/seasons:** implement dynamic seasonal opening hours system across all interfaces ([fdb011a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fdb011a6ce14478b7d35b9aef50f8f5d8dcdcbd6))
+
+### 🐛 Bug Fixes
+
+* **config/ui:** restructure maintenance settings and harden permission management ([cc5620d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cc5620d727495e11b3b36b6842504100f0a065f4))
+
 ## [0.38.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.38.1...v0.38.2) (2026-06-06)
 
 ### 🐛 Bug Fixes
