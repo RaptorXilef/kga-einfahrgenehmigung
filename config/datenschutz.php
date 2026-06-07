@@ -27,6 +27,8 @@ return [
         'adresse' => 'Alt-Moabit 59-61, 10555 Berlin',
     ],
     'sections' => [
+        // Entferne die /* */ um alles zu aktivieren
+        /*
         'allgemein' => [
             'title' => '1. Allgemeine Hinweise und Pflichtinformationen',
             'text'  => 'Der Schutz Ihrer persönlichen Daten ist uns ein ernstes Anliegen. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend den gesetzlichen Datenschutzvorschriften (insbesondere der EU-Datenschutz-Grundverordnung DSGVO sowie dem Bundesdatenschutzgesetz BDSG). Wenn Sie dieses System zur Beantragung von Ausnahmegenehmigungen nutzen, werden verschiedene personenbezogene Daten erhoben. Diese Erklärung erläutert, welche Daten wir erheben und wofür wir sie nutzen.',
@@ -62,5 +64,6 @@ return [
             'title' => '8. Webanalyse via Google Analytics (Optional)',
             'text'  => 'Sofern Sie über unser Consent-Banner eingewilligt haben (Art. 6 Abs. 1 lit. a DSGVO), nutzen wir Google Analytics der Google Ireland Ltd. zur Auswertung der Websitenutzung. Die IP-Anonymisierung ist aktiviert, sodass IP-Aderssen innerhalb der EU vor der Übermittlung in die USA gekürzt werden. Sie können diese Einwilligung jederzeit über die Browsereinstellungen oder ein Google-Deaktivierungs-Add-on widerrufen.',
         ],
+        */
     ],
 ];

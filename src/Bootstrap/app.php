@@ -51,6 +51,10 @@ $configFiles = [
     // --- Default-Einstellungen ---
     'default_settings' => $appRoot . '/config/settings.default.php',
 
+    'default_consent'     => $appRoot . '/config/consent.default.php',
+    'default_datenschutz' => $appRoot . '/config/datenschutz.default.php',
+    'default_impressum'   => $appRoot . '/config/impressum.default.php',
+
     'default_organization' => $appRoot . '/config/organization.default.php',
     'default_colors'       => $appRoot . '/config/colors.default.php',
     'default_purposes'     => $appRoot . '/config/purposes.default.php',
@@ -73,6 +77,10 @@ $configFiles = [
 
     // --- Nutzer-Einstellungen ---
     'settings' => $appRoot . '/config/settings.php',
+
+    'consent'     => $appRoot . '/config/consent.php',
+    'datenschutz' => $appRoot . '/config/datenschutz.php',
+    'impressum'   => $appRoot . '/config/impressum.php',
 
     'organization' => $appRoot . '/config/organization.php',
     'colors'       => $appRoot . '/config/colors.php',
