@@ -2,6 +2,12 @@
 
 
 
+## [0.42.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.41.0...v0.42.0) (2026-06-07)
+
+### 🚀 Features
+
+* **core/updates:** implement two-phase self-updating architecture with manifest parsing... ([894e106](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/894e1066f53799ecca1573c1a9cf18793fad8575))
+
 ## [0.41.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.40.1...v0.41.0) (2026-06-07)
 
 ### 🚀 Features
