@@ -38,55 +38,55 @@
     <table style="width: 100%; border-collapse: collapse; background: #f9f9f9;">
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; width: 40%;">Eindeutige Kennung:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{fullIdentifier}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $fullIdentifier, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Name:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{name}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $name, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">E-Mail:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{email}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $email, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Parzelle:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{parzelle}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $parzelle, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Fahrzeug-Typ:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{typLabel}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $typLabel, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Kennzeichen:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{kennzeichen}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $kennzeichen, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <?php if (! empty($firma)) { ?>
             <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Firma/Lieferant:</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">{{firma}}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $firma, \ENT_QUOTES, 'UTF-8'); ?></td>
             </tr>
         <?php } ?>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zeitraum:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{von_formatted}} bis {{bis_formatted}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $von_formatted, \ENT_QUOTES, 'UTF-8'); ?> bis <?php echo \htmlspecialchars((string) $bis_formatted, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Zweck:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">{{zweck}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><?php echo \htmlspecialchars((string) $zweck, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
         <tr>
             <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;">Zu zahlender Betrag:
             </td>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;">{{preis}}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d32f2f;"><?php echo \htmlspecialchars((string) $preis, \ENT_QUOTES, 'UTF-8'); ?></td>
         </tr>
     </table>
 
     <p style="margin-top: 25px;">
-        <a href="{{adminLink}}" style="background: #3498db; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+        <a href="<?php echo \htmlspecialchars((string) $adminLink, \ENT_QUOTES, 'UTF-8'); ?>" style="background: #3498db; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
             Direkt zur Admin-Übersicht
         </a>
     </p>
 
     <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;">
-    <p style="font-size: 12px; color: #999;">Automatisierte Benachrichtigung - {{vereinsName}}</p>
+    <p style="font-size: 12px; color: #999;">Automatisierte Benachrichtigung - <?php echo \htmlspecialchars((string) $vereinsName, \ENT_QUOTES, 'UTF-8'); ?></p>
 </div>

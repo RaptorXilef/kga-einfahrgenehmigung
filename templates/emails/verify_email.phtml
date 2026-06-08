@@ -17,18 +17,18 @@
 <div
      style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
     <h2 style="color: #2c3e50;">E-Mail-Adresse bestätigen</h2>
-    <p>Hallo {{name}},</p>
+    <p>Hallo <?php echo \htmlspecialchars((string) $name, \ENT_QUOTES, 'UTF-8'); ?>,</p>
     <p>vielen Dank für Ihren Antrag. Um Missbrauch zu vermeiden, bestätigen Sie bitte Ihre E-Mail-Adresse mit diesem
         Code:</p>
 
     <div
          style="text-align: center; margin: 30px 0; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0;">
-        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #3498db;">{{code}}</span>
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #3498db;"><?php echo \htmlspecialchars((string) $code, \ENT_QUOTES, 'UTF-8'); ?></span>
     </div>
 
     <p>Alternativ können Sie auch diesen Direktlink nutzen:</p>
     <p style="text-align: center;">
-        <a href="{{verifyUrl}}" style="background: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+        <a href="<?php echo \htmlspecialchars((string) $verifyUrl, \ENT_QUOTES, 'UTF-8'); ?>" style="background: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
             Direkt bestätigen
         </a>
     </p>

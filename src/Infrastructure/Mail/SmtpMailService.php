@@ -107,7 +107,7 @@ final readonly class SmtpMailService implements MailServiceInterface
                 continue;
             }
 
-            $content = \str_replace("{{{$key}}}", (string) $value, (string) $content);
+            $content = \str_replace("{{{$key}}}", \htmlspecialchars((string) $value, \ENT_QUOTES, 'UTF-8'), (string) $content);
         }
 
         return (string) $content;

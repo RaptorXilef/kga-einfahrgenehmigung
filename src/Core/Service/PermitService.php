@@ -134,11 +134,15 @@ final readonly class PermitService
             code: $fullIdentifier,
             template_key: $tKey, // WICHTIG: Speichert die Art der Genehmigung für später
             owner: new Owner(
-                (string) $data['name'],
+                \strip_tags((string) $data['name']),
                 (string) $data['email'],
                 \str_pad((string) $data['parzelle'], 4, '0', \STR_PAD_LEFT),
             ),
-            vehicle: new Vehicle($typ, $displayPlate, $data['firma'] ?? null),
+            vehicle: new Vehicle(
+                $typ,
+                $displayPlate,
+                isset($data['firma']) ? \strip_tags((string) $data['firma']) : null,
+            ),
             validity: new Validity($startDate, $endDate, $preis, $zweck),
             status: new Status((string) ($data['status'] ?? 'offen')),
             erstellt: new \DateTimeImmutable(),

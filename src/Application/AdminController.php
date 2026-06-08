@@ -318,12 +318,12 @@ final readonly class AdminController
             $date_mode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
 
             $preData = [
-                'name'        => \trim((string) ($post['name'] ?? '')),
-                'parzelle'    => \trim((string) ($post['parzelle'] ?? '')),
-                'kennzeichen' => \trim((string) ($post['kennzeichen'] ?? '')),
+                'name'        => \trim(\strip_tags((string) ($post['name'] ?? ''))),
+                'parzelle'    => \trim(\strip_tags((string) ($post['parzelle'] ?? ''))),
+                'kennzeichen' => \trim(\strip_tags((string) ($post['kennzeichen'] ?? ''))),
                 'typ'         => (string) ($post['typ'] ?? ''),
-                'firma'       => \trim((string) ($post['firma'] ?? '')),
-                'zweck'       => (string) ($post['zweck'] ?? ''),
+                'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
+                'zweck'       => \strip_tags((string) ($post['zweck'] ?? '')),
                 'datum_von'   => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
                 'datum_bis'   => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
             ];

@@ -61,7 +61,11 @@ final readonly class PermitController
         // 1. Verarbeitung (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Formulardaten sicherheitshalber zwischenspeichern (Sticky Forms)
-            $_SESSION['form_data'] = $post;
+            // $_SESSION['form_data'] = $post;
+            // Eingaben trimmen und HTML-Tags vorab entfernen
+            $_SESSION['form_data'] = \array_map(function ($value) {
+                return \is_string($value) ? \trim(\strip_tags($value)) : $value;
+            }, $post);
 
             if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
