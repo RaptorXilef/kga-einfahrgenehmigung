@@ -228,8 +228,9 @@ final readonly class MigrationService
             'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
             'permits'              => $this->migratePermitsToSql($data),
             // permits_archive nutzt jetzt den schönen, sauberen Archive-Repository-Aufruf!
-            'permits_archive' => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
-            default           => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
+            'permits_archive'   => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
+            'update_migrations' => $this->migrateUpdateMigrationsToSql($data),
+            default             => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
         };
     }
 
@@ -253,6 +254,25 @@ final readonly class MigrationService
                 $item['code'] = $key;
             }
             $storage->save($this->permitService->arrayToEntity($item));
+        }
+    }
+
+    /**
+     * TODO DOCBLOCK
+     */
+    private function migrateUpdateMigrationsToSql(array $data): void
+    {
+        if (! $this->pdo instanceof \PDO) {
+            return;
+        }
+        $table = $this->config->get('storage_config')['update_migrations']['table'];
+        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (id, version, executed_at) VALUES (?, ?, ?)");
+        foreach ($data as $id => $item) {
+            $stmt->execute([
+                $id,
+                $item['version'] ?? '',
+                $item['executed_at'] ?? '',
+            ]);
         }
     }
 
@@ -331,10 +351,10 @@ final readonly class MigrationService
     private function getIdFieldForKey(string $key): string
     {
         return match ($key) {
-            'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
-            'magic_links', 'pending_verification', 'verified_pending'       => 'token',
-            'permits', 'permits_archive'                                    => 'code',
-            default                                                         => 'code'
+            'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive', 'update_migrations' => 'id',
+            'magic_links', 'pending_verification', 'verified_pending'                            => 'token',
+            'permits', 'permits_archive'                                                         => 'code',
+            default                                                                              => 'code'
         };
     }
 

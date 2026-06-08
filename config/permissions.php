@@ -540,6 +540,23 @@ return [
                                         ],
                                     ],
                                 ],
+                                'update_migrations' => [
+                                    'label'    => 'Migration: Update-Verlauf Aktionen',
+                                    'children' => [
+                                        'json_to_mysql' => [
+                                            'label' => 'Migration: Update-Verlauf -> SQL',
+                                            'key'   => 'dashboard.migration.update_migrations.json_to_mysql',
+                                        ],
+                                        'mysql_to_json' => [
+                                            'label' => 'Migration: Update-Verlauf -> JSON',
+                                            'key'   => 'dashboard.migration.update_migrations.mysql_to_json',
+                                        ],
+                                        'sync' => [
+                                            'label' => 'Migration: Update-Verlauf zusammenführen',
+                                            'key'   => 'dashboard.migration.update_migrations.sync',
+                                        ],
+                                    ],
+                                ],
                             ],
                         ],
                         'backups' => [

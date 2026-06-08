@@ -31,6 +31,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         'vouchers'             => ['label' => 'Gutscheine', 'icon' => '🎟️'],
         'vouchers_archive'     => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
         'login_attempts'       => ['label' => 'Login-Versuche', 'icon' => '🛡'],
+        'update_migrations'    => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
     ];
 
     $backups = $backupService->listBackups();
