@@ -19,7 +19,7 @@ return [
         'enabled' => false,
         'host'    => 'localhost',
         'port'    => '', // Optionaler Port
-        'dbname'  => 'kga_zufahrts_manager',
+        'dbname'  => 'kga_einfahrts_manager',
         'user'    => 'root',
         'pass'    => '',
         'charset' => 'utf8mb4',

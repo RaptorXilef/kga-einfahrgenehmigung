@@ -48,7 +48,7 @@ jobs:
           # 1. INSTALL-PAKET (Für Neuinstallationen)
           # Hier packen wir die originalen Dateien (ohne .default) ein.
           # (Die zuvor gebauten Assets in public/assets/ werden hier automatisch mitgenommen!)
-          zip -r kga-zufahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
+          zip -r kga-einfahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
 
           # 2. BASH-MAGIC: Umbenennen der Config-Dateien für das Update
           for file in config/*.php; do
@@ -61,14 +61,14 @@ jobs:
 
           # 3. UPDATE-PAKET (Für Bestandskunden)
           # Hier sind die config-Dateien nun als .default.php benannt und werden so ins ZIP gepackt.
-          zip -r kga-zufahrts-manager-update-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json update_manifest.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*" "public/assets/documents/*"
+          zip -r kga-einfahrts-manager-update-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json update_manifest.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*" "public/assets/documents/*"
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v3.0.0
           # https://github.com/marketplace/actions/gh-release
         with:
           files: |
-            kga-zufahrts-manager-update-${{ env.VERSION }}.zip
-            kga-zufahrts-manager-install-${{ env.VERSION }}.zip
+            kga-einfahrts-manager-update-${{ env.VERSION }}.zip
+            kga-einfahrts-manager-install-${{ env.VERSION }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

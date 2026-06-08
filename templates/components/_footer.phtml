@@ -36,7 +36,7 @@ $yearDisplay = $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (st
 
 // 4. Software Details
 $developerName = 'Felix Maywald';
-$softwareName  = 'KGA-Einfahrgenehmigung / KGA Zufahrts-Manager';
+$softwareName  = 'KGA-Einfahrts-Manager'; // KGA-Einfahrgenehmigung
 $githubUrl     = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
 $issuesUrl     = $githubUrl . '/issues';
 
@@ -51,18 +51,19 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz.php';
     <div
          style="font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 8px;">
 
-        <div>
+        <!--<div>
             &copy; <?php echo $yearDisplay; ?> <strong><?php echo \htmlspecialchars($developerName); ?></strong>
-        </div>
+        </div>-->
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;">
-            <a href="<?php echo \htmlspecialchars($githubUrl); ?>"
+            &copy; <?php echo $yearDisplay; ?>
+            <!--<a href="<?php echo \htmlspecialchars($githubUrl); ?>"
                target="_blank"
                rel="noopener noreferrer"
                style="color: var(--primary-color); text-decoration: none; font-weight: 600;"
-               title="Zum GitHub Repository">
+               title="Zum GitHub Repository">-->
                 <?php echo \htmlspecialchars($softwareName); ?>
-            </a>
+            <!--</a>-->
 
             <a href="<?php echo \htmlspecialchars($baseUrl); ?>changelog.php"
                style="background: rgba(52, 152, 219, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.2); text-decoration: none;"

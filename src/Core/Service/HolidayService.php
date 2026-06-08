@@ -12,7 +12,7 @@ use App\Contracts\Config\ConfigInterface;
  *
  * Berechnet Schließtage und dynamische Feiertage (Osterzyklus für Berlin) und gleicht sie
  * mit den in der Konfiguration hinterlegten Öffnungszeiten-Slots ab.
- * Kontext: Kern-Validierungskomponente für temporäre Zufahrtsrechte und Kontrollanzeigen.
+ * Kontext: Kern-Validierungskomponente für temporäre Einfahrtsrechte und Kontrollanzeigen.
  *
  * Path: src/Core/Service/HolidayService.php
  *

@@ -88,8 +88,8 @@ final readonly class GitHubUpdaterService
             $downloadUrl = '';
 
             // Wir suchen jetzt dynamisch nach dem Update-Paket basierend auf dem aktuellen Tag
-            // Der Name ist jetzt: kga-zufahrts-manager-update-{latestVersion}.zip
-            $expectedFilename = 'kga-zufahrts-manager-update-' . $latestVersion . '.zip';
+            // Der Name ist jetzt: kga-einfahrts-manager-update-{latestVersion}.zip
+            $expectedFilename = 'kga-einfahrts-manager-update-' . $latestVersion . '.zip';
 
             if (isset($response['assets']) && \is_array($response['assets'])) {
                 foreach ($response['assets'] as $asset) {
