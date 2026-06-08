@@ -2,6 +2,12 @@
 
 
 
+## [0.44.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.43.1...v0.44.0) (2026-06-08)
+
+### 🚀 Features
+
+* **security:** finalize comprehensive XSS protection and input sanitization ([c0b1f81](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c0b1f815fd4e5a888a5fcf9431c817c9968ac1be))
+
 ## [0.43.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.43.0...v0.43.1) (2026-06-08)
 
 ### 🧹 Chore / Maintenance
