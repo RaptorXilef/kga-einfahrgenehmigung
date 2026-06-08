@@ -2,6 +2,12 @@
 
 
 
+## [0.43.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.43.0...v0.43.1) (2026-06-08)
+
+### 🧹 Chore / Maintenance
+
+* **branding/naming:** rename application to KGA-Einfahrts-Manager ([78d6ba7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/78d6ba7fd1c646b9dfeabcf24fa02cc209514cec))
+
 ## [0.43.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.42.2...v0.43.0) (2026-06-08)
 
 ### 🚀 Features
