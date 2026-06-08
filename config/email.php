@@ -16,13 +16,14 @@ declare(strict_types=1);
 return [
     // --- E-MAIL (Zwei Welten System) ---
     'mail' => [
-        'host'             => 'smtp.dein-provider.de',
-        'port'             => 465,
-        'user'             => 'no-reply@deine-kga.de',
-        'pass'             => 'dein-passwort',
-        'from'             => 'no-reply@deine-kga.de',
-        'test_mail_active' => false,
-        'recipients'       => [
+        'host'                    => 'smtp.dein-provider.de',
+        'port'                    => 465,
+        'user'                    => 'no-reply@deine-kga.de',
+        'pass'                    => 'dein-passwort',
+        'from'                    => 'no-reply@deine-kga.de',
+        'test_mail_active'        => false,
+        'send_board_notification' => true, // Aktiviert (true) deaktiviert (false) die Zusammenfassungen an den Vorstand
+        'recipients'              => [
             'live' => 'vorstand@echte-domain.de', // Hier landen alle Vorstand-Mails im Live-Modus
             'test' => 'deine-private-mail@test.de', // Hier landen alle Vorstand-Mails im Testmodus
         ],

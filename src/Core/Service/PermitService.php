@@ -426,36 +426,40 @@ final readonly class PermitService
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
-        $geheimnis = (string) $this->config->get('geheimnis', '');
-        $token     = \hash('sha256', $permit->code . $geheimnis);
-        $opening   = $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis);
+        $zeitraum   = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
+        $geheimnis  = (string) $this->config->get('geheimnis', '');
+        $token      = \hash('sha256', $permit->code . $geheimnis);
+        $opening    = $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis);
+        $mailConfig = $this->config->getMailSettings();
 
-        // --- 1. MAIL AN VORSTAND (Immer senden) ---
-        $this->mailService->sendTemplate(
-            $this->config->get('mail')['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
-            "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
-            'board_notification',
-            [
-                'fullIdentifier' => $permit->code,
-                'name'           => $permit->owner->name,
-                'email'          => $permit->owner->email ?: 'Keine angegeben',
-                'parzelle'       => $permit->owner->parzelle,
-                'typLabel'       => (function ($typ, $config) {
-                    $vConfigs = $config->get('vehicle_types', []);
+        // Prüfung, ob die Vorstands-Benachrichtigung gesendet werden soll (Standard: true, falls nicht gesetzt)
+        if (($mailConfig['send_board_notification'] ?? true) === true) {
+            // --- 1. MAIL AN VORSTAND (Immer senden) ---
+            $this->mailService->sendTemplate(
+                $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
+                "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
+                'board_notification',
+                [
+                    'fullIdentifier' => $permit->code,
+                    'name'           => $permit->owner->name,
+                    'email'          => $permit->owner->email ?: 'Keine angegeben',
+                    'parzelle'       => $permit->owner->parzelle,
+                    'typLabel'       => (function ($typ, $config) {
+                        $vConfigs = $config->get('vehicle_types', []);
 
-                    return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
-                })($permit->vehicle->typ, $this->config), // (Sicher gegen gelöschte Fahrzeugtypen):
-                'kennzeichen'   => $permit->vehicle->kennzeichen,
-                'firma'         => $permit->vehicle->firma ?? '',
-                'von_formatted' => $permit->validity->von->format('d.m.Y'),
-                'bis_formatted' => $permit->validity->bis->format('d.m.Y'),
-                'zweck'         => $permit->validity->zweck,
-                'preis'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
-                'adminLink'     => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
-                'vereinsName'   => $this->config->get('vereins_name'),
-            ],
-        );
+                        return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
+                    })($permit->vehicle->typ, $this->config), // (Sicher gegen gelöschte Fahrzeugtypen):
+                    'kennzeichen'   => $permit->vehicle->kennzeichen,
+                    'firma'         => $permit->vehicle->firma ?? '',
+                    'von_formatted' => $permit->validity->von->format('d.m.Y'),
+                    'bis_formatted' => $permit->validity->bis->format('d.m.Y'),
+                    'zweck'         => $permit->validity->zweck,
+                    'preis'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
+                    'adminLink'     => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
+                    'vereinsName'   => $this->config->get('vereins_name'),
+                ],
+            );
+        }
 
         // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---
         if (\in_array(\trim($permit->owner->email), ['', '0'], true)) {
