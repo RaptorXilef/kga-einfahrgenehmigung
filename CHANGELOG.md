@@ -2,6 +2,12 @@
 
 
 
+## [0.42.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.42.1...v0.42.2) (2026-06-08)
+
+### ⚙️ Refactoring
+
+* **admin/migration:** implement update_migrations database mapping and permission keys ([0da8d08](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0da8d0859849e4fdb5c8ce365323f57cd1321d1f))
+
 ## [0.42.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.42.0...v0.42.1) (2026-06-07)
 
 ### ⚙️ Refactoring
