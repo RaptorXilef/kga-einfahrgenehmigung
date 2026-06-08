@@ -2,6 +2,12 @@
 
 
 
+## [0.43.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.42.2...v0.43.0) (2026-06-08)
+
+### 🚀 Features
+
+* **mail/board:** introduce feature toggle for board notification summaries ([045b4ce](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/045b4ced525700963cfdec6260cb2a5a2532193b))
+
 ## [0.42.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.42.1...v0.42.2) (2026-06-08)
 
 ### ⚙️ Refactoring
