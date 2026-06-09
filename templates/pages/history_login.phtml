@@ -86,7 +86,9 @@
                     <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
                     <form method="POST"
                           class="c-form">
-                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                         <div class="c-form-group">
                             <label class="c-form-label">E-Mail-Adresse</label>
                             <input type="email"
@@ -102,21 +104,19 @@
                                 style="padding: 14px;">
                             Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
                                  class="c-icon"
-                                 alt=""><!-- ✉️ -->
+                                 alt="">
                         </button>
-
-                        <!-- NEU: DIESER BLOCK -->
                         <div class="u-margin-top-m u-text-center">
                             <a href="history.php?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
                         </div>
-                        <!-- ENDE NEU -->
-
                     </form>
                 <?php } else { ?>
                     <!-- SCHRITT 2: Code eingeben (Wird nach Schritt 1 eingeblendet) -->
                     <form method="POST"
                           class="c-form u-text-center">
-                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                         <div class="c-form-group">
                             <label class="c-form-label u-justify-center">6-stelligen Login-Code eingeben</label>
                             <input type="text"
@@ -133,9 +133,18 @@
                                 class="c-button--primary u-width-100 u-margin-top-m">
                             Einloggen 🔓
                         </button>
-                        <div class="u-margin-top-m">
-                            <a href="history.php" class="u-text-small u-text-muted">E-Mail erneut senden</a>
-                        </div>
+                    </form>
+
+                    <form method="POST"
+                          action="history.php"
+                          style="margin: 20px 0 0 0; text-align: center;">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <button type="submit"
+                                style="background: transparent; border: none; color: var(--text-muted); text-decoration: underline; font-size: 0.85rem; cursor: pointer;">
+                            &larr; E-Mail erneut eingeben / zurück <!-- E-Mail erneut senden -->
+                        </button>
                     </form>
                 <?php } ?>
             </div>

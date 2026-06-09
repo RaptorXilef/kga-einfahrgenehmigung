@@ -71,6 +71,11 @@ final readonly class GitHubUpdaterService
      */
     public function checkForUpdate(string $currentVersion): ?array
     {
+        // NEU: Wenn wir uns in einer lokalen Testumgebung befinden, cURL-Anfrage überspringen
+        if ($this->config->get('is_local_env', false)) {
+            return null;
+        }
+
         $response = $this->makeApiRequest('/releases/latest');
 
         if (! $response || ! isset($response['tag_name'])) {
@@ -127,6 +132,11 @@ final readonly class GitHubUpdaterService
      */
     public function performUpdate(string $zipUrl): bool
     {
+        // NEU: Lokale Installationen blockieren, um cURL-Fehler abzufangen
+        if ($this->config->get('is_local_env', false)) {
+            throw new \RuntimeException('GitHub-Updates sind in der lokalen Testumgebung deaktiviert.');
+        }
+
         $rootPath = \rtrim((string) $this->config->get('root_path'), '/\\');
         $tempDir  = $rootPath . '/storage/temp_update';
         $zipFile  = $tempDir . '/update.zip';

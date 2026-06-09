@@ -171,6 +171,13 @@ foreach ($configFiles as $key => $file) {
 
 $settings['root_path'] = $appRoot;
 
+// NEU: Zentrale Erkennung der lokalen Testumgebung (XAMPP / .local)
+$httpHost                 = $_SERVER['HTTP_HOST'] ?? '';
+$settings['is_local_env'] = \str_ends_with($httpHost, '.local')
+    || $httpHost === 'localhost'
+    || $httpHost === '127.0.0.1'
+    || \php_sapi_name() === 'cli';
+
 // CSRF Token für sichere Frontend-API-Calls generieren
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
@@ -227,12 +234,17 @@ $exceptionHandler->register();
 // --- ENDE EXCEPTIONS ---
 
 // =========================================================================
-// SERVER-SIDE GA4 TRACKING (100% GENAUE SEITENAUFRUFE — UMGEHT ADBLOCKER)
+// SERVER-SIDE GA4 TRACKING (100% GENAUE SEITENAUFRUFE — UMGEHT ADBLOCKER) - Wird local übersprungen
 // =========================================================================
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-// Verhindert, dass interne APIs oder Cronjobs als echte Seitenaufrufe zählen
-if (! \str_contains($scriptName, '/api/') && ! \str_contains($scriptName, 'cron.php') && ! \str_contains($scriptName, 'process_mail_queue.php')) {
 
+// HIER GEÄNDERT: Führe cURL-Tracking nur aus, wenn wir NICHT lokal sind
+if (
+    empty($settings['is_local_env'])
+    && ! \str_contains($scriptName, '/api/')
+    && ! \str_contains($scriptName, 'cron.php')
+    && ! \str_contains($scriptName, 'process_mail_queue.php')
+) {
     // Holt sich die Daten vollautomatisch aus dem secrets.php-Zweig
     $gaId      = $settings['ga4_server_side']['measurement_id'] ?? '';
     $apiSecret = $settings['ga4_server_side']['api_secret'] ?? '';

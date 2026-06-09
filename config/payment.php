@@ -43,6 +43,7 @@ return [
     'payment_due_days_notify' => 2,  // Zusatztage bis die Verwaltung gewarnt wird
 
     // --- PAYPAL (Optional) ---
+    // ACHTUNG! Noch nicht getestet und fertig eingebaut! Nutzen von PayPal auf eigene Gefahr!
     'paypal' => [
         'enabled' => false, // AUF TRUE SETZEN für die Nutzung von Paypal
         'sandbox' => [

@@ -45,7 +45,8 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-        if ($this->processLogout($get)) {
+        // SICHERHEIT: Logout akzeptiert ab jetzt ausschließlich sichere POST-Anfragen
+        if ($this->processLogout($post)) {
             return;
         }
 
@@ -63,7 +64,7 @@ final readonly class HistoryController
         $displayMessage = (string) ($get['msg'] ?? '');
         $isSuccess      = ($get['sent'] ?? '') === '1';
 
-        // NEU: Wir führen eine Variable für den aktuellen Anzeige-Schritt ein
+        // Wir führen eine Variable für den aktuellen Anzeige-Schritt ein
         // 1 = E-Mail Abfrage, 2 = Code-Eingabe
         $currentStep = ($get['sent'] ?? '0') === '1' ? 2 : 1;
 
@@ -186,28 +187,29 @@ final readonly class HistoryController
         // Der Spaceship-Operator (<=>) funktioniert perfekt mit DateTime Objekten!
         \usort($permits, fn ($a, $b): int => $b->erstellt <=> $a->erstellt);
 
+        // [x] sortiert
         $this->render('history_list', [
-            'permits'            => $permits,
-            'email'              => $email,
-            'settings'           => $this->getSettingsArray(),
-            'currentArchiveYear' => $loadedYear,
-            'message'            => $message,
-            'isSuccess'          => $isSuccess,
             'config'             => $this->config,        // Für Fahrzeug-Icons
+            'currentArchiveYear' => $loadedYear,
+            'email'              => $email,
+            'isSuccess'          => $isSuccess,
+            'message'            => $message,
+            'permits'            => $permits,
             'permitService'      => $this->permitService, // Für Überfälligkeits-Prüfung
+            'settings'           => $this->getSettingsArray(),
         ]);
     }
 
     /**
      * Verarbeitet den Logout-Prozess für die History-Sitzung.
      *
-     * @param array<string, mixed> $get Entspricht $_GET
+     * @param array<string, mixed> $post Entspricht $_POST
      *
      * @return bool True, wenn ein Logout durchgeführt und weitergeleitet wurde.
      */
-    private function processLogout(array $get): bool
+    private function processLogout(array $post): bool
     {
-        if (isset($get['action']) && $get['action'] === 'logout') {
+        if (isset($post['action']) && $post['action'] === 'logout') {
             unset($_SESSION['user_history_email']);
             \header('Location: history.php');
 
@@ -227,19 +229,14 @@ final readonly class HistoryController
     {
         $permit = $this->permitService->getStorage()->findByHash($code);
         if ($permit instanceof Permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
+            // [x] sortiert
             $this->render('history_print_view', [
-                'permit'   => $permit,
-                'settings' => $this->getSettingsArray(),
-                'appRoot'  => $this->config->get('root_path'),
-                'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
-                    $permit->validity->von,
-                    $permit->validity->bis,
-                ),
-                'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
-                    $permit->validity->von,
-                    $permit->validity->bis,
-                ),
-                'config' => $this->config, // BUGFIX: $config hinzugefügt!
+                'appRoot'       => $this->config->get('root_path'),
+                'config'        => $this->config,
+                'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
+                'opening'       => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis),
+                'permit'        => $permit,
+                'settings'      => $this->getSettingsArray(),
             ]);
         } else {
             \header('Location: history.php');
@@ -253,12 +250,13 @@ final readonly class HistoryController
      */
     private function getSettingsArray(): array
     {
+        // [x] sortiert
         return [
-            'vereins_name'       => $this->config->get('vereins_name'),
-            'jahresFarbe'        => $this->config->get('jahresFarbe'),
             'base_url'           => $this->config->getBaseUrl(),
-            'terminkalender_url' => $this->config->get('terminkalender_url'),
+            'jahresFarbe'        => $this->config->get('jahresFarbe'),
             'opening_hours'      => $this->config->get('default_opening_hours'),
+            'terminkalender_url' => $this->config->get('terminkalender_url'),
+            'vereins_name'       => $this->config->get('vereins_name'),
         ];
     }
 

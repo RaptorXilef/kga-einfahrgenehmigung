@@ -1,7 +1,18 @@
 <?php
-// TODO DOCBLOCK
-?>
 
+/**
+ * Page: Checkout Summary & Payment Gateway
+ *
+ * Path: templates/pages/checkout/summary.phtml
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ *
+ * TODO @var
+ */
+?>
 <!DOCTYPE html>
 <html lang="de">
 
@@ -14,6 +25,10 @@
     <link rel="stylesheet"
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+
+    <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($config->get('paypal')[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"></script>
+    <?php } ?>
 </head>
 
 <body class="u-bg-light l-public-body">
@@ -67,10 +82,12 @@ echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey); ?><
                                 style="padding: 12px 0; font-weight: 700; text-transform: uppercase; font-family: monospace; font-size: 1.05rem;">
                                 <?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
                         </tr>
-                        <?php if (! empty($tempData['firma'])) { ?><tr style="border-top: 1px solid #e2e8f0;">
+                        <?php if (! empty($tempData['firma'])) { ?>
+                            <tr style="border-top: 1px solid #e2e8f0;">
                                 <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Firma / Lieferant:</td>
                                 <td style="padding: 12px 0; font-weight: 600;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
-                            </tr><?php } ?>
+                            </tr>
+                        <?php } ?>
                         <tr style="border-top: 1px solid #e2e8f0;">
                             <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Grund der Einfahrt:</td>
                             <td style="padding: 12px 0; font-weight: 600;"><?php $zKey = $tempData['zweck'] ?? '';
@@ -105,6 +122,14 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                     <?php } ?>
                 </div>
 
+                <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+                    <div id="paypal-button-container"
+                         style="margin-bottom: 25px; min-height: 150px;"></div>
+                    <div
+                         style="text-align: center; margin: 15px 0; color: var(--text-muted); font-size: 0.9rem; font-weight: bold;">
+                        — ODER ALTERNATIV —</div>
+                <?php } ?>
+
                 <div class="u-flex u-gap-m u-flex-wrap u-justify-center"
                      style="align-items: stretch;">
                     <a href="index.php?edit=1&token=<?php echo $token; ?>" class="c-button c-button--secondary" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0;">
@@ -128,8 +153,8 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
                 <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
                     <div class="u-text-center u-margin-top-m">
-                        <small class="u-text-muted">Sie erhalten im nächsten Schritt alle Bankdaten für die Überweisung
-                            angezeigt.</small>
+                        <small class="u-text-muted">Sie erhalten bei Auswahl der Überweisung im nächsten Schritt alle
+                            Bankdaten angezeigt.</small>
                     </div>
                 <?php } ?>
 
@@ -138,16 +163,20 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
     </div>
 
     <script>
+    const csrfToken = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+    const appToken = '<?php echo $token; ?>';
+
     function finalizeWire() {
         // Token sicher in den POST-Body packen statt in die URL
         const params = new URLSearchParams();
-        params.append('token', '<?php echo $token; ?>');
+        params.append('token', appToken);
+        params.append('csrf_token', csrfToken);
 
         fetch('<?php echo $settings['base_url']; ?>api/finalize_wire.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRF-Token': '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
+                    'X-CSRF-Token': csrfToken
                 },
                 body: params
             })
@@ -164,6 +193,67 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                 console.error(err);
             });
     }
+
+    // PayPal JS Integration (Aktiviert sich nur bei kostenpflichtigen Anträgen)
+    <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+        if (typeof paypal !== 'undefined') {
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    const params = new URLSearchParams();
+                    params.append('token', appToken);
+                    params.append('csrf_token', csrfToken);
+
+                    return fetch('<?php echo $settings['base_url']; ?>api/create_order_for_token.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRF-Token': csrfToken
+                            },
+                            body: params
+                        })
+                        .then(function(res) {
+                            return res.json();
+                        })
+                        .then(function(orderData) {
+                            if (orderData.success) {
+                                return orderData.id;
+                            } else {
+                                alert('PayPal-Sitzungsfehler: ' + orderData.error);
+                                throw new Error(orderData.error);
+                            }
+                        });
+                },
+                onApprove: function(data, actions) {
+                    return fetch('<?php echo $settings['base_url']; ?>api/capture.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                            },
+                            body: JSON.stringify({
+                                orderID: data.orderID,
+                                token: appToken
+                            })
+                        })
+                        .then(function(res) {
+                            return res.json();
+                        })
+                        .then(function(details) {
+                            if (details.success) {
+                                window.location.href = 'success.php?code=' + appToken +
+                                '&method=paypal';
+                            } else {
+                                alert('Zahlungsverifizierung fehlgeschlagen: ' + details.error);
+                            }
+                        });
+                },
+                onError: function(err) {
+                    console.error('PayPal-Fehlerkanal:', err);
+                    alert('Ein kritischer Fehler ist bei der Zahlungsabwicklung aufgetreten.');
+                }
+            }).render('#paypal-button-container');
+        }
+    <?php } ?>
 
     </script>
 </body>

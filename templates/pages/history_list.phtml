@@ -71,9 +71,22 @@ $now = new \DateTimeImmutable('today');
                     <strong style="color: #1e293b;"><?php echo \htmlspecialchars($email); ?></strong>
                 </p>
             </div>
-            <a href="history.php?action=logout" class="c-button c-button--secondary" style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color);">
-                Abmelden ✕
-            </a>
+
+            <form method="POST"
+                  action="history.php"
+                  style="margin: 0; display: inline;">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                <input type="hidden"
+                       name="action"
+                       value="logout">
+                <button type="submit"
+                        class="c-button c-button--secondary"
+                        style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color); height: 42px; background: none; font-weight: 600; cursor: pointer;">
+                    Abmelden ✕
+                </button>
+            </form>
         </header>
 
         <?php if (! empty($message)) {
