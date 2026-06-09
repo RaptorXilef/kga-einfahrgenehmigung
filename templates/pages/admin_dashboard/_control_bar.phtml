@@ -18,16 +18,28 @@
  * @var string                        $filterEnd
  * @var string                        $filterType
  */
-$filterType ??= 'all'; // Fallback
+$filterType ??= 'all';
+$sessionFilters = $_SESSION['admin_filters'] ?? [];
+$currentStart   = $sessionFilters['start'] ?? $filterStart;
+$currentEnd     = $sessionFilters['end'] ?? $filterEnd;
+$currentType    = $sessionFilters['type'] ?? $filterType;
+$currentQ       = $sessionFilters['q'] ?? '';
+$currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 ?>
 <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
     <div class="c-control-bar-wrapper">
         <section class="c-control-bar-section">
-            <form method="GET"
+            <form method="POST"
                   id="dashboardFilterForm"
                   class="u-flex u-align-center u-gap-s u-flex-wrap u-width-100 u-justify-center"
                   style="margin: 0; background: transparent;">
 
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                <input type="hidden"
+                       name="action"
+                       value="filter_dashboard">
                 <input type="hidden"
                        name="page"
                        value="1">
@@ -40,32 +52,31 @@ $filterType ??= 'all'; // Fallback
                     <input type="date"
                            id="filter_start"
                            name="start"
-                           value="<?php echo $filterStart; ?>"
+                           value="<?php echo \htmlspecialchars($currentStart); ?>"
                            class="c-control-bar-input">
                     <span class="u-text-muted" style="font-size: 0.75rem; font-weight: 800;">BIS</span>
                     <input type="date"
                            id="filter_end"
                            name="end"
-                           value="<?php echo $filterEnd; ?>"
+                           value="<?php echo \htmlspecialchars($currentEnd); ?>"
                            class="c-control-bar-input">
-
                     <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">TYP:</span>
                     <select name="type"
                             class="c-control-bar-input"
                             style="width: auto !important; cursor: pointer;"
                             onchange="this.form.submit()">
                         <option value="all"
-                                <?php echo $filterType === 'all' ? 'selected' : ''; ?>>
-                            Alle Genehmigungen
-                        </option>
+                                <?php echo $currentType === 'all' ? 'selected' : ''; ?>>
+                                Alle Genehmigungen
+                            </option>
                         <option value="standard"
-                                <?php echo $filterType === 'standard' ? 'selected' : ''; ?>>
-                            Nur Standard
-                        </option>
+                                <?php echo $currentType === 'standard' ? 'selected' : ''; ?>>
+                                Nur Standard
+                            </option>
                         <option value="permanent"
-                                <?php echo $filterType === 'permanent' ? 'selected' : ''; ?>>
-                            Nur Dauerkarten
-                        </option>
+                                <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>>
+                                Nur Dauerkarten
+                            </option>
                     </select>
                     <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">PRO SEITE:</span>
                     <select name="limit"
@@ -74,28 +85,31 @@ $filterType ??= 'all'; // Fallback
                             onchange="this.form.submit()">
                         <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
                             <option value="<?php echo $l; ?>"
-                                    <?php echo ($itemsPerPage ?? 25) === $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
+                                    <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
                         <?php } ?>
                     </select>
                 <?php } ?>
-
                 <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
                     <div style="position: relative; min-width: 150px; max-width: 230px; margin-left: auto;">
                         <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
                             <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt="">
                         </span>
-                        <!-- NEU: name="q" und value aus PHP für Server-Side Search -->
+                        <!-- name="q" und value aus PHP für Server-Side Search -->
                         <input type="text"
                                id="adminSearch"
                                name="q"
-                               value="<?php echo \htmlspecialchars($_GET['q'] ?? ''); ?>"
+                               value="<?php echo \htmlspecialchars($currentQ); ?>"
                                placeholder="Schnellsuche..."
                                title="Suchen Sie nach Namen, KFZ oder SmartCode"
                                class="c-form-input"
                                style="padding-left: 42px; border-radius: 30px; height: 38px; border: 1px solid var(--border-color);">
                     </div>
                 <?php } ?>
-
+                <?php if (! empty($sessionFilters)) { ?>
+                    <a href="?reset_filters=1" class="c-tabs__btn" style="text-decoration:none; padding: 6px 12px; font-size:0.8rem; border:1px solid var(--border-color);">
+                        ✕ Filter aufheben
+                    </a>
+                <?php } ?>
                 <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
                 <button type="submit"
                         style="display: none;"></button>
@@ -105,20 +119,20 @@ $filterType ??= 'all'; // Fallback
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const filterStart = document.getElementById('filter_start');
-        const filterEnd = document.getElementById('filter_end');
+        const filterStart=document.getElementById('filter_start');
+        const filterEnd=document.getElementById('filter_end');
 
         if (filterStart && filterEnd) {
             filterStart.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterStart.value > filterEnd.value) {
-                    filterEnd.value = filterStart.value;
+                    filterEnd.value=filterStart.value;
                 }
                 document.getElementById('dashboardFilterForm').submit();
             });
 
             filterEnd.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterEnd.value < filterStart.value) {
-                    filterStart.value = filterEnd.value;
+                    filterStart.value=filterEnd.value;
                 }
                 document.getElementById('dashboardFilterForm').submit();
             });

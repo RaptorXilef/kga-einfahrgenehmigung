@@ -13,17 +13,13 @@
 
 declare(strict_types=1);
 
-// Entferne die /* */ um das Feature zu aktivieren
 return [
-    /*
-    'enabled'           => true, // Banner komplett ein/ausschalten
-    'ga_measurement_id' => '', // Hier deine Google Analytics ID eintragen, wenn vorhanden (z.B. 'G-123456789')
-
-    'texts' => [
+    'enabled' => true, // Banner komplett ein/ausschalten
+    'texts'   => [
         'title'            => 'Datenschutz & Cookies',
         'description'      => 'Wir nutzen Cookies und ähnliche Technologien auf unserer Website. Einige von ihnen sind essenziell für den Betrieb der Seite (z. B. für den Antragsfortschritt), während andere uns helfen, diese Website zu verbessern.',
-        'accept_all'       => 'Alle akzeptieren',
-        'accept_essential' => 'Nur essenzielle',
+        'accept_all'       => 'Ich mag Cookies, die dabei helfen diese Website zu verbessern! [Alle akzeptieren]', // Alle akzeptieren
+        'accept_essential' => 'Ich mag keine Cookies! Ich akzeptiere nur die unbedingt nötigen, damit alles funktioniert. [Nur essenzielle]', // Nur essenzielle
         'save_selection'   => 'Auswahl speichern',
         'show_details'     => 'Details einblenden',
         'hide_details'     => 'Details ausblenden',
@@ -41,8 +37,9 @@ return [
         'analytics' => [
             'id'          => 'analytics',
             'title'       => 'Statistiken (Google Analytics)',
-            'description' => 'Erfasst anonyme Statistiken über die Nutzung unserer Website, um unser Angebot zu verbessern. Es werden keine personenbezogenen Daten an Google übermittelt, ohne dass die IP-Adresse zuvor anonymisiert wurde.',
-            'required'    => false,
+            'description' => 'Erfasst anonyme Statistiken über die Nutzung unserer Website, um unser Angebot zu verbessern. Es werden keine personenbezogenen Daten an Google übermittelt. Ihre IP-Adresse wird anonymisiert. Sie helfen uns Sehr, wenn Sie diese Statistik-Cookies akzeptieren.',
+            // 'description' => 'Erfasst anonyme Statistiken über die Nutzung unserer Website, um unser Angebot zu verbessern. Es werden keine personenbezogenen Daten an Google übermittelt, ohne dass die IP-Adresse zuvor anonymisiert wurde.',
+            'required' => false,
         ],
-    ],*/
+    ],
 ];

@@ -758,12 +758,20 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             const hiddenField = document.querySelector('input[type="hidden"][name="voucher"]');
             const voucher = (inputField && inputField.value) ? inputField.value : (hiddenField ? hiddenField.value :
                 '');
-            const res = await fetch(window.KGA_CONFIG.baseUrl +
-                `api/get_template_price.php?key=${selectTpl.value}&typ=${selectTyp.value}&voucher=${voucher}`, {
-                    headers: {
-                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                    }
-                });
+
+            // Auf JSON-POST umgestellt
+            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_template_price.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                },
+                body: JSON.stringify({
+                    key: selectTpl.value,
+                    typ: selectTyp.value,
+                    voucher: voucher
+                })
+            });
             if (!res.ok) throw new Error('Server-Antwort nicht okay');
             const data = await res.json();
             const priceBox = document.getElementById('price-display');
@@ -773,7 +781,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <div class="c-price-original">Original: ${data.original.toFixed(2).replace('.', ',')} €</div>
                     <div>Gebühr: ${data.formatted}</div>
                     <div class="c-price-discount-hint">${data.discountText} angewendet</div>
-                    `;
+                `;
             } else {
                 priceBox.innerText = `Gebühr: ${data.formatted}`;
             }

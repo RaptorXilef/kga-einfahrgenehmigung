@@ -28,10 +28,12 @@ if (empty($consentConfig['enabled'])) {
 }
 
 $baseUrl = $settings['base_url'] ?? '/';
+
+$gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
 ?>
 
 <div id="kga-consent-banner"
-     style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 9999; font-family: sans-serif; padding: 20px; box-sizing: border-box; border-top: 1px solid var(--border-color);">
+     style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid var(--border-color); padding: 20px; z-index: 99999; box-shadow: 0 -5px 25px rgba(0,0,0,0.05);">
     <div style="max-width: 800px; margin: 0 auto;">
         <div
              style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
@@ -60,7 +62,7 @@ $baseUrl = $settings['base_url'] ?? '/';
                                        <?php echo $group['required'] ? 'checked disabled' : ''; ?>>
                                 <div>
                                     <strong style="display: block; font-size: 0.95rem;"><?php echo \htmlspecialchars($group['title']); ?></strong>
-                                    <span style="font-size: 0.85rem; color: var(--text-muted);"><?php echo \htmlspecialchars($group['description']); ?></span>
+                                    <span style = "font-size: 0.85rem; color: var(--text-muted);"><?php echo \htmlspecialchars($group['description']); ?></span>
                                 </div>
                             </label>
                         </div>
@@ -70,11 +72,11 @@ $baseUrl = $settings['base_url'] ?? '/';
 
             <div style="display: flex; flex-direction: column; gap: 10px; min-width: 220px;">
                 <button onclick="kgaConsent.acceptAll()"
-                        style="background: var(--primary-color); color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+                        style="background: var(--primary-color); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_all']); ?>
                 </button>
                 <button onclick="kgaConsent.acceptEssential()"
-                        style="background: #f1f5f9; color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        style="background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_essential']); ?>
                 </button>
                 <button onclick="kgaConsent.toggleDetails()"
@@ -84,7 +86,7 @@ $baseUrl = $settings['base_url'] ?? '/';
                 </button>
                 <button onclick="kgaConsent.saveSelection()"
                         id="btn-save-selection"
-                        style="display: none; background: #e2e8f0; color: var(--text-color); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        style="display: none; background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['save_selection']); ?>
                 </button>
             </div>
@@ -95,7 +97,8 @@ $baseUrl = $settings['base_url'] ?? '/';
 <script>
 const kgaConsent = {
     cookieName: 'kga_cookie_consent',
-    gaId: '<?php echo \htmlspecialchars($consentConfig['ga_measurement_id']); ?>',
+    // Hier wird nun die dynamisch ermittelte $gaId eingetragen
+    gaId: '<?php echo \htmlspecialchars($gaId); ?>',
 
     init: function() {
         if (!this.getCookie()) {

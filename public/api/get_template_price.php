@@ -22,16 +22,20 @@ try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
     JsonResponse::enforceCsrfProtection();
 
+    // SICHERHEIT: Nur POST erlauben
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        JsonResponse::error('Methode nicht erlaubt.', 405);
+    }
+
+    // Daten aus dem JSON-Body (POST-Stream) lesen
+    $input         = \json_decode(\file_get_contents('php://input'), true) ?? [];
     $config        = $container->get(ConfigInterface::class);
     $permitService = $container->get(PermitService::class);
-
-    $vehicleTypes = $config->get('vehicle_types', []);
-    $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
-
-    $key         = (string) ($_GET['key'] ?? 'std_7');
-    $typ         = (string) ($_GET['typ'] ?? $defaultType); // Dynamischer Fallback (pkw)
-    $voucherCode = \strtoupper(\trim((string) ($_GET['voucher'] ?? '')));
-
+    $vehicleTypes  = $config->get('vehicle_types', []);
+    $defaultType   = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
+    $key           = (string) ($input['key'] ?? 'std_7');
+    $typ           = (string) ($input['typ'] ?? $defaultType); // Dynamischer Fallback (pkw)
+    $voucherCode   = \strtoupper(\trim((string) ($input['voucher'] ?? '')));
     $templates     = $config->get('permit_templates', []);
     $template      = $templates[$key] ?? $templates['std_7'];
     $originalPrice = (float) ($template['prices'][$typ] ?? 0.0);
@@ -46,14 +50,15 @@ try {
         $v              = $vouchers[$voucherCode] ?? null;
 
         if ($v) {
-            // NUTZUNG DER NEUEN isValid() SERVICE-METHODE
+            // NUTZUNG DER isValid() SERVICE-METHODE
             if ($voucherService->isValid($v)) {
                 // Preis berechnen über die entsprechende Methode im PermitService
-                $finalPrice   = $permitService->calculateDiscountedPrice($originalPrice, $v);
+                $finalPrice = $permitService->calculateDiscountedPrice($originalPrice, $v);
+                // [x] sortiert
                 $discountText = match ($v['type']) {
+                    'fixed'   => 'Sonderpreis aktiviert',
                     'free'    => '100% Rabatt (Kostenlos)',
                     'percent' => (float) $v['value'] . '% Rabatt',
-                    'fixed'   => 'Sonderpreis aktiviert',
                     default   => ''
                 };
             } else {
@@ -66,19 +71,21 @@ try {
         }
     }
 
+    // [x] sortiert
     JsonResponse::success([
-        'original'     => $originalPrice,
-        'price'        => $finalPrice,
         'discountText' => $discountText,
         'formatted'    => \number_format($finalPrice, 2, ',', '.') . ' €',
         'isFree'       => $finalPrice <= 0,
+        'original'     => $originalPrice,
+        'price'        => $finalPrice,
     ]);
 } catch (\Throwable $e) {
     // Bei diesem spezifischen Endpoint wollen wir auch im Fehlerfall eine formatierte Antwort
+    // [x] sortiert
     JsonResponse::send([
-        'success'   => false,
         'error'     => $e->getMessage(),
-        'price'     => 0.0,
         'formatted' => 'Fehler',
+        'price'     => 0.0,
+        'success'   => false,
     ], 400);
 }

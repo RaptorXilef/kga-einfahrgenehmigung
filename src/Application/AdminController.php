@@ -136,7 +136,8 @@ final readonly class AdminController
      */
     private function handleAuthActions(array $get, array $post): bool
     {
-        if (isset($get['action']) && $get['action'] === 'logout') {
+        // GET ABGEKLEMMT: Logout reagiert aus Sicherheitsgründen NUR noch auf POST
+        if (isset($post['action']) && $post['action'] === 'logout') {
             $this->auth->logout();
             \header('Location: admin.php');
 
@@ -176,7 +177,6 @@ final readonly class AdminController
                     'settings' => $this->getSettingsArray(),
                 ]);
                 exit;
-
             } catch (\RuntimeException $e) {
                 // Rate Limit Fehler abfangen
                 $this->render('admin_login', [
@@ -201,29 +201,46 @@ final readonly class AdminController
      */
     private function handleDataActions(array $post): string
     {
-        // Bestehende Logik: Zahlung markieren
+        // Zahlung markieren
         $action = (string) ($post['action'] ?? '');
         if ($action === '') {
             return '';
         }
 
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
+        // [x] Sortiert
         return match ($action) {
-            'migrate_data'      => $this->actionMigrateData($post),
-            'restore_data'      => $this->actionRestoreData($post),
-            'clear_cache'       => $this->actionClearCache($post),
-            'truncate_target'   => $this->actionTruncateTarget($post),
-            'anonymize_archive' => $this->actionAnonymizeArchive($post),
-            'resend_mail'       => $this->actionResendMail($post),
-            'mark_as_paid'      => $this->actionMarkAsPaid($post),
-            'create_voucher'    => $this->actionCreateVoucher($post),
-            'create_manual'     => $this->actionCreateManual($post),
-            'activate_voucher',
+            'activate_voucher'   => $this->actionToggleVoucher($post),
+            'anonymize_archive'  => $this->actionAnonymizeArchive($post),
+            'clear_cache'        => $this->actionClearCache($post),
+            'create_manual'      => $this->actionCreateManual($post),
+            'create_voucher'     => $this->actionCreateVoucher($post),
             'deactivate_voucher' => $this->actionToggleVoucher($post),
-            'unsuspend_permit',
-            'suspend_permit' => $this->actionToggleSuspension($post),
-            default          => '',
+            'filter_dashboard'   => $this->actionFilterDashboard($post),
+            'mark_as_paid'       => $this->actionMarkAsPaid($post),
+            'migrate_data'       => $this->actionMigrateData($post),
+            'resend_mail'        => $this->actionResendMail($post),
+            'restore_data'       => $this->actionRestoreData($post),
+            'suspend_permit'     => $this->actionToggleSuspension($post),
+            'truncate_target'    => $this->actionTruncateTarget($post),
+            'unsuspend_permit'   => $this->actionToggleSuspension($post),
+            default              => '',
         };
+    }
+
+    // TODO DOCBLOCK
+    // Hilfsmethode zum Speichern der Filter in der Session
+    private function actionFilterDashboard(array $post): string
+    {
+        $_SESSION['admin_filters'] = [
+            'end'   => (string) ($post['end'] ?? ''),
+            'limit' => (int) ($post['limit'] ?? 25),
+            'q'     => (string) ($post['q'] ?? ''),
+            'start' => (string) ($post['start'] ?? ''),
+            'type'  => (string) ($post['type'] ?? 'all'),
+        ];
+
+        return 'Filter angewendet.';
     }
 
     /**
@@ -457,10 +474,16 @@ final readonly class AdminController
      */
     private function renderDashboard(array $get, string $message): void
     {
-        $filterStart = (string) ($get['start'] ?? \date('Y-01-01'));
-        $filterEnd   = (string) ($get['end'] ?? \date('Y-12-31'));
-        $filterType  = (string) ($get['type'] ?? 'all'); // Den Typ-Filter aus der URL auslesen (Standard: 'all')
-        $searchQuery = \strtolower(\trim((string) ($get['q'] ?? ''))); // NEU: Die Suche
+        if (isset($get['reset_filters'])) {
+            unset($_SESSION['admin_filters']);
+        }
+        // Holt die Filter primär aus der Session (POST), fällt zurück auf GET oder Standardwerte
+        $sessionFilters = $_SESSION['admin_filters'] ?? [];
+
+        $filterStart = (string) ($sessionFilters['start'] ?? $get['start'] ?? \date('Y-01-01'));
+        $filterEnd   = (string) ($sessionFilters['end'] ?? $get['end'] ?? \date('Y-12-31'));
+        $filterType  = (string) ($sessionFilters['type'] ?? $get['type'] ?? 'all'); // Den Typ-Filter aus der URL auslesen
+        $searchQuery = \strtolower(\trim((string) ($sessionFilters['q'] ?? $get['q'] ?? ''))); // Die Suche
 
         // Konfiguration für Paginierung auslesen
         $paginationCfg = $this->config->get('pagination', []);
@@ -468,7 +491,7 @@ final readonly class AdminController
         $defaultLimit  = (int) ($paginationCfg['default_limit'] ?? 25);
 
         // Prüfen, ob ein Limit übergeben wurde und ob es in der erlaubten Liste steht
-        $requestedLimit = (int) ($get['limit'] ?? $defaultLimit);
+        $requestedLimit = (int) ($sessionFilters['limit'] ?? $get['limit'] ?? $defaultLimit);
         $itemsPerPage   = \in_array($requestedLimit, $allowedLimits, true) ? $requestedLimit : $defaultLimit;
 
         $currentPage = \max(1, (int) ($get['page'] ?? 1));
@@ -499,11 +522,11 @@ final readonly class AdminController
                 if ($searchQuery !== '') {
                     $haystack = \strtolower(
                         $p->code . ' ' .
-                        $p->owner->name . ' ' .
-                        $p->owner->email . ' ' .
-                        $p->owner->parzelle . ' ' .
-                        $p->vehicle->kennzeichen . ' ' .
-                        $p->validity->zweck,
+                            $p->owner->name . ' ' .
+                            $p->owner->email . ' ' .
+                            $p->owner->parzelle . ' ' .
+                            $p->vehicle->kennzeichen . ' ' .
+                            $p->validity->zweck,
                     );
                     if (! \str_contains($haystack, $searchQuery)) {
                         return false;
@@ -529,13 +552,16 @@ final readonly class AdminController
         // Gefilterte Daten ans Template übergeben
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->render('admin_dashboard', [
+            'allowedLimits'    => $allowedLimits, // Paginierungs-Werte
             'appRoot'          => $this->config->get('root_path'),
             'auth'             => $this->auth,
             'backupService'    => $this->backupService,
             'config'           => $this->config,
+            'currentPage'      => $currentPage, // Paginierungs-Werte
             'filterEnd'        => $filterEnd,
             'filterStart'      => $filterStart,
             'filterType'       => $filterType, // An die Control-Bar übergeben
+            'itemsPerPage'     => $itemsPerPage, // Paginierungs-Werte
             'mailLogs'         => $this->mailService->loadLogs(),
             'message'          => $message,
             'migrationService' => $this->migrationService,
@@ -547,9 +573,6 @@ final readonly class AdminController
             'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
             'voucherService'   => $this->permitService->getVoucherService(),
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
-            'currentPage'      => $currentPage, // Paginierungs-Werte
-            'itemsPerPage'     => $itemsPerPage, // Paginierungs-Werte
-            'allowedLimits'    => $allowedLimits, // Paginierungs-Werte
         ]);
     }
 

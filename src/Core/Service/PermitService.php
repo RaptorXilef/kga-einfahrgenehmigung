@@ -376,11 +376,12 @@ final readonly class PermitService
      */
     public function calculateDiscountedPrice(float $originalPrice, array $voucher): float
     {
-        $type     = $voucher['type'] ?? 'free';
-        $value    = (float) ($voucher['value'] ?? 0.0);
+        $type  = $voucher['type'] ?? 'free';
+        $value = (float) ($voucher['value'] ?? 0.0);
+        // [x] Sortiert
         $newPrice = match ($type) {
-            'free'    => 0.0,
             'fixed'   => $value,
+            'free'    => 0.0,
             'percent' => $originalPrice * (1 - ($value / 100)),
             default   => $originalPrice,
         };
@@ -439,29 +440,30 @@ final readonly class PermitService
         // Prüfung, ob die Vorstands-Benachrichtigung gesendet werden soll (Standard: true, falls nicht gesetzt)
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             // --- 1. MAIL AN VORSTAND (Immer senden) ---
+            // [x] Sortiert
             $this->mailService->sendTemplate(
-                $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
-                "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
-                'board_notification',
-                [
-                    'fullIdentifier' => $permit->code,
-                    'name'           => $permit->owner->name,
+                data: [
+                    'adminLink'      => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
+                    'bis_formatted'  => $permit->validity->bis->format('d.m.Y'),
                     'email'          => $permit->owner->email ?: 'Keine angegeben',
+                    'firma'          => $permit->vehicle->firma ?? '',
+                    'fullIdentifier' => $permit->code,
+                    'kennzeichen'    => $permit->vehicle->kennzeichen,
+                    'name'           => $permit->owner->name,
                     'parzelle'       => $permit->owner->parzelle,
+                    'preis'          => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
                     'typLabel'       => (function ($typ, $config) {
                         $vConfigs = $config->get('vehicle_types', []);
 
                         return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
                     })($permit->vehicle->typ, $this->config), // (Sicher gegen gelöschte Fahrzeugtypen):
-                    'kennzeichen'   => $permit->vehicle->kennzeichen,
-                    'firma'         => $permit->vehicle->firma ?? '',
-                    'von_formatted' => $permit->validity->von->format('d.m.Y'),
-                    'bis_formatted' => $permit->validity->bis->format('d.m.Y'),
-                    'zweck'         => $permit->validity->zweck,
-                    'preis'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
-                    'adminLink'     => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
                     'vereinsName'   => $this->config->get('vereins_name'),
+                    'von_formatted' => $permit->validity->von->format('d.m.Y'),
+                    'zweck'         => $permit->validity->zweck,
                 ],
+                recipient: $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
+                subject: "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
+                template: 'board_notification',
             );
         }
 
@@ -475,6 +477,7 @@ final readonly class PermitService
             $usage     = $this->generateUsageText($permit, $shortCode);
             $epcQrData = $this->bankQrGenerator->generate($permit->validity->preis, $usage);
 
+            // [ ] Sortiert
             $this->mailService->sendTemplate(
                 $permit->owner->email,
                 "Zahlung erforderlich: {$permit->code}",
@@ -493,6 +496,7 @@ final readonly class PermitService
         }
 
         // 3. DAS A4 DOKUMENT (KEINE DUPLIKATE MEHR!)
+        // [ ] Sortiert
         $this->mailService->sendTemplate(
             $permit->owner->email,
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
@@ -878,6 +882,7 @@ final readonly class PermitService
      */
     public function entityToArray(Permit $permit): array
     {
+        // [ ] Sortiert
         return [
             'code'               => $permit->code,
             'template_key'       => $permit->template_key,
@@ -987,6 +992,7 @@ final readonly class PermitService
         $items  = \array_slice($filtered, $offset, $limit);
 
         // 6. Für die API als flache Arrays formatieren
+        // [ ] Sortiert
         $formattedItems = \array_map(fn ($p) => [
             'code'         => $p->code,
             'name'         => $p->owner->name,

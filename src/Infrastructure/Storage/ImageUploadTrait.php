@@ -47,10 +47,11 @@ trait ImageUploadTrait
             return false;
         }
 
+        // [x] Sortiert
         $src = match ($info[2]) {
+            \IMAGETYPE_GIF  => @\imagecreatefromgif($file['tmp_name']),
             \IMAGETYPE_JPEG => @\imagecreatefromjpeg($file['tmp_name']),
             \IMAGETYPE_PNG  => @\imagecreatefrompng($file['tmp_name']),
-            \IMAGETYPE_GIF  => @\imagecreatefromgif($file['tmp_name']),
             \IMAGETYPE_WEBP => @\imagecreatefromwebp($file['tmp_name']),
             default         => null
         };

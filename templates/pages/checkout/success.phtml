@@ -28,6 +28,21 @@
 </head>
 
 <body class="u-bg-light l-public-body">
+    <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+    gtag('event', 'permit_created_success');
+
+    </script>
+
+
+    <?php
+    // TODO Korrekt einbinden!
+    // include $appRoot . '/templates/components/_test_mode_indicator.phtml';
+?>
     <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
 
     <div class="c-tab-content-container u-padding-y-xl"
@@ -50,17 +65,20 @@
 
                 <?php if ($method === 'wire' && $permit->status->current !== 'bezahlt') { ?>
                     <div
-                         style="text-align: left; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 25px; margin-top: 30px;">
+                         style="text-align: left; background: #fafafa; border: 1px dashed var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px;">
                         <h3 class="u-margin-top-none"
-                            style="color: #0369a1; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">
-                            Zahlungsinformationen</h3>
+                            style="color: var(--text-main);">
+                            Zahlungsinformationen
+                        </h3>
 
                         <?php if ($requirePayment) { ?>
-                            <p style="color: #0c4a6e;">Bitte überweisen Sie die Gebühr auf folgendes Konto. Ihr Antrag
-                                wird nach Zahlungseingang freigeschaltet.</p>
+                            <p style="color: var(--danger-color); font-weight: 600;">Achtung: Ihre Genehmigung
+                                wird erst nach Zahlungseingang freigeschaltet.
+                            </p>
                         <?php } else { ?>
                             <p style="color: #0c4a6e;">Bitte überweisen Sie den Betrag bis spätestens
-                                <strong><?php echo $dueDate; ?></strong>.</p>
+                                <strong><?php echo $dueDate; ?></strong>.
+                            </p>
                         <?php } ?>
 
                         <div class="u-grid"
@@ -68,28 +86,28 @@
                             <div>
                                 <table style="width: 100%; font-size: 0.95rem; border-collapse: collapse;">
                                     <tr>
-                                        <td style="padding: 5px 0; color: #0c4a6e;">Betrag:</td>
+                                        <td style="padding: 5px 0; color: var(--text-muted);">Betrag:</td>
                                         <td style="font-weight: 800; font-size: 1.1rem; color: var(--primary-color);">
                                             <?php echo \number_format($permit->validity->preis, 2, ',', '.'); ?> €</td>
                                     </tr>
-                                    <tr style="border-top: 1px solid #bae6fd;">
-                                        <td style="padding: 5px 0; color: #0c4a6e;">Empfänger:</td>
+                                    <tr style="border-top: 1px solid var(--border-color);">
+                                        <td style="padding: 5px 0; color: var(--text-muted);">Empfänger:</td>
                                         <td style="font-weight: 600;"><?php echo \htmlspecialchars($settings['kontoinhaber']); ?></td>
                                     </tr>
-                                    <tr style="border-top: 1px solid #bae6fd;">
-                                        <td style="padding: 5px 0; color: #0c4a6e;">IBAN:</td>
+                                    <tr style="border-top: 1px solid var(--border-color);">
+                                        <td style="padding: 5px 0; color: var(--text-muted);">IBAN:</td>
                                         <td style="font-weight: 600; font-family: monospace; font-size: 1rem;"><?php echo \htmlspecialchars($settings['iban']); ?>
                                         </td>
                                     </tr>
-                                    <tr style="border-top: 1px solid #bae6fd;">
-                                        <td style="padding: 5px 0; color: #0c4a6e;">BIC:</td>
+                                    <tr style="border-top: 1px solid var(--border-color);">
+                                        <td style="padding: 5px 0; color: var(--text-muted);">BIC:</td>
                                         <td style="font-weight: 600;"><?php echo \htmlspecialchars($settings['bic']); ?></td>
                                     </tr>
-                                    <tr style="border-top: 1px solid #bae6fd;">
-                                        <td style="padding: 5px 0; color: #0c4a6e;">
+                                    <tr style="border-top: 1px solid var(--border-color);">
+                                        <td style="padding: 5px 0; color: var(--text-muted);">
                                             Verwendungszweck:<br><small>(Zwingend erforderlich!)</small></td>
                                         <td
-                                            style="font-weight: 800; font-family: monospace; font-size: 1rem; color: #db2777;">
+                                            style="font-weight: 800; font-family: monospace; font-size: 1rem; color: var(--danger-color);">
                                             <?php echo \htmlspecialchars($usage); ?></td>
                                     </tr>
                                 </table>
@@ -97,9 +115,10 @@
                             <div class="u-text-center">
                                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=<?php echo $epcData; ?>"
                                      alt="GiroCode wird erstellt, bitte warten"
-                                     style="border: 2px solid #bae6fd; border-radius: 8px; width: 130px; height: 130px;">
-                                <div style="font-size: 0.75rem; color: #0c4a6e; margin-top: 5px; font-weight: 600;">
-                                    Banking-App Scan</div>
+                                     style="border: 2px solid var(--border-color); border-radius: 6px; padding: 4px; background: white;">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-weight: 600;">
+                                    Banking-App Scan
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -107,17 +126,21 @@
 
                 <div class="u-margin-top-xl u-padding-top-l"
                      style="border-top: 1px solid var(--border-color);">
-                    <p class="u-text-muted u-margin-bottom-m"
+                    <p class="u-margin-bottom-m"
                        style="font-size: 0.95rem;">
                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
                              class="c-icon"
                              alt=""
                              style="width: 18px; vertical-align: middle; margin-right: 5px; opacity: 0.7;">
-                        Wir haben Ihnen diese Informationen sowie die Bestätigung soeben auch an <strong
-                                style="color: var(--text-dark);"><?php echo \htmlspecialchars($permit->owner->email ?: 'Ihre E-Mail-Adresse'); ?></strong> gesendet.
+                        Wir haben Ihnen diese Informationen sowie die Bestätigung soeben auch an
+                        <strong style="color: var(--text-dark);"><?php echo \htmlspecialchars($permit->owner->email ?: 'Ihre E-Mail-Adresse'); ?></strong> gesendet.
                     </p>
 
-                    <a href="check.php?code=<?php echo $permit->code; ?>" class="c-button c-button--primary" style="display: inline-block; padding: 15px 20px; font-size: 1.1rem; width: 100%; max-width: 400px; height: 100%; text-decoration: none;">Zum Live-Status der Genehmigung &rarr;</a>
+                    <a href="check.php?code=<?php echo $permit->code; ?>"
+                       class="c-button c-button--primary"
+                       style="display: inline-block; padding: 15px 20px; font-size: 1.1rem; width: 100%; max-width: 400px; height: 100%; text-decoration: none;">
+                       Zum Live-Status der Genehmigung &rarr;
+                    </a>
                 </div>
             </div>
         </div>

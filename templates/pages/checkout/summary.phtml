@@ -139,10 +139,17 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
     <script>
     function finalizeWire() {
-        fetch('<?php echo $settings['base_url']; ?>api/finalize_wire.php?token=<?php echo $token; ?>', {
+        // Token sicher in den POST-Body packen statt in die URL
+        const params = new URLSearchParams();
+        params.append('token', '<?php echo $token; ?>');
+
+        fetch('<?php echo $settings['base_url']; ?>api/finalize_wire.php', {
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRF-Token': '<?php echo $_SESSION['csrf_token'] ?? ''; ?>'
-                }
+                },
+                body: params
             })
             .then(r => r.json())
             .then(data => {

@@ -21,7 +21,11 @@ try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
     JsonResponse::enforceCsrfProtection();
 
-    $token = (string) ($_GET['token'] ?? '');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        JsonResponse::error('Methode nicht erlaubt.', 405);
+    }
+
+    $token = (string) ($_POST['token'] ?? '');
     if ($token === '') {
         throw new \Exception('Kein Token angegeben');
     }

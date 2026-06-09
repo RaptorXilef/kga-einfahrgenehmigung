@@ -54,16 +54,17 @@ final readonly class UserController
                 // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
                 $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
 
+                // [x] Sortiert
                 $message = match ($action) {
-                    'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
-                    'delete_user'          => $this->handleDeleteUser($post),
-                    'rename_user'          => $this->handleRenameUser($post),
-                    'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
                     'change_user_group'    => $this->handleChangeUserGroup($post),
                     'change_user_password' => $this->handleResetPassword($post),
-                    'save_group'           => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
-                    'rename_group'         => $this->handleRenameGroup($post),
                     'delete_group'         => $this->handleDeleteGroup($post),
+                    'delete_user'          => $this->handleDeleteUser($post),
+                    'rename_group'         => $this->handleRenameGroup($post),
+                    'rename_user'          => $this->handleRenameUser($post),
+                    'save_group'           => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
+                    'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
+                    'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
                     'upload_group_image'   => $this->handleUploadGroupImage($post, $_FILES['avatar'] ?? null),
                     default                => ''
                 };
@@ -112,10 +113,11 @@ final readonly class UserController
             if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
+                // [x] Sortiert
                 $message = match ($action) {
+                    'change_own_avatar'   => $this->processOwnAvatarUpload($userId, $_FILES['avatar'] ?? null),
                     'change_own_password' => $this->processOwnPasswordChange($userId, $post),
                     'change_own_username' => $this->processOwnUsernameChange($userId, $post),
-                    'change_own_avatar'   => $this->processOwnAvatarUpload($userId, $_FILES['avatar'] ?? null),
                     default               => ''
                 };
             }

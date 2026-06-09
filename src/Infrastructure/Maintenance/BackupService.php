@@ -278,10 +278,22 @@ final readonly class BackupService
             $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
             $rows      = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             $res       = [];
-            $idField   = match ($key) {
-                'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive' => 'id',
-                'magic_links', 'pending_verification', 'verified_pending'       => 'token',
-                default                                                         => 'code'
+            // [x] Sortiert
+            $idField = match ($key) {
+                // ID-Tabellen (alphabetisch sortiert)
+                'groups'           => 'id',
+                'mail_log'         => 'id',
+                'mail_queue'       => 'id',
+                'users'            => 'id',
+                'vouchers_archive' => 'id',
+
+                // Token-Tabellen (alphabetisch sortiert)
+                'magic_links'          => 'token',
+                'pending_verification' => 'token',
+                'verified_pending'     => 'token',
+
+                // default
+                default => 'code'
             };
             foreach ($rows as $r) {
                 if (isset($r['data']) && \is_string($r['data'])) {

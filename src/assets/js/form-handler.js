@@ -252,15 +252,21 @@ export class PermitFormHandler {
         const voucher = voucherInput ? voucherInput.value : '';
 
         try {
-            const response = await fetch(
-                `${baseUrl}api/get_template_price.php?key=${this.tplSelect.value}&typ=${this.typSelect.value}&voucher=${voucher}`,
-                {
-                    // Den Schlüssel im Header mitsenden (API-Key)
-                    headers: {
-                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken,
-                    },
-                }
-            );
+            // Umgestellt auf POST mit JSON-Body, um Gutscheincodes aus der URL fernzuhalten
+            const response = await fetch(`${baseUrl}api/get_template_price.php`, {
+                method: 'POST',
+
+                // Den Schlüssel im Header mitsenden (API-Key)
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken,
+                },
+                body: JSON.stringify({
+                    key: this.tplSelect.value,
+                    typ: this.typSelect.value,
+                    voucher: voucher,
+                }),
+            });
             const data = await response.json();
 
             if (this.priceDisplay && data.success) {

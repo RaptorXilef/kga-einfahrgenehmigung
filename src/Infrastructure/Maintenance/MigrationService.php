@@ -67,6 +67,7 @@ final readonly class MigrationService
         }
 
         // 3. Eigentliche Aktion ausführen
+        // [x] Sortiert
         $result = match ($action) {
             'json_to_mysql' => $this->migrateJsonToSql($target),
             'mysql_to_json' => $this->migrateSqlToJson($target),
@@ -216,21 +217,21 @@ final readonly class MigrationService
         // Wir nutzen die Services als stark typisierte Bausteine statt einer unsicheren generic-Schleife
         // Wir delegieren an die Services, da diese bereits die Logik für "Save" haben!
         // Das ist sauberer als genericSqlInsert, da die Services die Spalten kennen.
+        // [x] Sortiert
         match ($key) {
-            'users'                => $this->authService->saveUsers($data, true),
             'groups'               => $this->authService->saveGroups($data, true),
-            'vouchers'             => $this->voucherRepository->saveAll($data, true),
-            'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
             'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
             'mail_log'             => $this->mailService->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
             'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
-            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
+            'permits_archive'      => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
             'permits'              => $this->migratePermitsToSql($data),
-            // permits_archive nutzt jetzt den schönen, sauberen Archive-Repository-Aufruf!
-            'permits_archive'   => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
-            'update_migrations' => $this->migrateUpdateMigrationsToSql($data),
-            default             => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
+            'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
+            'users'                => $this->authService->saveUsers($data, true),
+            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
+            'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
+            'vouchers'             => $this->voucherRepository->saveAll($data, true),
+            default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
         };
     }
 
@@ -350,11 +351,20 @@ final readonly class MigrationService
      */
     private function getIdFieldForKey(string $key): string
     {
+        // [x] Sortiert
         return match ($key) {
-            'users', 'groups', 'mail_log', 'mail_queue', 'vouchers_archive', 'update_migrations' => 'id',
-            'magic_links', 'pending_verification', 'verified_pending'                            => 'token',
-            'permits', 'permits_archive'                                                         => 'code',
-            default                                                                              => 'code'
+            'groups'               => 'id',
+            'mail_log'             => 'id',
+            'mail_queue'           => 'id',
+            'update_migrations'    => 'id',
+            'users'                => 'id',
+            'vouchers_archive'     => 'id',
+            'magic_links'          => 'token',
+            'pending_verification' => 'token',
+            'verified_pending'     => 'token',
+            'permits_archive'      => 'code',
+            'permits'              => 'code',
+            default                => 'code'
         };
     }
 
