@@ -13,10 +13,15 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.3",
-    "ext-zip": "*",
+    "ext-json": "*",
     "ext-mbstring": "*",
-    "vlucas/phpdotenv": "^5.6",
-    "ezyang/htmlpurifier": "^4.19"
+    "ext-zip": "*",
+    "ext-curl": "*",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-gd": "*",
+    "ext-hash": "*",
+    "ext-openssl": "*"
   },
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
