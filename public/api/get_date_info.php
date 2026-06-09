@@ -20,8 +20,16 @@ try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
     JsonResponse::enforceCsrfProtection();
 
-    $vonStr = (string) ($_GET['von'] ?? 'now');
-    $bisStr = (string) ($_GET['bis'] ?? 'now');
+    // SICHERHEIT: Nur POST erlauben
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        JsonResponse::error('Methode nicht erlaubt.', 405);
+    }
+
+    // JSON-Stream auslesen
+    $input = \json_decode(\file_get_contents('php://input'), true) ?? [];
+
+    $vonStr = (string) ($input['von'] ?? 'now');
+    $bisStr = (string) ($input['bis'] ?? 'now');
 
     try {
         $von = new \DateTimeImmutable($vonStr);

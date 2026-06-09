@@ -136,7 +136,7 @@ final readonly class AdminController
      */
     private function handleAuthActions(array $get, array $post): bool
     {
-        // GET ABGEKLEMMT: Logout reagiert aus Sicherheitsgründen NUR noch auf POST
+        // STRIKTE HÄRTUNG: Logout reagiert aus Sicherheitsgründen AUSSCHLIESSLICH auf POST
         if (isset($post['action']) && $post['action'] === 'logout') {
             $this->auth->logout();
             \header('Location: admin.php');
@@ -160,7 +160,7 @@ final readonly class AdminController
 
             try {
                 if ($this->auth->login($user, $pass)) {
-                    // Wenn ein Code per GET oder POST übergeben wurde, leite direkt zur Prüfung weiter
+                    // Login-Redirects behalten POST/REQUEST-Fokus bei, leite direkt zur Prüfung weiter
                     $code = (string) ($_REQUEST['code'] ?? '');
                     if ($code !== '') {
                         \header('Location: check.php?code=' . \urlencode($code));

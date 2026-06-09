@@ -1,7 +1,14 @@
 <?php
 
 /**
- * TODO DOCBLOCK
+ * API: Administrative Echtzeitsuche
+ *
+ * Path: public/api/search_permits.php
+ *
+ * PDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
  */
 
 declare(strict_types=1);
@@ -19,13 +26,19 @@ try {
     }
 
     // Such-Parameter auslesen
-    $query = \trim((string) ($_GET['q'] ?? ''));
-    $page  = \max(1, (int) ($_GET['page'] ?? 1));
-    $limit = \max(10, \min(100, (int) ($_GET['limit'] ?? 50))); // Max 100 pro Seite
+    // SICHERHEIT: Nur POST erlauben
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        JsonResponse::error('Methode nicht erlaubt.', 405);
+    }
+
+    // Parameter aus dem POST-Array auslesen statt GET
+    $query = \trim((string) ($_POST['q'] ?? ''));
+    $page  = \max(1, (int) ($_POST['page'] ?? 1));
+    $limit = \max(10, \min(100, (int) ($_POST['limit'] ?? 50)));
 
     // Filter-Parameter (z.B. 'all', 'active', 'expired', 'archive')
-    $filterTab      = (string) ($_GET['tab'] ?? 'all');
-    $filterTemplate = (string) ($_GET['template'] ?? 'all');
+    $filterTab      = (string) ($_POST['tab'] ?? 'all');
+    $filterTemplate = (string) ($_POST['template'] ?? 'all');
 
     // Wir holen den Service und lassen ihn die schwere Arbeit machen
     $permitService = $container->get(PermitService::class);
