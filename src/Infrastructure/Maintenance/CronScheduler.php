@@ -7,7 +7,19 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
-// TODO DOCBLOCK
+/**
+ * Scheduler für automatisierte Wartungsaufgaben (Pseudo-Cron oder Server-Cron).
+ *
+ * Steuert zeitbasierte Routinen wie die Auto-Archivierung veralteter Genehmigungen
+ * und die regelmäßige Erstellung von Backups.
+ *
+ * Path: src/Infrastructure/Maintenance/CronScheduler.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class CronScheduler
 {
     public function __construct(
@@ -17,10 +29,9 @@ final readonly class CronScheduler
     ) {
     }
 
-    // TODO DOCBLOCK
     /**
-     * Wird beim Laden des Admin-Dashboards aufgerufen.
-     * Prüft, ob seit dem letzten Lauf 24 Stunden (86400 Sek) vergangen sind.
+     * Wird asynchron (z.B. beim Laden des Admin-Dashboards) aufgerufen.
+     * Prüft, ob seit dem letzten Lauf ausreichend Zeit (z.B. 24 Stunden) vergangen ist.
      */
     public function runIfNeeded(): void
     {
@@ -39,9 +50,9 @@ final readonly class CronScheduler
         }
     }
 
-    // TODO DOCBLOCK
     /**
-     * Führt alle geplanten Jobs sofort aus.
+     * Führt alle geplanten Jobs (Auto-Archivierung und Backups) sofort aus,
+     * unabhängig davon, ob das Intervall bereits abgelaufen ist.
      */
     public function runForce(): void
     {

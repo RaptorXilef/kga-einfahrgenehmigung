@@ -7,7 +7,19 @@ use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Logging\ErrorLogger;
 
-// TODO DOCBLOCK
+/**
+ * Zentraler Exception Handler für die Anwendung.
+ *
+ * Fängt ungeprüfte Ausnahmen sowie klassische PHP-Fehler ab, loggt diese
+ * revisionssicher und gibt eine nutzerfreundliche HTML- oder JSON-Fehlerseite zurück.
+ *
+ * Path: src/Application/Exception/GlobalExceptionHandler.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class GlobalExceptionHandler
 {
     public function __construct(
@@ -16,9 +28,9 @@ final readonly class GlobalExceptionHandler
     ) {
     }
 
-    // TODO DOCBLOCK
     /**
-     * Klinkt den Handler in PHP ein
+     * Klinkt den Handler global in den PHP-Lebenszyklus ein.
+     * Verwandelt auch klassische PHP-Warnungen und -Fehler in fangbare Exceptions.
      */
     public function register(): void
     {
@@ -34,9 +46,10 @@ final readonly class GlobalExceptionHandler
         });
     }
 
-    // TODO DOCBLOCK
     /**
-     * Zentraler Auffangkorb für alle Fehler
+     * Zentraler Auffangkorb für alle Exceptions und fatalen Fehler.
+     *
+     * @param \Throwable $exception Die geworfene Ausnahme.
      */
     public function handleException(\Throwable $exception): void
     {
@@ -60,7 +73,12 @@ final readonly class GlobalExceptionHandler
         $this->renderErrorPage($exception, $isDev);
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Rendert eine formatierte HTML-Fehlerseite für Endnutzer oder Entwickler.
+     *
+     * @param \Throwable $exception Die aufgetretene Ausnahme.
+     * @param bool       $isDev     Gibt an, ob der Stacktrace (Dev-Mode) angezeigt werden darf.
+     */
     private function renderErrorPage(\Throwable $exception, bool $isDev): void
     {
         \http_response_code(500);

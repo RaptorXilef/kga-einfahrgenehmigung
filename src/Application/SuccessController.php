@@ -9,7 +9,19 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\BankQrGenerator;
 
-// TODO DOCBLOCK
+/**
+ * Controller für die Erfolgs- und Bestätigungsseite nach Abschluss eines Antrags.
+ *
+ * Generiert bei Bedarf Bank-QR-Codes (EPC) für offene Überweisungen und zeigt
+ * dem Benutzer die finalen Zahlungsanweisungen an.
+ *
+ * Path: src/Application/SuccessController.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class SuccessController
 {
     public function __construct(
@@ -19,7 +31,12 @@ final readonly class SuccessController
     ) {
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Haupt-Request-Handler für die Success-Seite.
+     * Validiert das Ticket und bereitet die Bezahlinformationen auf.
+     *
+     * @param array<string, mixed> $get Entspricht $_GET.
+     */
     public function handleRequest(array $get): void
     {
         $code   = (string) ($get['code'] ?? '');
@@ -68,7 +85,12 @@ final readonly class SuccessController
         ]);
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Integriert Variablen-Scope und bindet PHTML-Erfolgsseiten ein.
+     *
+     * @param string               $templatePath Template-Name.
+     * @param array<string, mixed> $data         UI-Daten.
+     */
     private function render(string $templatePath, array $data = []): void
     {
         \extract($data);

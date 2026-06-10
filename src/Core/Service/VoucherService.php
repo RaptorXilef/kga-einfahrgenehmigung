@@ -238,9 +238,9 @@ final readonly class VoucherService
     /**
      * Lädt alle derzeit aktiven Gutscheine.
      *
-     * @return array Ein Array aller aktiven Gutscheine.
+     * @return array<string, array<string, mixed>> Ein Array aller aktiven Gutscheine.
+     * @deprecated Wird vorübergehend durchgeleitet, um Controller-Bruch zu vermeiden.
      */
-    // public function loadVouchers()
     public function loadVouchers(): array
     {
         return $this->repository->loadAll();
@@ -249,9 +249,9 @@ final readonly class VoucherService
     /**
      * Lädt das Archiv der bereits vollständig eingelösten Gutscheine.
      *
-     * @return array Ein Array aller archivierten Gutscheine.
+     * @return array<int|string, array<string, mixed>> Ein Array aller archivierten Gutscheine.
+     * @deprecated Wird vorübergehend durchgeleitet, um Controller-Bruch zu vermeiden.
      */
-    // public function loadArchive()
     public function loadArchive(): array
     {
         return $this->repository->loadArchive();

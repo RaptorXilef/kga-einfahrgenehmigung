@@ -7,9 +7,9 @@ namespace App\Application;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * TODO DOCBLOCK
+ * Controller für rechtliche Informationsseiten (Impressum, Datenschutz).
  *
- * Path: src/Application/HistoryController.php
+ * Path: src/Application/LegalController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -24,8 +24,7 @@ final readonly class LegalController
     }
 
     /**
-     * TODO DOCBLOCK
-     * Rendert das Impressum
+     * Lädt die statischen Daten aus der Konfiguration und rendert die Impressum-Seite.
      */
     public function renderImpressum(): void
     {
@@ -41,8 +40,7 @@ final readonly class LegalController
     }
 
     /**
-     * TODO DOCBLOCK
-     * Rendert die Datenschutzerklärung
+     * Lädt die statischen Daten aus der Konfiguration und rendert die Datenschutzerklärung.
      */
     public function renderDatenschutz(): void
     {
@@ -57,8 +55,9 @@ final readonly class LegalController
     }
 
     /**
-     * TODO DOCBLOCK
-     * Holt Basis-Einstellungen für Header/Nav/Favicon analog zum PermitController
+     * Holt Basis-Einstellungen für Header, Navigation und Favicons.
+     *
+     * @return array<string, mixed>
      */
     private function getSettingsArray(): array
     {
@@ -70,8 +69,10 @@ final readonly class LegalController
     }
 
     /**
-     * TODO DOCBLOCK
-     * Rendering-Hilfsmethode
+     * Rendering-Hilfsmethode für die Legal-Templates.
+     *
+     * @param string               $templatePath Relativer Pfad zum .phtml Template.
+     * @param array<string, mixed> $data         Injektionsvariablen.
      */
     private function render(string $templatePath, array $data = []): void
     {

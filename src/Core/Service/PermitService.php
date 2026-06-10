@@ -830,13 +830,21 @@ final readonly class PermitService
         return $this->mailService;
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Gibt die Instanz des Archiv-Repositories zurück.
+     */
     public function getArchiveRepository(): PermitArchiveRepositoryInterface
     {
         return $this->archiveRepository;
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Trigger für die DSGVO-konforme Anonymisierung veralteter Archiv-Einträge.
+     *
+     * @param int $yearsThreshold Die Aufbewahrungsfrist in Jahren.
+     *
+     * @return int Anzahl der anonymisierten Datensätze.
+     */
     public function anonymizeOldArchiveRecords(int $yearsThreshold = 10): int
     {
         return $this->archiveRepository->anonymizeOldRecords($yearsThreshold);

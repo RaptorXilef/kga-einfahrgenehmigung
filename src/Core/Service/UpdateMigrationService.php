@@ -25,8 +25,9 @@ final readonly class UpdateMigrationService
     }
 
     /**
-     * TODO DOCBLOCK
-     * Sucht nach neuen Migrations-Skripten und führt diese aus.
+     * Sucht nach neuen Migrations-Skripten im Ordner und führt diese chronologisch aus.
+     *
+     * @return array<int, string> Liste der neu ausgeführten Migrations-Versionen.
      */
     public function runAllPending(): array
     {
@@ -66,8 +67,9 @@ final readonly class UpdateMigrationService
     }
 
     /**
-     * TODO DOCBLOCK
-     * Holt eine Liste aller bereits ausgeführten Versionen.
+     * Holt eine Liste aller historisch bereits ausgeführten Versionen aus der Datenbank oder JSON.
+     *
+     * @return array<int, string>
      */
     private function getExecutedMigrations(): array
     {
@@ -99,8 +101,9 @@ final readonly class UpdateMigrationService
     }
 
     /**
-     * TODO DOCBLOCK
-     * Markiert ein Skript als "erledigt", damit es nie wieder läuft.
+     * Markiert ein Migrations-Skript als "erledigt", damit es bei zukünftigen Updates ignoriert wird.
+     *
+     * @param string $version Die Version/der Name des Skripts.
      */
     private function markAsExecuted(string $version): void
     {

@@ -1,6 +1,5 @@
 <?php
 
-// Path: src\Application\CheckoutController.php
 declare(strict_types=1);
 
 namespace App\Application;
@@ -10,7 +9,10 @@ use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 
 /**
- * TODO DOCBLOCK
+ * Controller für die Checkout-Übersicht.
+ *
+ * Zeigt dem Benutzer vor dem finalen Zahlungsabschluss eine Zusammenfassung
+ * der Antragsdaten und die berechneten Einfahrtszeiten.
  *
  * Path: src/Application/CheckoutController.php
  *
@@ -28,7 +30,14 @@ final readonly class CheckoutController
     ) {
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Haupt-Request-Handler für den Checkout-Prozess.
+     *
+     * Verifiziert das übergebene Token, validiert die Session-Daten und rendert
+     * die Zusammenfassungs-Seite mit Feiertagsberechnung.
+     *
+     * @param array<string, mixed> $get Entspricht $_GET.
+     */
     public function handleRequest(array $get): void
     {
         $token    = (string) ($get['token'] ?? '');
@@ -56,7 +65,11 @@ final readonly class CheckoutController
         ]);
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Liefert standardisierte Konfigurationswerte für das Checkout-Template.
+     *
+     * @return array<string, mixed> Array mit Vereinsmetadaten und Base-URL.
+     */
     private function getSettingsArray(): array
     {
         return [
@@ -67,7 +80,12 @@ final readonly class CheckoutController
         ];
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Extrahiert Datenvariablen und bindet das PHTML-Template ein.
+     *
+     * @param string               $templatePath Relativer Pfad zum Template.
+     * @param array<string, mixed> $data         Injektionsdaten für den View-Scope.
+     */
     private function render(string $templatePath, array $data = []): void
     {
         \extract($data);

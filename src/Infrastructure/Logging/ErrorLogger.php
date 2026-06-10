@@ -6,16 +6,29 @@ namespace App\Infrastructure\Logging;
 
 use App\Contracts\Config\ConfigInterface;
 
-// TODO DOCBLOCK
+/**
+ * Logger-Infrastruktur für Systemfehler.
+ *
+ * Schreibt geworfene Exceptions und fatale Fehler revisionssicher in eine lokale Datei.
+ *
+ * Path: src/Infrastructure/Logging/ErrorLogger.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class ErrorLogger
 {
     public function __construct(private ConfigInterface $config)
     {
     }
 
-    // TODO DOCBLOCK
     /**
-     * Schreibt eine Throwable (Exception/Error) in die system_error.log
+     * Schreibt ein Throwable (Exception/Error) formatiert in die system_error.log.
+     * Erstellt den Ordner, falls er nicht existiert.
+     *
+     * @param \Throwable $throwable Der aufgetretene Fehler samt Stacktrace.
      */
     public function logThrowable(\Throwable $throwable): void
     {

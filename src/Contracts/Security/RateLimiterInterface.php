@@ -4,15 +4,41 @@ declare(strict_types=1);
 
 namespace App\Contracts\Security;
 
-// TODO DOCBLOCK
+/**
+ * Interface für den Rate-Limiter zum Schutz vor Brute-Force-Angriffen.
+ *
+ * Definiert die Methoden zur Erfassung, Prüfung und Zurücksetzung von IP-basierten
+ * Blockaden bei zu vielen Fehlversuchen (z.B. Logins).
+ *
+ * Path: src/Contracts/Security/RateLimiterInterface.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 interface RateLimiterInterface
 {
-    // TODO DOCBLOCK
+    /**
+     * Prüft, ob eine IP-Adresse aufgrund zu vieler Fehlversuche blockiert ist.
+     *
+     * @param string $ip Die zu prüfende IP-Adresse.
+     *
+     * @return bool True, wenn die IP derzeit blockiert wird.
+     */
     public function isBlocked(string $ip): bool;
 
-    // TODO DOCBLOCK
+    /**
+     * Protokolliert einen fehlgeschlagenen Zugriffsversuch für eine IP-Adresse.
+     *
+     * @param string $ip Die betroffene IP-Adresse.
+     */
     public function recordFailedAttempt(string $ip): void;
 
-    // TODO DOCBLOCK
+    /**
+     * Setzt die Fehlversuche für eine IP-Adresse zurück (z.B. nach erfolgreichem Login).
+     *
+     * @param string $ip Die betroffene IP-Adresse.
+     */
     public function clearAttempts(string $ip): void;
 }

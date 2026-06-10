@@ -10,7 +10,13 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * TODO @var
+ * @var array                                 $tempData
+ * @var \App\Contracts\Config\ConfigInterface $config
+ * @var string                                $appRoot
+ * @var array                                 $settings
+ * @var string|null                           $opening
+ * @var string|null                           $holidayNotice
+ * @var string                                $token
  */
 ?>
 <!DOCTYPE html>
@@ -168,7 +174,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
     function finalizeWire() {
         // Token sicher in den POST-Body packen statt in die URL
-        const params = new URLSearchParams();
+        const params = new windows.URLSearchParams(); // TODO window. entfernen wenn in JS-Datei
         params.append('token', appToken);
         params.append('csrf_token', csrfToken);
 
@@ -199,7 +205,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
         if (typeof paypal !== 'undefined') {
             paypal.Buttons({
                 createOrder: function(data, actions) {
-                    const params = new URLSearchParams();
+                    const params = new window.URLSearchParams(); // TODO window. entfernen wenn in JS-Datei
                     params.append('token', appToken);
                     params.append('csrf_token', csrfToken);
 

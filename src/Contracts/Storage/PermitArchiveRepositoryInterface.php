@@ -34,6 +34,12 @@ interface PermitArchiveRepositoryInterface
      */
     public function archivePermits(int $year, array $permitsToArchive): void;
 
-    // TODO DOCBLOCK
+    /**
+     * Anonymisiert nach DSGVO-Vorgaben alte Archiv-Einträge nach Ablauf der Aufbewahrungsfrist.
+     *
+     * @param int $yearsThreshold Die Aufbewahrungsfrist in Jahren (Standard: 10).
+     *
+     * @return int Die Anzahl der erfolgreich anonymisierten Datensätze.
+     */
     public function anonymizeOldRecords(int $yearsThreshold = 10): int;
 }

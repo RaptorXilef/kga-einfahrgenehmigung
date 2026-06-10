@@ -228,8 +228,13 @@ final readonly class AdminController
         };
     }
 
-    // TODO DOCBLOCK
-    // Hilfsmethode zum Speichern der Filter in der Session
+    /**
+     * Hilfsmethode zum Speichern der Dashboard-Filter in der aktuellen Session.
+     *
+     * @param array<string, mixed> $post Das POST-Array mit den Filterdaten.
+     *
+     * @return string Statusmeldung über den Erfolg der Anwendung.
+     */
     private function actionFilterDashboard(array $post): string
     {
         $_SESSION['admin_filters'] = [
@@ -784,7 +789,13 @@ final readonly class AdminController
         return $this->migrationService->truncateTarget($target, $engine);
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Führt die DSGVO-konforme Anonymisierung von alten Archiv-Einträgen durch.
+     *
+     * @param array<string, mixed> $post Das POST-Array der Anfrage.
+     *
+     * @return string Status- oder Erfolgsmeldung über die Anzahl anonymisierter Einträge.
+     */
     private function actionAnonymizeArchive(array $post): string
     {
         if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {

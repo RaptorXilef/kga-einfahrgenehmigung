@@ -7,7 +7,19 @@ namespace App\Infrastructure\Security;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
 
-// TODO DOCBLOCK
+/**
+ * Implementierung des Rate-Limiters zum Schutz vor Brute-Force Logins.
+ *
+ * Speichert Fehlversuche je IP-Adresse (in MySQL oder JSON) und sperrt den
+ * Zugang temporär nach Überschreiten der definierten Limits (Lockout-Time).
+ *
+ * Path: src/Infrastructure/Security/RateLimiter.php
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+ * Usage without explicit permission is strictly prohibited.
+ * See LICENSE.md for full license details.
+ */
 final readonly class RateLimiter implements RateLimiterInterface
 {
     private const int MAX_ATTEMPTS    = 5;
@@ -19,7 +31,14 @@ final readonly class RateLimiter implements RateLimiterInterface
     ) {
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Prüft, ob die IP-Adresse blockiert ist, da die maximalen Fehlversuche überschritten wurden.
+     * Gibt die IP automatisch nach Ablauf der Lockout-Zeit wieder frei.
+     *
+     * @param string $ip Die zu prüfende IP-Adresse.
+     *
+     * @return bool True, wenn die IP gesperrt ist.
+     */
     public function isBlocked(string $ip): bool
     {
         $cfg = $this->config->get('storage_config')['login_attempts'];
@@ -66,7 +85,12 @@ final readonly class RateLimiter implements RateLimiterInterface
         return false;
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Registriert einen neuen Fehlversuch für die gegebene IP-Adresse.
+     * Erhöht den Zähler oder aktualisiert den Zeitstempel.
+     *
+     * @param string $ip Die betroffene IP-Adresse.
+     */
     public function recordFailedAttempt(string $ip): void
     {
         $cfg    = $this->config->get('storage_config')['login_attempts'];
@@ -105,7 +129,12 @@ final readonly class RateLimiter implements RateLimiterInterface
         }
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Löscht alle registrierten Fehlversuche für eine IP-Adresse.
+     * Wird nach einem erfolgreichen Login oder nach Ablauf der Sperrzeit aufgerufen.
+     *
+     * @param string $ip Die betroffene IP-Adresse.
+     */
     public function clearAttempts(string $ip): void
     {
         $cfg = $this->config->get('storage_config')['login_attempts'];
@@ -136,7 +165,13 @@ final readonly class RateLimiter implements RateLimiterInterface
         }
     }
 
-    // TODO DOCBLOCK
+    /**
+     * Hilfsmethode zur Auflösung des absoluten JSON-Speicherpfades.
+     *
+     * @param string $fileName Der Name der Zieldatei.
+     *
+     * @return string Der komplette Dateipfad.
+     */
     private function getFilePath(string $fileName): string
     {
         return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
