@@ -9,6 +9,8 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
 /**
+ * TODO Prüfen, ob die Klasse weg kann, da PermitController eigentlich alles abdeckt?!?
+ *
  * Controller zur Abwicklung und Erfassung externer Zahlungen (z.B. PayPal-Webhook/Capture).
  *
  * Verwaltet zusätzlich die Erstellung von Erstanträgen sowie Vorbefüllungen durch Gutscheine.
@@ -108,52 +110,4 @@ final readonly class PaymentController
         \extract($data);
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
-
-    /**
-     * TODO Prüfen ob entfernt werden kann, Toter Code aus der Vergangenheit?
-     *
-     * Verarbeitet das Absenden des öffentlichen Antragsformulars per POST.
-     * Initiiert die Verifikationskette oder wertet vorausgefüllte Gutschein-Parameter aus $_GET aus.
-     *
-     * Übergabe von $get hinzugefügt, um superglobale Leaks zu verhindern
-     */
-    /*public function handleRequest(array $post, array $get): void
-    {
-        $message = '';
-        $success = false;
-
-        // Gutschein via URL-Parameter prüfen
-        $voucherCode = (string) ($get['voucher'] ?? '');
-        $prefill     = null;
-
-        if ($voucherCode !== '') {
-            $prefill = $this->getVoucherService()->loadVouchers()[$voucherCode] ?? null;
-            if ($prefill && $prefill['used']) {
-                $prefill = null;
-            }
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
-                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-            } else {
-                try {
-                    $this->permitService->createPendingVerification($post);
-                    $success = true;
-                    $message = 'E-Mail wurde versandt. Bitte bestätigen Sie den Link.';
-                } catch (\Exception $e) {
-                    $message = 'Fehler: ' . $e->getMessage();
-                }
-            }
-        }
-
-        $this->render('formular', [
-            'message'  => $message,
-            'success'  => $success,
-            'config'   => $this->config,
-            'settings' => $this->getSettingsArray($prefill), // Prefill mitgeben
-            'appRoot'  => $this->config->get('root_path'),
-            'prefill'  => $prefill,
-        ]);
-    }*/
 }

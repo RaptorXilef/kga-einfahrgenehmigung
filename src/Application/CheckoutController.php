@@ -25,7 +25,7 @@ final readonly class CheckoutController
 {
     public function __construct(
         private ConfigInterface $config,
-        private HolidayService $holidayService, // <-- NEU: Für die Öffnungszeiten
+        private HolidayService $holidayService, // Für die Öffnungszeiten
         private PermitService $permitService,
     ) {
     }
@@ -66,6 +66,18 @@ final readonly class CheckoutController
     }
 
     /**
+     * Extrahiert Datenvariablen und bindet das PHTML-Template ein.
+     *
+     * @param string               $templatePath Relativer Pfad zum Template.
+     * @param array<string, mixed> $data         Injektionsdaten für den View-Scope.
+     */
+    private function render(string $templatePath, array $data = []): void
+    {
+        \extract($data);
+        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
+    }
+
+    /**
      * Liefert standardisierte Konfigurationswerte für das Checkout-Template.
      *
      * @return array<string, mixed> Array mit Vereinsmetadaten und Base-URL.
@@ -78,17 +90,5 @@ final readonly class CheckoutController
             'purposes'      => $this->config->get('purposes'),
             'base_url'      => $this->config->getBaseUrl(),
         ];
-    }
-
-    /**
-     * Extrahiert Datenvariablen und bindet das PHTML-Template ein.
-     *
-     * @param string               $templatePath Relativer Pfad zum Template.
-     * @param array<string, mixed> $data         Injektionsdaten für den View-Scope.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        \extract($data);
-        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 }

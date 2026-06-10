@@ -405,7 +405,6 @@ class Container
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
-            $this->get(PermitService::class),
             $this->get(StorageInterface::class),
         );
 

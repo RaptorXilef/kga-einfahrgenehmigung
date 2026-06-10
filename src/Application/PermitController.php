@@ -176,26 +176,6 @@ final readonly class PermitController
     }
 
     /**
-     * Baut Einstellungen, Sichtbarkeiten und Farbcodes für das Antragsformular zusammen.
-     *
-     * @return array<string, mixed>
-     */
-    private function getSettingsArray(): array
-    {
-        $templates = (array) $this->config->get('permit_templates', []);
-        $public    = \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true);
-
-        return [
-            'vereins_name'     => $this->config->get('vereins_name'),
-            'vehicle_types'    => $this->config->get('vehicle_types'),
-            'purposes'         => $this->config->get('purposes'),
-            'public_templates' => $public,
-            'base_url'         => $this->config->getBaseUrl(),
-            'jahresFarbe'      => $this->config->get('jahresFarbe'),
-        ];
-    }
-
-    /**
      * Bereitet die Agreements aus der Config für die HTML-Ausgabe vor.
      * Löst Links (relativ/absolut) auf und ersetzt die [Tags] sicher durch HTML-Links.
      */
@@ -231,6 +211,26 @@ final readonly class PermitController
         }
 
         return $parsed;
+    }
+
+    /**
+     * Baut Einstellungen, Sichtbarkeiten und Farbcodes für das Antragsformular zusammen.
+     *
+     * @return array<string, mixed>
+     */
+    private function getSettingsArray(): array
+    {
+        $templates = (array) $this->config->get('permit_templates', []);
+        $public    = \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true);
+
+        return [
+            'vereins_name'     => $this->config->get('vereins_name'),
+            'vehicle_types'    => $this->config->get('vehicle_types'),
+            'purposes'         => $this->config->get('purposes'),
+            'public_templates' => $public,
+            'base_url'         => $this->config->getBaseUrl(),
+            'jahresFarbe'      => $this->config->get('jahresFarbe'),
+        ];
     }
 
     /**

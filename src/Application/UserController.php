@@ -140,7 +140,8 @@ final readonly class UserController
         ]);
     }
 
-    // --- Private Helper Methoden bleiben identisch ---
+    // START --- Die Match-Worker-Methoden für die Benutzerverwaltung (handleProfileRequest) ---
+    // --- USER ACTIONS ---
 
     /**
      * Erstellt einen neuen Datensatz in der Benutzerverwaltung inklusive Passwort-Hashing.
@@ -181,6 +182,131 @@ final readonly class UserController
 
         return "Benutzer '$loginName' erfolgreich erstellt.";
     }
+
+    /**
+     * Benennt den Login-Namen eines existierenden Benutzers um.
+     *
+     * @param array<string, mixed> $post Datensatz mit user_id und new_username.
+     *
+     * @return string Erfolgs- oder Fehlermeldung.
+     */
+    private function handleRenameUser(array $post): string
+    {
+        $userId   = (string) ($post['user_id'] ?? '');
+        $newLogin = \trim((string) ($post['new_username'] ?? ''));
+
+        $users = $this->auth->loadUsers();
+        if (isset($users[$userId])) {
+            $users[$userId]['username'] = $newLogin;
+            $this->auth->saveUsers($users);
+
+            return 'Login-Name aktualisiert.';
+        }
+
+        return 'Fehler: Benutzer nicht gefunden.';
+    }
+
+    /**
+     * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
+     *
+     * @param array<string, mixed> $post Datensatz mit user_id und Passwörtern.
+     *
+     * @return string Ergebnisnachricht.
+     */
+    private function handleResetPassword(array $post): string
+    {
+        $userId = (string) ($post['user_id'] ?? '');
+        $pw1    = (string) ($post['password'] ?? '');
+        $pw2    = (string) ($post['password_repeat'] ?? '');
+
+        if ($pw1 !== $pw2) {
+            return 'Fehler: Passwörter nicht identisch.';
+        }
+
+        $users = $this->auth->loadUsers();
+        if (isset($users[$userId])) {
+            $users[$userId]['pass'] = \password_hash($pw1, \PASSWORD_DEFAULT);
+            $this->auth->saveUsers($users);
+
+            return 'Passwort wurde zurückgesetzt.';
+        }
+
+        return 'Fehler.';
+    }
+
+    /**
+     * Weist einem Benutzer eine neue Berechtigungsgruppe/Rolle zu.
+     *
+     * @param array<string, mixed> $post Datensatz mit user_id und group.
+     *
+     * @return string Bestätigungstext.
+     */
+    private function handleChangeUserGroup(array $post): string
+    {
+        $userId = (string) ($post['user_id'] ?? ''); // ID aus dem Formular
+        $group  = (string) ($post['group'] ?? '');
+        $users  = $this->auth->loadUsers();
+
+        if (isset($users[$userId])) {
+            $users[$userId]['group'] = $group;
+            $this->auth->saveUsers($users);
+
+            return "Gruppe für '" . ($users[$userId]['username'] ?? $userId) . "' geändert.";
+        }
+
+        return 'Fehler: Benutzer nicht gefunden.';
+    }
+
+    /**
+     * Verarbeitet den Upload und die Skalierung/Speicherung eines Benutzer-Profilbildes.
+     *
+     * @param array<string, mixed>      $post Das Post-Array mit der Ziel-User-ID.
+     * @param array<string, mixed>|null $file Der native $_FILES-Avatar-Eintrag.
+     *
+     * @return string UI-Meldungstext.
+     */
+    private function handleUploadAvatar(array $post, ?array $file): string
+    {
+        if (! $file || $file['error'] !== 0) {
+            return 'Fehler beim Upload.';
+        }
+        // FIX: Wir nutzen jetzt die user_id statt username
+        $userId = (string) ($post['user_id'] ?? '');
+
+        return $this->auth->uploadImage('user', $userId, $file)
+        ? 'Profilbild aktualisiert.'
+        : 'Fehler beim Verarbeiten.';
+    }
+
+    /**
+     * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
+     *
+     * @param array<string, mixed> $post Datensatz mit der Ziel-user_id.
+     *
+     * @return string Erfolgs- oder Fehlermeldung.
+     */
+    private function handleDeleteUser(array $post): string
+    {
+        $userId = (string) ($post['user_id'] ?? '');
+
+        // Selbstausschluss prüfen über die ID aus der Session
+        if ($userId === $this->auth->getUserId()) {
+            return 'Fehler: Selbstausschluss nicht möglich.';
+        }
+
+        $users = $this->auth->loadUsers();
+        if (isset($users[$userId])) {
+            $name = $users[$userId]['username'] ?? $userId;
+            unset($users[$userId]);
+            $this->auth->saveUsers($users);
+
+            return "Benutzer '$name' wurde entfernt.";
+        }
+
+        return 'Fehler: Benutzer nicht gefunden.';
+    }
+
+    // --- GROUP ACTIONS ---
 
     /**
      * Erstellt eine neue Benutzergruppe oder aktualisiert bestehende Rechte-Zuordnungen.
@@ -247,98 +373,6 @@ final readonly class UserController
     }
 
     /**
-     * Benennt den Login-Namen eines existierenden Benutzers um.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und new_username.
-     *
-     * @return string Erfolgs- oder Fehlermeldung.
-     */
-    private function handleRenameUser(array $post): string
-    {
-        $userId   = (string) ($post['user_id'] ?? '');
-        $newLogin = \trim((string) ($post['new_username'] ?? ''));
-
-        $users = $this->auth->loadUsers();
-        if (isset($users[$userId])) {
-            $users[$userId]['username'] = $newLogin;
-            $this->auth->saveUsers($users);
-
-            return 'Login-Name aktualisiert.';
-        }
-
-        return 'Fehler: Benutzer nicht gefunden.';
-    }
-
-    /**
-     * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und Passwörtern.
-     *
-     * @return string Ergebnisnachricht.
-     */
-    private function handleResetPassword(array $post): string
-    {
-        $userId = (string) ($post['user_id'] ?? '');
-        $pw1    = (string) ($post['password'] ?? '');
-        $pw2    = (string) ($post['password_repeat'] ?? '');
-
-        if ($pw1 !== $pw2) {
-            return 'Fehler: Passwörter nicht identisch.';
-        }
-
-        $users = $this->auth->loadUsers();
-        if (isset($users[$userId])) {
-            $users[$userId]['pass'] = \password_hash($pw1, \PASSWORD_DEFAULT);
-            $this->auth->saveUsers($users);
-
-            return 'Passwort wurde zurückgesetzt.';
-        }
-
-        return 'Fehler.';
-    }
-
-    /**
-     * Verarbeitet den Upload und die Skalierung/Speicherung eines Benutzer-Profilbildes.
-     *
-     * @param array<string, mixed>      $post Das Post-Array mit der Ziel-User-ID.
-     * @param array<string, mixed>|null $file Der native $_FILES-Avatar-Eintrag.
-     *
-     * @return string UI-Meldungstext.
-     */
-    private function handleUploadAvatar(array $post, ?array $file): string
-    {
-        if (! $file || $file['error'] !== 0) {
-            return 'Fehler beim Upload.';
-        }
-        // FIX: Wir nutzen jetzt die user_id statt username
-        $userId = (string) ($post['user_id'] ?? '');
-
-        return $this->auth->uploadImage('user', $userId, $file)
-        ? 'Profilbild aktualisiert.'
-        : 'Fehler beim Verarbeiten.';
-    }
-
-    /**
-     * Verarbeitet den Upload eines Bildes für Gruppen-Icons.
-     *
-     * @param array<string, mixed>      $post Das Post-Array mit der group_id.
-     * @param array<string, mixed>|null $file Der Datei-Eintrag aus $_FILES.
-     *
-     * @return string UI-Meldungstext.
-     */
-    private function handleUploadGroupImage(array $post, ?array $file): string
-    {
-        if (! $file || $file['error'] !== 0) {
-            return 'Fehler beim Upload.';
-        }
-        $gid = (string) ($post['group_id'] ?? '');
-
-        return $this->auth->uploadImage('group', $gid, $file)
-        ? 'Gruppen-Icon aktualisiert.'
-        : 'Fehler beim Verarbeiten.';
-    }
-
-    /**
      * Ändert den Anzeigenamen einer spezifischen Gruppe im System.
      *
      * @param array<string, mixed> $post Datensatz mit group_id und new_group_name.
@@ -365,31 +399,23 @@ final readonly class UserController
     }
 
     /**
-     * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
+     * Verarbeitet den Upload eines Bildes für Gruppen-Icons.
      *
-     * @param array<string, mixed> $post Datensatz mit der Ziel-user_id.
+     * @param array<string, mixed>      $post Das Post-Array mit der group_id.
+     * @param array<string, mixed>|null $file Der Datei-Eintrag aus $_FILES.
      *
-     * @return string Erfolgs- oder Fehlermeldung.
+     * @return string UI-Meldungstext.
      */
-    private function handleDeleteUser(array $post): string
+    private function handleUploadGroupImage(array $post, ?array $file): string
     {
-        $userId = (string) ($post['user_id'] ?? '');
-
-        // Selbstausschluss prüfen über die ID aus der Session
-        if ($userId === $this->auth->getUserId()) {
-            return 'Fehler: Selbstausschluss nicht möglich.';
+        if (! $file || $file['error'] !== 0) {
+            return 'Fehler beim Upload.';
         }
+        $gid = (string) ($post['group_id'] ?? '');
 
-        $users = $this->auth->loadUsers();
-        if (isset($users[$userId])) {
-            $name = $users[$userId]['username'] ?? $userId;
-            unset($users[$userId]);
-            $this->auth->saveUsers($users);
-
-            return "Benutzer '$name' wurde entfernt.";
-        }
-
-        return 'Fehler: Benutzer nicht gefunden.';
+        return $this->auth->uploadImage('group', $gid, $file)
+        ? 'Gruppen-Icon aktualisiert.'
+        : 'Fehler beim Verarbeiten.';
     }
 
     /**
@@ -413,27 +439,33 @@ final readonly class UserController
         return 'Gruppe gelöscht.';
     }
 
+    // ENDE --- Die Match-Worker-Methoden für die Benutzerverwaltung (handleProfileRequest) ---
+
+    // START --- Die Match-Worker-Methoden für das eigene Profil (handleProfileRequest) ---
+
     /**
-     * Weist einem Benutzer eine neue Berechtigungsgruppe/Rolle zu.
+     * Aktualisiert den eigenen Anzeigenamen/Login-Namen des angemeldeten Benutzers.
      *
-     * @param array<string, mixed> $post Datensatz mit user_id und group.
+     * @param string               $userId Die aktive Benutzer-ID aus der Session.
+     * @param array<string, mixed> $post   Datensatz mit new_username.
      *
-     * @return string Bestätigungstext.
+     * @return string Ergebnisnachricht.
      */
-    private function handleChangeUserGroup(array $post): string
+    private function processOwnUsernameChange(string $userId, array $post): string
     {
-        $userId = (string) ($post['user_id'] ?? ''); // ID aus dem Formular
-        $group  = (string) ($post['group'] ?? '');
-        $users  = $this->auth->loadUsers();
-
-        if (isset($users[$userId])) {
-            $users[$userId]['group'] = $group;
-            $this->auth->saveUsers($users);
-
-            return "Gruppe für '" . ($users[$userId]['username'] ?? $userId) . "' geändert.";
+        $newName = \trim((string) ($post['new_username'] ?? ''));
+        if ($newName === '') {
+            return 'Fehler: Name darf nicht leer sein.';
         }
 
-        return 'Fehler: Benutzer nicht gefunden.';
+        $users                      = $this->auth->loadUsers();
+        $users[$userId]['username'] = $newName;
+        $this->auth->saveUsers($users);
+
+        // Session-Anzeige aktualisieren
+        $_SESSION['admin_user'] = $newName;
+
+        return 'Erfolg: Ihr Anzeigename wurde aktualisiert.';
     }
 
     /**
@@ -468,31 +500,6 @@ final readonly class UserController
     }
 
     /**
-     * Aktualisiert den eigenen Anzeigenamen/Login-Namen des angemeldeten Benutzers.
-     *
-     * @param string               $userId Die aktive Benutzer-ID aus der Session.
-     * @param array<string, mixed> $post   Datensatz mit new_username.
-     *
-     * @return string Ergebnisnachricht.
-     */
-    private function processOwnUsernameChange(string $userId, array $post): string
-    {
-        $newName = \trim((string) ($post['new_username'] ?? ''));
-        if ($newName === '') {
-            return 'Fehler: Name darf nicht leer sein.';
-        }
-
-        $users                      = $this->auth->loadUsers();
-        $users[$userId]['username'] = $newName;
-        $this->auth->saveUsers($users);
-
-        // Session-Anzeige aktualisieren
-        $_SESSION['admin_user'] = $newName;
-
-        return 'Erfolg: Ihr Anzeigename wurde aktualisiert.';
-    }
-
-    /**
      * Ermöglicht dem aktuell angemeldeten Benutzer das Ändern seines eigenen Profilbildes.
      *
      * @param string                    $userId Die aktive Benutzer-ID aus der Session.
@@ -512,6 +519,8 @@ final readonly class UserController
 
         return 'Fehler bei der Bildverarbeitung.';
     }
+
+    // ENDE --- Die Match-Worker-Methoden für das eigene Profil (handleProfileRequest) ---
 
     /**
      * Bindet Administrations- und Profil-Templates im User-Kontext ein.

@@ -201,25 +201,6 @@ final readonly class HistoryController
     }
 
     /**
-     * Verarbeitet den Logout-Prozess für die History-Sitzung.
-     *
-     * @param array<string, mixed> $post Entspricht $_POST
-     *
-     * @return bool True, wenn ein Logout durchgeführt und weitergeleitet wurde.
-     */
-    private function processLogout(array $post): bool
-    {
-        if (isset($post['action']) && $post['action'] === 'logout') {
-            unset($_SESSION['user_history_email']);
-            \header('Location: history.php');
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Validiert den Zugriff und rendert die Druckansicht einer spezifischen Genehmigung.
      *
      * @param string $code           Der eindeutige Hash der Genehmigung.
@@ -244,6 +225,38 @@ final readonly class HistoryController
     }
 
     /**
+     * Verarbeitet den Logout-Prozess für die History-Sitzung.
+     *
+     * @param array<string, mixed> $post Entspricht $_POST
+     *
+     * @return bool True, wenn ein Logout durchgeführt und weitergeleitet wurde.
+     */
+    private function processLogout(array $post): bool
+    {
+        if (isset($post['action']) && $post['action'] === 'logout') {
+            unset($_SESSION['user_history_email']);
+            \header('Location: history.php');
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Extrahiert Datenvariablen und bindet das History-Template ein.
+     *
+     * @param string               $template Name der .phtml Datei.
+     * @param array<string, mixed> $data     Variablen für das Template.
+     */
+    private function render(string $template, array $data): void
+    {
+        $appRoot = (string) $this->config->get('root_path');
+        \extract($data);
+        include "{$appRoot}/templates/pages/{$template}.phtml";
+    }
+
+    /**
      * Liefert Konfigurations-Settings für das History-Frontend.
      *
      * @return array<string, mixed>
@@ -258,18 +271,5 @@ final readonly class HistoryController
             'terminkalender_url' => $this->config->get('terminkalender_url'),
             'vereins_name'       => $this->config->get('vereins_name'),
         ];
-    }
-
-    /**
-     * Extrahiert Datenvariablen und bindet das History-Template ein.
-     *
-     * @param string               $template Name der .phtml Datei.
-     * @param array<string, mixed> $data     Variablen für das Template.
-     */
-    private function render(string $template, array $data): void
-    {
-        $appRoot = (string) $this->config->get('root_path');
-        \extract($data);
-        include "{$appRoot}/templates/pages/{$template}.phtml";
     }
 }

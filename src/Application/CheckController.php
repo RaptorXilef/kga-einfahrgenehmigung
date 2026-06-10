@@ -9,7 +9,6 @@ use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
-use App\Core\Service\PermitService;
 
 /**
  * Controller zur Überprüfung von Genehmigungen und Kennzeichen.
@@ -30,7 +29,6 @@ final readonly class CheckController
         private AuthService $auth,
         private ConfigInterface $config,
         private HolidayService $holidayService,
-        private PermitService $permitService,
         private StorageInterface $storage,
     ) {
     }
@@ -156,23 +154,6 @@ final readonly class CheckController
     }
 
     /**
-     * Liefert standardisierte Konfigurationswerte für die Layout-Generierung.
-     *
-     * @return array<string, mixed> Array mit Vereinsmetadaten und Fahrzeugtypen.
-     */
-    private function getSettingsArray(): array
-    {
-        return [
-            'vereins_name'  => $this->config->get('vereins_name'),
-            'vehicle_types' => $this->config->get('vehicle_types'),
-            'purposes'      => $this->config->get('purposes'),
-            'opening_hours' => $this->config->get('default_opening_hours'),
-            'jahresFarbe'   => $this->config->get('jahresFarbe'),
-            'base_url'      => $this->config->getBaseUrl(),
-        ];
-    }
-
-    /**
      * Extrahiert Daten-Arrays und bindet die PHTML-Layoutdatei ein.
      *
      * @param string               $templatePath Relativer Pfad zum Template.
@@ -197,5 +178,22 @@ final readonly class CheckController
         \extract($templateData);
 
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
+    }
+
+    /**
+     * Liefert standardisierte Konfigurationswerte für die Layout-Generierung.
+     *
+     * @return array<string, mixed> Array mit Vereinsmetadaten und Fahrzeugtypen.
+     */
+    private function getSettingsArray(): array
+    {
+        return [
+            'vereins_name'  => $this->config->get('vereins_name'),
+            'vehicle_types' => $this->config->get('vehicle_types'),
+            'purposes'      => $this->config->get('purposes'),
+            'opening_hours' => $this->config->get('default_opening_hours'),
+            'jahresFarbe'   => $this->config->get('jahresFarbe'),
+            'base_url'      => $this->config->getBaseUrl(),
+        ];
     }
 }

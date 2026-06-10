@@ -24,6 +24,21 @@ final readonly class LegalController
     }
 
     /**
+     * Lädt die statischen Daten aus der Konfiguration und rendert die Datenschutzerklärung.
+     */
+    public function renderDatenschutz(): void
+    {
+        $root      = $this->config->get('root_path');
+        $legalData = include $root . '/config/datenschutz.php';
+
+        $this->render('datenschutz', [
+            'legal'    => $legalData,
+            'settings' => $this->getSettingsArray(),
+            'appRoot'  => $root,
+        ]);
+    }
+
+    /**
      * Lädt die statischen Daten aus der Konfiguration und rendert die Impressum-Seite.
      */
     public function renderImpressum(): void
@@ -40,18 +55,15 @@ final readonly class LegalController
     }
 
     /**
-     * Lädt die statischen Daten aus der Konfiguration und rendert die Datenschutzerklärung.
+     * Rendering-Hilfsmethode für die Legal-Templates.
+     *
+     * @param string               $templatePath Relativer Pfad zum .phtml Template.
+     * @param array<string, mixed> $data         Injektionsvariablen.
      */
-    public function renderDatenschutz(): void
+    private function render(string $templatePath, array $data = []): void
     {
-        $root      = $this->config->get('root_path');
-        $legalData = include $root . '/config/datenschutz.php';
-
-        $this->render('datenschutz', [
-            'legal'    => $legalData,
-            'settings' => $this->getSettingsArray(),
-            'appRoot'  => $root,
-        ]);
+        \extract($data);
+        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 
     /**
@@ -66,17 +78,5 @@ final readonly class LegalController
             'base_url'     => $this->config->getBaseUrl(),
             'jahresFarbe'  => $this->config->get('jahresFarbe'),
         ];
-    }
-
-    /**
-     * Rendering-Hilfsmethode für die Legal-Templates.
-     *
-     * @param string               $templatePath Relativer Pfad zum .phtml Template.
-     * @param array<string, mixed> $data         Injektionsvariablen.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        \extract($data);
-        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 }

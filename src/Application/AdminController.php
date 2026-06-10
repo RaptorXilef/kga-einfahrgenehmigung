@@ -230,6 +230,9 @@ final readonly class AdminController
         };
     }
 
+    // --- START Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
+    // 1. Dashboard UI-Steuerung
+
     /**
      * Hilfsmethode zum Speichern der Dashboard-Filter in der aktuellen Session.
      *
@@ -250,50 +253,39 @@ final readonly class AdminController
         return 'Filter angewendet.';
     }
 
+    // 2. Genehmigungs-Management
+
     /**
-     * Trigger für den Neuversand von E-Mails basierend auf den System-Logs.
+     * Erstellt eine Genehmigung ohne vorangegangenen automatisierten Bezahlprozess.
+     *
+     * Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
      *
      * @param array<string, mixed> $post
      *
-     * @return string Statusmeldung über den Erfolg des Neuversands.
+     * @return string Bestätigung mit dem generierten Genehmigungscode.
      */
-    private function actionResendMail(array $post): string
+    private function actionCreateManual(array $post): string
     {
-        if (! $this->auth->hasPermission('dashboard.logs.view')) {
-            return 'Fehler: Keine Berechtigung.';
+        $tplKey = (string) ($post['template_key'] ?? 'std.7');
+
+        // --- BACKEND SECURITY CHECK ---
+        if (! $this->auth->hasPermission("template.$tplKey")) {
+            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' manuell auszustellen.";
         }
 
-        $timestamp = (string) ($post['timestamp'] ?? '');
-        $logs      = $this->mailService->loadLogs();
-
-        foreach ($logs as $log) {
-            if (! (($log['timestamp'] ?? '') === $timestamp)) {
-                continue;
+        // Manuelle Buchung (Kostenlos/Bar)
+        try {
+            $post['status'] = 'bezahlt';
+            if (isset($post['reason'])) {
+                $post['interner_kommentar'] = $post['reason'];
             }
 
-            $payload = $log['data'] ?? [];
+            $permit = $this->permitService->createPermit($post, true);
 
-            // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
-            if (\is_string($payload)) {
-                $payload = \json_decode($payload, true) ?? [];
-            }
-
-            if (empty($payload)) {
-                return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
-            }
-
-            // Erneuter Versand über das Template-System
-            $this->mailService->sendTemplate(
-                $log['recipient'],
-                $log['subject'],
-                $log['template'],
-                $payload,
-            );
-
-            return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
+            return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
+        } catch (\Exception $e) {
+            return 'Fehler: ' . $e->getMessage();
         }
-
-        return 'Fehler: Log-Eintrag nicht gefunden.';
     }
 
     /**
@@ -311,6 +303,21 @@ final readonly class AdminController
 
         return $this->permitService->manualActivate($code) ? "Zahlung für $code bestätigt." : '';
     }
+
+    /**
+     * Setzt den Sperrstatus (Suspension) einer Genehmigung.
+     * Kontext: Interaktion mit PermitService::toggleSuspension().
+     */
+    private function actionToggleSuspension(array $post): string
+    {
+        // Genehmigung entsperren
+        $suspended = $post['action'] === 'suspend_permit';
+        $this->permitService->toggleSuspension((string) $post['code'], $suspended, (string) ($post['reason'] ?? ''));
+
+        return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
+    }
+
+    // 3. Gutschein-Management
 
     /**
      * Erstellt einen neuen Gutschein mit spezifischen Konditionen über VoucherService.
@@ -374,39 +381,6 @@ final readonly class AdminController
     }
 
     /**
-     * Erstellt eine Genehmigung ohne vorangegangenen automatisierten Bezahlprozess.
-     *
-     * Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Bestätigung mit dem generierten Genehmigungscode.
-     */
-    private function actionCreateManual(array $post): string
-    {
-        $tplKey = (string) ($post['template_key'] ?? 'std.7');
-
-        // --- BACKEND SECURITY CHECK ---
-        if (! $this->auth->hasPermission("template.$tplKey")) {
-            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' manuell auszustellen.";
-        }
-
-        // Manuelle Buchung (Kostenlos/Bar)
-        try {
-            $post['status'] = 'bezahlt';
-            if (isset($post['reason'])) {
-                $post['interner_kommentar'] = $post['reason'];
-            }
-
-            $permit = $this->permitService->createPermit($post, true);
-
-            return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
-        } catch (\Exception $e) {
-            return 'Fehler: ' . $e->getMessage();
-        }
-    }
-
-    /**
      * Setzt den Sperrstatus einer bestehenden Genehmigung.
      *
      * @param array<string, mixed> $post
@@ -422,54 +396,194 @@ final readonly class AdminController
         return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
     }
 
-    /**
-     * Setzt den Sperrstatus (Suspension) einer Genehmigung.
-     * Kontext: Interaktion mit PermitService::toggleSuspension().
-     */
-    private function actionToggleSuspension(array $post): string
-    {
-        // Genehmigung entsperren
-        $suspended = $post['action'] === 'suspend_permit';
-        $this->permitService->toggleSuspension((string) $post['code'], $suspended, (string) ($post['reason'] ?? ''));
+    // 4. E-Mail-Verwaltung
 
-        return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
+    /**
+     * Trigger für den Neuversand von E-Mails basierend auf den System-Logs.
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Statusmeldung über den Erfolg des Neuversands.
+     */
+    private function actionResendMail(array $post): string
+    {
+        if (! $this->auth->hasPermission('dashboard.logs.view')) {
+            return 'Fehler: Keine Berechtigung.';
+        }
+
+        $timestamp = (string) ($post['timestamp'] ?? '');
+        $logs      = $this->mailService->loadLogs();
+
+        foreach ($logs as $log) {
+            if (! (($log['timestamp'] ?? '') === $timestamp)) {
+                continue;
+            }
+
+            $payload = $log['data'] ?? [];
+
+            // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
+            if (\is_string($payload)) {
+                $payload = \json_decode($payload, true) ?? [];
+            }
+
+            if (empty($payload)) {
+                return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
+            }
+
+            // Erneuter Versand über das Template-System
+            $this->mailService->sendTemplate(
+                $log['recipient'],
+                $log['subject'],
+                $log['template'],
+                $payload,
+            );
+
+            return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
+        }
+
+        return 'Fehler: Log-Eintrag nicht gefunden.';
+    }
+
+    // 5. System-Wartung & Migration
+
+    /**
+     * Führt Daten-Migrationen (Sync/Backup) durch (Sync SQL/JSON).
+     *
+     * @param array<string, mixed> $post
+     *
+     * @return string Ergebnis der Migration.
+     */
+    private function actionMigrateData(array $post): string
+    {
+        $direction = (string) ($post['direction'] ?? 'sync');
+        $target    = (string) ($post['target'] ?? '');
+
+        // Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
+        // Prüft exakt das Recht, z.B. 'dashboard.migration.users.json_to_mysql'
+        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$direction}")) {
+            return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
+        }
+
+        return $this->migrationService->execute($target, $direction);
     }
 
     /**
-     * Prüft, ob ein spezieller Request (z.B. Druckansicht) abgebrochen werden muss.
+     * Führt eine System-Wiederherstellung (Restore) aus einem Backup durch.
+     * Stellt Daten für das angegebene Ziel aus dem gewählten Zeitstempel wieder her.
      *
-     * Überprüft Zugriff und rendert 'admin_print_view'.
+     * @param array<string, mixed> $post Formulardaten mit Ziel (target), Zeitstempel (timestamp) und Engine.
      *
-     * @param array<string, mixed> $get
-     *
-     * @return bool True wenn Print-View gerendert wurde.
+     * @return string Statusmeldung über den Erfolg oder Misserfolg des Restores.
      */
-    private function shouldStopRequest(array $get): bool
+    private function actionRestoreData(array $post): string
     {
-        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
-            $permit = $this->storage->findByHash((string) $get['code']);
-            if ($permit instanceof Permit) {
-                $config = $this->config;
-                $this->render('admin_print_view', [
-                    'permit'   => $permit,
-                    'settings' => $this->getSettingsArray(),
-                    'config'   => $config,
-                    'appRoot'  => $config->get('root_path'),
-                    'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
-                        $permit->validity->von,
-                        $permit->validity->bis,
-                    ),
-                    'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
-                        $permit->validity->von,
-                        $permit->validity->bis,
-                    ),
-                ]);
-
-                return true;
-            }
+        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
         }
 
-        return false;
+        $target    = (string) ($post['target'] ?? '');
+        $timestamp = (string) ($post['timestamp'] ?? '');
+        $engine    = (string) ($post['engine'] ?? 'all');
+
+        if ($target === '' || $timestamp === '') {
+            return 'Fehler: Unvollständige Angaben für Restore.';
+        }
+
+        return $this->migrationService->restore($timestamp, $target, $engine);
+    }
+
+    /**
+     * Löscht alle Daten eines bestimmten Speicher-Ziels rigoros (Truncate).
+     * Wird für administrative System-Resets oder vor großen Migrationen verwendet.
+     *
+     * @param array<string, mixed> $post Formulardaten mit Zielbereich (target) und Speicher-Engine (engine).
+     *
+     * @return string Statusmeldung über die Löschung.
+     */
+    private function actionTruncateTarget(array $post): string
+    {
+        if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
+        }
+
+        $target = (string) ($post['target'] ?? '');
+        $engine = (string) ($post['engine'] ?? 'all');
+
+        if ($target === '') {
+            return 'Fehler: Kein Zielbereich ausgewählt.';
+        }
+
+        return $this->migrationService->truncateTarget($target, $engine);
+    }
+
+    /**
+     * Führt die DSGVO-konforme Anonymisierung von alten Archiv-Einträgen durch.
+     *
+     * @param array<string, mixed> $post Das POST-Array der Anfrage.
+     *
+     * @return string Status- oder Erfolgsmeldung über die Anzahl anonymisierter Einträge.
+     */
+    private function actionAnonymizeArchive(array $post): string
+    {
+        if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';
+        }
+
+        try {
+            // 10 Jahre gesetzliche Aufbewahrungsfrist
+            $count = $this->permitService->anonymizeOldArchiveRecords(10);
+
+            if ($count === 0) {
+                return 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.';
+            }
+
+            return "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.";
+        } catch (\Exception $e) {
+            return 'Fehler bei der Anonymisierung: ' . $e->getMessage();
+        }
+    }
+
+    /**
+     * Leert den Anwendungs-Cache und löscht temporäre System-Dateien.
+     *
+     * @param array<string, mixed> $post Formulardaten inklusive CSRF-Token.
+     *
+     * @return string Statusmeldung über die Ausführung.
+     */
+    private function actionClearCache(array $post): string
+    {
+        if (! $this->auth->hasPermission('dashboard.tools.view')) {
+            return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
+        }
+
+        return $this->migrationService->clearCache();
+    }
+
+    // --- ENDE Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
+
+    /**
+     * Rendert ein Template-File mit den übergebenen Daten.
+     *
+     * Nutzt 'extract' um Array-Keys zu lokalen Variablen zu machen.
+     *
+     * @param string               $templatePath Pfad zum .phtml Template.
+     * @param array<string, mixed> $data
+     */
+    private function render(string $templatePath, array $data = []): void
+    {
+        $config = $this->config;
+        // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
+        $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
+
+        // Wir fügen auth global hinzu, falls es mal vergessen wird
+        if (! isset($data['auth'])) {
+            $data['auth'] = $this->auth;
+        }
+
+        // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
+        \extract($data);
+        // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
+        include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 
     /**
@@ -662,6 +776,43 @@ final readonly class AdminController
     }
 
     /**
+     * Prüft, ob ein spezieller Request (z.B. Druckansicht) abgebrochen werden muss.
+     *
+     * Überprüft Zugriff und rendert 'admin_print_view'.
+     *
+     * @param array<string, mixed> $get
+     *
+     * @return bool True wenn Print-View gerendert wurde.
+     */
+    private function shouldStopRequest(array $get): bool
+    {
+        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
+            $permit = $this->storage->findByHash((string) $get['code']);
+            if ($permit instanceof Permit) {
+                $config = $this->config;
+                $this->render('admin_print_view', [
+                    'permit'   => $permit,
+                    'settings' => $this->getSettingsArray(),
+                    'config'   => $config,
+                    'appRoot'  => $config->get('root_path'),
+                    'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    ),
+                    'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    ),
+                ]);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Liefert Konfigurations-Settings für das Frontend-Mapping/Templates.
      *
      * Schnittstelle zwischen Config-Objekt und UI.
@@ -679,143 +830,5 @@ final readonly class AdminController
             'base_url'           => $this->config->getBaseUrl(),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
         ];
-    }
-
-    /**
-     * Führt Daten-Migrationen (Sync/Backup) durch (Sync SQL/JSON).
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Ergebnis der Migration.
-     */
-    private function actionMigrateData(array $post): string
-    {
-        $direction = (string) ($post['direction'] ?? 'sync');
-        $target    = (string) ($post['target'] ?? '');
-
-        // Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
-        // Prüft exakt das Recht, z.B. 'dashboard.migration.users.json_to_mysql'
-        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$direction}")) {
-            return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
-        }
-
-        return $this->migrationService->execute($target, $direction);
-    }
-
-    /**
-     * Rendert ein Template-File mit den übergebenen Daten.
-     *
-     * Nutzt 'extract' um Array-Keys zu lokalen Variablen zu machen.
-     *
-     * @param string               $templatePath Pfad zum .phtml Template.
-     * @param array<string, mixed> $data
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        $config = $this->config;
-        // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
-        $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
-
-        // Wir fügen auth global hinzu, falls es mal vergessen wird
-        if (! isset($data['auth'])) {
-            $data['auth'] = $this->auth;
-        }
-
-        // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
-        \extract($data);
-        // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
-    }
-
-    /**
-     * Führt eine System-Wiederherstellung (Restore) aus einem Backup durch.
-     * Stellt Daten für das angegebene Ziel aus dem gewählten Zeitstempel wieder her.
-     *
-     * @param array<string, mixed> $post Formulardaten mit Ziel (target), Zeitstempel (timestamp) und Engine.
-     *
-     * @return string Statusmeldung über den Erfolg oder Misserfolg des Restores.
-     */
-    private function actionRestoreData(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
-        }
-
-        $target    = (string) ($post['target'] ?? '');
-        $timestamp = (string) ($post['timestamp'] ?? '');
-        $engine    = (string) ($post['engine'] ?? 'all');
-
-        if ($target === '' || $timestamp === '') {
-            return 'Fehler: Unvollständige Angaben für Restore.';
-        }
-
-        return $this->migrationService->restore($timestamp, $target, $engine);
-    }
-
-    /**
-     * Leert den Anwendungs-Cache und löscht temporäre System-Dateien.
-     *
-     * @param array<string, mixed> $post Formulardaten inklusive CSRF-Token.
-     *
-     * @return string Statusmeldung über die Ausführung.
-     */
-    private function actionClearCache(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.tools.view')) {
-            return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
-        }
-
-        return $this->migrationService->clearCache();
-    }
-
-    /**
-     * Löscht alle Daten eines bestimmten Speicher-Ziels rigoros (Truncate).
-     * Wird für administrative System-Resets oder vor großen Migrationen verwendet.
-     *
-     * @param array<string, mixed> $post Formulardaten mit Zielbereich (target) und Speicher-Engine (engine).
-     *
-     * @return string Statusmeldung über die Löschung.
-     */
-    private function actionTruncateTarget(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
-        }
-
-        $target = (string) ($post['target'] ?? '');
-        $engine = (string) ($post['engine'] ?? 'all');
-
-        if ($target === '') {
-            return 'Fehler: Kein Zielbereich ausgewählt.';
-        }
-
-        return $this->migrationService->truncateTarget($target, $engine);
-    }
-
-    /**
-     * Führt die DSGVO-konforme Anonymisierung von alten Archiv-Einträgen durch.
-     *
-     * @param array<string, mixed> $post Das POST-Array der Anfrage.
-     *
-     * @return string Status- oder Erfolgsmeldung über die Anzahl anonymisierter Einträge.
-     */
-    private function actionAnonymizeArchive(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';
-        }
-
-        try {
-            // 10 Jahre gesetzliche Aufbewahrungsfrist
-            $count = $this->permitService->anonymizeOldArchiveRecords(10);
-
-            if ($count === 0) {
-                return 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.';
-            }
-
-            return "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.";
-        } catch (\Exception $e) {
-            return 'Fehler bei der Anonymisierung: ' . $e->getMessage();
-        }
     }
 }
