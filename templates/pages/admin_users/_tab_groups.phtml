@@ -311,8 +311,6 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                     aktiviert.</div>
                             </div>
 
-                            <div class="u-flex ..."> ... </div>
-
                             <div class="p-tree-wrapper mode-hide <?php echo \in_array('*', $gData['permissions'], true) ? 'is-master-active' : ''; ?>">
                                 <?php \renderPermissionNode($structure, $gData['permissions']); ?>
                             </div>

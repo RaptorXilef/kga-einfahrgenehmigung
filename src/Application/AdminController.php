@@ -547,8 +547,6 @@ final readonly class AdminController
         $yearlyStats = [];
         $vConfig     = $this->config->get('vehicle_types', []);
 
-        \krsort($yearlyStats); // Neueste Jahre zuerst
-
         // Gefilterte Daten ans Template übergeben
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->render('admin_dashboard', [

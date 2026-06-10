@@ -615,16 +615,21 @@ $hasAnyTemplate = ! empty($allowedTemplates);
         maxWrapper.style.display = multi ? 'inline-block' : 'none';
     }
 
-    // AJAX Call für die Live-Darstellung der Feiertage
+    // AJAX Call für die Live-Darstellung der Feiertage (Korrigeriert auf JSON-POST)
     async function fetchDateInfo() {
         if (!inputVon || !inputBis) return;
         try {
-            const res = await fetch(window.KGA_CONFIG.baseUrl +
-                `api/get_date_info.php?von=${inputVon.value}&bis=${inputBis.value}`, {
-                    headers: {
-                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                    }
-                });
+            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                },
+                body: JSON.stringify({
+                    von: inputVon.value,
+                    bis: inputBis.value
+                })
+            });
             const data = await res.json();
             const container = document.getElementById('dynamic-date-info');
             const openingEl = document.getElementById('dynamic-opening-hours');

@@ -56,7 +56,7 @@ final readonly class PermitController
             }
             \header('Location: index.php');
             exit;
-        }
+        } 
 
         // 1. Verarbeitung (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

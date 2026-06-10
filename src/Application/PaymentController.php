@@ -60,7 +60,6 @@ final readonly class PaymentController
             } else {
                 JsonResponse::error('Fehler bei Verifizierung');
             }
-
         } catch (\Exception $exception) {
             JsonResponse::error($exception->getMessage(), 400);
         }
@@ -98,18 +97,20 @@ final readonly class PaymentController
     }
 
     /**
+     * TODO Prüfen ob entfernt werden kann, Toter Code aus der Vergangenheit?
+     *
      * Verarbeitet das Absenden des öffentlichen Antragsformulars per POST.
      * Initiiert die Verifikationskette oder wertet vorausgefüllte Gutschein-Parameter aus $_GET aus.
      *
-     * @param array<string, mixed> $post Entspricht $_POST
+     * Übergabe von $get hinzugefügt, um superglobale Leaks zu verhindern
      */
-    public function handleRequest(array $post): void
+    /*public function handleRequest(array $post, array $get): void
     {
         $message = '';
         $success = false;
 
         // Gutschein via URL-Parameter prüfen
-        $voucherCode = (string) ($_GET['voucher'] ?? '');
+        $voucherCode = (string) ($get['voucher'] ?? '');
         $prefill     = null;
 
         if ($voucherCode !== '') {
@@ -141,7 +142,7 @@ final readonly class PaymentController
             'appRoot'  => $this->config->get('root_path'),
             'prefill'  => $prefill,
         ]);
-    }
+    }*/
 
     /**
      * Rendert die Bezahl- und Antragsformulare.

@@ -45,12 +45,6 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // SICHERHEIT: Logout akzeptiert ab jetzt ausschließlich sichere POST-Anfragen
-        if ($this->processLogout($post)) {
-            return;
-        }
-
-        $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
 
         // Globale CSRF-Prüfung für POST-Requests
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -60,6 +54,13 @@ final readonly class HistoryController
                 exit;
             }
         }
+
+        // SICHERHEIT: Logout akzeptiert ab jetzt ausschließlich sichere POST-Anfragen
+        if ($this->processLogout($post)) {
+            return;
+        }
+
+        $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
 
         $displayMessage = (string) ($get['msg'] ?? '');
         $isSuccess      = ($get['sent'] ?? '') === '1';

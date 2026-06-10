@@ -105,7 +105,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
 
         <span class="c-icon-large">
             <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp"
-                 lass="c-icon"
+                 class="c-icon"
                  alt=""
                  style="width: 1.5em; height: 1.5em;">
         </span>

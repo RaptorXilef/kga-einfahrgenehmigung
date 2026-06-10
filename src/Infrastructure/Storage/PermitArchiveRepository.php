@@ -76,9 +76,9 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
             $sql = "REPLACE INTO `{$arcCfg['table']}` (
                 code, template_key, name, email, kennzeichen, parzelle, typ,
                 firma, zweck, preis, von, bis, status, erstellt, interner_kommentar,
-                is_anonymized
+                is_anonymized, agreements
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )";
             $stmt = $this->pdo->prepare($sql);
             foreach ($permitsToArchive as $item) {

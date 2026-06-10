@@ -18,6 +18,7 @@ use App\Core\Service\PermitService;
 
 try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
+    JsonResponse::enforceCsrfProtection();
 
     // Sicherheit: Nur eingeloggte Admins dürfen suchen!
     $auth = $container->get(\App\Core\Service\AuthService::class);
