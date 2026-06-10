@@ -97,6 +97,19 @@ final readonly class PaymentController
     }
 
     /**
+     * Rendert die Bezahl- und Antragsformulare.
+     *
+     * @param string               $templatePath Dateiname des Page-Templates.
+     * @param array<string, mixed> $data         Injektionsvariablen.
+     */
+    private function render(string $templatePath, array $data = []): void
+    {
+        $appRoot = (string) $this->config->get('root_path');
+        \extract($data);
+        include $appRoot . "/templates/pages/{$templatePath}.phtml";
+    }
+
+    /**
      * TODO Prüfen ob entfernt werden kann, Toter Code aus der Vergangenheit?
      *
      * Verarbeitet das Absenden des öffentlichen Antragsformulars per POST.
@@ -114,7 +127,7 @@ final readonly class PaymentController
         $prefill     = null;
 
         if ($voucherCode !== '') {
-            $prefill = $this->permitService->getVoucherService()->loadVouchers()[$voucherCode] ?? null;
+            $prefill = $this->getVoucherService()->loadVouchers()[$voucherCode] ?? null;
             if ($prefill && $prefill['used']) {
                 $prefill = null;
             }
@@ -143,17 +156,4 @@ final readonly class PaymentController
             'prefill'  => $prefill,
         ]);
     }*/
-
-    /**
-     * Rendert die Bezahl- und Antragsformulare.
-     *
-     * @param string               $templatePath Dateiname des Page-Templates.
-     * @param array<string, mixed> $data         Injektionsvariablen.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        $appRoot = (string) $this->config->get('root_path');
-        \extract($data);
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
-    }
 }

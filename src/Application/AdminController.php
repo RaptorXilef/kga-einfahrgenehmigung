@@ -575,7 +575,7 @@ final readonly class AdminController
             'permitService'    => $this->permitService,
             'settings'         => $this->getSettingsArray(),
             'structure'        => $this->config->get('structure', []),
-            'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
+            'vouchers'         => $this->voucherRepository->loadAll(),
             'voucherArchive'   => $this->voucherRepository->loadArchive(),
             'voucherService'   => $this->permitService->getVoucherService(),
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
