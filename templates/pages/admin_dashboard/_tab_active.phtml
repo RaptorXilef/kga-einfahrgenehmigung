@@ -168,12 +168,13 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                     </td>
 
                                     <!-- 5. Status -->
-                                    <td data-sort-val="<?php echo $is_suspended ? '1' : '0'; ?>"
+                                    <td data-sort-val="<?php echo $is_suspended ? '2' : ($permit->isValid((bool) $config->get('require_payment_for_validity', false)) ? '0' : '1'); ?>"
                                         class="u-text-center"
                                         style="vertical-align: middle;">
                                         <?php if ($is_suspended) { ?>
-                                            <span class="c-badge c-badge--danger"
-                                                  title="<?php echo \htmlspecialchars($permit->status->suspension_reason); ?>">GESPERRT</span>
+                                            <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->status->suspension_reason); ?>">GESPERRT</span>
+                                        <?php } elseif (! $permit->isValid((bool) $config->get('require_payment_for_validity', false))) { ?>
+                                            <span class="c-badge c-badge--warning" title="Zeitraum gültig, aber Zahlung ausstehend">UNBEZAHLT</span>
                                         <?php } else { ?>
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>

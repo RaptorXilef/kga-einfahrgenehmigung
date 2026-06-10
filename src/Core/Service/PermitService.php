@@ -868,9 +868,37 @@ final readonly class PermitService
             // Ins Archiv schreiben
             $this->archiveRepository->archivePermits(0, $toArchive);
 
-            // Aus dem Hauptspeicher löschen
-            foreach ($toArchive as $item) {
-                $this->storage->delete($item['code']);
+            // TODO GGF. folgendes in andere passendere Klasse auslagern und hier nur aufrufen
+            // OPTIMIERUNG: Unterscheidung zwischen JSON-Massenlöschung und SQL
+            $storageEngine = $this->storage;
+            if ($storageEngine instanceof \App\Infrastructure\Storage\JsonStorage) {
+                // Bei JSON: Einmal im RAM bereinigen und mit einem einzigen I/O-Vorgang speichern
+                $cfg  = $this->config->get('storage_config')['permits'];
+                $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
+                        \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+
+                $fp = @\fopen($path, 'c+');
+                if ($fp && \flock($fp, \LOCK_EX)) {
+                    $size = \filesize($path);
+                    $raw  = $size > 0 ? \fread($fp, $size) : '';
+                    $data = \json_decode((string) $raw, true) ?? [];
+
+                    foreach ($toArchive as $item) {
+                        unset($data[$item['code']]);
+                    }
+
+                    \ftruncate($fp, 0);
+                    \fseek($fp, 0);
+                    \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                    \fflush($fp);
+                    \flock($fp, \LOCK_UN);
+                    \fclose($fp);
+                }
+            } else {
+                // Bei SQL: Normale Ausführung über Prepared Statements
+                foreach ($toArchive as $item) {
+                    $this->storage->delete($item['code']);
+                }
             }
         }
 

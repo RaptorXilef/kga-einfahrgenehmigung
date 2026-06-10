@@ -45,19 +45,18 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-
-        // Globale CSRF-Prüfung für POST-Requests
+        // Globale CSRF-Prüfung für POST-Requests (Muss als ALLERERSTES passieren!)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
                 $msg = 'Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
                 \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
                 exit;
             }
-        }
 
-        // SICHERHEIT: Logout akzeptiert ab jetzt ausschließlich sichere POST-Anfragen
-        if ($this->processLogout($post)) {
-            return;
+            // SICHERHEIT: Logout wird erst verarbeitet, wenn CSRF-Schutz erfolgreich gegriffen hat
+            if ($this->processLogout($post)) {
+                return;
+            }
         }
 
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');

@@ -56,7 +56,7 @@ final readonly class PermitController
             }
             \header('Location: index.php');
             exit;
-        } 
+        }
 
         // 1. Verarbeitung (POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -93,7 +93,7 @@ final readonly class PermitController
                                 $merged['preis']  = $oldData['preis'] ?? 0;
                                 $merged['status'] = 'offen'; // Status für Checkout zurücksetzen
 
-                                // FIX: Sauber über das VerificationRepository speichern!
+                                // Sauber über das VerificationRepository speichern!
                                 $allVerified         = $this->verificationRepo->loadVerified();
                                 $allVerified[$token] = $merged;
                                 $this->verificationRepo->saveVerified($allVerified);
@@ -102,7 +102,15 @@ final readonly class PermitController
                                 \header('Location: checkout.php?token=' . $token);
                                 exit;
                             }
-                            // Preisrelevante Änderung -> Neustart der Bestätigung nötig
+
+                            // Preisrelevante Änderung -> Alten verifizierten Token rückstandslos löschen
+                            $allVerified = $this->verificationRepo->loadVerified();
+                            if (isset($allVerified[$token])) {
+                                unset($allVerified[$token]);
+                                $this->verificationRepo->saveVerified($allVerified);
+                            }
+
+                            // Neustart der Bestätigung nötig
                             $this->permitService->createPendingVerification($post);
                             unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
 

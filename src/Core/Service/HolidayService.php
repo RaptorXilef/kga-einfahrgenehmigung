@@ -453,7 +453,9 @@ final readonly class HolidayService
 
         // Chronologisch sortieren und formatieren
         \sort($holidays);
-        $holidays = \array_unique($holidays);
+        // FIX: array_values() zwingend erforderlich, da array_unique() Keys im Array löscht
+        // und die for-Schleife im HolidayService sonst mangels sequenzieller Indizes abstürzt.
+        $holidays = \array_values(\array_unique($holidays));
 
         $formattedRanges = $this->formatDateRanges($holidays);
         $dateString      = \implode(', ', $formattedRanges);

@@ -144,8 +144,13 @@ final readonly class SmtpMailService implements MailServiceInterface
             return 'Server meldet sich nicht (Timeout)';
         }
 
-        // 2. EHLO senden
-        \fwrite($socket, 'EHLO ' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n");
+        // Sichere Host-Ermittlung aus der Config (verhindert Header Injection)
+        $configUrl    = $this->config->getBaseUrl();
+        $parsedUrl    = \parse_url($configUrl);
+        $smtpEhloHost = $parsedUrl['host'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+
+        // 2. EHLO senden mit sicherem, server-kontrolliertem Hostnamen
+        \fwrite($socket, 'EHLO ' . $smtpEhloHost . "\r\n");
         if (! $this->checkResponse($socket, '250')) {
             return 'EHLO abgelehnt';
         }

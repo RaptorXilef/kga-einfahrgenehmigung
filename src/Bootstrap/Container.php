@@ -130,11 +130,9 @@ class Container
 
             // Optionalen Port-String zusammenbauen
             $portStr = ! empty($db['port']) ? ";port={$db['port']}" : '';
-
             // Port-String in DSN integrieren
             $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
-
-            $pdo = null;
+            $pdo       = null;
 
             try {
                 // Normaler Verbindungsversuch
@@ -146,7 +144,9 @@ class Container
                 ]);
             } catch (\PDOException $e) {
                 // Fehler 1049 = Unknown database bedeutet: Datenbank existiert nicht
-                if ($e->getCode() != 1049) {
+                $mysqlErrorCode = $e->errorInfo[1] ?? null;
+
+                if ($mysqlErrorCode !== 1049) {
                     \error_log('MySQL Connection Error: ' . $e->getMessage());
 
                     return null;

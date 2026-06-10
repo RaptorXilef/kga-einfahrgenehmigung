@@ -81,17 +81,28 @@ final readonly class RateLimiter implements RateLimiterInterface
             return;
         }
 
+        // FIX: Sicheres Inkrementieren mit exklusivem File-Lock (LOCK_EX)
         $path = $this->getFilePath($cfg['file']);
-        $data = \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        $fp   = @\fopen($path, 'c+');
+        if ($fp && \flock($fp, \LOCK_EX)) {
+            $size = \filesize($path);
+            $raw  = $size > 0 ? \fread($fp, $size) : '';
+            $data = \json_decode((string) $raw, true) ?? [];
 
-        if (! isset($data[$ip])) {
-            $data[$ip] = ['attempts' => 1, 'last_attempt' => $nowStr];
-        } else {
-            ++$data[$ip]['attempts'];
-            $data[$ip]['last_attempt'] = $nowStr;
+            if (! isset($data[$ip])) {
+                $data[$ip] = ['attempts' => 1, 'last_attempt' => $nowStr];
+            } else {
+                $data[$ip]['attempts']     = (int) $data[$ip]['attempts'] + 1;
+                $data[$ip]['last_attempt'] = $nowStr;
+            }
+
+            \ftruncate($fp, 0);
+            \fseek($fp, 0);
+            \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT));
+            \fflush($fp);
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
         }
-
-        \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT));
     }
 
     // TODO DOCBLOCK
@@ -105,12 +116,23 @@ final readonly class RateLimiter implements RateLimiterInterface
             return;
         }
 
+        // FIX: Sicheres Löschen mit exklusivem File-Lock (LOCK_EX)
         $path = $this->getFilePath($cfg['file']);
-        $data = \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        $fp   = @\fopen($path, 'c+');
+        if ($fp && \flock($fp, \LOCK_EX)) {
+            $size = \filesize($path);
+            $raw  = $size > 0 ? \fread($fp, $size) : '';
+            $data = \json_decode((string) $raw, true) ?? [];
 
-        if (isset($data[$ip])) {
-            unset($data[$ip]);
-            \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT));
+            if (isset($data[$ip])) {
+                unset($data[$ip]);
+                \ftruncate($fp, 0);
+                \fseek($fp, 0);
+                \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT));
+                \fflush($fp);
+            }
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
         }
     }
 
