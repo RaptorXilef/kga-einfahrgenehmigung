@@ -259,7 +259,9 @@ final readonly class MigrationService
     }
 
     /**
-     * TODO DOCBLOCK
+     * Migriert den Protokoll-Verlauf ausgeführter System-Updates in die MySQL-Datenbank.
+     *
+     * @param array<int|string, array<string, mixed>> $data Rohdaten der bisherigen Updates.
      */
     private function migrateUpdateMigrationsToSql(array $data): void
     {

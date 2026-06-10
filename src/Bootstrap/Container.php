@@ -391,6 +391,7 @@ class Container
             $this->get(ReportingService::class),
             $this->get(StorageBootstrapper::class),
             $this->get(StorageInterface::class),
+            $this->get(VoucherRepositoryInterface::class),
         );
 
         // User Controller
@@ -413,6 +414,7 @@ class Container
             $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
             $this->get(VerificationRepositoryInterface::class),
+            $this->get(VoucherRepositoryInterface::class),
         );
 
         // NEU: CheckoutController für checkout.php

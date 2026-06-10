@@ -7,6 +7,7 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -26,7 +27,8 @@ final readonly class PermitController
     public function __construct(
         private ConfigInterface $config,
         private PermitService $permitService,
-        private VerificationRepositoryInterface $verificationRepo, // <-- NEU: Das Repository!
+        private VerificationRepositoryInterface $verificationRepo, // Das Repository!
+        private VoucherRepositoryInterface $voucherRepository,
     ) {
     }
 
@@ -161,8 +163,8 @@ final readonly class PermitController
      */
     private function checkAvailableVouchers(): bool
     {
+        $vouchers       = $this->voucherRepository->loadAll();
         $voucherService = $this->permitService->getVoucherService();
-        $vouchers       = $voucherService->loadVouchers();
 
         foreach ($vouchers as $v) {
             if ($voucherService->isValid($v)) {

@@ -12,14 +12,14 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Core\Entity\Permit $permit
- * @var string                  $method
- * @var bool                    $requirePayment
- * @var string                  $dueDate
- * @var string                  $epcData
- * @var string                  $usage
- * @var array                   $settings
- * @var string                  $appRoot
+ * @var \App\Core\Entity\Permit $permit         Die bewilligte Genehmigungs-Entität.
+ * @var string                  $method         Zahlungsmethode (z.B. 'wire' oder 'paypal').
+ * @var bool                    $requirePayment Gibt an, ob das Ticket erst nach Zahlungseingang gültig ist.
+ * @var string                  $dueDate        Das berechnete Datum für das Zahlungsziel.
+ * @var string                  $epcData        Der rohe Payload für den Giro-QR-Code.
+ * @var string                  $usage          Der maschinenlesbare Verwendungszweck.
+ * @var array                   $settings       Globale UI-Einstellungen.
+ * @var string                  $appRoot        Absoluter Pfad.
  */
 ?>
 <!DOCTYPE html>

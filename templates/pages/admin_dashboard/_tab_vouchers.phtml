@@ -13,9 +13,10 @@
  * See LICENSE.md for full license details.
  *
  * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Infrastructure\Config\Config $config
  * @var array                             $settings
  * @var array                             $vouchers
- * @var \App\Infrastructure\Config\Config $config
+ * @var array                             $voucherArchive
  * @var \App\Core\Service\VoucherService  $voucherService
  */
 ?>
@@ -229,7 +230,7 @@
                             </thead>
                             <tbody>
                                 <?php
-                                $archive = $voucherService->loadArchive() ?? [];
+                                $archive = $voucherArchive ?? [];
                 if (empty($archive)) {
                     ?>
                                     <tr>

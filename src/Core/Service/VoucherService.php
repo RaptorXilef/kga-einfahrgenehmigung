@@ -233,27 +233,4 @@ final readonly class VoucherService
 
         return ! $multi || $max <= 0 || $count < $max;
     }
-
-    // TODO Die folgenden 2 Methoden leiten wir vorübergehend durch, damit Controller (die noch darauf zugreifen) nicht kaputt gehen
-    /**
-     * Lädt alle derzeit aktiven Gutscheine.
-     *
-     * @return array<string, array<string, mixed>> Ein Array aller aktiven Gutscheine.
-     * @deprecated Wird vorübergehend durchgeleitet, um Controller-Bruch zu vermeiden.
-     */
-    public function loadVouchers(): array
-    {
-        return $this->repository->loadAll();
-    }
-
-    /**
-     * Lädt das Archiv der bereits vollständig eingelösten Gutscheine.
-     *
-     * @return array<int|string, array<string, mixed>> Ein Array aller archivierten Gutscheine.
-     * @deprecated Wird vorübergehend durchgeleitet, um Controller-Bruch zu vermeiden.
-     */
-    public function loadArchive(): array
-    {
-        return $this->repository->loadArchive();
-    }
 }

@@ -16,15 +16,15 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var string                                $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
- * @var bool                                  $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
- * @var array                                 $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
  * @var string                                $appRoot   System-Root-Pfad.
- * @var array|null                            $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
  * @var \App\Contracts\Config\ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
- * @var string                                $appRoot
- * @var bool                                  $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
  * @var array                                 $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
+ * @var bool                                  $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
+ * @var string                                $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
+ * @var array|null                            $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
+ * @var array                                 $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
+ * @var bool                                  $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
+ * @var string                                $token             Das Sitzungs-Token für Korrekturen.
  */
 $prefill ??= null;
 $formData ??= [];

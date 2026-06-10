@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
 
 try {
@@ -45,9 +46,11 @@ try {
     // Gutschein-Prüfung
     if ($voucherCode !== '') {
         // Wir lassen den Service die Arbeit machen!
+        $voucherRepo    = $container->get(VoucherRepositoryInterface::class);
         $voucherService = $permitService->getVoucherService();
-        $vouchers       = $voucherService->loadVouchers();
-        $v              = $vouchers[$voucherCode] ?? null;
+
+        $vouchers = $voucherRepo->loadAll();
+        $v        = $vouchers[$voucherCode] ?? null;
 
         if ($v) {
             // NUTZUNG DER isValid() SERVICE-METHODE

@@ -7,6 +7,7 @@ namespace App\Application;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
@@ -48,6 +49,7 @@ final readonly class AdminController
         private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
+        private VoucherRepositoryInterface $voucherRepository,
     ) {
     }
 
@@ -574,6 +576,7 @@ final readonly class AdminController
             'settings'         => $this->getSettingsArray(),
             'structure'        => $this->config->get('structure', []),
             'vouchers'         => $this->permitService->getVoucherService()->loadVouchers(),
+            'voucherArchive'   => $this->voucherRepository->loadArchive(),
             'voucherService'   => $this->permitService->getVoucherService(),
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
