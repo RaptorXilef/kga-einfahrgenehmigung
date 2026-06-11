@@ -24,7 +24,11 @@ final readonly class ReportingService
     ) {
     }
 
+    // --- Dashboard Data Bundlers ---
+
     /**
+     * Wichtigste Dashboard-Funktion: Teilt Daten in die Tabs auf
+     *
      * Gruppiert alle Genehmigungen in 'active', 'future', 'expired' und 'unpaid'.
      *
      * @param array $allPermits Array aller Permit-Entitäten.
@@ -70,7 +74,11 @@ final readonly class ReportingService
         return $groups;
     }
 
+    // --- Metric Calculation Engines ---
+
     /**
+     * Berechnet Umsätze und Plot-Statistiken für Filterzeiträume
+     *
      * Berechnet tiefergehende Umsatz- und Fahrzeugstatistiken für einen gefilterten Zeitraum.
      *
      * @param array<int, Permit> $permits Array der zu berücksichtigenden Permit-Entitäten.
@@ -150,6 +158,8 @@ final readonly class ReportingService
     }
 
     /**
+     * Berechnet die historischen Jahresabschlüsse
+     *
      * Gruppiert und berechnet die Finanz- und Antrags-Statistiken nach Jahren.
      *
      * @param array $allPermits Array aller Permit-Entitäten.

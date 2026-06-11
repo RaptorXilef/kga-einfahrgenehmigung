@@ -28,7 +28,11 @@ final readonly class VoucherService
     ) {
     }
 
+    // --- Voucher Lifecycle API ---
+
     /**
+     * Schritt 1: Code generieren und Sperrlisten prüfen
+     *
      * Generiert einen neuen Gutschein im System mit individuellen Restriktionen.
      * Überprüft Wunsch-Codes auf Einzigartigkeit gegen Live- und Archivbestände oder generiert ein 'GUT-'-Krypto-Token.
      *
@@ -107,6 +111,45 @@ final readonly class VoucherService
     }
 
     /**
+     * Schritt 2: Gültigkeit zur Laufzeit im Beantragungsformular checken
+     *
+     * Prüft, ob ein gegebener Gutschein aktuell gültig ist (Verfallsdatum, Status & Nutzungen).
+     *
+     * @param array<string, mixed> $voucher Das Gutschein-Daten-Array.
+     *
+     * @return bool True, wenn der Gutschein noch eingelöst werden kann.
+     */
+    public function isValid(array $voucher): bool
+    {
+        // 1. Check: Administrativ deaktiviert?
+        if (($voucher['status'] ?? 'aktiv') === 'deaktiviert') {
+            return false;
+        }
+
+        // 2. Check: Ablaufdatum überschritten?
+        if (! empty($voucher['expires_at'])) {
+            try {
+                $expiry = new \DateTimeImmutable($voucher['expires_at']);
+                if ($expiry < new \DateTimeImmutable()) {
+                    return false;
+                }
+            } catch (\Exception) {
+                // Bei korruptem Datumsformat lieber ungültig
+                return false;
+            }
+        }
+
+        // 3. Check: Nutzungslimit erreicht? (Zusatz-Sicherheit für die Anzeige)
+        $multi = (bool) ($voucher['multi_use'] ?? false);
+        $max   = (int) ($voucher['max_uses'] ?? 1);
+        $count = (int) ($voucher['uses_count'] ?? 0);
+
+        return ! $multi || $max <= 0 || $count < $max;
+    }
+
+    /**
+     * Schritt 3: Code einlösen, Zähler hochsetzen, ins Archiv loggen
+     *
      * Löst einen Gutschein ein, inkrementiert den Zähler und verschiebt ihn bei Erschöpfung ins Archiv.
      *
      * @param string               $code     Der einzulösende Gutscheincode.
@@ -155,30 +198,11 @@ final readonly class VoucherService
         return $voucher;
     }
 
-    /**
-     * Deaktiviert (Sperrt) einen aktiven Gutschein vorzeitig unter Angabe einer Begründung.
-     *
-     * @param string $code   Der zu deaktivierende Gutscheincode.
-     * @param string $reason Die Begründung für die Deaktivierung.
-     *
-     * @return bool True bei Erfolg, false wenn der Code nicht gefunden wurde.
-     */
-    public function deactivateVoucher(string $code, string $reason): bool
-    {
-        $vouchers = $this->repository->loadAll();
-        if (! isset($vouchers[$code])) {
-            return false;
-        }
-
-        $vouchers[$code]['status'] = 'deaktiviert';
-        $vouchers[$code]['note']   = $reason;
-
-        $this->repository->saveAll($vouchers);
-
-        return true;
-    }
+    // --- Administrative Management ---
 
     /**
+     * Gutschein manuell deaktivieren/reaktivieren
+     *
      * Ändert den Status eines Gutscheins.
      *
      * @param string $code   Der Gutscheincode.
@@ -200,37 +224,27 @@ final readonly class VoucherService
     }
 
     /**
-     * Prüft, ob ein gegebener Gutschein aktuell gültig ist (Verfallsdatum, Status & Nutzungen).
+     * Gutschein vorzeitig mit Begründung sperren
      *
-     * @param array<string, mixed> $voucher Das Gutschein-Daten-Array.
+     * Deaktiviert (Sperrt) einen aktiven Gutschein vorzeitig unter Angabe einer Begründung.
      *
-     * @return bool True, wenn der Gutschein noch eingelöst werden kann.
+     * @param string $code   Der zu deaktivierende Gutscheincode.
+     * @param string $reason Die Begründung für die Deaktivierung.
+     *
+     * @return bool True bei Erfolg, false wenn der Code nicht gefunden wurde.
      */
-    public function isValid(array $voucher): bool
+    public function deactivateVoucher(string $code, string $reason): bool
     {
-        // 1. Check: Administrativ deaktiviert?
-        if (($voucher['status'] ?? 'aktiv') === 'deaktiviert') {
+        $vouchers = $this->repository->loadAll();
+        if (! isset($vouchers[$code])) {
             return false;
         }
 
-        // 2. Check: Ablaufdatum überschritten?
-        if (! empty($voucher['expires_at'])) {
-            try {
-                $expiry = new \DateTimeImmutable($voucher['expires_at']);
-                if ($expiry < new \DateTimeImmutable()) {
-                    return false;
-                }
-            } catch (\Exception) {
-                // Bei korruptem Datumsformat lieber ungültig
-                return false;
-            }
-        }
+        $vouchers[$code]['status'] = 'deaktiviert';
+        $vouchers[$code]['note']   = $reason;
 
-        // 3. Check: Nutzungslimit erreicht? (Zusatz-Sicherheit für die Anzeige)
-        $multi = (bool) ($voucher['multi_use'] ?? false);
-        $max   = (int) ($voucher['max_uses'] ?? 1);
-        $count = (int) ($voucher['uses_count'] ?? 0);
+        $this->repository->saveAll($vouchers);
 
-        return ! $multi || $max <= 0 || $count < $max;
+        return true;
     }
 }

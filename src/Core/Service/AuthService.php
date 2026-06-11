@@ -38,7 +38,11 @@ final readonly class AuthService
         \session_start();
     }
 
+    // --- Core Authentication API ---
+
     /**
+     * Zentraler Einstiegspunkt
+     *
      * Führt den Login-Prozess für einen Benutzer aus.
      * Prüft nacheinander: Inhaber-Backdoor, konfigurierte Superadmin-Credentials und die Benutzer-JSON.
      *
@@ -101,20 +105,28 @@ final readonly class AuthService
     }
 
     /**
-     * Schreibt Identifikationsmerkmale in die globale $_SESSION Supervariable.
-     *
-     * @param string $userId  Eindeutige ID (z.B. 'usr_7c13b491' oder 'sys_backdoor').
-     * @param string $groupId Die zugehörige Rechtegruppe (z.B. 'grp_71cb1c0d').
-     * @param string $label   Der Anzeigename des Benutzers.
+     * Zerstört die aktuelle Session vollständig (Logout).
      */
-    private function setSession(string $userId, string $groupId, string $label): void
+    public function logout(): void
     {
-        $_SESSION['user_id']     = $userId;
-        $_SESSION['admin_user']  = $label;
-        $_SESSION['admin_group'] = $groupId;
+        \session_destroy();
     }
 
     /**
+     * Abfrage-Schnittstelle zur schnellen Prüfung des Login-Status.
+     *
+     * @return bool True, wenn eine gültige Admin-Sitzung existiert.
+     */
+    public function isLoggedIn(): bool
+    {
+        return isset($_SESSION['user_id']);
+    }
+
+    // --- Authorization & RBAC State ---
+
+    /**
+     * Rechteprüfung im laufenden Betrieb
+     *
      * Prüft, ob der aktuell eingeloggte Benutzer eine bestimmte Berechtigung besitzt.
      *
      * @param string $permission Der Berechtigungsschlüssel (z.B. 'dashboard.view').
@@ -146,6 +158,8 @@ final readonly class AuthService
     }
 
     /**
+     * Rechtekompilierung
+     *
      * Kompiliert und speichert die Berechtigungen der Gruppe in der aktuellen Session.
      *
      * @param string $groupId Die ID der Gruppe, deren Berechtigungen geladen werden sollen.
@@ -160,7 +174,77 @@ final readonly class AuthService
         $_SESSION['compiled_permissions'] = $compiler->compile($structure, $groupPerms);
     }
 
-    // --- IDENTITY & MEDIA ---
+    // --- Session Identity Getters ---
+
+    /**
+     * Gibt den Anzeigenamen des aktuell angemeldeten Benutzers zurück.
+     *
+     * @return string Der Name aus $_SESSION oder 'Unbekannt'.
+     */
+    public function getUsername(): string
+    {
+        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+    }
+
+    /**
+     * Ruft die eindeutige Benutzer-ID der aktiven Sitzung ab.
+     */
+    public function getUserId(): string
+    {
+        return (string) ($_SESSION['user_id'] ?? '');
+    }
+
+    /**
+     * Gibt die aktive Gruppen-ID des Benutzers zurück.
+     *
+     * @return string Die ID oder 'guest' bei anonymen Requests.
+     */
+    public function getGroup(): string
+    {
+        return (string) ($_SESSION['admin_group'] ?? 'guest');
+    }
+
+    /**
+     * Schreibt Identifikationsmerkmale in die globale $_SESSION Supervariable.
+     *
+     * Private Hilfsmethode, gehört direkt unter die Session-Getter
+     *
+     * @param string $userId  Eindeutige ID (z.B. 'usr_7c13b491' oder 'sys_backdoor').
+     * @param string $groupId Die zugehörige Rechtegruppe (z.B. 'grp_71cb1c0d').
+     * @param string $label   Der Anzeigename des Benutzers.
+     */
+    private function setSession(string $userId, string $groupId, string $label): void
+    {
+        $_SESSION['user_id']     = $userId;
+        $_SESSION['admin_user']  = $label;
+        $_SESSION['admin_group'] = $groupId;
+    }
+
+    // --- Data Persistence Gateways (Repository Proxies) ---
+    // TODO Proxies später entfernen, so refactorieren, dass sie nicht mehr gebraucht werden
+    // Die Controller und andere Services sollten die Repositories direkt über ihre jeweiligen Interfaces ansprechen.
+
+    public function loadUsers(): array
+    {
+        return $this->userRepository->loadAll();
+    }
+
+    public function saveUsers(array $users, bool $forceSql = false): void
+    {
+        $this->userRepository->saveAll($users, $forceSql);
+    }
+
+    public function loadGroups(): array
+    {
+        return $this->groupRepository->loadAll();
+    }
+
+    public function saveGroups(array $groups, bool $forceSql = false): void
+    {
+        $this->groupRepository->saveAll($groups, $forceSql);
+    }
+
+    // --- Media & Identity Utilities ---
 
     /**
      * Gibt den Browser-Pfad zum Profilbild des aktuell angemeldeten Benutzers zurück.
@@ -208,71 +292,5 @@ final readonly class AuthService
     public function generateId(string $prefix = ''): string
     {
         return $prefix . \substr(\bin2hex(\random_bytes(4)), 0, 8);
-    }
-
-    /**
-     * Gibt den Anzeigenamen des aktuell angemeldeten Benutzers zurück.
-     *
-     * @return string Der Name aus $_SESSION oder 'Unbekannt'.
-     */
-    public function getUsername(): string
-    {
-        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
-    }
-
-    /**
-     * Gibt die aktive Gruppen-ID des Benutzers zurück.
-     *
-     * @return string Die ID oder 'guest' bei anonymen Requests.
-     */
-    public function getGroup(): string
-    {
-        return (string) ($_SESSION['admin_group'] ?? 'guest');
-    }
-
-    /**
-     * Abfrage-Schnittstelle zur schnellen Prüfung des Login-Status.
-     *
-     * @return bool True, wenn eine gültige Admin-Sitzung existiert.
-     */
-    public function isLoggedIn(): bool
-    {
-        return isset($_SESSION['user_id']);
-    }
-
-    /**
-     * Zerstört die aktuelle Session vollständig (Logout).
-     */
-    public function logout(): void
-    {
-        \session_destroy();
-    }
-
-    /**
-     * Ruft die eindeutige Benutzer-ID der aktiven Sitzung ab.
-     */
-    public function getUserId(): string
-    {
-        return (string) ($_SESSION['user_id'] ?? '');
-    }
-
-    public function loadUsers(): array
-    {
-        return $this->userRepository->loadAll();
-    }
-
-    public function saveUsers(array $users, bool $forceSql = false): void
-    {
-        $this->userRepository->saveAll($users, $forceSql);
-    }
-
-    public function loadGroups(): array
-    {
-        return $this->groupRepository->loadAll();
-    }
-
-    public function saveGroups(array $groups, bool $forceSql = false): void
-    {
-        $this->groupRepository->saveAll($groups, $forceSql);
     }
 }

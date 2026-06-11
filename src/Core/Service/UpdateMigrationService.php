@@ -25,6 +25,8 @@ final readonly class UpdateMigrationService
     }
 
     /**
+     * Public API: Startet die Update-Kette
+     *
      * Sucht nach neuen Migrations-Skripten im Ordner und führt diese chronologisch aus.
      *
      * @return array<int, string> Liste der neu ausgeführten Migrations-Versionen.
@@ -67,6 +69,8 @@ final readonly class UpdateMigrationService
     }
 
     /**
+     * Private Helper: Liest den Ist-Zustand
+     *
      * Holt eine Liste aller historisch bereits ausgeführten Versionen aus der Datenbank oder JSON.
      *
      * @return array<int, string>
@@ -101,6 +105,8 @@ final readonly class UpdateMigrationService
     }
 
     /**
+     * Private Helper: Schreibt den Soll-Zustand
+     *
      * Markiert ein Migrations-Skript als "erledigt", damit es bei zukünftigen Updates ignoriert wird.
      *
      * @param string $version Die Version/der Name des Skripts.

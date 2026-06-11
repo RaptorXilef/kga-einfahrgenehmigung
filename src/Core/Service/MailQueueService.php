@@ -26,7 +26,11 @@ final readonly class MailQueueService implements MailServiceInterface
     ) {
     }
 
+    // --- Queue Lifecycle Core ---
+
     /**
+     * Schritt 1: Mail in die Warteschlange einreihen
+     *
      * Reiht eine neue E-Mail in die Warteschlange ein.
      *
      * @param string               $recipient Die E-Mail-Adresse des Empfängers.
@@ -44,6 +48,8 @@ final readonly class MailQueueService implements MailServiceInterface
     }
 
     /**
+     * Schritt 2: Warteschlange abarbeiten und SMTP-Versand triggern
+     *
      * Verarbeitet einen Stapel von E-Mails aus der Warteschlange und versendet diese.
      *
      * @param int $limit Maximale Anzahl der zu verarbeitenden E-Mails in diesem Durchlauf.
@@ -61,6 +67,9 @@ final readonly class MailQueueService implements MailServiceInterface
         });
     }
 
+    // --- Auditing & Logging Proxies ---
+    // TODO Später entfernen, so refactorieren, dass sie nicht mehr gebraucht werden
+
     /**
      * Lädt alle gespeicherten E-Mail-Protokolle (Logs).
      *
@@ -71,6 +80,7 @@ final readonly class MailQueueService implements MailServiceInterface
         return $this->realMailService->loadLogs();
     }
 
+    // TODO Später entfernen, so refactorieren, dass sie nicht mehr gebraucht werden
     /**
      * Speichert oder überschreibt E-Mail-Protokolle im System.
      *

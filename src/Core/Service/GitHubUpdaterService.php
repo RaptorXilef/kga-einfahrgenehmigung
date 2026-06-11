@@ -21,6 +21,7 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class GitHubUpdaterService
 {
+    // TODO URL
     private const GITHUB_API_URL = 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung';
 
     // Fallback-Regeln, falls die update_manifest.json im ZIP mal fehlen sollte
@@ -62,7 +63,11 @@ final readonly class GitHubUpdaterService
     ) {
     }
 
+    // --- Public Update Lifecycle API ---
+
     /**
+     * Schritt 1: Prüfen
+     *
      * Prüft, ob ein neues Release auf GitHub verfügbar ist.
      *
      * @param string $currentVersion Die aktuell installierte Version (z.B. "v1.2.0")
@@ -124,6 +129,8 @@ final readonly class GitHubUpdaterService
     }
 
     /**
+     * Schritt 2: Ausführen
+     *
      * Führt das Update durch (Download, Entpacken, Whitelist anwenden, Cleanup).
      *
      * @param string $zipUrl Die URL zur ZIP-Datei des Releases.
@@ -195,7 +202,11 @@ final readonly class GitHubUpdaterService
         return true;
     }
 
+    // / --- Internal File Processing (Private) ---
+
     /**
+     * Arbeitet performUpdate zu
+     *
      * Kopiert rekursiv alle Dateien, die der Whitelist entsprechen und nicht blockiert sind.
      */
     private function copyAllowedFiles(string $sourceDir, string $targetDir, array $whitelist, array $blacklist): void
@@ -229,6 +240,8 @@ final readonly class GitHubUpdaterService
     }
 
     /**
+     * Sicherheits-Gatekeeper für Kopierprozess
+     *
      * Prüft, ob ein Dateipfad laut BLACKLIST & WHITELIST erlaubt ist.
      */
     private function isPathAllowed(string $path, array $whitelist, array $blacklist): bool
@@ -317,7 +330,11 @@ final readonly class GitHubUpdaterService
         \rmdir($dir);
     }
 
+    // --- Low-Level Network Core (Private) ---
+
     /**
+     * Macht die rohen GitHub-API-Abrufe
+     *
      * Hilfsmethode für den JSON-API-Aufruf.
      */
     private function makeApiRequest(string $endpoint): ?array

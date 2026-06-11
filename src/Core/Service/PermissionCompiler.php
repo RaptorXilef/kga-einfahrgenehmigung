@@ -21,6 +21,8 @@ namespace App\Core\Service;
 final class PermissionCompiler
 {
     /**
+     * Public API: Nimmt Daten entgegen und startet Prozess
+     *
      * Kompiliert eine hierarchische Menü-/Rechtestruktur in eine flache Key-Value-Map.
      *
      * Wandelt den Permissions-Baum in ein flaches Array um, basierend auf den Gruppen-Einstellungen.
@@ -39,6 +41,8 @@ final class PermissionCompiler
     }
 
     /**
+     * Private Hilfsmethode: Wandert rekursiv durch den Baum
+     *
      * Rekursiver Tree-Walker zur Vererbung und Auswertung von Rechten über Knotenebenen hinweg.
      * Beachtet hierarchische Parent-Sperren, verarbeitet Wildcards und wertet Negierungen (Präfix '-') aus.
      *

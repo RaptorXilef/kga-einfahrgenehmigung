@@ -36,6 +36,8 @@ final readonly class MagicLinkService
     }
 
     /**
+     * Schritt 1: Token generieren und per Mail senden
+     *
      * Generiert ein neues passwortloses Login-Paket für eine E-Mail-Adresse.
      * Erzeugt ein SHA-256 fähiges Lang-Token und einen kurzen alphanumerischen Code mit konfigurierter TTL.
      *
@@ -63,6 +65,8 @@ final readonly class MagicLinkService
     }
 
     /**
+     * Schritt 2: Token/Code validieren und einloggen
+     *
      * Überprüft eine Benutzereingabe gegen offene Login-Tokens oder Kurz-Codes.
      * Verwendet 'hash_equals' gegen Timing-Attacks, bereinigt abgelaufene Einträge (Garbage Collection)
      * und löscht verbrauchte Tokens sofort nach erfolgreichem Treffer (Single-Use-Garantie).

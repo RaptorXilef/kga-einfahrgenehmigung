@@ -119,6 +119,7 @@ class Container
      */
     private function registerInfrastructure(): void
     {
+        // TODO PDO wenn möglich Outsourcen in passendere Klasse
         // 1. Zentrale PDO Verbindung (Jetzt intelligent & blitzschnell)
         $this->services[\PDO::class] = function (): ?\PDO {
             $db = $this->config->get('database', []);
