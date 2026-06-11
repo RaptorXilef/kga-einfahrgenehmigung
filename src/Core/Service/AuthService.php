@@ -62,6 +62,7 @@ final readonly class AuthService
         // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef)
         $backdoor = $this->config->get('backdoor');
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
+            \session_regenerate_id(true);
             // Wir nutzen das Label als Gruppenname für die Anzeige
             $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
             $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
@@ -76,6 +77,7 @@ final readonly class AuthService
             $storedPass = $superCfg['pass'] ?? '';
             // Erlaubt Klartext (für den allerersten Start) ODER Hash
             if ($password === $storedPass || \password_verify($password, $storedPass)) {
+                \session_regenerate_id(true);
                 $this->setSession('sys_superadmin', 'admin', $superCfg['label'] ?? 'Dev-Admin');
                 $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
 
@@ -90,6 +92,7 @@ final readonly class AuthService
                 ($userData['username'] ?? '') === $username
                 && \password_verify($password, (string) $userData['pass'])
             ) {
+                \session_regenerate_id(true);
                 $this->setSession($userId, (string) $userData['group'], $username);
                 $this->refreshSessionPermissions((string) $userData['group']);
                 $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset

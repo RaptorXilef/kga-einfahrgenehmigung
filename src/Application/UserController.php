@@ -165,6 +165,14 @@ final readonly class UserController
         }
 
         $users = $this->auth->loadUsers();
+
+        // Eindeutigkeit des Benutzernamens erzwingen (Verhindert Login-Sperren)
+        foreach ($users as $userData) {
+            if (\strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($loginName)) {
+                return "Fehler: Ein Benutzer mit dem Namen '$loginName' existiert bereits im System.";
+            }
+        }
+
         $newId = $this->auth->generateId('usr_');
 
         $users[$newId] = [

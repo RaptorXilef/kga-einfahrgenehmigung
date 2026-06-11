@@ -22,6 +22,7 @@ use App\Core\Service\GitHubUpdaterService;
 
 try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
+    JsonResponse::enforceCsrfProtection();
 
     // Prüfen ob Admin eingeloggt ist (Sicherheit!)
     $auth = $container->get(\App\Core\Service\AuthService::class);
