@@ -168,6 +168,11 @@ final readonly class PermitService
                     $data['preis']  = 0.0;
                     $data['status'] = 'bezahlt';
 
+                    // Vor dem Finalisieren MUSS der Datensatz im neuen Speicher abgelegt werden!
+                    $allVerified         = $this->verificationRepository->loadVerified();
+                    $allVerified[$token] = $data;
+                    $this->verificationRepository->saveVerified($allVerified);
+
                     // Wir müssen es hier nicht in verified_pending speichern,
                     // sondern können es sofort finalisieren.
                     return ['finalised' => $this->finaliseRequest(
@@ -672,7 +677,7 @@ final readonly class PermitService
                 // Bei JSON: Einmal im RAM bereinigen und mit einem einzigen I/O-Vorgang speichern
                 $cfg  = $this->config->get('storage_config')['permits'];
                 $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-                        \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+                    \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
 
                 $fp = @\fopen($path, 'c+');
                 if ($fp && \flock($fp, \LOCK_EX)) {

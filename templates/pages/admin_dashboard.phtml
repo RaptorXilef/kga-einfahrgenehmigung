@@ -379,7 +379,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             const releaseLink = document.getElementById('gh-release-link');
 
             // 1. Im Hintergrund prüfen, ob ein Update da ist
-            fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php')
+            // CSRF-Header hinzugefügt, da die API nun gehärtet ist
+            fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php', {
+                headers: {
+                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                }
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && data.update_available) {

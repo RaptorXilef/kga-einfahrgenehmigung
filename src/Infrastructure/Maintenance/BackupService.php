@@ -53,16 +53,28 @@ final readonly class BackupService
 
         // Backup für "alles" oder ein spezifisches Ziel
         if (! isset($storageConfig[$target])) {
-            $keysToBackup = ['permits', 'users', 'groups', 'vouchers', 'pending_verification', 'verified_pending', 'magic_links'];
+            $keysToBackup = ['permits', 'users', 'groups', 'vouchers', 'pending_verification', 'verified_pending', 'magic_links', 'mail_log', 'mail_queue', 'login_attempts', 'update_migrations'];
+
             foreach ($keysToBackup as $key) {
                 if (! isset($storageConfig[$key])) {
                     continue;
                 }
 
-                $path = $root . '/' . $prefix . $storageConfig[$key]['file'];
-                if (\file_exists($path)) {
-                    $data = \json_decode((string) \file_get_contents($path), true) ?? [];
-                    \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
+                // JSON-Dump nur, wenn ein file-Key konfiguriert ist
+                if (isset($storageConfig[$key]['file'])) {
+                    $path = $root . '/' . $prefix . $storageConfig[$key]['file'];
+                    if (\file_exists($path) && ! \is_dir($path)) {
+                        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+                        \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
+                    }
+                }
+
+                // SQL-Dump in der globalen Schleife ergänzen! (Verhindert Datenverlust)
+                if ($this->pdo instanceof \PDO && isset($storageConfig[$key]['table'])) {
+                    $sqlData = $this->loadRawSql($key);
+                    if ($sqlData !== []) {
+                        \file_put_contents($backupPath . "/{$key}_sql.json", \json_encode($sqlData, $jsonFlags));
+                    }
                 }
             }
 
