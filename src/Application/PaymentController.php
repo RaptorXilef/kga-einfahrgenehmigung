@@ -107,7 +107,8 @@ final readonly class PaymentController
     private function render(string $templatePath, array $data = []): void
     {
         $appRoot = (string) $this->config->get('root_path');
-        \extract($data);
+        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
+        \extract($data, \EXTR_SKIP);
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 }

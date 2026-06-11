@@ -197,7 +197,8 @@ final readonly class SmtpMailService implements MailServiceInterface
         }
 
         // 1. Daten für das Template verfügbar machen
-        \extract($data);
+        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
+        \extract($data, \EXTR_SKIP);
 
         // 2. Output Buffering starten, um das PHP-Template zu "fangen"
         \ob_start();

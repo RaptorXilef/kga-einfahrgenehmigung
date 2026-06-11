@@ -97,17 +97,21 @@ final readonly class JsonStorage implements StorageInterface
             $size = \filesize($this->filePath);
             $raw  = $size > 0 ? \fread($fp, $size) : '';
             $data = \json_decode((string) $raw, true) ?? [];
+
+            $isDeleted = false; // Status-Tracking
+
             if (isset($data[$code])) {
                 unset($data[$code]);
                 \ftruncate($fp, 0);
                 \fseek($fp, 0);
                 \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                $isDeleted = true; // Nur true, wenn wirklich gelöscht
             }
             \fflush($fp);
             \flock($fp, \LOCK_UN);
             \fclose($fp);
 
-            return true;
+            return $isDeleted; // Korrekten Status zurückgeben
         }
         \fclose($fp);
 

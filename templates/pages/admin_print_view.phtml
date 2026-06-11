@@ -172,7 +172,8 @@ $data = [
 ];
 
 // Variablen in den lokalen Scope extrahieren
-\extract($data);
+// TODO Prüfen ob lieber ohne EXTR_SKIP
+\extract($data, \EXTR_SKIP);
 
 // Das Sub-Template einbinden
 include $appRoot . '/templates/emails/permit_a4_document.phtml';

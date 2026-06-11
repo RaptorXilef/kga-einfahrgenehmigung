@@ -581,7 +581,8 @@ final readonly class AdminController
         }
 
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
-        \extract($data);
+        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
+        \extract($data, \EXTR_SKIP);
         // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }

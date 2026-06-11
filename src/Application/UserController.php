@@ -204,6 +204,14 @@ final readonly class UserController
         $newLogin = \trim((string) ($post['new_username'] ?? ''));
 
         $users = $this->auth->loadUsers();
+
+        // Eindeutigkeit beim Umbenennen prüfen!
+        foreach ($users as $id => $userData) {
+            if ($id !== $userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($newLogin)) {
+                return "Fehler: Ein Benutzer mit dem Namen '$newLogin' existiert bereits.";
+            }
+        }
+
         if (isset($users[$userId])) {
             $users[$userId]['username'] = $newLogin;
             $this->auth->saveUsers($users);
@@ -466,7 +474,15 @@ final readonly class UserController
             return 'Fehler: Name darf nicht leer sein.';
         }
 
-        $users                      = $this->auth->loadUsers();
+        $users = $this->auth->loadUsers();
+
+        // Eindeutigkeit beim Umbenennen prüfen!
+        foreach ($users as $id => $userData) {
+            if ($id !== $userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($newName)) {
+                return "Fehler: Der Anzeigename '$newName' ist bereits vergeben.";
+            }
+        }
+
         $users[$userId]['username'] = $newName;
         $this->auth->saveUsers($users);
 

@@ -252,7 +252,8 @@ final readonly class HistoryController
     private function render(string $template, array $data): void
     {
         $appRoot = (string) $this->config->get('root_path');
-        \extract($data);
+        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
+        \extract($data, \EXTR_SKIP);
         include "{$appRoot}/templates/pages/{$template}.phtml";
     }
 

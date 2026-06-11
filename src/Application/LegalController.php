@@ -62,7 +62,8 @@ final readonly class LegalController
      */
     private function render(string $templatePath, array $data = []): void
     {
-        \extract($data);
+        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
+        \extract($data, \EXTR_SKIP);
         include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 
