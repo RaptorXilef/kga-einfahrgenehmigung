@@ -2,6 +2,14 @@
 
 
 
+## [0.45.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.45.0...v0.45.1) (2026-06-11)
+
+### ⚙️ Refactoring
+
+* **application:** structurally reorder methods within controllers and global exception handler ([97c90df](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/97c90df3dcbf50ea4db054109fa8d9ff4310a917))
+* **core:** structurally reorder domain services for consistency ([853f258](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/853f2585d02951b4a488485877d0daa2bd30a99e))
+* **infrastructure:** structurally reorder components and repository layout ([e4e7c53](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e4e7c539f745b765b9374f917c235050529fdb49))
+
 ## [0.45.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.44.0...v0.45.0) (2026-06-10)
 
 ### 🚀 Features
