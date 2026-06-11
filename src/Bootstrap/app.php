@@ -277,7 +277,9 @@ if (
         \curl_setopt($ch, \CURLOPT_POST, true);
         \curl_setopt($ch, \CURLOPT_POSTFIELDS, \json_encode($payload));
         \curl_setopt($ch, \CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        \curl_setopt($ch, \CURLOPT_TIMEOUT, 1); // Timeout auf 1 Sekunde limitieren, damit die Seite niemals blockiert
+        // Timeout auf 1 Sekunde limitieren, damit die Seite niemals blockiert
+        // Von 1 Sekunde auf max. 250ms Latenz-Limit senken, um die TTFB (Time to First Byte) zu schützen
+        \curl_setopt($ch, \CURLOPT_TIMEOUT_MS, 250);
         \curl_exec($ch);
         \curl_close($ch);
     }

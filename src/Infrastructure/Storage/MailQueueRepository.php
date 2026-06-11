@@ -76,6 +76,9 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
         $cfg       = $this->config->get('storage_config')['mail_queue'];
         $sentCount = 0;
 
+        // =========================================================================
+        // MYSQL-MODUS
+        // =========================================================================
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $this->pdo->exec("UPDATE `mail_queue` SET attempts = attempts + 100 WHERE attempts < 3 LIMIT $limit");
             $items = $this->pdo->query('SELECT * FROM `mail_queue` WHERE attempts >= 100 ORDER BY created_at ASC')->fetchAll(\PDO::FETCH_ASSOC);
@@ -87,35 +90,64 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
                     ++$sentCount;
                 } catch (\Throwable $t) {
                     $origAttempts = $item['attempts'] - 100 + 1;
-                    $this->pdo->prepare('UPDATE `mail_queue` SET attempts = ? WHERE id = ?')->execute([$origAttempts, $item['id']]);
-                }
-            }
-        } else {
-            $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-            if (! \file_exists($path)) {
-                return 0;
-            }
 
-            for ($i = 0; $i < $limit; ++$i) {
-                $queue = \json_decode((string) \file_get_contents($path), true) ?? [];
-                if (empty($queue)) {
-                    break;
-                }
-
-                $item = \array_shift($queue);
-
-                try {
-                    $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
-                    \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
-                    ++$sentCount;
-                } catch (\Throwable) {
-                    $item['attempts'] = ($item['attempts'] ?? 0) + 1;
-                    if ($item['attempts'] < 3) {
-                        $queue[] = $item;
+                    // Tote Mails nach 3 Versuchen löschen, statt die DB unendlich aufzublähen!
+                    if ($origAttempts >= 3) {
+                        $this->pdo->prepare('DELETE FROM `mail_queue` WHERE id = ?')->execute([$item['id']]);
+                    } else {
+                        $this->pdo->prepare('UPDATE `mail_queue` SET attempts = ? WHERE id = ?')->execute([$origAttempts, $item['id']]);
                     }
-                    \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
                 }
             }
+
+            return $sentCount;
+        }
+
+        // =========================================================================
+        // JSON-MODUS (Dateibasiert)
+        // =========================================================================
+        $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+
+        if (! \file_exists($path)) {
+            return 0;
+        }
+
+        // Sicheres Auslesen und Verarbeiten mit exklusivem File-Lock (LOCK_EX)
+        $fp = @\fopen($path, 'c+');
+        if ($fp && \flock($fp, \LOCK_EX)) {
+
+            // fstat() statt filesize(), um den PHP Stat-Cache zu umgehen!
+            $stat  = \fstat($fp);
+            $size  = $stat['size'] ?? 0;
+            $queue = $size > 0 ? (\json_decode((string) \fread($fp, $size), true) ?? []) : [];
+
+            if (! empty($queue)) {
+                $actualLimit = \min($limit, \count($queue));
+
+                for ($i = 0; $i < $actualLimit; ++$i) {
+                    $item = \array_shift($queue);
+
+                    try {
+                        $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
+                        ++$sentCount;
+                    } catch (\Throwable) {
+                        $item['attempts'] = ($item['attempts'] ?? 0) + 1;
+                        // Nach dem 3. Versuch fliegt sie automatisch raus, da sie nicht wieder angehängt wird
+                        if ($item['attempts'] < 3) {
+                            $queue[] = $item; // Bei Fehler hinten wieder anstellen
+                        }
+                    }
+                }
+
+                // Einmaliges Zurückschreiben des modifizierten Queue-Zustands
+                \ftruncate($fp, 0);
+                \fseek($fp, 0);
+                \fwrite($fp, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                \fflush($fp);
+            }
+
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
         }
 
         return $sentCount;

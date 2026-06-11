@@ -41,14 +41,23 @@ final readonly class CronScheduler
             return;
         }
 
+        // TODO Pfad und Dateiname in config/storage.php auslagern
         $logPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/last_cron_run.txt';
         $now     = \time();
-
         $lastRun = \file_exists($logPath) ? (int) \file_get_contents($logPath) : 0;
 
         if (($now - $lastRun) >= 86400) {
-            $this->runForce();
+            // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
             @\file_put_contents($logPath, (string) $now);
+
+            try {
+                $this->runForce();
+            } catch (\Throwable $t) {
+                // Bei fatalem Abbruch den Zeitstempel zurücksetzen, damit der nächste Request es reparieren kann
+                @\file_put_contents($logPath, (string) $lastRun);
+
+                throw $t;
+            }
         }
     }
 
