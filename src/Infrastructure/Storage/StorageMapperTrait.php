@@ -27,44 +27,9 @@ use App\Core\Entity\Vehicle;
 trait StorageMapperTrait
 {
     /**
-     * Wandelt eine Permit-Entität in ein flaches Array um.
-     *
-     * Transformiert eine hochkomplexe Permit-Entität in ein eindimensionales, primitives Datenarray.
-     * Formatiert DateTime-Objekte in ISO-Strings für SQL- oder JSON-Schreibvorgänge.
-     *
-     * @param Permit $permit Die zu dekonstruierende Entität.
-     *
-     * @return array<string, mixed> Flaches Konvertierungs-Array für Treiber-Injektionen.
-     */
-    private function flattenEntity(Permit $permit): array
-    {
-        return [
-            'code'               => $permit->code,
-            'template_key'       => $permit->template_key,
-            'name'               => $permit->owner->name,
-            'email'              => $permit->owner->email,
-            'parzelle'           => $permit->owner->parzelle,
-            'typ'                => $permit->vehicle->typ,
-            'kennzeichen'        => $permit->vehicle->kennzeichen,
-            'firma'              => $permit->vehicle->firma,
-            'von'                => $permit->validity->von->format('Y-m-d'),
-            'bis'                => $permit->validity->bis->format('Y-m-d'),
-            'preis'              => $permit->validity->preis,     // Harmonisierter Key
-            'zweck'              => $permit->validity->zweck,
-            'status'             => $permit->status->current,
-            'is_suspended'       => (int) $permit->status->is_suspended,   // Harmonisierter Key
-            'suspension_reason'  => $permit->status->suspension_reason,    // Harmonisierter Key
-            'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
-            'interner_kommentar' => $permit->interner_kommentar,           // Harmonisierter Key
-            'agreements'         => \is_array($permit->agreements) ? \json_encode(
-                $permit->agreements,
-                \JSON_UNESCAPED_UNICODE,
-            ) : '{}',
-        ];
-    }
-
-    /**
      * Baut aus einem flachen Array eine Permit-Entität mit Value Objects.
+     *
+     * Public Data to Object
      *
      * Hydriert ein primitives, assoziatives Rohdaten-Array in ein stark typisiertes Permit-Objekt.
      * Unterstützt Legacy-Feldnamen (Abwärtskompatibilität für Altdaten wie 'pächter' oder 'erstellt_am'),
@@ -146,5 +111,44 @@ trait StorageMapperTrait
             interner_kommentar: $kommentar,
             agreements: $agreements,
         );
+    }
+
+    /**
+     * Wandelt eine Permit-Entität in ein flaches Array um.
+     *
+     * Private Object to Data
+     *
+     * Transformiert eine hochkomplexe Permit-Entität in ein eindimensionales, primitives Datenarray.
+     * Formatiert DateTime-Objekte in ISO-Strings für SQL- oder JSON-Schreibvorgänge.
+     *
+     * @param Permit $permit Die zu dekonstruierende Entität.
+     *
+     * @return array<string, mixed> Flaches Konvertierungs-Array für Treiber-Injektionen.
+     */
+    private function flattenEntity(Permit $permit): array
+    {
+        return [
+            'code'               => $permit->code,
+            'template_key'       => $permit->template_key,
+            'name'               => $permit->owner->name,
+            'email'              => $permit->owner->email,
+            'parzelle'           => $permit->owner->parzelle,
+            'typ'                => $permit->vehicle->typ,
+            'kennzeichen'        => $permit->vehicle->kennzeichen,
+            'firma'              => $permit->vehicle->firma,
+            'von'                => $permit->validity->von->format('Y-m-d'),
+            'bis'                => $permit->validity->bis->format('Y-m-d'),
+            'preis'              => $permit->validity->preis,     // Harmonisierter Key
+            'zweck'              => $permit->validity->zweck,
+            'status'             => $permit->status->current,
+            'is_suspended'       => (int) $permit->status->is_suspended,   // Harmonisierter Key
+            'suspension_reason'  => $permit->status->suspension_reason,    // Harmonisierter Key
+            'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
+            'interner_kommentar' => $permit->interner_kommentar,           // Harmonisierter Key
+            'agreements'         => \is_array($permit->agreements) ? \json_encode(
+                $permit->agreements,
+                \JSON_UNESCAPED_UNICODE,
+            ) : '{}',
+        ];
     }
 }

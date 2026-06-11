@@ -28,6 +28,9 @@ final readonly class StorageBootstrapper
     ) {
     }
 
+    /**
+     * Öffentlicher Einstieg
+     */
     public function bootstrap(): void
     {
         // 1. Wenn MySQL konfiguriert ist, Tabellen sicherstellen
@@ -69,6 +72,22 @@ final readonly class StorageBootstrapper
     }
 
     /**
+     * Liefert die Zugangsdaten für den Standard-Administrator (Systembetreuer).
+     *
+     * @return array<string, array<string, mixed>> Der initiale Benutzer.
+     */
+    private function getDefaultUsers(): array
+    {
+        return [
+            'usr_7c13b491' => [
+                'username' => 'Admin',
+                'group'    => 'grp_71cb1c0d',
+                'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
+            ],
+        ];
+    }
+
+    /**
      * Liefert die Berechtigungs-Struktur der Standard-Gruppen (Admin, Finanzen, etc.).
      *
      * @return array<string, array<string, mixed>> Die Standard-Gruppen.
@@ -83,21 +102,5 @@ final readonly class StorageBootstrapper
             'grp_a53d6b56' => ['name' => 'Prüfer vor Ort', 'permissions' => ['dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.active.view', 'dashboard.active.details']],
         ];
         // phpcs:enable Generic.Files.LineLength.TooLong
-    }
-
-    /**
-     * Liefert die Zugangsdaten für den Standard-Administrator (Systembetreuer).
-     *
-     * @return array<string, array<string, mixed>> Der initiale Benutzer.
-     */
-    private function getDefaultUsers(): array
-    {
-        return [
-            'usr_7c13b491' => [
-                'username' => 'Admin',
-                'group'    => 'grp_71cb1c0d',
-                'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
-            ],
-        ];
     }
 }

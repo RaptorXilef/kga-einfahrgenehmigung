@@ -31,6 +31,8 @@ final readonly class RateLimiter implements RateLimiterInterface
     ) {
     }
 
+    // --- Public API --
+
     /**
      * Prüft, ob die IP-Adresse blockiert ist, da die maximalen Fehlversuche überschritten wurden.
      * Gibt die IP automatisch nach Ablauf der Lockout-Zeit wieder frei.
@@ -164,6 +166,8 @@ final readonly class RateLimiter implements RateLimiterInterface
             \fclose($fp);
         }
     }
+
+    // --- Private Utility ---
 
     /**
      * Hilfsmethode zur Auflösung des absoluten JSON-Speicherpfades.

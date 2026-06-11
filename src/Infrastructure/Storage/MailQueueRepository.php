@@ -28,6 +28,8 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
     }
 
     /**
+     * Hinzufügen
+     *
      * Reiht eine E-Mail als JSON-codierten String in die MySQL- oder JSON-Queue ein.
      *
      * @param string               $recipient E-Mail-Empfänger.
@@ -59,6 +61,8 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
     }
 
     /**
+     * Abarbeiten
+     *
      * Verarbeitet einen Batch ausstehender E-Mails aus der MySQL- oder JSON-Queue.
      * Erhöht die Versuchsanzahl bei Fehlern.
      *

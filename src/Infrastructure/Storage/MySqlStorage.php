@@ -30,6 +30,8 @@ final readonly class MySqlStorage implements StorageInterface
     {
     }
 
+    // --- Public Write ---
+
     /**
      * Speichert oder aktualisiert eine Genehmigung via SQL-`REPLACE INTO` Statement.
      * Flacht die Objektstrukturen über das integrierte Trait ab.
@@ -69,6 +71,20 @@ final readonly class MySqlStorage implements StorageInterface
 
         return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));
     }
+
+    /**
+     * Löscht eine Genehmigung unwiderruflich aus der MySQL-Datenbank.
+     *
+     * @param string $code Der eindeutige Hash/Code der Genehmigung.
+     *
+     * @return bool True, wenn der Datensatz erfolgreich gelöscht wurde.
+     */
+    public function delete(string $code): bool
+    {
+        return $this->pdo->prepare('DELETE FROM `permits` WHERE code = ?')->execute([$code]);
+    }
+
+    // --- Public Read ---
 
     /**
      * Holt eine Genehmigung über eine direkte Primärschlüsselabfrage (`code`) aus der DB.
@@ -167,6 +183,8 @@ final readonly class MySqlStorage implements StorageInterface
         return \array_map($this->mapToEntity(...), $rows);
     }
 
+    // --- Public Migrations ---
+
     /**
      * Migriert alle Datenbank-Datensätze in eine alternative Speicher-Engine.
      *
@@ -188,15 +206,5 @@ final readonly class MySqlStorage implements StorageInterface
         return $count;
     }
 
-    /**
-     * Löscht eine Genehmigung unwiderruflich aus der MySQL-Datenbank.
-     *
-     * @param string $code Der eindeutige Hash/Code der Genehmigung.
-     *
-     * @return bool True, wenn der Datensatz erfolgreich gelöscht wurde.
-     */
-    public function delete(string $code): bool
-    {
-        return $this->pdo->prepare('DELETE FROM `permits` WHERE code = ?')->execute([$code]);
-    }
+    // --- Private Loader ---
 }

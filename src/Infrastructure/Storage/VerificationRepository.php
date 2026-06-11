@@ -27,6 +27,8 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
     ) {
     }
 
+    // --- Public API ---
+
     /**
      * Lädt ausstehende E-Mail-Verifizierungen und filtert abgelaufene (TTL) heraus.
      *
@@ -71,6 +73,8 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
     {
         $this->saveJson('verified_pending', $data, $forceSql);
     }
+
+    // --- Private Helpers ---
 
     /**
      * Interne Methode zum dynamischen Laden von temporären Warteraum-Daten

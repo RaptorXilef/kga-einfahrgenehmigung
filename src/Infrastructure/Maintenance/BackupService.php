@@ -25,6 +25,8 @@ final readonly class BackupService
     ) {
     }
 
+    // --- Public API ---
+
     /**
      * Generiert ein synchronisiertes Datei- und Datenbank-Abbild eines Zielbereichs im Backup-Ordner.
      * Erzeugt Zeitstempel-Ordner und exportiert JSON-formatierte Rohdaten-Dumps.
@@ -184,6 +186,8 @@ final readonly class BackupService
         }
     }
 
+    // --- Private Core ---
+
     /**
      * Rotiert Backup-Ordner basierend auf der maximal zulässigen Anzahl im System (FIFO-Verfahren).
      *
@@ -236,6 +240,8 @@ final readonly class BackupService
         }
         \rmdir($dir);
     }
+
+    // --- Private Loaders ---
 
     /**
      * Hilfsmethoden für reine Lese-Dumps (SRP: BackupService darf Rohdaten lesen)

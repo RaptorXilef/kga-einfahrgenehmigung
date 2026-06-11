@@ -29,6 +29,8 @@ final readonly class SmtpMailService implements MailServiceInterface
     ) {
     }
 
+    // --- Public API ---
+
     /**
      * Verarbeitet und versendet eine E-Mail basierend auf einem Template.
      * Fängt leere Empfänger ab, liest Mail-Konfigurationen aus, prüft den Testmodus-Status
@@ -75,6 +77,108 @@ final readonly class SmtpMailService implements MailServiceInterface
     }
 
     /**
+     * Ermöglicht das Batch-Überschreiben / Wiederherstellen von E-Mail-Logs (z.B. bei System-Restores).
+     * Verwendet SQL-Transaktionen (Commit/Rollback) für hohe Konsistenz im DB-Betrieb.
+     *
+     * Speichert eine Liste von Mail-Logs (wichtig für Migration/Sync).
+     *
+     * @param array<int, array<string, mixed>> $logs
+     */
+    public function saveLogs(array $logs, bool $forceSql = false): void
+    {
+        $cfg    = $this->config->get('storage_config')['mail_log'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+
+        if ($useSql && $this->pdo instanceof \PDO) {
+            $this->pdo->beginTransaction();
+
+            try {
+                // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (
+                id,
+                timestamp,
+                recipient,
+                subject,
+                template,
+                status,
+                data
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($logs as $id => $log) {
+                    $rawPayload = $log['data'] ?? null;
+                    $stmt->execute([
+                        $id,
+                        $log['timestamp'] ?? null,
+                        $log['recipient'] ?? null,
+                        $log['subject'] ?? null,
+                        $log['template'] ?? null,
+                        $log['status'] ?? null,
+                        \is_array($rawPayload) ? \json_encode($rawPayload, \JSON_UNESCAPED_UNICODE)
+                            : $rawPayload,
+                    ]);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
+
+                throw $e;
+            }
+            if ($forceSql) {
+                return;
+            } // Beenden, falls MySQL via Migration erzwungen wurde
+        }
+
+        if (! $forceSql) {
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            );
+        }
+    }
+
+    /**
+     * Lädt die chronologische Liste aller E-Mail-Logs absteigend nach Zeitstempel.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function loadLogs(): array
+    {
+        $cfg = $this->config->get('storage_config')['mail_log'];
+
+        if ($cfg['type'] === 'mysql') {
+            if (! $this->pdo instanceof \PDO) {
+                return [];
+            }
+
+            // Wir laden die neuesten zuerst
+            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll();
+        }
+
+        $path = \rtrim(
+            (string) $this->config->get('root_path'),
+            '/\\',
+        ) . '/' . \ltrim(
+            (string) $this->config->get('storage_path_prefix'),
+            '/\\',
+        ) . $cfg['file'];
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        return (array) \json_decode((string) \file_get_contents($path), true) ?? [];
+    }
+
+    // --- Private Engine ---
+
+    /**
+     * Template auflösen
+     *
      * Rendert das PHTML-E-Mail-Template über den Output-Buffer und ersetzt Platzhalter.
      * Sucht im gerenderten HTML nach `{{key}}` Mustern und ersetzt diese mit skalaren Array-Inhalten.
      *
@@ -114,6 +218,8 @@ final readonly class SmtpMailService implements MailServiceInterface
     }
 
     /**
+     * Socket aufbauen und senden
+     *
      * Führt die physische SMTP-Socket-Kommunikation mit dem Mailserver durch.
      * Abstrahiert SSL-Protokolle, authentifiziert sich via AUTH LOGIN und überträgt UTF-8 / Base64-kodierte Header.
      *
@@ -196,6 +302,8 @@ final readonly class SmtpMailService implements MailServiceInterface
 
         return true;
     }
+
+    // --- Private Low-Level Helpers ---
 
     /**
      * Prüft, ob die Server-Antwort mit dem erwarteten numerischen SMTP-Statuscode beginnt.
@@ -297,103 +405,5 @@ final readonly class SmtpMailService implements MailServiceInterface
         ]);
         $logs = \array_slice($logs, 0, $maxEntries);
         \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
-    }
-
-    /**
-     * Ermöglicht das Batch-Überschreiben / Wiederherstellen von E-Mail-Logs (z.B. bei System-Restores).
-     * Verwendet SQL-Transaktionen (Commit/Rollback) für hohe Konsistenz im DB-Betrieb.
-     *
-     * Speichert eine Liste von Mail-Logs (wichtig für Migration/Sync).
-     *
-     * @param array<int, array<string, mixed>> $logs
-     */
-    public function saveLogs(array $logs, bool $forceSql = false): void
-    {
-        $cfg    = $this->config->get('storage_config')['mail_log'];
-        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
-
-        if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->beginTransaction();
-
-            try {
-                // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
-                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (
-                id,
-                timestamp,
-                recipient,
-                subject,
-                template,
-                status,
-                data
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                foreach ($logs as $id => $log) {
-                    $rawPayload = $log['data'] ?? null;
-                    $stmt->execute([
-                        $id,
-                        $log['timestamp'] ?? null,
-                        $log['recipient'] ?? null,
-                        $log['subject'] ?? null,
-                        $log['template'] ?? null,
-                        $log['status'] ?? null,
-                        \is_array($rawPayload) ? \json_encode($rawPayload, \JSON_UNESCAPED_UNICODE)
-                            : $rawPayload,
-                    ]);
-                }
-                $this->pdo->commit();
-            } catch (\Exception $e) {
-                $this->pdo->rollBack();
-
-                throw $e;
-            }
-            if ($forceSql) {
-                return;
-            } // Beenden, falls MySQL via Migration erzwungen wurde
-        }
-
-        if (! $forceSql) {
-            $path = \rtrim(
-                (string) $this->config->get('root_path'),
-                '/\\',
-            ) . '/' . \ltrim(
-                (string) $this->config->get('storage_path_prefix'),
-                '/\\',
-            ) . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-            );
-        }
-    }
-
-    /**
-     * Lädt die chronologische Liste aller E-Mail-Logs absteigend nach Zeitstempel.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function loadLogs(): array
-    {
-        $cfg = $this->config->get('storage_config')['mail_log'];
-
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo instanceof \PDO) {
-                return [];
-            }
-
-            // Wir laden die neuesten zuerst
-            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll();
-        }
-
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim(
-            (string) $this->config->get('storage_path_prefix'),
-            '/\\',
-        ) . $cfg['file'];
-        if (! \file_exists($path)) {
-            return [];
-        }
-
-        return (array) \json_decode((string) \file_get_contents($path), true) ?? [];
     }
 }

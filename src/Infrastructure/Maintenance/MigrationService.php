@@ -43,6 +43,8 @@ final readonly class MigrationService
     ) {
     }
 
+    // --- Public Dashboard Actions ---
+
     /**
      * Orchestriert eine Migrationsaktion für einen Datenbereich.
      * Erstellt vorab zwingend ein Sicherheitsbackup und verzweigt dann in die Sub-Migrationsschritte.
@@ -77,6 +79,128 @@ final readonly class MigrationService
 
         return "Backup erstellt in $backupFolder. <br>" . $result;
     }
+
+    /**
+     * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
+     * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
+     *
+     * @param string $timestamp Der Ordnername (Zeitstempel) des Quell-Backups.
+     * @param string $target    Der Zielbereich, welcher überschrieben werden soll.
+     *
+     * @return string Status-Ergebnistext für das Admin-Frontend.
+     */
+    public function restore(string $timestamp, string $target, string $engine = 'all'): string
+    {
+        // 1. Zwingendes Sicherheitsbackup vor der Wiederherstellung
+        try {
+            $this->backupService->createBackup($target . '_before_restore');
+        } catch (\Exception $e) {
+            return 'Abbruch: Sicherheits-Backup des Ist-Zustands konnte nicht erstellt werden (' . $e->getMessage() . ').';
+        }
+
+        // 2. Daten aus dem Backup-Archiv abrufen
+        $data = $this->backupService->getBackupData($timestamp, $target);
+        if ($data === null) {
+            return "Fehler: Keine gültige Backup-Datei für '$target' im Ordner $timestamp gefunden.";
+        }
+
+        $restoredIn = [];
+
+        // 3. Nach MySQL wiederherstellen
+        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
+            $this->saveToSql($target, $data);
+            $restoredIn[] = 'MySQL';
+        }
+
+        // 4. Nach JSON wiederherstellen
+        if (\in_array($engine, ['all', 'json'], true)) {
+            $this->saveToJson($target, $data);
+            $restoredIn[] = 'JSON';
+        }
+
+        if (empty($restoredIn)) {
+            return 'Hinweis: Es wurden keine Daten wiederhergestellt (Speicher nicht erreichbar).';
+        }
+
+        return "Erfolg: '$target' wurde aus Backup [$timestamp] in " . \implode(' & ', $restoredIn) . ' wiederhergestellt.';
+    }
+
+    /**
+     * Leert den Deptrac-Cache und kompiliert die Session-Berechtigungen neu.
+     *
+     * @return string Statusmeldung.
+     */
+    public function clearCache(): string
+    {
+        $root = $this->config->get('root_path');
+
+        // 1. Deptrac Cache löschen
+        $deptracCache = $root . '/.cache/deptrac/.deptrac.cache';
+        if (\file_exists($deptracCache)) {
+            \unlink($deptracCache);
+        }
+
+        // 2. Session-Rechte neu kompilieren (für den aktuellen Admin)
+        $this->authService->refreshSessionPermissions($this->authService->getGroup());
+
+        return 'Erfolg: Der System-Cache wurde geleert und die Berechtigungen neu kompiliert.';
+    }
+
+    /**
+     * Löscht alle Daten eines Zielbereichs (Truncate) und erstellt vorher ein Backup.
+     *
+     * @param string $target Der zu leerende Speicherbereich.
+     * @param string $engine 'all', 'json' oder 'mysql'.
+     *
+     * @return string Statusmeldung über den Vorgang.
+     */
+    public function truncateTarget(string $target, string $engine = 'all'): string
+    {
+        // 1. Zwingendes Backup vor der Löschung!
+        try {
+            // Backup erstellt sicherheitshalber immer beide Bestände
+            $this->backupService->createBackup($target . '_before_truncate');
+        } catch (\Exception $e) {
+            return 'Abbruch: Sicherheits-Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
+        }
+
+        // 2. SQL oder JSON leeren
+        $cfg = $this->config->get('storage_config')[$target] ?? null;
+        if (! $cfg) {
+            return "Fehler: Unbekannter Speicherbereich '$target'.";
+        }
+
+        $clearedIn = [];
+
+        // MySQL Tabelle leeren (Wenn engine 'all' oder 'mysql' ist)
+        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
+            try {
+                $tableName = $cfg['table'];
+                $this->pdo->exec("TRUNCATE TABLE `$tableName`");
+                $clearedIn[] = 'MySQL';
+            } catch (\PDOException $e) {
+                \error_log('Truncate Error MySQL: ' . $e->getMessage());
+            }
+        }
+
+        // JSON Datei leeren (Wenn engine 'all' oder 'json' ist)
+        $path = $this->getFilePath($target);
+        if (\in_array($engine, ['all', 'json'], true) && \file_exists($path)) {
+            $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
+            \file_put_contents($path, \json_encode([], $jsonFlags));
+            $clearedIn[] = 'JSON';
+        }
+
+        if (empty($clearedIn)) {
+            return 'Hinweis: Es konnte nichts gelöscht werden (Speicher nicht erreichbar).';
+        }
+
+        return "Erfolg: Der Bereich '$target' wurde geleert (" .
+            \implode(' & ', $clearedIn) .
+            '). Ein Backup wurde erstellt.';
+    }
+
+    // --- Private Execution Routes ---
 
     /**
      * Exportiert Tabellendaten aus MySQL in eine flache JSON-Datei.
@@ -180,6 +304,108 @@ final readonly class MigrationService
 
         return "Erfolg: '$target' synchronisiert. Gesamtbestand: " . \count($merged);
     }
+
+    // --- Private Raw Data Loaders ---
+
+    /**
+     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
+     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
+     *
+     * @param string $key Speicher-Key aus der Konfiguration.
+     *
+     * @return array<string, mixed> Ungefiltertes Datenarray.
+     */
+    private function loadRawJson(string $key): array
+    {
+        $cfg = $this->config->get('storage_config')[$key];
+
+        // FIX: Prüfen, ob überhaupt ein Dateiname konfiguriert ist
+        if (! isset($cfg['file'])) {
+            return [];
+        }
+        $path = $this->getFilePath($key);
+
+        return \file_exists($path) ? (\json_decode(
+            (string) \file_get_contents($path),
+            true,
+        )
+            ?? []) : [];
+    }
+
+    /**
+     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
+     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
+     *
+     * @param string $key Tabellen-Key aus der storage_config.
+     *
+     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
+     */
+    private function loadRawSql(string $key): array
+    {
+        $cfg = $this->config->get('storage_config')[$key];
+        if (! $this->pdo instanceof \PDO) {
+            return [];
+        }
+
+        try {
+            // Wir loggen kurz den Tabellennamen zur Sicherheit
+            $tableName = $cfg['table'];
+            $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
+            $rows      = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($rows)) {
+                \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
+
+                return [];
+            }
+        } catch (\PDOException $e) {
+            \error_log("Migration SQL-Load Fehler ($key): " . $e->getMessage());
+
+            return [];
+        }
+
+        $res     = [];
+        $idField = $this->getIdFieldForKey($key);
+
+        foreach ($rows as $r) {
+            // WICHTIG: Hier entpacken wir MySQL-JSON-Strings in echte PHP-Arrays,
+            // damit file_put_contents später sauberes, verschachteltes JSON schreibt
+            // und keine hässlichen "{\"name\":\"Test\"}" Strings.
+
+            if (isset($r['data']) && \is_string($r['data'])) {
+                $decoded   = \json_decode($r['data'], true);
+                $r['data'] = $decoded !== null ? $decoded : [];
+            }
+
+            if (isset($r['permissions']) && \is_string($r['permissions'])) {
+                $decoded          = \json_decode($r['permissions'], true);
+                $r['permissions'] = $decoded !== null ? $decoded : [];
+            }
+
+            // Sicherstellen, dass Zahlen auch als Zahlen im JSON landen (optional, aber sauber)
+            if (isset($r['value'])) {
+                $r['value'] = (float) $r['value'];
+            }
+            if (isset($r['uses_count'])) {
+                $r['uses_count'] = (int) $r['uses_count'];
+            }
+            if (isset($r['max_uses'])) {
+                $r['max_uses'] = (int) $r['max_uses'];
+            }
+            if (isset($r['multi_use'])) {
+                $r['multi_use'] = (bool) $r['multi_use'];
+            }
+            if (isset($r['is_suspended'])) {
+                $r['is_suspended'] = (int) $r['is_suspended'];
+            }
+
+            $res[$r[$idField]] = $r;
+        }
+
+        return $res;
+    }
+
+    // --- Private Data Savers & Hydrators ---
 
     // --- Helfer für direkten Zugriff ohne Rücksicht auf die aktuelle Config-Einstellung ---
 
@@ -344,6 +570,8 @@ final readonly class MigrationService
         }
     }
 
+    // --- Private Utilities ---
+
     /**
      * Ermittelt den Namen der Primärschlüssel-Spalte (ID) für einen bestimmten Speicherbereich.
      *
@@ -383,223 +611,5 @@ final readonly class MigrationService
 
         return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
             \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-    }
-
-    /**
-     * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
-     * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
-     *
-     * @param string $timestamp Der Ordnername (Zeitstempel) des Quell-Backups.
-     * @param string $target    Der Zielbereich, welcher überschrieben werden soll.
-     *
-     * @return string Status-Ergebnistext für das Admin-Frontend.
-     */
-    public function restore(string $timestamp, string $target, string $engine = 'all'): string
-    {
-        // 1. Zwingendes Sicherheitsbackup vor der Wiederherstellung
-        try {
-            $this->backupService->createBackup($target . '_before_restore');
-        } catch (\Exception $e) {
-            return 'Abbruch: Sicherheits-Backup des Ist-Zustands konnte nicht erstellt werden (' . $e->getMessage() . ').';
-        }
-
-        // 2. Daten aus dem Backup-Archiv abrufen
-        $data = $this->backupService->getBackupData($timestamp, $target);
-        if ($data === null) {
-            return "Fehler: Keine gültige Backup-Datei für '$target' im Ordner $timestamp gefunden.";
-        }
-
-        $restoredIn = [];
-
-        // 3. Nach MySQL wiederherstellen
-        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
-            $this->saveToSql($target, $data);
-            $restoredIn[] = 'MySQL';
-        }
-
-        // 4. Nach JSON wiederherstellen
-        if (\in_array($engine, ['all', 'json'], true)) {
-            $this->saveToJson($target, $data);
-            $restoredIn[] = 'JSON';
-        }
-
-        if (empty($restoredIn)) {
-            return 'Hinweis: Es wurden keine Daten wiederhergestellt (Speicher nicht erreichbar).';
-        }
-
-        return "Erfolg: '$target' wurde aus Backup [$timestamp] in " . \implode(' & ', $restoredIn) . ' wiederhergestellt.';
-    }
-
-    /**
-     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
-     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
-     *
-     * @param string $key Speicher-Key aus der Konfiguration.
-     *
-     * @return array<string, mixed> Ungefiltertes Datenarray.
-     */
-    private function loadRawJson(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key];
-
-        // FIX: Prüfen, ob überhaupt ein Dateiname konfiguriert ist
-        if (! isset($cfg['file'])) {
-            return [];
-        }
-        $path = $this->getFilePath($key);
-
-        return \file_exists($path) ? (\json_decode(
-            (string) \file_get_contents($path),
-            true,
-        )
-            ?? []) : [];
-    }
-
-    /**
-     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
-     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
-     *
-     * @param string $key Tabellen-Key aus der storage_config.
-     *
-     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
-     */
-    private function loadRawSql(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key];
-        if (! $this->pdo instanceof \PDO) {
-            return [];
-        }
-
-        try {
-            // Wir loggen kurz den Tabellennamen zur Sicherheit
-            $tableName = $cfg['table'];
-            $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
-            $rows      = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (empty($rows)) {
-                \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
-
-                return [];
-            }
-        } catch (\PDOException $e) {
-            \error_log("Migration SQL-Load Fehler ($key): " . $e->getMessage());
-
-            return [];
-        }
-
-        $res     = [];
-        $idField = $this->getIdFieldForKey($key);
-
-        foreach ($rows as $r) {
-            // WICHTIG: Hier entpacken wir MySQL-JSON-Strings in echte PHP-Arrays,
-            // damit file_put_contents später sauberes, verschachteltes JSON schreibt
-            // und keine hässlichen "{\"name\":\"Test\"}" Strings.
-
-            if (isset($r['data']) && \is_string($r['data'])) {
-                $decoded   = \json_decode($r['data'], true);
-                $r['data'] = $decoded !== null ? $decoded : [];
-            }
-
-            if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                $decoded          = \json_decode($r['permissions'], true);
-                $r['permissions'] = $decoded !== null ? $decoded : [];
-            }
-
-            // Sicherstellen, dass Zahlen auch als Zahlen im JSON landen (optional, aber sauber)
-            if (isset($r['value'])) {
-                $r['value'] = (float) $r['value'];
-            }
-            if (isset($r['uses_count'])) {
-                $r['uses_count'] = (int) $r['uses_count'];
-            }
-            if (isset($r['max_uses'])) {
-                $r['max_uses'] = (int) $r['max_uses'];
-            }
-            if (isset($r['multi_use'])) {
-                $r['multi_use'] = (bool) $r['multi_use'];
-            }
-            if (isset($r['is_suspended'])) {
-                $r['is_suspended'] = (int) $r['is_suspended'];
-            }
-
-            $res[$r[$idField]] = $r;
-        }
-
-        return $res;
-    }
-
-    /**
-     * Leert den Deptrac-Cache und kompiliert die Session-Berechtigungen neu.
-     *
-     * @return string Statusmeldung.
-     */
-    public function clearCache(): string
-    {
-        $root = $this->config->get('root_path');
-
-        // 1. Deptrac Cache löschen
-        $deptracCache = $root . '/.cache/deptrac/.deptrac.cache';
-        if (\file_exists($deptracCache)) {
-            \unlink($deptracCache);
-        }
-
-        // 2. Session-Rechte neu kompilieren (für den aktuellen Admin)
-        $this->authService->refreshSessionPermissions($this->authService->getGroup());
-
-        return 'Erfolg: Der System-Cache wurde geleert und die Berechtigungen neu kompiliert.';
-    }
-
-    /**
-     * Löscht alle Daten eines Zielbereichs (Truncate) und erstellt vorher ein Backup.
-     *
-     * @param string $target Der zu leerende Speicherbereich.
-     * @param string $engine 'all', 'json' oder 'mysql'.
-     *
-     * @return string Statusmeldung über den Vorgang.
-     */
-    public function truncateTarget(string $target, string $engine = 'all'): string
-    {
-        // 1. Zwingendes Backup vor der Löschung!
-        try {
-            // Backup erstellt sicherheitshalber immer beide Bestände
-            $this->backupService->createBackup($target . '_before_truncate');
-        } catch (\Exception $e) {
-            return 'Abbruch: Sicherheits-Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
-        }
-
-        // 2. SQL oder JSON leeren
-        $cfg = $this->config->get('storage_config')[$target] ?? null;
-        if (! $cfg) {
-            return "Fehler: Unbekannter Speicherbereich '$target'.";
-        }
-
-        $clearedIn = [];
-
-        // MySQL Tabelle leeren (Wenn engine 'all' oder 'mysql' ist)
-        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
-            try {
-                $tableName = $cfg['table'];
-                $this->pdo->exec("TRUNCATE TABLE `$tableName`");
-                $clearedIn[] = 'MySQL';
-            } catch (\PDOException $e) {
-                \error_log('Truncate Error MySQL: ' . $e->getMessage());
-            }
-        }
-
-        // JSON Datei leeren (Wenn engine 'all' oder 'json' ist)
-        $path = $this->getFilePath($target);
-        if (\in_array($engine, ['all', 'json'], true) && \file_exists($path)) {
-            $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
-            \file_put_contents($path, \json_encode([], $jsonFlags));
-            $clearedIn[] = 'JSON';
-        }
-
-        if (empty($clearedIn)) {
-            return 'Hinweis: Es konnte nichts gelöscht werden (Speicher nicht erreichbar).';
-        }
-
-        return "Erfolg: Der Bereich '$target' wurde geleert (" .
-            \implode(' & ', $clearedIn) .
-            '). Ein Backup wurde erstellt.';
     }
 }

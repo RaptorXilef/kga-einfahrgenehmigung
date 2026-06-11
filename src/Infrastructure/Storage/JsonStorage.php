@@ -36,6 +36,8 @@ final readonly class JsonStorage implements StorageInterface
     ) {
     }
 
+    // --- Public Write ---
+
     /**
      * Serialisiert und speichert eine Genehmigungs-Entität in der JSON-Datei.
      * Verwendet das StorageMapperTrait zum Abflachen der Objektstruktur.
@@ -79,6 +81,42 @@ final readonly class JsonStorage implements StorageInterface
     }
 
     /**
+     * Löscht eine Genehmigung unwiderruflich aus der JSON-Datei.
+     *
+     * @param string $code Der eindeutige Hash/Code der Genehmigung.
+     *
+     * @return bool True, wenn der Datensatz erfolgreich aus dem Array entfernt und gespeichert wurde.
+     */
+    public function delete(string $code): bool
+    {
+        $fp = \fopen($this->filePath, 'c+');
+        if (! $fp) {
+            return false;
+        }
+        if (\flock($fp, \LOCK_EX)) {
+            $size = \filesize($this->filePath);
+            $raw  = $size > 0 ? \fread($fp, $size) : '';
+            $data = \json_decode((string) $raw, true) ?? [];
+            if (isset($data[$code])) {
+                unset($data[$code]);
+                \ftruncate($fp, 0);
+                \fseek($fp, 0);
+                \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            }
+            \fflush($fp);
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
+
+            return true;
+        }
+        \fclose($fp);
+
+        return false;
+    }
+
+    // --- Public Read ---
+
+    /**
      * Sucht eine Genehmigung anhand des vollständigen Codes oder des zufälligen Suffix-Endstücks.
      *
      * @param string $hash Der Code oder Suffix-Teilstring für die Suche.
@@ -109,51 +147,6 @@ final readonly class JsonStorage implements StorageInterface
         }
 
         return null;
-    }
-
-    /**
-     * Lädt den gesamten JSON-Inhalt und konvertiert alle Zeilen in starke Permit-Entitäten.
-     *
-     * @return array<int, Permit> Liste aller Genehmigungen im Dokument.
-     */
-    public function getAll(): array
-    {
-        return \array_map($this->mapToEntity(...), $this->loadRaw());
-    }
-
-    /**
-     * Migriert alle enthaltenen JSON-Datensätze in eine andere Storage-Ziel-Engine.
-     *
-     * @param StorageInterface $target Das Ziel-Repository (z.B. MySqlStorage).
-     *
-     * @return int Die Anzahl erfolgreich migrierter Datensätze.
-     */
-    public function migrateTo(StorageInterface $target): int
-    {
-        $count = 0;
-        foreach ($this->getAll() as $permit) {
-            if (! $target->save($permit)) {
-                continue;
-            }
-
-            ++$count;
-        }
-
-        return $count;
-    }
-
-    /**
-     * Liest die rohen, unstrukturierten JSON-Arrayinhalte direkt von der Festplatte.
-     *
-     * @return array<string, mixed> Das assoziative Rohdaten-Array.
-     */
-    private function loadRaw(): array
-    {
-        if (! \file_exists($this->filePath)) {
-            return [];
-        }
-
-        return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
     }
 
     /**
@@ -210,36 +203,51 @@ final readonly class JsonStorage implements StorageInterface
     }
 
     /**
-     * Löscht eine Genehmigung unwiderruflich aus der JSON-Datei.
+     * Lädt den gesamten JSON-Inhalt und konvertiert alle Zeilen in starke Permit-Entitäten.
      *
-     * @param string $code Der eindeutige Hash/Code der Genehmigung.
-     *
-     * @return bool True, wenn der Datensatz erfolgreich aus dem Array entfernt und gespeichert wurde.
+     * @return array<int, Permit> Liste aller Genehmigungen im Dokument.
      */
-    public function delete(string $code): bool
+    public function getAll(): array
     {
-        $fp = \fopen($this->filePath, 'c+');
-        if (! $fp) {
-            return false;
-        }
-        if (\flock($fp, \LOCK_EX)) {
-            $size = \filesize($this->filePath);
-            $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = \json_decode((string) $raw, true) ?? [];
-            if (isset($data[$code])) {
-                unset($data[$code]);
-                \ftruncate($fp, 0);
-                \fseek($fp, 0);
-                \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        return \array_map($this->mapToEntity(...), $this->loadRaw());
+    }
+
+    // --- Public Migrations ---
+
+    /**
+     * Migriert alle enthaltenen JSON-Datensätze in eine andere Storage-Ziel-Engine.
+     *
+     * @param StorageInterface $target Das Ziel-Repository (z.B. MySqlStorage).
+     *
+     * @return int Die Anzahl erfolgreich migrierter Datensätze.
+     */
+    public function migrateTo(StorageInterface $target): int
+    {
+        $count = 0;
+        foreach ($this->getAll() as $permit) {
+            if (! $target->save($permit)) {
+                continue;
             }
-            \fflush($fp);
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
 
-            return true;
+            ++$count;
         }
-        \fclose($fp);
 
-        return false;
+        return $count;
+    }
+
+    // --- Private Loader ---
+
+    /**
+     * Liest die rohen, unstrukturierten JSON-Arrayinhalte direkt von der Festplatte.
+     *
+     * @return array<string, mixed> Das assoziative Rohdaten-Array.
+     */
+    private function loadRaw(): array
+    {
+        if (! \file_exists($this->filePath)) {
+            return [];
+        }
+
+        return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
     }
 }

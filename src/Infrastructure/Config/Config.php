@@ -39,6 +39,8 @@ final readonly class Config implements ConfigInterface
     /**
      * Holt einen Wert direkt aus dem Einstellungs-Array.
      *
+     * (Der wichtigste universelle Getter)
+     *
      * @param string $key     Der exakte Array-Schlüssel.
      * @param mixed  $default Fallback bei Nichtexistenz.
      *
@@ -101,6 +103,8 @@ final readonly class Config implements ConfigInterface
      * Ermittelt die Basis-URL der Installation.
      * Falls 'base_url' in der Konfiguration leer ist, wird die URL automatisch
      * anhand der $_SERVER-Umgebungsvariablen (Protokoll, Host, Script-Name) dynamisch generiert.
+     *
+     * (Komplexester Getter mit Logik ans Ende)
      *
      * @return string Bereinigte URL mit abschließendem Schrägstrich.
      */

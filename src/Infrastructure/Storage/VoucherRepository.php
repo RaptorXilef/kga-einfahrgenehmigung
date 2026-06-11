@@ -57,6 +57,22 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
     }
 
     /**
+     * Lädt alle historischen Protokolle bereits verbrauchter/eingelöster Gutscheine aus dem Archiv.
+     *
+     * @return array<int, array<string, mixed>> Zeitlich absteigend sortierte Liste der Einlösungs-Logs.
+     */
+    public function loadArchive(): array
+    {
+        $cfg = $this->config->get('storage_config')['vouchers_archive'];
+        if ($cfg['type'] === 'mysql') {
+            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY redeemed_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
+        }
+        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+
+        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+    }
+
+    /**
      * Persistiert den vollständigen Gutschein-Livebestand im aktiven Speicher-Backend.
      *
      * @param array<string, array<string, mixed>> $vouchers Die zu speichernde Gutscheinliste.
@@ -104,22 +120,6 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
             \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
         }
-    }
-
-    /**
-     * Lädt alle historischen Protokolle bereits verbrauchter/eingelöster Gutscheine aus dem Archiv.
-     *
-     * @return array<int, array<string, mixed>> Zeitlich absteigend sortierte Liste der Einlösungs-Logs.
-     */
-    public function loadArchive(): array
-    {
-        $cfg = $this->config->get('storage_config')['vouchers_archive'];
-        if ($cfg['type'] === 'mysql') {
-            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY redeemed_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
-        }
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
     }
 
     /**

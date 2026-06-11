@@ -27,6 +27,8 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
     ) {
     }
 
+    // --- Public API ---
+
     /**
      * Überprüft die systemweite Einzigartigkeit eines Genehmigungs-Codes.
      * Scannt hierzu das aktive SQL-Archiv oder alle historischen JSON-Jahresarchive
@@ -165,6 +167,8 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
 
         return $anonymizedCount;
     }
+
+    // --- Private Helper ---
 
     /**
      * Baut den absoluten Speicherpfad für eine Archiv-Datei zusammen.

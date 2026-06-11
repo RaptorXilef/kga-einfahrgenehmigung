@@ -35,6 +35,8 @@ final readonly class PayPalService implements PaymentProviderInterface
     ) {
     }
 
+    // --- Public API ---
+
     /**
      * Erstellt eine transaktionsbereite Order in der PayPal-Cloud für den Checkout.
      *
@@ -123,6 +125,8 @@ final readonly class PayPalService implements PaymentProviderInterface
         // Nur wenn Status 'COMPLETED' UND der Preis exakt mit unserem System übereinstimmt:
         return $status === 'COMPLETED' && $capturedAmount === $formattedExpected;
     }
+
+    // --- Private Auth ---
 
     /**
      * Holt den temporären OAuth2 Access Token von PayPal.

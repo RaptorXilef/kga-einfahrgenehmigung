@@ -32,6 +32,8 @@ final readonly class CronScheduler
     /**
      * Wird asynchron (z.B. beim Laden des Admin-Dashboards) aufgerufen.
      * Prüft, ob seit dem letzten Lauf ausreichend Zeit (z.B. 24 Stunden) vergangen ist.
+     *
+     * (Der primäre Aufruf im Alltag)
      */
     public function runIfNeeded(): void
     {
@@ -53,6 +55,8 @@ final readonly class CronScheduler
     /**
      * Führt alle geplanten Jobs (Auto-Archivierung und Backups) sofort aus,
      * unabhängig davon, ob das Intervall bereits abgelaufen ist.
+     *
+     * (Der direkte Ausführungsbefehl)
      */
     public function runForce(): void
     {
