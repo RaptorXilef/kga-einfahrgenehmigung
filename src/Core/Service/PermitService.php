@@ -153,7 +153,9 @@ final readonly class PermitService
         $data['expires']     = \date('Y-m-d H:i:s', \time() + (3600 * $hours));
 
         // 4. GUTSCHEIN-LOGIK (ERWEITERT)
-        $voucherCode = \trim((string) ($data['voucher'] ?? ''));
+        // Gutscheincode zwingend in Großbuchstaben umwandeln, da er im Repository
+        // so indexiert ist und Kleinschreibungen bei der Formularübermittlung sonst fehlschlagen.
+        $voucherCode = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
         if ($voucherCode !== '') {
             $voucher = $this->voucherService->useVoucher($voucherCode, $data);
 

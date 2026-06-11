@@ -47,6 +47,13 @@ final readonly class CronScheduler
         $lastRun = \file_exists($logPath) ? (int) \file_get_contents($logPath) : 0;
 
         if (($now - $lastRun) >= 86400) {
+            // Sicherstellen, dass das logs/ Verzeichnis existiert, da file_put_contents
+            // sonst fehlschlägt und der Cron bei JEDEM Seitenaufruf in eine Dauerschleife läuft.
+            $logDir = \dirname($logPath);
+            if (! \is_dir($logDir)) {
+                @\mkdir($logDir, 0o755, true);
+            }
+
             // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
             @\file_put_contents($logPath, (string) $now);
 
