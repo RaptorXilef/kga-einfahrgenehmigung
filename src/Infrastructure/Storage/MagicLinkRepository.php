@@ -77,15 +77,30 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, email, code, expires) VALUES (?, ?, ?, ?)");
+            $this->pdo->beginTransaction(); // <-- FIX: Transaktion starten
 
-            foreach ($links as $token => $d) {
-                $exp = $d['expires'] ?? \date('Y-m-d H:i:s');
-                if (\is_numeric($exp)) {
-                    $exp = \date('Y-m-d H:i:s', (int) $exp);
+            try {
+                $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+                $stmt = $this->pdo->prepare(
+                    "INSERT INTO `{$cfg['table']}` (
+                        token, email, code, expires
+                    ) VALUES (
+                        ?, ?, ?, ?
+                    )",
+                );
+
+                foreach ($links as $token => $d) {
+                    $exp = $d['expires'] ?? \date('Y-m-d H:i:s');
+                    if (\is_numeric($exp)) {
+                        $exp = \date('Y-m-d H:i:s', (int) $exp);
+                    }
+                    $stmt->execute([$token, $d['email'], $d['code'], $exp]);
                 }
-                $stmt->execute([$token, $d['email'], $d['code'], $exp]);
+                $this->pdo->commit(); // <-- FIX: Bei Erfolg speichern
+            } catch (\Exception $e) {
+                $this->pdo->rollBack(); // <-- FIX: Bei Fehler Zustand wiederherstellen
+
+                throw $e;
             }
             if ($forceSql) {
                 return;

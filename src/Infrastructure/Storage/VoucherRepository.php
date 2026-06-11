@@ -83,33 +83,42 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $sql = "INSERT INTO `{$cfg['table']}` (
-                code, reason, template_key, type, value, multi_use, max_uses,
-                uses_count, expires_at, date_mode, created_by, created_at, status, data
-            ) VALUES (
-                :code, :reason, :template_key, :type, :value, :multi_use, :max_uses,
-                :uses_count, :expires_at, :date_mode, :created_by, :created_at, :status, :data
-            )";
-            $stmt = $this->pdo->prepare($sql);
+            $this->pdo->beginTransaction(); // <-- FIX: Transaktion starten
 
-            foreach ($vouchers as $v) {
-                $stmt->execute([
-                    'code'         => $v['code'] ?? '',
-                    'reason'       => $v['reason'] ?? '',
-                    'template_key' => $v['template_key'] ?? 'std_7',
-                    'type'         => $v['type'] ?? 'free',
-                    'value'        => (float) ($v['value'] ?? 0.0),
-                    'multi_use'    => (int) ($v['multi_use'] ?? 0),
-                    'max_uses'     => (int) ($v['max_uses'] ?? 1),
-                    'uses_count'   => (int) ($v['uses_count'] ?? 0),
-                    'expires_at'   => $v['expires_at'] ?? null,
-                    'date_mode'    => $v['date_mode'] ?? 'fixed',
-                    'created_by'   => $v['created_by'] ?? '',
-                    'created_at'   => $v['created_at'] ?? \date('Y-m-d H:i:s'),
-                    'status'       => $v['status'] ?? 'aktiv',
-                    'data'         => \is_array($v['data'] ?? null) ? \json_encode($v['data'], \JSON_UNESCAPED_UNICODE) : '{}',
-                ]);
+            try {
+                $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+                $sql = "INSERT INTO `{$cfg['table']}` (
+                    code, reason, template_key, type, value, multi_use, max_uses,
+                    uses_count, expires_at, date_mode, created_by, created_at, status, data
+                ) VALUES (
+                    :code, :reason, :template_key, :type, :value, :multi_use, :max_uses,
+                    :uses_count, :expires_at, :date_mode, :created_by, :created_at, :status, :data
+                )";
+                $stmt = $this->pdo->prepare($sql);
+
+                foreach ($vouchers as $v) {
+                    $stmt->execute([
+                        'code'         => $v['code'] ?? '',
+                        'reason'       => $v['reason'] ?? '',
+                        'template_key' => $v['template_key'] ?? 'std_7',
+                        'type'         => $v['type'] ?? 'free',
+                        'value'        => (float) ($v['value'] ?? 0.0),
+                        'multi_use'    => (int) ($v['multi_use'] ?? 0),
+                        'max_uses'     => (int) ($v['max_uses'] ?? 1),
+                        'uses_count'   => (int) ($v['uses_count'] ?? 0),
+                        'expires_at'   => $v['expires_at'] ?? null,
+                        'date_mode'    => $v['date_mode'] ?? 'fixed',
+                        'created_by'   => $v['created_by'] ?? '',
+                        'created_at'   => $v['created_at'] ?? \date('Y-m-d H:i:s'),
+                        'status'       => $v['status'] ?? 'aktiv',
+                        'data'         => \is_array($v['data'] ?? null) ? \json_encode($v['data'], \JSON_UNESCAPED_UNICODE) : '{}',
+                    ]);
+                }
+                $this->pdo->commit(); // <-- FIX: Bei Erfolg speichern
+            } catch (\Exception $e) {
+                $this->pdo->rollBack(); // <-- FIX: Bei Fehler Zustand wiederherstellen
+
+                throw $e;
             }
             if ($forceSql) {
                 return;

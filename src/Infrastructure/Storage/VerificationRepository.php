@@ -127,14 +127,23 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
         $useSql = $forceSql || ($cfg['type'] === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, expires, data) VALUES (?, ?, ?)");
-            foreach ($data as $token => $item) {
-                $exp = $item['expires'] ?? \date('Y-m-d H:i:s');
-                if (\is_numeric($exp)) {
-                    $exp = \date('Y-m-d H:i:s', (int) $exp);
+            $this->pdo->beginTransaction(); // <-- FIX: Transaktion starten
+
+            try {
+                $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
+                $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, expires, data) VALUES (?, ?, ?)");
+                foreach ($data as $token => $item) {
+                    $exp = $item['expires'] ?? \date('Y-m-d H:i:s');
+                    if (\is_numeric($exp)) {
+                        $exp = \date('Y-m-d H:i:s', (int) $exp);
+                    }
+                    $stmt->execute([$token, $exp, \json_encode($item, \JSON_UNESCAPED_UNICODE)]);
                 }
-                $stmt->execute([$token, $exp, \json_encode($item, \JSON_UNESCAPED_UNICODE)]);
+                $this->pdo->commit(); // <-- FIX: Bei Erfolg speichern
+            } catch (\Exception $e) {
+                $this->pdo->rollBack(); // <-- FIX: Bei Fehler Zustand wiederherstellen
+
+                throw $e;
             }
             if ($forceSql) {
                 return;
