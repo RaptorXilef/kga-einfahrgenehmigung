@@ -96,6 +96,7 @@ final readonly class HistoryController
             $verifiedEmail = $this->magicLinkService->verifyAny((string) ($post['login_code'] ?? ''));
 
             if ($verifiedEmail) {
+                \session_regenerate_id(true);
                 $_SESSION['user_history_email'] = $verifiedEmail;
                 \header('Location: history.php'); // Erfolgreich eingeloggt -> Saubere URL
                 exit;
@@ -116,6 +117,7 @@ final readonly class HistoryController
             $verifiedEmail = $this->magicLinkService->verifyAny((string) $get['token']);
 
             if ($verifiedEmail) {
+                \session_regenerate_id(true);
                 $_SESSION['user_history_email'] = $verifiedEmail;
                 \header('Location: history.php');
                 exit;

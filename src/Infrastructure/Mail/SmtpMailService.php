@@ -138,6 +138,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             \file_put_contents(
                 $path,
                 \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
             );
         }
     }
@@ -405,6 +406,10 @@ final readonly class SmtpMailService implements MailServiceInterface
             'data'      => $data,
         ]);
         $logs = \array_slice($logs, 0, $maxEntries);
-        \file_put_contents($path, \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        \file_put_contents(
+            $path,
+            \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            \LOCK_EX,
+        );
     }
 }

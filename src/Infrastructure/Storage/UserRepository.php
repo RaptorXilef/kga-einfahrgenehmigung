@@ -101,6 +101,7 @@ final readonly class UserRepository implements UserRepositoryInterface
             \file_put_contents(
                 $path,
                 \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
             );
         }
     }

@@ -48,6 +48,10 @@ trait ImageUploadTrait
             return false;
         }
 
+        if (! \extension_loaded('gd')) {
+            return \move_uploaded_file($file['tmp_name'], $outputPath);
+        }
+
         // [x] Sortiert
         $src = match ($info[2]) {
             \IMAGETYPE_GIF  => @\imagecreatefromgif($file['tmp_name']),

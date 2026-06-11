@@ -187,7 +187,11 @@ final readonly class MigrationService
         $path = $this->getFilePath($target);
         if (\in_array($engine, ['all', 'json'], true) && \file_exists($path)) {
             $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
-            \file_put_contents($path, \json_encode([], $jsonFlags));
+            \file_put_contents(
+                $path,
+                \json_encode([], $jsonFlags),
+                \LOCK_EX,
+            );
             $clearedIn[] = 'JSON';
         }
 
@@ -428,7 +432,11 @@ final readonly class MigrationService
         // Normalisierung vor dem Schreiben ins JSON: Wenn Daten aus SQL kommen, sind 'data' oder 'permissions' Objekte eventuell noch Arrays.
         // Das sorgt für eine saubere, einheitliche Struktur im Dateisystem.
         $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
-        \file_put_contents($this->getFilePath($key), \json_encode($data, $jsonFlags));
+        \file_put_contents(
+            $this->getFilePath($key),
+            \json_encode($data, $jsonFlags),
+            \LOCK_EX,
+        );
     }
 
     /**

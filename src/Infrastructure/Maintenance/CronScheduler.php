@@ -55,13 +55,21 @@ final readonly class CronScheduler
             }
 
             // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
-            @\file_put_contents($logPath, (string) $now);
+            @\file_put_contents(
+                $logPath,
+                (string) $now,
+                \LOCK_EX,
+            );
 
             try {
                 $this->runForce();
             } catch (\Throwable $t) {
                 // Bei fatalem Abbruch den Zeitstempel zurücksetzen, damit der nächste Request es reparieren kann
-                @\file_put_contents($logPath, (string) $lastRun);
+                @\file_put_contents(
+                    $logPath,
+                    (string) $lastRun,
+                    \LOCK_EX,
+                );
 
                 throw $t;
             }

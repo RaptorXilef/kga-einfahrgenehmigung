@@ -53,7 +53,7 @@ final readonly class AuthService
      */
     public function login(string $username, string $password): bool
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip = $this->getClientIp();
 
         if ($this->rateLimiter->isBlocked($ip)) {
             throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde für 15 Minuten aus Sicherheitsgründen gesperrt.');
@@ -205,6 +205,21 @@ final readonly class AuthService
     public function getGroup(): string
     {
         return (string) ($_SESSION['admin_group'] ?? 'guest');
+    }
+
+    // TODO DOCBLOCK
+    private function getClientIp(): string
+    {
+        $ipKeys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
+        foreach ($ipKeys as $key) {
+            if (! empty($_SERVER[$key])) {
+                $ips = \explode(',', $_SERVER[$key]);
+
+                return \trim($ips[0]); // Erste IP in der Kette ist der Original-Client
+            }
+        }
+
+        return 'unknown';
     }
 
     /**

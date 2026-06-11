@@ -56,7 +56,11 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
                 'attempts'   => 0,
                 'created_at' => \date('Y-m-d H:i:s'),
             ];
-            \file_put_contents($path, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            \file_put_contents(
+                $path,
+                \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
+            );
         }
     }
 

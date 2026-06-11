@@ -52,6 +52,10 @@ final readonly class ErrorLogger
             \str_repeat('=', 80),
         );
 
-        @\file_put_contents($logFile, $message, \FILE_APPEND);
+        @\file_put_contents(
+            $logFile,
+            $message,
+            \FILE_APPEND | \LOCK_EX,
+        );
     }
 }

@@ -108,8 +108,18 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
         }
 
         if (! $forceSql) {
-            $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-            \file_put_contents($path, \json_encode($links, \JSON_PRETTY_PRINT));
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($links, \JSON_PRETTY_PRINT),
+                \LOCK_EX,
+            );
         }
     }
 }

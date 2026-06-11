@@ -152,7 +152,11 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
 
         if (! $forceSql) {
             $path = $this->getFilePath($cfg['file']);
-            \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            \file_put_contents(
+                $path,
+                \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
+            );
         }
     }
 
@@ -166,6 +170,6 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
     private function getFilePath(string $fileName): string
     {
         return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-               \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $fileName;
+            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $fileName;
     }
 }

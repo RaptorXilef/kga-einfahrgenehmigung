@@ -133,6 +133,10 @@ final readonly class UpdateMigrationService
             'executed_at' => $now,
         ];
 
-        \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+        \file_put_contents(
+            $path,
+            \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+            \LOCK_EX,
+        );
     }
 }

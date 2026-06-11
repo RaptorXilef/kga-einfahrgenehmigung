@@ -113,7 +113,11 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                 $existing[$permit['code']] = $permit;
             }
 
-            \file_put_contents($archivePath, \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            \file_put_contents(
+                $archivePath,
+                \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
+            );
         }
     }
 
@@ -160,7 +164,11 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                 }
 
                 if ($changed) {
-                    \file_put_contents($archivePath, \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                    \file_put_contents(
+                        $archivePath,
+                        \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                        \LOCK_EX,
+                    );
                 }
             }
         }

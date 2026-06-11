@@ -126,8 +126,18 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         }
 
         if (! $forceSql) {
-            $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-            \file_put_contents($path, \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            $path = \rtrim(
+                (string) $this->config->get('root_path'),
+                '/\\',
+            ) . '/' . \ltrim(
+                (string) $this->config->get('storage_path_prefix'),
+                '/\\',
+            ) . $cfg['file'];
+            \file_put_contents(
+                $path,
+                \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
+            );
         }
     }
 
@@ -154,7 +164,11 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file'];
             $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
             $archive[]   = $archiveEntry;
-            \file_put_contents($archivePath, \json_encode($archive, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            \file_put_contents(
+                $archivePath,
+                \json_encode($archive, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                \LOCK_EX,
+            );
         }
     }
 }

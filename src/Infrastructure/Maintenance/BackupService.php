@@ -65,7 +65,11 @@ final readonly class BackupService
                     $path = $root . '/' . $prefix . $storageConfig[$key]['file'];
                     if (\file_exists($path) && ! \is_dir($path)) {
                         $data = \json_decode((string) \file_get_contents($path), true) ?? [];
-                        \file_put_contents($backupPath . "/{$key}_file.json", \json_encode($data, $jsonFlags));
+                        \file_put_contents(
+                            $backupPath . "/{$key}_file.json",
+                            \json_encode($data, $jsonFlags),
+                            \LOCK_EX,
+                        );
                     }
                 }
 
@@ -73,7 +77,11 @@ final readonly class BackupService
                 if ($this->pdo instanceof \PDO && isset($storageConfig[$key]['table'])) {
                     $sqlData = $this->loadRawSql($key);
                     if ($sqlData !== []) {
-                        \file_put_contents($backupPath . "/{$key}_sql.json", \json_encode($sqlData, $jsonFlags));
+                        \file_put_contents(
+                            $backupPath . "/{$key}_sql.json",
+                            \json_encode($sqlData, $jsonFlags),
+                            \LOCK_EX,
+                        );
                     }
                 }
             }
@@ -84,13 +92,21 @@ final readonly class BackupService
         // Zielspezifisches Backup
         $jsonData = $this->loadRawJson($target);
         if ($jsonData !== []) {
-            \file_put_contents($backupPath . "/{$target}_file.json", \json_encode($jsonData, $jsonFlags));
+            \file_put_contents(
+                $backupPath . "/{$target}_file.json",
+                \json_encode($jsonData, $jsonFlags),
+                \LOCK_EX,
+            );
         }
 
         if ($this->pdo instanceof \PDO) {
             $sqlData = $this->loadRawSql($target);
             if ($sqlData !== []) {
-                \file_put_contents($backupPath . "/{$target}_sql.json", \json_encode($sqlData, $jsonFlags));
+                \file_put_contents(
+                    $backupPath . "/{$target}_sql.json",
+                    \json_encode($sqlData, $jsonFlags),
+                    \LOCK_EX,
+                );
             }
         }
 
@@ -188,7 +204,11 @@ final readonly class BackupService
                 $this->createBackup('auto_maintenance');
 
                 // Zeitstempel aktualisieren
-                \file_put_contents($stateFile, (string) $now);
+                \file_put_contents(
+                    $stateFile,
+                    (string) $now,
+                    \LOCK_EX,
+                );
 
                 // Veraltete Backups löschen
                 $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));

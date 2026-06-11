@@ -123,7 +123,11 @@ if (! \file_exists($configFiles['dev'])) {
             'label' => 'Systembetreuer'
         ];
         PHP;
-    \file_put_contents($configFiles['dev'], $defaultDevContent);
+    \file_put_contents(
+        $configFiles['dev'],
+        $defaultDevContent,
+        \LOCK_EX,
+    );
 }
 
 foreach ($configFiles as $key => $file) {

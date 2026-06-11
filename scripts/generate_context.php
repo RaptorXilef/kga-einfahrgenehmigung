@@ -88,5 +88,9 @@ foreach ($iterator as $file) {
     }
 }
 
-\file_put_contents($outputFile, $output);
+\file_put_contents(
+    $outputFile,
+    $output,
+    \LOCK_EX,
+);
 echo "Kontext-Datei '$outputFile' erfolgreich mit vollständigen DocBlocks erstellt.\n";
