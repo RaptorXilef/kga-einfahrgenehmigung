@@ -111,7 +111,8 @@ final readonly class RateLimiter implements RateLimiterInterface
         $path = $this->getFilePath($cfg['file']);
         $fp   = @\fopen($path, 'c+');
         if ($fp && \flock($fp, \LOCK_EX)) {
-            $size = \filesize($path);
+            $stat = \fstat($fp);
+            $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
             $data = \json_decode((string) $raw, true) ?? [];
 
@@ -151,7 +152,8 @@ final readonly class RateLimiter implements RateLimiterInterface
         $path = $this->getFilePath($cfg['file']);
         $fp   = @\fopen($path, 'c+');
         if ($fp && \flock($fp, \LOCK_EX)) {
-            $size = \filesize($path);
+            $stat = \fstat($fp);
+            $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
             $data = \json_decode((string) $raw, true) ?? [];
 

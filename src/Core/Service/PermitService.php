@@ -681,7 +681,8 @@ final readonly class PermitService
 
                 $fp = @\fopen($path, 'c+');
                 if ($fp && \flock($fp, \LOCK_EX)) {
-                    $size = \filesize($path);
+                    $stat = \fstat($fp);
+                    $size = $stat['size'];
                     $raw  = $size > 0 ? \fread($fp, $size) : '';
                     $data = \json_decode((string) $raw, true) ?? [];
 

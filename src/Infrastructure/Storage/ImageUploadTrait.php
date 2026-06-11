@@ -31,8 +31,9 @@ trait ImageUploadTrait
      */
     protected function doUploadImage(string $folder, string $id, array $file, string $rootPath): bool
     {
+        $safeId     = \basename($id); // Verhindert Path Traversal (../)
         $targetDir  = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/';
-        $outputPath = $targetDir . $id . '.webp';
+        $outputPath = $targetDir . $safeId . '.webp'; // Nutze $safeId
 
         if (! \is_dir($targetDir)) {
             \mkdir($targetDir, 0o755, true);

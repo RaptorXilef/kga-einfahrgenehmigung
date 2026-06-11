@@ -72,10 +72,8 @@ final readonly class HistoryController
             $email   = \trim((string) ($post['email'] ?? ''));
             $permits = $this->permitService->getHistoryByEmail($email);
 
-            if ($permits === []) {
-                $msg = 'Zu dieser E-Mail wurden keine Genehmigungen gefunden.';
-                \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
-            } else {
+            // IMMER so tun, als hätte es geklappt, um E-Mail-Scraping zu verhindern
+            if ($permits !== []) {
                 $data = $this->magicLinkService->createToken($email);
                 $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
 
@@ -85,10 +83,11 @@ final readonly class HistoryController
                     'duration'    => $this->config->get('magic_link_duration'),
                     'vereinsName' => $this->config->get('vereins_name'),
                 ]);
-
-                $msg = 'Code wurde gesendet (gültig für ' . $this->config->get('magic_link_duration') . ' Min).';
-                \header('Location: history.php?sent=1&msg=' . \urlencode($msg));
             }
+
+            // Einheitliche neutrale Meldung
+            $msg = 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.';
+            \header('Location: history.php?sent=1&msg=' . \urlencode($msg));
             exit;
         }
 

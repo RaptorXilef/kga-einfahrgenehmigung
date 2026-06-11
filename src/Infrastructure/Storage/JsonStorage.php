@@ -57,7 +57,8 @@ final readonly class JsonStorage implements StorageInterface
         // Warte, bis wir exklusiven Zugriff (Schreibrecht) auf die Datei haben
         if (\flock($fp, \LOCK_EX)) {
             // Hole die aktuellen Daten, während die Datei gesperrt ist
-            $size = \filesize($this->filePath);
+            $stat = \fstat($fp);
+            $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
             $data = \json_decode((string) $raw, true) ?? [];
 
@@ -94,7 +95,8 @@ final readonly class JsonStorage implements StorageInterface
             return false;
         }
         if (\flock($fp, \LOCK_EX)) {
-            $size = \filesize($this->filePath);
+            $stat = \fstat($fp);
+            $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
             $data = \json_decode((string) $raw, true) ?? [];
 

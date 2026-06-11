@@ -169,7 +169,14 @@ final readonly class GitHubUpdaterService
         }
 
         $extractPath = $tempDir . '/extracted';
-        $zip->extractTo($extractPath);
+
+        // Entpacken auf Fehler prüfen und Notbremse ziehen!
+        if (! $zip->extractTo($extractPath)) {
+            $zip->close();
+            $this->cleanup($tempDir);
+
+            throw new \RuntimeException('Das Update-Archiv ist fehlerhaft oder konnte nicht entpackt werden. Abbruch.');
+        }
         $zip->close();
 
         // 4. Den Hauptordner im ZIP finden
