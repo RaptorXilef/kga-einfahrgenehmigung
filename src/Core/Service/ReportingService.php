@@ -154,6 +154,17 @@ final readonly class ReportingService
                 : $b['count'] <=> $a['count'],
         );
 
+        // Typen-Prüfung eingebaut, um PHP-Notice bei komplett leeren Filterergebnissen zu unterbinden
+        if (! empty($stats['plots'])) {
+            $firstPlot = \reset($stats['plots']);
+            $maxCount  = (\is_array($firstPlot) && ($firstPlot['count'] ?? 0) > 0) ? $firstPlot['count'] : 1;
+        } else {
+            $maxCount = 1;
+        }
+
+        // Den berechneten Wert dem Array hinzufügen!
+        $stats['max_plot_count'] = $maxCount;
+
         return $stats;
     }
 

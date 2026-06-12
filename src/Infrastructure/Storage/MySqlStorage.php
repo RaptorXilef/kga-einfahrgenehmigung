@@ -81,7 +81,12 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function delete(string $code): bool
     {
-        return $this->pdo->prepare('DELETE FROM `permits` WHERE code = ?')->execute([$code]);
+        // Nutze rowCount() statt dem reinen execute()-Ergebnis,
+        // um den echten Lösch-Status (True/False) ans System zurückzugeben.
+        $stmt = $this->pdo->prepare('DELETE FROM `permits` WHERE code = ?');
+        $stmt->execute([$code]);
+
+        return $stmt->rowCount() > 0;
     }
 
     // --- Public Read ---

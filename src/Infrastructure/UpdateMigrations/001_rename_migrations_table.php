@@ -17,7 +17,9 @@
 
 declare(strict_types=1);
 
-return function (?\PDO $pdo, \App\Contracts\Config\ConfigInterface $config): void {
+use App\Contracts\Config\ConfigInterface;
+
+return function (?\PDO $pdo, ConfigInterface $config): void {
 
     // 1. MySQL Migration (Falls Datenbank aktiv ist)
     if ($pdo instanceof \PDO) {

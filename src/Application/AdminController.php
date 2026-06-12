@@ -771,7 +771,7 @@ final readonly class AdminController
      */
     private function handleExport(string $format, array $filtered, string $start, string $end): void
     {
-        // FIX: Wir nutzen den Vereinsnamen aus der Config für den Dateinamen (statt hartkodiert "kga")
+        // Wir nutzen den Vereinsnamen aus der Config für den Dateinamen (statt hartkodiert "kga")
         $slug = \strtolower(
             (string) \preg_replace(
                 '/[^A-Za-z0-9]/',
@@ -780,7 +780,7 @@ final readonly class AdminController
             ),
         );
 
-        // FIX: Die Endung wird jetzt dynamisch über $format angehängt
+        // Die Endung wird jetzt dynamisch über $format angehängt
         $filename = "export_{$slug}_{$start}_bis_{$end}.{$format}";
 
         $settings = $this->getSettingsArray();
@@ -809,7 +809,7 @@ final readonly class AdminController
                 ], ';', '"', '\\');
 
                 foreach ($filtered as $permit) {
-                    \fputcsv($output, [
+                    $row = [
                         $permit->code,
                         $permit->owner->name,
                         $permit->owner->email,
@@ -821,7 +821,19 @@ final readonly class AdminController
                         \number_format($permit->validity->preis, 2, ',', ''),
                         \strtoupper($permit->status->current),
                         $permit->erstellt->format('d.m.Y H:i'),
-                    ], ';', '"', '\\');
+                    ];
+
+                    // CSV-Injection-Schutz (Formel-Neutralisierung)
+                    // Wir iterieren per Referenz, um den Wert direkt im Array zu maskieren
+                    foreach ($row as &$cell) {
+                        $firstChar = \substr((string) $cell, 0, 1);
+                        if ($cell !== '' && \in_array($firstChar, ['=', '+', '-', '@', '\t', '\r'], true)) {
+                            $cell = "'" . $cell;
+                        }
+                    }
+                    unset($cell); // Referenz sauber trennen
+
+                    \fputcsv($output, $row, ';', '"', '\\');
                 }
                 \fclose($output);
             }

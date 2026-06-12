@@ -2,13 +2,17 @@
 
 declare(strict_types=1);
 
-return function (?\PDO $pdo, \App\Contracts\Config\ConfigInterface $config): void {
+use App\Contracts\Config\ConfigInterface;
+
+return function (?\PDO $pdo, ConfigInterface $config): void {
 
     if ($pdo instanceof \PDO) {
         try {
             // Legt die Tabelle sicher an, falls sie (z.B. bei Bestandskunden) noch fehlt
+            // ID von INT AUTO_INCREMENT auf VARCHAR(50) umgestellt,
+            // damit die aus der JSON-Welt kommenden String-UIDs (mig_...) nicht das SQL-Schema crashen.
             $sql = 'CREATE TABLE IF NOT EXISTS `update_migrations` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `id` VARCHAR(50) PRIMARY KEY,
                 `version` VARCHAR(50) NOT NULL,
                 `executed_at` DATETIME NOT NULL,
                 UNIQUE KEY `idx_version` (`version`)
