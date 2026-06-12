@@ -2,6 +2,12 @@
 
 
 
+## [0.46.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.5...v0.46.6) (2026-06-12)
+
+### 🐛 Bug Fixes
+
+* **ui,auth:** restrict changelog and bug report visibility to authorized administrators ([c5bb404](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c5bb404aedac26cf1bccf6fc6c0c569df85842ed))
+
 ## [0.46.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.4...v0.46.5) (2026-06-12)
 
 ### 💎 Styling
