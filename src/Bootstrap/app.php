@@ -27,6 +27,16 @@ use App\Infrastructure\Config\Config;
 
 // Session global starten, da fast alle Seiten sie benötigen
 if (\session_status() === \PHP_SESSION_NONE) {
+    // Harte kryptografische Absicherung des Session-Cookies erzwingen!
+    \session_set_cookie_params([
+        'lifetime' => 86400, // 24 Stunden
+        'path'     => '/',
+        'domain'   => $_SERVER['HTTP_HOST'] ?? '',
+        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // Nur über HTTPS
+        'httponly' => true, // Verhindert Diebstahl durch JavaScript (XSS-Schutz)
+        'samesite' => 'Lax', // Verhindert Cross-Site Request Forgery via externe Links
+    ]);
+
     \session_start();
 }
 

@@ -46,7 +46,7 @@ final readonly class UserController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Globale CSRF-Prüfung für die Benutzerverwaltung
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 $action = $post['action'] ?? '';
@@ -110,7 +110,7 @@ final readonly class UserController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Globale CSRF-Prüfung für das Eigene Profil
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 // [x] Sortiert

@@ -47,7 +47,7 @@ final readonly class HistoryController
     {
         // Globale CSRF-Prüfung für POST-Requests (Muss als ALLERERSTES passieren!)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $msg = 'Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
                 \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
                 exit;

@@ -69,7 +69,7 @@ final readonly class PermitController
                 return \is_string($value) ? \trim(\strip_tags($value)) : $value;
             }, $post);
 
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 try {

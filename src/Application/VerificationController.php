@@ -46,8 +46,9 @@ final readonly class VerificationController
             $input = (string) $get['token'];
         } elseif (isset($post['submit_code'])) {
             // CSRF-Check für das OTP-Formular (POST)
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
-                \header('Location: verify.php?error=1&msg=' . \urlencode('Sicherheits-Token ungültig (CSRF). Bitte Seite neu laden.'));
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+                \header('Location: verify.php?error=1&msg=' .
+                    \urlencode('Sicherheits-Token ungültig (CSRF). Bitte Seite neu laden.'));
 
                 return;
             }

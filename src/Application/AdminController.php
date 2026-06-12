@@ -101,7 +101,7 @@ final readonly class AdminController
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Globale CSRF-Prüfung für alle administrativen POST-Aktionen
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 $message = $this->handleDataActions($post);
@@ -149,7 +149,7 @@ final readonly class AdminController
         // Neu mit CSRF-Schutz
         if (isset($post['login'])) {
             // CSRF-Schutz auch für das Login-Formular
-            if (($post['csrf_token'] ?? '') !== ($_SESSION['csrf_token'] ?? '')) {
+            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $this->render('admin_login', [
                     'message'  => 'Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu.',
                     'settings' => $this->getSettingsArray(),
@@ -299,6 +299,11 @@ final readonly class AdminController
      */
     private function actionMarkAsPaid(array $post): string
     {
+        // Zwingende Backend-Rechteprüfung ergänzt!
+        if (! $this->auth->hasPermission('dashboard.finance.mark_paid')) {
+            return 'Fehler: Keine Berechtigung für diese Aktion.';
+        }
+
         $code = (string) ($post['code'] ?? '');
 
         return $this->permitService->manualActivate($code) ? "Zahlung für $code bestätigt." : '';
@@ -310,7 +315,11 @@ final readonly class AdminController
      */
     private function actionToggleSuspension(array $post): string
     {
-        // Genehmigung entsperren
+        // Zwingende Backend-Rechteprüfung!
+        if (! $this->auth->hasPermission('dashboard.active.suspend') && ! $this->auth->hasPermission('dashboard.finance.suspend')) {
+            return 'Fehler: Keine Berechtigung für diese Aktion.';
+        }
+
         $suspended = $post['action'] === 'suspend_permit';
         $this->permitService->toggleSuspension((string) $post['code'], $suspended, (string) ($post['reason'] ?? ''));
 
@@ -389,6 +398,11 @@ final readonly class AdminController
      */
     private function actionToggleVoucher(array $post): string
     {
+        // Zwingende Backend-Rechteprüfung!
+        if (! $this->auth->hasPermission('dashboard.vouchers.suspend')) {
+            return 'Fehler: Keine Berechtigung für diese Aktion.';
+        }
+
         // Gutschein sperren / aktivieren
         $status = $post['action'] === 'activate_voucher' ? 'aktiv' : 'deaktiviert';
         $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], $status);
