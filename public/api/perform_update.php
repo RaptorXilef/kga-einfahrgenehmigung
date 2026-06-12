@@ -23,9 +23,12 @@ try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
     JsonResponse::enforceCsrfProtection(); // Schutz vor Cross-Site Request Forgery
 
+    // Sicherheitsprüfung
     $auth = $container->get(\App\Core\Service\AuthService::class);
-    if (! $auth->isLoggedIn()) {
-        JsonResponse::error('Nicht autorisiert.', 403);
+
+    // Reiner Login reicht nicht, es muss das strikte Update-Execute-Recht vorliegen!
+    if (! $auth->isLoggedIn() || ! $auth->hasPermission('system.update.execute')) {
+        JsonResponse::error('Nicht autorisiert. Es fehlen die Rechte für System-Updates.', 403);
     }
 
     // JSON Body auslesen (Da wir mit fetch arbeiten)

@@ -20,10 +20,12 @@ try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
     JsonResponse::enforceCsrfProtection();
 
-    // Sicherheit: Nur eingeloggte Admins dürfen suchen!
+    // Sicherheit: Nur befugte Admins dürfen die Live-Suche über die API triggern!
     $auth = $container->get(\App\Core\Service\AuthService::class);
-    if (! $auth->isLoggedIn()) {
-        JsonResponse::unauthorized('Bitte loggen Sie sich ein.');
+
+    // Überprüfung des exakten Such-Rechts!
+    if (! $auth->isLoggedIn() || ! $auth->hasPermission('dashboard.control_bar.search')) {
+        JsonResponse::unauthorized('Nicht autorisiert. Such-Berechtigung fehlt.');
     }
 
     // Such-Parameter auslesen

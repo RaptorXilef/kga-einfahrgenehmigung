@@ -701,6 +701,10 @@ final readonly class AdminController
 
         // Export abfangen
         if (isset($get['export'])) {
+            // FIX: Zwingende Backend-Überprüfung für Daten-Exporte!
+            if (! $this->auth->hasPermission('finance.export.execute')) {
+                exit('Fehler: Keine Berechtigung für Daten-Exporte.');
+            }
             $this->handleExport((string) $get['export'], $filtered, $filterStart, $filterEnd);
             exit; // Wichtig: Nach dem Download darf kein HTML mehr gesendet werden!
         }
@@ -828,6 +832,14 @@ final readonly class AdminController
     private function shouldStopRequest(array $get): bool
     {
         if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
+            // Hat der Nutzer überhaupt irgendeine Berechtigung zum Drucken?
+            if (! $this->auth->hasPermission('dashboard.active.print')
+                && ! $this->auth->hasPermission('dashboard.future.print')
+                && ! $this->auth->hasPermission('dashboard.expired.print')
+                && ! $this->auth->hasPermission('check.admin.print')) {
+                return false; // Request nicht stoppen, sondern ins reguläre Dashboard fallen lassen
+            }
+
             $permit = $this->storage->findByHash((string) $get['code']);
             if ($permit instanceof Permit) {
                 $config = $this->config;
