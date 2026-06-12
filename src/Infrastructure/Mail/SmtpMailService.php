@@ -6,6 +6,7 @@ namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
+use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Low-Level SMTP-E-Mail-Dienst zur Direktübertragung über Sockets.
@@ -23,6 +24,8 @@ use App\Infrastructure\Config\Config;
  */
 final readonly class SmtpMailService implements MailServiceInterface
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo, // Datenbank-Verbindung
         private Config $config,
@@ -135,11 +138,7 @@ final readonly class SmtpMailService implements MailServiceInterface
                 (string) $this->config->get('storage_path_prefix'),
                 '/\\',
             ) . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $logs);
         }
     }
 
@@ -372,7 +371,7 @@ final readonly class SmtpMailService implements MailServiceInterface
                 data
             ) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([
-                \date('Y-m-d H:i:s'),
+                APP_REQUEST_TIME_STR,
                 $recipient,
                 $subject,
                 $template,
@@ -398,7 +397,7 @@ final readonly class SmtpMailService implements MailServiceInterface
         ) . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         $logs = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
         \array_unshift($logs, [
-            'timestamp' => \date('Y-m-d H:i:s'),
+            'timestamp' => APP_REQUEST_TIME_STR,
             'recipient' => $recipient,
             'subject'   => $subject,
             'template'  => $template,
@@ -406,10 +405,6 @@ final readonly class SmtpMailService implements MailServiceInterface
             'data'      => $data,
         ]);
         $logs = \array_slice($logs, 0, $maxEntries);
-        \file_put_contents(
-            $path,
-            \json_encode($logs, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-            \LOCK_EX,
-        );
+        $this->writeJsonSafely($path, $logs);
     }
 }

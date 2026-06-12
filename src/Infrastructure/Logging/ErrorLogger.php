@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Logging;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Logger-Infrastruktur für Systemfehler.
@@ -20,6 +21,8 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class ErrorLogger
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(private ConfigInterface $config)
     {
     }
@@ -40,7 +43,7 @@ final readonly class ErrorLogger
 
         $logFile = $logDir . '/system_error.log';
 
-        $timestamp = \date('Y-m-d H:i:s');
+        $timestamp = APP_REQUEST_TIME_STR;
         $message   = \sprintf(
             "[%s] [%s] %s in %s:%d\nStack Trace:\n%s\n%s\n",
             $timestamp,
@@ -52,10 +55,13 @@ final readonly class ErrorLogger
             \str_repeat('=', 80),
         );
 
-        @\file_put_contents(
+        $result = @\file_put_contents(
             $logFile,
             $message,
             \FILE_APPEND | \LOCK_EX,
         );
+        if ($result === false) {
+            throw new \RuntimeException('Kritischer Schreibfehler: system_error.log voll.');
+        }
     }
 }

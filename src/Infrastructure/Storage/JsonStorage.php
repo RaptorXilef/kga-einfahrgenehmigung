@@ -68,7 +68,10 @@ final readonly class JsonStorage implements StorageInterface
             // Inhalt leeren und neu schreiben
             \ftruncate($fp, 0);
             \fseek($fp, 0);
-            \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+            $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+            if (\fwrite($fp, $jsonStr) === false) {
+                throw new \RuntimeException('Kritischer Schreibfehler in JsonStorage: Festplatte voll?');
+            }
             \fflush($fp);            // Erzwinge die physische Ausgabe auf die Festplatte
             \flock($fp, \LOCK_UN);   // Sperre aufheben
             \fclose($fp);
@@ -106,7 +109,10 @@ final readonly class JsonStorage implements StorageInterface
                 unset($data[$code]);
                 \ftruncate($fp, 0);
                 \fseek($fp, 0);
-                \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+                if (\fwrite($fp, $jsonStr) === false) {
+                    throw new \RuntimeException('Kritischer Schreibfehler in JsonStorage: Festplatte voll?');
+                }
                 $isDeleted = true; // Nur true, wenn wirklich gelöscht
             }
             \fflush($fp);

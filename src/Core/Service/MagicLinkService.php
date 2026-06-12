@@ -56,7 +56,7 @@ final readonly class MagicLinkService
         $links[$token] = [
             'email'   => $email,
             'code'    => $code,
-            'expires' => \date('Y-m-d H:i:s', \time() + ($duration * 60)), // DATETIME statt INT
+            'expires' => \date('Y-m-d H:i:s', APP_REQUEST_TIME + ($duration * 60)), // DATETIME statt INT
         ];
 
         $this->repository->saveAll($links);
@@ -78,7 +78,7 @@ final readonly class MagicLinkService
     public function verifyAny(string $input): ?string
     {
         $links      = $this->repository->loadAll();
-        $now        = \date('Y-m-d H:i:s'); // String-Vergleich für DATETIME
+        $now        = APP_REQUEST_TIME_STR; // String-Vergleich für DATETIME
         $trimmed    = \trim($input);
         $foundEmail = null;
 

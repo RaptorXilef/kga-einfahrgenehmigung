@@ -21,6 +21,8 @@ use App\Contracts\Storage\VerificationRepositoryInterface;
  */
 final readonly class VerificationRepository implements VerificationRepositoryInterface
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
@@ -37,7 +39,7 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
     public function loadPending(): array
     {
         $data   = $this->loadJson('pending_verification');
-        $nowStr = \date('Y-m-d H:i:s');
+        $nowStr = APP_REQUEST_TIME_STR;
 
         return \array_filter($data, fn (array $item): bool => isset($item['expires']) && $item['expires'] > $nowStr);
     }
@@ -133,7 +135,7 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
                 $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
                 $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, expires, data) VALUES (?, ?, ?)");
                 foreach ($data as $token => $item) {
-                    $exp = $item['expires'] ?? \date('Y-m-d H:i:s');
+                    $exp = $item['expires'] ?? APP_REQUEST_TIME_STR;
                     if (\is_numeric($exp)) {
                         $exp = \date('Y-m-d H:i:s', (int) $exp);
                     }
@@ -152,11 +154,7 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
 
         if (! $forceSql) {
             $path = $this->getFilePath($cfg['file']);
-            \file_put_contents(
-                $path,
-                \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $data);
         }
     }
 

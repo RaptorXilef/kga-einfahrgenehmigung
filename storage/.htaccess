@@ -1,0 +1,3 @@
+# Verhindert den Zugriff auf ALLES in diesem Verzeichnis
+Order Allow,Deny
+Deny from all

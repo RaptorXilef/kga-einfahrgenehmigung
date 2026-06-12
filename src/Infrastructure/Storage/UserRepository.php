@@ -22,6 +22,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 final readonly class UserRepository implements UserRepositoryInterface
 {
     use ImageUploadTrait;
+    use SafeJsonWriterTrait;
 
     public function __construct(private ?\PDO $pdo, private ConfigInterface $config)
     {
@@ -98,11 +99,7 @@ final readonly class UserRepository implements UserRepositoryInterface
                 (string) $this->config->get('storage_path_prefix'),
                 '/\\',
             ) . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($users, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $users);
         }
     }
 

@@ -1,0 +1,9 @@
+# Verhindert, dass sensible Konfigurationsdateien, Passwörter und
+# Lock-Files direkt über den Browser aufgerufen oder heruntergeladen werden.
+<FilesMatch "\.(php|json|lock)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Optional: Directory Listing komplett verbieten
+Options -Indexes

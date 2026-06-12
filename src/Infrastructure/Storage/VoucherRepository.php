@@ -21,6 +21,8 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
  */
 final readonly class VoucherRepository implements VoucherRepositoryInterface
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
@@ -109,7 +111,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
                         'expires_at'   => $v['expires_at'] ?? null,
                         'date_mode'    => $v['date_mode'] ?? 'fixed',
                         'created_by'   => $v['created_by'] ?? '',
-                        'created_at'   => $v['created_at'] ?? \date('Y-m-d H:i:s'),
+                        'created_at'   => $v['created_at'] ?? APP_REQUEST_TIME_STR,
                         'status'       => $v['status'] ?? 'aktiv',
                         'data'         => \is_array($v['data'] ?? null) ? \json_encode($v['data'], \JSON_UNESCAPED_UNICODE) : '{}',
                     ]);
@@ -133,11 +135,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
                 (string) $this->config->get('storage_path_prefix'),
                 '/\\',
             ) . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($vouchers, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $vouchers);
         }
     }
 
@@ -164,11 +162,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file'];
             $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
             $archive[]   = $archiveEntry;
-            \file_put_contents(
-                $archivePath,
-                \json_encode($archive, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($archivePath, $archive);
         }
     }
 }

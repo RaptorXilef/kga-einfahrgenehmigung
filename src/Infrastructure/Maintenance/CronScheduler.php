@@ -6,6 +6,7 @@ namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
+use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Scheduler für automatisierte Wartungsaufgaben (Pseudo-Cron oder Server-Cron).
@@ -22,6 +23,8 @@ use App\Core\Service\PermitService;
  */
 final readonly class CronScheduler
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private BackupService $backupService,
         private ConfigInterface $config,
@@ -62,21 +65,27 @@ final readonly class CronScheduler
             if (($now - $lastRun) >= 86400) {
 
                 // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
-                @\file_put_contents(
+                $result = @\file_put_contents(
                     $logPath,
                     (string) $now,
                     \LOCK_EX,
                 );
+                if ($result === false) {
+                    throw new \RuntimeException('Kritischer Schreibfehler: Cron-Log konnte nicht geschrieben werden.');
+                }
 
                 try {
                     $this->runForce();
                 } catch (\Throwable $t) {
                     // Bei fatalem Abbruch den Zeitstempel zurücksetzen, damit der nächste Request es reparieren kann
-                    @\file_put_contents(
+                    $result = @\file_put_contents(
                         $logPath,
                         (string) $lastRun,
                         \LOCK_EX,
                     );
+                    if ($result === false) {
+                        throw new \RuntimeException('Kritischer Schreibfehler: Cron-Log konnte nicht geschrieben werden.');
+                    }
 
                     throw $t;
                 }

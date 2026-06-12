@@ -21,6 +21,8 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
  */
 final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
@@ -44,7 +46,7 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
             $stmt = $this->pdo->prepare('INSERT INTO `mail_queue` (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)');
-            $stmt->execute([$recipient, $subject, $template, $payload, \date('Y-m-d H:i:s')]);
+            $stmt->execute([$recipient, $subject, $template, $payload, APP_REQUEST_TIME_STR]);
         } else {
             $path    = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
             $queue   = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
@@ -54,13 +56,9 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
                 'template'   => $template,
                 'data'       => $data,
                 'attempts'   => 0,
-                'created_at' => \date('Y-m-d H:i:s'),
+                'created_at' => APP_REQUEST_TIME_STR,
             ];
-            \file_put_contents(
-                $path,
-                \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $queue);
         }
     }
 
@@ -146,7 +144,10 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
                 // Einmaliges Zurückschreiben des modifizierten Queue-Zustands
                 \ftruncate($fp, 0);
                 \fseek($fp, 0);
-                \fwrite($fp, \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                $json = \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+                if (\fwrite($fp, $json) === false) {
+                    throw new \RuntimeException('Kritischer Schreibfehler: Konnte verarbeitete Mail-Queue nicht speichern.');
+                }
                 \fflush($fp);
             }
 

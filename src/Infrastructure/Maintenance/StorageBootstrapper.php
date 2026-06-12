@@ -47,6 +47,86 @@ final readonly class StorageBootstrapper
 
         // 2. Nur Core-Strukturen (Users/Groups) initial mit Defaults befüllen, falls komplett leer
         $this->initDefaultGroupsAndUsers();
+
+        // Veraltete Berechtigungen direkt beim Start bereinigen
+        $this->cleanupOrphanedPermissions();
+
+        // Stellt sicher, dass das Storage-Verzeichnis absolut dicht ist
+        $this->ensureStorageSecurity();
+    }
+
+    /**
+     * Erstellt oder aktualisiert automatisch eine restriktive .htaccess im storage/ Verzeichnis,
+     * um direkten HTTP-Zugriff auf Backups, Logs und JSON-DBs zu blockieren.
+     */
+    private function ensureStorageSecurity(): void
+    {
+        $storageDir   = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage';
+        $htaccessPath = $storageDir . '/.htaccess';
+
+        if (! \is_dir($storageDir)) {
+            @\mkdir($storageDir, 0o755, true);
+        }
+
+        // Der aktuell gewünschte Zustand der Datei
+        $expectedContent = "# AUTO-GENERATED SECURITY FILE\n" .
+            "# Verhindert jeglichen direkten HTTP-Zugriff auf Logs und Backups.\n" .
+            "Order Allow,Deny\n" .
+            "Deny from all\n\n" .
+            "Options -Indexes\n";
+
+        // Prüfen, ob die Datei fehlt ODER der Inhalt veraltet/verändert ist
+        if (! \file_exists($htaccessPath) || \file_get_contents($htaccessPath) !== $expectedContent) {
+            @\file_put_contents($htaccessPath, $expectedContent, \LOCK_EX);
+        }
+    }
+
+    /**
+     * Entfernt verwaiste Rechte-Keys aus den Gruppen, die in der aktuellen
+     * permissions.php nicht mehr existieren (Schatten-Rechte).
+     */
+    private function cleanupOrphanedPermissions(): void
+    {
+        $groups = $this->authService->loadGroups();
+        if (empty($groups)) {
+            return;
+        }
+
+        // Alle gültigen Basis-Keys aus der aktuellen Config holen
+        // app.php generiert bereits ein flaches Array in 'permissions'
+        $validKeys   = \array_keys($this->config->get('permissions', []));
+        $validKeys[] = '*'; // Der globale Wildcard ist immer erlaubt
+
+        $changed = false;
+
+        // Referenz (&) nutzen, um das Array direkt zu modifizieren
+        foreach ($groups as $id => &$group) {
+            if (! isset($group['permissions']) || ! \is_array($group['permissions'])) {
+                continue;
+            }
+
+            $originalCount = \count($group['permissions']);
+            $cleanedPerms  = [];
+
+            foreach ($group['permissions'] as $perm) {
+                // Deny-Prefix (-) für den Abgleich entfernen
+                $basePerm = \ltrim($perm, '-');
+
+                if (\in_array($basePerm, $validKeys, true)) {
+                    $cleanedPerms[] = $perm;
+                }
+            }
+
+            if (\count($cleanedPerms) !== $originalCount) {
+                $group['permissions'] = \array_values($cleanedPerms); // Indizes neu ordnen
+                $changed              = true;
+            }
+        }
+
+        if ($changed) {
+            \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
+            $this->authService->saveGroups($groups);
+        }
     }
 
     /**

@@ -22,6 +22,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 final readonly class GroupRepository implements GroupRepositoryInterface
 {
     use ImageUploadTrait;
+    use SafeJsonWriterTrait;
 
     public function __construct(private ?\PDO $pdo, private ConfigInterface $config)
     {
@@ -97,11 +98,7 @@ final readonly class GroupRepository implements GroupRepositoryInterface
         if (! $forceSql) {
             $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
                 \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($groups, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $groups);
         }
     }
 

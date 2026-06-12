@@ -96,7 +96,7 @@ final readonly class RateLimiter implements RateLimiterInterface
     public function recordFailedAttempt(string $ip): void
     {
         $cfg    = $this->config->get('storage_config')['login_attempts'];
-        $nowStr = \date('Y-m-d H:i:s');
+        $nowStr = APP_REQUEST_TIME_STR;
 
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $sql = "INSERT INTO `{$cfg['table']}` (ip_address, attempts, last_attempt)
@@ -125,7 +125,10 @@ final readonly class RateLimiter implements RateLimiterInterface
 
             \ftruncate($fp, 0);
             \fseek($fp, 0);
-            \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT));
+            $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT);
+            if (\fwrite($fp, $jsonStr) === false) {
+                throw new \RuntimeException('Kritischer Schreibfehler im RateLimiter.');
+            }
             \fflush($fp);
             \flock($fp, \LOCK_UN);
             \fclose($fp);
@@ -161,7 +164,10 @@ final readonly class RateLimiter implements RateLimiterInterface
                 unset($data[$ip]);
                 \ftruncate($fp, 0);
                 \fseek($fp, 0);
-                \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT));
+                $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT);
+                if (\fwrite($fp, $jsonStr) === false) {
+                    throw new \RuntimeException('Kritischer Schreibfehler im RateLimiter.');
+                }
                 \fflush($fp);
             }
             \flock($fp, \LOCK_UN);

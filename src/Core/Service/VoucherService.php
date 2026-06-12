@@ -102,7 +102,7 @@ final readonly class VoucherService
             'date_mode'    => $date_mode,
             'data'         => $prefillData,
             'created_by'   => $created_by,
-            'created_at'   => \date('Y-m-d H:i:s'),
+            'created_at'   => APP_REQUEST_TIME_STR,
         ];
 
         $this->repository->saveAll($activeVouchers);
@@ -172,7 +172,7 @@ final readonly class VoucherService
             'code'        => $code,
             'reason'      => $voucher['reason'],
             'template'    => $voucher['template_key'],
-            'redeemed_at' => \date('Y-m-d H:i:s'),
+            'redeemed_at' => APP_REQUEST_TIME_STR,
             'user_name'   => $userData['name'] ?? 'Unbekannt',
             'user_plot'   => $userData['parzelle'] ?? '?',
             'user_email'  => $userData['email'] ?? '?',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Service zur Ausführung von Datenbank- und Struktur-Updates (Migrationen).
@@ -18,6 +19,8 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class UpdateMigrationService
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ConfigInterface $config,
         private ?\PDO $pdo = null,
@@ -133,10 +136,6 @@ final readonly class UpdateMigrationService
             'executed_at' => $now,
         ];
 
-        \file_put_contents(
-            $path,
-            \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-            \LOCK_EX,
-        );
+        $this->writeJsonSafely($path, $data);
     }
 }

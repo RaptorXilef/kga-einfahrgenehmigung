@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
@@ -19,6 +20,8 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class BackupService
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
@@ -65,11 +68,7 @@ final readonly class BackupService
                     $path = $root . '/' . $prefix . $storageConfig[$key]['file'];
                     if (\file_exists($path) && ! \is_dir($path)) {
                         $data = \json_decode((string) \file_get_contents($path), true) ?? [];
-                        \file_put_contents(
-                            $backupPath . "/{$key}_file.json",
-                            \json_encode($data, $jsonFlags),
-                            \LOCK_EX,
-                        );
+                        $this->writeJsonSafely($backupPath . "/{$key}_file.json", $data, $jsonFlags);
                     }
                 }
 
@@ -77,11 +76,7 @@ final readonly class BackupService
                 if ($this->pdo instanceof \PDO && isset($storageConfig[$key]['table'])) {
                     $sqlData = $this->loadRawSql($key);
                     if ($sqlData !== []) {
-                        \file_put_contents(
-                            $backupPath . "/{$key}_sql.json",
-                            \json_encode($sqlData, $jsonFlags),
-                            \LOCK_EX,
-                        );
+                        $this->writeJsonSafely($backupPath . "/{$key}_sql.json", $sqlData, $jsonFlags);
                     }
                 }
             }
@@ -92,21 +87,13 @@ final readonly class BackupService
         // Zielspezifisches Backup
         $jsonData = $this->loadRawJson($target);
         if ($jsonData !== []) {
-            \file_put_contents(
-                $backupPath . "/{$target}_file.json",
-                \json_encode($jsonData, $jsonFlags),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($backupPath . "/{$target}_file.json", $jsonData, $jsonFlags);
         }
 
         if ($this->pdo instanceof \PDO) {
             $sqlData = $this->loadRawSql($target);
             if ($sqlData !== []) {
-                \file_put_contents(
-                    $backupPath . "/{$target}_sql.json",
-                    \json_encode($sqlData, $jsonFlags),
-                    \LOCK_EX,
-                );
+                $this->writeJsonSafely($backupPath . "/{$target}_sql.json", $sqlData, $jsonFlags);
             }
         }
 
@@ -204,11 +191,10 @@ final readonly class BackupService
                 $this->createBackup('auto_maintenance');
 
                 // Zeitstempel aktualisieren
-                \file_put_contents(
-                    $stateFile,
-                    (string) $now,
-                    \LOCK_EX,
-                );
+                $result = \file_put_contents($stateFile, (string) $now, \LOCK_EX);
+                if ($result === false) {
+                    throw new \RuntimeException('Kritischer Schreibfehler beim Auto-Backup.');
+                }
 
                 // Veraltete Backups löschen
                 $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));

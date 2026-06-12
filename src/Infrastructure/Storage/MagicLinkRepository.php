@@ -21,6 +21,8 @@ use App\Contracts\Storage\MagicLinkRepositoryInterface;
  */
 final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
@@ -90,7 +92,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
                 );
 
                 foreach ($links as $token => $d) {
-                    $exp = $d['expires'] ?? \date('Y-m-d H:i:s');
+                    $exp = $d['expires'] ?? APP_REQUEST_TIME_STR;
                     if (\is_numeric($exp)) {
                         $exp = \date('Y-m-d H:i:s', (int) $exp);
                     }
@@ -115,11 +117,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
                 (string) $this->config->get('storage_path_prefix'),
                 '/\\',
             ) . $cfg['file'];
-            \file_put_contents(
-                $path,
-                \json_encode($links, \JSON_PRETTY_PRINT),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($path, $links, \JSON_PRETTY_PRINT);
         }
     }
 }

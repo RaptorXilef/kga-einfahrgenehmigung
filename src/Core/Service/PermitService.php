@@ -85,7 +85,7 @@ final readonly class PermitService
         $data['verification_token'] = $token;
         $data['verification_code']  = $shortCode;
         $hours                      = (int) $this->config->get('hours_pending_verify', 24);
-        $data['expires']            = \date('Y-m-d H:i:s', \time() + (3600 * $hours));
+        $data['expires']            = \date('Y-m-d H:i:s', APP_REQUEST_TIME + (3600 * $hours));
         $allPending                 = $this->verificationRepository->loadPending();
         $allPending[$token]         = $data;
         $this->verificationRepository->savePending($allPending);
@@ -149,8 +149,8 @@ final readonly class PermitService
 
         // 3. Neue Ablaufzeit für Warteraum 2 setzen (z.B. 48h für Zahlung)
         $hours               = (int) $this->config->get('hours_pending_finalize', 48);
-        $data['verified_at'] = \date('Y-m-d H:i:s'); // Einheitlich auf DATETIME umgestellt
-        $data['expires']     = \date('Y-m-d H:i:s', \time() + (3600 * $hours));
+        $data['verified_at'] = APP_REQUEST_TIME_STR;
+        $data['expires']     = \date('Y-m-d H:i:s', APP_REQUEST_TIME + (3600 * $hours));
 
         // 4. GUTSCHEIN-LOGIK (ERWEITERT)
         // Gutscheincode zwingend in Großbuchstaben umwandeln, da er im Repository
@@ -709,7 +709,10 @@ final readonly class PermitService
 
                     \ftruncate($fp, 0);
                     \fseek($fp, 0);
-                    \fwrite($fp, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE));
+                    $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+                    if (\fwrite($fp, $jsonStr) === false) {
+                        throw new \RuntimeException('Kritischer Schreibfehler beim Archivieren der abgelaufenen Genehmigungen.');
+                    }
                     \fflush($fp);
                     \flock($fp, \LOCK_UN);
                     \fclose($fp);
@@ -903,7 +906,7 @@ final readonly class PermitService
 
         // 2. Check in den ausstehenden E-Mail-Bestätigungen (Pending)
         $allPending = $this->verificationRepository->loadPending();
-        $nowStr     = \date('Y-m-d H:i:s');
+        $nowStr     = APP_REQUEST_TIME_STR;
 
         foreach ($allPending as $pending) {
             $pPlot   = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);

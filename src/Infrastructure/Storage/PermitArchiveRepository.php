@@ -21,6 +21,8 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
  */
 final readonly class PermitArchiveRepository implements PermitArchiveRepositoryInterface
 {
+    use SafeJsonWriterTrait;
+
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
@@ -113,11 +115,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                 $existing[$permit['code']] = $permit;
             }
 
-            \file_put_contents(
-                $archivePath,
-                \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                \LOCK_EX,
-            );
+            $this->writeJsonSafely($archivePath, $existing);
         }
     }
 
@@ -131,7 +129,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
     public function anonymizeOldRecords(int $yearsThreshold = 10): int
     {
         $arcCfg          = $this->config->get('storage_config')['permits_archive'];
-        $cutoffDate      = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years"));
+        $cutoffDate      = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years", APP_REQUEST_TIME));
         $anonymizedCount = 0;
 
         if ($arcCfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
@@ -164,11 +162,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                 }
 
                 if ($changed) {
-                    \file_put_contents(
-                        $archivePath,
-                        \json_encode($existing, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
-                        \LOCK_EX,
-                    );
+                    $this->writeJsonSafely($archivePath, $existing);
                 }
             }
         }

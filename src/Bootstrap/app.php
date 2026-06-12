@@ -30,6 +30,11 @@ if (\session_status() === \PHP_SESSION_NONE) {
     // TODO Zeitzone später in config auslagern
     // Zwingende Härtung der Zeitzone, um Verschiebungen bei Feiertagen und Gültigkeiten zu verhindern
     \date_default_timezone_set('Europe/Berlin');
+
+    // Wir frieren die Zeit für den gesamten Request-Zyklus ein.
+    \define('APP_REQUEST_TIME', $_SERVER['REQUEST_TIME'] ?? \time());
+    \define('APP_REQUEST_TIME_STR', \date('Y-m-d H:i:s', APP_REQUEST_TIME));
+
     // Harte kryptografische Absicherung des Session-Cookies erzwingen!
     \session_set_cookie_params([
         'lifetime' => 86400, // 24 Stunden
@@ -136,11 +141,14 @@ if (! \file_exists($configFiles['dev'])) {
             'label' => 'Systembetreuer'
         ];
         PHP;
-    \file_put_contents(
+    $result = \file_put_contents(
         $configFiles['dev'],
         $defaultDevContent,
         \LOCK_EX,
     );
+    if ($result === false) {
+        throw new \RuntimeException("Kritischer Schreibfehler: Konnte {$configFiles['dev']} nicht erstellen.");
+    }
 }
 
 foreach ($configFiles as $key => $file) {
