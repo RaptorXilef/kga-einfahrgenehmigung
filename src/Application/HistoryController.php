@@ -257,7 +257,7 @@ final readonly class HistoryController
                 'appRoot'       => $this->config->get('root_path'),
                 'config'        => $this->config,
                 'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
-                'opening'       => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis),
+                'opening_html'  => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis),
                 'permit'        => $permit,
                 'settings'      => $this->getSettingsArray(),
             ]);

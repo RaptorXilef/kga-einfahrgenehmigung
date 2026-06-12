@@ -895,11 +895,11 @@ final readonly class AdminController
 
         $config = $this->config;
         $this->render('admin_print_view', [
-            'permit'   => $permit,
-            'settings' => $this->getSettingsArray(),
-            'config'   => $config,
-            'appRoot'  => $config->get('root_path'),
-            'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
+            'permit'       => $permit,
+            'settings'     => $this->getSettingsArray(),
+            'config'       => $config,
+            'appRoot'      => $config->get('root_path'),
+            'opening_html' => $this->holidayService->getOpeningHoursTextForDateRange(
                 $permit->validity->von,
                 $permit->validity->bis,
             ),

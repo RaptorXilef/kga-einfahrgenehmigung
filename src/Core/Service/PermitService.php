@@ -863,7 +863,7 @@ final readonly class PermitService
                 'template_key'   => $permit->template_key,
                 'vereinsName'    => $this->config->get('vereins_name'),
                 'jahresFarbe'    => $this->config->get('jahresFarbe'),
-                'opening'        => $opening,
+                'opening_html'   => $opening,
                 'holidayNotice'  => $this->holidayService->getHolidaysInRangeText(
                     $permit->validity->von,
                     $permit->validity->bis,
