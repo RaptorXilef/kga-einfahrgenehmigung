@@ -2,6 +2,12 @@
 
 
 
+## [0.46.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.4...v0.46.5) (2026-06-12)
+
+### 💎 Styling
+
+* **ui,mail:** unify email template layouts and improve contextual subject lines ([de1e1f9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/de1e1f947c0361a7d1257190d0e418629fa05f32))
+
 ## [0.46.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.3...v0.46.4) (2026-06-12)
 
 ### 🐛 Bug Fixes
