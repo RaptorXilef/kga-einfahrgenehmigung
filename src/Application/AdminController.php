@@ -218,6 +218,7 @@ final readonly class AdminController
             'create_manual'      => $this->actionCreateManual($post),
             'create_voucher'     => $this->actionCreateVoucher($post),
             'deactivate_voucher' => $this->actionToggleVoucher($post),
+            'delete_voucher'     => $this->actionDeleteVoucher($post),
             'filter_dashboard'   => $this->actionFilterDashboard($post),
             'mark_as_paid'       => $this->actionMarkAsPaid($post),
             'migrate_data'       => $this->actionMigrateData($post),
@@ -266,6 +267,10 @@ final readonly class AdminController
      */
     private function actionCreateManual(array $post): string
     {
+        if (! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung für manuelle Ausstellungen.';
+        }
+
         $tplKey = (string) ($post['template_key'] ?? 'std.7');
 
         // --- BACKEND SECURITY CHECK ---
@@ -339,6 +344,10 @@ final readonly class AdminController
      */
     private function actionCreateVoucher(array $post): string
     {
+        if (! $this->auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung, Gutscheine zu erstellen.';
+        }
+
         $tplKey = (string) ($post['template_key'] ?? 'std.7');
 
         // --- BACKEND SECURITY CHECK ---
@@ -558,6 +567,23 @@ final readonly class AdminController
     }
 
     /**
+     * TODO DOCBLOCK
+     * Löscht einen Gutschein unwiderruflich.
+     */
+    private function actionDeleteVoucher(array $post): string
+    {
+        if (! $this->auth->hasPermission('dashboard.vouchers.remove')) {
+            return 'Fehler: Keine Berechtigung zum Löschen von Gutscheinen.';
+        }
+
+        $code = (string) ($post['code'] ?? '');
+
+        return $this->permitService->getVoucherService()->deleteVoucher($code)
+            ? "Gutschein '$code' wurde unwiderruflich gelöscht."
+            : 'Fehler: Gutschein nicht gefunden.';
+    }
+
+    /**
      * Leert den Anwendungs-Cache und löscht temporäre System-Dateien.
      *
      * @param array<string, mixed> $post Formulardaten inklusive CSRF-Token.
@@ -566,7 +592,7 @@ final readonly class AdminController
      */
     private function actionClearCache(array $post): string
     {
-        if (! $this->auth->hasPermission('dashboard.tools.view')) {
+        if (! $this->auth->hasPermission('dashboard.migration.delete-cache.execute')) {
             return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
         }
 

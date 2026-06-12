@@ -56,17 +56,23 @@ final readonly class UserController
 
                 // [x] Sortiert
                 $message = match ($action) {
-                    'change_user_group'    => $this->handleChangeUserGroup($post),
-                    'change_user_password' => $this->handleResetPassword($post),
-                    'delete_group'         => $this->handleDeleteGroup($post),
-                    'delete_user'          => $this->handleDeleteUser($post),
-                    'rename_group'         => $this->handleRenameGroup($post),
-                    'rename_user'          => $this->handleRenameUser($post),
-                    'save_group'           => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
-                    'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
-                    'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
-                    'upload_group_image'   => $this->handleUploadGroupImage($post, $_FILES['avatar'] ?? null),
-                    default                => ''
+                    'change_user_group', 'change_user_password', 'delete_user', 'rename_user', 'save_user', 'upload_avatar' => $this->auth->hasPermission('system.permissions.users.manage') ? match ($action) {
+                        'change_user_group'    => $this->handleChangeUserGroup($post),
+                        'change_user_password' => $this->handleResetPassword($post),
+                        'delete_user'          => $this->handleDeleteUser($post),
+                        'rename_user'          => $this->handleRenameUser($post),
+                        'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
+                        'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
+                    } : 'Fehler: Keine Berechtigung für die Benutzerverwaltung.',
+
+                    'delete_group', 'rename_group', 'save_group', 'upload_group_image' => $this->auth->hasPermission('system.permissions.groups.manage') ? match ($action) {
+                        'delete_group'       => $this->handleDeleteGroup($post),
+                        'rename_group'       => $this->handleRenameGroup($post),
+                        'save_group'         => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
+                        'upload_group_image' => $this->handleUploadGroupImage($post, $_FILES['avatar'] ?? null),
+                    } : 'Fehler: Keine Berechtigung für die Gruppenverwaltung.',
+
+                    default => ''
                 };
             }
 
@@ -290,8 +296,8 @@ final readonly class UserController
         $userId = (string) ($post['user_id'] ?? '');
 
         return $this->auth->uploadImage('user', $userId, $file)
-        ? 'Profilbild aktualisiert.'
-        : 'Fehler beim Verarbeiten.';
+            ? 'Profilbild aktualisiert.'
+            : 'Fehler beim Verarbeiten.';
     }
 
     /**
@@ -430,8 +436,8 @@ final readonly class UserController
         $gid = (string) ($post['group_id'] ?? '');
 
         return $this->auth->uploadImage('group', $gid, $file)
-        ? 'Gruppen-Icon aktualisiert.'
-        : 'Fehler beim Verarbeiten.';
+            ? 'Gruppen-Icon aktualisiert.'
+            : 'Fehler beim Verarbeiten.';
     }
 
     /**

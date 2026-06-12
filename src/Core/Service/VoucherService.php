@@ -247,4 +247,21 @@ final readonly class VoucherService
 
         return true;
     }
+
+    /**
+     * TODO DOCBLOCK
+     * Löscht einen Gutschein unwiderruflich aus dem System.
+     */
+    public function deleteVoucher(string $code): bool
+    {
+        $vouchers = $this->repository->loadAll();
+        if (! isset($vouchers[$code])) {
+            return false;
+        }
+
+        unset($vouchers[$code]);
+        $this->repository->saveAll($vouchers);
+
+        return true;
+    }
 }
