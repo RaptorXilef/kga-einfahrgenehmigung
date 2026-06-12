@@ -27,6 +27,9 @@ use App\Infrastructure\Config\Config;
 
 // Session global starten, da fast alle Seiten sie benötigen
 if (\session_status() === \PHP_SESSION_NONE) {
+    // TODO Zeitzone später in config auslagern
+    // Zwingende Härtung der Zeitzone, um Verschiebungen bei Feiertagen und Gültigkeiten zu verhindern
+    \date_default_timezone_set('Europe/Berlin');
     // Harte kryptografische Absicherung des Session-Cookies erzwingen!
     \session_set_cookie_params([
         'lifetime' => 86400, // 24 Stunden

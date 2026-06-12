@@ -42,11 +42,14 @@ final readonly class CronScheduler
         }
 
         // TODO Pfad und Dateiname in config/storage.php auslagern
-        $logPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/last_cron_run.txt';
-        $now     = \time();
-        $lastRun = \file_exists($logPath) ? (int) \file_get_contents($logPath) : 0;
+        $logPath  = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/last_cron_run.txt';
+        $lockPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/cron.lock';
+        $now      = \time();
 
-        if (($now - $lastRun) >= 86400) {
+        // FIX: Atomarer, nicht-blockierender Lock (Verhindert mehrfache parallele Backups)
+        $fp = @\fopen($lockPath, 'c');
+        if ($fp && \flock($fp, \LOCK_EX | \LOCK_NB)) {
+
             // Sicherstellen, dass das logs/ Verzeichnis existiert, da file_put_contents
             // sonst fehlschlägt und der Cron bei JEDEM Seitenaufruf in eine Dauerschleife läuft.
             $logDir = \dirname($logPath);
@@ -54,25 +57,32 @@ final readonly class CronScheduler
                 @\mkdir($logDir, 0o755, true);
             }
 
-            // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
-            @\file_put_contents(
-                $logPath,
-                (string) $now,
-                \LOCK_EX,
-            );
+            $lastRun = \file_exists($logPath) ? (int) \file_get_contents($logPath) : 0;
 
-            try {
-                $this->runForce();
-            } catch (\Throwable $t) {
-                // Bei fatalem Abbruch den Zeitstempel zurücksetzen, damit der nächste Request es reparieren kann
+            if (($now - $lastRun) >= 86400) {
+
+                // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
                 @\file_put_contents(
                     $logPath,
-                    (string) $lastRun,
+                    (string) $now,
                     \LOCK_EX,
                 );
 
-                throw $t;
+                try {
+                    $this->runForce();
+                } catch (\Throwable $t) {
+                    // Bei fatalem Abbruch den Zeitstempel zurücksetzen, damit der nächste Request es reparieren kann
+                    @\file_put_contents(
+                        $logPath,
+                        (string) $lastRun,
+                        \LOCK_EX,
+                    );
+
+                    throw $t;
+                }
             }
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
         }
     }
 

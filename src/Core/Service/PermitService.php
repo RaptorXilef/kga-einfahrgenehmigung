@@ -214,23 +214,40 @@ final readonly class PermitService
      */
     public function finaliseRequest(string $token, string $status = 'offen', ?string $kommentar = null): Permit
     {
-        $allVerified = $this->verificationRepository->loadVerified();
-
-        if (! isset($allVerified[$token])) {
-            throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
+        // TODO ggf. in Storage auslagern, da Dateizugriff (prüfen)
+        // TODO Pfad und Dateiname in config/storage.php auslagern
+        // Atomarer Prozess-Lock, um TOCTOU-Datenverlust bei parallelen Checkouts zu verhindern!
+        $lockFile = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/checkout.lock';
+        $lockFp   = @\fopen($lockFile, 'c');
+        if ($lockFp) {
+            \flock($lockFp, \LOCK_EX);
         }
 
-        $data                       = (array) $allVerified[$token];
-        $data['status']             = $status;
-        $data['interner_kommentar'] = $kommentar;
-        $permit                     = $this->createPermit($data, true);
+        try {
+            $allVerified = $this->verificationRepository->loadVerified();
 
-        // Aus Warteraum löschen
-        unset($allVerified[$token]);
+            if (! isset($allVerified[$token])) {
+                throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
+            }
 
-        $this->verificationRepository->saveVerified($allVerified);
+            $data                       = (array) $allVerified[$token];
+            $data['status']             = $status;
+            $data['interner_kommentar'] = $kommentar;
+            $permit                     = $this->createPermit($data, true);
 
-        return $permit;
+            // Aus Warteraum löschen
+            unset($allVerified[$token]);
+
+            $this->verificationRepository->saveVerified($allVerified);
+
+            return $permit;
+        } finally {
+            // Sperre garantiert wieder aufheben, selbst wenn createPermit einen Fehler wirft
+            if ($lockFp) {
+                \flock($lockFp, \LOCK_UN);
+                \fclose($lockFp);
+            }
+        }
     }
 
     /**

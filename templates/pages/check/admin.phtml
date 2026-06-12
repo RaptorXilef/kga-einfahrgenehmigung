@@ -55,6 +55,7 @@ if ($permit) {
         baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
         csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
     };
+
     </script>
 </head>
 
@@ -150,7 +151,14 @@ if ($permit) {
                     <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
                         <tr>
                             <td class="u-font-bold">E-Mail</td>
-                            <td><?php echo $permit->owner->email ? '<a href="mailto:' . $permit->owner->email . '">' . \htmlspecialchars($permit->owner->email) . '</a>' : '<em class="u-text-muted">Keine E-Mail hinterlegt</em>'; ?></td>
+                            <td>
+                                <?php echo $permit->owner->email
+                                    ? '<a href="mailto:' .
+                                        \htmlspecialchars($permit->owner->email, \ENT_QUOTES, 'UTF-8') . '">' .
+                                        \htmlspecialchars($permit->owner->email) . '</a>'
+                                    : '<em class="u-text-muted">Keine E-Mail hinterlegt</em>';
+                        ?>
+                            </td>
                         </tr>
                     <?php } ?>
                     <tr>
