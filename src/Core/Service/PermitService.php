@@ -867,6 +867,7 @@ final readonly class PermitService
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
+                'settings'          => ['base_url' => $this->config->getBaseUrl()], // Die sichere Base-URL an das Template übergeben
             ],
         );
     }

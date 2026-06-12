@@ -32,8 +32,12 @@
           href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
-    <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
-        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($config->get('paypal')[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"></script>
+    <?php
+    // Wir prüfen, ob ein Preis existiert UND PayPal in der Config aktiviert ist
+    $paypalConfig = $config->get('paypal', []);
+$isPayPalEnabled  = ($paypalConfig['enabled'] ?? false) === true;
+if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+        <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($paypalConfig[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"></script>
     <?php } ?>
 </head>
 
@@ -128,7 +132,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                     <?php } ?>
                 </div>
 
-                <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+                <?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
                     <div id="paypal-button-container"
                          style="margin-bottom: 25px; min-height: 150px;"></div>
                     <div
@@ -174,7 +178,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
     function finalizeWire() {
         // Token sicher in den POST-Body packen statt in die URL
-        const params = new windows.URLSearchParams(); // TODO window. entfernen wenn in JS-Datei
+        const params = new window.URLSearchParams(); // TODO window. entfernen wenn in JS-Datei
         params.append('token', appToken);
         params.append('csrf_token', csrfToken);
 
@@ -200,8 +204,8 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
             });
     }
 
-    // PayPal JS Integration (Aktiviert sich nur bei kostenpflichtigen Anträgen)
-    <?php if ((float) ($tempData['preis'] ?? 0) > 0.0) { ?>
+    // PayPal JS Integration (Aktiviert sich nur bei kostenpflichtigen Anträgen UND wenn in Config enabled)
+    <?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
         if (typeof paypal !== 'undefined') {
             paypal.Buttons({
                 createOrder: function(data, actions) {
@@ -247,7 +251,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                         .then(function(details) {
                             if (details.success) {
                                 window.location.href = 'success.php?code=' + appToken +
-                                '&method=paypal';
+                                    '&method=paypal';
                             } else {
                                 alert('Zahlungsverifizierung fehlgeschlagen: ' + details.error);
                             }

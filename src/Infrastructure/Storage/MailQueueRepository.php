@@ -91,6 +91,9 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
                     $this->pdo->prepare('DELETE FROM `mail_queue` WHERE id = ?')->execute([$item['id']]);
                     ++$sentCount;
                 } catch (\Throwable $t) {
+                    // Fehler der Mail-Queue in die Server-Logs schreiben, damit ich sie debuggen kann!
+                    \error_log("MailQueue Error [ID {$item['id']} / Template {$item['template']}]: " . $t->getMessage());
+
                     $origAttempts = $item['attempts'] - 100 + 1;
 
                     // Tote Mails nach 3 Versuchen löschen, statt die DB unendlich aufzublähen!
@@ -132,7 +135,10 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
                     try {
                         $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
                         ++$sentCount;
-                    } catch (\Throwable) {
+                    } catch (\Throwable $t) {
+                        // Fehler der Mail-Queue in die Server-Logs schreiben!
+                        \error_log("MailQueue Error [JSON / Template {$item['template']}]: " . $t->getMessage());
+
                         $item['attempts'] = ($item['attempts'] ?? 0) + 1;
                         // Nach dem 3. Versuch fliegt sie automatisch raus, da sie nicht wieder angehängt wird
                         if ($item['attempts'] < 3) {
