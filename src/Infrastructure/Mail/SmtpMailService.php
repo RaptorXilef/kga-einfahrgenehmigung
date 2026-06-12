@@ -234,11 +234,12 @@ final readonly class SmtpMailService implements MailServiceInterface
      */
     private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig): bool|string
     {
-        $host = $smtpConfig['host'] ?? '';
-        $port = (int) ($smtpConfig['port'] ?? 465);
-        $user = $smtpConfig['user'] ?? '';
-        $pass = $smtpConfig['pass'] ?? '';
-        $from = $smtpConfig['from'] ?? '';
+        $host      = $smtpConfig['host'] ?? '';
+        $port      = (int) ($smtpConfig['port'] ?? 465);
+        $user      = \str_replace(["\r", "\n"], '', $smtpConfig['user'] ?? '');
+        $pass      = \str_replace(["\r", "\n"], '', $smtpConfig['pass'] ?? '');
+        $from      = \str_replace(["\r", "\n"], '', $smtpConfig['from'] ?? '');
+        $recipient = \str_replace(["\r", "\n"], '', $recipient);
 
         $protocol = $port === 465 ? 'ssl://' : '';
         $socket   = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);

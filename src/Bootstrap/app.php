@@ -48,6 +48,13 @@ if (\session_status() === \PHP_SESSION_NONE) {
     \session_start();
 }
 
+// Globale Sicherheits-Header gegen Clickjacking und MIME-Sniffing
+if (! \headers_sent()) {
+    \header('X-Frame-Options: SAMEORIGIN'); // Verbietet iframes von Fremd-Domains
+    \header('X-Content-Type-Options: nosniff'); // Verhindert bösartiges Umdeuten von Dateitypen
+    \header('X-XSS-Protection: 1; mode=block'); // Aktiviert Browser-internen XSS-Filter
+}
+
 // 1. Root-Pfad finden
 $appRoot = (function (): string {
     $dir = __DIR__;

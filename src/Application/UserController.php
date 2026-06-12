@@ -325,6 +325,13 @@ final readonly class UserController
             unset($users[$userId]);
             $this->auth->saveUsers($users);
 
+            // TODO Pfad in Config storage.php
+            // Physische Dateileichen (Profilbilder) direkt mitlöschen!
+            $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $userId . '.webp';
+            if (\file_exists($avatarPath)) {
+                @\unlink($avatarPath);
+            }
+
             return "Benutzer '$name' wurde entfernt.";
         }
 
@@ -461,10 +468,21 @@ final readonly class UserController
         }
 
         $groups = $this->auth->loadGroups();
-        unset($groups[$id]);
-        $this->auth->saveGroups($groups);
 
-        return 'Gruppe gelöscht.';
+        if (isset($groups[$id])) {
+            unset($groups[$id]);
+            $this->auth->saveGroups($groups);
+
+            // Physische Dateileichen (Gruppen-Icons) direkt mitlöschen!
+            $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $id . '.webp';
+            if (\file_exists($iconPath)) {
+                @\unlink($iconPath);
+            }
+
+            return 'Gruppe gelöscht.';
+        }
+
+        return 'Fehler: Gruppe nicht gefunden.';
     }
 
     // ENDE --- Die Match-Worker-Methoden für die Benutzerverwaltung (handleProfileRequest) ---
