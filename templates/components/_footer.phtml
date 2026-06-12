@@ -57,35 +57,48 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz.php';
     <div
          style="font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 8px;">
 
-        <!--<div>
+        <?php /*<div>
             &copy; <?php echo $yearDisplay; ?> <strong><?php echo \htmlspecialchars($developerName); ?></strong>
-        </div>-->
+        </div> */ ?>
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;">
             &copy; <?php echo $yearDisplay; ?>
-            <!--<a href="<?php echo \htmlspecialchars($githubUrl); ?>"
+            <?php /*<a href="<?php echo \htmlspecialchars($githubUrl); ?>"
                target="_blank"
                rel="noopener noreferrer"
                style="color: var(--primary-color); text-decoration: none; font-weight: 600;"
-               title="Zum GitHub Repository">-->
-                <?php echo \htmlspecialchars($softwareName); ?>
-            <!--</a>-->
+               title="Zum GitHub Repository"> */ ?>
+            <?php echo \htmlspecialchars($softwareName); ?>
+            <?php /* </a> */ ?>
 
-            <a href="<?php echo \htmlspecialchars($baseUrl); ?>changelog.php"
-               style="background: rgba(52, 152, 219, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.2); text-decoration: none;"
-               title="Versionshistorie / Changelog ansehen">
-            <?php echo \htmlspecialchars($version); ?>
-        </a>
+            <?php
+            // Changelog-Link nur für befugte Admins sichtbar machen
+            // Achtung: Da der Footer überall inkludiert wird, müssen wir sicherstellen, dass $auth existiert
+            if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('system.update.view')) { ?>
+                <a href="<?php echo \htmlspecialchars($baseUrl); ?>changelog.php"
+                   style="background: rgba(52, 152, 219, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.2); text-decoration: none;"
+                   title="Versionshistorie / Changelog ansehen">
+                    <?php echo \htmlspecialchars($version); ?>
+                </a>
+            <?php } else { ?>
+                <span style="background: #f1f5f9; color: var(--text-muted); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid var(--border-color);">
+                    <?php echo \htmlspecialchars($version); ?>
+                </span>
+            <?php } ?>
         </div>
 
-        <div style="margin-top: 2px;">
-            <a href="<?php echo \htmlspecialchars($issuesUrl); ?>"
-               target="_blank"
-               rel="noopener noreferrer"
-               style="color: var(--text-muted); text-decoration: underline; font-size: 0.8rem;">
-                Fehler melden / Bug Report
-            </a>
-        </div>
+        <?php
+        // Bug-Report-Link nur für eingeloggte Admins mit Dashboard-Rechten sichtbar machen
+        if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('dashboard.view')) { ?>
+            <div style="margin-top: 2px;">
+                <a href="<?php echo \htmlspecialchars($issuesUrl); ?>"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   style="color: var(--text-muted); text-decoration: underline; font-size: 0.8rem;">
+                    Fehler melden / Bug Report
+                </a>
+            </div>
+        <?php } ?>
 
         <div
              style="margin-top: 10px; font-size: 0.8rem; display: flex; gap: 12px; justify-content: center; align-items: center;">

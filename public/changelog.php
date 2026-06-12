@@ -22,6 +22,12 @@ try {
     $config    = $container->get(ConfigInterface::class);
     $auth      = $container->get(AuthService::class);
 
+    // Harte Zugangssperre für unbefugte Nutzer
+    if (! $auth->isLoggedIn() || ! $auth->hasPermission('system.update.view')) {
+        \header('Location: index.php'); // Zurück zur Startseite werfen
+        exit;
+    }
+
     // 2. CHANGELOG.md Datei suchen und auslesen
     $root          = \rtrim((string) $config->get('root_path'), '/\\');
     $changelogPath = $root . '/CHANGELOG.md';
