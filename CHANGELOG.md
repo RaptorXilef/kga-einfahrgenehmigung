@@ -2,6 +2,40 @@
 
 
 
+## [0.46.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.45.1...v0.46.0) (2026-06-12)
+
+### 🚀 Features
+
+* **sec,core:** deploy CSP, halt json bloat, and formally enforce magic link single-use ([82d9008](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/82d9008c2b8c87ff41a4375e9ac2f9b39f8f3d8f))
+* **sec,core:** mitigate XSS, path traversal, user enumeration, and stat cache race conditions ([fc8c647](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fc8c6473995263f8390e94f6811d19a7e217374a))
+
+### 🐛 Bug Fixes
+
+* **api,sec:** neutralize critical IDOR data extraction vectors and secure OTA APIs ([f857f35](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f857f35b8dfedb96417e8da7b08e4954df9ce606))
+* **auth,core:** eradicate IDOR vectors, enforce RBAC execution locks, and restore voucher deletion ([3cda72b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3cda72b3800b310aade1ab98d72248df97779bba))
+* **auth,sec:** harden session lifecycle, eliminate duplicate accounts, and enforce api csrf ([68a4957](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/68a4957afddf9fdbc095652875c5f3613f15b9f0))
+* **core,api:** resolve 100% voucher crash, fix mysql auto-backups, and patch update telemetry ([1df49be](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1df49be41d4facb95d6598402b63cb0ae42fc85a))
+* **core,sec:** prevent CSV injection, fix migration schema types, and harden session destruction ([5a25b1f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5a25b1f9a93ad0eefd5055b27f10d7dab5bfd292))
+* **core,sec:** resolve TOCTOU race conditions, atomic cron locks, and timezone desync ([eb2dd9c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/eb2dd9c972ad8bba6338bb8cdac6c37dc47629b9))
+* **core,ui:** case-insensitize voucher validation, fix mail error mapping, and ensure cron dir ([cee506b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cee506bdd503d823a8dbc3c79fc190323a1f0d6f))
+* **core:** implement robust collision prevention for auto-generated user and group IDs ([29f719b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29f719b464ad79478e36b0220229dc3c22718036))
+* **core:** mitigate orphaned permissions, time divergence, fail-safe writes, and secure configs ([8a6d30c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8a6d30c3eb45edb18cbeab4b2678435cced96857))
+* **queue,cron:** resolve concurrent file contention and tighten bootstrapping latency ([cf7881c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cf7881c38f2e6c638c6c8e1068f2d5ba1e571ffc))
+* **sec,api:** implement HMAC signatures, halt brute-forcing, and sanitize development artifacts ([f51783c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f51783c88a704ae4371d7df04885d6d6c5e40bf9))
+* **sec,core:** implement state-aware RBAC, patch secret bypass, and halt mail bomber vector ([881e374](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/881e374562cd5c171d2f58c46fea872a846de373))
+* **sec,core:** neutralize clickjacking, halt CRLF injection, and block JSON parsing corruption ([061022f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/061022f18627ad4299c625a67d1701342042ee3a))
+* **sec,core:** neutralize json storage bloat during asymmetric brute-force attacks ([8148751](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8148751452d3fbcfa4864e3d48401512d406bd25))
+* **sec,core:** neutralize timing attacks, host poisoning, and cryptographic entropy vulnerabilities ([7b83044](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7b8304406fb9c649f9a98e43b0185588780befad))
+* **sec,core:** patch IDOR vulnerabilities, secure cookie parameters, and mitigate timing attacks ([7165480](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/71654805af3588c5e29372ce8e784674db5a3112))
+* **sec,logic:** prevent SSRF updates, patch currency spoofing, and halt OTP brute-forcing ([f9b3561](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f9b356123358b5c3b3c0d2820425784ae0b9a139))
+* **sec,net:** restricted curl dispatchers to HTTPS-only protocols to prevent SSRF file exfiltration ([b277d70](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b277d707175e57c430a75f13f03e679aea4a0a8b))
+* **sec,storage:** mitigate proxy DoS, content sniffing, and enforce filesystem thread safety ([26b2c6c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/26b2c6cfb7db48aec3b0abb510c55d2f9c99ca4b))
+* **sec,storage:** patch critical LFI vector, enforce strict json deletes, and block rename collision ([6441297](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/64412974b1e4bfea14aae8185fddd9743c0f077c))
+* **sec,ui:** whitelist legitimate external resources in Content Security Policy ([ad6f0f8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ad6f0f8532d0bffdb59deb8210ba28b40143c6d5))
+* **sec,updater:** neutralize zip bomb denial of service vectors during release extraction ([7148ea7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7148ea756cfd96f681008f566915b57c3bdff28c))
+* **storage,api:** prevent silent data destruction, centralize parsing, and secure API payloads ([c32212f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c32212fc534f673af5e0d0efeb7bc70a216995e8))
+* **storage:** implement acid transactions across volatile database repositories ([2d99661](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2d99661c5a4703a7375425d4bf38fb4c815da48f))
+
 ## [0.45.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.45.0...v0.45.1) (2026-06-11)
 
 ### ⚙️ Refactoring
