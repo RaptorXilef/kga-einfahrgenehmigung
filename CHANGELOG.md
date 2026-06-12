@@ -2,6 +2,12 @@
 
 
 
+## [0.46.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.6...v0.46.7) (2026-06-12)
+
+### ⚙️ Refactoring
+
+* **mail,print:** modernize a4 permit layout and resolve rendering scope collision ([1f7ef18](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1f7ef187b09ec85a106dcf30eab18ff9ed77cfbb))
+
 ## [0.46.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.5...v0.46.6) (2026-06-12)
 
 ### 🐛 Bug Fixes
