@@ -179,7 +179,10 @@ final readonly class UserController
             }
         }
 
-        $newId = $this->auth->generateId('usr_');
+        // Solange eine neue ID generieren, bis eine freie gefunden wurde (Kollisionsschutz)
+        do {
+            $newId = $this->auth->generateId('usr_');
+        } while (isset($users[$newId]));
 
         $users[$newId] = [
             'username' => $loginName,
@@ -189,7 +192,7 @@ final readonly class UserController
 
         $this->auth->saveUsers($users);
 
-        // FIX: Auch hier beim ersten Erstellen die neue ID nutzen!
+        // Auch hier beim ersten Erstellen die neue ID nutzen!
         if ($file && $file['error'] === 0) {
             $this->auth->uploadImage('user', $newId, $file);
         }
@@ -352,7 +355,10 @@ final readonly class UserController
         // 2. ID bestimmen
         if (! $isUpdate) {
             // Nur bei Neu-Anlage eine neue ID generieren
-            $groupId = $this->auth->generateId('grp_');
+            // Solange eine neue ID generieren, bis eine freie gefunden wurde (Kollisionsschutz)
+            do {
+                $groupId = $this->auth->generateId('grp_');
+            } while (isset($groups[$groupId]));
         }
 
         // 3. Berechtigungen verarbeiten

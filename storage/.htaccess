@@ -1,3 +1,6 @@
-# Verhindert den Zugriff auf ALLES in diesem Verzeichnis
+# AUTO-GENERATED SECURITY FILE
+# Verhindert jeglichen direkten HTTP-Zugriff auf Logs und Backups.
 Order Allow,Deny
 Deny from all
+
+Options -Indexes
