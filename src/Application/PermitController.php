@@ -131,7 +131,9 @@ final readonly class PermitController
                     \header('Location: index.php?sent=1');
                     exit;
                 } catch (\Exception $exception) {
-                    $message = 'Fehler: ' . $exception->getMessage();
+                    // Reale Fehler loggen, aber niemals dem Endnutzer im Klartext ausgeben!
+                    \error_log('Permit Creation Error: ' . $exception->getMessage());
+                    $message = 'Ein technischer Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
                 }
             }
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
@@ -26,6 +27,7 @@ final readonly class VerificationController
     public function __construct(
         private ConfigInterface $config,
         private PermitService $permitService,
+        private RateLimiterInterface $rateLimiter,
     ) {
     }
 
@@ -40,6 +42,14 @@ final readonly class VerificationController
     public function handleRequest(array $get, array $post): void
     {
         $input = '';
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? 'unknown'; // Optional: GetClientIp Logik nutzen
+
+        // Rate Limiting für öffentliche OTP-Eingaben
+        if ($this->rateLimiter->isBlocked($ip)) {
+            \header('Location: verify.php?error=1&msg=' . \urlencode('Zu viele Versuche. IP für 15 Minuten gesperrt.'));
+
+            return;
+        }
 
         // 1. Kam die Anfrage über einen Link (?token=...) oder das Formular (POST)?
         if (isset($get['token'])) {
@@ -58,6 +68,17 @@ final readonly class VerificationController
         // 2. Eingabe verarbeiten
         if ($input !== '') {
             $result = $this->permitService->confirmEmail($input);
+
+            if ($result === null) {
+                // Fehlversuch protokollieren!
+                $this->rateLimiter->recordFailedAttempt($ip);
+                $msg = 'Der eingegebene Code oder Link ist ungültig bzw. bereits abgelaufen.';
+                \header('Location: verify.php?error=1&msg=' . \urlencode($msg));
+
+                return;
+            }
+            // Wenn erfolgreich: Limits zurücksetzen
+            $this->rateLimiter->clearAttempts($ip);
 
             // --- HIER TRIGGERN (Bevor wir die Methode verlassen) ---
             $mailService = $this->permitService->getMailService();

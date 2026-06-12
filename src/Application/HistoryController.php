@@ -6,6 +6,7 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
@@ -32,6 +33,7 @@ final readonly class HistoryController
         private MagicLinkService $magicLinkService,
         private MailServiceInterface $mailService,
         private PermitService $permitService,
+        private RateLimiterInterface $rateLimiter,
     ) {
     }
 
@@ -45,7 +47,16 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // Globale CSRF-Prüfung für POST-Requests (Muss als ALLERERSTES passieren!)
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        // 0. Zentrale Sicherheitsprüfung: IP-Sperre
+        if ($this->rateLimiter->isBlocked($ip)) {
+            $msg = 'Zu viele Versuche. Die IP-Adresse wurde für 15 Minuten gesperrt.';
+            \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
+            exit;
+        }
+
+        // 1. Globale CSRF-Prüfung für POST-Requests
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
                 $msg = 'Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
@@ -61,18 +72,12 @@ final readonly class HistoryController
 
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
 
-        $displayMessage = (string) ($get['msg'] ?? '');
-        $isSuccess      = ($get['sent'] ?? '') === '1';
-
-        // Wir führen eine Variable für den aktuellen Anzeige-Schritt ein
-        // 1 = E-Mail Abfrage, 2 = Code-Eingabe
-        $currentStep = ($get['sent'] ?? '0') === '1' ? 2 : 1;
-
+        // --- A. POST-AKTION: E-Mail für Magic-Link anfragen ---
         if (isset($post['request_link'])) {
             $email   = \trim((string) ($post['email'] ?? ''));
             $permits = $this->permitService->getHistoryByEmail($email);
 
-            // IMMER so tun, als hätte es geklappt, um E-Mail-Scraping zu verhindern
+            // Immer neutral reagieren, um E-Mail-Scraping zu verhindern
             if ($permits !== []) {
                 $data = $this->magicLinkService->createToken($email);
                 $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
@@ -85,6 +90,9 @@ final readonly class HistoryController
                 ]);
             }
 
+            // Fehlversuch hier protokollieren, falls jemand wild E-Mails durchprobiert
+            $this->rateLimiter->recordFailedAttempt($ip);
+
             // Einheitliche neutrale Meldung
             $msg = 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.';
             \header('Location: history.php?sent=1&msg=' . \urlencode($msg));
@@ -96,43 +104,52 @@ final readonly class HistoryController
             $verifiedEmail = $this->magicLinkService->verifyAny((string) ($post['login_code'] ?? ''));
 
             if ($verifiedEmail) {
+                $this->rateLimiter->clearAttempts($ip);
                 \session_regenerate_id(true);
                 $_SESSION['user_history_email'] = $verifiedEmail;
                 \header('Location: history.php'); // Erfolgreich eingeloggt -> Saubere URL
                 exit;
             }
 
-            // Fehlerfall: Zurück zum Eingabefeld mit Fehlermeldung
+            // Fehlversuch protokollieren
+            $this->rateLimiter->recordFailedAttempt($ip);
+
             \header('Location: history.php?sent=1&msg=' . \urlencode('Der Code ist ungültig oder abgelaufen.'));
             exit;
         }
 
-        // 2. Nachricht & Status aus der URL holen (für die Anzeige nach Redirects)
+        // --- C. GET-AKTION: Token-Verifizierung (Klick auf E-Mail Link) ---
         $displayMessage = (string) ($get['msg'] ?? '');
         $isSuccess      = ($get['sent'] ?? '') === '1';
+        $currentStep    = ($get['sent'] ?? '0') === '1' ? 2 : 1;
 
-        // --- C. GET-AKTION: Token-Verifizierung (Klick auf E-Mail Link) ---
         if (isset($get['token'])) {
             $currentStep   = 2; // Feld für manuellen Code soll sichtbar bleiben bei Fehler
             $verifiedEmail = $this->magicLinkService->verifyAny((string) $get['token']);
 
             if ($verifiedEmail) {
+                $this->rateLimiter->clearAttempts($ip);
                 \session_regenerate_id(true);
                 $_SESSION['user_history_email'] = $verifiedEmail;
                 \header('Location: history.php');
                 exit;
             }
+
+            // Fehlversuch protokollieren
+            $this->rateLimiter->recordFailedAttempt($ip);
+
             $displayMessage = 'Der Link ist ungültig oder abgelaufen. Sie können den Code manuell eingeben.';
             $isSuccess      = false;
         }
 
+        // --- D. PRINT-AKTION ---
         if (isset($get['action'], $get['code']) && $get['action'] === 'print') {
             $this->handlePrintAction((string) $get['code'], $emailInSession);
 
             return;
         }
 
-        // Wir übergeben den $currentStep an die renderView
+        // --- E. Ansicht rendern ---
         $this->renderView($emailInSession, $displayMessage, $get, $isSuccess, $currentStep);
     }
 

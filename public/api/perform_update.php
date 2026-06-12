@@ -39,6 +39,13 @@ try {
         JsonResponse::error('Keine Download-URL übergeben.');
     }
 
+    // TODO URL
+    // Strikter SSRF-Schutz! URL muss zwingend zum offiziellen Repository gehören.
+    $allowedPrefix = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/download/';
+    if (! \str_starts_with($zipUrl, $allowedPrefix)) {
+        JsonResponse::error('Sicherheitsverletzung: Ungültige Update-Quelle (SSRF Block).');
+    }
+
     $updater = $container->get(GitHubUpdaterService::class);
     $updater->performUpdate($zipUrl);
 

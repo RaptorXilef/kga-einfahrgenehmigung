@@ -434,6 +434,7 @@ class Container
         $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(
             $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
+            $this->get(RateLimiterInterface::class),
         );
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
@@ -448,6 +449,7 @@ class Container
             $this->get(MagicLinkService::class),
             $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
+            $this->get(RateLimiterInterface::class),
         );
 
         $this->services[LegalController::class] = fn (): LegalController => new LegalController(

@@ -117,13 +117,15 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         // 3. BETRAGS-PRÜFUNG (WICHTIG für Sicherheit!)
         // PayPal liefert den Betrag als String im Deep-Array: purchase_units -> payments -> captures -> amount -> value
-        $capturedAmount = $data['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? '0.00';
+        $captureData      = $data['purchase_units'][0]['payments']['captures'][0]['amount'] ?? [];
+        $capturedAmount   = $captureData['value'] ?? '0.00';
+        $capturedCurrency = $captureData['currency_code'] ?? ''; // Währung auslesen
 
         // Wir formatieren deinen erwarteten Preis auf das PayPal-Format (String mit 2 Nachkommastellen)
         $formattedExpected = \number_format($expectedAmount, 2, '.', '');
 
-        // Nur wenn Status 'COMPLETED' UND der Preis exakt mit unserem System übereinstimmt:
-        return $status === 'COMPLETED' && $capturedAmount === $formattedExpected;
+        // Nur wenn Status, Betrag UND Währung (EUR) exakt stimmen!
+        return $status === 'COMPLETED' && $capturedAmount === $formattedExpected && $capturedCurrency === 'EUR';
     }
 
     // --- Private Auth ---
