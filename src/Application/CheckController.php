@@ -148,7 +148,13 @@ final readonly class CheckController
         // C. Token im Link (SHA256 Abgleich) für Vorstandsansicht
         $token     = (string) ($get['token'] ?? '');
         $geheimnis = (string) $this->config->get('geheimnis', '');
-        $expected  = \hash('sha256', $permit->code . $geheimnis);
+
+        // Verhindere Bypass-Berechnungen durch unkonfiguriertes System-Geheimnis!
+        if ($geheimnis === '') {
+            return false;
+        }
+
+        $expected = \hash('sha256', $permit->code . $geheimnis);
 
         return \hash_equals($expected, $token);
     }

@@ -320,13 +320,29 @@ final readonly class AdminController
      */
     private function actionToggleSuspension(array $post): string
     {
-        // Zwingende Backend-Rechteprüfung!
-        if (! $this->auth->hasPermission('dashboard.active.suspend') && ! $this->auth->hasPermission('dashboard.finance.suspend')) {
-            return 'Fehler: Keine Berechtigung für diese Aktion.';
+        $code   = (string) ($post['code'] ?? '');
+        $permit = $this->permitService->getStorage()->findByHash($code);
+
+        if (! $permit instanceof Permit) {
+            return 'Fehler: Genehmigung nicht gefunden.';
         }
 
-        $suspended = $post['action'] === 'suspend_permit';
-        $this->permitService->toggleSuspension((string) $post['code'], $suspended, (string) ($post['reason'] ?? ''));
+        $isUnpaid = \strtolower(\trim($permit->status->current)) !== 'bezahlt';
+
+        // Kontext-sensitive Sperr-Prüfung (State-Aware Access Control)
+        $hasRight = false;
+        if ($isUnpaid && $this->auth->hasPermission('dashboard.finance.suspend')) {
+            $hasRight = true; // Darf unbezahlte sperren
+        } elseif (! $isUnpaid && $this->auth->hasPermission('dashboard.active.suspend')) {
+            $hasRight = true; // Darf bezahlte/aktive sperren
+        }
+
+        if (! $hasRight) {
+            return 'Fehler: Keine Berechtigung, diesen spezifischen Status zu sperren/entsperren.';
+        }
+
+        $suspended = ($post['action'] ?? '') === 'suspend_permit';
+        $this->permitService->toggleSuspension($code, $suspended, (string) ($post['reason'] ?? ''));
 
         return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
     }
@@ -430,8 +446,10 @@ final readonly class AdminController
      */
     private function actionResendMail(array $post): string
     {
-        if (! $this->auth->hasPermission('dashboard.logs.view')) {
-            return 'Fehler: Keine Berechtigung.';
+        // Reines 'view' Recht reicht nicht aus, um System-Mails abzufeuern!
+        // Wir fordern zusätzlich das Recht zur aktiven Dokumentenausstellung.
+        if (! $this->auth->hasPermission('dashboard.logs.view') || ! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
+            return 'Fehler: Keine Berechtigung zum aktiven Neuversand von E-Mails.';
         }
 
         $timestamp = (string) ($post['timestamp'] ?? '');
@@ -831,38 +849,54 @@ final readonly class AdminController
      */
     private function shouldStopRequest(array $get): bool
     {
-        if (isset($get['action']) && $get['action'] === 'print' && isset($get['code'])) {
-            // Hat der Nutzer überhaupt irgendeine Berechtigung zum Drucken?
-            if (! $this->auth->hasPermission('dashboard.active.print')
-                && ! $this->auth->hasPermission('dashboard.future.print')
-                && ! $this->auth->hasPermission('dashboard.expired.print')
-                && ! $this->auth->hasPermission('check.admin.print')) {
-                return false; // Request nicht stoppen, sondern ins reguläre Dashboard fallen lassen
-            }
-
-            $permit = $this->storage->findByHash((string) $get['code']);
-            if ($permit instanceof Permit) {
-                $config = $this->config;
-                $this->render('admin_print_view', [
-                    'permit'   => $permit,
-                    'settings' => $this->getSettingsArray(),
-                    'config'   => $config,
-                    'appRoot'  => $config->get('root_path'),
-                    'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
-                        $permit->validity->von,
-                        $permit->validity->bis,
-                    ),
-                    'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
-                        $permit->validity->von,
-                        $permit->validity->bis,
-                    ),
-                ]);
-
-                return true;
-            }
+        // Wenn die Bedingung nicht zutrifft, muss hier ein 'false' zurückgegeben werden
+        if (! isset($get['action']) || $get['action'] !== 'print' || ! isset($get['code'])) {
+            return false;
         }
 
-        return false;
+        // Zuerst das Objekt laden, um den Zustand zu prüfen!
+        $permit = $this->storage->findByHash((string) $get['code']);
+        if (! $permit instanceof Permit) {
+            return false;
+        }
+
+        $now       = new \DateTimeImmutable('today');
+        $isExpired = $permit->validity->bis < $now;
+        $isFuture  = $permit->validity->von > $now;
+
+        // Kontext-sensitive Rechteprüfung (State-Aware Access Control)
+        $hasRight = false;
+        if ($this->auth->hasPermission('check.admin.print')) {
+            $hasRight = true;
+        } elseif ($isExpired && $this->auth->hasPermission('dashboard.expired.print')) {
+            $hasRight = true;
+        } elseif ($isFuture && $this->auth->hasPermission('dashboard.future.print')) {
+            $hasRight = true;
+        } elseif (! $isExpired && ! $isFuture && $this->auth->hasPermission('dashboard.active.print')) {
+            $hasRight = true;
+        }
+
+        if (! $hasRight) {
+            exit('Fehler: Sie haben keine Berechtigung, Genehmigungen in diesem spezifischen Status zu drucken.');
+        }
+
+        $config = $this->config;
+        $this->render('admin_print_view', [
+            'permit'   => $permit,
+            'settings' => $this->getSettingsArray(),
+            'config'   => $config,
+            'appRoot'  => $config->get('root_path'),
+            'opening'  => $this->holidayService->getOpeningHoursTextForDateRange(
+                $permit->validity->von,
+                $permit->validity->bis,
+            ),
+            'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
+                $permit->validity->von,
+                $permit->validity->bis,
+            ),
+        ]);
+
+        return true;
     }
 
     /**
