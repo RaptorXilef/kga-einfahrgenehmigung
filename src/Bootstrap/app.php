@@ -56,6 +56,19 @@ if (! \headers_sent()) {
     \header('X-Frame-Options: SAMEORIGIN'); // Verbietet iframes von Fremd-Domains
     \header('X-Content-Type-Options: nosniff'); // Verhindert bösartiges Umdeuten von Dateitypen
     \header('X-XSS-Protection: 1; mode=block'); // Aktiviert Browser-internen XSS-Filter
+    \header('Referrer-Policy: strict-origin-when-cross-origin'); // Verhindert URL-Lecks an externe Seiten
+
+    // Quick-Check für lokale Umgebung, um HSTS-Aussperrungen bei lokaler Entwicklung ohne SSL zu verhindern
+    $host    = $_SERVER['HTTP_HOST'] ?? '';
+    $isLocal = \str_ends_with($host, '.local')
+        || $host === 'localhost'
+        || $host === '127.0.0.1'
+        || \php_sapi_name() === 'cli';
+
+    if (! $isLocal) {
+        // HSTS nur in der Live-Umgebung erzwingen (1 Jahr lang zwingend HTTPS)
+        \header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
 }
 
 // 1. Root-Pfad finden
@@ -309,6 +322,10 @@ if (
 
         // Schneller, asynchroner Server-to-Server POST-Request an Google
         $ch = \curl_init('https://www.google-analytics.com/mp/collect?measurement_id=' . \urlencode($gaId) . '&api_secret=' . \urlencode($apiSecret));
+
+        // FIX: Protokoll-Smuggling abwehren! cURL darf NUR HTTPS verwenden.
+        \curl_setopt($ch, \CURLOPT_PROTOCOLS, \CURLPROTO_HTTPS);
+        \curl_setopt($ch, \CURLOPT_REDIR_PROTOCOLS, \CURLPROTO_HTTPS);
         \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
         \curl_setopt($ch, \CURLOPT_POST, true);
         \curl_setopt($ch, \CURLOPT_POSTFIELDS, \json_encode($payload));
