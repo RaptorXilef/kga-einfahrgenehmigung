@@ -110,20 +110,22 @@ final readonly class Config implements ConfigInterface
      */
     public function getBaseUrl(): string
     {
-        // Falls in Config gesetzt, nimm die, sonst erkenne sie automatisch
         $configured = $this->get('base_url');
-        if ($configured !== null && $configured !== '') {
+        if (! empty($configured)) {
             return \rtrim((string) $configured, '/') . '/';
         }
 
-        // Fallback für CLI/Cron-Jobs, wo $_SERVER['HTTPS'] fehlt
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
-        $host     = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
-        $path     = \rtrim(\dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/\\');
+        // Fallback NUR für lokale Entwicklungsumgebungen (.local, localhost)
+        if ($this->get('is_local_env', false)) {
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
+            $host     = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+            $path     = \rtrim(\dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/\\');
+            $path     = \str_replace('/api', '', $path);
 
-        // Fix für API-Aufrufe (wenn wir im Unterordner /api/ sind)
-        $path = \str_replace('/api', '', $path);
+            return $protocol . $host . $path . '/';
+        }
 
-        return $protocol . $host . $path . '/';
+        // Harter Abbruch im Live-Betrieb, um Host Header Injection zu verhindern
+        throw new \RuntimeException('Sicherheits-Abbruch: "base_url" ist in der config/organization.php nicht gesetzt! Host-Header-Fallback ist deaktiviert.');
     }
 }

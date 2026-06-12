@@ -83,10 +83,11 @@ final readonly class VoucherService
                 );
             }
         } else {
-            // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
             do {
-                $newGeneratedCode = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(4)));
-            } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true)); // Prüfe gegen die Sperrliste
+                // Schleife: Generiere so lange neu, bis der Code wirklich einmalig ist
+                // Entropie auf 8 Bytes (16 Zeichen) erhöht für maximale Vorhersageresistenz
+                $newGeneratedCode = 'GUT-' . \strtoupper(\bin2hex(\random_bytes(8)));
+            } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true));
         }
 
         $activeVouchers[$newGeneratedCode] = [

@@ -958,7 +958,8 @@ final readonly class PermitService
         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         $res   = '';
         // Von 4 auf 6 Zeichen erhöht für 1400 Parzellen / 10 Jahre Sicherheit
-        for ($i = 0; $i < 6; ++$i) {
+        // 0.45.2: Von 6 auf 8 Zeichen erhöht (erweitert den Raum auf 1 Billion Kombinationen)
+        for ($i = 0; $i < 8; ++$i) {
             $res .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
 

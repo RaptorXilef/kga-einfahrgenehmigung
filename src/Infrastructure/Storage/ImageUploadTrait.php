@@ -19,6 +19,18 @@ namespace App\Infrastructure\Storage;
 trait ImageUploadTrait
 {
     /**
+     * Zentrale Sicherheitsprüfung gegen PHAR Deserialization & Path Traversal (LFI)
+     */
+    protected function isSafePath(string $id): bool
+    {
+        if (\str_contains($id, '://') || \str_contains($id, "\0") || \str_contains($id, '..')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Verarbeitet Bild-Uploads, konvertiert sie in das WebP-Format und skaliert sie transparent via GD.
      * Unterstützt JPEG, PNG, GIF und native WebP-Quellen. Sichert Kompatibilität durch Raw-Move bei
      * fehlender GD-Erweiterung.
@@ -31,9 +43,14 @@ trait ImageUploadTrait
      */
     protected function doUploadImage(string $folder, string $id, array $file, string $rootPath): bool
     {
-        $safeId     = \basename($id); // Verhindert Path Traversal (../)
+        // Schutz vor der Pfad-Generierung anwenden
+        if (! $this->isSafePath($id)) {
+            return false;
+        }
+
+        $safeId     = \basename($id);
         $targetDir  = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/';
-        $outputPath = $targetDir . $safeId . '.webp'; // Nutze $safeId
+        $outputPath = $targetDir . $safeId . '.webp';
 
         if (! \is_dir($targetDir)) {
             \mkdir($targetDir, 0o755, true);
@@ -48,9 +65,21 @@ trait ImageUploadTrait
             return false;
         }
 
+        /**
+         * Folgendes nur aktiveiren, wenn bewusst auf GD verzichtet wird!
+         * Ich rate aber davon ab!
+         */
+        /*
         if (! \extension_loaded('gd')) {
-            return \move_uploaded_file($file['tmp_name'], $outputPath);
+            // Nur erlauben, wenn es wirklich ein valides Bild ist
+            $info = @\getimagesize($file['tmp_name']);
+            if ($info && \in_array($info[2], [\IMAGETYPE_JPEG, \IMAGETYPE_PNG, \IMAGETYPE_WEBP], true)) {
+                return \move_uploaded_file($file['tmp_name'], $outputPath);
+            }
+
+            return false; // Kein Bild oder nicht unterstützter Typ
         }
+        */
 
         // [x] Sortiert
         $src = match ($info[2]) {
@@ -68,6 +97,7 @@ trait ImageUploadTrait
         $width  = \imagesx($src);
         $height = \imagesy($src);
         $dst    = \imagecreatetruecolor($width, $height);
+
         \imagealphablending($dst, false);
         \imagesavealpha($dst, true);
         $transparent = \imagecolorallocatealpha($dst, 255, 255, 255, 127);
@@ -90,6 +120,11 @@ trait ImageUploadTrait
      */
     protected function doGetImageUrl(string $folder, string $id, string $fallbackIcon, string $rootPath, string $baseUrl): string
     {
+        // Blockiert bösartige Anfragen, bevor file_exists() ausgelöst wird
+        if (! $this->isSafePath($id)) {
+            return $baseUrl . 'assets/img/icons/' . $fallbackIcon;
+        }
+
         $serverPath  = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
         $browserPath = 'assets/img/' . $folder . '/' . $id . '.webp';
 

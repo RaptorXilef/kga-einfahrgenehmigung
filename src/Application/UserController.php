@@ -319,6 +319,11 @@ final readonly class UserController
             return 'Fehler: Selbstausschluss nicht möglich.';
         }
 
+        // LFI & PHAR Protection
+        if (\str_contains($userId, '://') || \str_contains($userId, '..') || \str_contains($userId, "\0")) {
+            return 'Fehler: Ungültige Benutzer-ID (Sicherheitsrichtlinie).';
+        }
+
         $users = $this->auth->loadUsers();
         if (isset($users[$userId])) {
             $name = $users[$userId]['username'] ?? $userId;
@@ -465,6 +470,11 @@ final readonly class UserController
         $id = (string) ($post['group_id'] ?? '');
         if ($id === 'admin') {
             return 'Fehler: Die Admin-Gruppe kann nicht gelöscht werden.';
+        }
+
+        // LFI & PHAR Protection
+        if (\str_contains($id, '://') || \str_contains($id, '..') || \str_contains($id, "\0")) {
+            return 'Fehler: Ungültige Gruppen-ID (Sicherheitsrichtlinie).';
         }
 
         $groups = $this->auth->loadGroups();

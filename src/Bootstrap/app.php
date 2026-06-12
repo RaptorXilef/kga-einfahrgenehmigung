@@ -35,11 +35,14 @@ if (\session_status() === \PHP_SESSION_NONE) {
     \define('APP_REQUEST_TIME', $_SERVER['REQUEST_TIME'] ?? \time());
     \define('APP_REQUEST_TIME_STR', \date('Y-m-d H:i:s', APP_REQUEST_TIME));
 
+    // Strict Mode erzwingen! Verhindert, dass Hacker eigene Session-IDs injizieren.
+    \ini_set('session.use_strict_mode', '1');
+
     // Harte kryptografische Absicherung des Session-Cookies erzwingen!
     \session_set_cookie_params([
         'lifetime' => 86400, // 24 Stunden
         'path'     => '/',
-        'domain'   => $_SERVER['HTTP_HOST'] ?? '',
+        'domain'   => '', // Leer lassen. Der Browser bindet den Cookie so automatisch an den korrekten Host.
         'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // Nur über HTTPS
         'httponly' => true, // Verhindert Diebstahl durch JavaScript (XSS-Schutz)
         'samesite' => 'Lax', // Verhindert Cross-Site Request Forgery via externe Links
@@ -287,8 +290,9 @@ if (
             $_SESSION['ga4_client_id'] = \bin2hex(\random_bytes(16));
         }
 
-        $protocol     = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-        $pageLocation = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '');
+        // Saubere Seiten-URL für Google Analytics (Kein HTTP_HOST)
+        $baseForGa    = ! empty($settings['base_url']) ? \rtrim($settings['base_url'], '/') : 'https://' . ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        $pageLocation = $baseForGa . ($_SERVER['REQUEST_URI'] ?? '');
         $pageTitle    = \basename($scriptName, '.php');
 
         $payload = [

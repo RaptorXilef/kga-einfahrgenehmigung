@@ -14,6 +14,11 @@
 declare(strict_types=1);
 
 return [
+    // Basis URL der Webseite des Tools
+    // Die Webadresse des Servers, auf dem Das Tool installiert ist
+    'base_url' => 'https://deine-kga-domain-fuer-kga-zufahrts-manager.de/', // Pflichtfeld!
+
+    // Angaben zum KGA-Verein
     'vereins_name'       => 'KGA e.V.',
     'prefix'             => 'ZM', // Präfix für den Code (z.B. ZM-26-0020-X8Y1)
     'external_home_url'  => 'https://deine-kga-homepage.de', // Für den "Zurück"-Button

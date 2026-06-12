@@ -86,19 +86,28 @@ final readonly class AuthService
         }
 
         // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
-        $users = $this->loadUsers();
-        foreach ($users as $userId => $userData) {
-            if (
-                ($userData['username'] ?? '') === $username
-                && \password_verify($password, (string) $userData['pass'])
-            ) {
-                \session_regenerate_id(true);
-                $this->setSession($userId, (string) $userData['group'], $username);
-                $this->refreshSessionPermissions((string) $userData['group']);
-                $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
+        $users     = $this->loadUsers();
+        $userFound = false;
 
-                return true;
+        foreach ($users as $userId => $userData) {
+            if (($userData['username'] ?? '') === $username) {
+                $userFound = true;
+                if (\password_verify($password, (string) $userData['pass'])) {
+                    \session_regenerate_id(true);
+                    $this->setSession($userId, (string) $userData['group'], $username);
+                    $this->refreshSessionPermissions((string) $userData['group']);
+                    $this->rateLimiter->clearAttempts($ip);
+
+                    return true;
+                }
             }
+        }
+
+        // Timing-Attack Schutz! Dummy-Verifizierung ausführen, wenn der User NICHT existiert,
+        // damit die CPU immer dieselbe Rechenzeit benötigt (verhindert User-Enumeration).
+        if (! $userFound) {
+            // Ein valider bcrypt-Dummy-Hash
+            \password_verify($password, '$2y$10$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV');
         }
 
         // Fehlschlag -> Versuch protokollieren
@@ -325,6 +334,8 @@ final readonly class AuthService
      */
     public function generateId(string $prefix = ''): string
     {
-        return $prefix . \substr(\bin2hex(\random_bytes(4)), 0, 8);
+        // Kryptografisch sichere Zufallszahlen generieren (Kollisions- & Vorhersageschutz)
+        // 8 Bytes = 16 Hex-Zeichen
+        return $prefix . \bin2hex(\random_bytes(8));
     }
 }

@@ -95,6 +95,8 @@ final readonly class HistoryController
             } else {
                 $this->rateLimiter->clearAttempts($ip);
                 $data = $this->magicLinkService->createToken($email);
+
+                // Nutzt nun die sichere, zentrale Config-Methode
                 $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
 
                 $this->mailService->sendTemplate($email, 'Login-Code: Ihre Genehmigungen', 'magic_link', [
