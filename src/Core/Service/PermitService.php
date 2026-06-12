@@ -90,15 +90,17 @@ final readonly class PermitService
         $allPending                 = $this->verificationRepository->loadPending();
         $allPending[$token]         = $data;
         $this->verificationRepository->savePending($allPending);
+        // [x] teil-sortiert
         $this->mailService->sendTemplate(
             (string) $data['email'],
-            'E-Mail bestätigen',
+            "E-Mail bestätigen: {$shortCode}",
             'verify_email',
             [
-                'name'        => (string) $data['name'],
-                'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
+                'baseUrl'     => $this->config->getBaseUrl(),
                 'code'        => $shortCode,
+                'name'        => (string) $data['name'],
                 'vereinsName' => $this->config->get('vereins_name'),
+                'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
             ],
         );
 
@@ -824,20 +826,22 @@ final readonly class PermitService
             $usage     = $this->generateUsageText($permit, $shortCode);
             $epcQrData = $this->bankQrGenerator->generate($permit->validity->preis, $usage);
 
-            // [ ] Sortiert
+            // [ ] teil-sortiert
             $this->mailService->sendTemplate(
                 $permit->owner->email,
                 "Zahlung erforderlich: {$permit->code}",
                 'payment_request',
                 [
-                    'name'           => $permit->owner->name,
-                    'fullIdentifier' => $permit->code,
+                    'baseUrl'        => $this->config->getBaseUrl(),
                     'betrag'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
                     'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
-                    'kontoinhaber'   => $this->config->get('kontoinhaber'),
-                    'iban'           => $this->config->get('iban'),
-                    'usage'          => $usage,
                     'epcData'        => \urlencode($epcQrData),
+                    'fullIdentifier' => $permit->code,
+                    'iban'           => $this->config->get('iban'),
+                    'kontoinhaber'   => $this->config->get('kontoinhaber'),
+                    'name'           => $permit->owner->name,
+                    'usage'          => $usage,
+                    'vereinsName'    => $this->config->get('vereins_name'),
                 ],
             );
         }
@@ -846,7 +850,7 @@ final readonly class PermitService
         // [ ] Sortiert
         $this->mailService->sendTemplate(
             $permit->owner->email,
-            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name'),
+            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permit->code,
             'permit_a4_document',
             [
                 'fullIdentifier' => $permit->code,

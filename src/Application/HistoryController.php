@@ -99,12 +99,19 @@ final readonly class HistoryController
                 // Nutzt nun die sichere, zentrale Config-Methode
                 $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
 
-                $this->mailService->sendTemplate($email, 'Login-Code: Ihre Genehmigungen', 'magic_link', [
-                    'link'        => $link,
-                    'code'        => $data['code'],
-                    'duration'    => $this->config->get('magic_link_duration'),
-                    'vereinsName' => $this->config->get('vereins_name'),
-                ]);
+                // [x] sortiert
+                $this->mailService->sendTemplate(
+                    $email,
+                    'Login-Code: Ihre Genehmigungen',
+                    'magic_link',
+                    [
+                        'baseUrl'     => $this->config->getBaseUrl(),
+                        'code'        => $data['code'],
+                        'duration'    => $this->config->get('magic_link_duration'),
+                        'link'        => $link,
+                        'vereinsName' => $this->config->get('vereins_name'),
+                    ],
+                );
             }
 
             // Fehlversuch hier protokollieren, falls jemand wild E-Mails durchprobiert
