@@ -90,7 +90,7 @@ final readonly class RateLimiter implements RateLimiterInterface
 
     /**
      * Registriert einen neuen Fehlversuch für die gegebene IP-Adresse.
-     * Erhöht den Zähler oder aktualisiert den Zeitstempel.
+     * Erhöht den Zähler oder aktualisiert den Zeitstempel und bereinigt alte Einträge.
      *
      * @param string $ip Die betroffene IP-Adresse.
      */
@@ -105,10 +105,14 @@ final readonly class RateLimiter implements RateLimiterInterface
                     ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt = VALUES(last_attempt)";
             $this->pdo->prepare($sql)->execute([$ip, $nowStr]);
 
+            // Optional: Auch in MySQL eine Garbage Collection einbauen, um die Tabelle schlank zu halten
+            $this->pdo->prepare("DELETE FROM `{$cfg['table']}` WHERE last_attempt < DATE_SUB(NOW(), INTERVAL ? MINUTE)")
+                      ->execute([self::LOCKOUT_MINUTES]);
+
             return;
         }
 
-        // FIX: Sicheres Inkrementieren mit exklusivem File-Lock (LOCK_EX)
+        // Sicheres Inkrementieren mit exklusivem File-Lock (LOCK_EX)
         $path = $this->getFilePath($cfg['file']);
         $fp   = @\fopen($path, 'c+');
         if ($fp && \flock($fp, \LOCK_EX)) {
@@ -116,6 +120,15 @@ final readonly class RateLimiter implements RateLimiterInterface
             $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
             $data = JsonHelper::decode((string) $raw);
+
+            // Garbage Collection (Speicher-Leck / JSON-Bloat verhindern!)
+            // Löscht alle IPs, deren letzter Versuch länger als die Lockout-Zeit her ist.
+            $threshold = \time() - (self::LOCKOUT_MINUTES * 60);
+            foreach ($data as $storedIp => $info) {
+                if (isset($info['last_attempt']) && \strtotime($info['last_attempt']) < $threshold) {
+                    unset($data[$storedIp]);
+                }
+            }
 
             if (! isset($data[$ip])) {
                 $data[$ip] = ['attempts' => 1, 'last_attempt' => $nowStr];
