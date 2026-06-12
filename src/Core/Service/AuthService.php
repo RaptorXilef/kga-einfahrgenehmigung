@@ -97,6 +97,7 @@ final readonly class AuthService
                     $this->setSession($userId, (string) $userData['group'], $username);
                     $this->refreshSessionPermissions((string) $userData['group']);
                     $this->rateLimiter->clearAttempts($ip);
+                    $_SESSION['auth_hash'] = $userData['pass'];
 
                     return true;
                 }
@@ -140,6 +141,44 @@ final readonly class AuthService
         \session_destroy();
     }
 
+    // TODO DOCBLOCK
+    // Methode zur strikten Session-Validierung
+    private function validateActiveSession(): void
+    {
+        $userId = $_SESSION['user_id'] ?? '';
+
+        if ($userId === '') {
+            return; // Kein Login, nichts zu prüfen
+        }
+
+        // System-Accounts (Superadmin / Backdoor) existieren nicht in der regulären
+        // Benutzer-Datenbank. Wir müssen sie von der strikten Prüfung ausnehmen!
+        if (\str_starts_with($userId, 'sys_')) {
+            return;
+        }
+
+        $users = $this->loadUsers();
+
+        // Sofortiger Kick, wenn der reguläre User gelöscht wurde
+        if (! isset($users[$userId])) {
+            $this->logout();
+            \header('Location: admin.php'); // FIX: Neu laden, um CSRF-Token frisch aufzubauen!
+            exit;
+        }
+
+        // Sofortiger Kick, wenn der Super-Admin das Passwort des Users geändert hat.
+        // Auch kicken, wenn gar kein Hash in der Session liegt (zwingt alte Sessions zum Neu-Login)
+        $currentDbHash = $users[$userId]['pass'] ?? '';
+        if (! isset($_SESSION['auth_hash']) || ! \hash_equals($_SESSION['auth_hash'], $currentDbHash)) {
+            $this->logout();
+            \header('Location: admin.php'); // FIX: Neu laden, um CSRF-Token frisch aufzubauen!
+            exit;
+        }
+
+        // Rechte live synchronisieren (falls er im Hintergrund degradiert wurde)
+        $this->refreshSessionPermissions((string) ($users[$userId]['group'] ?? 'guest'));
+    }
+
     /**
      * Abfrage-Schnittstelle zur schnellen Prüfung des Login-Status.
      *
@@ -147,7 +186,9 @@ final readonly class AuthService
      */
     public function isLoggedIn(): bool
     {
-        return isset($_SESSION['user_id']);
+        $this->validateActiveSession();
+
+        return isset($_SESSION['user_id']) || isset($_SESSION['sys_superadmin']) || isset($_SESSION['sys_backdoor']);
     }
 
     // --- Authorization & RBAC State ---

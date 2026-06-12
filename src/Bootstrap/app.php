@@ -57,6 +57,10 @@ if (! \headers_sent()) {
     \header('X-Content-Type-Options: nosniff'); // Verhindert bösartiges Umdeuten von Dateitypen
     \header('X-XSS-Protection: 1; mode=block'); // Aktiviert Browser-internen XSS-Filter
     \header('Referrer-Policy: strict-origin-when-cross-origin'); // Verhindert URL-Lecks an externe Seiten
+    / NEU: Die ultimative XSS-Schutzwand (Content Security Policy)
+    // Erlaubt Skripte und Bilder nur von der eigenen Domain. Verhindert das Laden
+    // feindlicher externer Skripte (wie z.B. von hacker.com/stealer.js)
+    \header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com; connect-src 'self' https://www.google-analytics.com;");
 
     // Quick-Check für lokale Umgebung, um HSTS-Aussperrungen bei lokaler Entwicklung ohne SSL zu verhindern
     $host    = $_SERVER['HTTP_HOST'] ?? '';
