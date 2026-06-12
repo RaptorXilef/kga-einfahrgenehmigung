@@ -143,12 +143,17 @@ final readonly class BackupService
      */
     public function getBackupData(string $timestamp, string $target): ?array
     {
-        $root       = $this->config->get('root_path');
-        $backupBase = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $timestamp;
+        $root = $this->config->get('root_path');
 
-        $backupFile = $backupBase . "/{$target}_file.json";
+        // basename() eliminiert alle relativen Pfad-Ausbrüche wie "../" sofort!
+        $safeTimestamp = \basename($timestamp);
+        $safeTarget    = \basename($target);
+
+        $backupBase = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $safeTimestamp;
+
+        $backupFile = $backupBase . "/{$safeTarget}_file.json";
         if (! \file_exists($backupFile)) {
-            $backupFile = $backupBase . "/{$target}_sql.json";
+            $backupFile = $backupBase . "/{$safeTarget}_sql.json";
         }
 
         if (! \file_exists($backupFile)) {

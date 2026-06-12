@@ -154,7 +154,7 @@ final readonly class CheckController
             return false;
         }
 
-        $expected = \hash('sha256', $permit->code . $geheimnis);
+        $expected = \hash_hmac('sha256', $permit->code, $geheimnis);
 
         return \hash_equals($expected, $token);
     }

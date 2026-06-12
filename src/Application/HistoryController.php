@@ -75,11 +75,25 @@ final readonly class HistoryController
 
         // --- A. POST-AKTION: E-Mail für Magic-Link anfragen ---
         if (isset($post['request_link'])) {
-            $email   = \trim((string) ($post['email'] ?? ''));
+            $email = \trim((string) ($post['email'] ?? ''));
+
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+            // E-Mail-Bombing verhindern!
+            if ($this->rateLimiter->isBlocked($ip)) {
+                \header('Location: history.php?sent=0&msg=' . \urlencode('Zu viele Anfragen. Bitte warten Sie 15 Minuten.'));
+                exit;
+            }
+
             $permits = $this->permitService->getHistoryByEmail($email);
 
             // Immer neutral reagieren, um E-Mail-Scraping zu verhindern
-            if ($permits !== []) {
+            if ($permits === []) {
+                $this->rateLimiter->recordFailedAttempt($ip); // FIX: Spamversuche bestrafen
+                $msg = 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.';
+                \header('Location: history.php?sent=1&msg=' . \urlencode($msg));
+            } else {
+                $this->rateLimiter->clearAttempts($ip);
                 $data = $this->magicLinkService->createToken($email);
                 $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
 

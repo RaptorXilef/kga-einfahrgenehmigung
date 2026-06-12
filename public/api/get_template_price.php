@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
 
@@ -22,6 +23,14 @@ try {
     // Hier zwei Ebenen hoch, da wir im Unterordner /api/ sind
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
     JsonResponse::enforceCsrfProtection();
+
+    $rateLimiter = $container->get(RateLimiterInterface::class);
+    $ip          = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+    // Schutz: Sofort blockieren, wenn Limit überschritten
+    if ($rateLimiter->isBlocked($ip)) {
+        JsonResponse::error('Zu viele Anfragen. Bitte versuchen Sie es später erneut.', 429);
+    }
 
     // SICHERHEIT: Nur POST erlauben
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -53,29 +62,33 @@ try {
         // Wir lassen den Service die Arbeit machen!
         $voucherRepo    = $container->get(VoucherRepositoryInterface::class);
         $voucherService = $permitService->getVoucherService();
+        $vouchers       = $voucherRepo->loadAll();
+        $v              = $vouchers[$voucherCode] ?? null;
 
-        $vouchers = $voucherRepo->loadAll();
-        $v        = $vouchers[$voucherCode] ?? null;
+        if ($v && $voucherService->isValid($v)) {
+            // [ERFOLG] Treffer: RateLimiter für diese IP zurücksetzen
+            $rateLimiter->clearAttempts($ip);
 
-        if ($v) {
-            // NUTZUNG DER isValid() SERVICE-METHODE
-            if ($voucherService->isValid($v)) {
-                // Preis berechnen über die entsprechende Methode im PermitService
-                $finalPrice = $permitService->calculateDiscountedPrice($originalPrice, $v);
-                // [x] sortiert
-                $discountText = match ($v['type']) {
-                    'fixed'   => 'Sonderpreis aktiviert',
-                    'free'    => '100% Rabatt (Kostenlos)',
-                    'percent' => (float) $v['value'] . '% Rabatt',
-                    default   => ''
-                };
-            } else {
-                // Differenzierteres Feedback für den User
-                $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
-                $discountText  = $isDeactivated ? 'Code gesperrt' : 'Code abgelaufen';
-            }
+            // Preis berechnen über die entsprechende Methode im PermitService
+            $finalPrice = $permitService->calculateDiscountedPrice($originalPrice, $v);
+            // [x] sortiert
+            $discountText = match ($v['type']) {
+                'fixed'   => 'Sonderpreis aktiviert',
+                'free'    => '100% Rabatt (Kostenlos)',
+                'percent' => (float) $v['value'] . '% Rabatt',
+                default   => ''
+            };
         } else {
-            $discountText = 'Ungültiger Code';
+            // [FEHLER] Ungültiger Code: Versuch zählen
+            try {
+                $rateLimiter->recordFailedAttempt($ip);
+            } catch (\Throwable $e) {
+                // Logge den Fehler intern, aber unterbreche den User-Flow nicht
+            }
+
+            // Differenzierteres Feedback für den User
+            $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+            $discountText  = $v ? ($isDeactivated ? 'Code gesperrt' : 'Code abgelaufen') : 'Ungültiger Code';
         }
     }
 
