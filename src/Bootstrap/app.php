@@ -75,7 +75,6 @@ if (! \headers_sent()) {
     }
 }
 
-// 1. Root-Pfad finden
 $appRoot = (function (): string {
     $dir = __DIR__;
     while ($dir !== \dirname($dir)) {
@@ -91,7 +90,21 @@ $appRoot = (function (): string {
 // 2. Autoloader laden
 require_once $appRoot . '/vendor/autoload.php';
 
-// 2. Alle Konfigurationen laden & mergen
+// =========================================================================
+// GLOBAL ERROR LOGGING FÜR FREEHOSTER
+// Zwingt PHP, alle \error_log() Aufrufe und interne Fehler
+// in eine lokale Datei zu schreiben, statt ins unzugängliche Server-Log.
+// =========================================================================
+$customLogDir = $appRoot . '/storage/logs';
+if (! \is_dir($customLogDir)) {
+    @\mkdir($customLogDir, 0o755, true);
+}
+\ini_set('log_errors', '1');
+// TODO Dateiname in config/storage.php auslagern
+\ini_set('error_log', $customLogDir . '/php_errors.log');
+// =========================================================================
+
+// 3. Alle Konfigurationen laden & mergen
 $configFiles = [
     // --- Default-Einstellungen ---
     'default_settings' => $appRoot . '/config/settings.default.php',
