@@ -152,7 +152,7 @@ return [
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
     'update_migrations' => 'CREATE TABLE IF NOT EXISTS `update_migrations` (
-        `id` VARCHAR(50) AUTO_INCREMENT PRIMARY KEY,
+        `id` VARCHAR(50) PRIMARY KEY,
         `version` VARCHAR(50) NOT NULL,
         `executed_at` DATETIME NOT NULL,
         UNIQUE KEY `idx_version` (`version`)
