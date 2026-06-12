@@ -58,6 +58,13 @@ final readonly class GitHubUpdaterService
         'update_manifest.json', // NEU
     ];
 
+    // Fallback für kritische Core-Configs, falls das Manifest fehlt
+    private const DEFAULT_CORE_CONFIGS = [
+        'config/sql_schema.php',
+        'config/permissions.php',
+        'config/.htaccess',
+    ];
+
     public function __construct(
         private ConfigInterface $config,
     ) {
@@ -210,17 +217,19 @@ final readonly class GitHubUpdaterService
         $manifestPath = $sourceRoot . '/update_manifest.json';
         $whitelist    = self::DEFAULT_WHITELIST;
         $blacklist    = self::DEFAULT_BLACKLIST;
+        $coreConfigs  = self::DEFAULT_CORE_CONFIGS;
 
         if (\file_exists($manifestPath)) {
             $manifestData = \json_decode(\file_get_contents($manifestPath), true);
             if (\is_array($manifestData)) {
-                $whitelist = $manifestData['whitelist'] ?? self::DEFAULT_WHITELIST;
-                $blacklist = $manifestData['blacklist'] ?? self::DEFAULT_BLACKLIST;
+                $whitelist   = $manifestData['whitelist'] ?? self::DEFAULT_WHITELIST;
+                $blacklist   = $manifestData['blacklist'] ?? self::DEFAULT_BLACKLIST;
+                $coreConfigs = $manifestData['core_configs'] ?? self::DEFAULT_CORE_CONFIGS;
             }
         }
 
         // 5. Dateien mit dynamischen Regeln kopieren
-        $this->copyAllowedFiles($sourceRoot, $rootPath, $whitelist, $blacklist);
+        $this->copyAllowedFiles($sourceRoot, $rootPath, $whitelist, $blacklist, $coreConfigs);
 
         // 6. Aufräumen
         $this->cleanup($tempDir);
@@ -235,7 +244,7 @@ final readonly class GitHubUpdaterService
      *
      * Kopiert rekursiv alle Dateien, die der Whitelist entsprechen und nicht blockiert sind.
      */
-    private function copyAllowedFiles(string $sourceDir, string $targetDir, array $whitelist, array $blacklist): void
+    private function copyAllowedFiles(string $sourceDir, string $targetDir, array $whitelist, array $blacklist, array $coreConfigs): void
     {
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($sourceDir, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -252,7 +261,7 @@ final readonly class GitHubUpdaterService
             $relativePath = \str_replace('\\', '/', $relativePath); // Für Windows
 
             // Prüfen, ob der Pfad erlaubt ist
-            if ($this->isPathAllowed($relativePath, $whitelist, $blacklist)) {
+            if ($this->isPathAllowed($relativePath, $whitelist, $blacklist, $coreConfigs)) {
                 $targetFile    = $targetDir . '/' . $relativePath;
                 $targetDirPath = \dirname($targetFile);
 
@@ -270,9 +279,9 @@ final readonly class GitHubUpdaterService
      *
      * Prüft, ob ein Dateipfad laut BLACKLIST & WHITELIST erlaubt ist.
      */
-    private function isPathAllowed(string $path, array $whitelist, array $blacklist): bool
+    private function isPathAllowed(string $path, array $whitelist, array $blacklist, array $coreConfigs): bool
     {
-        // 1. Blacklist blockiert strikt (Höchste Priorität)
+        // 1. Blacklist blockiert strikt
         foreach ($blacklist as $blocked) {
             if (\str_starts_with($path, $blocked)) {
                 return false;
@@ -281,19 +290,15 @@ final readonly class GitHubUpdaterService
 
         // 2. SPEZIALREGEL FÜR DEN CONFIG-ORDNER
         if (\str_starts_with($path, 'config/')) {
-            // A) Kaskadierende Standard-Dateien erlauben (kommen aus der GitHub Action)
             if (\str_ends_with($path, '.default.php')) {
                 return true;
             }
 
-            // B) Explizite Core-Dateien erlauben, die gnadenlos überschrieben werden dürfen!
-            // Hier kannst du zukünftig weitere Dateien eintragen, die nie angepasst werden
-            $allowedCoreConfigs = ['config/sql_schema.php', 'config/permissions.php'];
-
-            return \in_array($path, $allowedCoreConfigs, true);
+            // B) Explizite Core-Dateien erlauben (Dynamisch aus dem Manifest gesteuert)
+            return \in_array($path, $coreConfigs, true);
         }
 
-        // 3. Whitelist erlaubt (Wenn nicht blockiert)
+        // 3. Whitelist erlaubt
         foreach ($whitelist as $allowed) {
             // Entweder es ist ein Ordner (endet auf /) und der Pfad beginnt damit
             if (\str_ends_with($allowed, '/') && \str_starts_with($path, $allowed)) {

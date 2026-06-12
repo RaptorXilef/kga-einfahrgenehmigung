@@ -101,7 +101,6 @@ return [
             'table' => 'login_attempts',
             'file'  => 'login_attempts.json',
         ],
-
         'update_migrations' => [
             'type'  => 'json',
             'table' => 'update_migrations',
