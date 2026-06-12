@@ -2,6 +2,12 @@
 
 
 
+## [0.46.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.1...v0.46.2) (2026-06-12)
+
+### 🐛 Bug Fixes
+
+* **ui,core:** repair paypal checkout integration and unblock mail queue rendering ([b44c39b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b44c39b64a3889e2d65169fc98a69be399a12fa4))
+
 ## [0.46.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.0...v0.46.1) (2026-06-12)
 
 ### ⚙️ Refactoring
