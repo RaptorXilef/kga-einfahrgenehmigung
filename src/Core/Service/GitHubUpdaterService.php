@@ -168,6 +168,25 @@ final readonly class GitHubUpdaterService
             throw new \RuntimeException('Das Update-Archiv konnte nicht geöffnet werden.');
         }
 
+        // Schutz vor ZIP-Bomben (Decompression Bomb / DoS-Attacken)
+        // Prüfe die dekomprimierte Gesamtgröße VOR dem eigentlichen Entpacken
+        $totalUncompressedSize = 0;
+        $maxAllowedSize        = 10 * 1024 * 1024; // Limit auf 10 MB (ca. 5x größer als aktueller Bedarf)
+
+        for ($i = 0; $i < $zip->numFiles; ++$i) {
+            $stat = $zip->statIndex($i);
+            if ($stat !== false) {
+                $totalUncompressedSize += $stat['size'];
+            }
+        }
+
+        if ($totalUncompressedSize > $maxAllowedSize) {
+            $zip->close();
+            $this->cleanup($tempDir);
+
+            throw new \RuntimeException('Sicherheitsabbruch: Das Update-Archiv überschreitet das zulässige Größenlimit (ZIP-Bomben-Schutz).');
+        }
+
         $extractPath = $tempDir . '/extracted';
 
         // Entpacken auf Fehler prüfen und Notbremse ziehen!
