@@ -2,6 +2,12 @@
 
 
 
+## [0.46.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.3...v0.46.4) (2026-06-12)
+
+### 🐛 Bug Fixes
+
+* **schema:** resolve mysql syntax exception on boot by stripping invalid auto_increment ([bb3789e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bb3789e90205241ed9bd6178439ce4ba0dddd2b5))
+
 ## [0.46.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.2...v0.46.3) (2026-06-12)
 
 ### 🐛 Bug Fixes
