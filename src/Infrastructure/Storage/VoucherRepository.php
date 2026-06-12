@@ -45,7 +45,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             $stmt     = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
             $vouchers = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-                $r['data'] = \is_string($r['data']) ? \json_decode($r['data'], true) : $r['data'];
+                $r['data'] = \is_string($r['data']) ? JsonHelper::decode($r['data']) : $r['data'];
                 $r['data'] ??= [];
                 $vouchers[$r['code']] = $r;
             }
@@ -55,7 +55,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
 
         $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
 
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return JsonHelper::read($path);
     }
 
     /**
@@ -71,7 +71,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         }
         $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
 
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return JsonHelper::read($path);
     }
 
     /**
@@ -160,7 +160,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             ]);
         } else {
             $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file'];
-            $archive     = \file_exists($archivePath) ? \json_decode((string) \file_get_contents($archivePath), true) : [];
+            $archive     = JsonHelper::read($archivePath);
             $archive[]   = $archiveEntry;
             $this->writeJsonSafely($archivePath, $archive);
         }

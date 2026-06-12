@@ -6,6 +6,7 @@ namespace App\Infrastructure\Security;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Implementierung des Rate-Limiters zum Schutz vor Brute-Force Logins.
@@ -69,7 +70,7 @@ final readonly class RateLimiter implements RateLimiterInterface
 
         // JSON Fallback
         $path = $this->getFilePath($cfg['file']);
-        $data = \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        $data = JsonHelper::read($path);
 
         if (isset($data[$ip])) {
             $lastAttempt = new \DateTimeImmutable($data[$ip]['last_attempt']);
@@ -114,7 +115,7 @@ final readonly class RateLimiter implements RateLimiterInterface
             $stat = \fstat($fp);
             $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = \json_decode((string) $raw, true) ?? [];
+            $data = JsonHelper::decode((string) $raw);
 
             if (! isset($data[$ip])) {
                 $data[$ip] = ['attempts' => 1, 'last_attempt' => $nowStr];
@@ -158,7 +159,7 @@ final readonly class RateLimiter implements RateLimiterInterface
             $stat = \fstat($fp);
             $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = \json_decode((string) $raw, true) ?? [];
+            $data = JsonHelper::decode((string) $raw);
 
             if (isset($data[$ip])) {
                 unset($data[$ip]);

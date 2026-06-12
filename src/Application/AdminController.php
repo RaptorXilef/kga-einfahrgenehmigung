@@ -17,6 +17,7 @@ use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\CronScheduler;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
+use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Haupt-Controller für die Administration.
@@ -464,7 +465,7 @@ final readonly class AdminController
 
             // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
             if (\is_string($payload)) {
-                $payload = \json_decode($payload, true) ?? [];
+                $payload = JsonHelper::decode($payload);
             }
 
             if (empty($payload)) {

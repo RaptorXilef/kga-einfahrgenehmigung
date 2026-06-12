@@ -15,6 +15,7 @@ use App\Core\Entity\Permit;
 use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
+use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Haupt-Service für die Erstellung, Prüfung und Verwaltung von Einfahrtsgenehmigungen.
@@ -493,7 +494,7 @@ final readonly class PermitService
                 \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . ($arcCfg['file'] ?? 'permits_archive.json');
 
             if (\file_exists($archivePath)) {
-                $rawArchive = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+                $rawArchive = JsonHelper::read($archivePath);
                 foreach ($rawArchive as $item) {
                     $archived[] = $this->arrayToEntity($item);
                 }
@@ -701,7 +702,7 @@ final readonly class PermitService
                     $stat = \fstat($fp);
                     $size = $stat['size'];
                     $raw  = $size > 0 ? \fread($fp, $size) : '';
-                    $data = \json_decode((string) $raw, true) ?? [];
+                    $data = JsonHelper::decode((string) $raw);
 
                     foreach ($toArchive as $item) {
                         unset($data[$item['code']]);

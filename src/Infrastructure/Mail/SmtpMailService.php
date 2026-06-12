@@ -6,6 +6,7 @@ namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
+use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -171,7 +172,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             return [];
         }
 
-        return (array) \json_decode((string) \file_get_contents($path), true) ?? [];
+        return JsonHelper::read($path);
     }
 
     // --- Private Engine ---
@@ -395,7 +396,7 @@ final readonly class SmtpMailService implements MailServiceInterface
             (string) $this->config->get('root_path'),
             '/\\',
         ) . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-        $logs = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
+        $logs = JsonHelper::read($path);
         \array_unshift($logs, [
             'timestamp' => APP_REQUEST_TIME_STR,
             'recipient' => $recipient,

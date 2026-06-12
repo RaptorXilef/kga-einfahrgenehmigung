@@ -53,7 +53,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
 
         $archivePath = $this->getFilePath($arcCfg['file']);
         if (\file_exists($archivePath)) {
-            $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+            $archiveData = JsonHelper::read($archivePath);
 
             return isset($archiveData[$code]);
         }
@@ -108,7 +108,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
             }
         } else {
             $archivePath = $this->getFilePath($arcCfg['file']);
-            $existing    = \file_exists($archivePath) ? (array) \json_decode((string) \file_get_contents($archivePath), true) : [];
+            $existing    = \file_exists($archivePath) ? JsonHelper::read($archivePath) : [];
 
             // Mit Array-Keys arbeiten für schnelles Überschreiben
             foreach ($permitsToArchive as $permit) {
@@ -146,7 +146,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         } else {
             $archivePath = $this->getFilePath($arcCfg['file']);
             if (\file_exists($archivePath)) {
-                $existing = (array) \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+                $existing = JsonHelper::read($archivePath);
                 $changed  = false;
 
                 foreach ($existing as $code => &$item) {

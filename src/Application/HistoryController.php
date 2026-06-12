@@ -11,6 +11,7 @@ use App\Core\Entity\Permit;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
+use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Controller für die historische Antragsübersicht von Endnutzern.
@@ -189,7 +190,7 @@ final readonly class HistoryController
                 $this->config->get('storage_path_prefix') . $yearFile;
 
             if (\file_exists($archivePath)) {
-                $archiveData = \json_decode((string) \file_get_contents($archivePath), true) ?? [];
+                $archiveData = JsonHelper::read($archivePath);
                 // Filter für E-Mail im Archiv
                 foreach ($archiveData as $item) {
                     if (\strtolower((string) $item['email']) !== \strtolower($email)) {

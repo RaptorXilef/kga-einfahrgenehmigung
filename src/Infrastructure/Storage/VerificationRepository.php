@@ -94,14 +94,14 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
             if ($this->pdo instanceof \PDO) {
                 $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
                 foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-                    $data[$r['token']]            = \json_decode((string) $r['data'], true);
+                    $data[$r['token']]            = JsonHelper::decode((string) $r['data']);
                     $data[$r['token']]['expires'] = $r['expires'];
                 }
             }
         } else {
             $path = $this->getFilePath($cfg['file']);
             if (\file_exists($path)) {
-                $data = (array) \json_decode((string) \file_get_contents($path), true) ?? [];
+                $data = JsonHelper::read($path);
             }
         }
 

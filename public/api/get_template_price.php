@@ -29,7 +29,12 @@ try {
     }
 
     // Daten aus dem JSON-Body (POST-Stream) lesen
-    $input         = \json_decode(\file_get_contents('php://input'), true) ?? [];
+    try {
+        $raw   = \file_get_contents('php://input');
+        $input = $raw === '' ? [] : \json_decode($raw, true, 512, \JSON_THROW_ON_ERROR);
+    } catch (\JsonException $e) {
+        JsonResponse::error('Bad Request: Ungültiges JSON-Format gesendet.', 400);
+    }
     $config        = $container->get(ConfigInterface::class);
     $permitService = $container->get(PermitService::class);
     $vehicleTypes  = $config->get('vehicle_types', []);

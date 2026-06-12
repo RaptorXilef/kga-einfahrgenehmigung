@@ -54,7 +54,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
         } else {
             $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
             if (\file_exists($path)) {
-                $links = \json_decode((string) \file_get_contents($path), true) ?? [];
+                $links = JsonHelper::read($path);
             }
         }
 

@@ -52,7 +52,7 @@ final readonly class UserRepository implements UserRepositoryInterface
 
         $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
 
-        return \file_exists($path) && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return JsonHelper::read($path);
     }
 
     /**

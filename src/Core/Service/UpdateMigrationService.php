@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -102,7 +103,7 @@ final readonly class UpdateMigrationService
             return [];
         }
 
-        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+        $data = JsonHelper::read($path);
 
         return \array_column($data, 'version');
     }
@@ -128,7 +129,7 @@ final readonly class UpdateMigrationService
 
         // JSON Speicherung
         $path = \rtrim($this->config->get('root_path'), '/') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
-        $data = \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        $data = JsonHelper::read($path);
 
         $data[] = [
             'id'          => \uniqid('mig_', true),

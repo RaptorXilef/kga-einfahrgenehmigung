@@ -60,7 +60,7 @@ final readonly class JsonStorage implements StorageInterface
             $stat = \fstat($fp);
             $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = \json_decode((string) $raw, true) ?? [];
+            $data = JsonHelper::decode((string) $raw);
 
             // Füge die abgeflachte Entität hinzu
             $data[$permit->code] = $this->flattenEntity($permit);
@@ -101,7 +101,7 @@ final readonly class JsonStorage implements StorageInterface
             $stat = \fstat($fp);
             $size = $stat['size'];
             $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = \json_decode((string) $raw, true) ?? [];
+            $data = JsonHelper::decode((string) $raw);
 
             $isDeleted = false; // Status-Tracking
 
@@ -260,6 +260,6 @@ final readonly class JsonStorage implements StorageInterface
             return [];
         }
 
-        return \json_decode((string) \file_get_contents($this->filePath), true) ?? [];
+        return JsonHelper::read($this->filePath);
     }
 }

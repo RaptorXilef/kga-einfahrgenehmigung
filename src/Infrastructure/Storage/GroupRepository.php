@@ -40,12 +40,9 @@ final readonly class GroupRepository implements GroupRepositoryInterface
             $stmt   = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
             $groups = [];
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-                $perms = \is_string(
-                    $row['permissions'],
-                ) ? \json_decode(
-                    $row['permissions'],
-                    true,
-                ) : $row['permissions'];
+                $perms = \is_string($row['permissions'])
+                    ? JsonHelper::decode($row['permissions'])
+                    : $row['permissions'];
                 $groups[$row['id']] = ['name' => $row['name'], 'permissions' => $perms ?? []];
             }
 
@@ -60,8 +57,7 @@ final readonly class GroupRepository implements GroupRepositoryInterface
             '/\\',
         ) . $cfg['file'];
 
-        return \file_exists($path)
-            && ! \is_dir($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return JsonHelper::read($path);
     }
 
     /**

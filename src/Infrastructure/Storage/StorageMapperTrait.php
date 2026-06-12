@@ -79,7 +79,7 @@ trait StorageMapperTrait
         // JSON-String wieder in ein Array umwandeln
         $agreements = $item['agreements'] ?? [];
         if (\is_string($agreements)) {
-            $agreements = \json_decode($agreements, true) ?? [];
+            $agreements = JsonHelper::decode($agreements);
         }
 
         // 3. Entität hydrieren

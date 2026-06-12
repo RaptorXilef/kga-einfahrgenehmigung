@@ -19,6 +19,7 @@ declare(strict_types=1);
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\GitHubUpdaterService;
+use App\Infrastructure\Storage\JsonHelper;
 
 try {
     $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
@@ -40,9 +41,13 @@ try {
     $packageJsonPath = \rtrim((string) $config->get('root_path'), '/\\') . '/package.json';
 
     if (\file_exists($packageJsonPath)) {
-        $pkgData = \json_decode((string) \file_get_contents($packageJsonPath), true);
-        if (\is_array($pkgData) && isset($pkgData['version'])) {
-            $currentVersion = 'v' . $pkgData['version'];
+        try {
+            $pkgData = JsonHelper::read($packageJsonPath);
+            if (\is_array($pkgData) && isset($pkgData['version'])) {
+                $currentVersion = 'v' . $pkgData['version'];
+            }
+        } catch (\RuntimeException $e) {
+            // Ignorieren: Version bleibt v0.0.0, was ein Auto-Update erzwingt!
         }
     }
 

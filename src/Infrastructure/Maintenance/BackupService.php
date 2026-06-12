@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -67,7 +68,7 @@ final readonly class BackupService
                 if (isset($storageConfig[$key]['file'])) {
                     $path = $root . '/' . $prefix . $storageConfig[$key]['file'];
                     if (\file_exists($path) && ! \is_dir($path)) {
-                        $data = \json_decode((string) \file_get_contents($path), true) ?? [];
+                        $data = JsonHelper::read($path);
                         $this->writeJsonSafely($backupPath . "/{$key}_file.json", $data, $jsonFlags);
                     }
                 }
@@ -154,7 +155,7 @@ final readonly class BackupService
             return null;
         }
 
-        return \json_decode((string) \file_get_contents($backupFile), true);
+        return JsonHelper::read($backupFile);
     }
 
     /**
@@ -279,7 +280,7 @@ final readonly class BackupService
         }
         $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
 
-        return \file_exists($path) ? (\json_decode((string) \file_get_contents($path), true) ?? []) : [];
+        return JsonHelper::read($path);
     }
 
     /**
@@ -321,10 +322,10 @@ final readonly class BackupService
             };
             foreach ($rows as $r) {
                 if (isset($r['data']) && \is_string($r['data'])) {
-                    $r['data'] = \json_decode($r['data'], true);
+                    $decoded = JsonHelper::decode($r['data']);
                 }
                 if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                    $r['permissions'] = \json_decode($r['permissions'], true);
+                    $decoded = JsonHelper::decode($r['permissions']);
                 }
                 $res[$r[$idField]] = $r;
             }

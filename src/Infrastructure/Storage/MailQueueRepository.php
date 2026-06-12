@@ -49,7 +49,7 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
             $stmt->execute([$recipient, $subject, $template, $payload, APP_REQUEST_TIME_STR]);
         } else {
             $path    = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-            $queue   = \file_exists($path) ? \json_decode((string) \file_get_contents($path), true) : [];
+            $queue   = JsonHelper::read($path);
             $queue[] = [
                 'recipient'  => $recipient,
                 'subject'    => $subject,
@@ -87,7 +87,7 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 
             foreach ($items as $item) {
                 try {
-                    $processor($item['recipient'], $item['subject'], $item['template'], \json_decode((string) $item['data'], true));
+                    $processor($item['recipient'], $item['subject'], $item['template'], JsonHelper::decode((string) $item['data']));
                     $this->pdo->prepare('DELETE FROM `mail_queue` WHERE id = ?')->execute([$item['id']]);
                     ++$sentCount;
                 } catch (\Throwable $t) {
@@ -121,7 +121,7 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
             // fstat() statt filesize(), um den PHP Stat-Cache zu umgehen!
             $stat  = \fstat($fp);
             $size  = $stat['size'] ?? 0;
-            $queue = $size > 0 ? (\json_decode((string) \fread($fp, $size), true) ?? []) : [];
+            $queue = $size > 0 ? JsonHelper::decode((string) \fread($fp, $size)) : [];
 
             if (! empty($queue)) {
                 $actualLimit = \min($limit, \count($queue));

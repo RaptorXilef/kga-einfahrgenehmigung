@@ -32,7 +32,12 @@ try {
     }
 
     // JSON Body auslesen (Da wir mit fetch arbeiten)
-    $input  = \json_decode(\file_get_contents('php://input'), true) ?? [];
+    try {
+        $raw   = \file_get_contents('php://input');
+        $input = $raw === '' ? [] : \json_decode($raw, true, 512, \JSON_THROW_ON_ERROR);
+    } catch (\JsonException $e) {
+        JsonResponse::error('Bad Request: Ungültiges JSON-Format gesendet.', 400);
+    }
     $zipUrl = $input['zip_url'] ?? '';
 
     if ($zipUrl === '') {

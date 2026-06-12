@@ -11,6 +11,7 @@ use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitService;
+use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
@@ -328,11 +329,7 @@ final readonly class MigrationService
         }
         $path = $this->getFilePath($key);
 
-        return \file_exists($path) ? (\json_decode(
-            (string) \file_get_contents($path),
-            true,
-        )
-            ?? []) : [];
+        return JsonHelper::read($path);
     }
 
     /**
@@ -376,12 +373,12 @@ final readonly class MigrationService
             // und keine hässlichen "{\"name\":\"Test\"}" Strings.
 
             if (isset($r['data']) && \is_string($r['data'])) {
-                $decoded   = \json_decode($r['data'], true);
+                $decoded   = JsonHelper::decode($r['data']);
                 $r['data'] = $decoded !== null ? $decoded : [];
             }
 
             if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                $decoded          = \json_decode($r['permissions'], true);
+                $decoded          = JsonHelper::decode($r['permissions']);
                 $r['permissions'] = $decoded !== null ? $decoded : [];
             }
 

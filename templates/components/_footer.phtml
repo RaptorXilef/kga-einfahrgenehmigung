@@ -1,5 +1,7 @@
 <?php
 
+use App\Infrastructure\Storage\JsonHelper;
+
 /**
  * Component: Global Dynamic Footer
  *
@@ -23,9 +25,13 @@ $version         = 'v0.0.0';
 $packageJsonPath = $root . '/package.json';
 
 if (\file_exists($packageJsonPath)) {
-    $pkgData = \json_decode((string) \file_get_contents($packageJsonPath), true);
-    if (\is_array($pkgData) && isset($pkgData['version'])) {
-        $version = 'v' . $pkgData['version'];
+    try {
+        $pkgData = JsonHelper::read($packageJsonPath);
+        if (\is_array($pkgData) && isset($pkgData['version'])) {
+            $version = 'v' . $pkgData['version'];
+        }
+    } catch (\RuntimeException $e) {
+        // Ignorieren: Bleibt bei v0.0.0
     }
 }
 

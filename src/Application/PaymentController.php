@@ -43,7 +43,8 @@ final readonly class PaymentController
     {
         try {
             $input = \file_get_contents('php://input');
-            $data  = \json_decode((string) $input, true);
+            // Wirft eine \JsonException, die direkt im catch(\Exception) unten gefangen wird!
+            $data = \json_decode((string) $input, true, 512, \JSON_THROW_ON_ERROR);
 
             // Wir erwarten 'token' statt 'permitCode'
             if (! isset($data['orderID'], $data['token'])) {
