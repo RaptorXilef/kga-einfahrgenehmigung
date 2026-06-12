@@ -2,6 +2,12 @@
 
 
 
+## [0.46.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.0...v0.46.1) (2026-06-12)
+
+### ⚙️ Refactoring
+
+* **core,updater:** decouple core config update logic via dynamic manifest injection ([461a49a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/461a49a0144291c17a883c6d1a137a45b55e631b))
+
 ## [0.46.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.45.1...v0.46.0) (2026-06-12)
 
 ### 🚀 Features
