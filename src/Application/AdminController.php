@@ -17,6 +17,7 @@ use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
+use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\CronScheduler;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -59,6 +60,7 @@ final readonly class AdminController
         private StorageInterface $storage,
         private UserRepositoryInterface $userRepository,
         private VoucherRepositoryInterface $voucherRepository,
+        private VoucherService $voucherService,
     ) {
     }
 
@@ -403,7 +405,7 @@ final readonly class AdminController
             ];
 
             // Service-Aufruf mit neuen Parametern
-            $code = $this->permitService->getVoucherService()->createVoucher(
+            $code = $this->voucherService->createVoucher(
                 $reason,
                 (string) ($_SESSION['user_id'] ?? 'sys_admin'), // Geändert von 'Admin' auf 'sys_admin'
                 $tplKey,
@@ -439,7 +441,7 @@ final readonly class AdminController
 
         // Gutschein sperren / aktivieren
         $status = $post['action'] === 'activate_voucher' ? 'aktiv' : 'deaktiviert';
-        $this->permitService->getVoucherService()->toggleStatus((string) $post['code'], $status);
+        $this->voucherService->toggleStatus((string) $post['code'], $status);
 
         return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
     }
@@ -605,7 +607,7 @@ final readonly class AdminController
 
         $code = (string) ($post['code'] ?? '');
 
-        return $this->permitService->getVoucherService()->deleteVoucher($code)
+        return $this->voucherService->deleteVoucher($code)
             ? "Gutschein '$code' wurde unwiderruflich gelöscht."
             : 'Fehler: Gutschein nicht gefunden.';
     }
@@ -765,7 +767,7 @@ final readonly class AdminController
             'structure'        => $this->config->get('structure', []),
             'vouchers'         => $this->voucherRepository->loadAll(),
             'voucherArchive'   => $this->voucherRepository->loadArchive(),
-            'voucherService'   => $this->permitService->getVoucherService(),
+            'voucherService'   => $this->voucherService,
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
     }

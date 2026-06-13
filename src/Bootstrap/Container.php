@@ -409,6 +409,7 @@ class Container
             $this->get(StorageInterface::class),
             $this->get(UserRepositoryInterface::class),
             $this->get(VoucherRepositoryInterface::class),
+            $this->get(VoucherService::class),
         );
 
         // User Controller
@@ -435,6 +436,7 @@ class Container
             $this->get(PermitService::class),
             $this->get(VerificationRepositoryInterface::class),
             $this->get(VoucherRepositoryInterface::class),
+            $this->get(VoucherService::class),
         );
 
         // NEU: CheckoutController für checkout.php
@@ -453,6 +455,7 @@ class Container
 
         $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(
             $this->get(ConfigInterface::class),
+            $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
             $this->get(RateLimiterInterface::class),
         );
@@ -470,6 +473,7 @@ class Container
             $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
             $this->get(RateLimiterInterface::class),
+            $this->get(StorageInterface::class),
         );
 
         $this->services[LegalController::class] = fn (): LegalController => new LegalController(

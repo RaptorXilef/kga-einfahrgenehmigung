@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\MailQueueService;
@@ -26,6 +27,7 @@ final readonly class VerificationController
 {
     public function __construct(
         private ConfigInterface $config,
+        private MailServiceInterface $mailService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
     ) {
@@ -79,12 +81,8 @@ final readonly class VerificationController
             }
             // Wenn erfolgreich: Limits zurücksetzen
             $this->rateLimiter->clearAttempts($ip);
-
-            // --- HIER TRIGGERN (Bevor wir die Methode verlassen) ---
-            $mailService = $this->permitService->getMailService();
-
-            if ($mailService instanceof MailQueueService) {
-                $mailService->processQueue(3); // Dokumente sofort losschicken!
+            if ($this->mailService instanceof MailQueueService) {
+                $this->mailService->processQueue(3); // Dokumente sofort losschicken!
             }
 
             // Fall A: Sofort finalisiert (z.B. durch Gutschein)

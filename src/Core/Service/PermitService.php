@@ -1063,40 +1063,4 @@ final readonly class PermitService
 
         return \max(0.0, $newPrice);
     }
-
-    // TODO get Methode weg refactorieren (Siehe Notizen PermitService-Ref.txt)
-    /**
-     * Gibt die aktive Datenhaltungs-Engine (Storage) zurück.
-     */
-    public function getStorage(): StorageInterface
-    {
-        return $this->storage;
-    }
-
-    // TODO get Methode weg refactorieren (Siehe Notizen PermitService-Ref.txt)
-    /**
-     * Gibt den Mail-Warteschlangen-Dienst zurück.
-     */
-    public function getMailService(): MailServiceInterface
-    {
-        return $this->mailService;
-    }
-
-    // TODO get Methode weg refactorieren (Siehe Notizen PermitService-Ref.txt)
-    /**
-     * Gibt die Instanz des Archiv-Repositories zurück.
-     */
-    public function getArchiveRepository(): PermitArchiveRepositoryInterface
-    {
-        return $this->archiveRepository;
-    }
-
-    // TODO get Methode weg refactorieren (Siehe Notizen PermitService-Ref.txt)
-    /**
-     * Liefert den injizierten Gutschein-Service.
-     */
-    public function getVoucherService(): VoucherService
-    {
-        return $this->voucherService;
-    }
 }

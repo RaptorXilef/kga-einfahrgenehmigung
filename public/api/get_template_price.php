@@ -18,6 +18,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
+use App\Core\Service\VoucherService;
 
 try {
     // Hier zwei Ebenen hoch, da wir im Unterordner /api/ sind
@@ -61,7 +62,7 @@ try {
     if ($voucherCode !== '') {
         // Wir lassen den Service die Arbeit machen!
         $voucherRepo    = $container->get(VoucherRepositoryInterface::class);
-        $voucherService = $permitService->getVoucherService();
+        $voucherService = $container->get(VoucherService::class);
         $vouchers       = $voucherRepo->loadAll();
         $v              = $vouchers[$voucherCode] ?? null;
 

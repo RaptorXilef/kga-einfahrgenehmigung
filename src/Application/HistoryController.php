@@ -7,6 +7,7 @@ namespace App\Application;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
@@ -35,6 +36,7 @@ final readonly class HistoryController
         private MailServiceInterface $mailService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
+        private StorageInterface $storage,
     ) {
     }
 
@@ -250,7 +252,7 @@ final readonly class HistoryController
      */
     private function handlePrintAction(string $code, string $emailInSession): void
     {
-        $permit = $this->permitService->getStorage()->findByHash($code);
+        $permit = $this->storage->findByHash($code);
         if ($permit instanceof Permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
             // [x] sortiert
             $this->render('history_print_view', [

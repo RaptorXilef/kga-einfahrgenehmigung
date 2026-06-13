@@ -9,6 +9,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
+use App\Core\Service\VoucherService;
 
 /**
  * Controller für den regulären, öffentlichen Genehmigungs-Beantragungsprozess.
@@ -29,6 +30,7 @@ final readonly class PermitController
         private PermitService $permitService,
         private VerificationRepositoryInterface $verificationRepo, // Das Repository!
         private VoucherRepositoryInterface $voucherRepository,
+        private VoucherService $voucherService,
     ) {
     }
 
@@ -165,11 +167,10 @@ final readonly class PermitController
      */
     private function checkAvailableVouchers(): bool
     {
-        $vouchers       = $this->voucherRepository->loadAll();
-        $voucherService = $this->permitService->getVoucherService();
+        $vouchers = $this->voucherRepository->loadAll();
 
         foreach ($vouchers as $v) {
-            if ($voucherService->isValid($v)) {
+            if ($this->voucherService->isValid($v)) {
                 return true; // Sobald einer gefunden wurde, reicht das für die Anzeige
             }
         }
