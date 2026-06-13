@@ -12,12 +12,13 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService     $auth
- * @var array                             $groups
- * @var array                             $settings
- * @var array                             $structure
- * @var string                            $appRoot
+ * @var \App\Infrastructure\Config\Config               $config
+ * @var \App\Core\Service\AuthService                   $auth
+ * @var \App\Contracts\Storage\GroupRepositoryInterface $groupRepository
+ * @var array                                           $groups
+ * @var array                                           $settings
+ * @var array                                           $structure
+ * @var string                                          $appRoot
  */
 if ($auth->hasPermission('system.permissions.groups.manage')) {
     $structure ??= $config->get('structure', []);
@@ -164,7 +165,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
 
         <div class="u-flex u-flex-column u-gap-m">
             <?php foreach ($groups as $groupId => $gData) {
-                $groupImage = $auth->getImage('group', $groupId);
+                $groupImage = $groupRepository->getImageUrl($groupId);
                 ?>
                 <div class="category-card is-closed"
                      id="card-<?php echo $groupId; ?>">

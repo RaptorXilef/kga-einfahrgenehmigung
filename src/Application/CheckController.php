@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
@@ -28,8 +30,10 @@ final readonly class CheckController
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
+        private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
         private StorageInterface $storage,
+        private UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -174,10 +178,12 @@ final readonly class CheckController
         // Hier fügen wir 'auth' hinzu, damit es in JEDEM Template
         // dieses Controllers verfügbar ist (auch im Header-Nav)
         $templateData = \array_merge([
-            'appRoot'  => $appRoot,
-            'settings' => $settings,
-            'config'   => $config,
-            'auth'     => $this->auth,
+            'appRoot'         => $appRoot,
+            'auth'            => $this->auth,
+            'config'          => $config,
+            'groupRepository' => $this->groupRepository,
+            'settings'        => $settings,
+            'userRepository'  => $this->userRepository,
         ], $data);
 
         // 2. Die Variable an extract übergeben

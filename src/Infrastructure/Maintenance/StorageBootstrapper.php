@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
 
 /**
@@ -25,6 +27,8 @@ final readonly class StorageBootstrapper
         private ?\PDO $pdo,
         private AuthService $authService,
         private ConfigInterface $config,
+        private GroupRepositoryInterface $groupRepository,
+        private UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -87,7 +91,7 @@ final readonly class StorageBootstrapper
      */
     private function cleanupOrphanedPermissions(): void
     {
-        $groups = $this->authService->loadGroups();
+        $groups = $this->groupRepository->loadAll();
         if (empty($groups)) {
             return;
         }
@@ -125,7 +129,7 @@ final readonly class StorageBootstrapper
 
         if ($changed) {
             \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
-            $this->authService->saveGroups($groups);
+            $this->groupRepository->saveAll($groups);
         }
     }
 
@@ -137,17 +141,16 @@ final readonly class StorageBootstrapper
     {
         // Wir prüfen, ob die Benutzerverwaltung komplett leer ist (egal ob JSON oder SQL aktiv ist)
         // Nutzt die vorhandenen loadUsers/loadGroups Methoden aus deinem AuthService
-        $currentUsers  = $this->authService->loadUsers();
-        $currentGroups = $this->authService->loadGroups();
+        $currentUsers  = $this->userRepository->loadAll();
+        $currentGroups = $this->groupRepository->loadAll();
 
         if (empty($currentGroups)) {
             \error_log('Bootstrap: Initialisiere Standard-Gruppen.');
-            $this->authService->saveGroups($this->getDefaultGroups());
+            $this->groupRepository->saveAll($this->getDefaultGroups());
         }
-
         if (empty($currentUsers)) {
             \error_log('Bootstrap: Initialisiere Standard-Admin.');
-            $this->authService->saveUsers($this->getDefaultUsers());
+            $this->userRepository->saveAll($this->getDefaultUsers());
         }
     }
 

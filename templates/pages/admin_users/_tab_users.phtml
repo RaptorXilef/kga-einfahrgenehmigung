@@ -12,11 +12,12 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var array                         $settings
- * @var array                         $groups
- * @var array                         $users
- * @var \App\Core\Service\AuthService $auth
- * @var string                        $appRoot
+ * @var array                                          $settings
+ * @var array                                          $groups
+ * @var array                                          $users
+ * @var \App\Core\Service\AuthService                  $auth
+ * @var string                                         $appRoot
+ * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
  */
 if ($auth->hasPermission('system.permissions.users.manage')) {
     ?>
@@ -110,7 +111,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
             <h3 class="u-margin-none u-margin-left-s">Registrierte Konten (<?php echo \count($users); ?>)</h3>
 
             <?php foreach ($users as $userId => $u) {
-                $userImage    = $auth->getImage('user', $userId);
+                $userImage    = $userRepository->getImageUrl($userId);
                 $groupData    = $groups[$u['group']] ?? ['name' => 'Unbekannt'];
                 $displayLogin = $u['username'] ?? $userId; // Fallback auf ID
                 ?>

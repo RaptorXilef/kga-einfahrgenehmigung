@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
 
 /**
@@ -25,6 +27,8 @@ final readonly class UserController
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
+        private GroupRepositoryInterface $groupRepository,
+        private UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -88,8 +92,8 @@ final readonly class UserController
         }
 
         $this->render('admin_users', [
-            'users'       => $this->auth->loadUsers(),
-            'groups'      => $this->auth->loadGroups(),
+            'users'       => $this->userRepository->loadAll(),
+            'groups'      => $this->groupRepository->loadAll(),
             'structure'   => $this->config->get('structure', []),
             'permissions' => $this->config->get('permissions', []),
             'message'     => (string) ($_GET['msg'] ?? ''),
@@ -134,8 +138,8 @@ final readonly class UserController
             }
         }
 
-        $users       = $this->auth->loadUsers();
-        $groups      = $this->auth->loadGroups();
+        $users       = $this->userRepository->loadAll();
+        $groups      = $this->groupRepository->loadAll();
         $userGroupId = $users[$userId]['group'] ?? 'guest';
 
         $this->render('profile', [
@@ -170,7 +174,7 @@ final readonly class UserController
             return 'Fehler: Passwort darf nicht leer sein.';
         }
 
-        $users = $this->auth->loadUsers();
+        $users = $this->userRepository->loadAll();
 
         // Eindeutigkeit des Benutzernamens erzwingen (Verhindert Login-Sperren)
         foreach ($users as $userData) {
@@ -190,11 +194,11 @@ final readonly class UserController
             'pass'     => \password_hash($pw1, \PASSWORD_DEFAULT),
         ];
 
-        $this->auth->saveUsers($users);
+        $this->userRepository->saveAll($users);
 
         // Auch hier beim ersten Erstellen die neue ID nutzen!
         if ($file && $file['error'] === 0) {
-            $this->auth->uploadImage('user', $newId, $file);
+            $this->userRepository->uploadImage($newId, $file);
         }
 
         return "Benutzer '$loginName' erfolgreich erstellt.";
@@ -212,7 +216,7 @@ final readonly class UserController
         $userId   = (string) ($post['user_id'] ?? '');
         $newLogin = \trim((string) ($post['new_username'] ?? ''));
 
-        $users = $this->auth->loadUsers();
+        $users = $this->userRepository->loadAll();
 
         // Eindeutigkeit beim Umbenennen prüfen!
         foreach ($users as $id => $userData) {
@@ -223,7 +227,7 @@ final readonly class UserController
 
         if (isset($users[$userId])) {
             $users[$userId]['username'] = $newLogin;
-            $this->auth->saveUsers($users);
+            $this->userRepository->saveAll($users);
 
             return 'Login-Name aktualisiert.';
         }
@@ -248,10 +252,10 @@ final readonly class UserController
             return 'Fehler: Passwörter nicht identisch.';
         }
 
-        $users = $this->auth->loadUsers();
+        $users = $this->userRepository->loadAll();
         if (isset($users[$userId])) {
             $users[$userId]['pass'] = \password_hash($pw1, \PASSWORD_DEFAULT);
-            $this->auth->saveUsers($users);
+            $this->userRepository->saveAll($users);
 
             return 'Passwort wurde zurückgesetzt.';
         }
@@ -270,11 +274,11 @@ final readonly class UserController
     {
         $userId = (string) ($post['user_id'] ?? ''); // ID aus dem Formular
         $group  = (string) ($post['group'] ?? '');
-        $users  = $this->auth->loadUsers();
+        $users  = $this->userRepository->loadAll();
 
         if (isset($users[$userId])) {
             $users[$userId]['group'] = $group;
-            $this->auth->saveUsers($users);
+            $this->userRepository->saveAll($users);
 
             return "Gruppe für '" . ($users[$userId]['username'] ?? $userId) . "' geändert.";
         }
@@ -298,7 +302,7 @@ final readonly class UserController
         // FIX: Wir nutzen jetzt die user_id statt username
         $userId = (string) ($post['user_id'] ?? '');
 
-        return $this->auth->uploadImage('user', $userId, $file)
+        return $this->userRepository->uploadImage($userId, $file)
             ? 'Profilbild aktualisiert.'
             : 'Fehler beim Verarbeiten.';
     }
@@ -324,11 +328,11 @@ final readonly class UserController
             return 'Fehler: Ungültige Benutzer-ID (Sicherheitsrichtlinie).';
         }
 
-        $users = $this->auth->loadUsers();
+        $users = $this->userRepository->loadAll();
         if (isset($users[$userId])) {
             $name = $users[$userId]['username'] ?? $userId;
             unset($users[$userId]);
-            $this->auth->saveUsers($users);
+            $this->userRepository->saveAll($users);
 
             // TODO Pfad in Config storage.php
             // Physische Dateileichen (Profilbilder) direkt mitlöschen!
@@ -356,7 +360,7 @@ final readonly class UserController
      */
     private function handleSaveGroup(array $post, ?array $file = null): string
     {
-        $groups = $this->auth->loadGroups();
+        $groups = $this->groupRepository->loadAll();
 
         // 1. Prüfen: Bestehende Gruppe (Update) oder Neue Gruppe (Create)?
         $groupId     = (string) ($post['group_id'] ?? '');
@@ -388,14 +392,14 @@ final readonly class UserController
             'permissions' => $newPermissions,
         ];
 
-        $this->auth->saveGroups($groups);
+        $this->groupRepository->saveAll($groups);
 
         // 5. Icon-Handling
         // Wir schauen nach 'group_icon' (aus dem Neu-Formular) ODER 'avatar' (aus dem Bearbeiten-Formular)
         // $iconFile = $_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null);
         $iconFile = $file ?? ($_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null));
         if ($iconFile && $iconFile['error'] === 0) {
-            $this->auth->uploadImage('group', $groupId, $iconFile);
+            $this->groupRepository->uploadImage($groupId, $iconFile);
         }
 
         // 6. Rückmeldung
@@ -427,13 +431,13 @@ final readonly class UserController
             return '';
         }
 
-        $groups = $this->auth->loadGroups();
+        $groups = $this->groupRepository->loadAll();
         if (! isset($groups[$gid])) {
             return 'Fehler: Gruppe nicht gefunden.';
         }
 
         $groups[$gid]['name'] = $newName;
-        $this->auth->saveGroups($groups);
+        $this->groupRepository->saveAll($groups);
 
         return "Gruppe wurde in '$newName' umbenannt.";
     }
@@ -453,7 +457,7 @@ final readonly class UserController
         }
         $gid = (string) ($post['group_id'] ?? '');
 
-        return $this->auth->uploadImage('group', $gid, $file)
+        return $this->groupRepository->uploadImage($gid, $file)
             ? 'Gruppen-Icon aktualisiert.'
             : 'Fehler beim Verarbeiten.';
     }
@@ -477,11 +481,11 @@ final readonly class UserController
             return 'Fehler: Ungültige Gruppen-ID (Sicherheitsrichtlinie).';
         }
 
-        $groups = $this->auth->loadGroups();
+        $groups = $this->groupRepository->loadAll();
 
         if (isset($groups[$id])) {
             unset($groups[$id]);
-            $this->auth->saveGroups($groups);
+            $this->groupRepository->saveAll($groups);
 
             // Physische Dateileichen (Gruppen-Icons) direkt mitlöschen!
             $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $id . '.webp';
@@ -514,7 +518,7 @@ final readonly class UserController
             return 'Fehler: Name darf nicht leer sein.';
         }
 
-        $users = $this->auth->loadUsers();
+        $users = $this->userRepository->loadAll();
 
         // Eindeutigkeit beim Umbenennen prüfen!
         foreach ($users as $id => $userData) {
@@ -524,7 +528,7 @@ final readonly class UserController
         }
 
         $users[$userId]['username'] = $newName;
-        $this->auth->saveUsers($users);
+        $this->userRepository->saveAll($users);
 
         // Session-Anzeige aktualisieren
         $_SESSION['admin_user'] = $newName;
@@ -546,7 +550,7 @@ final readonly class UserController
         $newPass = (string) ($post['new_password'] ?? '');
         $confirm = (string) ($post['confirm_password'] ?? '');
 
-        $users = $this->auth->loadUsers();
+        $users = $this->userRepository->loadAll();
         if (! isset($users[$userId]) || ! \password_verify($oldPass, (string) $users[$userId]['pass'])) {
             return 'Fehler: Das aktuelle Passwort ist nicht korrekt.';
         }
@@ -558,7 +562,7 @@ final readonly class UserController
         }
 
         $users[$userId]['pass'] = \password_hash($newPass, \PASSWORD_DEFAULT);
-        $this->auth->saveUsers($users);
+        $this->userRepository->saveAll($users);
 
         return 'Erfolg: Ihr Passwort wurde geändert.';
     }
@@ -577,7 +581,7 @@ final readonly class UserController
             return 'Fehler beim Upload.';
         }
 
-        if ($this->auth->uploadImage('user', $userId, $file)) {
+        if ($this->userRepository->uploadImage($userId, $file)) {
             return 'Erfolg: Profilbild wurde aktualisiert.';
         }
 
@@ -600,10 +604,12 @@ final readonly class UserController
         $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
 
         $templateData = \array_merge([
-            'auth'     => $this->auth,
-            'config'   => $this->config,
-            'appRoot'  => $appRoot . '/',
-            'settings' => [
+            'appRoot'         => $appRoot . '/',
+            'auth'            => $this->auth,
+            'config'          => $this->config,
+            'userRepository'  => $this->userRepository,
+            'groupRepository' => $this->groupRepository,
+            'settings'        => [
                 'base_url'     => $this->config->getBaseUrl(),
                 'vereins_name' => $this->config->get('vereins_name'),
             ],

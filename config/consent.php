@@ -18,8 +18,8 @@ return [
     'texts'   => [
         'title'            => 'Datenschutz & Cookies',
         'description'      => 'Wir nutzen Cookies und ähnliche Technologien auf unserer Website. Einige von ihnen sind essenziell für den Betrieb der Seite (z. B. für den Antragsfortschritt), während andere uns helfen, diese Website zu verbessern.',
-        'accept_all'       => 'Ich mag Cookies, die dabei helfen diese Website zu verbessern! [Alle akzeptieren]', // Alle akzeptieren
-        'accept_essential' => 'Ich mag keine Cookies! Ich akzeptiere nur die unbedingt nötigen, damit alles funktioniert. [Nur essenzielle]', // Nur essenzielle
+        'accept_all'       => '🍪 Ich mag Cookies! [Alle akzeptieren] 🍪', // Alle akzeptieren // Ich mag Cookies, die dabei helfen diese Website zu verbessern! [Alle akzeptieren]
+        'accept_essential' => '[Nur essenzielle]', // Nur essenzielle // Ich mag keine Cookies! Ich akzeptiere nur die unbedingt nötigen, damit alles funktioniert. [Nur essenzielle]
         'save_selection'   => 'Auswahl speichern',
         'show_details'     => 'Details einblenden',
         'hide_details'     => 'Details ausblenden',

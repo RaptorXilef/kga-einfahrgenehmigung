@@ -1,30 +1,31 @@
 {
   "whitelist": [
+    "CHANGELOG.md",
+    "composer.json",
     "config/",
+    "package.json",
     "public/",
+    "README.md",
     "src/Application/",
     "src/Bootstrap/",
     "src/Contracts/",
     "src/Core/",
     "src/Infrastructure/",
+    "storage/.htaccess",
     "templates/",
-    "vendor/",
-    "CHANGELOG.md",
-    "README.md",
-    "composer.json",
-    "package.json",
-    "update_manifest.json"
+    "update_manifest.json",
+    "vendor/"
   ],
   "blacklist": [
-    "public/assets/img/user_images/",
-    "public/assets/img/group_images/",
-    "public/assets/img/logo/kga.webp",
-    "public/assets/img/logo/kga.png",
-    "public/assets/img/logo/kga.jpg",
-    "public/assets/img/logo/kga.jpeg",
     "public/assets/documents/",
+    "public/assets/img/group_images/",
+    "public/assets/img/logo/kga.jpeg",
+    "public/assets/img/logo/kga.jpg",
+    "public/assets/img/logo/kga.png",
+    "public/assets/img/logo/kga.webp",
+    "public/assets/img/user_images/",
     "src/assets/",
     "storage/"
   ],
-  "core_configs": ["config/sql_schema.php", "config/permissions.php", "config/.htaccess"]
+  "core_configs": ["config/.htaccess", "config/permissions.php", "config/sql_schema.php"]
 }

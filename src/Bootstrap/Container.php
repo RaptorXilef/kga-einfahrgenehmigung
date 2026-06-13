@@ -284,6 +284,8 @@ class Container
             $this->get(\PDO::class),
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
+            $this->get(GroupRepositoryInterface::class),
+            $this->get(UserRepositoryInterface::class),
         );
 
         $this->services[UserRepositoryInterface::class] = fn () => new UserRepository(
@@ -385,6 +387,7 @@ class Container
             $this->get(BackupService::class),
             $this->get(ConfigInterface::class),
             $this->get(CronScheduler::class),
+            $this->get(GroupRepositoryInterface::class),
             $this->get(HolidayService::class),
             $this->get(MailServiceInterface::class),
             $this->get(MigrationService::class),
@@ -392,6 +395,7 @@ class Container
             $this->get(ReportingService::class),
             $this->get(StorageBootstrapper::class),
             $this->get(StorageInterface::class),
+            $this->get(UserRepositoryInterface::class),
             $this->get(VoucherRepositoryInterface::class),
         );
 
@@ -399,14 +403,18 @@ class Container
         $this->services[UserController::class] = fn (): UserController => new UserController(
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
+            $this->get(GroupRepositoryInterface::class),
+            $this->get(UserRepositoryInterface::class),
         );
 
         // CheckController benötigt jetzt den HolidayService für die Live-Prüfung
         $this->services[CheckController::class] = fn (): CheckController => new CheckController(
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
+            $this->get(GroupRepositoryInterface::class),
             $this->get(HolidayService::class),
             $this->get(StorageInterface::class),
+            $this->get(UserRepositoryInterface::class),
         );
 
         // PermitController für index.php

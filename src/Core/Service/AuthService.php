@@ -86,7 +86,7 @@ final readonly class AuthService
         }
 
         // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
-        $users     = $this->loadUsers();
+        $users     = $this->userRepository->loadAll();
         $userFound = false;
 
         foreach ($users as $userId => $userData) {
@@ -157,7 +157,7 @@ final readonly class AuthService
             return;
         }
 
-        $users = $this->loadUsers();
+        $users = $this->userRepository->loadAll();
 
         // Sofortiger Kick, wenn der reguläre User gelöscht wurde
         if (! isset($users[$userId])) {
@@ -215,7 +215,7 @@ final readonly class AuthService
 
         // 2. GRUPPEN-WILDCARD CHECK
         // Wir laden die Gruppe und schauen, ob sie den '*' (Master) direkt hat
-        $groups   = $this->loadGroups();
+        $groups   = $this->groupRepository->loadAll();
         $groupKey = $_SESSION['admin_group'] ?? 'guest';
 
         if (isset($groups[$groupKey]['permissions']) && \in_array('*', $groups[$groupKey]['permissions'], true)) {
@@ -235,7 +235,7 @@ final readonly class AuthService
      */
     public function refreshSessionPermissions(string $groupId): void
     {
-        $groups     = $this->loadGroups();
+        $groups     = $this->groupRepository->loadAll();
         $groupPerms = $groups[$groupId]['permissions'] ?? [];
         $structure  = $this->config->get('structure', []);
 
@@ -304,67 +304,7 @@ final readonly class AuthService
         $_SESSION['admin_group'] = $groupId;
     }
 
-    // --- Data Persistence Gateways (Repository Proxies) ---
-    // TODO Proxies später entfernen, so refactorieren, dass sie nicht mehr gebraucht werden
-    // Die Controller und andere Services sollten die Repositories direkt über ihre jeweiligen Interfaces ansprechen.
-
-    public function loadUsers(): array
-    {
-        return $this->userRepository->loadAll();
-    }
-
-    public function saveUsers(array $users, bool $forceSql = false): void
-    {
-        $this->userRepository->saveAll($users, $forceSql);
-    }
-
-    public function loadGroups(): array
-    {
-        return $this->groupRepository->loadAll();
-    }
-
-    public function saveGroups(array $groups, bool $forceSql = false): void
-    {
-        $this->groupRepository->saveAll($groups, $forceSql);
-    }
-
     // --- Media & Identity Utilities ---
-
-    /**
-     * Gibt den Browser-Pfad zum Profilbild des aktuell angemeldeten Benutzers zurück.
-     * public function getProfilePicture(string $username = ''): string
-     */
-    public function getProfilePicture(): string
-    {
-        return $this->getImage('user', (string) ($_SESSION['user_id'] ?? 'default'));
-    }
-
-    /**
-     * Ermittelt den Web-Pfad für Ressourcen (User-Avatare oder Gruppen-Icons) und handhabt Fallbacks.
-     * Hängt zur Cache-Busting-Sicherheit den Unix-Zeitstempel der Dateimodifikation als Version an.
-     *
-     * @param string $type Die Kategorie ('user' oder 'group').
-     * @param string $id   Der Dateiname ohne Endung (ID des Objekts).
-     *
-     * @return string Vollständig qualifizierte URL zum Bild.
-     */
-    public function getImage(string $type, string $id): string
-    {
-        if (\str_contains($type, 'user')) {
-            return $this->userRepository->getImageUrl($id);
-        }
-
-        return $this->groupRepository->getImageUrl($id);
-    }
-
-    public function uploadImage(string $type, string $id, array $file): bool
-    {
-        if (\str_contains($type, 'user')) {
-            return $this->userRepository->uploadImage($id, $file);
-        }
-
-        return $this->groupRepository->uploadImage($id, $file);
-    }
 
     /**
      * Generiert eine eindeutige ID (z.B. für neue User oder Gruppen).

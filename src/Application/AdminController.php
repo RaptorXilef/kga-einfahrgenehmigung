@@ -6,7 +6,9 @@ namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
@@ -43,6 +45,7 @@ final readonly class AdminController
         private BackupService $backupService,
         private ConfigInterface $config,
         private CronScheduler $cronScheduler,
+        private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
         private MigrationService $migrationService,
@@ -50,6 +53,7 @@ final readonly class AdminController
         private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
+        private UserRepositoryInterface $userRepository,
         private VoucherRepositoryInterface $voucherRepository,
     ) {
     }
@@ -638,6 +642,8 @@ final readonly class AdminController
         if (! isset($data['auth'])) {
             $data['auth'] = $this->auth;
         }
+        $data['userRepository']  = $this->userRepository;
+        $data['groupRepository'] = $this->groupRepository;
 
         // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
         // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
