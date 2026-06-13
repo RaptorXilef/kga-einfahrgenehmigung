@@ -230,6 +230,7 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        // TODO Prüfen, ob es unter registerInfrastructure() überhaupt passt, oder ob der Name passt
         // 1. Der echte SMTP-Versender (umbenannt, damit wir ihn intern nutzen können)
         $this->services['mail.smtp'] = fn (): SmtpMailService => new SmtpMailService(
             $this->get(\PDO::class),
@@ -281,10 +282,12 @@ class Container
             $this->get(MailLogInterface::class),
             $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
+            $this->get(StorageInterface::class),
             $this->get(VerificationRepositoryInterface::class),
             $this->get(VoucherRepositoryInterface::class),
         );
 
+        // TODO Prüfen, ob es unter registerInfrastructure() überhaupt passt
         // StorageBootstrapper - Verwaltung der Migration
         $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
             $this->get(\PDO::class),
@@ -308,6 +311,7 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        // TODO Prüfen, ob es unter registerInfrastructure() überhaupt passt
         $this->services[CronScheduler::class] = fn () => new CronScheduler(
             $this->get(BackupService::class),
             $this->get(ConfigInterface::class),
@@ -398,6 +402,7 @@ class Container
             $this->get(MailLogInterface::class),
             $this->get(MailServiceInterface::class),
             $this->get(MigrationService::class),
+            $this->get(PermitArchiveRepositoryInterface::class),
             $this->get(PermitService::class),
             $this->get(ReportingService::class),
             $this->get(StorageBootstrapper::class),

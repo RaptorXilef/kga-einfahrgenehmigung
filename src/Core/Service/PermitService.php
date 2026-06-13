@@ -498,7 +498,7 @@ final readonly class PermitService
             if (\file_exists($archivePath)) {
                 $rawArchive = JsonHelper::read($archivePath);
                 foreach ($rawArchive as $item) {
-                    $archived[] = $this->arrayToEntity($item);
+                    $archived[] = $this->storage->mapToEntity($item);
                 }
             }
         }
@@ -729,41 +729,6 @@ final readonly class PermitService
         }
 
         return \count($toArchive);
-    }
-
-    // TODO Methode ggf. weg refactorieren
-    /**
-     * Cronjob-Aktion: DSGVO-Löschung
-     *
-     * Trigger für die DSGVO-konforme Anonymisierung veralteter Archiv-Einträge.
-     *
-     * @param int $yearsThreshold Die Aufbewahrungsfrist in Jahren.
-     *
-     * @return int Anzahl der anonymisierten Datensätze.
-     */
-    public function anonymizeOldArchiveRecords(int $yearsThreshold = 10): int
-    {
-        return $this->archiveRepository->anonymizeOldRecords($yearsThreshold);
-    }
-
-    // --- Infrastruktur & Daten-Migration ---
-
-    // TODO savePendingData Methode weg refactorieren (Siehe Notizen PermitService-Ref.txt)
-    /**
-     * Öffentliche Brücke für die Migration, um Warteraum-Daten zu speichern.
-     *
-     * Schreibt Rohdaten direkt in die internen, temporären Tabellen/Dateien des Registrierungsprozesses.
-     *
-     * @param string               $category Die Tabellen- oder Dateikategorie.
-     * @param array<string, mixed> $data     Das Speicher-Array.
-     */
-    public function savePendingData(string $category, array $data, bool $forceSql = false): void
-    {
-        if ($category === 'pending_verification') {
-            $this->verificationRepository->savePending($data, $forceSql);
-        } else {
-            $this->verificationRepository->saveVerified($data, $forceSql);
-        }
     }
 
     // --- Internal Dispatchers & Core Generation (Private) ---
@@ -1028,17 +993,6 @@ final readonly class PermitService
     }
 
     // --- Data Hydration & Infrastructure Getters ---
-
-    // TODO arrayToEntity Methode weg refactorieren (Siehe Notizen PermitService-Ref.txt)
-    /**
-     * Brückenmethode zur Hydrierung von assoziativen Speicher-Arrays in starke Permit-Entitäten.
-     *
-     * @param array<string, mixed> $data
-     */
-    public function arrayToEntity(array $data): Permit
-    {
-        return $this->storage->mapToEntity($data);
-    }
 
     /**
      * Wandelt eine Permit-Entität in ein flaches Array für das Archiv um.

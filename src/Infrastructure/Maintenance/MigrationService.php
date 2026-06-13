@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -44,6 +45,7 @@ final readonly class MigrationService
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
         private PermitService $permitService,
+        private StorageInterface $storage,
         private VerificationRepositoryInterface $verificationRepository,
         private VoucherRepositoryInterface $voucherRepository,
     ) {
@@ -451,12 +453,12 @@ final readonly class MigrationService
             'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
             'mail_log'             => $this->mailLog->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
-            'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
-            'permits_archive'      => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
+            'pending_verification' => $this->verificationRepository->savePending($data, true),
+            'permits_archive'      => $this->permitService->getArchiveRepository()->archivePermits(0, $data), // (Wird in TODO 3 später auch noch durch $this->archiveRepository ersetzt)
             'permits'              => $this->migratePermitsToSql($data),
             'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
             'users'                => $this->userRepository->saveAll($data, true),
-            'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
+            'verified_pending'     => $this->verificationRepository->saveVerified($data, true),
             'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
             'vouchers'             => $this->voucherRepository->saveAll($data, true),
             default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
@@ -482,7 +484,7 @@ final readonly class MigrationService
             if (! isset($item['code'])) {
                 $item['code'] = $key;
             }
-            $storage->save($this->permitService->arrayToEntity($item));
+            $storage->save($this->storage->mapToEntity($item));
         }
     }
 

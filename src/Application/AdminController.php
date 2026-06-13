@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
@@ -51,6 +52,7 @@ final readonly class AdminController
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
         private MigrationService $migrationService,
+        private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
         private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,
@@ -579,7 +581,7 @@ final readonly class AdminController
 
         try {
             // 10 Jahre gesetzliche Aufbewahrungsfrist
-            $count = $this->permitService->anonymizeOldArchiveRecords(10);
+            $count = $this->archiveRepository->anonymizeOldRecords(10);
 
             if ($count === 0) {
                 return 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.';
