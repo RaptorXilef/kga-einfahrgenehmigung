@@ -66,32 +66,4 @@ final readonly class MailQueueService implements MailServiceInterface
             }
         });
     }
-
-    // --- Auditing & Logging Proxies ---
-    // TODO Später entfernen, so refactorieren, dass sie nicht mehr gebraucht werden
-
-    /**
-     * Lädt alle gespeicherten E-Mail-Protokolle (Logs).
-     *
-     * @return array<int, array<string, mixed>> Ein Array mit den historischen E-Mail-Log-Einträgen.
-     */
-    public function loadLogs(): array
-    {
-        return $this->realMailService->loadLogs();
-    }
-
-    // TODO Später entfernen, so refactorieren, dass sie nicht mehr gebraucht werden
-    /**
-     * Speichert oder überschreibt E-Mail-Protokolle im System.
-     *
-     * @param array<int, array<string, mixed>> $logs     Die zu speichernden Log-Einträge.
-     * @param bool                             $forceSql Erzwingt das Speichern in der SQL-Datenbank
-     *                                                   (hilfreich für Migrationen).
-     */
-    public function saveLogs(array $logs, bool $forceSql = false): void
-    {
-        // Die Queue selbst speichert keine Logs, sie leitet den Befehl
-        // an den echten Mail-Service (SmtpMailService) weiter.
-        $this->realMailService->saveLogs($logs, $forceSql);
-    }
 }

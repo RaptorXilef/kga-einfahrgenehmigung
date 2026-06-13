@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -47,6 +48,7 @@ final readonly class AdminController
         private CronScheduler $cronScheduler,
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
+        private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
         private MigrationService $migrationService,
         private PermitService $permitService,
@@ -458,7 +460,7 @@ final readonly class AdminController
         }
 
         $timestamp = (string) ($post['timestamp'] ?? '');
-        $logs      = $this->mailService->loadLogs();
+        $logs      = $this->mailLog->loadLogs();
 
         foreach ($logs as $log) {
             if (! (($log['timestamp'] ?? '') === $timestamp)) {
@@ -751,7 +753,7 @@ final readonly class AdminController
             'filterStart'      => $filterStart,
             'filterType'       => $filterType, // An die Control-Bar übergeben
             'itemsPerPage'     => $itemsPerPage, // Paginierungs-Werte
-            'mailLogs'         => $this->mailService->loadLogs(),
+            'mailLogs'         => $this->mailLog->loadLogs(),
             'message'          => $message,
             'migrationService' => $this->migrationService,
             'periodStats'      => $this->reportingService->calculateDetailedStats($filtered),

@@ -15,6 +15,7 @@ use App\Application\SuccessController;
 use App\Application\UserController;
 use App\Application\VerificationController;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -235,6 +236,9 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        // Das Log-Interface verweist direkt auf den echten SMTP-Service
+        $this->services[MailLogInterface::class] = fn () => $this->get('mail.smtp');
+
         // 2. Das offizielle Interface zeigt nun auf die Queue!
         $this->services[MailServiceInterface::class] = fn (): MailQueueService => new MailQueueService(
             $this->get(MailQueueRepositoryInterface::class),
@@ -266,6 +270,7 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        // TODO Prüfen, ob es unter registerCoreServices() besser passt
         // Migration Service
         $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
             $this->get(\PDO::class),
@@ -273,6 +278,7 @@ class Container
             $this->get(BackupService::class),
             $this->get(ConfigInterface::class),
             $this->get(MagicLinkRepositoryInterface::class),
+            $this->get(MailLogInterface::class),
             $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
             $this->get(VerificationRepositoryInterface::class),
@@ -389,6 +395,7 @@ class Container
             $this->get(CronScheduler::class),
             $this->get(GroupRepositoryInterface::class),
             $this->get(HolidayService::class),
+            $this->get(MailLogInterface::class),
             $this->get(MailServiceInterface::class),
             $this->get(MigrationService::class),
             $this->get(PermitService::class),

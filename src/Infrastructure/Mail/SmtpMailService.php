@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Mail;
 
+use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Storage\JsonHelper;
@@ -23,7 +24,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class SmtpMailService implements MailServiceInterface
+final readonly class SmtpMailService implements MailLogInterface, MailServiceInterface
 {
     use SafeJsonWriterTrait;
 

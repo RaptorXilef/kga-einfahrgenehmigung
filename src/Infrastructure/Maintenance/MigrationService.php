@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
@@ -40,6 +41,7 @@ final readonly class MigrationService
         private BackupService $backupService,
         private ConfigInterface $config,
         private MagicLinkRepositoryInterface $magicLinkRepository,
+        private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
         private PermitService $permitService,
         private VerificationRepositoryInterface $verificationRepository,
@@ -445,15 +447,15 @@ final readonly class MigrationService
         // Das ist sauberer als genericSqlInsert, da die Services die Spalten kennen.
         // [x] Sortiert
         match ($key) {
-            'groups'               => $this->authService->saveGroups($data, true),
+            'groups'               => $this->groupRepository->saveAll($data, true),
             'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
-            'mail_log'             => $this->mailService->saveLogs($data, true),
+            'mail_log'             => $this->mailLog->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
             'pending_verification' => $this->permitService->savePendingData('pending_verification', $data, true),
             'permits_archive'      => $this->permitService->getArchiveRepository()->archivePermits(0, $data),
             'permits'              => $this->migratePermitsToSql($data),
             'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
-            'users'                => $this->authService->saveUsers($data, true),
+            'users'                => $this->userRepository->saveAll($data, true),
             'verified_pending'     => $this->permitService->savePendingData('verified_pending', $data, true),
             'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
             'vouchers'             => $this->voucherRepository->saveAll($data, true),
