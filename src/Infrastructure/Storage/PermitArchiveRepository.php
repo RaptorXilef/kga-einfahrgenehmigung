@@ -22,6 +22,7 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 final readonly class PermitArchiveRepository implements PermitArchiveRepositoryInterface
 {
     use SafeJsonWriterTrait;
+    use StorageMapperTrait;
 
     public function __construct(
         private ?\PDO $pdo,
@@ -85,7 +86,9 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )";
             $stmt = $this->pdo->prepare($sql);
-            foreach ($permitsToArchive as $item) {
+            foreach ($permitsToArchive as $permit) {
+                // Wandelt das Objekt direkt vor dem Speichern in ein Array um
+                $item = $this->flattenEntity($permit);
                 $stmt->execute([
                     $item['code'],
                     $item['template_key'],
@@ -112,7 +115,8 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
 
             // Mit Array-Keys arbeiten für schnelles Überschreiben
             foreach ($permitsToArchive as $permit) {
-                $existing[$permit['code']] = $permit;
+                // Hier nutzen wir flattenEntity für die JSON-Datei
+                $existing[$permit->code] = $this->flattenEntity($permit);
             }
 
             $this->writeJsonSafely($archivePath, $existing);

@@ -84,4 +84,7 @@ interface StorageInterface
      * @return bool True, wenn der Datensatz erfolgreich gelöscht wurde.
      */
     public function delete(string $code): bool;
+
+    // TODO DOCBLOCK
+    public function deleteMultiple(array $codes): int;
 }

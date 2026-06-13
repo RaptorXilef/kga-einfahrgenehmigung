@@ -126,6 +126,49 @@ final readonly class JsonStorage implements StorageInterface
         return false;
     }
 
+    // TODO DOCBLOCK
+    public function deleteMultiple(array $codes): int
+    {
+        if (empty($codes)) {
+            return 0;
+        }
+
+        $fp = \fopen($this->filePath, 'c+');
+        if (! $fp) {
+            return 0;
+        }
+
+        if (\flock($fp, \LOCK_EX)) {
+            $stat = \fstat($fp);
+            $raw  = $stat['size'] > 0 ? \fread($fp, $stat['size']) : '';
+            $data = JsonHelper::decode((string) $raw);
+
+            $deletedCount = 0;
+            foreach ($codes as $code) {
+                if (isset($data[$code])) {
+                    unset($data[$code]);
+                    ++$deletedCount;
+                }
+            }
+
+            if ($deletedCount > 0) {
+                \ftruncate($fp, 0);
+                \fseek($fp, 0);
+                $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+                \fwrite($fp, $jsonStr);
+            }
+
+            \fflush($fp);
+            \flock($fp, \LOCK_UN);
+            \fclose($fp);
+
+            return $deletedCount;
+        }
+        \fclose($fp);
+
+        return 0;
+    }
+
     // --- Public Read ---
 
     /**

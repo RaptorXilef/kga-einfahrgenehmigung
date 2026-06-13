@@ -661,7 +661,6 @@ final readonly class PermitService
 
     // --- Automated Maintenance Tasks ---
 
-    // TODO Methode ggf. aus PermitService weitgehend weg refactorieren
     /**
      * Cronjob-Aktion: Archivierung
      *
@@ -669,8 +668,9 @@ final readonly class PermitService
      */
     public function autoArchiveExpiredPermits(int $graceDays = 0): int
     {
-        $allPermits = $this->storage->getAll();
-        $toArchive  = [];
+        $allPermits    = $this->storage->getAll();
+        $toArchive     = [];
+        $codesToDelete = [];
 
         // Stichtag berechnen (Mitternacht)
         $cutoffDate = (new \DateTimeImmutable())->modify("-{$graceDays} days")->setTime(0, 0, 0);
@@ -681,51 +681,17 @@ final readonly class PermitService
 
                 // 2. Bedingung: Ist der Status endgültig abgeschlossen? (bezahlt oder storniert)
                 if (\in_array($permit->status->current, ['bezahlt', 'storniert'], true)) {
-                    $toArchive[] = $this->entityToArray($permit);
+                    $toArchive[]     = $permit; // Reicht das Objekt durch, nicht das Array!
+                    $codesToDelete[] = $permit->code;
                 }
             }
         }
 
         if (! empty($toArchive)) {
-            // Ins Archiv schreiben
+            // Archivieren
             $this->archiveRepository->archivePermits(0, $toArchive);
-
-            // TODO GGF. folgendes in andere passendere Klasse auslagern und hier nur aufrufen
-            // OPTIMIERUNG: Unterscheidung zwischen JSON-Massenlöschung und SQL
-            $storageEngine = $this->storage;
-            if ($storageEngine instanceof \App\Infrastructure\Storage\JsonStorage) {
-                // Bei JSON: Einmal im RAM bereinigen und mit einem einzigen I/O-Vorgang speichern
-                $cfg  = $this->config->get('storage_config')['permits'];
-                $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-                    \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-
-                $fp = @\fopen($path, 'c+');
-                if ($fp && \flock($fp, \LOCK_EX)) {
-                    $stat = \fstat($fp);
-                    $size = $stat['size'];
-                    $raw  = $size > 0 ? \fread($fp, $size) : '';
-                    $data = JsonHelper::decode((string) $raw);
-
-                    foreach ($toArchive as $item) {
-                        unset($data[$item['code']]);
-                    }
-
-                    \ftruncate($fp, 0);
-                    \fseek($fp, 0);
-                    $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-                    if (\fwrite($fp, $jsonStr) === false) {
-                        throw new \RuntimeException('Kritischer Schreibfehler beim Archivieren der abgelaufenen Genehmigungen.');
-                    }
-                    \fflush($fp);
-                    \flock($fp, \LOCK_UN);
-                    \fclose($fp);
-                }
-            } else {
-                // Bei SQL: Normale Ausführung über Prepared Statements
-                foreach ($toArchive as $item) {
-                    $this->storage->delete($item['code']);
-                }
-            }
+            // Sauber delegierte Massenlöschung
+            $this->storage->deleteMultiple($codesToDelete);
         }
 
         return \count($toArchive);
@@ -993,36 +959,6 @@ final readonly class PermitService
     }
 
     // --- Data Hydration & Infrastructure Getters ---
-
-    /**
-     * Wandelt eine Permit-Entität in ein flaches Array für das Archiv um.
-     */
-    public function entityToArray(Permit $permit): array
-    {
-        // [ ] Sortiert
-        return [
-            'code'               => $permit->code,
-            'template_key'       => $permit->template_key,
-            'name'               => $permit->owner->name,
-            'email'              => $permit->owner->email,
-            'kennzeichen'        => $permit->vehicle->kennzeichen,
-            'parzelle'           => $permit->owner->parzelle,
-            'typ'                => $permit->vehicle->typ,
-            'firma'              => $permit->vehicle->firma,
-            'zweck'              => $permit->validity->zweck,
-            'preis'              => $permit->validity->preis,
-            'von'                => $permit->validity->von->format('Y-m-d'),
-            'bis'                => $permit->validity->bis->format('Y-m-d'),
-            'status'             => $permit->status->current,
-            'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
-            'interner_kommentar' => $permit->interner_kommentar,
-            'is_anonymized'      => 0,
-            'agreements'         => \is_array($permit->agreements) ? \json_encode(
-                $permit->agreements,
-                \JSON_UNESCAPED_UNICODE,
-            ) : '{}',
-        ];
-    }
 
     /**
      * Berechnet die vom Gültigkeitszeitraum abgedeckten Kalenderquartale (z.B. für Finanzstatistiken) (1-4).

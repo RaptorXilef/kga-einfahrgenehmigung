@@ -89,6 +89,20 @@ final readonly class MySqlStorage implements StorageInterface
         return $stmt->rowCount() > 0;
     }
 
+    // TODO DOCBLOCK
+    public function deleteMultiple(array $codes): int
+    {
+        if (empty($codes)) {
+            return 0;
+        }
+
+        $placeholders = \implode(',', \array_fill(0, \count($codes), '?'));
+        $stmt         = $this->pdo->prepare("DELETE FROM `permits` WHERE code IN ($placeholders)");
+        $stmt->execute(\array_values($codes));
+
+        return $stmt->rowCount();
+    }
+
     // --- Public Read ---
 
     /**
