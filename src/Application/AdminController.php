@@ -14,6 +14,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
+use App\Core\Service\ExportService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
@@ -48,6 +49,7 @@ final readonly class AdminController
         private BackupService $backupService,
         private ConfigInterface $config,
         private CronScheduler $cronScheduler,
+        private ExportService $exportService,
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
         private MailLogInterface $mailLog,
@@ -732,11 +734,11 @@ final readonly class AdminController
 
         // Export abfangen
         if (isset($get['export'])) {
-            // FIX: Zwingende Backend-Überprüfung für Daten-Exporte!
+            // Zwingende Backend-Überprüfung für Daten-Exporte!
             if (! $this->auth->hasPermission('finance.export.execute')) {
                 exit('Fehler: Keine Berechtigung für Daten-Exporte.');
             }
-            $this->handleExport((string) $get['export'], $filtered, $filterStart, $filterEnd);
+            $this->exportService->export((string) $get['export'], $filtered, $filterStart, $filterEnd);
             exit; // Wichtig: Nach dem Download darf kein HTML mehr gesendet werden!
         }
 
@@ -770,97 +772,6 @@ final readonly class AdminController
             'voucherService'   => $this->voucherService,
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
-    }
-
-    /**
-     * Exportiert gefilterte Genehmigungsdaten als CSV oder JSON.
-     *
-     * Setzt Header und UTF-8-BOM für Excel-Kompatibilität.
-     *
-     * @param string             $format   'csv' oder 'json'.
-     * @param array<int, Permit> $filtered
-     * @param string             $start    Startdatum (Y-m-d).
-     * @param string             $end      Enddatum (Y-m-d).
-     */
-    private function handleExport(string $format, array $filtered, string $start, string $end): void
-    {
-        // Wir nutzen den Vereinsnamen aus der Config für den Dateinamen (statt hartkodiert "kga")
-        $slug = \strtolower(
-            (string) \preg_replace(
-                '/[^A-Za-z0-9]/',
-                '_',
-                (string) $this->config->get('vereins_name', 'export'),
-            ),
-        );
-
-        // Die Endung wird jetzt dynamisch über $format angehängt
-        $filename = "export_{$slug}_{$start}_bis_{$end}.{$format}";
-
-        $settings = $this->getSettingsArray();
-
-        if ($format === 'csv') {
-            \header('Content-Type: text/csv; charset=utf-8');
-            \header('Content-Disposition: attachment; filename="' . $filename . '"');
-            $output = \fopen('php://output', 'w');
-            if ($output) {
-                // 1. FEINHEIT: UTF-8 BOM für Excel (zwingend nötig für Umlaute)
-                \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF)); // UTF-8 BOM
-
-                // Hinzufügen der Parameter für Umschließung und Escape (verhindert Warning)
-                \fputcsv($output, [
-                    'Kennung',
-                    'Name',
-                    'E-Mail',
-                    'Parzelle',
-                    'Typ',
-                    'Kennzeichen',
-                    'Firma',
-                    'Zweck',
-                    'Einnahme (€)',
-                    'Status',
-                    'Erstellt am',
-                ], ';', '"', '\\');
-
-                foreach ($filtered as $permit) {
-                    $row = [
-                        $permit->code,
-                        $permit->owner->name,
-                        $permit->owner->email,
-                        $permit->owner->parzelle,
-                        $settings['vehicle_types'][$permit->vehicle->typ] ?? $permit->vehicle->typ,
-                        $permit->vehicle->kennzeichen,
-                        $permit->vehicle->firma ?? '',
-                        $permit->validity->zweck,
-                        \number_format($permit->validity->preis, 2, ',', ''),
-                        \strtoupper($permit->status->current),
-                        $permit->erstellt->format('d.m.Y H:i'),
-                    ];
-
-                    // CSV-Injection-Schutz (Formel-Neutralisierung)
-                    // Wir iterieren per Referenz, um den Wert direkt im Array zu maskieren
-                    foreach ($row as &$cell) {
-                        $firstChar = \substr((string) $cell, 0, 1);
-                        if ($cell !== '' && \in_array($firstChar, ['=', '+', '-', '@', '\t', '\r'], true)) {
-                            $cell = "'" . $cell;
-                        }
-                    }
-                    unset($cell); // Referenz sauber trennen
-
-                    \fputcsv($output, $row, ';', '"', '\\');
-                }
-                \fclose($output);
-            }
-
-            return;
-        }
-
-        if ($format !== 'json') {
-            return;
-        }
-
-        \header('Content-Type: application/json');
-        \header('Content-Disposition: attachment; filename="' . $filename . '"');
-        echo \json_encode(\array_values($filtered), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
     }
 
     /**

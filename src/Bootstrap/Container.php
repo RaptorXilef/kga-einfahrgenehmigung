@@ -29,6 +29,7 @@ use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
+use App\Core\Service\ExportService;
 use App\Core\Service\GitHubUpdaterService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\LicensePlateFormatter;
@@ -369,6 +370,10 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        $this->services[ExportService::class] = fn (): ExportService => new ExportService(
+            $this->get(ConfigInterface::class),
+        );
+
         // AuthService registrieren
         $this->services[AuthService::class] = fn (): AuthService => new AuthService(
             $this->get(ConfigInterface::class),
@@ -400,6 +405,7 @@ class Container
             $this->get(BackupService::class),
             $this->get(ConfigInterface::class),
             $this->get(CronScheduler::class),
+            $this->get(ExportService::class),
             $this->get(GroupRepositoryInterface::class),
             $this->get(HolidayService::class),
             $this->get(MailLogInterface::class),
