@@ -2,6 +2,20 @@
 
 
 
+## [0.46.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.7...v0.46.8) (2026-06-13)
+
+### 🐛 Bug Fixes
+
+* **di:** resolve residual proxy references and inject missing repositories ([ba20a81](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ba20a81b281613eb759e4af5c3523edd6f74852b))
+
+### ⚙️ Refactoring
+
+* **core:** decouple identity proxies and enforce strict repository injection ([c0efe06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c0efe062d96b4f919c5b406b459ac6b4e8a415ef))
+* **di:** decouple Law of Demeter violations from PermitService ([7d43fb0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7d43fb071d2a8735c649d102e4682c85bec031f4))
+* **mail:** apply interface segregation to purge final proxy methods ([65b7c50](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/65b7c501f51a013a8021ae985a6f0fd5349d58cb))
+* **permits:** purge data proxies from PermitService and route via direct repositories ([11a8820](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/11a882098811d2627af34b00114b2f4a317579b5))
+* **storage:** seal abstraction leaks and enforce persistence ignorance in PermitService ([a9c656b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a9c656bccfc70edce74feb6392962478bc0f86da))
+
 ## [0.46.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.6...v0.46.7) (2026-06-12)
 
 ### ⚙️ Refactoring
