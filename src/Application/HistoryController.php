@@ -222,7 +222,7 @@ final readonly class HistoryController
                         continue;
                     }
 
-                    $permits[] = $this->permitService->arrayToEntity($item);
+                    $permits[] = $this->storage->mapToEntity($item);
                 }
             }
         }

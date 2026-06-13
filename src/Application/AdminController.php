@@ -332,7 +332,7 @@ final readonly class AdminController
     private function actionToggleSuspension(array $post): string
     {
         $code   = (string) ($post['code'] ?? '');
-        $permit = $this->permitService->getStorage()->findByHash($code);
+        $permit = $this->storage->findByHash($code);
 
         if (! $permit instanceof Permit) {
             return 'Fehler: Genehmigung nicht gefunden.';

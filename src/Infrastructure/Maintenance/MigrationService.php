@@ -7,8 +7,11 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -41,11 +44,14 @@ final readonly class MigrationService
         private AuthService $authService,
         private BackupService $backupService,
         private ConfigInterface $config,
+        private GroupRepositoryInterface $groupRepository,
         private MagicLinkRepositoryInterface $magicLinkRepository,
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
+        private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
         private StorageInterface $storage,
+        private UserRepositoryInterface $userRepository,
         private VerificationRepositoryInterface $verificationRepository,
         private VoucherRepositoryInterface $voucherRepository,
     ) {
@@ -454,7 +460,7 @@ final readonly class MigrationService
             'mail_log'             => $this->mailLog->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
             'pending_verification' => $this->verificationRepository->savePending($data, true),
-            'permits_archive'      => $this->permitService->getArchiveRepository()->archivePermits(0, $data), // (Wird in TODO 3 später auch noch durch $this->archiveRepository ersetzt)
+            'permits_archive'      => $this->archiveRepository->archivePermits(0, $data),
             'permits'              => $this->migratePermitsToSql($data),
             'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
             'users'                => $this->userRepository->saveAll($data, true),
