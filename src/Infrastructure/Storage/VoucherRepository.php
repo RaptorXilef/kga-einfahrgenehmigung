@@ -53,7 +53,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
             return $vouchers;
         }
 
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
 
         return JsonHelper::read($path);
     }
@@ -69,7 +69,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         if ($cfg['type'] === 'mysql') {
             return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY redeemed_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
         }
-        $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
 
         return JsonHelper::read($path);
     }
@@ -128,13 +128,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
         }
 
         if (! $forceSql) {
-            $path = \rtrim(
-                (string) $this->config->get('root_path'),
-                '/\\',
-            ) . '/' . \ltrim(
-                (string) $this->config->get('storage_path_prefix'),
-                '/\\',
-            ) . $cfg['file'];
+            $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $vouchers);
         }
     }
@@ -159,7 +153,7 @@ final readonly class VoucherRepository implements VoucherRepositoryInterface
                 'user_plot'   => $archiveEntry['user_plot'],
             ]);
         } else {
-            $archivePath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $arcCfg['file'];
+            $archivePath = $this->config->getStoragePath($arcCfg['file']);
             $archive     = JsonHelper::read($archivePath);
             $archive[]   = $archiveEntry;
             $this->writeJsonSafely($archivePath, $archive);

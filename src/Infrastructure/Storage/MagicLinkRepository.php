@@ -52,7 +52,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
                 }
             }
         } else {
-            $path = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+            $path = $this->config->getStoragePath($cfg['file']);
             if (\file_exists($path)) {
                 $links = JsonHelper::read($path);
             }
@@ -79,7 +79,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
         if ($useSql && $this->pdo instanceof \PDO) {
-            $this->pdo->beginTransaction(); // <-- FIX: Transaktion starten
+            $this->pdo->beginTransaction(); // Transaktion starten
 
             try {
                 $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
@@ -98,9 +98,9 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
                     }
                     $stmt->execute([$token, $d['email'], $d['code'], $exp]);
                 }
-                $this->pdo->commit(); // <-- FIX: Bei Erfolg speichern
+                $this->pdo->commit(); //  Bei Erfolg speichern
             } catch (\Exception $e) {
-                $this->pdo->rollBack(); // <-- FIX: Bei Fehler Zustand wiederherstellen
+                $this->pdo->rollBack(); // Bei Fehler Zustand wiederherstellen
 
                 throw $e;
             }
@@ -110,13 +110,7 @@ final readonly class MagicLinkRepository implements MagicLinkRepositoryInterface
         }
 
         if (! $forceSql) {
-            $path = \rtrim(
-                (string) $this->config->get('root_path'),
-                '/\\',
-            ) . '/' . \ltrim(
-                (string) $this->config->get('storage_path_prefix'),
-                '/\\',
-            ) . $cfg['file'];
+            $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $links, \JSON_PRETTY_PRINT);
         }
     }

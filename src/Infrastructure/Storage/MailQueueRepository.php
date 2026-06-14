@@ -49,7 +49,7 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
             $stmt = $this->pdo->prepare('INSERT INTO `mail_queue` (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)');
             $stmt->execute([$recipient, $subject, $template, $payload, APP_REQUEST_TIME_STR]);
         } else {
-            $path    = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+            $path    = $this->config->getStoragePath($cfg['file']);
             $queue   = JsonHelper::read($path);
             $queue[] = [
                 'recipient'  => $recipient,

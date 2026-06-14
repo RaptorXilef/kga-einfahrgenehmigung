@@ -50,7 +50,7 @@ final readonly class UserRepository implements UserRepositoryInterface
             return $users;
         }
 
-        $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
 
         return JsonHelper::read($path);
     }
@@ -92,13 +92,7 @@ final readonly class UserRepository implements UserRepositoryInterface
         }
 
         if (! $forceSql) {
-            $path = \rtrim(
-                (string) $this->config->get('root_path'),
-                '/\\',
-            ) . '/' . \ltrim(
-                (string) $this->config->get('storage_path_prefix'),
-                '/\\',
-            ) . $cfg['file'];
+            $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $users);
         }
     }
