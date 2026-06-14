@@ -9,8 +9,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
 /**
- * TODO Prüfen, ob die Klasse weg kann, da PermitController eigentlich alles abdeckt?!?
- *
  * Controller zur Abwicklung und Erfassung externer Zahlungen (z.B. PayPal-Webhook/Capture).
  *
  * Verwaltet zusätzlich die Erstellung von Erstanträgen sowie Vorbefüllungen durch Gutscheine.
