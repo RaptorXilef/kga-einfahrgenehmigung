@@ -2,6 +2,18 @@
 
 
 
+## [0.46.10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.9...v0.46.10) (2026-06-14)
+
+### ⚙️ Refactoring
+
+* **arch:** realign maintenance services to domain core and enforce strict deptrac boundaries ([d93189e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d93189e12cb51041f89feb18053bad64c17b2365))
+* **di:** extract complex instantiation logic from Container to dedicated Factories ([3e4d397](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3e4d39741b8bdf8c12c08d93fe8021fc4b14994a))
+
+### 🧹 Chore / Maintenance
+
+* **di:** finalize container categorization and purge dead legacy code ([8c27988](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8c279882472f76583c5b694bf3651153108fb7d4))
+* **di:** restructure and document dependency injection container ([f4232c9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f4232c992369aebbdcf5323541a78b26b99ec46e))
+
 ## [0.46.9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.8...v0.46.9) (2026-06-14)
 
 ### 🐛 Bug Fixes
