@@ -2,6 +2,19 @@
 
 
 
+## [0.46.11](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.10...v0.46.11) (2026-06-14)
+
+### 🐛 Bug Fixes
+
+* **mail:** resolve lingering path boilerplate and race condition in mail logger ([e1685a8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e1685a88f3bfbb6b3077e8e6ee0a758b3048ca25))
+
+### ⚙️ Refactoring
+
+* **core:** eradicate boilerplate via DRY extraction (JSON locking, paths, CSRF) ([c2ab758](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c2ab758fec9297d2d455e96b6ece1ce11fe47237))
+* **core:** eradicate boilerplate via DRY extraction (JSON locking, paths, CSRF) ([cf5608f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cf5608fdb4aa4811071a56bcd31d0e2bd456d93a))
+* **storage:** apply centralized path resolution in StorageFactory ([52d9ee3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/52d9ee36fbdb162ac1abeaa8ceca3530fe69b89a))
+* **storage:** strictly centralize storage path resolutions ([9624d56](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9624d56170e24afdd2a31e493e8e3697c114f183))
+
 ## [0.46.10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.9...v0.46.10) (2026-06-14)
 
 ### ⚙️ Refactoring
