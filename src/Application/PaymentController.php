@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Response\JsonResponse;
-use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -23,7 +22,6 @@ use App\Core\Service\PermitService;
 final readonly class PaymentController
 {
     public function __construct(
-        private ConfigInterface $config,
         private PermitService $permitService,
     ) {
     }

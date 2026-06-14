@@ -44,20 +44,19 @@ use App\Core\Service\ReportingService;
 use App\Core\Service\UpdateMigrationService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Config\Config;
+use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\GroupRepository;
-use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MagicLinkRepository;
 use App\Infrastructure\Storage\MailQueueRepository;
-use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\PermitArchiveRepository;
+use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\Storage\UserRepository;
 use App\Infrastructure\Storage\VerificationRepository;
 use App\Infrastructure\Storage\VoucherRepository;
-use PDO;
 
 /**
  * Dependency Injection (DI) Container der Anwendung.
@@ -122,103 +121,16 @@ class Container
      */
     private function registerInfrastructure(): void
     {
-        // TODO PDO wenn möglich Outsourcen in passendere Klasse
-        // 1. Zentrale PDO Verbindung (Jetzt intelligent & blitzschnell)
-        $this->services[\PDO::class] = function (): ?\PDO {
-            $db = $this->config->get('database', []);
+        // 1. Zentrale PDO Verbindung (Ausgelagert in Factory)
+        $this->services[\PDO::class] = fn (): ?\PDO => PdoFactory::create(
+            $this->get(ConfigInterface::class),
+        );
 
-            // Prüfen, ob der Admin MySQL explizit aktiviert hat
-            if (! isset($db['enabled']) || $db['enabled'] === false) {
-                return null;
-            }
-
-            // Optionalen Port-String zusammenbauen
-            $portStr = ! empty($db['port']) ? ";port={$db['port']}" : '';
-            // Port-String in DSN integrieren
-            $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
-            $pdo       = null;
-
-            try {
-                // Normaler Verbindungsversuch
-                $pdo = new \PDO($dsnWithDb, $db['user'], $db['pass'], [
-                    \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                    \PDO::ATTR_EMULATE_PREPARES   => false,
-                    \PDO::ATTR_TIMEOUT            => 2,
-                ]);
-            } catch (\PDOException $e) {
-                // Fehler 1049 = Unknown database bedeutet: Datenbank existiert nicht
-                $mysqlErrorCode = $e->errorInfo[1] ?? null;
-
-                if ($mysqlErrorCode !== 1049) {
-                    \error_log('MySQL Connection Error: ' . $e->getMessage());
-
-                    return null;
-                }
-
-                // Port-String auch hier in DSN integrieren
-                $dsnWithoutDb = "mysql:host={$db['host']}{$portStr};charset={$db['charset']}";
-
-                try {
-                    // Verbinden OHNE Datenbanknamen
-                    $pdo = new \PDO($dsnWithoutDb, $db['user'], $db['pass'], [
-                        \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                        \PDO::ATTR_EMULATE_PREPARES   => false,
-                        \PDO::ATTR_TIMEOUT            => 2,
-                    ]);
-                    // Datenbank anlegen und anwählen
-                    $sql = "CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` " .
-                        "CHARACTER SET {$db['charset']} COLLATE {$db['charset']}_unicode_ci";
-
-                    $pdo->exec($sql);
-                    $pdo->exec("USE `{$db['dbname']}`");
-                } catch (\PDOException $e2) {
-                    \error_log('MySQL Auto-Install Error (DB Create): ' . $e2->getMessage());
-
-                    return null;
-                }
-            }
-
-            // Tabellen-Schema bei Bedarf anlegen
-            // High-Performance Tabellen-Check (kostet <0.1ms) & Auto-Setup
-            try {
-                $pdo->query('SELECT 1 FROM `users` LIMIT 1');
-            } catch (\PDOException) {
-                // Tabelle existiert nicht -> Es ist ein frisches System! Schema ausrollen!
-                $schema = $this->config->get('db_schema', []);
-                foreach ($schema as $tableName => $sql) {
-                    try {
-                        $pdo->exec($sql);
-                    } catch (\PDOException $ex) {
-                        \error_log("MySQL Auto-Install Error (Table $tableName): " . $ex->getMessage());
-                    }
-                }
-            }
-
-            return $pdo;
-        };
-
-        $this->services[StorageInterface::class] = function (): MySqlStorage|JsonStorage {
-            $mapping = $this->config->get('storage_config')['permits'] ?? ['type' => 'json'];
-
-            if ($mapping['type'] === 'mysql') {
-                $pdo = $this->get(\PDO::class);
-                if (! $pdo) {
-                    throw new \RuntimeException('Datenbank benötigt aber MySQL-Server ist offline.');
-                }
-
-                return new MySqlStorage($pdo);
-            }
-
-            // FIX: Dynamische Pfad-Ermittlung aus der Config
-            $fileName = $mapping['file'] ?? 'permits_active.json';
-            $path     = $this->config->get('root_path') . '/' .
-                $this->config->get('storage_path_prefix') .
-                $fileName;
-
-            return new JsonStorage($path);
-        };
+        // 2. Storage Engine (Ausgelagert in Factory)
+        $this->services[StorageInterface::class] = fn (): StorageInterface => StorageFactory::create(
+            $this->get(ConfigInterface::class),
+            $this->get(\PDO::class),
+        );
 
         // Voucher
         $this->services[VoucherRepositoryInterface::class] = fn () => new VoucherRepository(
@@ -480,7 +392,6 @@ class Container
         );
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
-            $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
         );
 
