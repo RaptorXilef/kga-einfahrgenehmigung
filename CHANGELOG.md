@@ -2,6 +2,17 @@
 
 
 
+## [0.46.9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.8...v0.46.9) (2026-06-14)
+
+### 🐛 Bug Fixes
+
+* **stats:** resolve undefined method crash and harden optional template dependencies ([6daf278](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6daf278cef1d651eb70a19305b6895f5a29f7b09))
+
+### ⚙️ Refactoring
+
+* **core:** extract CSV/JSON data formatting logic from AdminController to ExportService ([0167e92](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0167e925f3d1b5d02c19232abfb69f1df834faf3))
+* **view:** consolidate template rendering and extract HTML presenters (DRY/SoC) ([aa1e3c6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aa1e3c6e55f5514e045b5f64287b966d463d53e4))
+
 ## [0.46.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.7...v0.46.8) (2026-06-13)
 
 ### 🐛 Bug Fixes
