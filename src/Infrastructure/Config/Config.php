@@ -128,4 +128,11 @@ final readonly class Config implements ConfigInterface
         // Harter Abbruch im Live-Betrieb, um Host Header Injection zu verhindern
         throw new \RuntimeException('Sicherheits-Abbruch: "base_url" ist in der config/organization.php nicht gesetzt! Host-Header-Fallback ist deaktiviert.');
     }
+
+    // TODO DOCBLOCK
+    public function getStoragePath(string $fileName): string
+    {
+        return \rtrim((string) $this->get('root_path'), '/\\') . '/' .
+               \ltrim((string) $this->get('storage_path_prefix'), '/\\') . $fileName;
+    }
 }

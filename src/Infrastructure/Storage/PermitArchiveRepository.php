@@ -52,7 +52,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
             return (bool) $stmt->fetch();
         }
 
-        $archivePath = $this->getFilePath($arcCfg['file']);
+        $archivePath = $this->config->getStoragePath($arcCfg['file']);
         if (\file_exists($archivePath)) {
             $archiveData = JsonHelper::read($archivePath);
 
@@ -110,7 +110,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
                 ]);
             }
         } else {
-            $archivePath = $this->getFilePath($arcCfg['file']);
+            $archivePath = $this->config->getStoragePath($arcCfg['file']);
             $existing    = \file_exists($archivePath) ? JsonHelper::read($archivePath) : [];
 
             // Mit Array-Keys arbeiten für schnelles Überschreiben
@@ -148,7 +148,7 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
             $stmt->execute([$cutoffDate]);
             $anonymizedCount = $stmt->rowCount();
         } else {
-            $archivePath = $this->getFilePath($arcCfg['file']);
+            $archivePath = $this->config->getStoragePath($arcCfg['file']);
             if (\file_exists($archivePath)) {
                 $existing = JsonHelper::read($archivePath);
                 $changed  = false;
@@ -172,20 +172,5 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
         }
 
         return $anonymizedCount;
-    }
-
-    // --- Private Helper ---
-
-    /**
-     * Baut den absoluten Speicherpfad für eine Archiv-Datei zusammen.
-     *
-     * @param string $fileName Der Dateiname (z.B. permits_archive.json)
-     *
-     * @return string Absoluter Pfad.
-     */
-    private function getFilePath(string $fileName): string
-    {
-        return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $fileName;
     }
 }

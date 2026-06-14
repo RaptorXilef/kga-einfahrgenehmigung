@@ -99,7 +99,7 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
                 }
             }
         } else {
-            $path = $this->getFilePath($cfg['file']);
+            $path = $this->config->getStoragePath($cfg['file']);
             if (\file_exists($path)) {
                 $data = JsonHelper::read($path);
             }
@@ -153,21 +153,8 @@ final readonly class VerificationRepository implements VerificationRepositoryInt
         }
 
         if (! $forceSql) {
-            $path = $this->getFilePath($cfg['file']);
+            $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $data);
         }
-    }
-
-    /**
-     * Löst den physischen Dateipfad basierend auf der Konfiguration auf.
-     *
-     * @param string $fileName Name der JSON-Datei.
-     *
-     * @return string Der absolute Pfad.
-     */
-    private function getFilePath(string $fileName): string
-    {
-        return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $fileName;
     }
 }

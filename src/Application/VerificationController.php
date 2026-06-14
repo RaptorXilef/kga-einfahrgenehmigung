@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Security\CsrfHelper;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -60,7 +61,7 @@ final readonly class VerificationController
             $input = (string) $get['token'];
         } elseif (isset($post['submit_code'])) {
             // CSRF-Check für das OTP-Formular (POST)
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 \header('Location: verify.php?error=1&msg=' .
                     \urlencode('Sicherheits-Token ungültig (CSRF). Bitte Seite neu laden.'));
 

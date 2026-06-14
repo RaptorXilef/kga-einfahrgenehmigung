@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Security\CsrfHelper;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
@@ -73,7 +74,7 @@ final readonly class PermitController
                 return \is_string($value) ? \trim(\strip_tags($value)) : $value;
             }, $post);
 
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 try {

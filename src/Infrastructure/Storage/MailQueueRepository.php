@@ -21,6 +21,7 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
  */
 final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 {
+    use JsonTransactionTrait;
     use SafeJsonWriterTrait;
 
     public function __construct(
@@ -111,55 +112,39 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
         // =========================================================================
         // JSON-MODUS (Dateibasiert)
         // =========================================================================
-        $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-
+        $path = $this->config->getStoragePath($cfg['file']);
         if (! \file_exists($path)) {
             return 0;
         }
 
-        // Sicheres Auslesen und Verarbeiten mit exklusivem File-Lock (LOCK_EX)
-        $fp = @\fopen($path, 'c+');
-        if ($fp && \flock($fp, \LOCK_EX)) {
-
-            // fstat() statt filesize(), um den PHP Stat-Cache zu umgehen!
-            $stat  = \fstat($fp);
-            $size  = $stat['size'] ?? 0;
-            $queue = $size > 0 ? JsonHelper::decode((string) \fread($fp, $size)) : [];
-
-            if (! empty($queue)) {
-                $actualLimit = \min($limit, \count($queue));
-
-                for ($i = 0; $i < $actualLimit; ++$i) {
-                    $item = \array_shift($queue);
-
-                    try {
-                        $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
-                        ++$sentCount;
-                    } catch (\Throwable $t) {
-                        // Fehler der Mail-Queue in die Server-Logs schreiben!
-                        \error_log("MailQueue Error [JSON / Template {$item['template']}]: " . $t->getMessage());
-
-                        $item['attempts'] = ($item['attempts'] ?? 0) + 1;
-                        // Nach dem 3. Versuch fliegt sie automatisch raus, da sie nicht wieder angehängt wird
-                        if ($item['attempts'] < 3) {
-                            $queue[] = $item; // Bei Fehler hinten wieder anstellen
-                        }
-                    }
-                }
-
-                // Einmaliges Zurückschreiben des modifizierten Queue-Zustands
-                \ftruncate($fp, 0);
-                \fseek($fp, 0);
-                $json = \json_encode($queue, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-                if (\fwrite($fp, $json) === false) {
-                    throw new \RuntimeException('Kritischer Schreibfehler: Konnte verarbeitete Mail-Queue nicht speichern.');
-                }
-                \fflush($fp);
+        $sentCount = 0;
+        $this->executeJsonTransaction($path, function (array &$queue) use ($limit, $processor, &$sentCount) {
+            if (empty($queue)) {
+                return false;
             }
 
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
-        }
+            $actualLimit = \min($limit, \count($queue));
+
+            for ($i = 0; $i < $actualLimit; ++$i) {
+                $item = \array_shift($queue);
+
+                try {
+                    $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
+                    ++$sentCount;
+                } catch (\Throwable $t) {
+                    // Fehler der Mail-Queue in die Server-Logs schreiben!
+                    \error_log("MailQueue Error [JSON / Template {$item['template']}]: " . $t->getMessage());
+
+                    $item['attempts'] = ($item['attempts'] ?? 0) + 1;
+                    // Nach dem 3. Versuch fliegt sie automatisch raus, da sie nicht wieder angehängt wird
+                    if ($item['attempts'] < 3) {
+                        $queue[] = $item; // Bei Fehler hinten wieder anstellen
+                    }
+                }
+            }
+
+            return true;
+        });
 
         return $sentCount;
     }

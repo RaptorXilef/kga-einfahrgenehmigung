@@ -60,4 +60,12 @@ interface ConfigInterface
      * @return array<string, mixed> Array mit Host, Port, Credentials und Empfänger-Routen.
      */
     public function getMailSettings(): array;
+
+    /**
+     * Baut den absoluten Systempfad für eine Speicher-Datei zusammen.
+     *
+     * @param  string $fileName Der Name der Zieldatei (z.B. 'users.json').
+     * @return string Der vollständige, validierte Pfad.
+     */
+    public function getStoragePath(string $fileName): string;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Security\CsrfHelper;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -64,7 +65,7 @@ final readonly class HistoryController
 
         // 1. Globale CSRF-Prüfung für POST-Requests
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 $msg = 'Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
                 \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
                 exit;

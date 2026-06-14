@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Security\CsrfHelper;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -120,7 +121,7 @@ final readonly class AdminController
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Globale CSRF-Prüfung für alle administrativen POST-Aktionen
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 $message = $this->handleDataActions($post);
@@ -168,7 +169,7 @@ final readonly class AdminController
         // Neu mit CSRF-Schutz
         if (isset($post['login'])) {
             // CSRF-Schutz auch für das Login-Formular
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 $this->renderer->render('admin_login', [
                     'auth'            => $this->auth,
                     'groupRepository' => $this->groupRepository,

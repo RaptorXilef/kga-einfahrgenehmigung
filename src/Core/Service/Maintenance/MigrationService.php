@@ -198,7 +198,7 @@ final readonly class MigrationService
         }
 
         // JSON Datei leeren (Wenn engine 'all' oder 'json' ist)
-        $path = $this->getFilePath($target);
+        $path = $this->config->getStoragePath($target);
         if (\in_array($engine, ['all', 'json'], true) && \file_exists($path)) {
             $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
             $this->writeJsonSafely($path, [], $jsonFlags);
@@ -228,7 +228,7 @@ final readonly class MigrationService
     {
         if ($target === 'permits') {
             // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
-            $json  = new JsonStorage($this->getFilePath('permits'));
+            $json  = new JsonStorage($this->config->getStoragePath('permits'));
             $sql   = new MySqlStorage($this->pdo);
             $count = $sql->migrateTo($json);
 
@@ -256,7 +256,7 @@ final readonly class MigrationService
     {
         if ($target === 'permits') {
             // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
-            $json  = new JsonStorage($this->getFilePath('permits'));
+            $json  = new JsonStorage($this->config->getStoragePath('permits'));
             $sql   = new MySqlStorage($this->pdo);
             $count = $json->migrateTo($sql);
 
@@ -284,7 +284,7 @@ final readonly class MigrationService
     {
         // Bei Permits nutzen wir die Domain-Objekte für den sauberen Sync
         if ($target === 'permits') {
-            $json = new JsonStorage($this->getFilePath('permits'));
+            $json = new JsonStorage($this->config->getStoragePath('permits'));
             $sql  = new MySqlStorage($this->pdo);
 
             $jsonPermits = $json->getAll();
@@ -337,7 +337,7 @@ final readonly class MigrationService
         if (! isset($cfg['file'])) {
             return [];
         }
-        $path = $this->getFilePath($key);
+        $path = $this->config->getStoragePath($key);
 
         return JsonHelper::read($path);
     }
@@ -438,7 +438,7 @@ final readonly class MigrationService
         // Normalisierung vor dem Schreiben ins JSON: Wenn Daten aus SQL kommen, sind 'data' oder 'permissions' Objekte eventuell noch Arrays.
         // Das sorgt für eine saubere, einheitliche Struktur im Dateisystem.
         $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
-        $this->writeJsonSafely($this->getFilePath($key), $data, $jsonFlags);
+        $this->writeJsonSafely($this->config->getStoragePath($key), $data, $jsonFlags);
     }
 
     /**
@@ -606,20 +606,5 @@ final readonly class MigrationService
             'permits'              => 'code',
             default                => 'code'
         };
-    }
-
-    /**
-     * Löst den vollen Absolut-Pfad einer JSON-Speicherdatei auf.
-     *
-     * @param string $key Speicherbereich.
-     *
-     * @return string Physischer Dateipfad.
-     */
-    private function getFilePath(string $key): string
-    {
-        $cfg = $this->config->get('storage_config')[$key];
-
-        return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
     }
 }

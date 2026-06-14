@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Security\CsrfHelper;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -52,7 +53,7 @@ final readonly class UserController
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Globale CSRF-Prüfung für die Benutzerverwaltung
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 $action = $post['action'] ?? '';
@@ -126,7 +127,7 @@ final readonly class UserController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Globale CSRF-Prüfung für das Eigene Profil
-            if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
+            if (! CsrfHelper::verify($post)) {
                 $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
             } else {
                 // [x] Sortiert

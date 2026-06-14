@@ -98,7 +98,7 @@ final readonly class UpdateMigrationService
         }
 
         // JSON Fallback
-        $path = \rtrim($this->config->get('root_path'), '/') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
         if (! \file_exists($path)) {
             return [];
         }
@@ -128,7 +128,7 @@ final readonly class UpdateMigrationService
         }
 
         // JSON Speicherung
-        $path = \rtrim($this->config->get('root_path'), '/') . '/' . $this->config->get('storage_path_prefix') . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
         $data = JsonHelper::read($path);
 
         $data[] = [

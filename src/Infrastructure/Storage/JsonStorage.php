@@ -27,6 +27,7 @@ use App\Core\Entity\Permit;
 final readonly class JsonStorage implements StorageInterface
 {
     use StorageMapperTrait;
+    use JsonTransactionTrait;
 
     /**
      * @param string $filePath Absoluter oder relativer Pfad zur JSON-Zieldatei auf dem Server.
@@ -48,40 +49,13 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
-        // Sicherer Datei-Handle-Lock zur Vermeidung von Lese-/Schreibkonflikten (Race Conditions)
-        $fp = \fopen($this->filePath, 'c+');
-        if (! $fp) {
-            return false;
-        }
-
-        // Warte, bis wir exklusiven Zugriff (Schreibrecht) auf die Datei haben
-        if (\flock($fp, \LOCK_EX)) {
-            // Hole die aktuellen Daten, während die Datei gesperrt ist
-            $stat = \fstat($fp);
-            $size = $stat['size'];
-            $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = JsonHelper::decode((string) $raw);
-
-            // Füge die abgeflachte Entität hinzu
+        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($permit) {
             $data[$permit->code] = $this->flattenEntity($permit);
 
-            // Inhalt leeren und neu schreiben
-            \ftruncate($fp, 0);
-            \fseek($fp, 0);
-            $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-            if (\fwrite($fp, $jsonStr) === false) {
-                throw new \RuntimeException('Kritischer Schreibfehler in JsonStorage: Festplatte voll?');
-            }
-            \fflush($fp);            // Erzwinge die physische Ausgabe auf die Festplatte
-            \flock($fp, \LOCK_UN);   // Sperre aufheben
-            \fclose($fp);
-
             return true;
-        }
+        });
 
-        \fclose($fp);
-
-        return false;
+        return $result ?? false;
     }
 
     /**
@@ -93,37 +67,17 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function delete(string $code): bool
     {
-        $fp = \fopen($this->filePath, 'c+');
-        if (! $fp) {
-            return false;
-        }
-        if (\flock($fp, \LOCK_EX)) {
-            $stat = \fstat($fp);
-            $size = $stat['size'];
-            $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = JsonHelper::decode((string) $raw);
-
-            $isDeleted = false; // Status-Tracking
-
+        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($code) {
             if (isset($data[$code])) {
                 unset($data[$code]);
-                \ftruncate($fp, 0);
-                \fseek($fp, 0);
-                $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-                if (\fwrite($fp, $jsonStr) === false) {
-                    throw new \RuntimeException('Kritischer Schreibfehler in JsonStorage: Festplatte voll?');
-                }
-                $isDeleted = true; // Nur true, wenn wirklich gelöscht
+
+                return true;
             }
-            \fflush($fp);
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
 
-            return $isDeleted; // Korrekten Status zurückgeben
-        }
-        \fclose($fp);
+            return false; // Verhindert Neuschreiben, wenn nichts gelöscht wurde
+        });
 
-        return false;
+        return $result ?? false;
     }
 
     // TODO DOCBLOCK
@@ -133,16 +87,7 @@ final readonly class JsonStorage implements StorageInterface
             return 0;
         }
 
-        $fp = \fopen($this->filePath, 'c+');
-        if (! $fp) {
-            return 0;
-        }
-
-        if (\flock($fp, \LOCK_EX)) {
-            $stat = \fstat($fp);
-            $raw  = $stat['size'] > 0 ? \fread($fp, $stat['size']) : '';
-            $data = JsonHelper::decode((string) $raw);
-
+        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($codes) {
             $deletedCount = 0;
             foreach ($codes as $code) {
                 if (isset($data[$code])) {
@@ -151,22 +96,10 @@ final readonly class JsonStorage implements StorageInterface
                 }
             }
 
-            if ($deletedCount > 0) {
-                \ftruncate($fp, 0);
-                \fseek($fp, 0);
-                $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-                \fwrite($fp, $jsonStr);
-            }
-
-            \fflush($fp);
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
-
             return $deletedCount;
-        }
-        \fclose($fp);
+        });
 
-        return 0;
+        return $result ?? 0;
     }
 
     // --- Public Read ---

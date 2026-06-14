@@ -23,6 +23,8 @@ use App\Infrastructure\Storage\JsonHelper;
  */
 final readonly class RateLimiter implements RateLimiterInterface
 {
+    use \App\Infrastructure\Storage\JsonTransactionTrait;
+
     private const int MAX_ATTEMPTS    = 5;
     private const int LOCKOUT_MINUTES = 15;
 
@@ -69,7 +71,7 @@ final readonly class RateLimiter implements RateLimiterInterface
         }
 
         // JSON Fallback
-        $path = $this->getFilePath($cfg['file']);
+        $path = $this->config->getStoragePath($cfg['file']);
         $data = JsonHelper::read($path);
 
         if (isset($data[$ip])) {
@@ -107,20 +109,14 @@ final readonly class RateLimiter implements RateLimiterInterface
 
             // Optional: Auch in MySQL eine Garbage Collection einbauen, um die Tabelle schlank zu halten
             $this->pdo->prepare("DELETE FROM `{$cfg['table']}` WHERE last_attempt < DATE_SUB(NOW(), INTERVAL ? MINUTE)")
-                      ->execute([self::LOCKOUT_MINUTES]);
+                ->execute([self::LOCKOUT_MINUTES]);
 
             return;
         }
 
         // Sicheres Inkrementieren mit exklusivem File-Lock (LOCK_EX)
-        $path = $this->getFilePath($cfg['file']);
-        $fp   = @\fopen($path, 'c+');
-        if ($fp && \flock($fp, \LOCK_EX)) {
-            $stat = \fstat($fp);
-            $size = $stat['size'];
-            $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = JsonHelper::decode((string) $raw);
-
+        $path = $this->config->getStoragePath($cfg['file']);
+        $this->executeJsonTransaction($path, function (array &$data) use ($ip, $nowStr) {
             // Garbage Collection (Speicher-Leck / JSON-Bloat verhindern!)
             // Löscht alle IPs, deren letzter Versuch länger als die Lockout-Zeit her ist.
             $threshold = \time() - (self::LOCKOUT_MINUTES * 60);
@@ -129,24 +125,11 @@ final readonly class RateLimiter implements RateLimiterInterface
                     unset($data[$storedIp]);
                 }
             }
+            $data[$ip]['attempts']     = ($data[$ip]['attempts'] ?? 0) + 1;
+            $data[$ip]['last_attempt'] = $nowStr;
 
-            if (! isset($data[$ip])) {
-                $data[$ip] = ['attempts' => 1, 'last_attempt' => $nowStr];
-            } else {
-                $data[$ip]['attempts']     = (int) $data[$ip]['attempts'] + 1;
-                $data[$ip]['last_attempt'] = $nowStr;
-            }
-
-            \ftruncate($fp, 0);
-            \fseek($fp, 0);
-            $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT);
-            if (\fwrite($fp, $jsonStr) === false) {
-                throw new \RuntimeException('Kritischer Schreibfehler im RateLimiter.');
-            }
-            \fflush($fp);
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
-        }
+            return true;
+        });
     }
 
     /**
@@ -165,42 +148,16 @@ final readonly class RateLimiter implements RateLimiterInterface
             return;
         }
 
-        // FIX: Sicheres Löschen mit exklusivem File-Lock (LOCK_EX)
-        $path = $this->getFilePath($cfg['file']);
-        $fp   = @\fopen($path, 'c+');
-        if ($fp && \flock($fp, \LOCK_EX)) {
-            $stat = \fstat($fp);
-            $size = $stat['size'];
-            $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = JsonHelper::decode((string) $raw);
-
+        // Sicheres Löschen mit exklusivem File-Lock (LOCK_EX)
+        $path = $this->config->getStoragePath($cfg['file']);
+        $this->executeJsonTransaction($path, function (array &$data) use ($ip) {
             if (isset($data[$ip])) {
                 unset($data[$ip]);
-                \ftruncate($fp, 0);
-                \fseek($fp, 0);
-                $jsonStr = \json_encode($data, \JSON_PRETTY_PRINT);
-                if (\fwrite($fp, $jsonStr) === false) {
-                    throw new \RuntimeException('Kritischer Schreibfehler im RateLimiter.');
-                }
-                \fflush($fp);
+
+                return true;
             }
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
-        }
-    }
 
-    // --- Private Utility ---
-
-    /**
-     * Hilfsmethode zur Auflösung des absoluten JSON-Speicherpfades.
-     *
-     * @param string $fileName Der Name der Zieldatei.
-     *
-     * @return string Der komplette Dateipfad.
-     */
-    private function getFilePath(string $fileName): string
-    {
-        return \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-            \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $fileName;
+            return false;
+        });
     }
 }
