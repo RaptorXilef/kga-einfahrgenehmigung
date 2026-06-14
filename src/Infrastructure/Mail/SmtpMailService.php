@@ -8,6 +8,7 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Storage\JsonHelper;
+use App\Infrastructure\Storage\JsonTransactionTrait;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -26,6 +27,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  */
 final readonly class SmtpMailService implements MailLogInterface, MailServiceInterface
 {
+    use JsonTransactionTrait;
     use SafeJsonWriterTrait;
 
     public function __construct(
@@ -371,22 +373,24 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             return;
         }
 
-        // --- Alter JSON Code ---
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
-        $logs = JsonHelper::read($path);
-        // [x] sortiert
-        \array_unshift($logs, [
-            'data'      => $data,
-            'recipient' => $recipient,
-            'status'    => $statusStr,
-            'subject'   => $subject,
-            'template'  => $template,
-            'timestamp' => APP_REQUEST_TIME_STR,
-        ]);
-        $logs = \array_slice($logs, 0, $maxEntries);
-        $this->writeJsonSafely($path, $logs);
+        // --- Sicherer JSON Code ---
+        $path = $this->config->getStoragePath($cfg['file']);
+
+        $this->executeJsonTransaction($path, function (array &$logs) use ($data, $recipient, $statusStr, $subject, $template, $maxEntries) {
+            \array_unshift($logs, [
+                'data'      => $data,
+                'recipient' => $recipient,
+                'status'    => $statusStr,
+                'subject'   => $subject,
+                'template'  => $template,
+                'timestamp' => APP_REQUEST_TIME_STR,
+            ]);
+
+            if (\count($logs) > $maxEntries) {
+                $logs = \array_slice($logs, 0, $maxEntries);
+            }
+
+            return true;
+        });
     }
 }
