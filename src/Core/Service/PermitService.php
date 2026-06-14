@@ -542,20 +542,20 @@ final readonly class PermitService
 
         // 6. Für die API als flache Arrays formatieren
         // [x] Sortiert
-        $formattedItems = \array_map(fn ($p) => [
-            'bis'          => $p->getValidUntil()->format('d.m.Y'),
-            'code'         => $p->code,
-            'email'        => $p->getOwnerEmail(),
-            'erstellt'     => $p->getCreatedAt()->format('d.m.Y H:i'),
-            'is_archived'  => $this->archiveRepository->isCodeInArchive($p->code),
-            'kennzeichen'  => $p->getLicensePlate(),
-            'name'         => $p->getOwnerName(),
-            'parzelle'     => $p->getPlotNumber(),
-            'preis'        => $p->getPrice(),
-            'status'       => $p->getStatus(),
-            'template_key' => $p->template_key,
-            'von'          => $p->getValidFrom()->format('d.m.Y'),
-            'zweck'        => $p->getPurpose(),
+        $formattedItems = \array_map(fn ($permit) => [
+            'bis'          => $permit->getValidUntil()->format('d.m.Y'),
+            'code'         => $permit->code,
+            'email'        => $permit->getOwnerEmail(),
+            'erstellt'     => $permit->getCreatedAt()->format('d.m.Y H:i'),
+            'is_archived'  => $this->archiveRepository->isCodeInArchive($permit->code),
+            'kennzeichen'  => $permit->getLicensePlate(),
+            'name'         => $permit->getOwnerName(),
+            'parzelle'     => $permit->getPlotNumber(),
+            'preis'        => $permit->getPrice(),
+            'status'       => $permit->getStatus(),
+            'template_key' => $permit->template_key,
+            'von'          => $permit->getValidFrom()->format('d.m.Y'),
+            'zweck'        => $permit->getPurpose(),
         ], $items);
 
         return [

@@ -109,11 +109,11 @@ final readonly class ReportingService
             'types'          => $typeStats,
         ];
 
-        foreach ($permits as $p) {
+        foreach ($permits as $permit) {
             // Fahrzeugtypen zählen
-            $pType = $p->getVehicleType();
-            $pNum  = $p->getPlotNumber();
-            $price = $p->getPrice();
+            $pType = $permit->getVehicleType();
+            $pNum  = $permit->getPlotNumber();
+            $price = $permit->getPrice();
 
             // Wenn Typ existiert, normal zählen, sonst in den Legacy-Topf
             if (isset($stats['types'][$pType])) {
@@ -139,11 +139,11 @@ final readonly class ReportingService
             $stats['plots'][$pNum]['revenue'] += $price;
 
             // Zuletzt verwendete Daten speichern
-            $stats['plots'][$pNum]['name']  = $p->getOwnerName();
-            $stats['plots'][$pNum]['email'] = $p->getOwnerEmail();
+            $stats['plots'][$pNum]['name']  = $permit->getOwnerName();
+            $stats['plots'][$pNum]['email'] = $permit->getOwnerEmail();
 
             // Umsätze berechnen
-            if ($p->isPaid()) { // Sauber!
+            if ($permit->isPaid()) { // Sauber!
                 $stats['revenue_paid'] += $price;
             } else {
                 $stats['revenue_unpaid'] += $price;
@@ -187,8 +187,8 @@ final readonly class ReportingService
         $yearlyStats = [];
         $vConfig     = $this->config->get('vehicle_types', []);
 
-        foreach ($allPermits as $p) {
-            $year = $p->getCreatedAt()->format('Y');
+        foreach ($allPermits as $permit) {
+            $year = $permit->getCreatedAt()->format('Y');
             if (! isset($yearlyStats[$year])) {
                 $yearlyStats[$year] = [
                     'count'  => 0,
@@ -201,8 +201,8 @@ final readonly class ReportingService
 
             ++$yearlyStats[$year]['count'];
             // Dynamisches Zählen des Fahrzeugtyps
-            $pType = $p->getVehicleType();
-            $price = $p->getPrice();
+            $pType = $permit->getVehicleType();
+            $price = $permit->getPrice();
 
             if (isset($yearlyStats[$year]['types'][$pType])) {
                 ++$yearlyStats[$year]['types'][$pType];
@@ -210,7 +210,7 @@ final readonly class ReportingService
                 ++$yearlyStats[$year]['types']['__legacy__'];
             }
 
-            if ($p->isPaid()) {
+            if ($permit->isPaid()) {
                 $yearlyStats[$year]['paid'] += $price;
             } else {
                 $yearlyStats[$year]['unpaid'] += $price;

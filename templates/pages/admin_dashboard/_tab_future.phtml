@@ -310,19 +310,19 @@ if ($auth->hasPermission('dashboard.future.view')) { ?>
                                         disabled>&larr;</button>
                             <?php } ?>
 
-                            <?php foreach ($pagesToShow as $p) {
-                                if ($p === '...') { ?>
+                            <?php foreach ($pagesToShow as $pageNum) {
+                                if ($pageNum === '...') { ?>
                                     <span class="u-text-muted" style="padding: 4px 8px;">&hellip;</span>
-                                <?php } elseif ($p === $page) { ?>
+                                <?php } elseif ($pageNum === $page) { ?>
                                     <button class="c-button c-button--primary"
                                             style="padding: 6px 12px; font-size: 0.85rem; pointer-events: none;">
-                                        <?php echo $p; ?>
+                                        <?php echo $pageNum; ?>
                                     </button>
                                 <?php } else { ?>
-                                    <a href="<?php echo $baseUrlStr . $p; ?>"
+                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>"
                                        class="c-button c-button--secondary"
                                        style="padding: 6px 12px; font-size: 0.85rem;">
-                                    <?php echo $p; ?>
+                                    <?php echo $pageNum; ?>
                                 </a>
                             <?php }
                                 } ?>

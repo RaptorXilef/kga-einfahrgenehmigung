@@ -292,13 +292,13 @@ final readonly class MigrationService
 
             $count = 0;
             // SQL nach JSON syncen
-            foreach ($sqlPermits as $p) {
-                $json->save($p);
+            foreach ($sqlPermits as $permit) {
+                $json->save($permit);
                 ++$count;
             }
             // JSON nach SQL syncen
-            foreach ($jsonPermits as $p) {
-                $sql->save($p);
+            foreach ($jsonPermits as $permit) {
+                $sql->save($permit);
                 ++$count;
             }
 

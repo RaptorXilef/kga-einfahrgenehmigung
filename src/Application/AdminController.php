@@ -684,8 +684,8 @@ final readonly class AdminController
         // 1. Filterung für den gewählten Zeitraum & Typ
         $filtered = \array_filter(
             $allPermits,
-            function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $searchQuery): bool {
-                $date = $p->getCreatedAt()->format('Y-m-d');
+            function (Permit $permit) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $searchQuery): bool {
+                $date = $permit->getCreatedAt()->format('Y-m-d');
 
                 // Check Zeitraum
                 if ($date < $filterStart || $date > $filterEnd) {
@@ -694,7 +694,7 @@ final readonly class AdminController
 
                 // Check Typ (wenn nicht 'all')
                 if ($filterType !== 'all') {
-                    $tplType = $permitTemplates[$p->template_key]['type'] ?? 'standard';
+                    $tplType = $permitTemplates[$permit->template_key]['type'] ?? 'standard';
                     if ($tplType !== $filterType) {
                         return false;
                     }
@@ -703,12 +703,12 @@ final readonly class AdminController
                 // Volltextsuche über alle relevanten Felder
                 if ($searchQuery !== '') {
                     $haystack = \strtolower(
-                        $p->code . ' ' .
-                            $p->getOwnerName() . ' ' .
-                            $p->getOwnerEmail() . ' ' .
-                            $p->getPlotNumber() . ' ' .
-                            $p->getLicensePlate() . ' ' .
-                            $p->getPurpose(),
+                        $permit->code . ' ' .
+                            $permit->getOwnerName() . ' ' .
+                            $permit->getOwnerEmail() . ' ' .
+                            $permit->getPlotNumber() . ' ' .
+                            $permit->getLicensePlate() . ' ' .
+                            $permit->getPurpose(),
                     );
                     if (! \str_contains($haystack, $searchQuery)) {
                         return false;

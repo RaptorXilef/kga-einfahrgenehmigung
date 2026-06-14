@@ -25,18 +25,18 @@
 // --- NEU: Monatliche Statistiken für den Chart berechnen ---
 $allPermitsForStats = $allPermits ?? []; // Nutzt nun die aus dem Controller übergebene Variable
 $monthlyStats       = [];
-foreach ($allPermitsForStats as $p) {
-    $mKey = $p->getCreatedAt()->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
+foreach ($allPermitsForStats as $permit) {
+    $mKey = $permit->getCreatedAt()->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
     if (! isset($monthlyStats[$mKey])) {
         // Wir nutzen den Zeitstempel für die korrekte Sortierung, da m.Y textuell falsch sortiert würde
         $monthlyStats[$mKey] = [
-            'sort_key' => $p->getCreatedAt()->format('Y-m'),
+            'sort_key' => $permit->getCreatedAt()->format('Y-m'),
             'count'    => 0,
             'revenue'  => 0.0,
         ];
     }
     ++$monthlyStats[$mKey]['count'];
-    $monthlyStats[$mKey]['revenue'] += $p->getPrice();
+    $monthlyStats[$mKey]['revenue'] += $permit->getPrice();
 }
 
 // Nach dem unsichtbaren sort_key (Y-m) aufsteigend sortieren
