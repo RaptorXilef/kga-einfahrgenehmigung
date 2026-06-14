@@ -43,7 +43,7 @@ final class StorageFactory
         }
 
         $fileName = $mapping['file'] ?? 'permits_active.json';
-        $path     = $config->get('root_path') . '/' . $config->get('storage_path_prefix') . $fileName;
+        $path     = $config->getStoragePath($fileName);
 
         return new JsonStorage($path);
     }
