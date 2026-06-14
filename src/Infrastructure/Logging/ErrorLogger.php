@@ -35,7 +35,7 @@ final readonly class ErrorLogger
      */
     public function logThrowable(\Throwable $throwable): void
     {
-        $logDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs';
+        $logDir = $this->config->getStoragePath('logs');
 
         if (! \is_dir($logDir)) {
             @\mkdir($logDir, 0o755, true);

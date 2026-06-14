@@ -152,7 +152,7 @@ final readonly class GitHubUpdaterService
         }
 
         $rootPath = \rtrim((string) $this->config->get('root_path'), '/\\');
-        $tempDir  = $rootPath . '/storage/temp_update';
+        $tempDir  = $this->config->getStoragePath('temp_update');
         $zipFile  = $tempDir . '/update.zip';
 
         // 1. Ordner vorbereiten

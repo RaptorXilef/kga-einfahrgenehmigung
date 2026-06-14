@@ -221,7 +221,7 @@ final readonly class PermitService
         // TODO ggf. in Storage auslagern, da Dateizugriff (prüfen)
         // TODO Pfad und Dateiname in config/storage.php auslagern
         // Atomarer Prozess-Lock, um TOCTOU-Datenverlust bei parallelen Checkouts zu verhindern!
-        $lockFile = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/checkout.lock';
+        $lockFile = $this->config->getStoragePath('logs/checkout.lock');
         $lockFp   = @\fopen($lockFile, 'c');
         if ($lockFp) {
             \flock($lockFp, \LOCK_EX);
@@ -493,8 +493,7 @@ final readonly class PermitService
         $archived = [];
         if (\in_array($tab, ['all', 'archive'], true)) {
             $arcCfg      = $this->config->get('storage_config')['permits_archive'];
-            $archivePath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' .
-                \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . ($arcCfg['file'] ?? 'permits_archive.json');
+            $archivePath = $this->config->getStoragePath($arcCfg['file'] ?? 'permits_archive.json');
 
             if (\file_exists($archivePath)) {
                 $rawArchive = JsonHelper::read($archivePath);

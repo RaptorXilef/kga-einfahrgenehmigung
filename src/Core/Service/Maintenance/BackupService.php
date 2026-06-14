@@ -41,12 +41,9 @@ final readonly class BackupService
      */
     public function createBackup(string $target): string
     {
-        $timestamp = \date('Ymd-His');
-        $root      = \rtrim((string) $this->config->get('root_path'), '/\\');
-        $prefix    = \ltrim((string) $this->config->get('storage_path_prefix'), '/\\');
-        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
-
-        $backupPath = $root . '/' . $prefix . $subFolder . '/' . $timestamp;
+        $timestamp  = \date('Ymd-His');
+        $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
+        $backupPath = $this->config->getStoragePath($subFolder . '/' . $timestamp);
 
         if (! \is_dir($backupPath)) {
             \mkdir($backupPath, 0o777, true);
@@ -57,7 +54,19 @@ final readonly class BackupService
 
         // Backup für "alles" oder ein spezifisches Ziel
         if (! isset($storageConfig[$target])) {
-            $keysToBackup = ['permits', 'users', 'groups', 'vouchers', 'pending_verification', 'verified_pending', 'magic_links', 'mail_log', 'mail_queue', 'login_attempts', 'update_migrations'];
+            $keysToBackup = [
+                'permits',
+                'users',
+                'groups',
+                'vouchers',
+                'pending_verification',
+                'verified_pending',
+                'magic_links',
+                'mail_log',
+                'mail_queue',
+                'login_attempts',
+                'update_migrations',
+            ];
 
             foreach ($keysToBackup as $key) {
                 if (! isset($storageConfig[$key])) {
@@ -66,7 +75,7 @@ final readonly class BackupService
 
                 // JSON-Dump nur, wenn ein file-Key konfiguriert ist
                 if (isset($storageConfig[$key]['file'])) {
-                    $path = $root . '/' . $prefix . $storageConfig[$key]['file'];
+                    $path = $this->config->getStoragePath($storageConfig[$key]['file']);
                     if (\file_exists($path) && ! \is_dir($path)) {
                         $data = JsonHelper::read($path);
                         $this->writeJsonSafely($backupPath . "/{$key}_file.json", $data, $jsonFlags);
@@ -82,7 +91,7 @@ final readonly class BackupService
                 }
             }
 
-            return $prefix . $subFolder . '/' . $timestamp;
+            return $backupPath;
         }
 
         // Zielspezifisches Backup
@@ -98,7 +107,7 @@ final readonly class BackupService
             }
         }
 
-        return $prefix . $subFolder . '/' . $timestamp;
+        return $backupPath;
     }
 
     /**
@@ -111,7 +120,7 @@ final readonly class BackupService
     {
         // BUGFIX: Nutzt jetzt den konfigurieren Sub-Ordner!
         $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
-        $backupPath = $this->config->get('root_path') . '/' . $this->config->get('storage_path_prefix') . $subFolder;
+        $backupPath = $this->config->getStoragePath($subFolder);
 
         if (! \is_dir($backupPath)) {
             return [];
@@ -143,13 +152,10 @@ final readonly class BackupService
      */
     public function getBackupData(string $timestamp, string $target): ?array
     {
-        $root = $this->config->get('root_path');
-
-        // basename() eliminiert alle relativen Pfad-Ausbrüche wie "../" sofort!
         $safeTimestamp = \basename($timestamp);
         $safeTarget    = \basename($target);
 
-        $backupBase = $root . '/' . $this->config->get('storage_path_prefix') . 'backup/' . $safeTimestamp;
+        $backupBase = $this->config->getStoragePath('backup/' . $safeTimestamp);
 
         $backupFile = $backupBase . "/{$safeTarget}_file.json";
         if (! \file_exists($backupFile)) {
@@ -181,7 +187,7 @@ final readonly class BackupService
         $interval = (int) ($cfg['interval_hours'] ?? 24) * 3600;
 
         // Pfad in den /storage/logs/ Ordner setzen!
-        $logDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs';
+        $logDir = $this->config->getStoragePath('logs');
         if (! \is_dir($logDir)) {
             @\mkdir($logDir, 0o755, true);
         }
@@ -219,9 +225,7 @@ final readonly class BackupService
      */
     private function rotateBackups(int $max): void
     {
-        $root       = $this->config->get('root_path');
-        $prefix     = $this->config->get('storage_path_prefix');
-        $backupPath = $root . '/' . $prefix . 'backup';
+        $backupPath = $this->config->getStoragePath('backup');
 
         if (! \is_dir($backupPath)) {
             return;
@@ -283,7 +287,7 @@ final readonly class BackupService
         if (! isset($cfg['file'])) {
             return [];
         }
-        $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
 
         return JsonHelper::read($path);
     }

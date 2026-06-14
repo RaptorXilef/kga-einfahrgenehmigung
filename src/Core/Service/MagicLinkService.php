@@ -31,8 +31,7 @@ final readonly class MagicLinkService
     ) {
         // storagePath wird für JSON weiter berechnet
         $cfg               = $this->config->get('storage_config')['magic_links'];
-        $this->storagePath = $this->config->get('root_path') . '/' .
-            $this->config->get('storage_path_prefix') . $cfg['file'];
+        $this->storagePath = $this->config->getStoragePath($cfg['file']);
     }
 
     /**

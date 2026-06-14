@@ -133,13 +133,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         }
 
         if (! $forceSql) {
-            $path = \rtrim(
-                (string) $this->config->get('root_path'),
-                '/\\',
-            ) . '/' . \ltrim(
-                (string) $this->config->get('storage_path_prefix'),
-                '/\\',
-            ) . $cfg['file'];
+            $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $logs);
         }
     }
@@ -162,13 +156,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll();
         }
 
-        $path = \rtrim(
-            (string) $this->config->get('root_path'),
-            '/\\',
-        ) . '/' . \ltrim(
-            (string) $this->config->get('storage_path_prefix'),
-            '/\\',
-        ) . $cfg['file'];
+        $path = $this->config->getStoragePath($cfg['file']);
         if (! \file_exists($path)) {
             return [];
         }
@@ -389,13 +377,14 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             '/\\',
         ) . '/' . \ltrim((string) $this->config->get('storage_path_prefix'), '/\\') . $cfg['file'];
         $logs = JsonHelper::read($path);
+        // [x] sortiert
         \array_unshift($logs, [
-            'timestamp' => APP_REQUEST_TIME_STR,
+            'data'      => $data,
             'recipient' => $recipient,
+            'status'    => $statusStr,
             'subject'   => $subject,
             'template'  => $template,
-            'status'    => $statusStr,
-            'data'      => $data,
+            'timestamp' => APP_REQUEST_TIME_STR,
         ]);
         $logs = \array_slice($logs, 0, $maxEntries);
         $this->writeJsonSafely($path, $logs);

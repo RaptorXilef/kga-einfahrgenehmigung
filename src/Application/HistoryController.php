@@ -215,8 +215,7 @@ final readonly class HistoryController
         if ($loadedYear > 0) {
             $arcCfg      = $this->config->get('storage_config')['permits_archive'];
             $yearFile    = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern'] ?? $arcCfg['file']); // Fallback eingefügt
-            $archivePath = $this->config->get('root_path') . '/' .
-                $this->config->get('storage_path_prefix') . $yearFile;
+            $archivePath = $this->config->getStoragePath($yearFile);
 
             if (\file_exists($archivePath)) {
                 $archiveData = JsonHelper::read($archivePath);

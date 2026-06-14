@@ -65,7 +65,7 @@ final readonly class StorageBootstrapper
      */
     private function ensureStorageSecurity(): void
     {
-        $storageDir   = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage';
+        $storageDir   = \rtrim($this->config->getStoragePath(''), '/\\');
         $htaccessPath = $storageDir . '/.htaccess';
 
         if (! \is_dir($storageDir)) {

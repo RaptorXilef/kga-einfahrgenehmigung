@@ -45,8 +45,8 @@ final readonly class CronScheduler
         }
 
         // TODO Pfad und Dateiname in config/storage.php auslagern
-        $logPath  = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/last_cron_run.txt';
-        $lockPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/storage/logs/cron.lock';
+        $logPath  = $this->config->getStoragePath('logs/last_cron_run.txt');
+        $lockPath = $this->config->getStoragePath('logs/cron.lock');
         $now      = \time();
 
         // FIX: Atomarer, nicht-blockierender Lock (Verhindert mehrfache parallele Backups)
