@@ -421,7 +421,7 @@ final readonly class PermitService
                 $permit->isSuspended(),
                 $permit->getSuspensionReason(),
             ),
-            $permit->erstellt,
+            $permit->getCreatedAt(),
             $grund ?? $permit->interner_kommentar, // Grund übernehmen
         );
 
@@ -457,7 +457,7 @@ final readonly class PermitService
                 $status,
                 $reason,
             ),
-            $permit->erstellt,
+            $permit->getCreatedAt(),
             $permit->interner_kommentar,
         );
 
@@ -533,7 +533,7 @@ final readonly class PermitService
         }
 
         // 4. Sortieren (Neueste zuerst)
-        \usort($filtered, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
+        \usort($filtered, fn ($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
 
         // 5. Paginierung (Array zuschneiden)
         $total  = \count($filtered);
@@ -546,7 +546,7 @@ final readonly class PermitService
             'bis'          => $p->getValidUntil()->format('d.m.Y'),
             'code'         => $p->code,
             'email'        => $p->getOwnerEmail(),
-            'erstellt'     => $p->erstellt->format('d.m.Y H:i'),
+            'erstellt'     => $p->getCreatedAt()->format('d.m.Y H:i'),
             'is_archived'  => $this->archiveRepository->isCodeInArchive($p->code),
             'kennzeichen'  => $p->getLicensePlate(),
             'name'         => $p->getOwnerName(),
@@ -624,7 +624,7 @@ final readonly class PermitService
         $now                 = new \DateTimeImmutable();
         $dueDays             = (int) $this->config->get('payment_due_days', 14);
         $notifyDays          = (int) $this->config->get('payment_due_days_notify', 2);
-        $userDeadline        = $permit->erstellt->modify("+{$dueDays} days");
+        $userDeadline        = $permit->getCreatedAt()->modify("+{$dueDays} days");
         $staffAlertThreshold = $userDeadline->modify("+{$notifyDays} days");
 
         if ($now > $staffAlertThreshold) {

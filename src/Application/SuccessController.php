@@ -67,7 +67,7 @@ final readonly class SuccessController
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
         $dueDays        = (int) $this->config->get('payment_due_days', 14);
         // Frist ab Erstellungsdatum berechnen (wie in der Mail)
-        $dueDate = $permit->erstellt->modify("+$dueDays days")->format('d.m.Y');
+        $dueDate = $permit->getCreatedAt()->modify("+$dueDays days")->format('d.m.Y');
 
         // [x] sortiert
         $this->renderer->render('checkout/success', [

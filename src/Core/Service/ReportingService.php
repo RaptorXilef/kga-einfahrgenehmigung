@@ -73,7 +73,7 @@ final readonly class ReportingService
 
         // 3. SORTIERUNG FÜR FINANZEN
         // Die neuesten Anträge (erstellt am) sollen oben stehen.
-        \usort($groups['unpaid'], fn ($a, $b): int => $b->erstellt <=> $a->erstellt);
+        \usort($groups['unpaid'], fn ($a, $b): int => $b->getCreatedAt() <=> $a->getCreatedAt());
 
         return $groups;
     }
@@ -188,7 +188,7 @@ final readonly class ReportingService
         $vConfig     = $this->config->get('vehicle_types', []);
 
         foreach ($allPermits as $p) {
-            $year = $p->erstellt->format('Y');
+            $year = $p->getCreatedAt()->format('Y');
             if (! isset($yearlyStats[$year])) {
                 $yearlyStats[$year] = [
                     'count'  => 0,

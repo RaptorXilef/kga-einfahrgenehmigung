@@ -26,11 +26,11 @@
 $allPermitsForStats = $allPermits ?? []; // Nutzt nun die aus dem Controller übergebene Variable
 $monthlyStats       = [];
 foreach ($allPermitsForStats as $p) {
-    $mKey = $p->erstellt->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
+    $mKey = $p->getCreatedAt()->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
     if (! isset($monthlyStats[$mKey])) {
         // Wir nutzen den Zeitstempel für die korrekte Sortierung, da m.Y textuell falsch sortiert würde
         $monthlyStats[$mKey] = [
-            'sort_key' => $p->erstellt->format('Y-m'),
+            'sort_key' => $p->getCreatedAt()->format('Y-m'),
             'count'    => 0,
             'revenue'  => 0.0,
         ];

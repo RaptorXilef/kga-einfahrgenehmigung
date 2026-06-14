@@ -685,7 +685,7 @@ final readonly class AdminController
         $filtered = \array_filter(
             $allPermits,
             function (Permit $p) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $searchQuery): bool {
-                $date = $p->erstellt->format('Y-m-d');
+                $date = $p->getCreatedAt()->format('Y-m-d');
 
                 // Check Zeitraum
                 if ($date < $filterStart || $date > $filterEnd) {
