@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service\Maintenance;
+namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
@@ -28,7 +28,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * steuert automatische Backup-Zyklen und stellt Tabellen-Schemata sowie Initialdaten (Seeding) her.
  * Kontext: Administrativer Wartungs- und Backup-Manager der Anwendung.
  *
- * Path: src/Core/Service/Maintenance/MigrationService.php
+ * Path: src/Infrastructure/Maintenance/MigrationService.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.

@@ -130,21 +130,21 @@ trait StorageMapperTrait
         return [
             'code'               => $permit->code,
             'template_key'       => $permit->template_key,
-            'name'               => $permit->owner->name,
-            'email'              => $permit->owner->email,
-            'parzelle'           => $permit->owner->parzelle,
-            'typ'                => $permit->vehicle->typ,
-            'kennzeichen'        => $permit->vehicle->kennzeichen,
-            'firma'              => $permit->vehicle->firma,
-            'von'                => $permit->validity->von->format('Y-m-d'),
-            'bis'                => $permit->validity->bis->format('Y-m-d'),
-            'preis'              => $permit->validity->preis,     // Harmonisierter Key
-            'zweck'              => $permit->validity->zweck,
-            'status'             => $permit->status->current,
-            'is_suspended'       => (int) $permit->status->is_suspended,   // Harmonisierter Key
-            'suspension_reason'  => $permit->status->suspension_reason,    // Harmonisierter Key
+            'name'               => $permit->getOwnerName(),
+            'email'              => $permit->getOwnerEmail(),
+            'parzelle'           => $permit->getPlotNumber(),
+            'typ'                => $permit->getVehicleType(),
+            'kennzeichen'        => $permit->getLicensePlate(),
+            'firma'              => $permit->getCompany(),
+            'von'                => $permit->getValidFrom()->format('Y-m-d'),
+            'bis'                => $permit->getValidUntil()->format('Y-m-d'),
+            'preis'              => $permit->getPrice(),
+            'zweck'              => $permit->getPurpose(),
+            'status'             => $permit->getStatus(),
+            'is_suspended'       => (int) $permit->isSuspended(),
+            'suspension_reason'  => $permit->status->suspension_reason,
             'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
-            'interner_kommentar' => $permit->interner_kommentar,           // Harmonisierter Key
+            'interner_kommentar' => $permit->interner_kommentar,
             'agreements'         => \is_array($permit->agreements) ? \json_encode(
                 $permit->agreements,
                 \JSON_UNESCAPED_UNICODE,

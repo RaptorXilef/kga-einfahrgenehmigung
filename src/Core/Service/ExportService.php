@@ -66,18 +66,18 @@ final readonly class ExportService
         $vehicleTypes = $this->config->get('vehicle_types', []);
 
         foreach ($permits as $permit) {
-            $typKey = $permit->vehicle->typ;
+            $typKey = $permit->getVehicleType();
             $row    = [
                 $permit->code,
-                $permit->owner->name,
-                $permit->owner->email,
-                $permit->owner->parzelle,
-                $vehicleTypes[$typKey]['label'] ?? \strtoupper($typKey), // Sauberere Typ-Auflösung
-                $permit->vehicle->kennzeichen,
-                $permit->vehicle->firma ?? '',
-                $permit->validity->zweck,
-                \number_format($permit->validity->preis, 2, ',', ''),
-                \strtoupper($permit->status->current),
+                $permit->getOwnerName(),
+                $permit->getOwnerEmail(),
+                $permit->getPlotNumber(),
+                $vehicleTypes[$typKey]['label'] ?? \strtoupper($typKey),
+                $permit->getLicensePlate(),
+                $permit->getCompany() ?? '',
+                $permit->getPurpose(),
+                \number_format($permit->getPrice(), 2, ',', ''),
+                \strtoupper($permit->getStatus()),
                 $permit->erstellt->format('d.m.Y H:i'),
             ];
 

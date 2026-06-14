@@ -8,6 +8,7 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
@@ -42,6 +43,7 @@ final readonly class PermitService
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private LicensePlateFormatter $plateFormatter,
+        private LockManagerInterface $lockManager,
         private MailServiceInterface $mailService,
         private PaymentProviderInterface $paymentProvider,
         private PermitArchiveRepositoryInterface $archiveRepository,
@@ -218,16 +220,9 @@ final readonly class PermitService
      */
     public function finaliseRequest(string $token, string $status = 'offen', ?string $kommentar = null): Permit
     {
-        // TODO ggf. in Storage auslagern, da Dateizugriff (prüfen)
-        // TODO Pfad und Dateiname in config/storage.php auslagern
-        // Atomarer Prozess-Lock, um TOCTOU-Datenverlust bei parallelen Checkouts zu verhindern!
-        $lockFile = $this->config->getStoragePath('logs/checkout.lock');
-        $lockFp   = @\fopen($lockFile, 'c');
-        if ($lockFp) {
-            \flock($lockFp, \LOCK_EX);
-        }
-
-        try {
+        // TODO Dateiname aus config/storage.php auslesen
+        // Wir übergeben das Locking an die Infrastruktur! Clean.
+        return $this->lockManager->executeWithLock('checkout', function () use ($token, $status, $kommentar) {
             $allVerified = $this->verificationRepository->loadVerified();
 
             if (! isset($allVerified[$token])) {
@@ -245,13 +240,7 @@ final readonly class PermitService
             $this->verificationRepository->saveVerified($allVerified);
 
             return $permit;
-        } finally {
-            // Sperre garantiert wieder aufheben, selbst wenn createPermit einen Fehler wirft
-            if ($lockFp) {
-                \flock($lockFp, \LOCK_UN);
-                \fclose($lockFp);
-            }
-        }
+        });
     }
 
     /**

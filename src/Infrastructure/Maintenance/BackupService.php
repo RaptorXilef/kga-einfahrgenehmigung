@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service\Maintenance;
+namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Storage\JsonHelper;
@@ -12,7 +12,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
  * Handhabt die automatisierte Ausführung, sowie Datei- und Datenbankdumps.
  *
- * Path: src/Core/Service/Maintenance/BackupService.php
+ * Path: src/Infrastructure/Maintenance/BackupService.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.

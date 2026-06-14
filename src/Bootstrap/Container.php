@@ -21,6 +21,7 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
@@ -36,9 +37,7 @@ use App\Core\Service\HolidayService;
 use App\Core\Service\LicensePlateFormatter;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\MailQueueService;
-use App\Core\Service\Maintenance\BackupService;
 use App\Core\Service\Maintenance\CronScheduler;
-use App\Core\Service\Maintenance\MigrationService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\UpdateMigrationService;
@@ -46,9 +45,12 @@ use App\Core\Service\VoucherService;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Mail\SmtpMailService;
+use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
+use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\GroupRepository;
 use App\Infrastructure\Storage\MagicLinkRepository;
 use App\Infrastructure\Storage\MailQueueRepository;
@@ -189,12 +191,39 @@ class Container
             $this->get(ConfigInterface::class),
         );
 
+        $this->services[LockManagerInterface::class] = fn () => new FileLockManager(
+            $this->get(ConfigInterface::class),
+        );
+
         $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
             $this->get(\PDO::class),
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
             $this->get(GroupRepositoryInterface::class),
             $this->get(UserRepositoryInterface::class),
+        );
+
+        // --- 1.5 System-Maintenance & Wartung ---
+        $this->services[BackupService::class] = fn (): BackupService => new BackupService(
+            $this->get(\PDO::class),
+            $this->get(ConfigInterface::class),
+        );
+
+        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
+            $this->get(\PDO::class),
+            $this->get(AuthService::class),
+            $this->get(BackupService::class),
+            $this->get(ConfigInterface::class),
+            $this->get(GroupRepositoryInterface::class),
+            $this->get(MagicLinkRepositoryInterface::class),
+            $this->get(MailLogInterface::class),
+            $this->get(MailServiceInterface::class),
+            $this->get(PermitArchiveRepositoryInterface::class),
+            $this->get(PermitService::class),
+            $this->get(StorageInterface::class),
+            $this->get(UserRepositoryInterface::class),
+            $this->get(VerificationRepositoryInterface::class),
+            $this->get(VoucherRepositoryInterface::class),
         );
     }
 
@@ -221,6 +250,7 @@ class Container
             $this->get(ConfigInterface::class),
             $this->get(HolidayService::class),
             $this->get(LicensePlateFormatter::class),
+            $this->get(LockManagerInterface::class),
             $this->get(MailServiceInterface::class),
             $this->get(PaymentProviderInterface::class),
             $this->get(PermitArchiveRepositoryInterface::class),
@@ -258,28 +288,6 @@ class Container
         );
 
         // --- 2.4 Wartung & System-Updates (Maintenance) ---
-        $this->services[BackupService::class] = fn (): BackupService => new BackupService(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
-            $this->get(\PDO::class),
-            $this->get(AuthService::class),
-            $this->get(BackupService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(MagicLinkRepositoryInterface::class),
-            $this->get(MailLogInterface::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(PermitArchiveRepositoryInterface::class),
-            $this->get(PermitService::class),
-            $this->get(StorageInterface::class),
-            $this->get(UserRepositoryInterface::class),
-            $this->get(VerificationRepositoryInterface::class),
-            $this->get(VoucherRepositoryInterface::class),
-        );
-
         $this->services[UpdateMigrationService::class] = fn (): UpdateMigrationService => new UpdateMigrationService(
             $this->get(ConfigInterface::class),
             $this->get(\PDO::class),

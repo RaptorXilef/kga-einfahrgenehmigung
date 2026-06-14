@@ -62,4 +62,97 @@ final readonly class Permit
 
         return $now >= $this->validity->von && $now <= $endOfPeriod;
     }
+
+    // TODO DOCBLOCK
+    public function isExpired(\DateTimeImmutable $now): bool
+    {
+        return $this->validity->bis < $now;
+    }
+
+    // TODO DOCBLOCK
+    public function isFuture(\DateTimeImmutable $now): bool
+    {
+        return $this->validity->von > $now;
+    }
+
+    // TODO DOCBLOCK
+    public function isPaid(): bool
+    {
+        return \strtolower(\trim($this->status->current)) === 'bezahlt';
+    }
+
+    // TODO DOCBLOCK
+    public function isSuspended(): bool
+    {
+        return $this->status->is_suspended;
+    }
+
+    // TODO DOCBLOCK
+    public function getStatus(): string
+    {
+        return $this->status->current;
+    }
+
+    // --- Owner Delegation ---
+    // TODO DOCBLOCK
+    public function getOwnerName(): string
+    {
+        return $this->owner->name;
+    }
+
+    // TODO DOCBLOCK
+    public function getOwnerEmail(): string
+    {
+        return $this->owner->email;
+    }
+
+    // TODO DOCBLOCK
+    public function getPlotNumber(): string
+    {
+        return $this->owner->parzelle;
+    }
+
+    // --- Vehicle Delegation ---
+    // TODO DOCBLOCK
+    public function getVehicleType(): string
+    {
+        return $this->vehicle->typ;
+    }
+
+    // TODO DOCBLOCK
+    public function getLicensePlate(): string
+    {
+        return $this->vehicle->kennzeichen;
+    }
+
+    // TODO DOCBLOCK
+    public function getCompany(): ?string
+    {
+        return $this->vehicle->firma;
+    }
+
+    // --- Validity Delegation ---
+    // TODO DOCBLOCK
+    public function getPrice(): float
+    {
+        return $this->validity->preis;
+    }
+
+    // TODO DOCBLOCK
+    public function getPurpose(): string
+    {
+        return $this->validity->zweck;
+    }
+
+    // TODO DOCBLOCK
+    public function getValidFrom(): \DateTimeImmutable
+    {
+        return $this->validity->von;
+    }
+
+    // TODO DOCBLOCK
+    public function getValidUntil(): \DateTimeImmutable
+    {
+        return $this->validity->bis;
+    }
 }

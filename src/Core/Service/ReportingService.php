@@ -49,21 +49,25 @@ final readonly class ReportingService
             // 1. FINANZ-LOGIK (Unbezahlte sammeln)
             // Wir prüfen auf 'bezahlt'. Alles andere (offen, leer, NULL)
             // gilt als "unbezahlt" und landet im Finanz-Tab.
-            if (\strtolower(\trim($permit->status->current)) !== 'bezahlt') {
+
+            // Tell, don't ask! Wir fragen die Entität nach ihrem Zustand.
+            if (! $permit->isPaid()) {
                 $groups['unpaid'][] = $permit;
             }
 
             // Zeit-Logik
-            if ($permit->validity->bis < $now) {
+            if ($permit->isExpired($now)) {
                 $groups['expired'][] = $permit;
 
                 continue;
             }
-            if ($permit->validity->von > $now) {
+
+            if ($permit->isFuture($now)) {
                 $groups['future'][] = $permit;
 
                 continue;
             }
+
             $groups['active'][] = $permit;
         }
 
@@ -93,20 +97,23 @@ final readonly class ReportingService
         // Initialisiert das Array mit allen Keys aus der Config (pkw, lkw, entsorg, etc.)
         $typeStats = \array_fill_keys(\array_keys($vConfig), 0);
 
-        // NEU: Ein Sammelbecken für gelöschte Typen
+        // Ein Sammelbecken für gelöschte Typen
         $typeStats['__legacy__'] = 0;
 
+        // [x] sortiert
         $stats = [
             'count'          => \count($permits),
+            'plots'          => [],
             'revenue_paid'   => 0.0,
             'revenue_unpaid' => 0.0,
             'types'          => $typeStats,
-            'plots'          => [],
         ];
 
         foreach ($permits as $p) {
             // Fahrzeugtypen zählen
-            $pType = $p->vehicle->typ;
+            $pType = $p->getVehicleType();
+            $pNum  = $p->getPlotNumber();
+            $price = $p->getPrice();
 
             // Wenn Typ existiert, normal zählen, sonst in den Legacy-Topf
             if (isset($stats['types'][$pType])) {
@@ -116,9 +123,6 @@ final readonly class ReportingService
                 // zählen wir ihn hier rein, damit die Summe stimmt.
                 ++$stats['types']['__legacy__'];
             }
-
-            // Parzellen aggregieren
-            $pNum = $p->owner->parzelle;
 
             // Initialisiere Parzelle im Ranking, falls noch nicht vorhanden
             if (! isset($stats['plots'][$pNum])) {
@@ -132,17 +136,17 @@ final readonly class ReportingService
 
             // Daten aggregieren
             ++$stats['plots'][$pNum]['count'];
-            $stats['plots'][$pNum]['revenue'] += $p->validity->preis;
+            $stats['plots'][$pNum]['revenue'] += $price;
 
             // Zuletzt verwendete Daten speichern
-            $stats['plots'][$pNum]['name']  = $p->owner->name;
-            $stats['plots'][$pNum]['email'] = $p->owner->email;
+            $stats['plots'][$pNum]['name']  = $p->getOwnerName();
+            $stats['plots'][$pNum]['email'] = $p->getOwnerEmail();
 
             // Umsätze berechnen
-            if (\strtolower($p->status->current) === 'bezahlt') {
-                $stats['revenue_paid'] += $p->validity->preis;
+            if ($p->isPaid()) { // Sauber!
+                $stats['revenue_paid'] += $price;
             } else {
-                $stats['revenue_unpaid'] += $p->validity->preis;
+                $stats['revenue_unpaid'] += $price;
             }
         }
 
@@ -155,12 +159,13 @@ final readonly class ReportingService
         );
 
         // Typen-Prüfung eingebaut, um PHP-Notice bei komplett leeren Filterergebnissen zu unterbinden
-        if (! empty($stats['plots'])) {
-            $firstPlot = \reset($stats['plots']);
-            $maxCount  = (\is_array($firstPlot) && ($firstPlot['count'] ?? 0) > 0) ? $firstPlot['count'] : 1;
-        } else {
-            $maxCount = 1;
-        }
+        $maxCount = (
+            ! empty($stats['plots'])
+            && \is_array(\reset($stats['plots']))
+            && \reset($stats['plots'])['count'] > 0
+        )
+            ? \reset($stats['plots'])['count']
+            : 1;
 
         // Den berechneten Wert dem Array hinzufügen!
         $stats['max_plot_count'] = $maxCount;
@@ -196,7 +201,8 @@ final readonly class ReportingService
 
             ++$yearlyStats[$year]['count'];
             // Dynamisches Zählen des Fahrzeugtyps
-            $pType = $p->vehicle->typ;
+            $pType = $p->getVehicleType();
+            $price = $p->getPrice();
 
             if (isset($yearlyStats[$year]['types'][$pType])) {
                 ++$yearlyStats[$year]['types'][$pType];
@@ -204,10 +210,10 @@ final readonly class ReportingService
                 ++$yearlyStats[$year]['types']['__legacy__'];
             }
 
-            if (\strtolower($p->status->current) === 'bezahlt') {
-                $yearlyStats[$year]['paid'] += $p->validity->preis; // Nutze den Fallback-Key deines Traits
+            if ($p->isPaid()) {
+                $yearlyStats[$year]['paid'] += $price;
             } else {
-                $yearlyStats[$year]['unpaid'] += $p->validity->preis;
+                $yearlyStats[$year]['unpaid'] += $price;
             }
         }
 
