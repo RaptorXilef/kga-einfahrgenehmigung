@@ -18,12 +18,12 @@ use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\ExportService;
 use App\Core\Service\HolidayService;
+use App\Core\Service\Maintenance\BackupService;
+use App\Core\Service\Maintenance\CronScheduler;
+use App\Core\Service\Maintenance\MigrationService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
-use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\CronScheduler;
-use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Storage\JsonHelper;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Maintenance;
+namespace App\Core\Service\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\PermitService;
@@ -14,7 +14,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Steuert zeitbasierte Routinen wie die Auto-Archivierung veralteter Genehmigungen
  * und die regelmäßige Erstellung von Backups.
  *
- * Path: src/Infrastructure/Maintenance/CronScheduler.php
+ * Path: src/Core/Service/Maintenance/CronScheduler.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.

@@ -1,5 +1,5 @@
 # Path: deptrac.yaml
-# @description Erzwingt die architektonische Integrität.
+# @description Erzwingt die architektonische Integrität der KGA App.
 
 deptrac:
   paths:
@@ -7,56 +7,73 @@ deptrac:
   cache_file: .cache/deptrac/.deptrac.cache
 
   layers:
-    - name: Domain # Die Entitäten sind die Basis
+    - name: Domain # (Entities, Value Objects) Keine externen Abhängigkeiten!
       collectors:
         - type: directory
           value: src/Core/Entity/.*
-    - name: Contracts
+
+    - name: Contracts # (Interfaces) Die Schnittstellen-Verträge
       collectors:
         - type: directory
           value: src/Contracts/.*
-    - name: Core # Jetzt nur noch die Services
+
+    - name: Core # (Domain Services, Maintenance) Orchestrieren Geschäftslogik
       collectors:
         - type: directory
           value: src/Core/Service/.*
-    - name: Infrastructure
+
+    - name: Infrastructure # (Repositories, PDO, File I/O) Dumme Daten-Lieferanten
       collectors:
         - type: directory
           value: src/Infrastructure/.*
-    - name: Application # Hier wohnen die Controller
+
+    - name: View # (Presenter, Renderer) Formatieren Daten für die Ausgabe
+      collectors:
+        - type: directory
+          value: src/Application/View/.*
+
+    - name: Application # (Controller) Nehmen HTTP-Requests an
       collectors:
         - type: directory
           value: src/Application/.*
+          # View aus dem Application Layer ausschließen, da es ein eigener Layer ist
+      exclude_collectors:
+        - type: directory
+          value: src/Application/View/.*
 
   ruleset:
-    # Domain (Permit) ist völlig unabhängig
+    # 1. Domain-Schicht ist isoliert und kennt NIEMANDEN.
     Domain: ~
 
-    # Contracts dürfen Domain-Objekte (Permit) kennen
+    # 2. Verträge definieren die Domäne und nutzen ihre Objekte.
     Contracts:
       - Domain
 
-    # Core nutzt Interfaces und Domain
+    # 3. Der Core (Logik) orchestriert die Domäne über Verträge. Er weiß nichts von der Infrastruktur!
     Core:
       - Contracts
       - Domain
 
-    # Infrastructure implementiert Interfaces
+    # 4. Die Infrastruktur liefert Daten und darf Verträge implementieren.
+    # (Darf auch Core nutzen, z.B. wenn ein Repo den Auth-Service für Log-Tags braucht).
     Infrastructure:
-      - Core
       - Contracts
       - Domain
-
-    # Controller dürfen ALLES nutzen, um den Request zu bedienen
-    Application:
       - Core
+
+    # 5. View formatiert Logik für die Ausgabe (Darf Config und Domain-Daten lesen).
+    View:
       - Contracts
+      - Domain
+      - Core
+
+    # 6. Controller orchestrieren den gesamten Ablauf.
+    Application:
+      - Contracts
+      - Core
       - Domain
       - Infrastructure
+      - View
 
-  # Hier erlauben wir die explizite Ausnahme für unser System-Tool
-  #skip_violations:
-  #  App\Core\Service\MigrationService:
-  #    - App\Infrastructure\Auth\AuthService
-  #    - App\Infrastructure\Storage\JsonStorage
-  #    - App\Infrastructure\Storage\MySqlStorage
+  # Wir brauchen KEINE Ausnahmen mehr! Das System ist zu 100% sauber entkoppelt.
+  # skip_violations: ~

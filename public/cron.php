@@ -16,9 +16,12 @@
 
 declare(strict_types=1);
 
+use App\Contracts\Config\ConfigInterface;
+use App\Core\Service\Maintenance\CronScheduler;
+
 try {
     $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-    $config    = $container->get(\App\Contracts\Config\ConfigInterface::class);
+    $config    = $container->get(ConfigInterface::class);
 
     $providedToken = $_GET['token'] ?? '';
     $requiredToken = (string) $config->get('cron_secret', 'unconfigured');
@@ -29,7 +32,7 @@ try {
         exit('Forbidden: Ungültiges Token.');
     }
 
-    $cron = $container->get(\App\Infrastructure\Maintenance\CronScheduler::class);
+    $cron = $container->get(CronScheduler::class);
     $cron->runForce();
 
     echo "Status 200 OK: Cronjobs (Archivierung & Backup) erfolgreich ausgefuehrt.\n";
