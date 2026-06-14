@@ -2,6 +2,15 @@
 
 
 
+## [0.46.12](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.11...v0.46.12) (2026-06-14)
+
+### ⚙️ Refactoring
+
+* **core,infra:** enforce domain encapsulation, fix Deptrac violations, and abstract I/O locking ([26f6963](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/26f696315d031bffaa54de9d3807fff37b4a1b03))
+* **core,ui:** rename ambiguous $p variables to domain-specific identifiers ([6b387a5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6b387a5f9564c32fe4b17fb0ff0447d9bd2faaf0))
+* **core,views:** extract DateRangeHelper and enforce Tell-Don't-Ask entity encapsulation ([279e2bb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/279e2bb78cdbf33d59d19f82ee57ae032796b3f8))
+* **core,views:** extract DateRangeHelper and enforce Tell-Don't-Ask entity encapsulation ([424b728](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/424b7289c4650e0807fe6df2c00420bf17b0209a))
+
 ## [0.46.11](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.10...v0.46.11) (2026-06-14)
 
 ### 🐛 Bug Fixes

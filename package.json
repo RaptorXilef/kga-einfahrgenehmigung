@@ -1,6 +1,6 @@
 {
   "name": "@raptorxilef/kga-einfahrgenehmigung",
-  "version": "0.46.11",
+  "version": "0.46.12",
   "description": "OOP-basiertes System zur Verwaltung von Ausnahmegenehmigungen",
   "type": "module",
   "author": "Felix Maywald <RaptorXilef>",
