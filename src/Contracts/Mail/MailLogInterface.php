@@ -7,7 +7,7 @@ namespace App\Contracts\Mail;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Contracts/Mail/MailServiceInterface.php
+ * Path: src/Contracts/Mail/MailLogInterface.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.

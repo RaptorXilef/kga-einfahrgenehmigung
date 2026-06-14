@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
@@ -28,6 +29,7 @@ final readonly class PermitController
     public function __construct(
         private ConfigInterface $config,
         private PermitService $permitService,
+        private TemplateRenderer $renderer,
         private VerificationRepositoryInterface $verificationRepo, // Das Repository!
         private VoucherRepositoryInterface $voucherRepository,
         private VoucherService $voucherService,
@@ -147,16 +149,14 @@ final readonly class PermitController
                 'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
         }
 
+        // [x] sortiert
         // 3. View rendern (wie gehabt)
-        $this->render('formular', [
+        $this->renderer->render('formular', [
+            'agreements'        => $this->getParsedAgreements(),
+            'formData'          => $_SESSION['form_data'] ?? [], // Ans Template übergeben
+            'hasActiveVouchers' => $this->checkAvailableVouchers(), // Prüfen, ob einlösbare Gutscheine existieren
             'message'           => $message,
             'success'           => $success,
-            'config'            => $this->config,
-            'settings'          => $this->getSettingsArray(),
-            'appRoot'           => $this->config->get('root_path'),
-            'hasActiveVouchers' => $this->checkAvailableVouchers(), // Prüfen, ob einlösbare Gutscheine existieren
-            'formData'          => $_SESSION['form_data'] ?? [], // Ans Template übergeben
-            'agreements'        => $this->getParsedAgreements(),
         ]);
     }
 
@@ -207,6 +207,7 @@ final readonly class PermitController
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', '$1', $cleanLabel);
             }
 
+            // [x] sortiert
             $parsed[$key] = [
                 'label_html' => $renderedLabel,
                 'required'   => $agree['required'] ?? false,
@@ -214,38 +215,5 @@ final readonly class PermitController
         }
 
         return $parsed;
-    }
-
-    /**
-     * Baut Einstellungen, Sichtbarkeiten und Farbcodes für das Antragsformular zusammen.
-     *
-     * @return array<string, mixed>
-     */
-    private function getSettingsArray(): array
-    {
-        $templates = (array) $this->config->get('permit_templates', []);
-        $public    = \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true);
-
-        return [
-            'vereins_name'     => $this->config->get('vereins_name'),
-            'vehicle_types'    => $this->config->get('vehicle_types'),
-            'purposes'         => $this->config->get('purposes'),
-            'public_templates' => $public,
-            'base_url'         => $this->config->getBaseUrl(),
-            'jahresFarbe'      => $this->config->get('jahresFarbe'),
-        ];
-    }
-
-    /**
-     * Integriert Variablen-Scope und bindet PHTML-Antragsformulare ein.
-     *
-     * @param string               $templatePath Template-Name.
-     * @param array<string, mixed> $data         UI-Daten.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 }

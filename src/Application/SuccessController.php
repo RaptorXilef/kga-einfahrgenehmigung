@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\BankQrGenerator;
@@ -28,6 +29,7 @@ final readonly class SuccessController
         private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
         private StorageInterface $storage,
+        private TemplateRenderer $renderer,
     ) {
     }
 
@@ -67,34 +69,14 @@ final readonly class SuccessController
         // Frist ab Erstellungsdatum berechnen (wie in der Mail)
         $dueDate = $permit->erstellt->modify("+$dueDays days")->format('d.m.Y');
 
-        $this->render('checkout/success', [
-            'permit'         => $permit,
-            'method'         => $method,
-            'usage'          => $usage,
+        // [x] sortiert
+        $this->renderer->render('checkout/success', [
+            'dueDate'        => $dueDate,
             'epcData'        => \urlencode($epcData),
-            'requirePayment' => $requirePayment, // NEU übergeben
-            'dueDate'        => $dueDate,        // NEU übergeben
-            'settings'       => [
-                'vereins_name' => $this->config->get('vereins_name'),
-                'base_url'     => $this->config->getBaseUrl(),
-                'iban'         => $this->config->get('iban'),
-                'kontoinhaber' => $this->config->get('kontoinhaber'),
-                'bic'          => $this->config->get('bic'),
-            ],
-            'appRoot' => $this->config->get('root_path'),
+            'method'         => $method,
+            'permit'         => $permit,
+            'requirePayment' => $requirePayment,
+            'usage'          => $usage,
         ]);
-    }
-
-    /**
-     * Integriert Variablen-Scope und bindet PHTML-Erfolgsseiten ein.
-     *
-     * @param string               $templatePath Template-Name.
-     * @param array<string, mixed> $data         UI-Daten.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
     }
 }

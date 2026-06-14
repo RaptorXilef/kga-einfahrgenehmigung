@@ -67,49 +67,4 @@ final readonly class PaymentController
             JsonResponse::error($exception->getMessage(), 400);
         }
     }
-
-    /**
-     * Generiert Template-Einstellungen und filtert öffentliche Antragsformulare.
-     * Berücksichtigt pre-filled Datensätze bei aktiven Gutscheincodes.
-     *
-     * @param array<string, mixed>|null $prefill Optionale Gutschein-Stammdaten.
-     *
-     * @return array<string, mixed> Template-Konfigurationsarray.
-     */
-    private function getSettingsArray(?array $prefill = null): array
-    {
-        $templates = $this->config->get('permit_templates', []);
-        $public    = \array_filter(
-            (array) $templates,
-            fn (array $template): bool => ($template['public'] ?? false) === true,
-        );
-
-        if ($prefill !== null && isset($prefill['template_key'])) {
-            $key = (string) $prefill['template_key'];
-            if (! isset($public[$key]) && isset($templates[$key])) {
-                $public[$key] = $templates[$key];
-            }
-        }
-
-        return [
-            'vereins_name'     => $this->config->get('vereins_name'),
-            'vehicle_types'    => $this->config->get('vehicle_types'),
-            'purposes'         => $this->config->get('purposes'),
-            'public_templates' => $public,
-        ];
-    }
-
-    /**
-     * Rendert die Bezahl- und Antragsformulare.
-     *
-     * @param string               $templatePath Dateiname des Page-Templates.
-     * @param array<string, mixed> $data         Injektionsvariablen.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        $appRoot = (string) $this->config->get('root_path');
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
-    }
 }

@@ -14,6 +14,7 @@ use App\Application\PermitController;
 use App\Application\SuccessController;
 use App\Application\UserController;
 use App\Application\VerificationController;
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -391,6 +392,10 @@ class Container
             $this->get(ConfigInterface::class),
             $this->get(\PDO::class),
         );
+
+        $this->services[TemplateRenderer::class] = fn (): TemplateRenderer => new TemplateRenderer(
+            $this->get(ConfigInterface::class),
+        );
     }
 
     /**
@@ -416,6 +421,7 @@ class Container
             $this->get(ReportingService::class),
             $this->get(StorageBootstrapper::class),
             $this->get(StorageInterface::class),
+            $this->get(TemplateRenderer::class),
             $this->get(UserRepositoryInterface::class),
             $this->get(VoucherRepositoryInterface::class),
             $this->get(VoucherService::class),
@@ -426,6 +432,7 @@ class Container
             $this->get(AuthService::class),
             $this->get(ConfigInterface::class),
             $this->get(GroupRepositoryInterface::class),
+            $this->get(TemplateRenderer::class),
             $this->get(UserRepositoryInterface::class),
         );
 
@@ -436,6 +443,7 @@ class Container
             $this->get(GroupRepositoryInterface::class),
             $this->get(HolidayService::class),
             $this->get(StorageInterface::class),
+            $this->get(TemplateRenderer::class),
             $this->get(UserRepositoryInterface::class),
         );
 
@@ -443,6 +451,7 @@ class Container
         $this->services[PermitController::class] = fn (): PermitController => new PermitController(
             $this->get(ConfigInterface::class),
             $this->get(PermitService::class),
+            $this->get(TemplateRenderer::class),
             $this->get(VerificationRepositoryInterface::class),
             $this->get(VoucherRepositoryInterface::class),
             $this->get(VoucherService::class),
@@ -451,8 +460,9 @@ class Container
         // NEU: CheckoutController für checkout.php
         $this->services[CheckoutController::class] = fn (): CheckoutController => new CheckoutController(
             $this->get(ConfigInterface::class),
-            $this->get(HolidayService::class), // <-- Das hier hinzufügen!
+            $this->get(HolidayService::class),
             $this->get(PermitService::class),
+            $this->get(TemplateRenderer::class),
         );
 
         // NEU: SuccessController für success.php
@@ -460,6 +470,7 @@ class Container
             $this->get(BankQrGenerator::class),
             $this->get(ConfigInterface::class),
             $this->get(StorageInterface::class),
+            $this->get(TemplateRenderer::class),
         );
 
         $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(
@@ -467,6 +478,7 @@ class Container
             $this->get(MailServiceInterface::class),
             $this->get(PermitService::class),
             $this->get(RateLimiterInterface::class),
+            $this->get(TemplateRenderer::class),
         );
 
         $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
@@ -483,10 +495,12 @@ class Container
             $this->get(PermitService::class),
             $this->get(RateLimiterInterface::class),
             $this->get(StorageInterface::class),
+            $this->get(TemplateRenderer::class),
         );
 
         $this->services[LegalController::class] = fn (): LegalController => new LegalController(
             $this->get(ConfigInterface::class),
+            $this->get(TemplateRenderer::class),
         );
     }
 

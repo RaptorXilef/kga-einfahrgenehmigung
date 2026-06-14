@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -30,6 +31,7 @@ final readonly class VerificationController
         private MailServiceInterface $mailService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
+        private TemplateRenderer $renderer,
     ) {
     }
 
@@ -113,39 +115,11 @@ final readonly class VerificationController
         $displayMessage = (string) ($get['msg'] ?? '');
         $isError        = isset($get['error']);
 
+        // [x] sortiert
         // Wir nennen die Datei jetzt verify_input statt verify_error
-        $this->render('verify_input', [
-            'message'  => $displayMessage,
-            'isError'  => $isError,
-            'settings' => $this->getSettingsArray(),
+        $this->renderer->render('verify_input', [
+            'isError' => $isError,
+            'message' => $displayMessage,
         ]);
-    }
-
-    /**
-     * Generiert standardisierte Konfigurationsparameter für das Verifizierungs-Frontend.
-     *
-     * @return array<string, mixed>
-     */
-    private function getSettingsArray(): array
-    {
-        return [
-            'vereins_name' => $this->config->get('vereins_name'),
-            'jahresFarbe'  => $this->config->get('jahresFarbe'),
-            'base_url'     => $this->config->getBaseUrl(),
-        ];
-    }
-
-    /**
-     * Extrahiert Daten-Arrays und bindet die Eingabemasken für Verifizierungscodes ein.
-     *
-     * @param string               $templatePath Name der Layout-Datei.
-     * @param array<string, mixed> $data         Injektionsdaten.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        $appRoot = (string) $this->config->get('root_path');
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 }

@@ -14,6 +14,7 @@
 declare(strict_types=1);
 
 use App\Application\Response\JsonResponse;
+use App\Application\View\HolidayHtmlPresenter;
 use App\Core\Service\HolidayService;
 
 try {
@@ -45,13 +46,16 @@ try {
     }
 
     $holidayService = $container->get(HolidayService::class);
-    $holidayNotice  = $holidayService->getHolidaysInRangeText($von, $bis, true);
+    $holidays       = $holidayService->getHolidaysInRange($von, $bis);
 
     // Generiert exakt das Wording aus den E-Mails
-    $openingHtml = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
+    $openingData = $holidayService->getOpeningHoursDataForDateRange($von, $bis);
+
+    $holidayNotice = HolidayHtmlPresenter::formatHolidayNotice($holidays);
+    $openingHtml   = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
         'Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>' .
         '<span style="color: var(--primary-color); font-weight: bold;">' .
-        $holidayService->getOpeningHoursTextForDateRange($von, $bis) .
+        HolidayHtmlPresenter::formatOpeningHours($openingData) .
         '</span>';
 
     JsonResponse::success([

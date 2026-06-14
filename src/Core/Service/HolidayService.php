@@ -156,7 +156,7 @@ final readonly class HolidayService
      */
     public function getGeneralOpeningHoursText(?\DateTimeInterface $date = null): string
     {
-        return $this->formatHoursArrayToText($this->getOpeningHoursForDate($date));
+        return \implode(' | ', $this->formatHoursArrayToText($this->getOpeningHoursForDate($date)));
     }
 
     /**
@@ -165,24 +165,14 @@ final readonly class HolidayService
      * Erstellt einen HTML-kompatiblen String mit allen Zeitblöcken für eine Genehmigung.
      * (Wird direkt im Frontend und PDF gerendert)
      */
-    public function getOpeningHoursTextForDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): string
+    public function getOpeningHoursDataForDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
-        $blocks  = $this->getOpeningHoursForDateRange($startDate, $endDate);
-        $result  = [];
-        $isMulti = \count($blocks) > 1;
-
-        foreach ($blocks as $block) {
-            $hoursText = $this->formatHoursArrayToText($block['hours']);
-
-            if ($isMulti) {
-                // Zeilenumbruch und Datum-Präfix, falls es mehrere Saisons gibt
-                $result[] = "<div style=\"margin-bottom: 6px;\"><span style=\"color: var(--primary-color);\">{$block['from']} - {$block['to']}:</span><br>" . $hoursText . '</div>';
-            } else {
-                $result[] = '<div>' . $hoursText . '</div>';
-            }
+        $blocks = $this->getOpeningHoursForDateRange($startDate, $endDate);
+        foreach ($blocks as &$block) {
+            $block['hours_text'] = $this->formatHoursArrayToText($block['hours']);
         }
 
-        return \implode('', $result);
+        return $blocks;
     }
 
     /**
@@ -190,55 +180,35 @@ final readonly class HolidayService
      *
      * Gibt einen formatierten Text der anstehenden Ruhetage innerhalb eines Zeitraums zurück.
      *
-     * @param  \DateTimeImmutable $von        Startdatum.
-     * @param  \DateTimeImmutable $bis        Enddatum.
-     * @param  bool               $withPrefix Ob Warnhinweis-Präfix ("🚫 An folgenden Feier-...") vorangestellt wird.
-     * @return string             Formatierte Ruhetags-Auflistung.
+     * @param  \DateTimeImmutable $von Startdatum.
+     * @param  \DateTimeImmutable $bis Enddatum.
+     * @return array              Ruhetags-Auflistung.
      */
-    public function getHolidaysInRangeText(
-        \DateTimeImmutable $von,
-        \DateTimeImmutable $bis,
-        bool $withPrefix = true,
-    ): string {
+    public function getHolidaysInRange(\DateTimeImmutable $von, \DateTimeImmutable $bis): array
+    {
         $startYear = (int) $von->format('Y');
         $endYear   = (int) $bis->format('Y');
         $holidays  = [];
 
         for ($year = $startYear; $year <= $endYear; ++$year) {
-            // Neue zentrale Logik abrufen
             $yearlyHolidays = $this->getAllHolidaysForYear($year);
-
             foreach ($yearlyHolidays as $dateStr) {
                 $date = new \DateTimeImmutable($dateStr);
-                // Prüfen, ob der Feiertag in den Gültigkeitszeitraum fällt
                 if ($date < $von->setTime(0, 0, 0) || $date > $bis->setTime(23, 59, 59)) {
                     continue;
                 }
-
                 $holidays[] = $date->format('Y-m-d');
             }
         }
 
-        // Wenn gar kein Feiertag im Zeitraum liegt, wird ein Leerstring zurückgegeben.
-        // Das UI blendet die Anzeige dann komplett aus.
         if ($holidays === []) {
-            return '';
+            return [];
         }
 
-        // Chronologisch sortieren und formatieren
         \sort($holidays);
-        // FIX: array_values() zwingend erforderlich, da array_unique() Keys im Array löscht
-        // und die for-Schleife im HolidayService sonst mangels sequenzieller Indizes abstürzt.
         $holidays = \array_values(\array_unique($holidays));
 
-        $formattedRanges = $this->formatDateRanges($holidays);
-        $dateString      = \implode(', ', $formattedRanges);
-
-        if (! $withPrefix) {
-            return $dateString;
-        }
-
-        return '🚫 An folgenden Feier- und Ruhetagen ist die Einfahrt untersagt:<br>' . $dateString . '.';
+        return $this->formatDateRanges($holidays);
     }
 
     // --- Internal Calculation Engines (Private) ---
@@ -544,46 +514,39 @@ final readonly class HolidayService
     }
 
     /**
+     * TODO DOCBLOCK
      * Formatiert ein rohes Array von Öffnungszeiten in den gruppierten HTML-Text.
      */
-    private function formatHoursArrayToText(array $hours): string
+    private function formatHoursArrayToText(array $hours): array
     {
         if (empty($hours)) {
-            return 'nach Vereinbarung';
+            return ['nach Vereinbarung'];
         }
 
         $useFullList = (bool) $this->config->get('holiday_service_use_full_list', false);
-        $daysMap     = [
-            'mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi', 'thu' => 'Do',
-            'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So',
-        ];
+        $daysMap     = ['mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi', 'thu' => 'Do', 'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So'];
 
         if ($useFullList) {
             $resultStrings = [];
             foreach ($daysMap as $key => $label) {
                 $slots = $hours[$key] ?? [];
                 if ($slots === []) {
-                    $resultStrings[] = "<span style=\"white-space: nowrap;\"><strong>{$label}:</strong> Keine Einfahrt</span>";
+                    $resultStrings[] = "{$label}: Keine Einfahrt";
 
                     continue;
                 }
                 $daySlots        = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $slots);
-                $resultStrings[] = "<span style=\"white-space: nowrap;\"><strong>{$label}:</strong> " . \implode(', ', $daySlots) . '</span>';
+                $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
             }
 
-            return \implode(' &nbsp;|&nbsp; ', $resultStrings);
+            return $resultStrings;
         }
 
         $chronologicalGroups = [];
         $currentGroup        = null;
-
         foreach ($daysMap as $key => $label) {
             $slots   = $hours[$key] ?? [];
-            $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(
-                fn (array $s): string => $s[0] . '-' . $s[1],
-                $slots,
-            ));
-
+            $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(fn (array $s): string => $s[0] . '-' . $s[1], $slots));
             if ($currentGroup === null || $currentGroup['slotKey'] !== $slotKey) {
                 if ($currentGroup !== null) {
                     $chronologicalGroups[] = $currentGroup;
@@ -606,7 +569,6 @@ final readonly class HolidayService
             } else {
                 $dayString = $group['days'][0] . ' - ' . $group['days'][$count - 1];
             }
-
             if (! isset($finalMerged[$slotKey])) {
                 $finalMerged[$slotKey] = ['dayParts' => [$dayString], 'slots' => $group['slots']];
             } else {
@@ -617,15 +579,14 @@ final readonly class HolidayService
         $finalParts = [];
         foreach ($finalMerged as $slotKey => $data) {
             $daysText = \implode(', ', $data['dayParts']);
-
             if ($slotKey === 'none') {
-                $finalParts[] = "<span style=\"white-space: nowrap;\"><strong>{$daysText}:</strong> Keine Einfahrt</span>";
+                $finalParts[] = "{$daysText}: Keine Einfahrt";
             } else {
                 $slotStrings  = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $data['slots']);
-                $finalParts[] = "<span style=\"white-space: nowrap;\"><strong>{$daysText}:</strong> " . \implode(', ', $slotStrings) . '</span>';
+                $finalParts[] = "{$daysText}: " . \implode(', ', $slotStrings);
             }
         }
 
-        return \implode(' &nbsp;|&nbsp; ', $finalParts);
+        return $finalParts;
     }
 }

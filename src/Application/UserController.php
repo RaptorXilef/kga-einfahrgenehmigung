@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -28,6 +29,7 @@ final readonly class UserController
         private AuthService $auth,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
+        private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -91,12 +93,16 @@ final readonly class UserController
             }
         }
 
-        $this->render('admin_users', [
-            'users'       => $this->userRepository->loadAll(),
-            'groups'      => $this->groupRepository->loadAll(),
-            'structure'   => $this->config->get('structure', []),
-            'permissions' => $this->config->get('permissions', []),
-            'message'     => (string) ($_GET['msg'] ?? ''),
+        // [x] sortiert
+        $this->renderer->render('admin_users', [
+            'auth'            => $this->auth,
+            'groupRepository' => $this->groupRepository,
+            'groups'          => $this->groupRepository->loadAll(),
+            'message'         => (string) ($_GET['msg'] ?? ''),
+            'permissions'     => $this->config->get('permissions', []),
+            'structure'       => $this->config->get('structure', []),
+            'userRepository'  => $this->userRepository,
+            'users'           => $this->userRepository->loadAll(),
         ]);
     }
 
@@ -142,11 +148,14 @@ final readonly class UserController
         $groups      = $this->groupRepository->loadAll();
         $userGroupId = $users[$userId]['group'] ?? 'guest';
 
-        $this->render('profile', [
-            'userId'   => $userId,
-            'username' => $users[$userId]['username'] ?? 'Unbekannt',
-            'group'    => $groups[$userGroupId]['name'] ?? $userGroupId,
-            'message'  => (string) ($_GET['msg'] ?? ''),
+        $this->renderer->render('profile', [
+            'auth'            => $this->auth,
+            'group'           => $groups[$userGroupId]['name'] ?? $userGroupId,
+            'groupRepository' => $this->groupRepository,
+            'message'         => (string) ($_GET['msg'] ?? ''),
+            'userId'          => $userId,
+            'username'        => $users[$userId]['username'] ?? 'Unbekannt',
+            'userRepository'  => $this->userRepository,
         ]);
     }
 
@@ -586,37 +595,5 @@ final readonly class UserController
         }
 
         return 'Fehler bei der Bildverarbeitung.';
-    }
-
-    // ENDE --- Die Match-Worker-Methoden für das eigene Profil (handleProfileRequest) ---
-
-    /**
-     * Bindet Administrations- und Profil-Templates im User-Kontext ein.
-     * Rendert ein Template und stellt sicher, dass alle Pfade und Objekte da sind.
-     *
-     * @param string               $template Pfadname der Layout-Datei.
-     * @param array<string, mixed> $data     Zusatzdaten für den View-Scope.
-     */
-    private function render(string $template, array $data): void
-    {
-        $config = $this->config;
-        // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
-        $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
-
-        $templateData = \array_merge([
-            'appRoot'         => $appRoot . '/',
-            'auth'            => $this->auth,
-            'config'          => $this->config,
-            'userRepository'  => $this->userRepository,
-            'groupRepository' => $this->groupRepository,
-            'settings'        => [
-                'base_url'     => $this->config->getBaseUrl(),
-                'vereins_name' => $this->config->get('vereins_name'),
-            ],
-        ], $data);
-
-        \extract($templateData);
-        // FIX: Expliziter Schrägstrich vor templates/ hinzugefügt
-        include $appRoot . "/templates/pages/{$template}.phtml";
     }
 }

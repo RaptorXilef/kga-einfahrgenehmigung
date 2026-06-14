@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 
 /**
@@ -20,6 +21,7 @@ final readonly class LegalController
 {
     public function __construct(
         private ConfigInterface $config,
+        private TemplateRenderer $renderer,
     ) {
     }
 
@@ -31,10 +33,8 @@ final readonly class LegalController
         $root      = $this->config->get('root_path');
         $legalData = include $root . '/config/datenschutz.php';
 
-        $this->render('datenschutz', [
-            'legal'    => $legalData,
-            'settings' => $this->getSettingsArray(),
-            'appRoot'  => $root,
+        $this->renderer->render('datenschutz', [
+            'legal' => $legalData,
         ]);
     }
 
@@ -47,37 +47,8 @@ final readonly class LegalController
         $root      = $this->config->get('root_path');
         $legalData = include $root . '/config/impressum.php';
 
-        $this->render('impressum', [
-            'legal'    => $legalData,
-            'settings' => $this->getSettingsArray(),
-            'appRoot'  => $root,
+        $this->renderer->render('impressum', [
+            'legal' => $legalData,
         ]);
-    }
-
-    /**
-     * Rendering-Hilfsmethode für die Legal-Templates.
-     *
-     * @param string               $templatePath Relativer Pfad zum .phtml Template.
-     * @param array<string, mixed> $data         Injektionsvariablen.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
-    }
-
-    /**
-     * Holt Basis-Einstellungen für Header, Navigation und Favicons.
-     *
-     * @return array<string, mixed>
-     */
-    private function getSettingsArray(): array
-    {
-        return [
-            'vereins_name' => $this->config->get('vereins_name'),
-            'base_url'     => $this->config->getBaseUrl(),
-            'jahresFarbe'  => $this->config->get('jahresFarbe'),
-        ];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
+use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
@@ -711,10 +712,15 @@ final readonly class PermitService
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        $zeitraum   = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
-        $geheimnis  = (string) $this->config->get('geheimnis', '');
-        $token      = \hash_hmac('sha256', $permit->code, $geheimnis);
-        $opening    = $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis);
+        $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
+        $geheimnis = (string) $this->config->get('geheimnis', '');
+        $token     = \hash_hmac('sha256', $permit->code, $geheimnis);
+        $opening   = HolidayHtmlPresenter::formatOpeningHours(
+            $this->holidayService->getOpeningHoursDataForDateRange($permit->validity->von, $permit->validity->bis),
+        );
+        $holidayNotice = HolidayHtmlPresenter::formatHolidayNotice(
+            $this->holidayService->getHolidaysInRange($permit->validity->von, $permit->validity->bis),
+        );
         $mailConfig = $this->config->getMailSettings();
 
         // Prüfung, ob die Vorstands-Benachrichtigung gesendet werden soll (Standard: true, falls nicht gesetzt)
@@ -784,21 +790,18 @@ final readonly class PermitService
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permit->code,
             'permit_a4_document',
             [
-                'fullIdentifier' => $permit->code,
-                'von_formatted'  => $permit->validity->von->format('d.m.Y'),
-                'bis_formatted'  => $permit->validity->bis->format('d.m.Y'),
-                'kennzeichen'    => $permit->vehicle->kennzeichen,
-                'firma'          => $permit->vehicle->firma ?? '',
-                'parzelle'       => $permit->owner->parzelle,
-                'zweck'          => $permit->validity->zweck,
-                'template_key'   => $permit->template_key,
-                'vereinsName'    => $this->config->get('vereins_name'),
-                'jahresFarbe'    => $this->config->get('jahresFarbe'),
-                'opening_html'   => $opening,
-                'holidayNotice'  => $this->holidayService->getHolidaysInRangeText(
-                    $permit->validity->von,
-                    $permit->validity->bis,
-                ),
+                'fullIdentifier'    => $permit->code,
+                'von_formatted'     => $permit->validity->von->format('d.m.Y'),
+                'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
+                'kennzeichen'       => $permit->vehicle->kennzeichen,
+                'firma'             => $permit->vehicle->firma ?? '',
+                'parzelle'          => $permit->owner->parzelle,
+                'zweck'             => $permit->validity->zweck,
+                'template_key'      => $permit->template_key,
+                'vereinsName'       => $this->config->get('vereins_name'),
+                'jahresFarbe'       => $this->config->get('jahresFarbe'),
+                'opening_html'      => $opening,
+                'holidayNotice'     => $holidayNotice,
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),

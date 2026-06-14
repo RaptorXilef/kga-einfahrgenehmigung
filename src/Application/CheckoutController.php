@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\HolidayHtmlPresenter;
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
@@ -27,6 +29,7 @@ final readonly class CheckoutController
         private ConfigInterface $config,
         private HolidayService $holidayService, // Für die Öffnungszeiten
         private PermitService $permitService,
+        private TemplateRenderer $renderer,
     ) {
     }
 
@@ -53,43 +56,17 @@ final readonly class CheckoutController
         $dtVon = new \DateTimeImmutable($tempData['datum_von'] ?? 'now');
         $dtBis = new \DateTimeImmutable($tempData['datum_bis'] ?? 'now');
 
-        $this->render('checkout/summary', [
-            'token'    => $token,
-            'tempData' => $tempData,
-            'settings' => $this->getSettingsArray(),
-            'config'   => $this->config,
-            'appRoot'  => $this->config->get('root_path'),
+        // [x] sortiert
+        $this->renderer->render('checkout/summary', [
+            'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
+                $this->holidayService->getHolidaysInRange($dtVon, $dtBis),
+            ),
             // Dem Template die Zeiten übergeben
-            'opening'       => $this->holidayService->getOpeningHoursTextForDateRange($dtVon, $dtBis),
-            'holidayNotice' => $this->holidayService->getHolidaysInRangeText($dtVon, $dtBis, true),
+            'opening' => HolidayHtmlPresenter::formatOpeningHours(
+                $this->holidayService->getOpeningHoursDataForDateRange($dtVon, $dtBis),
+            ),
+            'tempData' => $tempData,
+            'token'    => $token,
         ]);
-    }
-
-    /**
-     * Extrahiert Datenvariablen und bindet das PHTML-Template ein.
-     *
-     * @param string               $templatePath Relativer Pfad zum Template.
-     * @param array<string, mixed> $data         Injektionsdaten für den View-Scope.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include $this->config->get('root_path') . "/templates/pages/{$templatePath}.phtml";
-    }
-
-    /**
-     * Liefert standardisierte Konfigurationswerte für das Checkout-Template.
-     *
-     * @return array<string, mixed> Array mit Vereinsmetadaten und Base-URL.
-     */
-    private function getSettingsArray(): array
-    {
-        return [
-            'vereins_name'  => $this->config->get('vereins_name'),
-            'vehicle_types' => $this->config->get('vehicle_types'),
-            'purposes'      => $this->config->get('purposes'),
-            'base_url'      => $this->config->getBaseUrl(),
-        ];
     }
 }

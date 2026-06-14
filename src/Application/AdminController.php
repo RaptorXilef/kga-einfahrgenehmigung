@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\HolidayHtmlPresenter;
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -60,6 +62,7 @@ final readonly class AdminController
         private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
+        private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
         private VoucherRepositoryInterface $voucherRepository,
         private VoucherService $voucherService,
@@ -99,11 +102,14 @@ final readonly class AdminController
             return;
         }
 
+        // [x] sortiert
         // 3. ZUGANGSKONTROLLE / AUTH-GATEKEEPER
         if (! $this->auth->isLoggedIn()) {
-            $this->render('admin_login', [
-                'message'  => '',
-                'settings' => $this->getSettingsArray(),
+            $this->renderer->render('admin_login', [
+                'auth'            => $this->auth,
+                'groupRepository' => $this->groupRepository,
+                'message'         => '',
+                'userRepository'  => $this->userRepository,
             ]);
 
             return; // Hier ist für nicht-eingeloggte User Schluss!
@@ -186,17 +192,22 @@ final readonly class AdminController
 
                     return true;
                 }
+                // [x] sortiert
                 // Normaler Fehler (Passwort falsch)
-                $this->render('admin_login', [
-                    'message'  => 'Benutzername oder Passwort ist falsch.',
-                    'settings' => $this->getSettingsArray(),
+                $this->renderer->render('admin_login', [
+                    'auth'            => $this->auth,
+                    'groupRepository' => $this->groupRepository,
+                    'message'         => 'Benutzername oder Passwort ist falsch.',
+                    'userRepository'  => $this->userRepository,
                 ]);
                 exit;
             } catch (\RuntimeException $e) {
                 // Rate Limit Fehler abfangen
-                $this->render('admin_login', [
-                    'message'  => $e->getMessage(),
-                    'settings' => $this->getSettingsArray(),
+                $this->renderer->render('admin_login', [
+                    'auth'            => $this->auth,
+                    'groupRepository' => $this->groupRepository,
+                    'message'         => $e->getMessage(),
+                    'userRepository'  => $this->userRepository,
                 ]);
                 exit;
             }
@@ -395,15 +406,16 @@ final readonly class AdminController
             $expires_at = (string) ($post['voucher_expires_at'] ?? '');
             $date_mode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
 
+            // [x] sortiert
             $preData = [
+                'datum_bis'   => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
+                'datum_von'   => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
+                'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
+                'kennzeichen' => \trim(\strip_tags((string) ($post['kennzeichen'] ?? ''))),
                 'name'        => \trim(\strip_tags((string) ($post['name'] ?? ''))),
                 'parzelle'    => \trim(\strip_tags((string) ($post['parzelle'] ?? ''))),
-                'kennzeichen' => \trim(\strip_tags((string) ($post['kennzeichen'] ?? ''))),
                 'typ'         => (string) ($post['typ'] ?? ''),
-                'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
                 'zweck'       => \strip_tags((string) ($post['zweck'] ?? '')),
-                'datum_von'   => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
-                'datum_bis'   => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
             ];
 
             // Service-Aufruf mit neuen Parametern
@@ -633,34 +645,6 @@ final readonly class AdminController
     // --- ENDE Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
 
     /**
-     * Rendert ein Template-File mit den übergebenen Daten.
-     *
-     * Nutzt 'extract' um Array-Keys zu lokalen Variablen zu machen.
-     *
-     * @param string               $templatePath Pfad zum .phtml Template.
-     * @param array<string, mixed> $data
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        $config = $this->config;
-        // Sicherstellen, dass appRoot für das Template immer auf einem Slash endet:
-        $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
-
-        // Wir fügen auth global hinzu, falls es mal vergessen wird
-        if (! isset($data['auth'])) {
-            $data['auth'] = $this->auth;
-        }
-        $data['userRepository']  = $this->userRepository;
-        $data['groupRepository'] = $this->groupRepository;
-
-        // Macht aus ['stats' => $stats] echte Variablen im lokalen Scope
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        // IMPORTANT: Hier muss ein / zwischen $appRoot und templates
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
-    }
-
-    /**
      * Rendert die Admin-Dashboard-Oberfläche mit allen Statistiken und Filterdaten (Tabellen).
      *
      * Berechnet YearlyStats, ruft calculateDetailedStats auf, verarbeitet Exporte und übergibt diverse Services.
@@ -746,18 +730,18 @@ final readonly class AdminController
         $yearlyStats = [];
         $vConfig     = $this->config->get('vehicle_types', []);
 
+        // [x] sortiert
         // Gefilterte Daten ans Template übergeben
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
-        $this->render('admin_dashboard', [
+        $this->renderer->render('admin_dashboard', [
             'allowedLimits'    => $allowedLimits, // Paginierungs-Werte
-            'appRoot'          => $this->config->get('root_path'),
             'auth'             => $this->auth,
             'backupService'    => $this->backupService,
-            'config'           => $this->config,
             'currentPage'      => $currentPage, // Paginierungs-Werte
             'filterEnd'        => $filterEnd,
             'filterStart'      => $filterStart,
             'filterType'       => $filterType, // An die Control-Bar übergeben
+            'groupRepository'  => $this->groupRepository,
             'itemsPerPage'     => $itemsPerPage, // Paginierungs-Werte
             'mailLogs'         => $this->mailLog->loadLogs(),
             'message'          => $message,
@@ -765,10 +749,10 @@ final readonly class AdminController
             'periodStats'      => $this->reportingService->calculateDetailedStats($filtered),
             'permitGroups'     => $this->reportingService->groupPermits($filtered),
             'permitService'    => $this->permitService,
-            'settings'         => $this->getSettingsArray(),
             'structure'        => $this->config->get('structure', []),
-            'vouchers'         => $this->voucherRepository->loadAll(),
+            'userRepository'   => $this->userRepository,
             'voucherArchive'   => $this->voucherRepository->loadArchive(),
+            'vouchers'         => $this->voucherRepository->loadAll(),
             'voucherService'   => $this->voucherService,
             'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
@@ -817,41 +801,26 @@ final readonly class AdminController
         }
 
         $config = $this->config;
-        $this->render('admin_print_view', [
-            'permit'       => $permit,
-            'settings'     => $this->getSettingsArray(),
-            'config'       => $config,
-            'appRoot'      => $config->get('root_path'),
-            'opening_html' => $this->holidayService->getOpeningHoursTextForDateRange(
-                $permit->validity->von,
-                $permit->validity->bis,
+        // [x] sortiert
+        $this->renderer->render('admin_print_view', [
+            'auth'            => $this->auth,
+            'groupRepository' => $this->groupRepository,
+            'holidayNotice'   => HolidayHtmlPresenter::formatHolidayNotice(
+                $this->holidayService->getHolidaysInRange(
+                    $permit->validity->von,
+                    $permit->validity->bis,
+                ),
             ),
-            'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
-                $permit->validity->von,
-                $permit->validity->bis,
+            'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
+                $this->holidayService->getOpeningHoursDataForDateRange(
+                    $permit->validity->von,
+                    $permit->validity->bis,
+                ),
             ),
+            'permit'         => $permit,
+            'userRepository' => $this->userRepository,
         ]);
 
         return true;
-    }
-
-    /**
-     * Liefert Konfigurations-Settings für das Frontend-Mapping/Templates.
-     *
-     * Schnittstelle zwischen Config-Objekt und UI.
-     *
-     * @return array<string, mixed>
-     */
-    private function getSettingsArray(): array
-    {
-        return [
-            'vereins_name'       => $this->config->get('vereins_name'),
-            'vehicle_types'      => $this->config->get('vehicle_types'),
-            'purposes'           => $this->config->get('purposes'),
-            'opening_hours'      => $this->config->get('default_opening_hours'),
-            'jahresFarbe'        => $this->config->get('jahresFarbe'),
-            'base_url'           => $this->config->getBaseUrl(),
-            'terminkalender_url' => $this->config->get('terminkalender_url'),
-        ];
     }
 }

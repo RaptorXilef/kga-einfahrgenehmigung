@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\HolidayHtmlPresenter;
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -33,6 +35,7 @@ final readonly class CheckController
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
         private StorageInterface $storage,
+        private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -59,7 +62,8 @@ final readonly class CheckController
 
         // Fall 1: Nichts eingegeben -> Suchmaske
         if ($code === '') {
-            $this->render('check/search', ['error' => null]);
+            // Bei fehlendem Code:
+            $this->renderer->render('check/search', ['error' => null]);
 
             return;
         }
@@ -106,26 +110,38 @@ final readonly class CheckController
             // Config auslesen
             $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
 
+            // [x] sortiert
             // Pfade angepasst auf Unterordner check/
-            $this->render($showAdminView ? 'check/admin' : 'check/public', \array_merge($adminData, [
-                'permit'        => $permit,
-                'isDateValid'   => $permit->isValid($requirePayment),
-                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                'allowedToday'  => $nextAllowedSlotText,
-                'showAdminView' => $showAdminView,
-                'opening'       => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis), // <-- NEU HINZUGEFÜGT
-                'holidayNotice' => $this->holidayService->getHolidaysInRangeText(
-                    $permit->validity->von,
-                    $permit->validity->bis,
-                    false,
-                ),
-            ]));
+            $this->renderer->render($showAdminView ? 'check/admin' : 'check/public', \array_merge(
+                $adminData,
+                [
+                    'permit'          => $permit,
+                    'allowedToday'    => $nextAllowedSlotText,
+                    'auth'            => $this->auth,
+                    'groupRepository' => $this->groupRepository,
+                    'holidayNotice'   => \implode(', ', $this->holidayService->getHolidaysInRange(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    )),
+                    'isDateValid'   => $permit->isValid($requirePayment),
+                    'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
+                    'opening'       => HolidayHtmlPresenter::formatOpeningHours(
+                        $this->holidayService->getOpeningHoursDataForDateRange(
+                            $permit->validity->von,
+                            $permit->validity->bis,
+                        ),
+                    ),
+                    'showAdminView'  => $showAdminView,
+                    'userRepository' => $this->userRepository,
+                ],
+            ));
 
             return;
         }
 
         // Fall 3: Code/Kennzeichen nicht gefunden
-        $this->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
+        // Bei Fehler:
+        $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 
     /**
@@ -161,51 +177,5 @@ final readonly class CheckController
         $expected = \hash_hmac('sha256', $permit->code, $geheimnis);
 
         return \hash_equals($expected, $token);
-    }
-
-    /**
-     * Extrahiert Daten-Arrays und bindet die PHTML-Layoutdatei ein.
-     *
-     * @param string               $templatePath Relativer Pfad zum Template.
-     * @param array<string, mixed> $data         Injektionsdaten für den View-Scope.
-     */
-    private function render(string $templatePath, array $data = []): void
-    {
-        $config   = $this->config;
-        $appRoot  = (string) $config->get('root_path');
-        $settings = $this->getSettingsArray();
-
-        // Hier fügen wir 'auth' hinzu, damit es in JEDEM Template
-        // dieses Controllers verfügbar ist (auch im Header-Nav)
-        $templateData = \array_merge([
-            'appRoot'         => $appRoot,
-            'auth'            => $this->auth,
-            'config'          => $config,
-            'groupRepository' => $this->groupRepository,
-            'settings'        => $settings,
-            'userRepository'  => $this->userRepository,
-        ], $data);
-
-        // 2. Die Variable an extract übergeben
-        \extract($templateData);
-
-        include $appRoot . "/templates/pages/{$templatePath}.phtml";
-    }
-
-    /**
-     * Liefert standardisierte Konfigurationswerte für die Layout-Generierung.
-     *
-     * @return array<string, mixed> Array mit Vereinsmetadaten und Fahrzeugtypen.
-     */
-    private function getSettingsArray(): array
-    {
-        return [
-            'vereins_name'  => $this->config->get('vereins_name'),
-            'vehicle_types' => $this->config->get('vehicle_types'),
-            'purposes'      => $this->config->get('purposes'),
-            'opening_hours' => $this->config->get('default_opening_hours'),
-            'jahresFarbe'   => $this->config->get('jahresFarbe'),
-            'base_url'      => $this->config->getBaseUrl(),
-        ];
     }
 }

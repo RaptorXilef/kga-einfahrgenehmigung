@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\View\HolidayHtmlPresenter;
+use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -37,6 +39,7 @@ final readonly class HistoryController
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
         private StorageInterface $storage,
+        private TemplateRenderer $renderer,
     ) {
     }
 
@@ -192,11 +195,11 @@ final readonly class HistoryController
     private function renderView(string $email, string $message, array $get, bool $isSuccess, int $step): void
     {
         if ($email === '') {
-            $this->render('history_login', [
-                'message'   => $message,
+            // [x] sortiert
+            $this->renderer->render('history_login', [
                 'isSuccess' => $isSuccess,
+                'message'   => $message,
                 'step'      => $step, // Den Schritt ans Template geben
-                'settings'  => $this->getSettingsArray(),
             ]);
 
             return;
@@ -232,15 +235,13 @@ final readonly class HistoryController
         \usort($permits, fn ($a, $b): int => $b->erstellt <=> $a->erstellt);
 
         // [x] sortiert
-        $this->render('history_list', [
-            'config'             => $this->config,        // Für Fahrzeug-Icons
+        $this->renderer->render('history_list', [
             'currentArchiveYear' => $loadedYear,
             'email'              => $email,
             'isSuccess'          => $isSuccess,
             'message'            => $message,
             'permits'            => $permits,
             'permitService'      => $this->permitService, // Für Überfälligkeits-Prüfung
-            'settings'           => $this->getSettingsArray(),
         ]);
     }
 
@@ -255,13 +256,20 @@ final readonly class HistoryController
         $permit = $this->storage->findByHash($code);
         if ($permit instanceof Permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
             // [x] sortiert
-            $this->render('history_print_view', [
-                'appRoot'       => $this->config->get('root_path'),
-                'config'        => $this->config,
-                'holidayNotice' => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
-                'opening_html'  => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis),
-                'permit'        => $permit,
-                'settings'      => $this->getSettingsArray(),
+            $this->renderer->render('history_print_view', [
+                'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
+                    $this->holidayService->getHolidaysInRange(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    ),
+                ),
+                'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
+                    $this->holidayService->getOpeningHoursDataForDateRange(
+                        $permit->validity->von,
+                        $permit->validity->bis,
+                    ),
+                ),
+                'permit' => $permit,
             ]);
         } else {
             \header('Location: history.php');
@@ -285,36 +293,5 @@ final readonly class HistoryController
         }
 
         return false;
-    }
-
-    /**
-     * Extrahiert Datenvariablen und bindet das History-Template ein.
-     *
-     * @param string               $template Name der .phtml Datei.
-     * @param array<string, mixed> $data     Variablen für das Template.
-     */
-    private function render(string $template, array $data): void
-    {
-        $appRoot = (string) $this->config->get('root_path');
-        // Zwingender Sicherheits-Fix gegen Variable Overwrite / LFI
-        \extract($data, \EXTR_SKIP);
-        include "{$appRoot}/templates/pages/{$template}.phtml";
-    }
-
-    /**
-     * Liefert Konfigurations-Settings für das History-Frontend.
-     *
-     * @return array<string, mixed>
-     */
-    private function getSettingsArray(): array
-    {
-        // [x] sortiert
-        return [
-            'base_url'           => $this->config->getBaseUrl(),
-            'jahresFarbe'        => $this->config->get('jahresFarbe'),
-            'opening_hours'      => $this->config->get('default_opening_hours'),
-            'terminkalender_url' => $this->config->get('terminkalender_url'),
-            'vereins_name'       => $this->config->get('vereins_name'),
-        ];
     }
 }

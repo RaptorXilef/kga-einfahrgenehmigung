@@ -207,16 +207,6 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         include $fullPath;
         $content = \ob_get_clean();
 
-        // 3. Legacy-Support: Falls noch {{variable}} Syntax im Template ist
-        foreach ($data as $key => $value) {
-            // Nur skalare Werte (Text/Zahlen) ersetzen, keine Objekte!
-            if (! \is_scalar($value)) {
-                continue;
-            }
-
-            $content = \str_replace("{{{$key}}}", \htmlspecialchars((string) $value, \ENT_QUOTES, 'UTF-8'), (string) $content);
-        }
-
         return (string) $content;
     }
 
