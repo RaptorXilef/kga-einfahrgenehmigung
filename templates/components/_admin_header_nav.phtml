@@ -18,9 +18,15 @@
  * @var array                                           $settings
  */
 $groupId    = $auth->getGroup();
-$groups     = $groupRepository->loadAll(); // Wir brauchen die Liste für den Namen
-$groupName  = $groups[$groupId]['name'] ?? $groupId; // Name finden, sonst ID als Fallback
-$groupImage = $groupRepository->getImageUrl($groupId);
+$groupName  = $groupId;
+$groupImage = '';
+
+// (Absicherung falls nicht eingeloggt/übergeben))
+if (isset($groupRepository) && $auth->isLoggedIn()) {
+    $groups     = $groupRepository->loadAll(); // Wir brauchen die Liste für den Namen
+    $groupName  = $groups[$groupId]['name'] ?? $groupId; // Name finden, sonst ID als Fallback
+    $groupImage = $groupRepository->getImageUrl($groupId);
+}
 ?>
 <nav
      style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
@@ -31,7 +37,7 @@ $groupImage = $groupRepository->getImageUrl($groupId);
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <div class="c-user-pill">
                 <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                    <img src="<?php echo $userRepository->getImageUrl($auth->getUserId()); ?>"
+                    <img src="<?php echo isset($userRepository) ? $userRepository->getImageUrl($auth->getUserId()) : ''; ?>"
                         style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
                     <!-- Klickbarer Name führt zum Profil -->
                     <a href="profile.php" style="text-decoration: none; color: inherit;" title="Zum Profil">

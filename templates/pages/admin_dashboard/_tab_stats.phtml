@@ -23,7 +23,7 @@
  */
 
 // --- NEU: Monatliche Statistiken für den Chart berechnen ---
-$allPermitsForStats = $permitService->getStorage()->getAll();
+$allPermitsForStats = $allPermits ?? []; // Nutzt nun die aus dem Controller übergebene Variable
 $monthlyStats       = [];
 foreach ($allPermitsForStats as $p) {
     $mKey = $p->erstellt->format('m.Y'); // z.B. "05.2024" für schöne Anzeige

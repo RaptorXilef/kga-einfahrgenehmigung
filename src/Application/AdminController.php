@@ -169,9 +169,11 @@ final readonly class AdminController
         if (isset($post['login'])) {
             // CSRF-Schutz auch für das Login-Formular
             if (! \hash_equals($_SESSION['csrf_token'] ?? '', $post['csrf_token'] ?? '')) {
-                $this->render('admin_login', [
-                    'message'  => 'Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu.',
-                    'settings' => $this->getSettingsArray(),
+                $this->renderer->render('admin_login', [
+                    'auth'            => $this->auth,
+                    'groupRepository' => $this->groupRepository,
+                    'message'         => 'Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu.',
+                    'userRepository'  => $this->userRepository,
                 ]);
                 exit;
             }
@@ -735,6 +737,7 @@ final readonly class AdminController
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->renderer->render('admin_dashboard', [
             'allowedLimits'    => $allowedLimits, // Paginierungs-Werte
+            'allPermits'       => $allPermits,
             'auth'             => $this->auth,
             'backupService'    => $this->backupService,
             'currentPage'      => $currentPage, // Paginierungs-Werte
