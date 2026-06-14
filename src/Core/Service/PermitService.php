@@ -17,6 +17,7 @@ use App\Core\Entity\Permit;
 use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
+use App\Core\Utils\DateRangeHelper;
 use App\Infrastructure\Storage\JsonHelper;
 
 /**
@@ -417,8 +418,8 @@ final readonly class PermitService
             $permit->validity,
             new Status(
                 'bezahlt', // Status-Update
-                $permit->status->is_suspended,
-                $permit->status->suspension_reason,
+                $permit->isSuspended(),
+                $permit->getSuspensionReason(),
             ),
             $permit->erstellt,
             $grund ?? $permit->interner_kommentar, // Grund übernehmen
@@ -452,7 +453,7 @@ final readonly class PermitService
             $permit->vehicle,
             $permit->validity,
             new Status(
-                $permit->status->current,
+                $permit->getStatus(),
                 $status,
                 $reason,
             ),
@@ -511,7 +512,7 @@ final readonly class PermitService
 
             // B. Tab-Filter (Aktiv, Abgelaufen, Archiv)
             $isArchived = $this->archiveRepository->isCodeInArchive($permit->code);
-            $isExpired  = $permit->validity->bis < $now;
+            $isExpired  = $permit->isExpired($now);
 
             if ($tab === 'active' && ($isArchived || $isExpired)) {
                 continue;
@@ -523,20 +524,9 @@ final readonly class PermitService
                 continue;
             }
 
-            // C. Text-Suche (falls ein Suchbegriff existiert)
-            if ($queryLower !== '') {
-                $searchString = \strtolower(
-                    $permit->code . ' ' .
-                        $permit->owner->name . ' ' .
-                        $permit->owner->email . ' ' .
-                        $permit->vehicle->kennzeichen . ' ' .
-                        $permit->owner->parzelle . ' ' .
-                        $permit->validity->zweck,
-                );
-
-                if (! \str_contains($searchString, $queryLower)) {
-                    continue;
-                }
+            // C. Text-Suche delegieren!
+            if (! $permit->matchesSearch($queryLower)) {
+                continue;
             }
 
             $filtered[] = $permit;
@@ -551,21 +541,21 @@ final readonly class PermitService
         $items  = \array_slice($filtered, $offset, $limit);
 
         // 6. Für die API als flache Arrays formatieren
-        // [ ] Sortiert
+        // [x] Sortiert
         $formattedItems = \array_map(fn ($p) => [
+            'bis'          => $p->getValidUntil()->format('d.m.Y'),
             'code'         => $p->code,
-            'name'         => $p->owner->name,
-            'email'        => $p->owner->email,
-            'parzelle'     => $p->owner->parzelle,
-            'kennzeichen'  => $p->vehicle->kennzeichen,
-            'zweck'        => $p->validity->zweck,
-            'preis'        => $p->validity->preis,
-            'status'       => $p->status->current,
+            'email'        => $p->getOwnerEmail(),
             'erstellt'     => $p->erstellt->format('d.m.Y H:i'),
-            'von'          => $p->validity->von->format('d.m.Y'),
-            'bis'          => $p->validity->bis->format('d.m.Y'),
             'is_archived'  => $this->archiveRepository->isCodeInArchive($p->code),
+            'kennzeichen'  => $p->getLicensePlate(),
+            'name'         => $p->getOwnerName(),
+            'parzelle'     => $p->getPlotNumber(),
+            'preis'        => $p->getPrice(),
+            'status'       => $p->getStatus(),
             'template_key' => $p->template_key,
+            'von'          => $p->getValidFrom()->format('d.m.Y'),
+            'zweck'        => $p->getPurpose(),
         ], $items);
 
         return [
@@ -589,7 +579,7 @@ final readonly class PermitService
 
         return \array_filter(
             $all,
-            fn (Permit $permit): bool => \strtolower($permit->owner->email) === \strtolower($email),
+            fn (Permit $permit): bool => \strtolower($permit->getOwnerEmail()) === \strtolower($email),
         );
     }
 
@@ -627,7 +617,7 @@ final readonly class PermitService
      */
     public function getOverdueLevel(Permit $permit): int
     {
-        if ($permit->status->current === 'bezahlt') {
+        if ($permit->getStatus() === 'bezahlt') {
             return 0;
         }
 
@@ -666,10 +656,10 @@ final readonly class PermitService
 
         foreach ($allPermits as $permit) {
             // 1. Bedingung: Ist das "bis" Datum kleiner als unser Stichtag?
-            if ($permit->validity->bis < $cutoffDate) {
+            if ($permit->getValidUntil() < $cutoffDate) {
 
                 // 2. Bedingung: Ist der Status endgültig abgeschlossen? (bezahlt oder storniert)
-                if (\in_array($permit->status->current, ['bezahlt', 'storniert'], true)) {
+                if (\in_array($permit->getStatus(), ['bezahlt', 'storniert'], true)) {
                     $toArchive[]     = $permit; // Reicht das Objekt durch, nicht das Array!
                     $codesToDelete[] = $permit->code;
                 }
@@ -700,14 +690,14 @@ final readonly class PermitService
      */
     private function dispatchMails(Permit $permit, string $shortCode): void
     {
-        $zeitraum  = "{$permit->validity->von->format('d.m.Y')} bis {$permit->validity->bis->format('d.m.Y')}";
+        $zeitraum  = "{$permit->getValidFrom()->format('d.m.Y')} bis {$permit->getValidUntil()->format('d.m.Y')}";
         $geheimnis = (string) $this->config->get('geheimnis', '');
         $token     = \hash_hmac('sha256', $permit->code, $geheimnis);
         $opening   = HolidayHtmlPresenter::formatOpeningHours(
-            $this->holidayService->getOpeningHoursDataForDateRange($permit->validity->von, $permit->validity->bis),
+            $this->holidayService->getOpeningHoursDataForDateRange($permit->getValidFrom(), $permit->getValidUntil()),
         );
         $holidayNotice = HolidayHtmlPresenter::formatHolidayNotice(
-            $this->holidayService->getHolidaysInRange($permit->validity->von, $permit->validity->bis),
+            $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
         );
         $mailConfig = $this->config->getMailSettings();
 
@@ -718,53 +708,53 @@ final readonly class PermitService
             $this->mailService->sendTemplate(
                 data: [
                     'adminLink'      => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
-                    'bis_formatted'  => $permit->validity->bis->format('d.m.Y'),
-                    'email'          => $permit->owner->email ?: 'Keine angegeben',
-                    'firma'          => $permit->vehicle->firma ?? '',
+                    'bis_formatted'  => $permit->getValidUntil()->format('d.m.Y'),
+                    'email'          => $permit->getOwnerEmail() ?: 'Keine angegeben',
+                    'firma'          => $permit->getCompany() ?? '',
                     'fullIdentifier' => $permit->code,
-                    'kennzeichen'    => $permit->vehicle->kennzeichen,
-                    'name'           => $permit->owner->name,
-                    'parzelle'       => $permit->owner->parzelle,
-                    'preis'          => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
+                    'kennzeichen'    => $permit->getLicensePlate(),
+                    'name'           => $permit->getOwnerName(),
+                    'parzelle'       => $permit->getPlotNumber(),
+                    'preis'          => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
                     'typLabel'       => (function ($typ, $config) {
                         $vConfigs = $config->get('vehicle_types', []);
 
                         return $vConfigs[$typ]['label'] ?? 'Fahrzeug: ' . \strtoupper($typ);
-                    })($permit->vehicle->typ, $this->config), // (Sicher gegen gelöschte Fahrzeugtypen):
+                    })($permit->getVehicleType(), $this->config), // (Sicher gegen gelöschte Fahrzeugtypen):
                     'vereinsName'   => $this->config->get('vereins_name'),
-                    'von_formatted' => $permit->validity->von->format('d.m.Y'),
-                    'zweck'         => $permit->validity->zweck,
+                    'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
+                    'zweck'         => $permit->getPurpose(),
                 ],
                 recipient: $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
-                subject: "[{$permit->code}] - {$zeitraum} - {$permit->owner->name}",
+                subject: "[{$permit->code}] - {$zeitraum} - {$permit->getOwnerName()}",
                 template: 'board_notification',
             );
         }
 
         // --- MAIL AN NUTZER (Nur wenn E-Mail vorhanden ist) ---
-        if (\in_array(\trim($permit->owner->email), ['', '0'], true)) {
+        if (\in_array(\trim($permit->getOwnerEmail()), ['', '0'], true)) {
             return;
         }
 
         // 2. ZAHLUNGSAUFFORDERUNG (Nur wenn noch nicht bezahlt)
-        if ($permit->status->current !== 'bezahlt') {
+        if ($permit->getStatus() !== 'bezahlt') {
             $usage     = $this->generateUsageText($permit, $shortCode);
-            $epcQrData = $this->bankQrGenerator->generate($permit->validity->preis, $usage);
+            $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
             // [ ] teil-sortiert
             $this->mailService->sendTemplate(
-                $permit->owner->email,
+                $permit->getOwnerEmail(),
                 "Zahlung erforderlich: {$permit->code}",
                 'payment_request',
                 [
                     'baseUrl'        => $this->config->getBaseUrl(),
-                    'betrag'         => \number_format($permit->validity->preis, 2, ',', '.') . ' €',
+                    'betrag'         => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
                     'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
                     'epcData'        => \urlencode($epcQrData),
                     'fullIdentifier' => $permit->code,
                     'iban'           => $this->config->get('iban'),
                     'kontoinhaber'   => $this->config->get('kontoinhaber'),
-                    'name'           => $permit->owner->name,
+                    'name'           => $permit->getOwnerName(),
                     'usage'          => $usage,
                     'vereinsName'    => $this->config->get('vereins_name'),
                 ],
@@ -774,24 +764,24 @@ final readonly class PermitService
         // 3. DAS A4 DOKUMENT (KEINE DUPLIKATE MEHR!)
         // [ ] Sortiert
         $this->mailService->sendTemplate(
-            $permit->owner->email,
+            $permit->getOwnerEmail(),
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permit->code,
             'permit_a4_document',
             [
                 'fullIdentifier'    => $permit->code,
-                'von_formatted'     => $permit->validity->von->format('d.m.Y'),
-                'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
-                'kennzeichen'       => $permit->vehicle->kennzeichen,
-                'firma'             => $permit->vehicle->firma ?? '',
-                'parzelle'          => $permit->owner->parzelle,
-                'zweck'             => $permit->validity->zweck,
+                'von_formatted'     => $permit->getValidFrom()->format('d.m.Y'),
+                'bis_formatted'     => $permit->getValidUntil()->format('d.m.Y'),
+                'kennzeichen'       => $permit->getLicensePlate(),
+                'firma'             => $permit->getCompany() ?? '',
+                'parzelle'          => $permit->getPlotNumber(),
+                'zweck'             => $permit->getPurpose(),
                 'template_key'      => $permit->template_key,
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'opening_html'      => $opening,
                 'holidayNotice'     => $holidayNotice,
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
-                'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+                'erstellt'          => $permit->getCreatedAt()->format('d.m.Y H:i'),
                 'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
                 'settings'          => ['base_url' => $this->config->getBaseUrl()], // Die sichere Base-URL an das Template übergeben
             ],
@@ -820,14 +810,12 @@ final readonly class PermitService
 
         // 1. Check im Hauptspeicher (Storage Interface)
         foreach ($this->storage->getAll() as $permit) {
-            if (
-                $permit->owner->parzelle === $parzelleFormatted
-                && $this->datesOverlap($permit->validity->von, $permit->validity->bis, $start, $end)
-            ) {
+            // Tell, don't ask!
+            if ($permit->hasCollision($parzelleFormatted, $start, $end)) {
                 throw new \RuntimeException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                        $permit->validity->von->format('d.m.Y') . ' bis ' .
-                        $permit->validity->bis->format('d.m.Y') . '.',
+                        $permit->getValidFrom()->format('d.m.Y') . ' bis ' .
+                        $permit->getValidUntil()->format('d.m.Y') . '.',
                 );
             }
         }
@@ -846,7 +834,7 @@ final readonly class PermitService
             if (
                 $pPlot === $parzelleFormatted
                 && $expires > $nowStr
-                && $this->datesOverlap($pStart, $pEnd, $start, $end)
+                && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)
             ) {
                 throw new \RuntimeException(
                     "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
@@ -854,20 +842,6 @@ final readonly class PermitService
                 );
             }
         }
-    }
-
-    /**
-     * Mathematischer Abgleich für Kollision
-     *
-     * Prüft, ob zwei Datumsbereiche miteinander überlappen.
-     */
-    private function datesOverlap(
-        \DateTimeImmutable $startA,
-        \DateTimeImmutable $endA,
-        \DateTimeImmutable $startB,
-        \DateTimeImmutable $endB,
-    ): bool {
-        return $startA <= $endB && $endA >= $startB;
     }
 
     /**
@@ -906,7 +880,7 @@ final readonly class PermitService
      */
     private function generateUsageText(Permit $permit, string $shortCode): string
     {
-        $nameParts = \explode(' ', $permit->owner->name);
+        $nameParts = \explode(' ', $permit->getOwnerName());
         $vorname   = $nameParts[0] ?? 'Unbekannt';
         $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
 
@@ -960,8 +934,8 @@ final readonly class PermitService
      */
     public function getCoveredQuarters(Permit $permit): array
     {
-        $startQ = (int) \ceil((int) $permit->validity->von->format('n') / 3);
-        $endQ   = (int) \ceil((int) $permit->validity->bis->format('n') / 3);
+        $startQ = (int) \ceil((int) $permit->getValidFrom()->format('n') / 3);
+        $endQ   = (int) \ceil((int) $permit->getValidUntil()->format('n') / 3);
 
         // Wenn es über ein Jahr hinausgeht, müssten wir mehr tun,
         // aber für Dauerkarten innerhalb eines Kalenderjahres reicht:

@@ -63,6 +63,7 @@ final readonly class Permit
         return $now >= $this->validity->von && $now <= $endOfPeriod;
     }
 
+    // TODO Reihenfolge der Methoden optimieren/sortieren und ggf. mit Kommentaren in Kategorien unterteilen.
     // TODO DOCBLOCK
     public function isExpired(\DateTimeImmutable $now): bool
     {
@@ -154,5 +155,54 @@ final readonly class Permit
     public function getValidUntil(): \DateTimeImmutable
     {
         return $this->validity->bis;
+    }
+
+    // TODO DOCBLOCK
+    public function getSuspensionReason(): ?string
+    {
+        return $this->status->suspension_reason;
+    }
+
+    // TODO DOCBLOCK
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->erstellt;
+    }
+
+    /**
+     * TODO DOCBLOCK
+     * Prüft, ob diese Genehmigung mit einem Suchbegriff übereinstimmt.
+     */
+    public function matchesSearch(string $queryLower): bool
+    {
+        if ($queryLower === '') {
+            return true;
+        }
+
+        // Da wir IN der Entität sind, dürfen wir die Eigenschaften direkt lesen.
+        $searchString = \strtolower(
+            $this->code . ' ' .
+            $this->owner->name . ' ' .
+            $this->owner->email . ' ' .
+            $this->vehicle->kennzeichen . ' ' .
+            $this->owner->parzelle . ' ' .
+            $this->validity->zweck,
+        );
+
+        return \str_contains($searchString, $queryLower);
+    }
+
+    /**
+     * TODO DOCBLOCK
+     * Prüft, ob diese Genehmigung mit einer bestimmten Parzelle und einem Zeitraum kollidiert.
+     */
+    public function hasCollision(string $parzelleFormatted, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
+    {
+        if ($this->owner->parzelle !== $parzelleFormatted) {
+            return false;
+        }
+
+        // Mathematischer Überschneidungs-Check (StartA <= EndB && EndA >= StartB)
+        return $this->validity->von <= $end && $this->validity->bis >= $start;
     }
 }

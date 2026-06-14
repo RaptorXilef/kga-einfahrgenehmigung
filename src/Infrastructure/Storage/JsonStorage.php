@@ -158,7 +158,7 @@ final readonly class JsonStorage implements StorageInterface
         $candidates = [];
 
         foreach ($all as $permit) {
-            $storedPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($permit->vehicle->kennzeichen));
+            $storedPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($permit->getLicensePlate()));
             if ($storedPlate !== $searchPlate) {
                 continue;
             }

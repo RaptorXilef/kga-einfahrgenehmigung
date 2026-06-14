@@ -36,7 +36,7 @@ foreach ($allPermitsForStats as $p) {
         ];
     }
     ++$monthlyStats[$mKey]['count'];
-    $monthlyStats[$mKey]['revenue'] += $p->validity->preis;
+    $monthlyStats[$mKey]['revenue'] += $p->getPrice();
 }
 
 // Nach dem unsichtbaren sort_key (Y-m) aufsteigend sortieren

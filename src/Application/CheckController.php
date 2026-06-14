@@ -82,7 +82,7 @@ final readonly class CheckController
         if ($nextSlot instanceof \DateTimeImmutable) {
             // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
             // Spezialfall: Letzter Tag / Ablaufprüfung
-            if ($permit instanceof Permit && $nextSlot > $permit->validity->bis) {
+            if ($permit instanceof Permit && $nextSlot > $permit->getValidUntil()) {
                 $nextAllowedSlotText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
             } else {
                 // Normale Zeit-Formatierung
@@ -120,15 +120,15 @@ final readonly class CheckController
                     'auth'            => $this->auth,
                     'groupRepository' => $this->groupRepository,
                     'holidayNotice'   => \implode(', ', $this->holidayService->getHolidaysInRange(
-                        $permit->validity->von,
-                        $permit->validity->bis,
+                        $permit->getValidFrom(),
+                        $permit->getValidUntil(),
                     )),
                     'isDateValid'   => $permit->isValid($requirePayment),
                     'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
                     'opening'       => HolidayHtmlPresenter::formatOpeningHours(
                         $this->holidayService->getOpeningHoursDataForDateRange(
-                            $permit->validity->von,
-                            $permit->validity->bis,
+                            $permit->getValidFrom(),
+                            $permit->getValidUntil(),
                         ),
                     ),
                     'showAdminView'  => $showAdminView,

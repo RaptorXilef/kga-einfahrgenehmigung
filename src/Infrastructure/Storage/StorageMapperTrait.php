@@ -142,8 +142,8 @@ trait StorageMapperTrait
             'zweck'              => $permit->getPurpose(),
             'status'             => $permit->getStatus(),
             'is_suspended'       => (int) $permit->isSuspended(),
-            'suspension_reason'  => $permit->status->suspension_reason,
-            'erstellt'           => $permit->erstellt->format('Y-m-d H:i:s'),
+            'suspension_reason'  => $permit->getSuspensionReason(),
+            'erstellt'           => $permit->getCreatedAt()->format('Y-m-d H:i:s'),
             'interner_kommentar' => $permit->interner_kommentar,
             'agreements'         => \is_array($permit->agreements) ? \json_encode(
                 $permit->agreements,

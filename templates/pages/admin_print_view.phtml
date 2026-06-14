@@ -150,23 +150,23 @@
     // Mapping der Value Objects auf flache Variablen für das A4-Dokument
     $opening = $settings['opening_hours'];
 
-// WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->validity->von),
+// WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->getValidFrom()),
 // damit das A4-Template die Quartale berechnen kann!
 $data = [
     'fullIdentifier'    => $permit->code,
-    'von_formatted'     => $permit->validity->von->format('d.m.Y'),
-    'bis_formatted'     => $permit->validity->bis->format('d.m.Y'),
-    'kennzeichen'       => $permit->vehicle->kennzeichen,
-    'firma'             => $permit->vehicle->firma ?? '',
-    'parzelle'          => $permit->owner->parzelle,
-    'zweck'             => $permit->validity->zweck,
+    'von_formatted'     => $permit->getValidFrom()->format('d.m.Y'),
+    'bis_formatted'     => $permit->getValidUntil()->format('d.m.Y'),
+    'kennzeichen'       => $permit->getLicensePlate(),
+    'firma'             => $permit->getCompany() ?? '',
+    'parzelle'          => $permit->getPlotNumber(),
+    'zweck'             => $permit->getPurpose(),
     'template_key'      => $permit->template_key,
     'vereinsName'       => $settings['vereins_name'],
     'jahresFarbe'       => $settings['jahresFarbe'],
-    'opening'           => $this->holidayService->getOpeningHoursTextForDateRange($permit->validity->von, $permit->validity->bis),
-    'holidayNotice'     => $this->holidayService->getHolidaysInRangeText($permit->validity->von, $permit->validity->bis),
+    'opening'           => $this->holidayService->getOpeningHoursTextForDateRange($permit->getValidFrom(), $permit->getValidUntil()),
+    'holidayNotice'     => $this->holidayService->getHolidaysInRangeText($permit->getValidFrom(), $permit->getValidUntil()),
     'terminkalenderUrl' => $settings['terminkalender_url'],
-    'erstellt'          => $permit->erstellt->format('d.m.Y H:i'),
+    'erstellt'          => $permit->getCreatedAt()->format('d.m.Y H:i'),
     'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
     'config'            => $config,
 ];

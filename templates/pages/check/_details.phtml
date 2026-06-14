@@ -22,30 +22,30 @@
         <strong style="font-size: 1.15rem; color: #1e293b;">
             <?php
             $info = [];
-if (! empty($permit->vehicle->kennzeichen)) {
-    $info[] = \htmlspecialchars($permit->vehicle->kennzeichen);
+if (! empty($permit->getLicensePlate())) {
+    $info[] = \htmlspecialchars($permit->getLicensePlate());
 }
-if (! empty($permit->vehicle->firma)) {
-    $info[] = 'Firma: ' . \htmlspecialchars($permit->vehicle->firma);
+if (! empty($permit->getCompany())) {
+    $info[] = 'Firma: ' . \htmlspecialchars($permit->getCompany());
 }
 echo \implode(' / ', $info);
 ?>
         </strong>
     </div>
 
-    <div class="u-border-top u-padding-top-m <?php echo $permit->status->is_suspended ? 'u-margin-bottom-m' : ''; ?>">
+    <div class="u-border-top u-padding-top-m <?php echo $permit->isSuspended() ? 'u-margin-bottom-m' : ''; ?>">
         <span class="u-text-muted u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px;">Gültigkeit</span><br>
         <span style="font-size: 1.05rem; color: #334155;">
-            Von <strong><?php echo $permit->validity->von->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->validity->bis->format('d.m.Y'); ?></strong>
+            Von <strong><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->getValidUntil()->format('d.m.Y'); ?></strong>
         </span>
     </div>
 
-    <?php if ($permit->status->is_suspended && ! empty($permit->status->suspension_reason)) { ?>
+    <?php if ($permit->isSuspended() && ! empty($permit->getSuspensionReason())) { ?>
         <div class="u-border-top u-padding-top-m"
              style="border-top-color: #fee2e2;">
             <span class="u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px; color: var(--danger-color);">Sperrgrund</span><br>
             <span style="font-size: 1rem; color: #991b1b; font-weight: 600;">
-                <?php echo \htmlspecialchars($permit->status->suspension_reason); ?>
+                <?php echo \htmlspecialchars($permit->getSuspensionReason()); ?>
             </span>
         </div>
     <?php } ?>

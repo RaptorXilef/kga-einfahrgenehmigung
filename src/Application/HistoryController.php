@@ -254,19 +254,19 @@ final readonly class HistoryController
     private function handlePrintAction(string $code, string $emailInSession): void
     {
         $permit = $this->storage->findByHash($code);
-        if ($permit instanceof Permit && \strtolower($permit->owner->email) === \strtolower($emailInSession)) {
+        if ($permit instanceof Permit && \strtolower($permit->getOwnerEmail()) === \strtolower($emailInSession)) {
             // [x] sortiert
             $this->renderer->render('history_print_view', [
                 'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                     $this->holidayService->getHolidaysInRange(
-                        $permit->validity->von,
-                        $permit->validity->bis,
+                        $permit->getValidFrom(),
+                        $permit->getValidUntil(),
                     ),
                 ),
                 'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
                     $this->holidayService->getOpeningHoursDataForDateRange(
-                        $permit->validity->von,
-                        $permit->validity->bis,
+                        $permit->getValidFrom(),
+                        $permit->getValidUntil(),
                     ),
                 ),
                 'permit' => $permit,

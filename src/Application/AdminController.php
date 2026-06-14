@@ -354,7 +354,7 @@ final readonly class AdminController
             return 'Fehler: Genehmigung nicht gefunden.';
         }
 
-        $isUnpaid = \strtolower(\trim($permit->status->current)) !== 'bezahlt';
+        $isUnpaid = \strtolower(\trim($permit->getStatus())) !== 'bezahlt';
 
         // Kontext-sensitive Sperr-Prüfung (State-Aware Access Control)
         $hasRight = false;
@@ -704,11 +704,11 @@ final readonly class AdminController
                 if ($searchQuery !== '') {
                     $haystack = \strtolower(
                         $p->code . ' ' .
-                            $p->owner->name . ' ' .
-                            $p->owner->email . ' ' .
-                            $p->owner->parzelle . ' ' .
-                            $p->vehicle->kennzeichen . ' ' .
-                            $p->validity->zweck,
+                            $p->getOwnerName() . ' ' .
+                            $p->getOwnerEmail() . ' ' .
+                            $p->getPlotNumber() . ' ' .
+                            $p->getLicensePlate() . ' ' .
+                            $p->getPurpose(),
                     );
                     if (! \str_contains($haystack, $searchQuery)) {
                         return false;
@@ -785,8 +785,8 @@ final readonly class AdminController
         }
 
         $now       = new \DateTimeImmutable('today');
-        $isExpired = $permit->validity->bis < $now;
-        $isFuture  = $permit->validity->von > $now;
+        $isExpired = $permit->getValidUntil() < $now;
+        $isFuture  = $permit->getValidFrom() > $now;
 
         // Kontext-sensitive Rechteprüfung (State-Aware Access Control)
         $hasRight = false;
@@ -811,14 +811,14 @@ final readonly class AdminController
             'groupRepository' => $this->groupRepository,
             'holidayNotice'   => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange(
-                    $permit->validity->von,
-                    $permit->validity->bis,
+                    $permit->getValidFrom(),
+                    $permit->getValidUntil(),
                 ),
             ),
             'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
                 $this->holidayService->getOpeningHoursDataForDateRange(
-                    $permit->validity->von,
-                    $permit->validity->bis,
+                    $permit->getValidFrom(),
+                    $permit->getValidUntil(),
                 ),
             ),
             'permit'         => $permit,

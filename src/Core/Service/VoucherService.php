@@ -90,20 +90,21 @@ final readonly class VoucherService
             } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true));
         }
 
+        // [x] sortiert
         $activeVouchers[$newGeneratedCode] = [
             'code'         => $newGeneratedCode,
+            'created_at'   => APP_REQUEST_TIME_STR,
+            'created_by'   => $created_by,
+            'data'         => $prefillData,
+            'date_mode'    => $date_mode,
+            'expires_at'   => $expires_at,
+            'max_uses'     => $max_uses,
+            'multi_use'    => $multi_use,
             'reason'       => $reason,
             'template_key' => $template_key,
             'type'         => $type,
-            'value'        => $value,
-            'multi_use'    => $multi_use,
-            'max_uses'     => $max_uses,
             'uses_count'   => 0,
-            'expires_at'   => $expires_at,
-            'date_mode'    => $date_mode,
-            'data'         => $prefillData,
-            'created_by'   => $created_by,
-            'created_at'   => APP_REQUEST_TIME_STR,
+            'value'        => $value,
         ];
 
         $this->repository->saveAll($activeVouchers);

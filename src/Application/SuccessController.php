@@ -52,15 +52,15 @@ final readonly class SuccessController
 
         $epcData = '';
         $usage   = '';
-        if ($method === 'wire' && $permit->status->current !== 'bezahlt') {
+        if ($method === 'wire' && $permit->getStatus() !== 'bezahlt') {
             // Verwendungszweck aus dem Code generieren (letzte 6 Zeichen)
             $shortCode = \substr($permit->code, -6);
-            $nameParts = \explode(' ', $permit->owner->name);
+            $nameParts = \explode(' ', $permit->getOwnerName());
             $vorname   = $nameParts[0] ?? 'Unbekannt';
             $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
             $usage     = "EFG-{$nachname}-{$vorname}-{$shortCode}";
 
-            $epcData = $this->bankQrGenerator->generate($permit->validity->preis, $usage);
+            $epcData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
         }
 
         // Dynamische Zahlungslogik

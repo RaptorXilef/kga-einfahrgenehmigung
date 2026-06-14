@@ -34,7 +34,7 @@ foreach (['webp', 'png', 'jpg', 'jpeg'] as $ext) {
 // 2. Status-Farbe bestimmen
 $pageStateClass = 'state-bg-error'; // Default: Ungültig
 if ($permit) {
-    if ($permit->status->is_suspended) {
+    if ($permit->isSuspended()) {
         $pageStateClass = 'state-bg-error';
     } elseif ($isDateValid && $isTimeAllowed) {
         $pageStateClass = 'state-bg-valid';
@@ -80,7 +80,7 @@ if ($permit) {
             <div class="c-card__body u-padding-around-l u-text-center">
 
                 <?php if ($permit) { ?>
-                    <?php if ($permit->status->is_suspended) { ?>
+                    <?php if ($permit->isSuspended()) { ?>
                         <div style="color: var(--danger-color);">
                             <span style="font-size: 5rem;">
                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="">
@@ -88,7 +88,7 @@ if ($permit) {
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt/widerrufen.</p>
 
-                            <?php if (! empty($permit->status->suspension_reason)) { ?>
+                            <?php if (! empty($permit->getSuspensionReason())) { ?>
                                 <div
                                      style="background: #fff1f2; border: 1px solid #fecaca; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: center;">
                                     <strong
@@ -97,7 +97,7 @@ if ($permit) {
                                     </strong>
                                     <br>
                                     <span style="color: #7f1d1d; font-size: 1.05rem; display: block; margin-top: 5px;">
-                                        <?php echo \htmlspecialchars($permit->status->suspension_reason); ?>
+                                        <?php echo \htmlspecialchars($permit->getSuspensionReason()); ?>
                                     </span>
                                 </div>
                             <?php } ?>

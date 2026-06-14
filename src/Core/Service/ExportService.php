@@ -78,7 +78,7 @@ final readonly class ExportService
                 $permit->getPurpose(),
                 \number_format($permit->getPrice(), 2, ',', ''),
                 \strtoupper($permit->getStatus()),
-                $permit->erstellt->format('d.m.Y H:i'),
+                $permit->getCreatedAt()->format('d.m.Y H:i'),
             ];
 
             // CSV-Injection-Schutz

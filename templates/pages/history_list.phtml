@@ -131,25 +131,25 @@ $now = new \DateTimeImmutable('today');
                         <tbody>
                             <?php foreach ($permits as $permit) {
                                 // 1. Zeit-Berechnungen
-                                $isExpired = $permit->validity->bis < $now;
-                                $isFuture  = $permit->validity->von > $now;
+                                $isExpired = $permit->getValidUntil() < $now;
+                                $isFuture  = $permit->getValidFrom() > $now;
 
-                                $diff      = $now->diff($permit->validity->bis);
+                                $diff      = $now->diff($permit->getValidUntil());
                                 $remaining = (int) $diff->format('%r%a');
 
                                 $countdownText = '';
                                 if ($isExpired) {
                                     $countdownText = 'ABGELAUFEN';
                                 } elseif ($isFuture) {
-                                    $daysToStart   = (int) $now->diff($permit->validity->von)->format('%r%a');
+                                    $daysToStart   = (int) $now->diff($permit->getValidFrom())->format('%r%a');
                                     $countdownText = "Startet in $daysToStart Tagen";
                                 } else {
                                     $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
                                 }
 
                                 // 2. Finanz-Berechnungen
-                                $isPaid      = \strtolower($permit->status->current) === 'bezahlt';
-                                $statusText  = \strtoupper($permit->status->current);
+                                $isPaid      = \strtolower($permit->getStatus()) === 'bezahlt';
+                                $statusText  = \strtoupper($permit->getStatus());
                                 $statusClass = 'warning'; // default Orange
 
                                 if ($isPaid) {
@@ -168,30 +168,30 @@ $now = new \DateTimeImmutable('today');
                                 }
 
                                 // 3. Fahrzeug Icon
-                                $vKey     = $permit->vehicle->typ;
+                                $vKey     = $permit->getVehicleType();
                                 $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
-                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->owner->name); ?>"
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                         style="vertical-align: middle;">
                                         <div class="u-flex u-flex-column">
                                             <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
-                                                <?php echo \htmlspecialchars($permit->owner->name); ?>
+                                                <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
                                             </span>
                                             <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
                                                 <?php echo $permit->code; ?>
                                             </code>
                                             <div>
                                                 <span style="font-size: 0.7rem; background: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;">
-                                                    PARZELLE <?php echo $permit->owner->parzelle; ?>
+                                                    PARZELLE <?php echo $permit->getPlotNumber(); ?>
                                                 </span>
                                             </div>
                                         </div>
                                     </td>
 
-                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->vehicle->kennzeichen); ?>"
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
                                         style="text-align: center; vertical-align: middle;">
                                         <div style="line-height: 1;">
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
@@ -201,17 +201,17 @@ $now = new \DateTimeImmutable('today');
                                         </div>
                                         <div style="margin-top: 4px;">
                                             <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
-                                                <?php echo \htmlspecialchars($permit->vehicle->kennzeichen ?: '---'); ?>
+                                                <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
                                             </code>
                                         </div>
                                     </td>
 
-                                    <td data-sort-val="<?php echo $permit->validity->von->format('Y-m-d'); ?>"
+                                    <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
                                         class="u-text-center"
                                         style="vertical-align: middle;">
                                         <div style="line-height: 1.3;">
-                                            <strong style="color: #1e293b; font-size: 0.95rem;"><?php echo $permit->validity->von->format('d.m.Y'); ?></strong><br>
-                                            <small class="u-text-muted">bis <?php echo $permit->validity->bis->format('d.m.Y'); ?></small>
+                                            <strong style="color: #1e293b; font-size: 0.95rem;"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
+                                            <small class="u-text-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
                                             <div style="margin-top: 6px;">
                                                 <?php if ($isExpired) { ?>
                                                     <span style="color: var(--text-muted); font-size: 0.7rem; font-weight: 800; background: #e2e8f0; padding: 2px 8px; border-radius: 10px;">
@@ -287,3 +287,117 @@ if ($currentArchiveYear !== $lastYear) {
 </body>
 
 </html>
+ion"
+                                                               value="suspend_permit">
+                                                        <input type="hidden"
+                                                               name="code"
+                                                               value="<?php echo $permit->code; ?>">
+                                                        <input type="hidden"
+                                                               name="reason"
+                                                               id="reason_suspend_<?php echo $permit->code; ?>">
+                                                    </form>
+                                                <?php } ?>
+                                            <?php } ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php } ?>
+                        <?php } ?>
+                    </tbody>
+                </table>
+
+                <?php if ($totalPages > 1) {
+                    $queryParams = $_GET;
+                    unset($queryParams['page']);
+                    $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
+
+                    // --- Smarte Paginierungs-Logik ---
+                    $adjacents   = 2; // Zeige 2 Seiten links und rechts der aktuellen
+                    $pagesToShow = [];
+                    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
+                        for ($i = 1; $i <= $totalPages; ++$i) {
+                            $pagesToShow[] = $i;
+                        }
+                    } else {
+                        if ($page <= $adjacents + 2) {
+                            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
+                                $pagesToShow[] = $i;
+                            }
+                            $pagesToShow[] = '...';
+                            $pagesToShow[] = $totalPages;
+                        } elseif ($totalPages - $page <= $adjacents + 1) {
+                            $pagesToShow[] = 1;
+                            $pagesToShow[] = '...';
+                            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
+                                $pagesToShow[] = $i;
+                            }
+                        } else {
+                            $pagesToShow[] = 1;
+                            $pagesToShow[] = '...';
+                            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
+                                $pagesToShow[] = $i;
+                            }
+                            $pagesToShow[] = '...';
+                            $pagesToShow[] = $totalPages;
+                        }
+                    }
+                    ?>
+                    <div class="u-flex u-justify-between u-align-center u-padding-around-m"
+                         style="background: var(--bg-light); border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span class="u-text-muted" style="font-size: 0.85rem;">
+                        Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
+                    </span>
+                        </div>
+                        <div class="u-flex u-gap-xs u-align-center">
+                            <?php if ($page > 1) { ?>
+                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>"
+                                   class="c-button c-button--secondary"
+                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                    &larr;
+                                </a>
+                            <?php } else { ?>
+                                <button class="c-button c-button--secondary"
+                                        style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
+                                        disabled>&larr;</button>
+                            <?php } ?>
+
+                            <?php foreach ($pagesToShow as $p) {
+                                if ($p === '...') { ?>
+                                    <span class="u-text-muted" style="padding: 4px 8px;">&hellip;</span>
+                                <?php } elseif ($p === $page) { ?>
+                                    <button class="c-button c-button--primary"
+                                            style="padding: 6px 12px; font-size: 0.85rem; pointer-events: none;"><?php echo $p; ?></button>
+                                <?php } else { ?>
+                                    <a href="<?php echo $baseUrlStr . $p; ?>"
+                                       class="c-button c-button--secondary"
+                                       style="padding: 6px 12px; font-size: 0.85rem;">
+                                        <?php echo $p; ?>
+                                    </a>
+                            <?php }
+                                } ?>
+
+                            <?php if ($page < $totalPages) { ?>
+                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>"
+                                   class="c-button c-button--secondary"
+                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                    &rarr;
+                                </a>
+                            <?php } else { ?>
+                                <button class="c-button c-button--secondary"
+                                        style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
+                                        disabled>&rarr;</button>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } elseif ($totalCount > 0) { ?>
+                    <div class="u-text-center u-padding-around-s u-text-muted"
+                         style="background: var(--bg-light); font-size: 0.85rem; border-top: 1px solid var(--border-color);">
+                        Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
+                    </div>
+                <?php } ?>
+
+            </div>
+        </section>
+    </div>
+<?php } ?>
