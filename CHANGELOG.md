@@ -2,6 +2,12 @@
 
 
 
+## [0.46.13](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.12...v0.46.13) (2026-06-16)
+
+### ⚙️ Refactoring
+
+* **core,di:** implement service provider pattern for DI container ([c35d47b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c35d47b96ffea72f0fe5e957d759476277ee25e5))
+
 ## [0.46.12](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.11...v0.46.12) (2026-06-14)
 
 ### ⚙️ Refactoring
