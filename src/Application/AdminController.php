@@ -248,10 +248,8 @@ final readonly class AdminController
         // TODO 2. Fallback: Alte Methoden (werden im Laufe des Refactorings immer weniger)
         // [x] Sortiert
         return match ($action) {
-            'activate_voucher'  => $this->actionToggleVoucher($post),
             'anonymize_archive' => $this->actionAnonymizeArchive($post),
             'create_manual'     => $this->actionCreateManual($post),
-            'create_voucher'    => $this->actionCreateVoucher($post),
             'filter_dashboard'  => $this->actionFilterDashboard($post),
             'mark_as_paid'      => $this->actionMarkAsPaid($post),
             'migrate_data'      => $this->actionMigrateData($post),
@@ -378,95 +376,6 @@ final readonly class AdminController
         $this->permitService->toggleSuspension($code, $suspended, (string) ($post['reason'] ?? ''));
 
         return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
-    }
-
-    // 3. Gutschein-Management
-
-    /**
-     * Erstellt einen neuen Gutschein mit spezifischen Konditionen über VoucherService.
-     *
-     * Kontext: Beinhaltet Sicherheitsprüfung (hasPermission). Übergibt diverse Gutschein-Parameter.
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Bestätigung mit dem generierten Gutscheincode.
-     */
-    private function actionCreateVoucher(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, Gutscheine zu erstellen.';
-        }
-
-        $tplKey = (string) ($post['template_key'] ?? 'std.7');
-
-        // --- BACKEND SECURITY CHECK ---
-        if (! $this->auth->hasPermission("template.$tplKey")) {
-            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' zu verwenden.";
-        }
-
-        try {
-            // Gutschein erstellen und Erweiterte Gutschein-Parameter
-            $reason     = (string) ($post['reason'] ?? 'Gutschein');
-            $type       = (string) ($post['voucher_discount_type'] ?? 'free');
-            $val        = (float) ($post['voucher_discount_value'] ?? 0.0);
-            $multi      = isset($post['voucher_multi_use']);
-            $max_uses   = $multi ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
-            $custom     = (string) ($post['voucher_custom_code'] ?? '');
-            $expires_at = (string) ($post['voucher_expires_at'] ?? '');
-            $date_mode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
-
-            // [x] sortiert
-            $preData = [
-                'datum_bis'   => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
-                'datum_von'   => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
-                'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
-                'kennzeichen' => \trim(\strip_tags((string) ($post['kennzeichen'] ?? ''))),
-                'name'        => \trim(\strip_tags((string) ($post['name'] ?? ''))),
-                'parzelle'    => \trim(\strip_tags((string) ($post['parzelle'] ?? ''))),
-                'typ'         => (string) ($post['typ'] ?? ''),
-                'zweck'       => \strip_tags((string) ($post['zweck'] ?? '')),
-            ];
-
-            // Service-Aufruf mit neuen Parametern
-            $code = $this->voucherService->createVoucher(
-                $reason,
-                (string) ($_SESSION['user_id'] ?? 'sys_admin'), // Geändert von 'Admin' auf 'sys_admin'
-                $tplKey,
-                $preData,
-                $type,
-                $val,
-                $multi,
-                $max_uses,
-                $custom, // Weitergabe an Service
-                $expires_at ?: null, // In null wandeln wenn leer
-                $date_mode,
-            );
-
-            return "Gutschein erstellt: <strong>$code</strong>";
-        } catch (\Exception $e) {
-            return 'Fehler: ' . $e->getMessage();
-        }
-    }
-
-    /**
-     * Setzt den Sperrstatus einer bestehenden Genehmigung.
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Statusänderungs-Meldung.
-     */
-    private function actionToggleVoucher(array $post): string
-    {
-        // Zwingende Backend-Rechteprüfung!
-        if (! $this->auth->hasPermission('dashboard.vouchers.suspend')) {
-            return 'Fehler: Keine Berechtigung für diese Aktion.';
-        }
-
-        // Gutschein sperren / aktivieren
-        $status = $post['action'] === 'activate_voucher' ? 'aktiv' : 'deaktiviert';
-        $this->voucherService->toggleStatus((string) $post['code'], $status);
-
-        return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
     }
 
     // 4. E-Mail-Verwaltung

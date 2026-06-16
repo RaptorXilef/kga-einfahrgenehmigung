@@ -33,8 +33,11 @@ final readonly class AdminActionFactory
     public function create(string $actionKey): ?ActionInterface
     {
         $actionClass = match ($actionKey) {
-            'clear_cache'    => ClearCacheAction::class,
-            'delete_voucher' => DeleteVoucherAction::class,
+            'activate_voucher'   => ToggleVoucherAction::class,
+            'clear_cache'        => ClearCacheAction::class,
+            'create_voucher'     => CreateVoucherAction::class,
+            'deactivate_voucher' => ToggleVoucherAction::class,
+            'delete_voucher'     => DeleteVoucherAction::class,
             // Hier fügen wir später Zeile für Zeile unsere neuen Actions hinzu!
             // 'delete_voucher' => DeleteVoucherAction::class,
             default => null,

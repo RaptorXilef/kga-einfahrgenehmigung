@@ -6,6 +6,9 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\ClearCacheAction;
+use App\Application\Actions\CreateVoucherAction;
+use App\Application\Actions\DeleteVoucherAction;
+use App\Application\Actions\ToggleVoucherAction;
 use App\Application\AdminController;
 use App\Application\CheckController;
 use App\Application\CheckoutController;
@@ -67,7 +70,17 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(MigrationService::class),
         ));
 
-        $container->bind(\App\Application\Actions\DeleteVoucherAction::class, fn () => new \App\Application\Actions\DeleteVoucherAction(
+        $container->bind(DeleteVoucherAction::class, fn () => new DeleteVoucherAction(
+            $container->get(AuthService::class),
+            $container->get(VoucherService::class),
+        ));
+
+        $container->bind(CreateVoucherAction::class, fn () => new CreateVoucherAction(
+            $container->get(AuthService::class),
+            $container->get(VoucherService::class),
+        ));
+
+        $container->bind(ToggleVoucherAction::class, fn () => new ToggleVoucherAction(
             $container->get(AuthService::class),
             $container->get(VoucherService::class),
         ));
