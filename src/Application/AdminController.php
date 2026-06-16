@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Actions\AdminActionFactory;
 use App\Application\Security\CsrfHelper;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
@@ -48,6 +49,7 @@ final readonly class AdminController
      * Initiiert den Controller mit allen Abhängigkeiten (Dependency Injection).
      */
     public function __construct(
+        private AdminActionFactory $actionFactory,
         private AuthService $auth,
         private BackupService $backupService,
         private ConfigInterface $config,
@@ -236,12 +238,18 @@ final readonly class AdminController
             return '';
         }
 
+        // 1. Prüfen, ob wir die Aktion schon als saubere Action-Klasse haben
+        $actionHandler = $this->actionFactory->create($action);
+        if ($actionHandler !== null) {
+            return $actionHandler->execute($post);
+        }
+
         // Aufteilung in Unter-Methoden zur Senkung der Komplexität
+        // TODO 2. Fallback: Alte Methoden (werden im Laufe des Refactorings immer weniger)
         // [x] Sortiert
         return match ($action) {
             'activate_voucher'   => $this->actionToggleVoucher($post),
             'anonymize_archive'  => $this->actionAnonymizeArchive($post),
-            'clear_cache'        => $this->actionClearCache($post),
             'create_manual'      => $this->actionCreateManual($post),
             'create_voucher'     => $this->actionCreateVoucher($post),
             'deactivate_voucher' => $this->actionToggleVoucher($post),
@@ -627,22 +635,6 @@ final readonly class AdminController
         return $this->voucherService->deleteVoucher($code)
             ? "Gutschein '$code' wurde unwiderruflich gelöscht."
             : 'Fehler: Gutschein nicht gefunden.';
-    }
-
-    /**
-     * Leert den Anwendungs-Cache und löscht temporäre System-Dateien.
-     *
-     * @param array<string, mixed> $post Formulardaten inklusive CSRF-Token.
-     *
-     * @return string Statusmeldung über die Ausführung.
-     */
-    private function actionClearCache(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.delete-cache.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
-        }
-
-        return $this->migrationService->clearCache();
     }
 
     // --- ENDE Aktions-Methoden (die von handleDataActions aufgerufen werden) ---

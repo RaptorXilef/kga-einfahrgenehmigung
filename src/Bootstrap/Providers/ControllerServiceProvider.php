@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
+use App\Application\Actions\AdminActionFactory;
+use App\Application\Actions\ClearCacheAction;
 use App\Application\AdminController;
 use App\Application\CheckController;
 use App\Application\CheckoutController;
@@ -36,6 +38,9 @@ use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
+use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\MigrationService;
+use App\Infrastructure\Maintenance\StorageBootstrapper;
 
 /**
  * Registriert sämtliche Controller und View-Renderer der Application.
@@ -57,9 +62,19 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // --- 3.2 Backend Controller (Admin) ---
-        $container->bind(AdminController::class, fn (): AdminController => new AdminController(
+        $container->bind(ClearCacheAction::class, fn () => new ClearCacheAction(
             $container->get(AuthService::class),
-            $container->get(\App\Infrastructure\Maintenance\BackupService::class),
+            $container->get(MigrationService::class),
+        ));
+
+        $container->bind(AdminActionFactory::class, fn () => new AdminActionFactory(
+            $container,
+        ));
+
+        $container->bind(AdminController::class, fn (): AdminController => new AdminController(
+            $container->get(AdminActionFactory::class),
+            $container->get(AuthService::class),
+            $container->get(BackupService::class),
             $container->get(ConfigInterface::class),
             $container->get(CronScheduler::class),
             $container->get(ExportService::class),
@@ -67,11 +82,11 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(HolidayService::class),
             $container->get(MailLogInterface::class),
             $container->get(MailServiceInterface::class),
-            $container->get(\App\Infrastructure\Maintenance\MigrationService::class),
+            $container->get(MigrationService::class),
             $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(PermitService::class),
             $container->get(ReportingService::class),
-            $container->get(\App\Infrastructure\Maintenance\StorageBootstrapper::class),
+            $container->get(StorageBootstrapper::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
             $container->get(UserRepositoryInterface::class),
