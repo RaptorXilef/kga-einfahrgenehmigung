@@ -4,61 +4,11 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
-use App\Application\AdminController;
-use App\Application\CheckController;
-use App\Application\CheckoutController;
-use App\Application\HistoryController;
-use App\Application\LegalController;
-use App\Application\PaymentController;
-use App\Application\PermitController;
-use App\Application\SuccessController;
-use App\Application\UserController;
-use App\Application\VerificationController;
-use App\Application\View\TemplateRenderer;
+use App\Bootstrap\Providers\ControllerServiceProvider;
+use App\Bootstrap\Providers\CoreServiceProvider;
+use App\Bootstrap\Providers\InfrastructureServiceProvider;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Mail\MailLogInterface;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\Payment\PaymentProviderInterface;
-use App\Contracts\Security\RateLimiterInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Contracts\Storage\LockManagerInterface;
-use App\Contracts\Storage\MagicLinkRepositoryInterface;
-use App\Contracts\Storage\MailQueueRepositoryInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
-use App\Contracts\Storage\StorageInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface;
-use App\Core\Service\AuthService;
-use App\Core\Service\BankQrGenerator;
-use App\Core\Service\ExportService;
-use App\Core\Service\GitHubUpdaterService;
-use App\Core\Service\HolidayService;
-use App\Core\Service\LicensePlateFormatter;
-use App\Core\Service\MagicLinkService;
-use App\Core\Service\MailQueueService;
-use App\Core\Service\Maintenance\CronScheduler;
-use App\Core\Service\PermitService;
-use App\Core\Service\ReportingService;
-use App\Core\Service\UpdateMigrationService;
-use App\Core\Service\VoucherService;
 use App\Infrastructure\Config\Config;
-use App\Infrastructure\Database\PdoFactory;
-use App\Infrastructure\Mail\SmtpMailService;
-use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\MigrationService;
-use App\Infrastructure\Maintenance\StorageBootstrapper;
-use App\Infrastructure\Payment\PayPalService;
-use App\Infrastructure\Security\RateLimiter;
-use App\Infrastructure\Storage\FileLockManager;
-use App\Infrastructure\Storage\GroupRepository;
-use App\Infrastructure\Storage\MagicLinkRepository;
-use App\Infrastructure\Storage\MailQueueRepository;
-use App\Infrastructure\Storage\PermitArchiveRepository;
-use App\Infrastructure\Storage\StorageFactory;
-use App\Infrastructure\Storage\UserRepository;
-use App\Infrastructure\Storage\VerificationRepository;
-use App\Infrastructure\Storage\VoucherRepository;
 
 /**
  * Dependency Injection (DI) Container der Anwendung.
@@ -110,306 +60,27 @@ class Container
         $this->instances[Config::class]          = $this->config;
         $this->instances[ConfigInterface::class] = $this->config;
 
-        $this->registerInfrastructure();
-        $this->registerCoreServices();
-        $this->registerControllers();
+        // Provider registrieren
+        $providers = [
+            new InfrastructureServiceProvider(),
+            new CoreServiceProvider(),
+            new ControllerServiceProvider(),
+        ];
+
+        foreach ($providers as $provider) {
+            $provider->register($this);
+        }
     }
 
     /**
-     * =========================================================================
-     * 1. INFRASTRUCTURE LAYER
-     * =========================================================================
-     * Registriert alle Hardware-, Netzwerk- und Dateisystem-nahen Komponenten.
-     * (Datenbank, Repositories, E-Mail-Server, externe APIs, Bootstrapper)
+     * Registriert einen Service im Container.
+     *
+     * @param string   $id       Der Identifikator (Klassenname oder Interface).
+     * @param \Closure $resolver Die Factory-Funktion zur Erstellung der Instanz.
      */
-    private function registerInfrastructure(): void
+    public function bind(string $id, \Closure $resolver): void
     {
-        // --- 1.1 Datenbank & Basis-Storage ---
-        $this->services[\PDO::class] = fn (): ?\PDO => PdoFactory::create(
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[StorageInterface::class] = fn (): StorageInterface => StorageFactory::create(
-            $this->get(ConfigInterface::class),
-            $this->get(\PDO::class),
-        );
-
-        // --- 1.2 Repositories (Datenzugriff) ---
-        $this->services[GroupRepositoryInterface::class] = fn () => new GroupRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[UserRepositoryInterface::class] = fn () => new UserRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[PermitArchiveRepositoryInterface::class] = fn () => new PermitArchiveRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[VerificationRepositoryInterface::class] = fn () => new VerificationRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[VoucherRepositoryInterface::class] = fn () => new VoucherRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[MagicLinkRepositoryInterface::class] = fn () => new MagicLinkRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[MailQueueRepositoryInterface::class] = fn () => new MailQueueRepository(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
-        $this->services['mail.smtp'] = fn (): SmtpMailService => new SmtpMailService(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-        $this->services[MailLogInterface::class]     = fn () => $this->get('mail.smtp');
-        $this->services[MailServiceInterface::class] = fn (): MailQueueService => new MailQueueService(
-            $this->get(MailQueueRepositoryInterface::class),
-            $this->get('mail.smtp'),
-        );
-
-        $this->services[PaymentProviderInterface::class] = fn (): PayPalService => new PayPalService(
-            $this->get(ConfigInterface::class),
-        );
-
-        // --- 1.4 Sicherheit & System-Bootstrapping ---
-        $this->services[RateLimiterInterface::class] = fn () => new RateLimiter(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[LockManagerInterface::class] = fn () => new FileLockManager(
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[StorageBootstrapper::class] = fn (): StorageBootstrapper => new StorageBootstrapper(
-            $this->get(\PDO::class),
-            $this->get(AuthService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(UserRepositoryInterface::class),
-        );
-
-        // --- 1.5 System-Maintenance & Wartung ---
-        $this->services[BackupService::class] = fn (): BackupService => new BackupService(
-            $this->get(\PDO::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[MigrationService::class] = fn (): MigrationService => new MigrationService(
-            $this->get(\PDO::class),
-            $this->get(AuthService::class),
-            $this->get(BackupService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(MagicLinkRepositoryInterface::class),
-            $this->get(MailLogInterface::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(PermitArchiveRepositoryInterface::class),
-            $this->get(PermitService::class),
-            $this->get(StorageInterface::class),
-            $this->get(UserRepositoryInterface::class),
-            $this->get(VerificationRepositoryInterface::class),
-            $this->get(VoucherRepositoryInterface::class),
-        );
-    }
-
-    /**
-     * =========================================================================
-     * 2. CORE / DOMAIN LAYER
-     * =========================================================================
-     * Registriert die reine Geschäftslogik.
-     * (Genehmigungs-Workflows, Feiertagsberechnung, Gutschein-Logik, Wartung)
-     */
-    private function registerCoreServices(): void
-    {
-        // --- 2.1 Identität & Autorisierung ---
-        $this->services[AuthService::class] = fn (): AuthService => new AuthService(
-            $this->get(ConfigInterface::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(RateLimiterInterface::class),
-            $this->get(UserRepositoryInterface::class),
-        );
-
-        // --- 2.2 Haupt-Geschäftslogik (Domain Services) ---
-        $this->services[PermitService::class] = fn () => new PermitService(
-            $this->get(BankQrGenerator::class),
-            $this->get(ConfigInterface::class),
-            $this->get(HolidayService::class),
-            $this->get(LicensePlateFormatter::class),
-            $this->get(LockManagerInterface::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(PaymentProviderInterface::class),
-            $this->get(PermitArchiveRepositoryInterface::class),
-            $this->get(StorageInterface::class),
-            $this->get(VerificationRepositoryInterface::class),
-            $this->get(VoucherService::class),
-        );
-
-        $this->services[VoucherService::class] = fn (): VoucherService => new VoucherService(
-            $this->get(VoucherRepositoryInterface::class),
-        );
-
-        $this->services[HolidayService::class] = fn (): HolidayService => new HolidayService(
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[MagicLinkService::class] = fn (): MagicLinkService => new MagicLinkService(
-            $this->get(MagicLinkRepositoryInterface::class),
-            $this->get(ConfigInterface::class),
-        );
-
-        // --- 2.3 Werkzeuge & Formatierer ---
-        $this->services[LicensePlateFormatter::class] = fn () => new LicensePlateFormatter();
-
-        $this->services[BankQrGenerator::class] = fn () => new BankQrGenerator(
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[ReportingService::class] = fn (): ReportingService => new ReportingService(
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[ExportService::class] = fn (): ExportService => new ExportService(
-            $this->get(ConfigInterface::class),
-        );
-
-        // --- 2.4 Wartung & System-Updates (Maintenance) ---
-        $this->services[UpdateMigrationService::class] = fn (): UpdateMigrationService => new UpdateMigrationService(
-            $this->get(ConfigInterface::class),
-            $this->get(\PDO::class),
-        );
-
-        $this->services[GitHubUpdaterService::class] = fn (): GitHubUpdaterService => new GitHubUpdaterService(
-            $this->get(ConfigInterface::class),
-        );
-
-        $this->services[CronScheduler::class] = fn () => new CronScheduler(
-            $this->get(BackupService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(PermitService::class),
-        );
-    }
-
-    /**
-     * =========================================================================
-     * 3. APPLICATION LAYER
-     * =========================================================================
-     * Registriert sämtliche Controller und View-Renderer.
-     * Nimmt den HTTP-Traffic entgegen und orchestriert die Services.
-     */
-    private function registerControllers(): void
-    {
-        // --- 3.1 View Renderer ---
-        $this->services[TemplateRenderer::class] = fn (): TemplateRenderer => new TemplateRenderer(
-            $this->get(ConfigInterface::class),
-        );
-
-        // --- 3.2 Backend Controller (Admin) ---
-        $this->services[AdminController::class] = fn (): AdminController => new AdminController(
-            $this->get(AuthService::class),
-            $this->get(BackupService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(CronScheduler::class),
-            $this->get(ExportService::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(HolidayService::class),
-            $this->get(MailLogInterface::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(MigrationService::class),
-            $this->get(PermitArchiveRepositoryInterface::class),
-            $this->get(PermitService::class),
-            $this->get(ReportingService::class),
-            $this->get(StorageBootstrapper::class),
-            $this->get(StorageInterface::class),
-            $this->get(TemplateRenderer::class),
-            $this->get(UserRepositoryInterface::class),
-            $this->get(VoucherRepositoryInterface::class),
-            $this->get(VoucherService::class),
-        );
-
-        $this->services[UserController::class] = fn (): UserController => new UserController(
-            $this->get(AuthService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(TemplateRenderer::class),
-            $this->get(UserRepositoryInterface::class),
-        );
-
-        // --- 3.3 Frontend Controller (Public) ---
-        $this->services[PermitController::class] = fn (): PermitController => new PermitController(
-            $this->get(ConfigInterface::class),
-            $this->get(PermitService::class),
-            $this->get(TemplateRenderer::class),
-            $this->get(VerificationRepositoryInterface::class),
-            $this->get(VoucherRepositoryInterface::class),
-            $this->get(VoucherService::class),
-        );
-
-        $this->services[VerificationController::class] = fn (): VerificationController => new VerificationController(
-            $this->get(ConfigInterface::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(PermitService::class),
-            $this->get(RateLimiterInterface::class),
-            $this->get(TemplateRenderer::class),
-        );
-
-        $this->services[CheckoutController::class] = fn (): CheckoutController => new CheckoutController(
-            $this->get(ConfigInterface::class),
-            $this->get(HolidayService::class),
-            $this->get(PermitService::class),
-            $this->get(TemplateRenderer::class),
-        );
-
-        $this->services[PaymentController::class] = fn (): PaymentController => new PaymentController(
-            $this->get(PermitService::class),
-        );
-
-        $this->services[SuccessController::class] = fn (): SuccessController => new SuccessController(
-            $this->get(BankQrGenerator::class),
-            $this->get(ConfigInterface::class),
-            $this->get(StorageInterface::class),
-            $this->get(TemplateRenderer::class),
-        );
-
-        $this->services[CheckController::class] = fn (): CheckController => new CheckController(
-            $this->get(AuthService::class),
-            $this->get(ConfigInterface::class),
-            $this->get(GroupRepositoryInterface::class),
-            $this->get(HolidayService::class),
-            $this->get(StorageInterface::class),
-            $this->get(TemplateRenderer::class),
-            $this->get(UserRepositoryInterface::class),
-        );
-
-        $this->services[HistoryController::class] = fn (): HistoryController => new HistoryController(
-            $this->get(ConfigInterface::class),
-            $this->get(HolidayService::class),
-            $this->get(MagicLinkService::class),
-            $this->get(MailServiceInterface::class),
-            $this->get(PermitService::class),
-            $this->get(RateLimiterInterface::class),
-            $this->get(StorageInterface::class),
-            $this->get(TemplateRenderer::class),
-        );
-
-        $this->services[LegalController::class] = fn (): LegalController => new LegalController(
-            $this->get(ConfigInterface::class),
-            $this->get(TemplateRenderer::class),
-        );
+        $this->services[$id] = $resolver;
     }
 
     /**

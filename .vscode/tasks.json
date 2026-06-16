@@ -8,21 +8,6 @@
             "problemMatcher": [],
             "group": "none",
             "detail": "Führt PHP-CS-Fixer manuell aus"
-        },
-        {
-            "label": "PHP Gesamt-Scan (src & templates)",
-            "type": "shell",
-            "command": "vendor/bin/phpstan analyse src templates --error-format=vscode",
-            "problemMatcher": [],
-            "presentation": {
-                "echo": true,
-                "reveal": "never",
-                "focus": false,
-                "panel": "shared"
-            },
-            "runOptions": {
-                "runOn": "folderOpen"
-            }
         }
     ]
 }
