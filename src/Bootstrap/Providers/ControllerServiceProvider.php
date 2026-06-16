@@ -67,6 +67,11 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(MigrationService::class),
         ));
 
+        $container->bind(\App\Application\Actions\DeleteVoucherAction::class, fn () => new \App\Application\Actions\DeleteVoucherAction(
+            $container->get(AuthService::class),
+            $container->get(VoucherService::class),
+        ));
+
         $container->bind(AdminActionFactory::class, fn () => new AdminActionFactory(
             $container,
         ));

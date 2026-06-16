@@ -248,21 +248,19 @@ final readonly class AdminController
         // TODO 2. Fallback: Alte Methoden (werden im Laufe des Refactorings immer weniger)
         // [x] Sortiert
         return match ($action) {
-            'activate_voucher'   => $this->actionToggleVoucher($post),
-            'anonymize_archive'  => $this->actionAnonymizeArchive($post),
-            'create_manual'      => $this->actionCreateManual($post),
-            'create_voucher'     => $this->actionCreateVoucher($post),
-            'deactivate_voucher' => $this->actionToggleVoucher($post),
-            'delete_voucher'     => $this->actionDeleteVoucher($post),
-            'filter_dashboard'   => $this->actionFilterDashboard($post),
-            'mark_as_paid'       => $this->actionMarkAsPaid($post),
-            'migrate_data'       => $this->actionMigrateData($post),
-            'resend_mail'        => $this->actionResendMail($post),
-            'restore_data'       => $this->actionRestoreData($post),
-            'suspend_permit'     => $this->actionToggleSuspension($post),
-            'truncate_target'    => $this->actionTruncateTarget($post),
-            'unsuspend_permit'   => $this->actionToggleSuspension($post),
-            default              => '',
+            'activate_voucher'  => $this->actionToggleVoucher($post),
+            'anonymize_archive' => $this->actionAnonymizeArchive($post),
+            'create_manual'     => $this->actionCreateManual($post),
+            'create_voucher'    => $this->actionCreateVoucher($post),
+            'filter_dashboard'  => $this->actionFilterDashboard($post),
+            'mark_as_paid'      => $this->actionMarkAsPaid($post),
+            'migrate_data'      => $this->actionMigrateData($post),
+            'resend_mail'       => $this->actionResendMail($post),
+            'restore_data'      => $this->actionRestoreData($post),
+            'suspend_permit'    => $this->actionToggleSuspension($post),
+            'truncate_target'   => $this->actionTruncateTarget($post),
+            'unsuspend_permit'  => $this->actionToggleSuspension($post),
+            default             => '',
         };
     }
 
@@ -618,23 +616,6 @@ final readonly class AdminController
         } catch (\Exception $e) {
             return 'Fehler bei der Anonymisierung: ' . $e->getMessage();
         }
-    }
-
-    /**
-     * TODO DOCBLOCK
-     * Löscht einen Gutschein unwiderruflich.
-     */
-    private function actionDeleteVoucher(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.vouchers.remove')) {
-            return 'Fehler: Keine Berechtigung zum Löschen von Gutscheinen.';
-        }
-
-        $code = (string) ($post['code'] ?? '');
-
-        return $this->voucherService->deleteVoucher($code)
-            ? "Gutschein '$code' wurde unwiderruflich gelöscht."
-            : 'Fehler: Gutschein nicht gefunden.';
     }
 
     // --- ENDE Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
