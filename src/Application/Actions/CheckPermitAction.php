@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application;
+namespace App\Application\Actions;
 
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -15,19 +16,17 @@ use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 
 /**
- * Controller zur Überprüfung von Genehmigungen und Kennzeichen.
- *
+ * Action zur Überprüfung von Genehmigungen und Kennzeichen.
  * Erlaubt die öffentliche und administrative Abfrage von Gültigkeiten (z.B. via QR-Code).
- * Kontext: Einstiegspunkt für Kontroll-Infrastruktur oder manuelle Suchen.
  *
- * Path: src/Application/CheckController.php
+ * Path: src/Application/Actions/CheckPermitAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class CheckController
+final readonly class CheckPermitAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
@@ -41,14 +40,11 @@ final readonly class CheckController
     }
 
     /**
-     * Haupt-Request-Handler für den Validierungs- und Suchprozess.
-     * Identifiziert Genehmigungen per Hash oder Kennzeichen und steuert
-     * die Ausgabe (Admin-Ansicht, öffentliche Ansicht oder Suchformular).
-     *
-     * @param array<string, mixed> $get Entspricht $_GET
+     * TODO DOCBLOCK
      */
-    public function handleRequest(array $get): void
+    public function execute(array $requestData): void
     {
+        $get  = $requestData; // Konsistenz für den alten Code
         $code = \strtoupper(\trim((string) ($get['code'] ?? '')));
         $now  = new \DateTimeImmutable();
 
@@ -139,8 +135,7 @@ final readonly class CheckController
             return;
         }
 
-        // Fall 3: Code/Kennzeichen nicht gefunden
-        // Bei Fehler:
+        // Fall 3: Code/Kennzeichen nicht gefunden (bei Fehler)
         $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 

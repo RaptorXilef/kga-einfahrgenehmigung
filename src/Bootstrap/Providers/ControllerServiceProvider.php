@@ -6,6 +6,7 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\AnonymizeArchiveAction;
+use App\Application\Actions\CheckPermitAction;
 use App\Application\Actions\ClearCacheAction;
 use App\Application\Actions\CreateManualAction;
 use App\Application\Actions\CreateVoucherAction;
@@ -21,7 +22,6 @@ use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
 use App\Application\Actions\TruncateTargetAction;
 use App\Application\AdminController;
-use App\Application\CheckController;
 use App\Application\CheckoutController;
 use App\Application\HistoryController;
 use App\Application\LegalController;
@@ -222,7 +222,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
         ));
 
-        $container->bind(CheckController::class, fn (): CheckController => new CheckController(
+        $container->bind(CheckPermitAction::class, fn () => new CheckPermitAction(
             $container->get(AuthService::class),
             $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),

@@ -16,14 +16,14 @@
 
 declare(strict_types=1);
 
-use App\Application\CheckController;
+use App\Application\Actions\CheckPermitAction;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Service\MailQueueService;
 
 // Lädt die Bootstrap-Logik und liefert direkt den Container
-$container  = require_once __DIR__ . '/../src/Bootstrap/app.php';
-$controller = $container->get(CheckController::class);
-$controller->handleRequest($_GET);
+$container = require_once __DIR__ . '/../src/Bootstrap/app.php';
+$action    = $container->get(CheckPermitAction::class);
+$action->execute($_GET);
 
 try {
     $mailService = $container->get(MailServiceInterface::class);
