@@ -27,7 +27,6 @@ use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
-use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Haupt-Controller für die Administration.
@@ -238,96 +237,14 @@ final readonly class AdminController
             return '';
         }
 
-        // 1. Prüfen, ob wir die Aktion schon als saubere Action-Klasse haben
+        // Die Factory regelt jetzt alles!
         $actionHandler = $this->actionFactory->create($action);
         if ($actionHandler !== null) {
             return $actionHandler->execute($post);
         }
 
-        // Aufteilung in Unter-Methoden zur Senkung der Komplexität
-        // TODO 2. Fallback: Alte Methoden (werden im Laufe des Refactorings immer weniger)
-        // [x] Sortiert
-        return match ($action) {
-            'filter_dashboard' => $this->actionFilterDashboard($post),
-            'resend_mail'      => $this->actionResendMail($post),
-            default            => '',
-        };
+        return ''; // Unbekannte Aktionen geben einfach nichts zurück
     }
-
-    // --- START Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
-    // 1. Dashboard UI-Steuerung
-
-    /**
-     * Hilfsmethode zum Speichern der Dashboard-Filter in der aktuellen Session.
-     *
-     * @param array<string, mixed> $post Das POST-Array mit den Filterdaten.
-     *
-     * @return string Statusmeldung über den Erfolg der Anwendung.
-     */
-    private function actionFilterDashboard(array $post): string
-    {
-        $_SESSION['admin_filters'] = [
-            'end'   => (string) ($post['end'] ?? ''),
-            'limit' => (int) ($post['limit'] ?? 25),
-            'q'     => (string) ($post['q'] ?? ''),
-            'start' => (string) ($post['start'] ?? ''),
-            'type'  => (string) ($post['type'] ?? 'all'),
-        ];
-
-        return 'Filter angewendet.';
-    }
-
-    // 4. E-Mail-Verwaltung
-
-    /**
-     * Trigger für den Neuversand von E-Mails basierend auf den System-Logs.
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Statusmeldung über den Erfolg des Neuversands.
-     */
-    private function actionResendMail(array $post): string
-    {
-        // Reines 'view' Recht reicht nicht aus, um System-Mails abzufeuern!
-        // Wir fordern zusätzlich das Recht zur aktiven Dokumentenausstellung.
-        if (! $this->auth->hasPermission('dashboard.logs.view') || ! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
-            return 'Fehler: Keine Berechtigung zum aktiven Neuversand von E-Mails.';
-        }
-
-        $timestamp = (string) ($post['timestamp'] ?? '');
-        $logs      = $this->mailLog->loadLogs();
-
-        foreach ($logs as $log) {
-            if (! (($log['timestamp'] ?? '') === $timestamp)) {
-                continue;
-            }
-
-            $payload = $log['data'] ?? [];
-
-            // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
-            if (\is_string($payload)) {
-                $payload = JsonHelper::decode($payload);
-            }
-
-            if (empty($payload)) {
-                return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
-            }
-
-            // Erneuter Versand über das Template-System
-            $this->mailService->sendTemplate(
-                $log['recipient'],
-                $log['subject'],
-                $log['template'],
-                $payload,
-            );
-
-            return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
-        }
-
-        return 'Fehler: Log-Eintrag nicht gefunden.';
-    }
-
-    // --- ENDE Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
 
     /**
      * Rendert die Admin-Dashboard-Oberfläche mit allen Statistiken und Filterdaten (Tabellen).

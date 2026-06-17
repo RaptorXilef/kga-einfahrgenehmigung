@@ -10,8 +10,10 @@ use App\Application\Actions\ClearCacheAction;
 use App\Application\Actions\CreateManualAction;
 use App\Application\Actions\CreateVoucherAction;
 use App\Application\Actions\DeleteVoucherAction;
+use App\Application\Actions\FilterDashboardAction;
 use App\Application\Actions\MarkAsPaidAction;
 use App\Application\Actions\MigrateDataAction;
+use App\Application\Actions\ResendMailAction;
 use App\Application\Actions\RestoreDataAction;
 use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
@@ -102,9 +104,17 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(PermitService::class),
         ));
 
+        $container->bind(FilterDashboardAction::class, fn () => new FilterDashboardAction());
+
         $container->bind(MigrateDataAction::class, fn () => new MigrateDataAction(
             $container->get(AuthService::class),
             $container->get(MigrationService::class),
+        ));
+
+        $container->bind(ResendMailAction::class, fn () => new ResendMailAction(
+            $container->get(AuthService::class),
+            $container->get(MailLogInterface::class),
+            $container->get(MailServiceInterface::class),
         ));
 
         $container->bind(RestoreDataAction::class, fn () => new RestoreDataAction(

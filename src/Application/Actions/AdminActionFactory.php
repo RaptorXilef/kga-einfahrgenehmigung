@@ -27,7 +27,8 @@ final readonly class AdminActionFactory
     /**
      * Erstellt die passende Action-Klasse anhand des POST-Action-Keys.
      *
-     * @param  string               $actionKey Der Key aus dem Formular (z.B. 'clear_cache').
+     * @param string $actionKey Der Key aus dem Formular (z.B. 'clear_cache').
+     *
      * @return ActionInterface|null Die instanziierte Action oder null, falls nicht gefunden.
      */
     public function create(string $actionKey): ?ActionInterface
@@ -40,15 +41,15 @@ final readonly class AdminActionFactory
             'create_voucher'     => CreateVoucherAction::class,
             'deactivate_voucher' => ToggleVoucherAction::class,
             'delete_voucher'     => DeleteVoucherAction::class,
+            'filter_dashboard'   => FilterDashboardAction::class,
             'mark_as_paid'       => MarkAsPaidAction::class,
             'migrate_data'       => MigrateDataAction::class,
+            'resend_mail'        => ResendMailAction::class,
             'restore_data'       => RestoreDataAction::class,
             'suspend_permit'     => ToggleSuspensionAction::class,
             'truncate_target'    => TruncateTargetAction::class,
             'unsuspend_permit'   => ToggleSuspensionAction::class,
-            // Hier fügen wir später Zeile für Zeile unsere neuen Actions hinzu!
-            // 'delete_voucher' => DeleteVoucherAction::class,
-            default => null,
+            default              => null,
         };
 
         if ($actionClass === null) {
