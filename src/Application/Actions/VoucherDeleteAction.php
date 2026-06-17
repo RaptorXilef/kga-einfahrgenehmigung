@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
@@ -36,10 +38,14 @@ final readonly class VoucherDeleteAction implements ActionInterface
             return 'Fehler: Keine Berechtigung zum Löschen von Gutscheinen.';
         }
 
-        $code = (string) ($post['code'] ?? '');
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
 
-        return $this->voucherService->deleteVoucher($code)
-            ? "Gutschein '$code' wurde unwiderruflich gelöscht."
-            : 'Fehler: Gutschein nicht gefunden.';
+        return $this->voucherService->deleteVoucher($dto->identifier)
+            ? "Gutschein '{$dto->identifier}' gelöscht."
+            : "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.";
     }
 }
