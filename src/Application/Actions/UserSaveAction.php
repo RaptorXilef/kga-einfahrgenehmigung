@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\UserSaveRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum Erstellen eines neuen Benutzers.
  *
  * Path: src/Application/Actions/UserSaveAction.php
  *
@@ -20,8 +22,10 @@ use App\Core\Service\AuthService;
  */
 final readonly class UserSaveAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        private AuthService $auth,
+        private UserRepositoryInterface $userRepository,
+    ) {
     }
 
     /**
@@ -37,21 +41,21 @@ final readonly class UserSaveAction implements ActionInterface
             return 'Fehler: Keine Berechtigung für die Benutzerverwaltung.';
         }
 
-        $loginName = \trim((string) ($post['username'] ?? ''));
-        $pw1       = (string) ($post['password'] ?? '');
-        $pw2       = (string) ($post['password_repeat'] ?? '');
-
-        if ($pw1 !== $pw2) {
-            return 'Fehler: Passwörter stimmen nicht überein.';
-        }
-        if ($pw1 === '' || $pw1 === '0') {
-            return 'Fehler: Passwort darf nicht leer sein.';
+        try {
+            // 1. DTO bauen (inkl. automatischer Validierung!)
+            $dto = UserSaveRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            // Wenn die Passwörter nicht stimmen, fangen wir das hier elegant ab.
+            return $e->getMessage();
         }
 
+        // 2. Business-Logik (Die Daten im DTO sind garantiert sicher und typisiert)
         $users = $this->userRepository->loadAll();
+
+        // Eindeutigkeit prüfen (kann das DTO nicht machen, da es die DB nicht kennen soll)
         foreach ($users as $userData) {
-            if (\strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($loginName)) {
-                return "Fehler: Ein Benutzer mit dem Namen '$loginName' existiert bereits im System.";
+            if (\strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($dto->username)) {
+                return "Fehler: Ein Benutzer mit dem Namen '{$dto->username}' existiert bereits im System.";
             }
         }
 
@@ -59,10 +63,11 @@ final readonly class UserSaveAction implements ActionInterface
             $newId = $this->auth->generateId('usr_');
         } while (isset($users[$newId]));
 
+        // Wir nutzen jetzt die typisierten Eigenschaften des DTOs!
         $users[$newId] = [
-            'username' => $loginName,
-            'group'    => $post['group'] ?? 'guest',
-            'pass'     => \password_hash($pw1, \PASSWORD_DEFAULT),
+            'username' => $dto->username,
+            'group'    => $dto->group,
+            'pass'     => \password_hash($dto->password, \PASSWORD_DEFAULT),
         ];
 
         $this->userRepository->saveAll($users);
@@ -72,6 +77,6 @@ final readonly class UserSaveAction implements ActionInterface
             $this->userRepository->uploadImage($newId, $file);
         }
 
-        return "Benutzer '$loginName' erfolgreich erstellt.";
+        return "Benutzer '{$dto->username}' erfolgreich erstellt.";
     }
 }
