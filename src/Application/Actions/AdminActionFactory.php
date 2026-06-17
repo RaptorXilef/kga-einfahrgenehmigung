@@ -35,9 +35,13 @@ final readonly class AdminActionFactory
         $actionClass = match ($actionKey) {
             'activate_voucher'   => ToggleVoucherAction::class,
             'clear_cache'        => ClearCacheAction::class,
+            'create_manual'      => CreateManualAction::class,
             'create_voucher'     => CreateVoucherAction::class,
             'deactivate_voucher' => ToggleVoucherAction::class,
             'delete_voucher'     => DeleteVoucherAction::class,
+            'mark_as_paid'       => MarkAsPaidAction::class,
+            'suspend_permit'     => ToggleSuspensionAction::class,
+            'unsuspend_permit'   => ToggleSuspensionAction::class,
             // Hier fügen wir später Zeile für Zeile unsere neuen Actions hinzu!
             // 'delete_voucher' => DeleteVoucherAction::class,
             default => null,

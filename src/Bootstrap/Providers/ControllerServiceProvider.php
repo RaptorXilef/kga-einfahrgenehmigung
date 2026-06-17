@@ -6,8 +6,11 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\ClearCacheAction;
+use App\Application\Actions\CreateManualAction;
 use App\Application\Actions\CreateVoucherAction;
 use App\Application\Actions\DeleteVoucherAction;
+use App\Application\Actions\MarkAsPaidAction;
+use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
 use App\Application\AdminController;
 use App\Application\CheckController;
@@ -70,14 +73,30 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(MigrationService::class),
         ));
 
-        $container->bind(DeleteVoucherAction::class, fn () => new DeleteVoucherAction(
+        $container->bind(CreateManualAction::class, fn () => new CreateManualAction(
             $container->get(AuthService::class),
-            $container->get(VoucherService::class),
+            $container->get(PermitService::class),
         ));
 
         $container->bind(CreateVoucherAction::class, fn () => new CreateVoucherAction(
             $container->get(AuthService::class),
             $container->get(VoucherService::class),
+        ));
+
+        $container->bind(DeleteVoucherAction::class, fn () => new DeleteVoucherAction(
+            $container->get(AuthService::class),
+            $container->get(VoucherService::class),
+        ));
+
+        $container->bind(MarkAsPaidAction::class, fn () => new MarkAsPaidAction(
+            $container->get(AuthService::class),
+            $container->get(PermitService::class),
+        ));
+
+        $container->bind(ToggleSuspensionAction::class, fn () => new ToggleSuspensionAction(
+            $container->get(AuthService::class),
+            $container->get(PermitService::class),
+            $container->get(StorageInterface::class),
         ));
 
         $container->bind(ToggleVoucherAction::class, fn () => new ToggleVoucherAction(

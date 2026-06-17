@@ -249,15 +249,11 @@ final readonly class AdminController
         // [x] Sortiert
         return match ($action) {
             'anonymize_archive' => $this->actionAnonymizeArchive($post),
-            'create_manual'     => $this->actionCreateManual($post),
             'filter_dashboard'  => $this->actionFilterDashboard($post),
-            'mark_as_paid'      => $this->actionMarkAsPaid($post),
             'migrate_data'      => $this->actionMigrateData($post),
             'resend_mail'       => $this->actionResendMail($post),
             'restore_data'      => $this->actionRestoreData($post),
-            'suspend_permit'    => $this->actionToggleSuspension($post),
             'truncate_target'   => $this->actionTruncateTarget($post),
-            'unsuspend_permit'  => $this->actionToggleSuspension($post),
             default             => '',
         };
     }
@@ -283,99 +279,6 @@ final readonly class AdminController
         ];
 
         return 'Filter angewendet.';
-    }
-
-    // 2. Genehmigungs-Management
-
-    /**
-     * Erstellt eine Genehmigung ohne vorangegangenen automatisierten Bezahlprozess.
-     *
-     * Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Bestätigung mit dem generierten Genehmigungscode.
-     */
-    private function actionCreateManual(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für manuelle Ausstellungen.';
-        }
-
-        $tplKey = (string) ($post['template_key'] ?? 'std.7');
-
-        // --- BACKEND SECURITY CHECK ---
-        if (! $this->auth->hasPermission("template.$tplKey")) {
-            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' manuell auszustellen.";
-        }
-
-        // Manuelle Buchung (Kostenlos/Bar)
-        try {
-            $post['status'] = 'bezahlt';
-            if (isset($post['reason'])) {
-                $post['interner_kommentar'] = $post['reason'];
-            }
-
-            $permit = $this->permitService->createPermit($post, true);
-
-            return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
-        } catch (\Exception $e) {
-            return 'Fehler: ' . $e->getMessage();
-        }
-    }
-
-    /**
-     * Markiert eine Genehmigung manuell als bezahlt im Storage.
-     *
-     * Nutzt PermitService::manualActivate().
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Erfolgsmeldung oder leerer String bei Fehler.
-     */
-    private function actionMarkAsPaid(array $post): string
-    {
-        // Zwingende Backend-Rechteprüfung ergänzt!
-        if (! $this->auth->hasPermission('dashboard.finance.mark_paid')) {
-            return 'Fehler: Keine Berechtigung für diese Aktion.';
-        }
-
-        $code = (string) ($post['code'] ?? '');
-
-        return $this->permitService->manualActivate($code) ? "Zahlung für $code bestätigt." : '';
-    }
-
-    /**
-     * Setzt den Sperrstatus (Suspension) einer Genehmigung.
-     * Kontext: Interaktion mit PermitService::toggleSuspension().
-     */
-    private function actionToggleSuspension(array $post): string
-    {
-        $code   = (string) ($post['code'] ?? '');
-        $permit = $this->storage->findByHash($code);
-
-        if (! $permit instanceof Permit) {
-            return 'Fehler: Genehmigung nicht gefunden.';
-        }
-
-        $isUnpaid = \strtolower(\trim($permit->getStatus())) !== 'bezahlt';
-
-        // Kontext-sensitive Sperr-Prüfung (State-Aware Access Control)
-        $hasRight = false;
-        if ($isUnpaid && $this->auth->hasPermission('dashboard.finance.suspend')) {
-            $hasRight = true; // Darf unbezahlte sperren
-        } elseif (! $isUnpaid && $this->auth->hasPermission('dashboard.active.suspend')) {
-            $hasRight = true; // Darf bezahlte/aktive sperren
-        }
-
-        if (! $hasRight) {
-            return 'Fehler: Keine Berechtigung, diesen spezifischen Status zu sperren/entsperren.';
-        }
-
-        $suspended = ($post['action'] ?? '') === 'suspend_permit';
-        $this->permitService->toggleSuspension($code, $suspended, (string) ($post['reason'] ?? ''));
-
-        return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
     }
 
     // 4. E-Mail-Verwaltung
