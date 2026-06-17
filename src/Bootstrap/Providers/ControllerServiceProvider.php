@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Bootstrap\Providers;
 
 use App\Application\Actions\AdminActionFactory;
+use App\Application\Actions\AnonymizeArchiveAction;
 use App\Application\Actions\ClearCacheAction;
 use App\Application\Actions\CreateManualAction;
 use App\Application\Actions\CreateVoucherAction;
 use App\Application\Actions\DeleteVoucherAction;
 use App\Application\Actions\MarkAsPaidAction;
+use App\Application\Actions\MigrateDataAction;
+use App\Application\Actions\RestoreDataAction;
 use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
+use App\Application\Actions\TruncateTargetAction;
 use App\Application\AdminController;
 use App\Application\CheckController;
 use App\Application\CheckoutController;
@@ -68,6 +72,11 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // --- 3.2 Backend Controller (Admin) ---
+        $container->bind(AnonymizeArchiveAction::class, fn () => new AnonymizeArchiveAction(
+            $container->get(AuthService::class),
+            $container->get(PermitArchiveRepositoryInterface::class),
+        ));
+
         $container->bind(ClearCacheAction::class, fn () => new ClearCacheAction(
             $container->get(AuthService::class),
             $container->get(MigrationService::class),
@@ -93,6 +102,16 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(PermitService::class),
         ));
 
+        $container->bind(MigrateDataAction::class, fn () => new MigrateDataAction(
+            $container->get(AuthService::class),
+            $container->get(MigrationService::class),
+        ));
+
+        $container->bind(RestoreDataAction::class, fn () => new RestoreDataAction(
+            $container->get(AuthService::class),
+            $container->get(MigrationService::class),
+        ));
+
         $container->bind(ToggleSuspensionAction::class, fn () => new ToggleSuspensionAction(
             $container->get(AuthService::class),
             $container->get(PermitService::class),
@@ -102,6 +121,11 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(ToggleVoucherAction::class, fn () => new ToggleVoucherAction(
             $container->get(AuthService::class),
             $container->get(VoucherService::class),
+        ));
+
+        $container->bind(TruncateTargetAction::class, fn () => new TruncateTargetAction(
+            $container->get(AuthService::class),
+            $container->get(MigrationService::class),
         ));
 
         $container->bind(AdminActionFactory::class, fn () => new AdminActionFactory(

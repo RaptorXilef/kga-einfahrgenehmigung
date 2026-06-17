@@ -248,13 +248,9 @@ final readonly class AdminController
         // TODO 2. Fallback: Alte Methoden (werden im Laufe des Refactorings immer weniger)
         // [x] Sortiert
         return match ($action) {
-            'anonymize_archive' => $this->actionAnonymizeArchive($post),
-            'filter_dashboard'  => $this->actionFilterDashboard($post),
-            'migrate_data'      => $this->actionMigrateData($post),
-            'resend_mail'       => $this->actionResendMail($post),
-            'restore_data'      => $this->actionRestoreData($post),
-            'truncate_target'   => $this->actionTruncateTarget($post),
-            default             => '',
+            'filter_dashboard' => $this->actionFilterDashboard($post),
+            'resend_mail'      => $this->actionResendMail($post),
+            default            => '',
         };
     }
 
@@ -329,105 +325,6 @@ final readonly class AdminController
         }
 
         return 'Fehler: Log-Eintrag nicht gefunden.';
-    }
-
-    // 5. System-Wartung & Migration
-
-    /**
-     * Führt Daten-Migrationen (Sync/Backup) durch (Sync SQL/JSON).
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Ergebnis der Migration.
-     */
-    private function actionMigrateData(array $post): string
-    {
-        $direction = (string) ($post['direction'] ?? 'sync');
-        $target    = (string) ($post['target'] ?? '');
-
-        // Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
-        // Prüft exakt das Recht, z.B. 'dashboard.migration.users.json_to_mysql'
-        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$direction}")) {
-            return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
-        }
-
-        return $this->migrationService->execute($target, $direction);
-    }
-
-    /**
-     * Führt eine System-Wiederherstellung (Restore) aus einem Backup durch.
-     * Stellt Daten für das angegebene Ziel aus dem gewählten Zeitstempel wieder her.
-     *
-     * @param array<string, mixed> $post Formulardaten mit Ziel (target), Zeitstempel (timestamp) und Engine.
-     *
-     * @return string Statusmeldung über den Erfolg oder Misserfolg des Restores.
-     */
-    private function actionRestoreData(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
-        }
-
-        $target    = (string) ($post['target'] ?? '');
-        $timestamp = (string) ($post['timestamp'] ?? '');
-        $engine    = (string) ($post['engine'] ?? 'all');
-
-        if ($target === '' || $timestamp === '') {
-            return 'Fehler: Unvollständige Angaben für Restore.';
-        }
-
-        return $this->migrationService->restore($timestamp, $target, $engine);
-    }
-
-    /**
-     * Löscht alle Daten eines bestimmten Speicher-Ziels rigoros (Truncate).
-     * Wird für administrative System-Resets oder vor großen Migrationen verwendet.
-     *
-     * @param array<string, mixed> $post Formulardaten mit Zielbereich (target) und Speicher-Engine (engine).
-     *
-     * @return string Statusmeldung über die Löschung.
-     */
-    private function actionTruncateTarget(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
-        }
-
-        $target = (string) ($post['target'] ?? '');
-        $engine = (string) ($post['engine'] ?? 'all');
-
-        if ($target === '') {
-            return 'Fehler: Kein Zielbereich ausgewählt.';
-        }
-
-        return $this->migrationService->truncateTarget($target, $engine);
-    }
-
-    /**
-     * Führt die DSGVO-konforme Anonymisierung von alten Archiv-Einträgen durch.
-     *
-     * @param array<string, mixed> $post Das POST-Array der Anfrage.
-     *
-     * @return string Status- oder Erfolgsmeldung über die Anzahl anonymisierter Einträge.
-     */
-    private function actionAnonymizeArchive(array $post): string
-    {
-        if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';
-        }
-
-        try {
-            // 10 Jahre gesetzliche Aufbewahrungsfrist
-            $count = $this->archiveRepository->anonymizeOldRecords(10);
-
-            if ($count === 0) {
-                return 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.';
-            }
-
-            return "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.";
-        } catch (\Exception $e) {
-            return 'Fehler bei der Anonymisierung: ' . $e->getMessage();
-        }
     }
 
     // --- ENDE Aktions-Methoden (die von handleDataActions aufgerufen werden) ---
