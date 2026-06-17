@@ -159,61 +159,21 @@ final readonly class AdminController
      */
     private function handleAuthActions(array $get, array $post): bool
     {
-        // STRIKTE HÄRTUNG: Logout reagiert aus Sicherheitsgründen AUSSCHLIESSLICH auf POST
-        if (isset($post['action']) && $post['action'] === 'logout') {
-            $this->auth->logout();
-            \header('Location: admin.php');
+        $action = '';
 
-            return true;
+        // STRIKTE HÄRTUNG: Logout reagiert AUSSCHLIESSLICH auf POST
+        if (isset($post['action']) && $post['action'] === 'logout') {
+            $action = 'logout';
+        } elseif (isset($post['login'])) {
+            $action = 'login';
         }
 
-        // Neu mit CSRF-Schutz
-        if (isset($post['login'])) {
-            // CSRF-Schutz auch für das Login-Formular
-            if (! CsrfHelper::verify($post)) {
-                $this->renderer->render('admin_login', [
-                    'auth'            => $this->auth,
-                    'groupRepository' => $this->groupRepository,
-                    'message'         => 'Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu.',
-                    'userRepository'  => $this->userRepository,
-                ]);
-                exit;
-            }
+        if ($action !== '') {
+            $actionHandler = $this->actionFactory->create($action);
+            if ($actionHandler !== null) {
+                $actionHandler->execute($post);
 
-            $user = (string) ($post['user'] ?? '');
-            $pass = (string) ($post['pass'] ?? '');
-
-            try {
-                if ($this->auth->login($user, $pass)) {
-                    // Login-Redirects behalten POST/REQUEST-Fokus bei, leite direkt zur Prüfung weiter
-                    $code = (string) ($_REQUEST['code'] ?? '');
-                    if ($code !== '') {
-                        \header('Location: check.php?code=' . \urlencode($code));
-                        exit;
-                    }
-
-                    \header('Location: admin.php');
-
-                    return true;
-                }
-                // [x] sortiert
-                // Normaler Fehler (Passwort falsch)
-                $this->renderer->render('admin_login', [
-                    'auth'            => $this->auth,
-                    'groupRepository' => $this->groupRepository,
-                    'message'         => 'Benutzername oder Passwort ist falsch.',
-                    'userRepository'  => $this->userRepository,
-                ]);
-                exit;
-            } catch (\RuntimeException $e) {
-                // Rate Limit Fehler abfangen
-                $this->renderer->render('admin_login', [
-                    'auth'            => $this->auth,
-                    'groupRepository' => $this->groupRepository,
-                    'message'         => $e->getMessage(),
-                    'userRepository'  => $this->userRepository,
-                ]);
-                exit;
+                return true; // Script wurde in der Action beendet (exit), formelles return.
             }
         }
 

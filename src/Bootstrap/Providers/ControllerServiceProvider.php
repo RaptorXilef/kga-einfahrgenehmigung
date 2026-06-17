@@ -11,6 +11,8 @@ use App\Application\Actions\CreateManualAction;
 use App\Application\Actions\CreateVoucherAction;
 use App\Application\Actions\DeleteVoucherAction;
 use App\Application\Actions\FilterDashboardAction;
+use App\Application\Actions\LoginAction;
+use App\Application\Actions\LogoutAction;
 use App\Application\Actions\MarkAsPaidAction;
 use App\Application\Actions\MigrateDataAction;
 use App\Application\Actions\ResendMailAction;
@@ -105,6 +107,17 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         $container->bind(FilterDashboardAction::class, fn () => new FilterDashboardAction());
+
+        $container->bind(LoginAction::class, fn () => new LoginAction(
+            $container->get(AuthService::class),
+            $container->get(GroupRepositoryInterface::class),
+            $container->get(TemplateRenderer::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+
+        $container->bind(LogoutAction::class, fn () => new LogoutAction(
+            $container->get(AuthService::class),
+        ));
 
         $container->bind(MigrateDataAction::class, fn () => new MigrateDataAction(
             $container->get(AuthService::class),
