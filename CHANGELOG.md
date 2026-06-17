@@ -2,6 +2,19 @@
 
 
 
+## [0.46.14](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.13...v0.46.14) (2026-06-17)
+
+### ⚙️ Refactoring
+
+* **admin,actions:** finalize ADR extraction for data actions and remove legacy routing ([3ae5805](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3ae5805c69d256cde646a6f03e32c94e6f6c6e68))
+* **admin,auth:** extract login and logout logic to ADR actions ([8995ad2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8995ad24d747d52de7d852650f7d442bf9a1785b))
+* **admin,auth:** unify login and logout under standard action field ([b81255d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b81255d336ea3f035a4113a708b60db75f4ecf6c))
+* **admin,maintenance:** extract system maintenance logic to ADR actions ([bc79760](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bc79760dc6b7cf426fd9d95447cee0931def80c6))
+* **admin,permits:** extract permit lifecycle logic to ADR actions ([9d62a13](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9d62a13b90ec5dd3cc3cd159c8af30a507256968))
+* **admin,routing:** implement explicit ADR pattern with lazy-loading factory ([988cee7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/988cee7fcb59fd9d91105caa371d6fd242a03d80))
+* **admin,vouchers:** extract complete voucher logic to ADR actions ([6b13185](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6b131851438ef6238f14def513a5eca6dbb2e47b))
+* **admin,vouchers:** extract delete voucher logic to dedicated action class ([6066708](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/606670845ef1ddf3a5df87247538eca5505107db))
+
 ## [0.46.13](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.12...v0.46.13) (2026-06-16)
 
 ### ⚙️ Refactoring
