@@ -2,48 +2,47 @@
 
 declare(strict_types=1);
 
-namespace App\Application;
+namespace App\Application\Actions;
 
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 
 /**
- * Controller für die Checkout-Übersicht.
- *
+ * Action für die Checkout-Übersicht.
  * Zeigt dem Benutzer vor dem finalen Zahlungsabschluss eine Zusammenfassung
  * der Antragsdaten und die berechneten Einfahrtszeiten.
  *
- * Path: src/Application/CheckoutController.php
+ * Path: src/Application/Actions/CheckoutAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class CheckoutController
+final readonly class CheckoutAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private HolidayService $holidayService, // Für die Öffnungszeiten
+        private HolidayService $holidayService,
         private PermitService $permitService,
         private TemplateRenderer $renderer,
     ) {
     }
 
     /**
+     * TODO DOCBLOCK
      * Haupt-Request-Handler für den Checkout-Prozess.
      *
      * Verifiziert das übergebene Token, validiert die Session-Daten und rendert
      * die Zusammenfassungs-Seite mit Feiertagsberechnung.
-     *
-     * @param array<string, mixed> $get Entspricht $_GET.
      */
-    public function handleRequest(array $get): void
+    public function execute(array $requestData): void
     {
-        $token    = (string) ($get['token'] ?? '');
+        $token    = (string) ($requestData['token'] ?? '');
         $tempData = $this->permitService->getVerifiedRequest($token);
 
         if ($token === '' || $tempData === null) {

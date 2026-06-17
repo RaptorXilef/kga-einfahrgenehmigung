@@ -6,6 +6,7 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\AnonymizeArchiveAction;
+use App\Application\Actions\CheckoutAction;
 use App\Application\Actions\CheckPermitAction;
 use App\Application\Actions\ClearCacheAction;
 use App\Application\Actions\CreateManualAction;
@@ -22,7 +23,6 @@ use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
 use App\Application\Actions\TruncateTargetAction;
 use App\Application\AdminController;
-use App\Application\CheckoutController;
 use App\Application\HistoryController;
 use App\Application\LegalController;
 use App\Application\PaymentController;
@@ -187,6 +187,23 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // --- 3.3 Frontend Controller (Public) ---
+        $container->bind(CheckPermitAction::class, fn () => new CheckPermitAction(
+            $container->get(AuthService::class),
+            $container->get(ConfigInterface::class),
+            $container->get(GroupRepositoryInterface::class),
+            $container->get(HolidayService::class),
+            $container->get(StorageInterface::class),
+            $container->get(TemplateRenderer::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+
+        $container->bind(CheckoutAction::class, fn () => new CheckoutAction(
+            $container->get(ConfigInterface::class),
+            $container->get(HolidayService::class),
+            $container->get(PermitService::class),
+            $container->get(TemplateRenderer::class),
+        ));
+
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
             $container->get(ConfigInterface::class),
             $container->get(PermitService::class),
@@ -204,13 +221,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
         ));
 
-        $container->bind(CheckoutController::class, fn (): CheckoutController => new CheckoutController(
-            $container->get(ConfigInterface::class),
-            $container->get(HolidayService::class),
-            $container->get(PermitService::class),
-            $container->get(TemplateRenderer::class),
-        ));
-
         $container->bind(PaymentController::class, fn (): PaymentController => new PaymentController(
             $container->get(PermitService::class),
         ));
@@ -220,16 +230,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
-        ));
-
-        $container->bind(CheckPermitAction::class, fn () => new CheckPermitAction(
-            $container->get(AuthService::class),
-            $container->get(ConfigInterface::class),
-            $container->get(GroupRepositoryInterface::class),
-            $container->get(HolidayService::class),
-            $container->get(StorageInterface::class),
-            $container->get(TemplateRenderer::class),
-            $container->get(UserRepositoryInterface::class),
         ));
 
         $container->bind(HistoryController::class, fn (): HistoryController => new HistoryController(

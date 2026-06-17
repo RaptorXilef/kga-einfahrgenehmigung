@@ -12,14 +12,14 @@
  */
 declare(strict_types=1);
 
-use App\Application\CheckoutController;
+use App\Application\Actions\CheckoutAction;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Service\MailQueueService;
 
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 
-$controller = $container->get(CheckoutController::class);
-$controller->handleRequest($_GET);
+$action = $container->get(CheckoutAction::class);
+$action->execute($_GET);
 
 // E-Mails im Hintergrund abarbeiten
 try {
