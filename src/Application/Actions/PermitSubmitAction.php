@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Security\CsrfHelper;
+use App\Application\DTO\PermitSubmitRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Core\Service\PermitService;
@@ -30,36 +31,33 @@ final readonly class PermitSubmitAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $post = $requestData['post'];
-
-        // Eingaben trimmen und HTML-Tags vorab entfernen (Sticky Forms)
-        $_SESSION['form_data'] = \array_map(function ($value) {
-            return \is_string($value) ? \trim(\strip_tags($value)) : $value;
-        }, $post);
-
-        if (! CsrfHelper::verify($post)) {
-            $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-            \header('Location: index.php?msg=' . \urlencode($msg));
+        try {
+            $dto = PermitSubmitRequest::fromArray($requestData['post']);
+        } catch (ValidationException $e) {
+            \header('Location: index.php?msg=' . \urlencode($e->getMessage()));
             exit;
         }
+
+        // Wir legen die gereinigten Daten sofort in der Session ab (für Formular-Neuaufbau bei Fehlern)
+        $_SESSION['form_data'] = $dto->toArray();
 
         try {
             // KORREKTUR-MODUS
             if (
                 isset($_SESSION['verified_email'], $_SESSION['edit_token'])
-                && \strtolower(\trim($post['email'] ?? '')) === \strtolower(\trim($_SESSION['verified_email']))
+                && \strtolower($dto->email) === \strtolower(\trim($_SESSION['verified_email']))
             ) {
                 $token   = $_SESSION['edit_token'];
                 $oldData = $this->permitService->getVerifiedRequest($token);
 
                 if ($oldData !== null) {
-                    $priceRelevantChanged = ($oldData['template_key'] ?? '') !== ($post['template_key'] ?? '')
-                        || ($oldData['typ'] ?? '') !== ($post['typ'] ?? '')
-                        || ($oldData['voucher'] ?? '') !== ($post['voucher'] ?? '');
+                    $priceRelevantChanged = ($oldData['template_key'] ?? '') !== $dto->templateKey
+                        || ($oldData['typ'] ?? '') !== $dto->typ
+                        || ($oldData['voucher'] ?? '') !== $dto->voucher;
 
                     if (! $priceRelevantChanged) {
                         // Nur Name/Kennzeichen geändert -> Alter Preis bleibt erhalten!
-                        $merged           = \array_merge($oldData, $post);
+                        $merged           = \array_merge($oldData, $dto->toArray());
                         $merged['preis']  = $oldData['preis'] ?? 0;
                         $merged['status'] = 'offen';
 
@@ -80,7 +78,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
                     }
 
                     // Neustart der Bestätigung nötig
-                    $this->permitService->createPendingVerification($post);
+                    $this->permitService->createPendingVerification($dto->toArray());
                     unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
 
                     $msg = 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Zu Ihrer Sicherheit müssen Sie Ihre E-Mail kurz erneut bestätigen, da sich der Preis geändert hat.';
@@ -90,7 +88,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             }
 
             // NORMALER DURCHLAUF (Neuer Antrag)
-            $this->permitService->createPendingVerification($post);
+            $this->permitService->createPendingVerification($dto->toArray());
             unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
 
             \header('Location: index.php?sent=1');

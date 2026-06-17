@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\GroupSaveRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -39,12 +41,16 @@ final readonly class GroupSaveAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
-        $groups = $this->groupRepository->loadAll();
 
-        $groupId     = (string) ($post['group_id'] ?? '');
-        $isUpdate    = $groupId !== '' && isset($groups[$groupId]);
-        $displayName = \trim((string) ($post['group_name'] ?? ''));
-        $inheritFrom = (string) ($post['inherit_group'] ?? '');
+        try {
+            $dto = GroupSaveRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
+        $groups   = $this->groupRepository->loadAll();
+        $isUpdate = $dto->groupId !== '' && isset($groups[$dto->groupId]);
+        $groupId  = $dto->groupId;
 
         if (! $isUpdate) {
             do {
@@ -52,14 +58,21 @@ final readonly class GroupSaveAction implements ActionInterface
             } while (isset($groups[$groupId]));
         }
 
-        $newPermissions = (array) ($post['perms'] ?? []);
-        if (! $isUpdate && $inheritFrom !== '' && isset($groups[$inheritFrom])) {
-            $newPermissions = $groups[$inheritFrom]['permissions'];
+        $newPermissions = $dto->permissions;
+
+        // Vererbung anwenden
+        if (! $isUpdate && $dto->inheritGroup !== '' && isset($groups[$dto->inheritGroup])) {
+            $newPermissions = $groups[$dto->inheritGroup]['permissions'];
         }
 
-        $groups[$groupId] = ['name' => $displayName, 'permissions' => $newPermissions];
+        $groups[$groupId] = [
+            'name'        => $dto->groupName,
+            'permissions' => $newPermissions,
+        ];
+
         $this->groupRepository->saveAll($groups);
 
+        // Datei-Uploads lassen wir bewusst im $_FILES-Array, da DTOs nur für Textdaten (POST) gedacht sind
         $iconFile = $_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null);
         if ($iconFile && $iconFile['error'] === 0) {
             $this->groupRepository->uploadImage($groupId, $iconFile);
@@ -70,9 +83,9 @@ final readonly class GroupSaveAction implements ActionInterface
                 $this->auth->refreshSessionPermissions($groupId);
             }
 
-            return "Rechte für Gruppe '$displayName' erfolgreich aktualisiert.";
+            return "Rechte für Gruppe '{$dto->groupName}' erfolgreich aktualisiert.";
         }
 
-        return "Neue Gruppe '$displayName' wurde erstellt.";
+        return "Neue Gruppe '{$dto->groupName}' wurde erstellt.";
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\VoucherCreateRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
@@ -41,45 +43,29 @@ final readonly class VoucherCreateAction implements ActionInterface
             return 'Fehler: Sie haben keine Berechtigung, Gutscheine zu erstellen.';
         }
 
-        $tplKey = (string) ($post['template_key'] ?? 'std.7');
+        try {
+            $dto = VoucherCreateRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
 
-        if (! $this->auth->hasPermission("template.$tplKey")) {
-            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' zu verwenden.";
+        if (! $this->auth->hasPermission("template.{$dto->templateKey}")) {
+            return "Fehler: Sie haben keine Berechtigung, den Typ '{$dto->templateKey}' zu verwenden.";
         }
 
         try {
-            $reason     = (string) ($post['reason'] ?? 'Gutschein');
-            $type       = (string) ($post['voucher_discount_type'] ?? 'free');
-            $val        = (float) ($post['voucher_discount_value'] ?? 0.0);
-            $multi      = isset($post['voucher_multi_use']);
-            $max_uses   = $multi ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
-            $custom     = (string) ($post['voucher_custom_code'] ?? '');
-            $expires_at = (string) ($post['voucher_expires_at'] ?? '');
-            $date_mode  = (string) ($post['voucher_date_mode'] ?? 'fixed');
-
-            $preData = [
-                'datum_bis'   => $date_mode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
-                'datum_von'   => $date_mode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
-                'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
-                'kennzeichen' => \trim(\strip_tags((string) ($post['kennzeichen'] ?? ''))),
-                'name'        => \trim(\strip_tags((string) ($post['name'] ?? ''))),
-                'parzelle'    => \trim(\strip_tags((string) ($post['parzelle'] ?? ''))),
-                'typ'         => (string) ($post['typ'] ?? ''),
-                'zweck'       => \strip_tags((string) ($post['zweck'] ?? '')),
-            ];
-
             $code = $this->voucherService->createVoucher(
-                $reason,
+                $dto->reason,
                 (string) ($_SESSION['user_id'] ?? 'sys_admin'),
-                $tplKey,
-                $preData,
-                $type,
-                $val,
-                $multi,
-                $max_uses,
-                $custom,
-                $expires_at ?: null,
-                $date_mode,
+                $dto->templateKey,
+                $dto->prefillData,
+                $dto->type,
+                $dto->value,
+                $dto->isMultiUse,
+                $dto->maxUses,
+                $dto->customCode,
+                $dto->expiresAt,
+                $dto->dateMode,
             );
 
             return "Gutschein erstellt: <strong>$code</strong>";

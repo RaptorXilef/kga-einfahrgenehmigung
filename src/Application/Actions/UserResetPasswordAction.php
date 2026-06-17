@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\UserResetPasswordRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -20,8 +22,10 @@ use App\Core\Service\AuthService;
  */
 final readonly class UserResetPasswordAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        private AuthService $auth,
+        private UserRepositoryInterface $userRepository,
+    ) {
     }
 
     /**
@@ -36,22 +40,22 @@ final readonly class UserResetPasswordAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
-        $userId = (string) ($post['user_id'] ?? '');
-        $pw1    = (string) ($post['password'] ?? '');
-        $pw2    = (string) ($post['password_repeat'] ?? '');
 
-        if ($pw1 !== $pw2) {
-            return 'Fehler: Passwörter nicht identisch.';
+        try {
+            $dto = UserResetPasswordRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
         }
 
         $users = $this->userRepository->loadAll();
-        if (isset($users[$userId])) {
-            $users[$userId]['pass'] = \password_hash($pw1, \PASSWORD_DEFAULT);
+
+        if (isset($users[$dto->userId])) {
+            $users[$dto->userId]['pass'] = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
             $this->userRepository->saveAll($users);
 
             return 'Passwort wurde zurückgesetzt.';
         }
 
-        return 'Fehler.';
+        return 'Fehler: Benutzer nicht gefunden.';
     }
 }
