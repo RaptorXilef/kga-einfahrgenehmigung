@@ -13,13 +13,13 @@
 
 declare(strict_types=1);
 
-use App\Application\SuccessController;
+use App\Application\Actions\SuccessAction;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Service\MailQueueService;
 
-$container  = require_once __DIR__ . '/../src/Bootstrap/app.php';
-$controller = $container->get(SuccessController::class);
-$controller->handleRequest($_GET);
+$container = require_once __DIR__ . '/../src/Bootstrap/app.php';
+$action    = $container->get(SuccessAction::class);
+$action->execute($_GET);
 
 // --- E-Mails sofort im Hintergrund abarbeiten ---
 // Da in finalize_wire.php die Rechnung in die Queue gelegt wurde,

@@ -1,29 +1,28 @@
 <?php
 
-// Path: src\Application\SuccessController.php
 declare(strict_types=1);
 
-namespace App\Application;
+namespace App\Application\Actions;
 
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\BankQrGenerator;
 
 /**
- * Controller für die Erfolgs- und Bestätigungsseite nach Abschluss eines Antrags.
- *
+ * Action für die Erfolgs- und Bestätigungsseite nach Abschluss eines Antrags.
  * Generiert bei Bedarf Bank-QR-Codes (EPC) für offene Überweisungen und zeigt
  * dem Benutzer die finalen Zahlungsanweisungen an.
  *
- * Path: src/Application/SuccessController.php
+ * Path: src/Application/Actions/SuccessAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class SuccessController
+final readonly class SuccessAction implements ViewActionInterface
 {
     public function __construct(
         private BankQrGenerator $bankQrGenerator,
@@ -34,15 +33,14 @@ final readonly class SuccessController
     }
 
     /**
+     * TODO DOCBLOCK
      * Haupt-Request-Handler für die Success-Seite.
      * Validiert das Ticket und bereitet die Bezahlinformationen auf.
-     *
-     * @param array<string, mixed> $get Entspricht $_GET.
      */
-    public function handleRequest(array $get): void
+    public function execute(array $requestData): void
     {
-        $code   = (string) ($get['code'] ?? '');
-        $method = (string) ($get['method'] ?? 'wire');
+        $code   = (string) ($requestData['code'] ?? '');
+        $method = (string) ($requestData['method'] ?? 'wire');
 
         $permit = $this->storage->findByHash($code);
         if (! $permit) {
@@ -66,6 +64,7 @@ final readonly class SuccessController
         // Dynamische Zahlungslogik
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
         $dueDays        = (int) $this->config->get('payment_due_days', 14);
+
         // Frist ab Erstellungsdatum berechnen (wie in der Mail)
         $dueDate = $permit->getCreatedAt()->modify("+$dueDays days")->format('d.m.Y');
 

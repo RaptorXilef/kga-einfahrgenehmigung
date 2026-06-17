@@ -27,15 +27,19 @@ use App\Application\Actions\LoginAction;
 use App\Application\Actions\LogoutAction;
 use App\Application\Actions\MarkAsPaidAction;
 use App\Application\Actions\MigrateDataAction;
+use App\Application\Actions\PermitActionFactory;
+use App\Application\Actions\PermitEditAction;
+use App\Application\Actions\PermitRenderAction;
+use App\Application\Actions\PermitSubmitAction;
 use App\Application\Actions\ResendMailAction;
 use App\Application\Actions\RestoreDataAction;
+use App\Application\Actions\SuccessAction;
 use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
 use App\Application\Actions\TruncateTargetAction;
 use App\Application\AdminController;
 use App\Application\HistoryController;
 use App\Application\PermitController;
-use App\Application\SuccessController;
 use App\Application\UserController;
 use App\Application\VerificationController;
 use App\Application\View\TemplateRenderer;
@@ -269,28 +273,35 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // Permit Actions
-        $container->bind(\App\Application\Actions\PermitEditAction::class, fn () => new \App\Application\Actions\PermitEditAction(
+        $container->bind(PermitEditAction::class, fn () => new PermitEditAction(
             $container->get(PermitService::class),
         ));
 
-        $container->bind(\App\Application\Actions\PermitRenderAction::class, fn () => new \App\Application\Actions\PermitRenderAction(
+        $container->bind(PermitRenderAction::class, fn () => new PermitRenderAction(
             $container->get(ConfigInterface::class),
             $container->get(TemplateRenderer::class),
             $container->get(VoucherRepositoryInterface::class),
             $container->get(VoucherService::class),
         ));
 
-        $container->bind(\App\Application\Actions\PermitSubmitAction::class, fn () => new \App\Application\Actions\PermitSubmitAction(
+        $container->bind(PermitSubmitAction::class, fn () => new PermitSubmitAction(
             $container->get(PermitService::class),
             $container->get(VerificationRepositoryInterface::class),
         ));
 
         // Permit Factory
-        $container->bind(\App\Application\Actions\PermitActionFactory::class, fn () => new \App\Application\Actions\PermitActionFactory($container));
+        $container->bind(PermitActionFactory::class, fn () => new PermitActionFactory($container));
 
-        // Den neuen leichten PermitController registrieren
+        // PermitController
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
-            $container->get(\App\Application\Actions\PermitActionFactory::class),
+            $container->get(PermitActionFactory::class),
+        ));
+
+        $container->bind(SuccessAction::class, fn () => new SuccessAction(
+            $container->get(BankQrGenerator::class),
+            $container->get(ConfigInterface::class),
+            $container->get(StorageInterface::class),
+            $container->get(TemplateRenderer::class),
         ));
 
         $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
@@ -298,13 +309,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(MailServiceInterface::class),
             $container->get(PermitService::class),
             $container->get(RateLimiterInterface::class),
-            $container->get(TemplateRenderer::class),
-        ));
-
-        $container->bind(SuccessController::class, fn (): SuccessController => new SuccessController(
-            $container->get(BankQrGenerator::class),
-            $container->get(ConfigInterface::class),
-            $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
         ));
     }
