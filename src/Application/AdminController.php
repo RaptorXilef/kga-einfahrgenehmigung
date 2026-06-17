@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\AdminActionFactory;
-use App\Application\Security\CsrfHelper;
+use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
@@ -82,7 +83,7 @@ final readonly class AdminController
      */
     public function handleRequest(array $get, array $post): void
     {
-        // 1. SYSTEM-INITIALISIERUNG & SEEDING (Muss VOR dem Login passieren!)
+        // 1. SYSTEM-INITIALISIERUNG
         try {
             // Hier rufen ich jetzt NUR noch den sauberen Bootstrapper auf
             $this->bootstrapper->bootstrap();
@@ -97,15 +98,30 @@ final readonly class AdminController
             \error_log('Bootstrapping Warning: ' . $e->getMessage());
         }
 
-        // ---------------------------------------------------------------
-
-        // 2. AUTH-AKTIONEN VERARBEITEN (z.B. Login-Formular absenden)
-        if ($this->handleAuthActions($get, $post)) {
-            return;
+        // 2. Auth Aktionen auslesen
+        $action = '';
+        if (isset($post['action']) && $post['action'] === 'logout') {
+            $action = 'logout';
+        } elseif (isset($post['login']) || (isset($post['user'], $post['pass']))) {
+            $action = 'login';
         }
 
-        // [x] sortiert
-        // 3. ZUGANGSKONTROLLE / AUTH-GATEKEEPER
+        // 3. PIPELINE FÜR AUTH (Login/Logout)
+        if ($action !== '') {
+            $pipeline = new MiddlewarePipeline();
+            $pipeline->add(new CsrfMiddleware('admin.php'));
+
+            $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($action): void {
+                $actionHandler = $this->actionFactory->create($action);
+                if ($actionHandler !== null) {
+                    $actionHandler->execute($req['post']);
+                }
+            });
+
+            return; // Nach Auth-Verarbeitung beenden
+        }
+
+        // 4. ZUGANGSKONTROLLE
         if (! $this->auth->isLoggedIn()) {
             $this->renderer->render('admin_login', [
                 'auth'            => $this->auth,
@@ -117,35 +133,34 @@ final readonly class AdminController
             return; // Hier ist für nicht-eingeloggte User Schluss!
         }
 
-        // 4. EIGENTLICHE DASHBOARD-LOGIK (Nur wenn eingeloggt)
-        // Neu mit CSRF-Schutz
-        $message = '';
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Globale CSRF-Prüfung für alle administrativen POST-Aktionen
-            if (! CsrfHelper::verify($post)) {
-                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-            } else {
-                $message = $this->handleDataActions($post);
+        // 5. PIPELINE FÜR DASHBOARD & DATEN
+        $pipeline = new MiddlewarePipeline();
+        $pipeline->add(new CsrfMiddleware('admin.php'));
+
+        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
+            $p = $req['post'];
+            $g = $req['get'];
+
+            // POST Aktionen (Gutscheine, Migrationen etc.)
+            $actionKey = (string) ($p['action'] ?? '');
+            if ($actionKey !== '') {
+                $actionHandler = $this->actionFactory->create($actionKey);
+                if ($actionHandler !== null) {
+                    $message = $actionHandler->execute($p);
+                    \header('Location: admin.php?msg=' . \urlencode($message));
+                    exit;
+                }
             }
 
-            // WICHTIG: Wenn eine Aktion verarbeitet wurde -> Redirect (PRG Pattern)
-            if ($message !== '') {
-                \header('Location: admin.php?msg=' . \urlencode($message));
-                exit;
+            // Print Preview
+            if ($this->shouldStopRequest($g)) {
+                return;
             }
-        }
 
-        // Nachricht aus der URL holen (falls wir gerade umgeleitet wurden)
-        $displayMessage = (string) ($get['msg'] ?? '');
-
-        // 3. Print Preview abfangen
-        if ($this->shouldStopRequest($get)) {
-            return;
-        }
-
-        // 4. View-Logik (Dashboard & Export)
-        // Wir übergeben $displayMessage statt der flüchtigen POST-Nachricht
-        $this->renderDashboard($get, $displayMessage);
+            // Render Dashboard
+            $displayMessage = (string) ($g['msg'] ?? '');
+            $this->renderDashboard($g, $displayMessage);
+        });
     }
 
     /**

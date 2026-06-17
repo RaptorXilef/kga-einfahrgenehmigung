@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\VerificationActionFactory;
-use App\Application\Security\CsrfHelper;
+use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MiddlewarePipeline;
 
 /**
  * Front Controller zur Verifizierung von E-Mail-Adressen (Double-Opt-In).
- *
- * Schützt die Route vor CSRF-Angriffen und delegiert die Logik
- * an spezialisierte Action-Klassen über die VerificationActionFactory.
  *
  * Path: src/Application/VerificationController.php
  *
@@ -35,19 +33,16 @@ final readonly class VerificationController
      */
     public function handleRequest(array $get, array $post): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (! CsrfHelper::verify($post)) {
-                \header('Location: verify.php?error=1&msg=' . \urlencode('Sicherheits-Token ungültig (CSRF). Bitte Seite neu laden.'));
-                exit;
-            }
-        }
+        $pipeline = new MiddlewarePipeline();
+        $pipeline->add(new CsrfMiddleware('verify.php?error=1'));
 
-        $action = $this->factory->create($get, $post);
-
-        $action->execute([
+        $pipeline->process([
             'get'  => $get,
             'post' => $post,
             'ip'   => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-        ]);
+        ], function (array $req): void {
+            $action = $this->factory->create($req['get'], $req['post']);
+            $action->execute($req);
+        });
     }
 }

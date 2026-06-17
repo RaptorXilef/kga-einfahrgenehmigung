@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\HistoryActionFactory;
-use App\Application\Security\CsrfHelper;
+use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\RateLimitMiddleware;
 use App\Contracts\Security\RateLimiterInterface;
 
 /**
  * Front Controller für die historische Antragsübersicht von Endnutzern.
- *
- * Sichert die Route durch Rate-Limiting und CSRF-Prüfungen ab und delegiert
- * die Logik an spezialisierte Action-Klassen über die HistoryActionFactory.
  *
  * Path: src/Application/HistoryController.php
  *
@@ -37,31 +36,21 @@ final readonly class HistoryController
      */
     public function handleRequest(array $get, array $post): void
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // 1. Zwiebelschalen aufbauen
+        $pipeline = new MiddlewarePipeline();
+        $pipeline
+            ->add(new RateLimitMiddleware($this->rateLimiter, 'history.php'))
+            ->add(new CsrfMiddleware('history.php'));
 
-        // 0. Zentrale Sicherheitsprüfung: IP-Sperre
-        if ($this->rateLimiter->isBlocked($ip)) {
-            $msg = 'Zu viele Versuche. Die IP-Adresse wurde für 15 Minuten gesperrt.';
-            \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
-            exit;
-        }
-
-        // 1. Globale CSRF-Prüfung für alle POST-Requests
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (! CsrfHelper::verify($post)) {
-                $msg = 'Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-                \header('Location: history.php?sent=0&msg=' . \urlencode($msg));
-                exit;
-            }
-        }
-
-        // 2. Aktion über die Factory auflösen und mit gebündelten Daten ausführen
-        $action = $this->actionFactory->create($get, $post);
-
-        $action->execute([
+        // 2. Request durchschicken
+        $pipeline->process([
             'get'  => $get,
             'post' => $post,
-            'ip'   => $ip,
-        ]);
+            'ip'   => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        ], function (array $req): void {
+            // Die Action wird nur erreicht, wenn RateLimit und CSRF erfolgreich passiert wurden!
+            $action = $this->actionFactory->create($req['get'], $req['post']);
+            $action->execute($req);
+        });
     }
 }

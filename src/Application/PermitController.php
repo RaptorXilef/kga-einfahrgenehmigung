@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\PermitActionFactory;
+use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MiddlewarePipeline;
 
 /**
  * Front Controller für den öffentlichen Genehmigungs-Beantragungsprozess.
- *
- * Sichert die Session-Initialisierung und delegiert das Routing an
- * spezialisierte Action-Klassen über die PermitActionFactory.
  *
  * Path: src/Application/PermitController.php
  *
@@ -38,11 +37,12 @@ final readonly class PermitController
             \session_start();
         }
 
-        $action = $this->actionFactory->create($get, $post);
+        $pipeline = new MiddlewarePipeline();
+        $pipeline->add(new CsrfMiddleware('index.php'));
 
-        $action->execute([
-            'post' => $post,
-            'get'  => $get,
-        ]);
+        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
+            $action = $this->actionFactory->create($req['get'], $req['post']);
+            $action->execute($req);
+        });
     }
 }

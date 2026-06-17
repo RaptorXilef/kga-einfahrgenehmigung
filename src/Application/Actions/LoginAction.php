@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Security\CsrfHelper;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -34,12 +33,6 @@ final readonly class LoginAction implements ActionInterface
     // TODO DOCBLOCK
     public function execute(array $post): string
     {
-        // CSRF-Schutz für das Login-Formular
-        if (! CsrfHelper::verify($post)) {
-            $this->renderForm('Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu.');
-            exit;
-        }
-
         $user = (string) ($post['user'] ?? '');
         $pass = (string) ($post['pass'] ?? '');
 
