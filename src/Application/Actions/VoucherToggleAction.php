@@ -11,14 +11,14 @@ use App\Core\Service\VoucherService;
 /**
  * Action zum Aktivieren oder Deaktivieren eines Gutscheins.
  *
- * Path: src/Application/Actions/ToggleVoucherAction.php
+ * Path: src/Application/Actions/VoucherToggleAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class ToggleVoucherAction implements ActionInterface
+final readonly class VoucherToggleAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

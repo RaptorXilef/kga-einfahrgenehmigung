@@ -11,14 +11,14 @@ use App\Core\Service\PermitService;
 /**
  * Action zur manuellen Ausstellung einer Genehmigung (ohne Zahlungsfluss).
  *
- * Path: src/Application/Actions/CreateManualAction.php
+ * Path: src/Application/Actions/PermitCreateManualAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class CreateManualAction implements ActionInterface
+final readonly class PermitCreateManualAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

@@ -11,14 +11,14 @@ use App\Infrastructure\Maintenance\MigrationService;
 /**
  * Action für Daten-Migrationen (Sync/Backup) zwischen Storage-Engines.
  *
- * Path: src/Application/Actions/MigrateDataAction.php
+ * Path: src/Application/Actions/SystemMigrateDataAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class MigrateDataAction implements ActionInterface
+final readonly class SystemMigrateDataAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

@@ -10,14 +10,14 @@ use App\Core\Service\AuthService;
 /**
  * Action für den sicheren Logout von Administratoren.
  *
- * Path: src/Application/Actions/LogoutAction.php
+ * Path: src/Application/Actions/AdminLogoutAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class LogoutAction implements ActionInterface
+final readonly class AdminLogoutAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

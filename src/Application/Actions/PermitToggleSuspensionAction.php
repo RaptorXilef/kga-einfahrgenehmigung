@@ -13,14 +13,14 @@ use App\Core\Service\PermitService;
 /**
  * Action zum Sperren oder Entsperren einer aktiven Genehmigung.
  *
- * Path: src/Application/Actions/ToggleSuspensionAction.php
+ * Path: src/Application/Actions/PermitToggleSuspensionAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class ToggleSuspensionAction implements ActionInterface
+final readonly class PermitToggleSuspensionAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

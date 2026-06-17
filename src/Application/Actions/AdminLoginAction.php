@@ -13,14 +13,14 @@ use App\Core\Service\AuthService;
 /**
  * Action für den Login von Administratoren inkl. Rate-Limiting und CSRF-Schutz.
  *
- * Path: src/Application/Actions/LoginAction.php
+ * Path: src/Application/Actions/AdminLoginAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class LoginAction implements ActionInterface
+final readonly class AdminLoginAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

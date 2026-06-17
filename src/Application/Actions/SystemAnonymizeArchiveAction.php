@@ -11,14 +11,14 @@ use App\Core\Service\AuthService;
 /**
  * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
  *
- * Path: src/Application/Actions/AnonymizeArchiveAction.php
+ * Path: src/Application/Actions/SystemAnonymizeArchiveAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class AnonymizeArchiveAction implements ActionInterface
+final readonly class SystemAnonymizeArchiveAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

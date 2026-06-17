@@ -9,14 +9,14 @@ use App\Contracts\Application\ActionInterface;
 /**
  * Action zum Speichern der Dashboard-Filter in der aktuellen Session.
  *
- * Path: src/Application/Actions/FilterDashboardAction.php
+ * Path: src/Application/Actions/DashboardFilterAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class FilterDashboardAction implements ActionInterface
+final readonly class DashboardFilterAction implements ActionInterface
 {
     /**
      * Hilfsmethode zum Speichern der Dashboard-Filter in der aktuellen Session.

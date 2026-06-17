@@ -11,14 +11,14 @@ use App\Core\Service\PermitService;
 /**
  * Action zum manuellen Markieren einer Genehmigung als 'bezahlt'.
  *
- * Path: src/Application/Actions/MarkAsPaidAction.php
+ * Path: src/Application/Actions/PermitMarkAsPaidAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class MarkAsPaidAction implements ActionInterface
+final readonly class PermitMarkAsPaidAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,

@@ -11,14 +11,14 @@ use App\Core\Service\VoucherService;
 /**
  * Action zum Erstellen eines neuen Gutscheins.
  *
- * Path: src/Application/Actions/CreateVoucherAction.php
+ * Path: src/Application/Actions/VoucherCreateAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class CreateVoucherAction implements ActionInterface
+final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,
