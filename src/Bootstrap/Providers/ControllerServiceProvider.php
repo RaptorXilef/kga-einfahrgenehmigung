@@ -76,6 +76,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // --- 3.2 Backend Controller (Admin) ---
+        // Admin Actions
         $container->bind(AnonymizeArchiveAction::class, fn () => new AnonymizeArchiveAction(
             $container->get(AuthService::class),
             $container->get(PermitArchiveRepositoryInterface::class),
@@ -204,6 +205,44 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
         ));
 
+        // History Actions
+        $container->bind(\App\Application\Actions\HistoryLogoutAction::class, fn () => new \App\Application\Actions\HistoryLogoutAction());
+        $container->bind(\App\Application\Actions\HistoryRequestLinkAction::class, fn () => new \App\Application\Actions\HistoryRequestLinkAction(
+            $container->get(ConfigInterface::class),
+            $container->get(MagicLinkService::class),
+            $container->get(MailServiceInterface::class),
+            $container->get(PermitService::class),
+            $container->get(RateLimiterInterface::class),
+        ));
+        $container->bind(\App\Application\Actions\HistorySubmitCodeAction::class, fn () => new \App\Application\Actions\HistorySubmitCodeAction(
+            $container->get(MagicLinkService::class),
+            $container->get(RateLimiterInterface::class),
+        ));
+        $container->bind(\App\Application\Actions\HistoryVerifyTokenAction::class, fn () => new \App\Application\Actions\HistoryVerifyTokenAction(
+            $container->get(MagicLinkService::class),
+            $container->get(RateLimiterInterface::class),
+        ));
+        $container->bind(\App\Application\Actions\HistoryPrintAction::class, fn () => new \App\Application\Actions\HistoryPrintAction(
+            $container->get(HolidayService::class),
+            $container->get(StorageInterface::class),
+            $container->get(TemplateRenderer::class),
+        ));
+        $container->bind(\App\Application\Actions\HistoryRenderAction::class, fn () => new \App\Application\Actions\HistoryRenderAction(
+            $container->get(ConfigInterface::class),
+            $container->get(PermitService::class),
+            $container->get(StorageInterface::class),
+            $container->get(TemplateRenderer::class),
+        ));
+
+        // History Factory
+        $container->bind(\App\Application\Actions\HistoryActionFactory::class, fn () => new \App\Application\Actions\HistoryActionFactory($container));
+
+        // HistoryController
+        $container->bind(HistoryController::class, fn (): HistoryController => new HistoryController(
+            $container->get(\App\Application\Actions\HistoryActionFactory::class),
+            $container->get(RateLimiterInterface::class),
+        ));
+
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
             $container->get(ConfigInterface::class),
             $container->get(PermitService::class),
@@ -228,17 +267,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(SuccessController::class, fn (): SuccessController => new SuccessController(
             $container->get(BankQrGenerator::class),
             $container->get(ConfigInterface::class),
-            $container->get(StorageInterface::class),
-            $container->get(TemplateRenderer::class),
-        ));
-
-        $container->bind(HistoryController::class, fn (): HistoryController => new HistoryController(
-            $container->get(ConfigInterface::class),
-            $container->get(HolidayService::class),
-            $container->get(MagicLinkService::class),
-            $container->get(MailServiceInterface::class),
-            $container->get(PermitService::class),
-            $container->get(RateLimiterInterface::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
         ));
