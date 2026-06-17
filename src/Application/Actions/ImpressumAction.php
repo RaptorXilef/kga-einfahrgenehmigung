@@ -2,22 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Application;
+namespace App\Application\Actions;
 
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * Controller für rechtliche Informationsseiten (Impressum, Datenschutz).
+ * Action zum Rendern der Impressum-Seite.
  *
- * Path: src/Application/LegalController.php
+ * Path: src/Application/Actions/ImpressumAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class LegalController
+final readonly class ImpressumAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
@@ -26,24 +27,10 @@ final readonly class LegalController
     }
 
     /**
-     * Lädt die statischen Daten aus der Konfiguration und rendert die Datenschutzerklärung.
-     */
-    public function renderDatenschutz(): void
-    {
-        $root      = $this->config->get('root_path');
-        $legalData = include $root . '/config/datenschutz.php';
-
-        $this->renderer->render('datenschutz', [
-            'legal' => $legalData,
-        ]);
-    }
-
-    /**
      * Lädt die statischen Daten aus der Konfiguration und rendert die Impressum-Seite.
      */
-    public function renderImpressum(): void
+    public function execute(array $requestData): void
     {
-        // Lädt die dedizierte Config-Datei direkt über das Root-Verzeichnis
         $root      = $this->config->get('root_path');
         $legalData = include $root . '/config/impressum.php';
 

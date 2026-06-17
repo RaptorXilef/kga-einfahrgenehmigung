@@ -13,8 +13,8 @@
 
 declare(strict_types=1);
 
-use App\Application\LegalController;
+use App\Application\Actions\ImpressumAction;
 
-$container  = require_once __DIR__ . '/../src/Bootstrap/app.php';
-$controller = $container->get(LegalController::class);
-$controller->renderImpressum();
+$container = require_once __DIR__ . '/../src/Bootstrap/app.php';
+$action    = $container->get(ImpressumAction::class);
+$action->execute($_GET);

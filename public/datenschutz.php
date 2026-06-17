@@ -13,8 +13,8 @@
 
 declare(strict_types=1);
 
-use App\Application\LegalController;
+use App\Application\Actions\DatenschutzAction;
 
-$container  = require_once __DIR__ . '/../src/Bootstrap/app.php';
-$controller = $container->get(LegalController::class);
-$controller->renderDatenschutz();
+$container = require_once __DIR__ . '/../src/Bootstrap/app.php';
+$action    = $container->get(DatenschutzAction::class);
+$action->execute($_GET);
