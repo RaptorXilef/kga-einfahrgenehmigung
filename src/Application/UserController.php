@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\UserActionFactory;
-use App\Application\Security\CsrfHelper;
+use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\PermissionMiddleware;
+use App\Application\Middleware\RequireLoginMiddleware;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 
 /**
  * Front Controller zur Administration von Benutzern, Gruppen und Profilen.
  *
- * Sichert die Routen durch Berechtigungsprüfungen und CSRF-Schutz ab
- * und delegiert die Logik an spezialisierte Action-Klassen über die UserActionFactory.
- * Behält das PRG-Pattern bei.
+ * Sichert die Routen über die Middleware-Pipeline ab und delegiert
+ * die Logik an spezialisierte Action-Klassen.
  *
  * Path: src/Application/UserController.php
  *
@@ -34,39 +36,39 @@ final readonly class UserController
     // TODO DOCBLOCK
     public function handleRequest(array $post, array $get): void
     {
-        if (! $this->auth->hasPermission('system.permissions.view')) {
-            \header('Location: admin.php');
-            exit;
-        }
+        // 1. Die Pipeline für die Benutzerverwaltung definieren
+        $pipeline = new MiddlewarePipeline();
+        $pipeline
+            ->add(new PermissionMiddleware($this->auth, 'system.permissions.view', 'admin.php'))
+            ->add(new CsrfMiddleware('users.php'));
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // 2. Den Request durch die Pipeline schicken
+        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
+            $post = $req['post'];
+            $get  = $req['get'];
 
-            // Globale CSRF-Prüfung für die Benutzerverwaltung
-            if (! CsrfHelper::verify($post)) {
-                $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-                \header('Location: users.php?msg=' . \urlencode($msg));
-                exit;
-            }
+            // Ab hier wissen wir zu 100%: Der Nutzer hat Rechte und das CSRF-Token stimmt!
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $actionKey = $post['action'] ?? '';
 
-            $actionKey = $post['action'] ?? '';
+                // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
+                $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
 
-            // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
-            $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
+                $action = $this->factory->create($actionKey);
+                if ($action instanceof ActionInterface) {
+                    $msg = $action->execute($post);
 
-            $action = $this->factory->create($actionKey);
-            if ($action instanceof ActionInterface) {
-                $msg = $action->execute($post);
-
-                $redirectUrl = 'users.php?msg=' . \urlencode($msg);
-                if ($focusId !== '') {
-                    $redirectUrl .= '&focus=' . \urlencode((string) $focusId);
+                    $redirectUrl = 'users.php?msg=' . \urlencode($msg);
+                    if ($focusId !== '') {
+                        $redirectUrl .= '&focus=' . \urlencode((string) $focusId);
+                    }
+                    \header('Location: ' . $redirectUrl);
+                    exit;
                 }
-                \header('Location: ' . $redirectUrl);
-                exit;
             }
-        }
 
-        $this->factory->create('render_users')->execute(['get' => $get]);
+            $this->factory->create('render_users')->execute(['get' => $get]);
+        });
     }
 
     /**
@@ -74,29 +76,29 @@ final readonly class UserController
      */
     public function handleProfileRequest(array $post, array $get): void
     {
-        if (! $this->auth->isLoggedIn()) {
-            \header('Location: admin.php');
-            exit;
-        }
+        // 1. Die Pipeline für das eigene Profil definieren
+        $pipeline = new MiddlewarePipeline();
+        $pipeline
+            ->add(new RequireLoginMiddleware($this->auth, 'admin.php'))
+            ->add(new CsrfMiddleware('profile.php'));
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Globale CSRF-Prüfung für das Eigene Profil
-            if (! CsrfHelper::verify($post)) {
-                $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-                \header('Location: profile.php?msg=' . \urlencode($msg));
-                exit;
+        // 2. Den Request durch die Pipeline schicken
+        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
+            $post = $req['post'];
+            $get  = $req['get'];
+
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $actionKey = $post['action'] ?? '';
+                $action    = $this->factory->create($actionKey);
+
+                if ($action instanceof ActionInterface) {
+                    $msg = $action->execute($post);
+                    \header('Location: profile.php?msg=' . \urlencode($msg));
+                    exit;
+                }
             }
 
-            $actionKey = $post['action'] ?? '';
-            $action    = $this->factory->create($actionKey);
-
-            if ($action instanceof ActionInterface) {
-                $msg = $action->execute($post);
-                \header('Location: profile.php?msg=' . \urlencode($msg));
-                exit;
-            }
-        }
-
-        $this->factory->create('render_profile')->execute(['get' => $get]);
+            $this->factory->create('render_profile')->execute(['get' => $get]);
+        });
     }
 }
