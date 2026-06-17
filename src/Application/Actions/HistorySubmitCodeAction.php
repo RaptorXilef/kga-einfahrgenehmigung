@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\HistorySubmitCodeRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\MagicLinkService;
@@ -29,9 +31,16 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $post          = $requestData['post'];
-        $ip            = $requestData['ip'];
-        $verifiedEmail = $this->magicLinkService->verifyAny((string) ($post['login_code'] ?? ''));
+        $ip = $requestData['ip'];
+
+        try {
+            $dto = HistorySubmitCodeRequest::fromArray($requestData['post']);
+        } catch (ValidationException $e) {
+            \header('Location: history.php?sent=1&msg=' . \urlencode($e->getMessage()));
+            exit;
+        }
+
+        $verifiedEmail = $this->magicLinkService->verifyAny($dto->loginCode);
 
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($ip);

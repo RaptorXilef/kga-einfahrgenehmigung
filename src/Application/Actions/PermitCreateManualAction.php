@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\PermitCreateManualRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitService;
@@ -22,7 +24,7 @@ final readonly class PermitCreateManualAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,
-        private PermitService $permitService,
+        private PermitService $permitService
     ) {
     }
 
@@ -37,27 +39,20 @@ final readonly class PermitCreateManualAction implements ActionInterface
      */
     public function execute(array $post): string
     {
-        if (! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für manuelle Ausstellungen.';
+        if (! $this->auth->hasPermission('dashboard.generator-tools.manual_permit.execute')) {
+            return 'Fehler: Sie haben keine Berechtigung, manuelle Genehmigungen zu erstellen.';
         }
 
-        $tplKey = (string) ($post['template_key'] ?? 'std.7');
-
-        // --- BACKEND SECURITY CHECK ---
-        if (! $this->auth->hasPermission("template.$tplKey")) {
-            return "Fehler: Sie haben keine Berechtigung, den Typ '$tplKey' manuell auszustellen.";
-        }
-
-        // Manuelle Buchung (Kostenlos/Bar)
         try {
-            $post['status'] = 'bezahlt';
-            if (isset($post['reason'])) {
-                $post['interner_kommentar'] = $post['reason'];
-            }
+            $dto = PermitCreateManualRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
 
-            $permit = $this->permitService->createPermit($post, true);
-
-            return "Manuelle Genehmigung erstellt: <strong>{$permit->code}</strong>";
+        try {
+            // Wir übergeben das sauber gefilterte Array aus dem DTO an den Service
+            $this->permitService->createPermit($dto->rawSanitized, $dto->sendEmail);
+            return 'Manuelle Genehmigung wurde erfolgreich erstellt.';
         } catch (\Exception $e) {
             return 'Fehler: ' . $e->getMessage();
         }

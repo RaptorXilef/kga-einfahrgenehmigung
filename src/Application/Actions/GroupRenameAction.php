@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\GroupRenameRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -20,8 +22,10 @@ use App\Core\Service\AuthService;
  */
 final readonly class GroupRenameAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private GroupRepositoryInterface $groupRepository)
-    {
+    public function __construct(
+        private AuthService $auth,
+        private GroupRepositoryInterface $groupRepository,
+    ) {
     }
 
     /**
@@ -36,20 +40,21 @@ final readonly class GroupRenameAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
-        $gid     = (string) ($post['group_id'] ?? '');
-        $newName = \trim((string) ($post['new_group_name'] ?? ''));
-        if ($gid === '' || $newName === '') {
-            return '';
+
+        try {
+            $dto = GroupRenameRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
         }
 
         $groups = $this->groupRepository->loadAll();
-        if (! isset($groups[$gid])) {
+        if (! isset($groups[$dto->groupId])) {
             return 'Fehler: Gruppe nicht gefunden.';
         }
 
-        $groups[$gid]['name'] = $newName;
+        $groups[$dto->groupId]['name'] = $dto->newGroupName;
         $this->groupRepository->saveAll($groups);
 
-        return "Gruppe wurde in '$newName' umbenannt.";
+        return "Gruppe wurde in '{$dto->newGroupName}' umbenannt.";
     }
 }

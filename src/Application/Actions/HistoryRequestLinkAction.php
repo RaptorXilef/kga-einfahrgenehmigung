@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\HistoryRequestLinkRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -35,26 +37,27 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $post  = $requestData['post'];
-        $ip    = $requestData['ip'];
-        $email = \trim((string) ($post['email'] ?? ''));
+        $ip = $requestData['ip'];
 
-        if ($this->rateLimiter->isBlocked($ip)) {
-            \header('Location: history.php?sent=0&msg=' . \urlencode('Zu viele Anfragen. Bitte warten Sie 15 Minuten.'));
+        try {
+            $dto = HistoryRequestLinkRequest::fromArray($requestData['post']);
+        } catch (ValidationException $e) {
+            // PRG (Post-Redirect-Get) bei Formular-Fehlern
+            \header('Location: history.php?sent=0&msg=' . \urlencode($e->getMessage()));
             exit;
         }
 
-        $permits = $this->permitService->getHistoryByEmail($email);
+        $permits = $this->permitService->getHistoryByEmail($dto->email);
 
         if ($permits === []) {
             $this->rateLimiter->recordFailedAttempt($ip);
         } else {
             $this->rateLimiter->clearAttempts($ip);
-            $data = $this->magicLinkService->createToken($email);
+            $data = $this->magicLinkService->createToken($dto->email);
             $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
 
             $this->mailService->sendTemplate(
-                $email,
+                $dto->email,
                 'Login-Code: Ihre Genehmigungen',
                 'magic_link',
                 [

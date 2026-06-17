@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\AdminLoginRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -33,11 +35,15 @@ final readonly class AdminLoginAction implements ActionInterface
     // TODO DOCBLOCK
     public function execute(array $post): string
     {
-        $user = (string) ($post['user'] ?? '');
-        $pass = (string) ($post['pass'] ?? '');
+        try {
+            $dto = AdminLoginRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            $this->renderForm($e->getMessage());
+            exit;
+        }
 
         try {
-            if ($this->auth->login($user, $pass)) {
+            if ($this->auth->login($dto->username, $dto->password)) {
                 // Login-Redirects behalten REQUEST-Fokus bei (z.B. für check.php)
                 $code = (string) ($_REQUEST['code'] ?? '');
                 if ($code !== '') {

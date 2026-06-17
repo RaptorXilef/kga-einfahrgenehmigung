@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\UserRenameRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -20,8 +22,10 @@ use App\Core\Service\AuthService;
  */
 final readonly class UserRenameAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        private AuthService $auth,
+        private UserRepositoryInterface $userRepository,
+    ) {
     }
 
     /**
@@ -36,18 +40,23 @@ final readonly class UserRenameAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
-        $userId   = (string) ($post['user_id'] ?? '');
-        $newLogin = \trim((string) ($post['new_username'] ?? ''));
-        $users    = $this->userRepository->loadAll();
+
+        try {
+            $dto = UserRenameRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
+        $users = $this->userRepository->loadAll();
 
         foreach ($users as $id => $userData) {
-            if ($id !== $userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($newLogin)) {
-                return "Fehler: Ein Benutzer mit dem Namen '$newLogin' existiert bereits.";
+            if ($id !== $dto->userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($dto->newUsername)) {
+                return "Fehler: Ein Benutzer mit dem Namen '{$dto->newUsername}' existiert bereits.";
             }
         }
 
-        if (isset($users[$userId])) {
-            $users[$userId]['username'] = $newLogin;
+        if (isset($users[$dto->userId])) {
+            $users[$dto->userId]['username'] = $dto->newUsername;
             $this->userRepository->saveAll($users);
 
             return 'Login-Name aktualisiert.';
