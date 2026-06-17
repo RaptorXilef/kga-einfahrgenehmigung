@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Actions\UserActionFactory;
 use App\Application\Security\CsrfHelper;
-use App\Application\View\TemplateRenderer;
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 
 /**
- * Controller zur Administration von System-Benutzern, Gruppen und Berechtigungen.
+ * Front Controller zur Administration von Benutzern, Gruppen und Profilen.
  *
- * Regelt zudem die Profilverwaltung (Avatar-Upload, Passwortänderung) des aktuell eingeloggten Admins.
- * Kontext: Kern-Sicherheitsmodul für Benutzerkonten und Rollenarchitektur.
+ * Sichert die Routen durch Berechtigungsprüfungen und CSRF-Schutz ab
+ * und delegiert die Logik an spezialisierte Action-Klassen über die UserActionFactory.
+ * Behält das PRG-Pattern bei.
  *
  * Path: src/Application/UserController.php
  *
@@ -27,66 +26,39 @@ use App\Core\Service\AuthService;
 final readonly class UserController
 {
     public function __construct(
+        private UserActionFactory $factory,
         private AuthService $auth,
-        private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
-        private TemplateRenderer $renderer,
-        private UserRepositoryInterface $userRepository,
     ) {
     }
 
-    /**
-     * Haupt-Routing-Handler für Benutzer- und Gruppenmanipulationen.
-     * Validiert globale Management-Rechte, fängt POST-Aktionen ab und delegiert an spezifische Worker-Methoden.
-     *
-     * @param array<string, mixed> $post Entspricht $_POST
-     */
-    public function handleRequest(array $post): void
+    // TODO DOCBLOCK
+    public function handleRequest(array $post, array $get): void
     {
         if (! $this->auth->hasPermission('system.permissions.view')) {
             \header('Location: admin.php');
-
-            return;
+            exit;
         }
 
-        $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Globale CSRF-Prüfung für die Benutzerverwaltung
             if (! CsrfHelper::verify($post)) {
-                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-            } else {
-                $action = $post['action'] ?? '';
-
-                // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
-                $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
-
-                // [x] Sortiert
-                $message = match ($action) {
-                    'change_user_group', 'change_user_password', 'delete_user', 'rename_user', 'save_user', 'upload_avatar' => $this->auth->hasPermission('system.permissions.users.manage') ? match ($action) {
-                        'change_user_group'    => $this->handleChangeUserGroup($post),
-                        'change_user_password' => $this->handleResetPassword($post),
-                        'delete_user'          => $this->handleDeleteUser($post),
-                        'rename_user'          => $this->handleRenameUser($post),
-                        'save_user'            => $this->handleSaveUser($post, $_FILES['avatar'] ?? null),
-                        'upload_avatar'        => $this->handleUploadAvatar($post, $_FILES['avatar'] ?? null),
-                    } : 'Fehler: Keine Berechtigung für die Benutzerverwaltung.',
-
-                    'delete_group', 'rename_group', 'save_group', 'upload_group_image' => $this->auth->hasPermission('system.permissions.groups.manage') ? match ($action) {
-                        'delete_group'       => $this->handleDeleteGroup($post),
-                        'rename_group'       => $this->handleRenameGroup($post),
-                        'save_group'         => $this->handleSaveGroup($post, $_FILES['group_icon'] ?? null),
-                        'upload_group_image' => $this->handleUploadGroupImage($post, $_FILES['avatar'] ?? null),
-                    } : 'Fehler: Keine Berechtigung für die Gruppenverwaltung.',
-
-                    default => ''
-                };
+                $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+                \header('Location: users.php?msg=' . \urlencode($msg));
+                exit;
             }
 
-            if ($message !== '') {
-                // Wir hängen &focus=... an die URL an
-                $redirectUrl = 'users.php?msg=' . \urlencode($message);
-                if (isset($focusId) && $focusId !== '') {
+            $actionKey = $post['action'] ?? '';
+
+            // Wir brauchen eine Variable für die ID, die wir fokussieren wollen
+            $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
+
+            $action = $this->factory->create($actionKey);
+            if ($action instanceof ActionInterface) {
+                $msg = $action->execute($post);
+
+                $redirectUrl = 'users.php?msg=' . \urlencode($msg);
+                if ($focusId !== '') {
                     $redirectUrl .= '&focus=' . \urlencode((string) $focusId);
                 }
                 \header('Location: ' . $redirectUrl);
@@ -94,507 +66,37 @@ final readonly class UserController
             }
         }
 
-        // [x] sortiert
-        $this->renderer->render('admin_users', [
-            'auth'            => $this->auth,
-            'groupRepository' => $this->groupRepository,
-            'groups'          => $this->groupRepository->loadAll(),
-            'message'         => (string) ($_GET['msg'] ?? ''),
-            'permissions'     => $this->config->get('permissions', []),
-            'structure'       => $this->config->get('structure', []),
-            'userRepository'  => $this->userRepository,
-            'users'           => $this->userRepository->loadAll(),
-        ]);
+        $this->factory->create('render_users')->execute(['get' => $get]);
     }
 
     /**
-     * Steuert die Profil-Einstellungsseite des aktuell angemeldeten Benutzers.
-     * Erlaubt Eigenmanipulationen von Namen, Passwort und Avatar im aktiven Session-Kontext.
-     *
-     * @param array<string, mixed> $post Entspricht $_POST
+     * TODO DOCBLOCK
      */
-    public function handleProfileRequest(array $post): void
+    public function handleProfileRequest(array $post, array $get): void
     {
         if (! $this->auth->isLoggedIn()) {
             \header('Location: admin.php');
-
-            return;
+            exit;
         }
-
-        $userId  = $_SESSION['user_id'] ?? '';
-        $action  = $post['action'] ?? '';
-        $message = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Globale CSRF-Prüfung für das Eigene Profil
             if (! CsrfHelper::verify($post)) {
-                $message = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-            } else {
-                // [x] Sortiert
-                $message = match ($action) {
-                    'change_own_avatar'   => $this->processOwnAvatarUpload($userId, $_FILES['avatar'] ?? null),
-                    'change_own_password' => $this->processOwnPasswordChange($userId, $post),
-                    'change_own_username' => $this->processOwnUsernameChange($userId, $post),
-                    default               => ''
-                };
+                $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
+                \header('Location: profile.php?msg=' . \urlencode($msg));
+                exit;
             }
 
-            if ($message !== '') {
-                \header('Location: profile.php?msg=' . \urlencode($message));
+            $actionKey = $post['action'] ?? '';
+            $action    = $this->factory->create($actionKey);
+
+            if ($action instanceof ActionInterface) {
+                $msg = $action->execute($post);
+                \header('Location: profile.php?msg=' . \urlencode($msg));
                 exit;
             }
         }
 
-        $users       = $this->userRepository->loadAll();
-        $groups      = $this->groupRepository->loadAll();
-        $userGroupId = $users[$userId]['group'] ?? 'guest';
-
-        $this->renderer->render('profile', [
-            'auth'            => $this->auth,
-            'group'           => $groups[$userGroupId]['name'] ?? $userGroupId,
-            'groupRepository' => $this->groupRepository,
-            'message'         => (string) ($_GET['msg'] ?? ''),
-            'userId'          => $userId,
-            'username'        => $users[$userId]['username'] ?? 'Unbekannt',
-            'userRepository'  => $this->userRepository,
-        ]);
-    }
-
-    // START --- Die Match-Worker-Methoden für die Benutzerverwaltung (handleProfileRequest) ---
-    // --- USER ACTIONS ---
-
-    /**
-     * Erstellt einen neuen Datensatz in der Benutzerverwaltung inklusive Passwort-Hashing.
-     *
-     * @param array<string, mixed>      $post Formulardaten (username, password, group).
-     * @param array<string, mixed>|null $file Optionaler Datei-Array ($_FILES['avatar']).
-     *
-     * @return string Status- oder Fehlermeldung für die UI.
-     */
-    private function handleSaveUser(array $post, ?array $file = null): string
-    {
-        $loginName = \trim((string) ($post['username'] ?? ''));
-        $pw1       = (string) ($post['password'] ?? '');
-        $pw2       = (string) ($post['password_repeat'] ?? '');
-
-        if ($pw1 !== $pw2) {
-            return 'Fehler: Passwörter stimmen nicht überein.';
-        }
-        if ($pw1 === '' || $pw1 === '0') {
-            return 'Fehler: Passwort darf nicht leer sein.';
-        }
-
-        $users = $this->userRepository->loadAll();
-
-        // Eindeutigkeit des Benutzernamens erzwingen (Verhindert Login-Sperren)
-        foreach ($users as $userData) {
-            if (\strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($loginName)) {
-                return "Fehler: Ein Benutzer mit dem Namen '$loginName' existiert bereits im System.";
-            }
-        }
-
-        // Solange eine neue ID generieren, bis eine freie gefunden wurde (Kollisionsschutz)
-        do {
-            $newId = $this->auth->generateId('usr_');
-        } while (isset($users[$newId]));
-
-        $users[$newId] = [
-            'username' => $loginName,
-            'group'    => $post['group'] ?? 'guest',
-            'pass'     => \password_hash($pw1, \PASSWORD_DEFAULT),
-        ];
-
-        $this->userRepository->saveAll($users);
-
-        // Auch hier beim ersten Erstellen die neue ID nutzen!
-        if ($file && $file['error'] === 0) {
-            $this->userRepository->uploadImage($newId, $file);
-        }
-
-        return "Benutzer '$loginName' erfolgreich erstellt.";
-    }
-
-    /**
-     * Benennt den Login-Namen eines existierenden Benutzers um.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und new_username.
-     *
-     * @return string Erfolgs- oder Fehlermeldung.
-     */
-    private function handleRenameUser(array $post): string
-    {
-        $userId   = (string) ($post['user_id'] ?? '');
-        $newLogin = \trim((string) ($post['new_username'] ?? ''));
-
-        $users = $this->userRepository->loadAll();
-
-        // Eindeutigkeit beim Umbenennen prüfen!
-        foreach ($users as $id => $userData) {
-            if ($id !== $userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($newLogin)) {
-                return "Fehler: Ein Benutzer mit dem Namen '$newLogin' existiert bereits.";
-            }
-        }
-
-        if (isset($users[$userId])) {
-            $users[$userId]['username'] = $newLogin;
-            $this->userRepository->saveAll($users);
-
-            return 'Login-Name aktualisiert.';
-        }
-
-        return 'Fehler: Benutzer nicht gefunden.';
-    }
-
-    /**
-     * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und Passwörtern.
-     *
-     * @return string Ergebnisnachricht.
-     */
-    private function handleResetPassword(array $post): string
-    {
-        $userId = (string) ($post['user_id'] ?? '');
-        $pw1    = (string) ($post['password'] ?? '');
-        $pw2    = (string) ($post['password_repeat'] ?? '');
-
-        if ($pw1 !== $pw2) {
-            return 'Fehler: Passwörter nicht identisch.';
-        }
-
-        $users = $this->userRepository->loadAll();
-        if (isset($users[$userId])) {
-            $users[$userId]['pass'] = \password_hash($pw1, \PASSWORD_DEFAULT);
-            $this->userRepository->saveAll($users);
-
-            return 'Passwort wurde zurückgesetzt.';
-        }
-
-        return 'Fehler.';
-    }
-
-    /**
-     * Weist einem Benutzer eine neue Berechtigungsgruppe/Rolle zu.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und group.
-     *
-     * @return string Bestätigungstext.
-     */
-    private function handleChangeUserGroup(array $post): string
-    {
-        $userId = (string) ($post['user_id'] ?? ''); // ID aus dem Formular
-        $group  = (string) ($post['group'] ?? '');
-        $users  = $this->userRepository->loadAll();
-
-        if (isset($users[$userId])) {
-            $users[$userId]['group'] = $group;
-            $this->userRepository->saveAll($users);
-
-            return "Gruppe für '" . ($users[$userId]['username'] ?? $userId) . "' geändert.";
-        }
-
-        return 'Fehler: Benutzer nicht gefunden.';
-    }
-
-    /**
-     * Verarbeitet den Upload und die Skalierung/Speicherung eines Benutzer-Profilbildes.
-     *
-     * @param array<string, mixed>      $post Das Post-Array mit der Ziel-User-ID.
-     * @param array<string, mixed>|null $file Der native $_FILES-Avatar-Eintrag.
-     *
-     * @return string UI-Meldungstext.
-     */
-    private function handleUploadAvatar(array $post, ?array $file): string
-    {
-        if (! $file || $file['error'] !== 0) {
-            return 'Fehler beim Upload.';
-        }
-        // FIX: Wir nutzen jetzt die user_id statt username
-        $userId = (string) ($post['user_id'] ?? '');
-
-        return $this->userRepository->uploadImage($userId, $file)
-            ? 'Profilbild aktualisiert.'
-            : 'Fehler beim Verarbeiten.';
-    }
-
-    /**
-     * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
-     *
-     * @param array<string, mixed> $post Datensatz mit der Ziel-user_id.
-     *
-     * @return string Erfolgs- oder Fehlermeldung.
-     */
-    private function handleDeleteUser(array $post): string
-    {
-        $userId = (string) ($post['user_id'] ?? '');
-
-        // Selbstausschluss prüfen über die ID aus der Session
-        if ($userId === $this->auth->getUserId()) {
-            return 'Fehler: Selbstausschluss nicht möglich.';
-        }
-
-        // LFI & PHAR Protection
-        if (\str_contains($userId, '://') || \str_contains($userId, '..') || \str_contains($userId, "\0")) {
-            return 'Fehler: Ungültige Benutzer-ID (Sicherheitsrichtlinie).';
-        }
-
-        $users = $this->userRepository->loadAll();
-        if (isset($users[$userId])) {
-            $name = $users[$userId]['username'] ?? $userId;
-            unset($users[$userId]);
-            $this->userRepository->saveAll($users);
-
-            // TODO Pfad in Config storage.php
-            // Physische Dateileichen (Profilbilder) direkt mitlöschen!
-            $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $userId . '.webp';
-            if (\file_exists($avatarPath)) {
-                @\unlink($avatarPath);
-            }
-
-            return "Benutzer '$name' wurde entfernt.";
-        }
-
-        return 'Fehler: Benutzer nicht gefunden.';
-    }
-
-    // --- GROUP ACTIONS ---
-
-    /**
-     * Erstellt eine neue Benutzergruppe oder aktualisiert bestehende Rechte-Zuordnungen.
-     * Aktualisiert die Session-Rechte zur Laufzeit, falls die eigene Gruppe modifiziert wurde.
-     *
-     * @param array<string, mixed>      $post Rechte- und Gruppendaten.
-     * @param array<string, mixed>|null $file Optionales Gruppen-Icon ($_FILES).
-     *
-     * @return string Operations-Ergebnistext.
-     */
-    private function handleSaveGroup(array $post, ?array $file = null): string
-    {
-        $groups = $this->groupRepository->loadAll();
-
-        // 1. Prüfen: Bestehende Gruppe (Update) oder Neue Gruppe (Create)?
-        $groupId     = (string) ($post['group_id'] ?? '');
-        $isUpdate    = $groupId !== '' && isset($groups[$groupId]);
-        $displayName = \trim((string) ($post['group_name'] ?? ''));
-        $inheritFrom = (string) ($post['inherit_group'] ?? '');
-
-        // 2. ID bestimmen
-        if (! $isUpdate) {
-            // Nur bei Neu-Anlage eine neue ID generieren
-            // Solange eine neue ID generieren, bis eine freie gefunden wurde (Kollisionsschutz)
-            do {
-                $groupId = $this->auth->generateId('grp_');
-            } while (isset($groups[$groupId]));
-        }
-
-        // 3. Berechtigungen verarbeiten
-        // Wir nehmen die Rechte aus dem POST-Array (perms[]), falls gesendet
-        $newPermissions = (array) ($post['perms'] ?? []);
-
-        // Sonderfall: Wenn wir eine NEUE Gruppe anlegen und "kopieren von" gewählt ist
-        if (! $isUpdate && $inheritFrom !== '' && isset($groups[$inheritFrom])) {
-            $newPermissions = $groups[$inheritFrom]['permissions'];
-        }
-
-        // 4. In das Groups-Array schreiben
-        $groups[$groupId] = [
-            'name'        => $displayName,
-            'permissions' => $newPermissions,
-        ];
-
-        $this->groupRepository->saveAll($groups);
-
-        // 5. Icon-Handling
-        // Wir schauen nach 'group_icon' (aus dem Neu-Formular) ODER 'avatar' (aus dem Bearbeiten-Formular)
-        // $iconFile = $_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null);
-        $iconFile = $file ?? ($_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null));
-        if ($iconFile && $iconFile['error'] === 0) {
-            $this->groupRepository->uploadImage($groupId, $iconFile);
-        }
-
-        // 6. Rückmeldung
-        if ($isUpdate) {
-            // WICHTIG: Wenn der aktuell eingeloggte User in dieser Gruppe ist,
-            // müssen wir seine Session-Rechte sofort aktualisieren!
-            if ($this->auth->getGroup() === $groupId) {
-                $this->auth->refreshSessionPermissions($groupId);
-            }
-
-            return "Rechte für Gruppe '$displayName' erfolgreich aktualisiert.";
-        }
-
-        return "Neue Gruppe '$displayName' wurde erstellt.";
-    }
-
-    /**
-     * Ändert den Anzeigenamen einer spezifischen Gruppe im System.
-     *
-     * @param array<string, mixed> $post Datensatz mit group_id und new_group_name.
-     *
-     * @return string Statusnachricht.
-     */
-    private function handleRenameGroup(array $post): string
-    {
-        $gid     = (string) ($post['group_id'] ?? '');
-        $newName = \trim((string) ($post['new_group_name'] ?? ''));
-        if ($gid === '' || $newName === '') {
-            return '';
-        }
-
-        $groups = $this->groupRepository->loadAll();
-        if (! isset($groups[$gid])) {
-            return 'Fehler: Gruppe nicht gefunden.';
-        }
-
-        $groups[$gid]['name'] = $newName;
-        $this->groupRepository->saveAll($groups);
-
-        return "Gruppe wurde in '$newName' umbenannt.";
-    }
-
-    /**
-     * Verarbeitet den Upload eines Bildes für Gruppen-Icons.
-     *
-     * @param array<string, mixed>      $post Das Post-Array mit der group_id.
-     * @param array<string, mixed>|null $file Der Datei-Eintrag aus $_FILES.
-     *
-     * @return string UI-Meldungstext.
-     */
-    private function handleUploadGroupImage(array $post, ?array $file): string
-    {
-        if (! $file || $file['error'] !== 0) {
-            return 'Fehler beim Upload.';
-        }
-        $gid = (string) ($post['group_id'] ?? '');
-
-        return $this->groupRepository->uploadImage($gid, $file)
-            ? 'Gruppen-Icon aktualisiert.'
-            : 'Fehler beim Verarbeiten.';
-    }
-
-    /**
-     * Löscht eine Gruppe aus dem Berechtigungssystem. Schützt die Kern-Gruppe 'admin'.
-     *
-     * @param array<string, mixed> $post Datensatz mit group_id.
-     *
-     * @return string Ergebnisnachricht.
-     */
-    private function handleDeleteGroup(array $post): string
-    {
-        $id = (string) ($post['group_id'] ?? '');
-        if ($id === 'admin') {
-            return 'Fehler: Die Admin-Gruppe kann nicht gelöscht werden.';
-        }
-
-        // LFI & PHAR Protection
-        if (\str_contains($id, '://') || \str_contains($id, '..') || \str_contains($id, "\0")) {
-            return 'Fehler: Ungültige Gruppen-ID (Sicherheitsrichtlinie).';
-        }
-
-        $groups = $this->groupRepository->loadAll();
-
-        if (isset($groups[$id])) {
-            unset($groups[$id]);
-            $this->groupRepository->saveAll($groups);
-
-            // Physische Dateileichen (Gruppen-Icons) direkt mitlöschen!
-            $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $id . '.webp';
-            if (\file_exists($iconPath)) {
-                @\unlink($iconPath);
-            }
-
-            return 'Gruppe gelöscht.';
-        }
-
-        return 'Fehler: Gruppe nicht gefunden.';
-    }
-
-    // ENDE --- Die Match-Worker-Methoden für die Benutzerverwaltung (handleProfileRequest) ---
-
-    // START --- Die Match-Worker-Methoden für das eigene Profil (handleProfileRequest) ---
-
-    /**
-     * Aktualisiert den eigenen Anzeigenamen/Login-Namen des angemeldeten Benutzers.
-     *
-     * @param string               $userId Die aktive Benutzer-ID aus der Session.
-     * @param array<string, mixed> $post   Datensatz mit new_username.
-     *
-     * @return string Ergebnisnachricht.
-     */
-    private function processOwnUsernameChange(string $userId, array $post): string
-    {
-        $newName = \trim((string) ($post['new_username'] ?? ''));
-        if ($newName === '') {
-            return 'Fehler: Name darf nicht leer sein.';
-        }
-
-        $users = $this->userRepository->loadAll();
-
-        // Eindeutigkeit beim Umbenennen prüfen!
-        foreach ($users as $id => $userData) {
-            if ($id !== $userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($newName)) {
-                return "Fehler: Der Anzeigename '$newName' ist bereits vergeben.";
-            }
-        }
-
-        $users[$userId]['username'] = $newName;
-        $this->userRepository->saveAll($users);
-
-        // Session-Anzeige aktualisieren
-        $_SESSION['admin_user'] = $newName;
-
-        return 'Erfolg: Ihr Anzeigename wurde aktualisiert.';
-    }
-
-    /**
-     * Validiert das alte Kennwort und ändert das Passwort des aktuell angemeldeten Benutzers.
-     *
-     * @param string               $userId Die aktive Benutzer-ID aus der Session.
-     * @param array<string, mixed> $post   Datensatz mit alten und neuen Kennwörtern.
-     *
-     * @return string Ergebnisnachricht.
-     */
-    private function processOwnPasswordChange(string $userId, array $post): string
-    {
-        $oldPass = (string) ($post['old_password'] ?? '');
-        $newPass = (string) ($post['new_password'] ?? '');
-        $confirm = (string) ($post['confirm_password'] ?? '');
-
-        $users = $this->userRepository->loadAll();
-        if (! isset($users[$userId]) || ! \password_verify($oldPass, (string) $users[$userId]['pass'])) {
-            return 'Fehler: Das aktuelle Passwort ist nicht korrekt.';
-        }
-        if ($newPass !== $confirm) {
-            return 'Fehler: Die Passwort-Bestätigung stimmt nicht überein.';
-        }
-        if (\strlen($newPass) < 8) {
-            return 'Fehler: Das neue Passwort ist zu kurz.';
-        }
-
-        $users[$userId]['pass'] = \password_hash($newPass, \PASSWORD_DEFAULT);
-        $this->userRepository->saveAll($users);
-
-        return 'Erfolg: Ihr Passwort wurde geändert.';
-    }
-
-    /**
-     * Ermöglicht dem aktuell angemeldeten Benutzer das Ändern seines eigenen Profilbildes.
-     *
-     * @param string                    $userId Die aktive Benutzer-ID aus der Session.
-     * @param array<string, mixed>|null $file   Das hochgeladene File-Objekt aus $_FILES.
-     *
-     * @return string UI-Ergebnistext.
-     */
-    private function processOwnAvatarUpload(string $userId, ?array $file): string
-    {
-        if (! $file || $file['error'] !== 0) {
-            return 'Fehler beim Upload.';
-        }
-
-        if ($this->userRepository->uploadImage($userId, $file)) {
-            return 'Erfolg: Profilbild wurde aktualisiert.';
-        }
-
-        return 'Fehler bei der Bildverarbeitung.';
+        $this->factory->create('render_profile')->execute(['get' => $get]);
     }
 }

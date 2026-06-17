@@ -191,12 +191,34 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(VoucherService::class),
         ));
 
+        // User & Group Actions
+        $container->bind(\App\Application\Actions\GroupDeleteAction::class, fn () => new \App\Application\Actions\GroupDeleteAction($container->get(AuthService::class), $container->get(ConfigInterface::class), $container->get(GroupRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\GroupRenameAction::class, fn () => new \App\Application\Actions\GroupRenameAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\GroupSaveAction::class, fn () => new \App\Application\Actions\GroupSaveAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\GroupUploadImageAction::class, fn () => new \App\Application\Actions\GroupUploadImageAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class)));
+
+        $container->bind(\App\Application\Actions\UserChangeGroupAction::class, fn () => new \App\Application\Actions\UserChangeGroupAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\UserDeleteAction::class, fn () => new \App\Application\Actions\UserDeleteAction($container->get(AuthService::class), $container->get(ConfigInterface::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\UserRenameAction::class, fn () => new \App\Application\Actions\UserRenameAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\UserResetPasswordAction::class, fn () => new \App\Application\Actions\UserResetPasswordAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\UserSaveAction::class, fn () => new \App\Application\Actions\UserSaveAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\UserUploadAvatarAction::class, fn () => new \App\Application\Actions\UserUploadAvatarAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
+
+        // Profile Actions
+        $container->bind(\App\Application\Actions\ProfileUpdatePasswordAction::class, fn () => new \App\Application\Actions\ProfileUpdatePasswordAction($container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\ProfileUpdateUsernameAction::class, fn () => new \App\Application\Actions\ProfileUpdateUsernameAction($container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\ProfileUploadAvatarAction::class, fn () => new \App\Application\Actions\ProfileUploadAvatarAction($container->get(UserRepositoryInterface::class)));
+
+        // Render Actions
+        $container->bind(\App\Application\Actions\ProfileRenderAction::class, fn () => new \App\Application\Actions\ProfileRenderAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class), $container->get(TemplateRenderer::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(\App\Application\Actions\UserManagementRenderAction::class, fn () => new \App\Application\Actions\UserManagementRenderAction($container->get(AuthService::class), $container->get(ConfigInterface::class), $container->get(GroupRepositoryInterface::class), $container->get(TemplateRenderer::class), $container->get(UserRepositoryInterface::class)));
+
+        // Factory & Controller
+        $container->bind(\App\Application\Actions\UserActionFactory::class, fn () => new \App\Application\Actions\UserActionFactory($container));
+
         $container->bind(UserController::class, fn (): UserController => new UserController(
+            $container->get(\App\Application\Actions\UserActionFactory::class),
             $container->get(AuthService::class),
-            $container->get(ConfigInterface::class),
-            $container->get(GroupRepositoryInterface::class),
-            $container->get(TemplateRenderer::class),
-            $container->get(UserRepositoryInterface::class),
         ));
 
         // --- 3.3 Frontend Controller (Public) ---

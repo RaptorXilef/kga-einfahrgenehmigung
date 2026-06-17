@@ -22,7 +22,7 @@ $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 
 $controller = $container->get(UserController::class);
 
-$controller->handleRequest($_POST);
+$controller->handleRequest($_POST, $_GET);
 
 try {
     $mailService = $container->get(MailServiceInterface::class);

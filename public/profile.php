@@ -24,7 +24,7 @@ $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 $controller = $container->get(UserController::class);
 
 // 3. Request an den Controller übergeben
-$controller->handleProfileRequest($_POST);
+$controller->handleProfileRequest($_POST, $_GET);
 
 // 4. Mail-Queue verarbeiten
 try {
