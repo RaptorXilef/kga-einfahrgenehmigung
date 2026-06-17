@@ -2,6 +2,20 @@
 
 
 
+## [0.46.15](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.14...v0.46.15) (2026-06-17)
+
+### ⚙️ Refactoring
+
+* **check,adr:** convert CheckController to dedicated CheckPermitAction ([8a1892f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8a1892f5913d0e0c2b1410868abd4e1285daa1ba))
+* **checkout,adr:** convert CheckoutController to dedicated CheckoutAction ([ee803ec](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ee803ecc4687d4a227a848dcac686d6377dc373c))
+* **checkout,adr:** convert SuccessController to dedicated SuccessAction ([900724f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/900724f3b394e1cf804b14c0c94ba5fa18b42376))
+* **history,adr:** dismantle God Controller into isolated ADR actions via factory ([9ed6d70](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9ed6d70be3505b5ad50d1e50f1359ecc8332fac1))
+* **legal,adr:** split LegalController into dedicated ADR actions ([72c5e31](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/72c5e3188d6113795d46e32e5625b239922d835f))
+* **payment,adr:** convert PaymentController to dedicated CapturePaymentAction ([4ae7d63](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4ae7d63960e65dacf794f04dfd50781a26cffab8))
+* **permits,adr:** dismantle PermitController into dedicated ADR actions and enforce PRG pattern ([a44fd44](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a44fd449d0681151609255d9e118c6f1774ded6f))
+* **users,adr:** completely dismantle UserController into 15 isolated ADR actions ([997ae64](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/997ae64af2e9ac1e5de5738cfd6da2f240bd2939))
+* **verification,adr:** dismantle VerificationController into ADR actions via factory ([09ff0c9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/09ff0c94ec233eb876b7ec827c7043676549ee13))
+
 ## [0.46.14](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.13...v0.46.14) (2026-06-17)
 
 ### ⚙️ Refactoring
