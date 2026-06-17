@@ -15,6 +15,10 @@ use App\Application\Actions\CreateVoucherAction;
 use App\Application\Actions\DatenschutzAction;
 use App\Application\Actions\DeleteVoucherAction;
 use App\Application\Actions\FilterDashboardAction;
+use App\Application\Actions\GroupDeleteAction;
+use App\Application\Actions\GroupRenameAction;
+use App\Application\Actions\GroupSaveAction;
+use App\Application\Actions\GroupUploadImageAction;
 use App\Application\Actions\HistoryActionFactory;
 use App\Application\Actions\HistoryLogoutAction;
 use App\Application\Actions\HistoryPrintAction;
@@ -31,12 +35,27 @@ use App\Application\Actions\PermitActionFactory;
 use App\Application\Actions\PermitEditAction;
 use App\Application\Actions\PermitRenderAction;
 use App\Application\Actions\PermitSubmitAction;
+use App\Application\Actions\ProfileRenderAction;
+use App\Application\Actions\ProfileUpdatePasswordAction;
+use App\Application\Actions\ProfileUpdateUsernameAction;
+use App\Application\Actions\ProfileUploadAvatarAction;
 use App\Application\Actions\ResendMailAction;
 use App\Application\Actions\RestoreDataAction;
 use App\Application\Actions\SuccessAction;
 use App\Application\Actions\ToggleSuspensionAction;
 use App\Application\Actions\ToggleVoucherAction;
 use App\Application\Actions\TruncateTargetAction;
+use App\Application\Actions\UserActionFactory;
+use App\Application\Actions\UserChangeGroupAction;
+use App\Application\Actions\UserDeleteAction;
+use App\Application\Actions\UserManagementRenderAction;
+use App\Application\Actions\UserRenameAction;
+use App\Application\Actions\UserResetPasswordAction;
+use App\Application\Actions\UserSaveAction;
+use App\Application\Actions\UserUploadAvatarAction;
+use App\Application\Actions\VerificationActionFactory;
+use App\Application\Actions\VerificationRenderAction;
+use App\Application\Actions\VerificationSubmitAction;
 use App\Application\AdminController;
 use App\Application\HistoryController;
 use App\Application\PermitController;
@@ -192,32 +211,83 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // User & Group Actions
-        $container->bind(\App\Application\Actions\GroupDeleteAction::class, fn () => new \App\Application\Actions\GroupDeleteAction($container->get(AuthService::class), $container->get(ConfigInterface::class), $container->get(GroupRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\GroupRenameAction::class, fn () => new \App\Application\Actions\GroupRenameAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\GroupSaveAction::class, fn () => new \App\Application\Actions\GroupSaveAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\GroupUploadImageAction::class, fn () => new \App\Application\Actions\GroupUploadImageAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class)));
+        $container->bind(GroupDeleteAction::class, fn () => new GroupDeleteAction(
+            $container->get(AuthService::class),
+            $container->get(ConfigInterface::class),
+            $container->get(GroupRepositoryInterface::class),
+        ));
+        $container->bind(GroupRenameAction::class, fn () => new GroupRenameAction(
+            $container->get(AuthService::class),
+            $container->get(GroupRepositoryInterface::class),
+        ));
+        $container->bind(GroupSaveAction::class, fn () => new GroupSaveAction(
+            $container->get(AuthService::class),
+            $container->get(GroupRepositoryInterface::class),
+        ));
+        $container->bind(GroupUploadImageAction::class, fn () => new GroupUploadImageAction(
+            $container->get(AuthService::class),
+            $container->get(GroupRepositoryInterface::class),
+        ));
 
-        $container->bind(\App\Application\Actions\UserChangeGroupAction::class, fn () => new \App\Application\Actions\UserChangeGroupAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\UserDeleteAction::class, fn () => new \App\Application\Actions\UserDeleteAction($container->get(AuthService::class), $container->get(ConfigInterface::class), $container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\UserRenameAction::class, fn () => new \App\Application\Actions\UserRenameAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\UserResetPasswordAction::class, fn () => new \App\Application\Actions\UserResetPasswordAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\UserSaveAction::class, fn () => new \App\Application\Actions\UserSaveAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\UserUploadAvatarAction::class, fn () => new \App\Application\Actions\UserUploadAvatarAction($container->get(AuthService::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(UserChangeGroupAction::class, fn () => new UserChangeGroupAction(
+            $container->get(AuthService::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(UserDeleteAction::class, fn () => new UserDeleteAction(
+            $container->get(AuthService::class),
+            $container->get(ConfigInterface::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(UserRenameAction::class, fn () => new UserRenameAction(
+            $container->get(AuthService::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(UserResetPasswordAction::class, fn () => new UserResetPasswordAction(
+            $container->get(AuthService::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(UserSaveAction::class, fn () => new UserSaveAction(
+            $container->get(AuthService::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(UserUploadAvatarAction::class, fn () => new UserUploadAvatarAction(
+            $container->get(AuthService::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
 
         // Profile Actions
-        $container->bind(\App\Application\Actions\ProfileUpdatePasswordAction::class, fn () => new \App\Application\Actions\ProfileUpdatePasswordAction($container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\ProfileUpdateUsernameAction::class, fn () => new \App\Application\Actions\ProfileUpdateUsernameAction($container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\ProfileUploadAvatarAction::class, fn () => new \App\Application\Actions\ProfileUploadAvatarAction($container->get(UserRepositoryInterface::class)));
+        $container->bind(ProfileUpdatePasswordAction::class, fn () => new ProfileUpdatePasswordAction(
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(ProfileUpdateUsernameAction::class, fn () => new ProfileUpdateUsernameAction(
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(ProfileUploadAvatarAction::class, fn () => new ProfileUploadAvatarAction(
+            $container->get(UserRepositoryInterface::class),
+        ));
 
         // Render Actions
-        $container->bind(\App\Application\Actions\ProfileRenderAction::class, fn () => new \App\Application\Actions\ProfileRenderAction($container->get(AuthService::class), $container->get(GroupRepositoryInterface::class), $container->get(TemplateRenderer::class), $container->get(UserRepositoryInterface::class)));
-        $container->bind(\App\Application\Actions\UserManagementRenderAction::class, fn () => new \App\Application\Actions\UserManagementRenderAction($container->get(AuthService::class), $container->get(ConfigInterface::class), $container->get(GroupRepositoryInterface::class), $container->get(TemplateRenderer::class), $container->get(UserRepositoryInterface::class)));
+        $container->bind(ProfileRenderAction::class, fn () => new ProfileRenderAction(
+            $container->get(AuthService::class),
+            $container->get(GroupRepositoryInterface::class),
+            $container->get(TemplateRenderer::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(UserManagementRenderAction::class, fn () => new UserManagementRenderAction(
+            $container->get(AuthService::class),
+            $container->get(ConfigInterface::class),
+            $container->get(GroupRepositoryInterface::class),
+            $container->get(TemplateRenderer::class),
+            $container->get(UserRepositoryInterface::class),
+        ));
 
         // Factory & Controller
-        $container->bind(\App\Application\Actions\UserActionFactory::class, fn () => new \App\Application\Actions\UserActionFactory($container));
+        $container->bind(UserActionFactory::class, fn () => new UserActionFactory(
+            $container,
+        ));
 
         $container->bind(UserController::class, fn (): UserController => new UserController(
-            $container->get(\App\Application\Actions\UserActionFactory::class),
+            $container->get(UserActionFactory::class),
             $container->get(AuthService::class),
         ));
 
@@ -312,7 +382,9 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         // Permit Factory
-        $container->bind(PermitActionFactory::class, fn () => new PermitActionFactory($container));
+        $container->bind(PermitActionFactory::class, fn () => new PermitActionFactory(
+            $container,
+        ));
 
         // PermitController
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
@@ -326,12 +398,25 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
         ));
 
-        $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
-            $container->get(ConfigInterface::class),
+        // Verification Actions
+        $container->bind(VerificationRenderAction::class, fn () => new VerificationRenderAction(
+            $container->get(TemplateRenderer::class),
+        ));
+
+        $container->bind(VerificationSubmitAction::class, fn () => new VerificationSubmitAction(
             $container->get(MailServiceInterface::class),
             $container->get(PermitService::class),
             $container->get(RateLimiterInterface::class),
-            $container->get(TemplateRenderer::class),
+        ));
+
+        // Verification Factory & Controller
+        $container->bind(VerificationActionFactory::class, fn () => new VerificationActionFactory(
+            $container,
+        ));
+
+        // VerificationController
+        $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
+            $container->get(VerificationActionFactory::class),
         ));
     }
 }
