@@ -6,6 +6,7 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\AnonymizeArchiveAction;
+use App\Application\Actions\CapturePaymentAction;
 use App\Application\Actions\CheckoutAction;
 use App\Application\Actions\CheckPermitAction;
 use App\Application\Actions\ClearCacheAction;
@@ -33,7 +34,6 @@ use App\Application\Actions\ToggleVoucherAction;
 use App\Application\Actions\TruncateTargetAction;
 use App\Application\AdminController;
 use App\Application\HistoryController;
-use App\Application\PaymentController;
 use App\Application\PermitController;
 use App\Application\SuccessController;
 use App\Application\UserController;
@@ -264,6 +264,10 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
         ));
 
+        $container->bind(CapturePaymentAction::class, fn () => new CapturePaymentAction(
+            $container->get(PermitService::class),
+        ));
+
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
             $container->get(ConfigInterface::class),
             $container->get(PermitService::class),
@@ -279,10 +283,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(PermitService::class),
             $container->get(RateLimiterInterface::class),
             $container->get(TemplateRenderer::class),
-        ));
-
-        $container->bind(PaymentController::class, fn (): PaymentController => new PaymentController(
-            $container->get(PermitService::class),
         ));
 
         $container->bind(SuccessController::class, fn (): SuccessController => new SuccessController(

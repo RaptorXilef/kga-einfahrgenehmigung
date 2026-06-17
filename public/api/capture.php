@@ -15,7 +15,7 @@
 
 declare(strict_types=1);
 
-use App\Application\PaymentController;
+use App\Application\Actions\CapturePaymentAction;
 use App\Application\Response\JsonResponse;
 
 // Zentraler Bootstrapper laden
@@ -23,5 +23,5 @@ $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
 
 JsonResponse::enforceCsrfProtection();
 
-$controller = $container->get(PaymentController::class);
-$controller->handleCapture();
+$action = $container->get(CapturePaymentAction::class);
+$action->execute($_GET); // $_GET fungiert hier als Dummy, da die Action php://input liest
