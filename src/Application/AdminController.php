@@ -159,16 +159,10 @@ final readonly class AdminController
      */
     private function handleAuthActions(array $get, array $post): bool
     {
-        $action = '';
+        $action = (string) ($post['action'] ?? '');
 
-        // STRIKTE HÄRTUNG: Logout reagiert AUSSCHLIESSLICH auf POST
-        if (isset($post['action']) && $post['action'] === 'logout') {
-            $action = 'logout';
-        } elseif (isset($post['login'])) {
-            $action = 'login';
-        }
-
-        if ($action !== '') {
+        // STRIKTE HÄRTUNG: Nur definierte Auth-Actions werden hier verarbeitet
+        if ($action === 'login' || $action === 'logout') {
             $actionHandler = $this->actionFactory->create($action);
             if ($actionHandler !== null) {
                 $actionHandler->execute($post);
