@@ -268,13 +268,29 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(PermitService::class),
         ));
 
-        $container->bind(PermitController::class, fn (): PermitController => new PermitController(
-            $container->get(ConfigInterface::class),
+        // Permit Actions
+        $container->bind(\App\Application\Actions\PermitEditAction::class, fn () => new \App\Application\Actions\PermitEditAction(
             $container->get(PermitService::class),
+        ));
+
+        $container->bind(\App\Application\Actions\PermitRenderAction::class, fn () => new \App\Application\Actions\PermitRenderAction(
+            $container->get(ConfigInterface::class),
             $container->get(TemplateRenderer::class),
-            $container->get(VerificationRepositoryInterface::class),
             $container->get(VoucherRepositoryInterface::class),
             $container->get(VoucherService::class),
+        ));
+
+        $container->bind(\App\Application\Actions\PermitSubmitAction::class, fn () => new \App\Application\Actions\PermitSubmitAction(
+            $container->get(PermitService::class),
+            $container->get(VerificationRepositoryInterface::class),
+        ));
+
+        // Permit Factory
+        $container->bind(\App\Application\Actions\PermitActionFactory::class, fn () => new \App\Application\Actions\PermitActionFactory($container));
+
+        // Den neuen leichten PermitController registrieren
+        $container->bind(PermitController::class, fn (): PermitController => new PermitController(
+            $container->get(\App\Application\Actions\PermitActionFactory::class),
         ));
 
         $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
