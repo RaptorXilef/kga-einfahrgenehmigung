@@ -13,42 +13,7 @@
 
 declare(strict_types=1);
 
-use App\Application\Response\JsonResponse;
-use App\Contracts\Payment\PaymentProviderInterface;
-use App\Core\Service\PermitService;
+use App\Application\ApiController;
 
-try {
-    $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
-    JsonResponse::enforceCsrfProtection();
-
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        JsonResponse::error('Methode nicht erlaubt.', 405);
-    }
-
-    $token = (string) ($_POST['token'] ?? '');
-    if ($token === '') {
-        throw new \Exception('Kein Token angegeben');
-    }
-
-    // Warteraum laden
-    // Der Service weiß bereits durch seine Config, ob er JSON oder SQL nutzen muss
-    $permitService = $container->get(PermitService::class);
-    $tempRequest   = $permitService->getVerifiedRequest($token);
-
-    if ($tempRequest === null) { // Expliziter Check statt if (!$tempRequest)
-        throw new \Exception('Sitzung nicht gefunden oder abgelaufen');
-    }
-
-    // Preis aus Snapshot nutzen
-    $payment = $container->get(PaymentProviderInterface::class);
-    $orderId = $payment->createOrder((float) $tempRequest['preis']);
-
-    if ($orderId) {
-        JsonResponse::success(['id' => $orderId]);
-    } else {
-        JsonResponse::error('PayPal Error', 500);
-    }
-
-} catch (\Throwable $e) {
-    JsonResponse::error($e->getMessage());
-}
+$container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
+$container->get(ApiController::class)->handle('create_order');

@@ -29,8 +29,12 @@ final readonly class CapturePaymentAction implements ViewActionInterface
 
     public function execute(array $requestData): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            JsonResponse::error('Methode nicht erlaubt.', 405);
+        }
+
         try {
-            $dto = CapturePaymentRequest::fromGlobalStream();
+            $dto = CapturePaymentRequest::fromArray($requestData['input']);
         } catch (ValidationException $exception) {
             JsonResponse::error($exception->getMessage(), 400);
 
@@ -38,12 +42,10 @@ final readonly class CapturePaymentAction implements ViewActionInterface
         }
 
         try {
-            $success = $this->permitService->completePayment(
+            if ($this->permitService->completePayment(
                 $dto->token,
                 $dto->orderId,
-            );
-
-            if ($success) {
+            )) {
                 JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
             } else {
                 JsonResponse::error('Fehler bei Verifizierung');

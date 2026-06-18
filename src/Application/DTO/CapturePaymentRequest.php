@@ -25,18 +25,10 @@ final readonly class CapturePaymentRequest
     ) {
     }
 
-    public static function fromGlobalStream(): self
+    public static function fromArray(array $input): self
     {
-        $input = \file_get_contents('php://input');
-
-        try {
-            $data = \json_decode((string) $input, true, 512, \JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
-            throw ValidationException::withMessage('Ungültiges JSON-Format gesendet.');
-        }
-
-        $orderId = (string) ($data['orderID'] ?? '');
-        $token   = (string) ($data['token'] ?? '');
+        $orderId = (string) ($input['orderID'] ?? '');
+        $token   = (string) ($input['token'] ?? '');
 
         if ($orderId === '' || $token === '') {
             throw ValidationException::withMessage('Fehlende Parameter (orderID oder token).');

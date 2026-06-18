@@ -13,13 +13,7 @@
 
 declare(strict_types=1);
 
-use App\Application\Response\JsonResponse;
-use App\Contracts\Mail\MailServiceInterface;
+use App\Application\ApiController;
 
-$container = require __DIR__ . '/../../src/Bootstrap/app.php';
-
-JsonResponse::enforceCsrfProtection();
-
-$container->get(MailServiceInterface::class)->processQueue(10);
-
-JsonResponse::success(['status' => 'processed']);
+$container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
+$container->get(ApiController::class)->handle('process_mail_queue');

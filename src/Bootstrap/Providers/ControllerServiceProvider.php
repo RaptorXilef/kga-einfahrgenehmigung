@@ -7,8 +7,14 @@ namespace App\Bootstrap\Providers;
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\AdminLoginAction;
 use App\Application\Actions\AdminLogoutAction;
+use App\Application\Actions\ApiActionFactory;
+use App\Application\Actions\ApiGetDateInfoAction;
+use App\Application\Actions\ApiGetTemplatePriceAction;
+use App\Application\Actions\ApiSearchPermitsAction;
 use App\Application\Actions\CapturePaymentAction;
 use App\Application\Actions\CheckoutAction;
+use App\Application\Actions\CheckoutCreateOrderAction;
+use App\Application\Actions\CheckoutFinalizeWireAction;
 use App\Application\Actions\CheckPermitAction;
 use App\Application\Actions\DashboardFilterAction;
 use App\Application\Actions\DatenschutzAction;
@@ -37,8 +43,12 @@ use App\Application\Actions\ProfileUpdateUsernameAction;
 use App\Application\Actions\ProfileUploadAvatarAction;
 use App\Application\Actions\SuccessAction;
 use App\Application\Actions\SystemAnonymizeArchiveAction;
+use App\Application\Actions\SystemCheckUpdateAction;
 use App\Application\Actions\SystemClearCacheAction;
+use App\Application\Actions\SystemFinalizeUpdateAction;
 use App\Application\Actions\SystemMigrateDataAction;
+use App\Application\Actions\SystemPerformUpdateAction;
+use App\Application\Actions\SystemProcessMailQueueAction;
 use App\Application\Actions\SystemResendMailAction;
 use App\Application\Actions\SystemRestoreDataAction;
 use App\Application\Actions\SystemTruncateTargetAction;
@@ -57,6 +67,7 @@ use App\Application\Actions\VoucherCreateAction;
 use App\Application\Actions\VoucherDeleteAction;
 use App\Application\Actions\VoucherToggleAction;
 use App\Application\AdminController;
+use App\Application\ApiController;
 use App\Application\HistoryController;
 use App\Application\PermitController;
 use App\Application\UserController;
@@ -68,6 +79,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
@@ -77,11 +89,13 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\ExportService;
+use App\Core\Service\GitHubUpdaterService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
+use App\Core\Service\UpdateMigrationService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -396,6 +410,54 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // Verification Controller
         $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
             $container->get(VerificationActionFactory::class),
+        ));
+
+        // API Actions
+        $container->bind(SystemCheckUpdateAction::class, fn () => new SystemCheckUpdateAction(
+            $container->get(ConfigInterface::class),
+            $container->get(GitHubUpdaterService::class),
+        ));
+        $container->bind(CheckoutCreateOrderAction::class, fn () => new CheckoutCreateOrderAction(
+            $container->get(PermitService::class),
+            $container->get(PaymentProviderInterface::class),
+        ));
+        $container->bind(SystemFinalizeUpdateAction::class, fn () => new SystemFinalizeUpdateAction(
+            $container->get(UpdateMigrationService::class),
+            $container->get(AuthService::class),
+        ));
+        $container->bind(CheckoutFinalizeWireAction::class, fn () => new CheckoutFinalizeWireAction(
+            $container->get(PermitService::class),
+        ));
+        $container->bind(ApiGetDateInfoAction::class, fn () => new ApiGetDateInfoAction(
+            $container->get(HolidayService::class),
+        ));
+        $container->bind(ApiGetTemplatePriceAction::class, fn () => new ApiGetTemplatePriceAction(
+            $container->get(ConfigInterface::class),
+            $container->get(PermitService::class),
+            $container->get(RateLimiterInterface::class),
+            $container->get(VoucherRepositoryInterface::class),
+            $container->get(VoucherService::class),
+        ));
+        $container->bind(SystemPerformUpdateAction::class, fn () => new SystemPerformUpdateAction(
+            $container->get(GitHubUpdaterService::class),
+        ));
+        $container->bind(SystemProcessMailQueueAction::class, fn () => new SystemProcessMailQueueAction(
+            $container->get(MailServiceInterface::class),
+        ));
+        $container->bind(ApiSearchPermitsAction::class, fn () => new ApiSearchPermitsAction(
+            $container->get(PermitService::class),
+        ));
+
+        // API Factory
+        $container->bind(ApiActionFactory::class, fn () => new ApiActionFactory(
+            $container,
+        ));
+
+        // API Controller
+        $container->bind(ApiController::class, fn () => new ApiController(
+            $container->get(ApiActionFactory::class),
+            $container->get(AuthService::class),
+            $container->get(RateLimiterInterface::class),
         ));
     }
 }
