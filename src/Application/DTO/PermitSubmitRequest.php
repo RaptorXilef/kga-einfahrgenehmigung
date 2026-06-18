@@ -20,23 +20,21 @@ use App\Application\Exception\ValidationException;
 final readonly class PermitSubmitRequest
 {
     private function __construct(
-        public string $name,
-        public string $email,
-        public string $parzelle,
-        public string $kennzeichen,
-        public string $typ,
-        public string $firma,
-        public string $zweck,
-        public string $templateKey,
-        public string $voucher,
-        public string $datumVon,
-        public string $datumBis,
         public array $agreements,
-        public array $rawSanitized, // Hält das saubere Array für Session & Service
+        public string $datumBis,
+        public string $datumVon,
+        public string $email,
+        public string $firma,
+        public string $kennzeichen,
+        public string $name,
+        public string $parzelle,
+        public string $templateKey,
+        public string $typ,
+        public string $voucher,
+        public string $zweck,
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
         // 1. Array komplett säubern (XSS-Schutz, Trimmen)
@@ -48,7 +46,7 @@ final readonly class PermitSubmitRequest
         $email    = $sanitized['email'] ?? '';
         $parzelle = $sanitized['parzelle'] ?? '';
 
-        // 2. Strenge Validierung für das öffentliche Formular
+        // 2. Strenge Validierung
         if ($name === '') {
             throw ValidationException::withMessage('Bitte geben Sie einen Namen ein.');
         }
@@ -60,27 +58,40 @@ final readonly class PermitSubmitRequest
         }
 
         return new self(
-            $name,
-            $email,
-            $parzelle,
-            $sanitized['kennzeichen'] ?? '',
-            $sanitized['typ'] ?? 'pkw',
-            $sanitized['firma'] ?? '',
-            $sanitized['zweck'] ?? '',
-            $sanitized['template_key'] ?? '',
-            $sanitized['voucher'] ?? '',
-            $sanitized['datum_von'] ?? '',
-            $sanitized['datum_bis'] ?? '',
-            $sanitized['agreements'] ?? [],
-            $sanitized,
+            agreements: $sanitized['agreements'] ?? [],
+            datumBis: $sanitized['datum_bis'] ?? '',
+            datumVon: $sanitized['datum_von'] ?? '',
+            email: $email,
+            firma: $sanitized['firma'] ?? '',
+            kennzeichen: $sanitized['kennzeichen'] ?? '',
+            name: $name,
+            parzelle: $parzelle,
+            templateKey: $sanitized['template_key'] ?? '',
+            typ: $sanitized['typ'] ?? 'pkw',
+            voucher: $sanitized['voucher'] ?? '',
+            zweck: $sanitized['zweck'] ?? '',
         );
     }
 
     /**
-     * Gibt das komplett bereinigte Array für Legacy-Services zurück.
+     * Baut ein absolut sicheres, typsicheres Array für den Service zusammen.
+     * Das Leck ist geschlossen!
      */
     public function toArray(): array
     {
-        return $this->rawSanitized;
+        return [
+            'agreements'   => $this->agreements,
+            'datum_bis'    => $this->datumBis,
+            'datum_von'    => $this->datumVon,
+            'email'        => $this->email,
+            'firma'        => $this->firma,
+            'kennzeichen'  => $this->kennzeichen,
+            'name'         => $this->name,
+            'parzelle'     => $this->parzelle,
+            'template_key' => $this->templateKey,
+            'typ'          => $this->typ,
+            'voucher'      => $this->voucher,
+            'zweck'        => $this->zweck,
+        ];
     }
 }

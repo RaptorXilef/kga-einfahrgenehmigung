@@ -137,8 +137,9 @@ function optimizeTokens(content, fileExtension) {
         }
     }
 
-    // Extra-Schritt für PHP/PHTML/JS/SCSS: Mehrfache Leerzeichen vor und nach '=>', '+=', '=', '=>' etc. kollabieren
-    content = content.replace(/\s*(=>|==|=|<=|>=|\+=|-=)\s*/g, ' $1 ');
+    // Extra-Schritt für PHP/PHTML/JS/SCSS: Operatoren sauber mit exakt einem Leerzeichen umschließen
+    // WICHTIG: Längste Operatoren (wie === und !==) müssen zuerst stehen, damit sie nicht zerrissen werden!
+    content = content.replace(/\s*(===|!==|<=|>=|=>|==|!=|\+=|-=|=)\s*/g, ' $1 ');
 
     // 2. Schritt: Whitespace & Zeilenumbrüche minimieren
 

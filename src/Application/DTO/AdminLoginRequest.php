@@ -19,21 +19,26 @@ use App\Application\Exception\ValidationException;
 final readonly class AdminLoginRequest
 {
     private function __construct(
-        public string $username,
         public string $password,
+        public string $redirectCode,
+        public string $username,
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
         $user = \trim((string) ($post['user'] ?? ''));
         $pass = (string) ($post['pass'] ?? '');
+        $code = \trim((string) ($post['code'] ?? ''));
 
         if ($user === '' || $pass === '') {
             throw ValidationException::withMessage('Bitte geben Sie einen Benutzernamen und ein Passwort ein.');
         }
 
-        return new self($user, $pass);
+        return new self(
+            password: $pass,
+            redirectCode: $code,
+            username: $user,
+        );
     }
 }

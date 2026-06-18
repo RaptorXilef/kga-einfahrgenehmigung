@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\CapturePaymentRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
 /**
  * Action zur Abwicklung und Erfassung externer Zahlungen (PayPal-Capture).
- * Verarbeitet asynchrone REST-Zahlungsbestätigungen (JSON-Input stream)
- * und finalisiert die Genehmigung bei erfolgreicher Verifizierung.
  *
  * Path: src/Application/Actions/CapturePaymentAction.php
  *
@@ -27,32 +27,20 @@ final readonly class CapturePaymentAction implements ViewActionInterface
     ) {
     }
 
-    /**
-     * Verarbeitet asynchrone REST-Zahlungsbestätigungen (JSON-Input stream).
-     * Finalisiert die Genehmigung bei erfolgreicher Transaktions-Verifizierung.
-     *
-     * Verarbeitet das Capture (Geldeinzug) von PayPal-Bestellungen.
-     * Nutzt das 'token' zur Identifizierung im Warteraum.
-     *
-     * @return void Schreibt JSON direkt in den Output-Stream.
-     */
     public function execute(array $requestData): void
     {
         try {
-            $input = \file_get_contents('php://input');
-            // Wirft eine \JsonException, die direkt im catch(\Exception) unten gefangen wird!
-            $data = \json_decode((string) $input, true, 512, \JSON_THROW_ON_ERROR);
+            $dto = CapturePaymentRequest::fromGlobalStream();
+        } catch (ValidationException $exception) {
+            JsonResponse::error($exception->getMessage(), 400);
 
-            // Wir erwarten 'token' statt 'permitCode'
-            if (! isset($data['orderID'], $data['token'])) {
-                throw new \Exception('Fehlende Parameter (orderID oder token).');
-            }
+            return;
+        }
 
-            // Der PermitService kümmert sich um die Verifizierung beim Provider
-            // und die Finalisierung des Antrags.
+        try {
             $success = $this->permitService->completePayment(
-                (string) $data['token'],
-                (string) $data['orderID'],
+                $dto->token,
+                $dto->orderId,
             );
 
             if ($success) {

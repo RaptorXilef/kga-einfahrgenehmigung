@@ -44,10 +44,9 @@ final readonly class AdminLoginAction implements ActionInterface
 
         try {
             if ($this->auth->login($dto->username, $dto->password)) {
-                // Login-Redirects behalten REQUEST-Fokus bei (z.B. für check.php)
-                $code = (string) ($_REQUEST['code'] ?? '');
-                if ($code !== '') {
-                    \header('Location: check.php?code=' . \urlencode($code));
+                // Der Code kommt streng typisiert aus dem DTO!
+                if ($dto->redirectCode !== '') {
+                    \header('Location: check.php?code=' . \urlencode($dto->redirectCode));
                     exit;
                 }
 
