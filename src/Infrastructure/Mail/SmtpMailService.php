@@ -294,7 +294,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      *
      * @param resource $socket
      */
-    private function checkResponse($socket, string $expectedCode): bool
+    private function checkResponse(mixed $socket, string $expectedCode): bool
     {
         $response = $this->getServerResponse($socket);
 
@@ -308,7 +308,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      *
      * @return string Die gesammelte Serverantwort.
      */
-    private function getServerResponse($socket): string
+    private function getServerResponse(mixed $socket): string
     {
         $response = '';
         while ($str = \fgets($socket, 515)) {

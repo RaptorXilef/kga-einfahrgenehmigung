@@ -209,7 +209,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(GroupRepositoryInterface::class),
             $container->get(HolidayService::class),
             $container->get(MailLogInterface::class),
-            $container->get(MigrationService::class),
             $container->get(PermitService::class),
             $container->get(ReportingService::class),
             $container->get(StorageBootstrapper::class),
@@ -314,7 +313,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(UserRepositoryInterface::class),
         ));
         $container->bind(CheckoutAction::class, fn () => new CheckoutAction(
-            $container->get(ConfigInterface::class),
             $container->get(HolidayService::class),
             $container->get(PermitService::class),
             $container->get(TemplateRenderer::class),

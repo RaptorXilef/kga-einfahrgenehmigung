@@ -23,7 +23,6 @@ use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 
 /**
@@ -55,7 +54,6 @@ final readonly class AdminController
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
         private MailLogInterface $mailLog,
-        private MigrationService $migrationService,
         private PermitService $permitService,
         private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,

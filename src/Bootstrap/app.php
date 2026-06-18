@@ -209,7 +209,7 @@ foreach ($configFiles as $key => $file) {
         // Hilfs-Mapping für die flache Liste im User-Dropdown-UI
         $flatPerms = [];
         if (! empty($settings['structure'])) {
-            $flatten = function ($nodes) use (&$flatten, &$flatPerms): void {
+            $flatten = function (array $nodes) use (&$flatten, &$flatPerms): void {
                 foreach ($nodes as $node) {
                     if (isset($node['key'])) {
                         $flatPerms[$node['key']] = $node['label'] ?? $node['key'];

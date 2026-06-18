@@ -7,7 +7,6 @@ namespace App\Application\Actions;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
 
@@ -26,7 +25,6 @@ use App\Core\Service\PermitService;
 final readonly class CheckoutAction implements ViewActionInterface
 {
     public function __construct(
-        private ConfigInterface $config,
         private HolidayService $holidayService,
         private PermitService $permitService,
         private TemplateRenderer $renderer,
