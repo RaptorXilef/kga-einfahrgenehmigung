@@ -13,9 +13,9 @@
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  *
- * @var \App\Core\Service\AuthService               $auth
+ * @var \App\Core\Service\AuthService                 $auth
  * @var \App\Infrastructure\Maintenance\BackupService $backupService
- * @var array                                       $settings
+ * @var array                                         $settings
  */
 if ($auth->hasPermission('dashboard.migration.view')) {
     $targets = [
@@ -33,8 +33,6 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         'login_attempts'       => ['label' => 'Login-Versuche', 'icon' => '🛡'],
         'update_migrations'    => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
     ];
-
-    $backups = $backupService->listBackups();
     ?>
     <div class="c-tab-content-container">
 

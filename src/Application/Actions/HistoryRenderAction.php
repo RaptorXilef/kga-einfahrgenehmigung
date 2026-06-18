@@ -74,13 +74,18 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 
         \usort($permits, fn ($a, $b): int => $b->getCreatedAt() <=> $a->getCreatedAt());
 
+        $overdueLevels = [];
+        foreach ($permits as $permit) {
+            $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
+        }
+
         $this->renderer->render('history_list', [
             'currentArchiveYear' => $loadedYear,
             'email'              => $emailInSession,
             'isSuccess'          => $isSuccess,
             'message'            => $message,
+            'overdueLevels'      => $overdueLevels,
             'permits'            => $permits,
-            'permitService'      => $this->permitService,
         ]);
     }
 }

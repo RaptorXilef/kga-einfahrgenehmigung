@@ -6,7 +6,6 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -42,7 +41,6 @@ final readonly class PermitService
         private EventDispatcherInterface $eventDispatcher,
         private LicensePlateFormatter $plateFormatter,
         private LockManagerInterface $lockManager,
-        private PaymentProviderInterface $paymentProvider,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private StorageInterface $storage,
         private VerificationRepositoryInterface $verificationRepository,
@@ -213,25 +211,6 @@ final readonly class PermitService
 
             return $permit;
         });
-    }
-
-    public function completePayment(string $token, string $orderId): bool
-    {
-        $allVerified = $this->verificationRepository->loadVerified();
-
-        if (! isset($allVerified[$token])) {
-            return false;
-        }
-
-        $data = (array) $allVerified[$token];
-
-        if ($this->paymentProvider->captureOrder($orderId, (float) $data['preis'])) {
-            $this->finaliseRequest($token, 'bezahlt', 'Bezahlt via PayPal');
-
-            return true;
-        }
-
-        return false;
     }
 
     public function createPermit(array $data, bool $sendMails = true): Permit

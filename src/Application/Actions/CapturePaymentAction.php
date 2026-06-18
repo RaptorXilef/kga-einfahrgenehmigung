@@ -8,6 +8,7 @@ use App\Application\DTO\CapturePaymentRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
+use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -24,6 +25,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
 {
     public function __construct(
         private PermitService $permitService,
+        private PaymentProviderInterface $paymentProvider,
     ) {
     }
 
@@ -31,6 +33,8 @@ final readonly class CapturePaymentAction implements ViewActionInterface
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             JsonResponse::error('Methode nicht erlaubt.', 405);
+
+            return;
         }
 
         try {
@@ -42,13 +46,22 @@ final readonly class CapturePaymentAction implements ViewActionInterface
         }
 
         try {
-            if ($this->permitService->completePayment(
-                $dto->token,
-                $dto->orderId,
-            )) {
+            // ORCHESTRIERUNG: Die Action steuert jetzt die Abläufe, nicht mehr der Service!
+            $tempRequest = $this->permitService->getVerifiedRequest($dto->token);
+
+            if ($tempRequest === null) {
+                JsonResponse::error('Sitzung nicht gefunden oder abgelaufen', 400);
+
+                return;
+            }
+
+            // Zahlung ausführen
+            if ($this->paymentProvider->captureOrder($dto->orderId, (float) $tempRequest['preis'])) {
+                // Bei Erfolg: Den Service anweisen, die Genehmigung zu finalisieren
+                $this->permitService->finaliseRequest($dto->token, 'bezahlt', 'Bezahlt via PayPal');
                 JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
             } else {
-                JsonResponse::error('Fehler bei Verifizierung');
+                JsonResponse::error('Fehler bei Verifizierung der Zahlung', 400);
             }
         } catch (\Exception $exception) {
             JsonResponse::error($exception->getMessage(), 400);

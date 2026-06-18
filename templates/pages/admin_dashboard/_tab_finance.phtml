@@ -72,7 +72,7 @@ if ($auth->hasPermission('dashboard.finance.view')) { ?>
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($unpaidPermits as $permit) {
-                                $overdueLevel = $permitService->getOverdueLevel($permit);
+                                $overdueLevel = $overdueLevels[$permit->code] ?? 0;
                                 $deadline     = $permit->getCreatedAt()->modify("+$dueDaysCfg days");
                                 $diff         = $now->diff($deadline);
                                 $days         = (int) $diff->format('%r%a');

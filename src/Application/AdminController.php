@@ -228,8 +228,8 @@ final readonly class AdminController
 
         $filterStart = (string) ($sessionFilters['start'] ?? $get['start'] ?? \date('Y-01-01'));
         $filterEnd   = (string) ($sessionFilters['end'] ?? $get['end'] ?? \date('Y-12-31'));
-        $filterType  = (string) ($sessionFilters['type'] ?? $get['type'] ?? 'all'); // Den Typ-Filter aus der URL auslesen
-        $searchQuery = \strtolower(\trim((string) ($sessionFilters['q'] ?? $get['q'] ?? ''))); // Die Suche
+        $filterType  = (string) ($sessionFilters['type'] ?? $get['type'] ?? 'all');
+        $searchQuery = \strtolower(\trim((string) ($sessionFilters['q'] ?? $get['q'] ?? '')));
 
         // Konfiguration für Paginierung auslesen
         $paginationCfg = $this->config->get('pagination', []);
@@ -239,8 +239,7 @@ final readonly class AdminController
         // Prüfen, ob ein Limit übergeben wurde und ob es in der erlaubten Liste steht
         $requestedLimit = (int) ($sessionFilters['limit'] ?? $get['limit'] ?? $defaultLimit);
         $itemsPerPage   = \in_array($requestedLimit, $allowedLimits, true) ? $requestedLimit : $defaultLimit;
-
-        $currentPage = \max(1, (int) ($get['page'] ?? 1));
+        $currentPage    = \max(1, (int) ($get['page'] ?? 1));
 
         $allPermits      = $this->storage->getAll();
         $permitTemplates = $this->config->get('permit_templates', []); // Vorlagen laden, um den Typ abzugleichen
@@ -268,11 +267,11 @@ final readonly class AdminController
                 if ($searchQuery !== '') {
                     $haystack = \strtolower(
                         $permit->code . ' ' .
-                            $permit->getOwnerName() . ' ' .
-                            $permit->getOwnerEmail() . ' ' .
-                            $permit->getPlotNumber() . ' ' .
-                            $permit->getLicensePlate() . ' ' .
-                            $permit->getPurpose(),
+                        $permit->getOwnerName() . ' ' .
+                        $permit->getOwnerEmail() . ' ' .
+                        $permit->getPlotNumber() . ' ' .
+                        $permit->getLicensePlate() . ' ' .
+                        $permit->getPurpose(),
                     );
                     if (! \str_contains($haystack, $searchQuery)) {
                         return false;
@@ -293,36 +292,43 @@ final readonly class AdminController
             exit; // Wichtig: Nach dem Download darf kein HTML mehr gesendet werden!
         }
 
-        // 2. Jährliche Gruppierung
-        $yearlyStats = [];
-        $vConfig     = $this->config->get('vehicle_types', []);
+        $vouchers          = $this->voucherRepository->loadAll();
+        $voucherValidities = [];
+        foreach ($vouchers as $code => $v) {
+            $voucherValidities[$code] = $this->voucherService->isValid($v);
+        }
+
+        $permitGroups  = $this->reportingService->groupPermits($filtered);
+        $overdueLevels = [];
+        foreach ($permitGroups['unpaid'] ?? [] as $permit) {
+            $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
+        }
 
         // [x] sortiert
         // Gefilterte Daten ans Template übergeben
         // Hier wurde vorher $allPermits übergeben. Jetzt übergeben wir die $filtered Liste!
         $this->renderer->render('admin_dashboard', [
-            'allowedLimits'    => $allowedLimits, // Paginierungs-Werte
-            'allPermits'       => $allPermits,
-            'auth'             => $this->auth,
-            'backupService'    => $this->backupService,
-            'currentPage'      => $currentPage, // Paginierungs-Werte
-            'filterEnd'        => $filterEnd,
-            'filterStart'      => $filterStart,
-            'filterType'       => $filterType, // An die Control-Bar übergeben
-            'groupRepository'  => $this->groupRepository,
-            'itemsPerPage'     => $itemsPerPage, // Paginierungs-Werte
-            'mailLogs'         => $this->mailLog->loadLogs(),
-            'message'          => $message,
-            'migrationService' => $this->migrationService,
-            'periodStats'      => $this->reportingService->calculateDetailedStats($filtered),
-            'permitGroups'     => $this->reportingService->groupPermits($filtered),
-            'permitService'    => $this->permitService,
-            'structure'        => $this->config->get('structure', []),
-            'userRepository'   => $this->userRepository,
-            'voucherArchive'   => $this->voucherRepository->loadArchive(),
-            'vouchers'         => $this->voucherRepository->loadAll(),
-            'voucherService'   => $this->voucherService,
-            'yearlyStats'      => $this->reportingService->calculateYearlyStats($allPermits),
+            'allowedLimits'     => $allowedLimits, // Paginierungs-Werte
+            'allPermits'        => $allPermits,
+            'auth'              => $this->auth,
+            'backups'           => $this->backupService->listBackups(), // VORBERECHNET!
+            'currentPage'       => $currentPage, // Paginierungs-Werte
+            'filterEnd'         => $filterEnd,
+            'filterStart'       => $filterStart,
+            'filterType'        => $filterType, // An die Control-Bar übergeben
+            'groupRepository'   => $this->groupRepository,
+            'itemsPerPage'      => $itemsPerPage, // Paginierungs-Werte
+            'mailLogs'          => $this->mailLog->loadLogs(),
+            'message'           => $message,
+            'overdueLevels'     => $overdueLevels, // VORBERECHNET!
+            'periodStats'       => $this->reportingService->calculateDetailedStats($filtered),
+            'permitGroups'      => $permitGroups,
+            'structure'         => $this->config->get('structure', []),
+            'userRepository'    => $this->userRepository,
+            'voucherArchive'    => $this->voucherRepository->loadArchive(),
+            'vouchers'          => $vouchers,
+            'voucherValidities' => $voucherValidities, // VORBERECHNET!
+            'yearlyStats'       => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
     }
 

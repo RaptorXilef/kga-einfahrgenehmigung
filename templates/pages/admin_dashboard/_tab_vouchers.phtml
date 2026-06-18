@@ -62,7 +62,7 @@
                                         $url = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
 
                                         // NUTZE DEN SERVICE (Zentralisierte Logik für Sperre, Ablauf und Limits)
-                                        $isValid       = $voucherService->isValid($v);
+                                        $isValid       = $voucherValidities[$v['code']] ?? false;
                                         $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
 
                                         // Ablaufdatum prüfen

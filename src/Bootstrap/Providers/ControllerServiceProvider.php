@@ -359,6 +359,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(CapturePaymentAction::class, fn () => new CapturePaymentAction(
             $container->get(PermitService::class),
+            $container->get(PaymentProviderInterface::class),
         ));
 
         // Permit Actions

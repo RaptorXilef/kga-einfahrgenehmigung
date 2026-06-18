@@ -8,7 +8,6 @@ use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
@@ -59,7 +58,6 @@ final class CoreServiceProvider implements ServiceProviderInterface
             $container->get(EventDispatcherInterface::class),
             $container->get(LicensePlateFormatter::class),
             $container->get(LockManagerInterface::class),
-            $container->get(PaymentProviderInterface::class),
             $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(StorageInterface::class),
             $container->get(VerificationRepositoryInterface::class),

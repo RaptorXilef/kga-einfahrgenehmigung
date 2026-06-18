@@ -156,7 +156,7 @@ $now = new \DateTimeImmutable('today');
                                     $statusClass = 'success';
                                 } else {
                                     // Überfälligkeit checken via Service
-                                    $overdueLevel = $permitService->getOverdueLevel($permit);
+                                    $overdueLevel = $overdueLevels[$permit->code] ?? 0;
                                     if ($overdueLevel === 2) {
                                         $statusClass = 'danger'; // Rot
                                         $statusText  = 'ZAHLUNG ÜBERFÄLLIG';
