@@ -2,6 +2,23 @@
 
 
 
+## [0.47.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.0...v0.47.1) (2026-06-18)
+
+### 🐛 Bug Fixes
+
+* **api,actions:** resolve JSON decoding errors and Linter warnings in API endpoints ([6b590e2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6b590e2ccf26c6a86da9142e2e7e9c75ef7e4f80))
+* **core,provider:** remove invalid argument from EventServiceProvider binding ([ae10053](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ae10053d2a79cf709ad92dc0b46cc8d9ddccc378))
+
+### ⚙️ Refactoring
+
+* **api,adr:** migrate all raw API scripts to central ApiController and middleware pipeline ([adde28e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/adde28e1efd1538b93c7201ac9bc69b3bbd7889c))
+* **core,arch:** eradicate dead code and resolve critical SRP violation in PermitSubmitAction ([b947be7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b947be74741bd252eeea2849bd0da479df7ae78f))
+* **core,di:** remove ghost dependencies of MailServiceInterface after EDA migration ([0be2ae9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0be2ae97ed4ac4c546d9bd6a0f239209b6082bcf))
+* **core,dto:** resolve leaky abstractions and encapsulate global state accesses ([2d084fa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2d084faa00dccf39a8c9e484cc643a58896d2296))
+* **core,events:** decouple PermitService from notification logic via Domain Events ([5421ee3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5421ee3578b656282b32694e466294e4e2d84ed8))
+* **core,events:** fully complete event-driven decoupling across all domains ([fca7c1b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fca7c1b2077308cc9565bda62a78c5607720b05f))
+* **core,views:** decouple infrastructure orchestration and eliminate view leaks ([872dbda](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/872dbdab77fe4c679da5c62b2f2b7fda9bc6b88a))
+
 ## [0.47.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.15...v0.47.0) (2026-06-18)
 
 ### 🚀 Features
