@@ -2,6 +2,27 @@
 
 
 
+## [0.47.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.15...v0.47.0) (2026-06-18)
+
+### 🚀 Features
+
+* **core,middleware:** implement explicit middleware pipeline for route protection ([4cf87e2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4cf87e2353c11362ece86dccf48534a78d90ba25))
+
+### 🐛 Bug Fixes
+
+* **core,dto:** resolve leaky DTO abstractions in status toggle actions ([9ba8772](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9ba8772dc085d0711c1c8b8082c33fbe563589cc))
+
+### ⚙️ Refactoring
+
+* **admin,actions:** rename admin action classes to enforce domain-specific prefixes ([3673359](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3673359eee4c143818eb4820dbe5f64416c436a6))
+* **core,dto:** conclude DTO migration for all remaining mutation actions ([ff98b94](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ff98b9434a219bd9c3bde524e7c3f66572e5dfbc))
+* **core,dto:** finalize DTO integration for all remaining mutation actions ([d58bacd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d58bacd15f6d9d3f6bc6ca09f606e0d4d2c372ee))
+* **core,dto:** implement Data Transfer Objects for major data mutation actions ([abf2272](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/abf227216f87a7351fc2aecfcc540530f63ef856))
+* **core,dto:** implement DTOs for 6 additional mutation actions ([6d917b0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6d917b0ddb80f7e547f1b2102daab988cff2f17a))
+* **core,middleware:** apply middleware pipelines to all front controllers and harden login ([b248b2d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b248b2db5724c70ccc1eeca4e4937e5d2aa083af))
+* **profile,dto:** implement DTOs for profile update actions ([a2b6c74](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a2b6c74ea9a2737edf0a3685869f48bbf79e00c8))
+* **users,dto:** introduce DTO for UserSaveAction to enforce strict request validation ([4b733c2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4b733c2f521c043a22b4a350ed6ceac98cae3cf6))
+
 ## [0.46.15](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.46.14...v0.46.15) (2026-06-17)
 
 ### ⚙️ Refactoring
