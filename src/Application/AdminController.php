@@ -112,21 +112,17 @@ final readonly class AdminController
             return; // Nach Auth-Verarbeitung beenden
         }
 
-        // 4. ZUGANGSKONTROLLE
-        if (! $this->auth->isLoggedIn()) {
-            $this->renderer->render('admin_login', [
-                'auth'            => $this->auth,
-                'groupRepository' => $this->groupRepository,
-                'message'         => '',
-                'userRepository'  => $this->userRepository,
-            ]);
-
-            return; // Hier ist für nicht-eingeloggte User Schluss!
-        }
-
-        // 5. PIPELINE FÜR DASHBOARD & DATEN
+        // --- DASHBOARD PIPELINE ---
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new CsrfMiddleware('admin.php'));
+
+        // Die prozedurale Rechteprüfung wurde in eine Middleware verlagert!
+        $pipeline->add(new Middleware\AdminAuthGuardMiddleware(
+            $this->auth,
+            $this->groupRepository,
+            $this->renderer,
+            $this->userRepository,
+        ));
 
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
             $p = $req['post'];

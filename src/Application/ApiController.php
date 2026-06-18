@@ -8,7 +8,9 @@ use App\Application\Actions\ApiActionFactory;
 use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\ApiPermissionMiddleware;
 use App\Application\Middleware\ApiRateLimitMiddleware;
+use App\Application\Middleware\CorsMiddleware;
 use App\Application\Middleware\HttpMethodMiddleware;
+use App\Application\Middleware\JsonBodyParserMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Security\RateLimiterInterface;
@@ -35,51 +37,39 @@ final readonly class ApiController
 
     public function handle(string $actionKey, ?string $permission = null, bool $rateLimit = false): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            exit; // Pre-flight Requests direkt durchwinken
-        }
-
         $pipeline = new MiddlewarePipeline();
 
-        // Der Controller schickt den Request nun durch die HTTP-Methoden-Prüfung
+        // 1. CORS Pre-Flights abfangen
+        $pipeline->add(new CorsMiddleware());
+
+        // 2. HTTP-Methoden absichern
         $pipeline->add(new HttpMethodMiddleware(['POST']));
-        // Alle APIs brauchen CSRF
+
+        // 3. CSRF-Schutz
         $pipeline->add(new ApiCsrfMiddleware());
 
+        // 4. Rate-Limiting (falls gefordert)
         if ($rateLimit) {
             $pipeline->add(new ApiRateLimitMiddleware($this->rateLimiter));
         }
 
+        // 5. Rechteprüfung (falls gefordert)
         if ($permission !== null) {
             $pipeline->add(new ApiPermissionMiddleware($this->auth, $permission));
         }
 
-        // 1. Payload Stream global und sicher abgreifen - ABER NUR WENN ES JSON IST!
-        $inputData   = [];
-        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        // 6. JSON Body sicher parsen
+        $pipeline->add(new JsonBodyParserMiddleware());
 
-        if (\in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH'], true) && \str_contains($contentType, 'application/json')) {
-            $raw = \file_get_contents('php://input');
-            if ($raw !== '' && $raw !== false) {
-                try {
-                    $inputData = \json_decode($raw, true, 512, \JSON_THROW_ON_ERROR);
-                } catch (\JsonException) {
-                    JsonResponse::error('Bad Request: Ungültiges JSON-Format gesendet.', 400);
-
-                    return;
-                }
-            }
-        }
-
-        // 2. Request bündeln
+        // Basis-Request schnüren (wird von Middlewares angereichert)
         $requestData = [
             'get'   => $_GET,
             'post'  => $_POST,
-            'input' => $inputData, // Hier liegen die entschlüsselten JSON-Werte (falls vorhanden)
+            'input' => [], // Wird durch JsonBodyParserMiddleware gefüllt
             'ip'    => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
         ];
 
-        // 3. Durch die Pipeline an die Action schicken
+        // 7. Durch die Pipeline an die Action schicken
         $pipeline->process($requestData, function (array $req) use ($actionKey): void {
             $action = $this->factory->create($actionKey);
             if ($action !== null) {
