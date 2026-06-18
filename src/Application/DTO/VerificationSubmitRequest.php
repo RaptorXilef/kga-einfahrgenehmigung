@@ -7,7 +7,7 @@ namespace App\Application\DTO;
 use App\Application\Exception\ValidationException;
 
 /**
- * TODO DOCBLOCK
+ * DTO für die Übermittlung des Verifizierungscodes inklusive IP-Kapselung.
  *
  * Path: src/Application/DTO/VerificationSubmitRequest.php
  *
@@ -20,6 +20,7 @@ final readonly class VerificationSubmitRequest
 {
     private function __construct(
         public string $token,
+        public string $ip,
     ) {
     }
 
@@ -35,6 +36,8 @@ final readonly class VerificationSubmitRequest
             throw ValidationException::withMessage('Bitte geben Sie einen Verifizierungscode ein.');
         }
 
-        return new self($token);
+        $ip = (string) ($requestData['ip'] ?? 'unknown');
+
+        return new self($token, $ip);
     }
 }

@@ -28,7 +28,7 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private EventDispatcherInterface $eventDispatcher, // <-- NEU!
+        private EventDispatcherInterface $eventDispatcher,
         private MagicLinkService $magicLinkService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
@@ -38,22 +38,22 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $ip = $requestData['ip'];
-
         try {
-            $dto = HistoryRequestLinkRequest::fromArray($requestData['post']);
+            // Gesamtes Request-Array reingeben, IP wird im DTO isoliert!
+            $dto = HistoryRequestLinkRequest::fromRequestData($requestData);
         } catch (ValidationException $e) {
             // PRG (Post-Redirect-Get) bei Formular-Fehlern
             \header('Location: history.php?sent=0&msg=' . \urlencode($e->getMessage()));
             exit;
         }
 
+        // Kein manueller Zugriff auf $requestData['ip'] mehr! Alles kommt aus dem DTO.
         $permits = $this->permitService->getHistoryByEmail($dto->email);
 
         if ($permits === []) {
-            $this->rateLimiter->recordFailedAttempt($ip);
+            $this->rateLimiter->recordFailedAttempt($dto->ip);
         } else {
-            $this->rateLimiter->clearAttempts($ip);
+            $this->rateLimiter->clearAttempts($dto->ip);
             $data = $this->magicLinkService->createToken($dto->email);
 
             // ENTKOPPELT: Event feuern statt direktem Template-Versand!

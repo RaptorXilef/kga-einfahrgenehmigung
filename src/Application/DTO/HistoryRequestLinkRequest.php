@@ -7,7 +7,7 @@ namespace App\Application\DTO;
 use App\Application\Exception\ValidationException;
 
 /**
- * DTO für die Anforderung eines Magic-Links im History-Portal.
+ * DTO für die Anforderung eines Magic-Links inklusive IP-Kapselung.
  *
  * Path: src/Application/DTO/HistoryRequestLinkRequest.php
  *
@@ -20,18 +20,21 @@ final readonly class HistoryRequestLinkRequest
 {
     private function __construct(
         public string $email,
+        public string $ip,
     ) {
     }
 
-    // TODO DOCBLOCK
-    public static function fromArray(array $post): self
+    public static function fromRequestData(array $requestData): self
     {
+        $post  = $requestData['post'] ?? [];
         $email = \trim((string) ($post['email'] ?? ''));
 
         if ($email === '' || ! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw ValidationException::withMessage('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
         }
 
-        return new self($email);
+        $ip = (string) ($requestData['ip'] ?? 'unknown');
+
+        return new self($email, $ip);
     }
 }

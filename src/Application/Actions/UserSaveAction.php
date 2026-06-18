@@ -43,7 +43,8 @@ final readonly class UserSaveAction implements ActionInterface
 
         try {
             // 1. DTO bauen (inkl. automatischer Validierung!)
-            $dto = UserSaveRequest::fromArray($post);
+            // Übergabe von $_FILES an den DTO-Validator
+            $dto = UserSaveRequest::fromArray($post, $_FILES);
         } catch (ValidationException $e) {
             // Wenn die Passwörter nicht stimmen, fangen wir das hier elegant ab.
             return $e->getMessage();
@@ -72,9 +73,9 @@ final readonly class UserSaveAction implements ActionInterface
 
         $this->userRepository->saveAll($users);
 
-        $file = $_FILES['avatar'] ?? null;
-        if ($file && $file['error'] === 0) {
-            $this->userRepository->uploadImage($newId, $file);
+        // Bild-Verarbeitung erfolgt über den gekapselten DTO-Zustand
+        if ($dto->avatar !== null) {
+            $this->userRepository->uploadImage($newId, $dto->avatar);
         }
 
         return "Benutzer '{$dto->username}' erfolgreich erstellt.";

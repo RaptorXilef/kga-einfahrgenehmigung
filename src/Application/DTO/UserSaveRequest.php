@@ -8,7 +8,7 @@ use App\Application\Exception\ValidationException;
 
 /**
  * Data Transfer Object (DTO) für das Erstellen eines neuen Benutzers.
- * Kapselt die Validierung und Typisierung der Formulardaten.
+ * Kapselt die Validierung, Typisierung und die hochgeladene Avatar-Datei.
  *
  * Path: src/Application/DTO/UserSaveRequest.php
  *
@@ -23,6 +23,7 @@ final readonly class UserSaveRequest
         public string $username,
         public string $password,
         public string $group,
+        public ?array $avatar, // Gekapseltes Datei-Array
     ) {
     }
 
@@ -33,7 +34,7 @@ final readonly class UserSaveRequest
      * @param  array<string, mixed> $post Das rohe $_POST Array.
      * @throws ValidationException  Wenn die Daten ungültig sind.
      */
-    public static function fromArray(array $post): self
+    public static function fromArray(array $post, array $files = []): self
     {
         $username = \trim((string) ($post['username'] ?? ''));
         $pw1      = (string) ($post['password'] ?? '');
@@ -56,7 +57,17 @@ final readonly class UserSaveRequest
             throw ValidationException::withMessage('Fehler: Das Passwort muss mindestens 8 Zeichen lang sein.');
         }
 
-        // Wenn wir hier ankommen, sind die Daten zu 100% sauber und sicher!
-        return new self($username, $pw1, $group);
+        $avatarFile      = $files['avatar'] ?? null;
+        $validatedAvatar = null;
+        if ($avatarFile && isset($avatarFile['error']) && $avatarFile['error'] === 0) {
+            $validatedAvatar = $avatarFile;
+        }
+
+        return new self(
+            $username,
+            $pw1,
+            $group,
+            $validatedAvatar,
+        );
     }
 }

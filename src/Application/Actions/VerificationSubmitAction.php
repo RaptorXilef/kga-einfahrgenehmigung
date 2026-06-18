@@ -32,29 +32,29 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $ip = $requestData['ip'];
-
-        if ($this->rateLimiter->isBlocked($ip)) {
-            \header('Location: verify.php?error=1&msg=' . \urlencode('Zu viele Versuche. IP gesperrt.'));
-            exit;
-        }
-
         try {
+            // Das DTO kapselt nun auch die IP-Adresse vollumfänglich
             $dto = VerificationSubmitRequest::fromRequestData($requestData);
         } catch (ValidationException $e) {
             \header('Location: verify.php?error=1&msg=' . \urlencode($e->getMessage()));
             exit;
         }
 
+        // Bis wir die Middleware in Block B aktivieren, nutzen wir temporär $dto->ip
+        if ($this->rateLimiter->isBlocked($dto->ip)) {
+            \header('Location: verify.php?error=1&msg=' . \urlencode('Zu viele Versuche. IP gesperrt.'));
+            exit;
+        }
+
         $result = $this->permitService->confirmEmail($dto->token);
 
         if ($result === null) {
-            $this->rateLimiter->recordFailedAttempt($ip);
+            $this->rateLimiter->recordFailedAttempt($dto->ip);
             \header('Location: verify.php?error=1&msg=' . \urlencode('Code ungültig oder abgelaufen.'));
             exit;
         }
 
-        $this->rateLimiter->clearAttempts($ip);
+        $this->rateLimiter->clearAttempts($dto->ip);
 
         // Fall A: Sofort finalisiert (z.B. durch Gutschein)
         if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {

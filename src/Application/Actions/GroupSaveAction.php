@@ -43,7 +43,8 @@ final readonly class GroupSaveAction implements ActionInterface
         }
 
         try {
-            $dto = GroupSaveRequest::fromArray($post);
+            // Wir reichen $_FILES direkt in den Named Constructor des DTOs!
+            $dto = GroupSaveRequest::fromArray($post, $_FILES);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
@@ -72,10 +73,9 @@ final readonly class GroupSaveAction implements ActionInterface
 
         $this->groupRepository->saveAll($groups);
 
-        // Datei-Uploads lassen wir bewusst im $_FILES-Array, da DTOs nur für Textdaten (POST) gedacht sind
-        $iconFile = $_FILES['group_icon'] ?? ($_FILES['avatar'] ?? null);
-        if ($iconFile && $iconFile['error'] === 0) {
-            $this->groupRepository->uploadImage($groupId, $iconFile);
+        // Das DTO stellt das Bild bereit; kein $_FILES Zugriff mehr in der Action-Logik!
+        if ($dto->groupIcon !== null) {
+            $this->groupRepository->uploadImage($groupId, $dto->groupIcon);
         }
 
         if ($isUpdate) {

@@ -11,7 +11,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\MagicLinkService;
 
 /**
- * TODO DOCBLOCK
+ * Action für das Absenden des Verifizierungscodes im Portal.
  *
  * Path: src/Application/Actions/HistorySubmitCodeAction.php
  *
@@ -31,10 +31,9 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $ip = $requestData['ip'];
-
         try {
-            $dto = HistorySubmitCodeRequest::fromArray($requestData['post']);
+            // IP-Isolierung ins DTO verlagert
+            $dto = HistorySubmitCodeRequest::fromRequestData($requestData);
         } catch (ValidationException $e) {
             \header('Location: history.php?sent=1&msg=' . \urlencode($e->getMessage()));
             exit;
@@ -43,14 +42,14 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
         $verifiedEmail = $this->magicLinkService->verifyAny($dto->loginCode);
 
         if ($verifiedEmail) {
-            $this->rateLimiter->clearAttempts($ip);
+            $this->rateLimiter->clearAttempts($dto->ip);
             \session_regenerate_id(true);
             $_SESSION['user_history_email'] = $verifiedEmail;
             \header('Location: history.php');
             exit;
         }
 
-        $this->rateLimiter->recordFailedAttempt($ip);
+        $this->rateLimiter->recordFailedAttempt($dto->ip);
         \header('Location: history.php?sent=1&msg=' . \urlencode('Der Code ist ungültig oder abgelaufen.'));
         exit;
     }

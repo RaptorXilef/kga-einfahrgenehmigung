@@ -7,7 +7,7 @@ namespace App\Application\DTO;
 use App\Application\Exception\ValidationException;
 
 /**
- * DTO für die Eingabe des 6-stelligen Login-Codes im History-Portal.
+ * DTO für die Code-Eingabe im History-Portal inklusive IP-Kapselung.
  *
  * Path: src/Application/DTO/HistorySubmitCodeRequest.php
  *
@@ -20,18 +20,21 @@ final readonly class HistorySubmitCodeRequest
 {
     private function __construct(
         public string $loginCode,
+        public string $ip,
     ) {
     }
 
-    // TODO DOCBLOCK
-    public static function fromArray(array $post): self
+    public static function fromRequestData(array $requestData): self
     {
+        $post = $requestData['post'] ?? [];
         $code = \trim((string) ($post['login_code'] ?? ''));
 
         if ($code === '') {
             throw ValidationException::withMessage('Bitte geben Sie den 6-stelligen Code ein.');
         }
 
-        return new self($code);
+        $ip = (string) ($requestData['ip'] ?? 'unknown');
+
+        return new self($code, $ip);
     }
 }

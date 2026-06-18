@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -42,16 +42,12 @@ final readonly class GroupUploadImageAction implements ActionInterface
         }
 
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'group_id');
+            // Vollständige Kapselung von ID und Datei im DTO
+            $dto = SimpleUploadImageRequest::fromRequest($post, 'group_id', $_FILES);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
 
-        $file = $_FILES['avatar'] ?? null;
-        if (! $file || $file['error'] !== 0) {
-            return 'Fehler beim Upload.';
-        }
-
-        return $this->groupRepository->uploadImage($dto->identifier, $file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->groupRepository->uploadImage($dto->identifier, $dto->file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
     }
 }

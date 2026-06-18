@@ -8,6 +8,7 @@ use App\Application\Exception\ValidationException;
 
 /**
  * DTO für das Speichern oder Erstellen von Berechtigungsgruppen.
+ * Kapselt POST-Daten und hochgeladene Datei-Strukturen.
  *
  * Path: src/Application/DTO/GroupSaveRequest.php
  *
@@ -23,11 +24,11 @@ final readonly class GroupSaveRequest
         public string $groupName,
         public string $inheritGroup,
         public array $permissions,
+        public ?array $groupIcon, // Gekapseltes Datei-Array
     ) {
     }
 
-    // TODO DOCBLOCK
-    public static function fromArray(array $post): self
+    public static function fromArray(array $post, array $files = []): self
     {
         $groupId   = (string) ($post['group_id'] ?? '');
         $groupName = \trim((string) ($post['group_name'] ?? ''));
@@ -38,6 +39,19 @@ final readonly class GroupSaveRequest
             throw ValidationException::withMessage('Fehler: Der Gruppenname darf nicht leer sein.');
         }
 
-        return new self($groupId, $groupName, $inherit, $perms);
+        // Datei-Validierung direkt im DTO kapseln
+        $iconFile      = $files['group_icon'] ?? ($files['avatar'] ?? null);
+        $validatedIcon = null;
+        if ($iconFile && isset($iconFile['error']) && $iconFile['error'] === 0) {
+            $validatedIcon = $iconFile;
+        }
+
+        return new self(
+            $groupId,
+            $groupName,
+            $inherit,
+            $perms,
+            $validatedIcon,
+        );
     }
 }
