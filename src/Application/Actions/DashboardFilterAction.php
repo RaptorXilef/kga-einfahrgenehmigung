@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\DashboardFilterRequest;
 use App\Contracts\Application\ActionInterface;
 
 /**
@@ -27,12 +28,15 @@ final readonly class DashboardFilterAction implements ActionInterface
      */
     public function execute(array $post): string
     {
+        // Wirft keine ValidationException, da Standardwerte greifen
+        $dto = DashboardFilterRequest::fromArray($post);
+
         $_SESSION['admin_filters'] = [
-            'end'   => (string) ($post['end'] ?? ''),
-            'limit' => (int) ($post['limit'] ?? 25),
-            'q'     => (string) ($post['q'] ?? ''),
-            'start' => (string) ($post['start'] ?? ''),
-            'type'  => (string) ($post['type'] ?? 'all'),
+            'end'   => $dto->end,
+            'limit' => $dto->limit,
+            'q'     => $dto->q,
+            'start' => $dto->start,
+            'type'  => $dto->type,
         ];
 
         return 'Filter angewendet.';

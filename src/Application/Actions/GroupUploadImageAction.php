@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -38,13 +40,18 @@ final readonly class GroupUploadImageAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
+
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'group_id');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
         $file = $_FILES['avatar'] ?? null;
         if (! $file || $file['error'] !== 0) {
             return 'Fehler beim Upload.';
         }
 
-        $gid = (string) ($post['group_id'] ?? '');
-
-        return $this->groupRepository->uploadImage($gid, $file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->groupRepository->uploadImage($dto->identifier, $file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
     }
 }

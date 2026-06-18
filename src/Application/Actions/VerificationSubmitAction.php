@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\VerificationSubmitRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -33,24 +35,25 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $get  = $requestData['get'];
-        $post = $requestData['post'];
-        $ip   = $requestData['ip'];
+        $ip = $requestData['ip'];
 
-        $input = isset($get['token']) ? (string) $get['token'] : (string) ($post['verification_code'] ?? '');
-
-        // Rate Limiting für öffentliche OTP-Eingaben
         if ($this->rateLimiter->isBlocked($ip)) {
-            \header('Location: verify.php?error=1&msg=' . \urlencode('Zu viele Versuche. IP für 15 Minuten gesperrt.'));
+            \header('Location: verify.php?error=1&msg=' . \urlencode('Zu viele Versuche. IP gesperrt.'));
             exit;
         }
 
-        $result = $this->permitService->confirmEmail($input);
+        try {
+            $dto = VerificationSubmitRequest::fromRequestData($requestData);
+        } catch (ValidationException $e) {
+            \header('Location: verify.php?error=1&msg=' . \urlencode($e->getMessage()));
+            exit;
+        }
+
+        $result = $this->permitService->confirmEmail($dto->token);
 
         if ($result === null) {
             $this->rateLimiter->recordFailedAttempt($ip);
-            $msg = 'Der eingegebene Code oder Link ist ungültig bzw. bereits abgelaufen.';
-            \header('Location: verify.php?error=1&msg=' . \urlencode($msg));
+            \header('Location: verify.php?error=1&msg=' . \urlencode('Code ungültig oder abgelaufen.'));
             exit;
         }
 
@@ -68,13 +71,12 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
 
         // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung
         if (\is_array($result)) {
-            $redirectToken = $result['actual_token'] ?? $input;
+            $redirectToken = $result['actual_token'] ?? $dto->token;
             \header('Location: checkout.php?token=' . $redirectToken . '&verified=1');
             exit;
         }
 
-        $msg = 'Der eingegebene Code oder Link ist ungültig bzw. bereits abgelaufen.';
-        \header('Location: verify.php?error=1&msg=' . \urlencode($msg));
+        \header('Location: verify.php?error=1&msg=' . \urlencode('Fehler bei der Verifizierung.'));
         exit;
     }
 }

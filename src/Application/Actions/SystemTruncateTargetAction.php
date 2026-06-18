@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SystemMaintenanceRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -37,16 +38,15 @@ final readonly class SystemTruncateTargetAction implements ActionInterface
     public function execute(array $post): string
     {
         if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, Datenbestände zu löschen.';
+            return 'Fehler: Keine Berechtigung, Datenbestände zu löschen.';
         }
 
-        $target = (string) ($post['target'] ?? '');
-        $engine = (string) ($post['engine'] ?? 'all');
+        $dto = SystemMaintenanceRequest::fromArray($post);
 
-        if ($target === '') {
+        if ($dto->target === '') {
             return 'Fehler: Kein Zielbereich ausgewählt.';
         }
 
-        return $this->migrationService->truncateTarget($target, $engine);
+        return $this->migrationService->truncateTarget($dto->target, $dto->engine);
     }
 }

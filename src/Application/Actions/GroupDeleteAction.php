@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Service\AuthService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum Löschen einer Berechtigungsgruppe.
  *
  * Path: src/Application/Actions/GroupDeleteAction.php
  *
@@ -21,8 +23,11 @@ use App\Core\Service\AuthService;
  */
 final readonly class GroupDeleteAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private ConfigInterface $config, private GroupRepositoryInterface $groupRepository)
-    {
+    public function __construct(
+        private AuthService $auth,
+        private ConfigInterface $config,
+        private GroupRepositoryInterface $groupRepository,
+    ) {
     }
 
     /**
@@ -37,20 +42,23 @@ final readonly class GroupDeleteAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
-        $id = (string) ($post['group_id'] ?? '');
-        if ($id === 'admin') {
-            return 'Fehler: Die Admin-Gruppe kann nicht gelöscht werden.';
+
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'group_id');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
         }
-        if (\str_contains($id, '://') || \str_contains($id, '..') || \str_contains($id, "\0")) {
-            return 'Fehler: Ungültige Gruppen-ID.';
+
+        if ($dto->identifier === 'admin') {
+            return 'Fehler: Die Admin-Gruppe kann nicht gelöscht werden.';
         }
 
         $groups = $this->groupRepository->loadAll();
-        if (isset($groups[$id])) {
-            unset($groups[$id]);
+        if (isset($groups[$dto->identifier])) {
+            unset($groups[$dto->identifier]);
             $this->groupRepository->saveAll($groups);
 
-            $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $id . '.webp';
+            $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $dto->identifier . '.webp';
             if (\file_exists($iconPath)) {
                 @\unlink($iconPath);
             }

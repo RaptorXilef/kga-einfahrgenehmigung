@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SystemMaintenanceRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -35,14 +36,12 @@ final readonly class SystemMigrateDataAction implements ActionInterface
      */
     public function execute(array $post): string
     {
-        $direction = (string) ($post['direction'] ?? 'sync');
-        $target    = (string) ($post['target'] ?? '');
+        $dto = SystemMaintenanceRequest::fromArray($post);
 
-        // Dynamische Sicherheitsprüfung basierend auf der Baumstruktur!
-        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$direction}")) {
+        if (! $this->auth->hasPermission("dashboard.migration.{$dto->target}.{$dto->direction}")) {
             return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
         }
 
-        return $this->migrationService->execute($target, $direction);
+        return $this->migrationService->execute($dto->target, $dto->direction);
     }
 }

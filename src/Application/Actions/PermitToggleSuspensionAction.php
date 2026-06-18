@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
@@ -36,8 +38,13 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
      */
     public function execute(array $post): string
     {
-        $code   = (string) ($post['code'] ?? '');
-        $permit = $this->storage->findByHash($code);
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
+        $permit = $this->storage->findByHash($dto->identifier);
 
         if (! $permit instanceof Permit) {
             return 'Fehler: Genehmigung nicht gefunden.';
@@ -45,12 +52,11 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
 
         $isUnpaid = \strtolower(\trim($permit->getStatus())) !== 'bezahlt';
 
-        // Kontext-sensitive Sperr-Prüfung (State-Aware Access Control)
         $hasRight = false;
         if ($isUnpaid && $this->auth->hasPermission('dashboard.finance.suspend')) {
-            $hasRight = true; // Darf unbezahlte sperren
+            $hasRight = true;
         } elseif (! $isUnpaid && $this->auth->hasPermission('dashboard.active.suspend')) {
-            $hasRight = true; // Darf bezahlte/aktive sperren
+            $hasRight = true;
         }
 
         if (! $hasRight) {
@@ -58,7 +64,9 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
         }
 
         $suspended = ($post['action'] ?? '') === 'suspend_permit';
-        $this->permitService->toggleSuspension($code, $suspended, (string) ($post['reason'] ?? ''));
+        $reason    = (string) ($post['reason'] ?? '');
+
+        $this->permitService->toggleSuspension($dto->identifier, $suspended, $reason);
 
         return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
     }

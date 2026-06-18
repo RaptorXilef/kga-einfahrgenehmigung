@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SystemMaintenanceRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -37,17 +38,15 @@ final readonly class SystemRestoreDataAction implements ActionInterface
     public function execute(array $post): string
     {
         if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, eine System-Wiederherstellung durchzuführen.';
+            return 'Fehler: Keine Berechtigung.';
         }
 
-        $target    = (string) ($post['target'] ?? '');
-        $timestamp = (string) ($post['timestamp'] ?? '');
-        $engine    = (string) ($post['engine'] ?? 'all');
+        $dto = SystemMaintenanceRequest::fromArray($post);
 
-        if ($target === '' || $timestamp === '') {
+        if ($dto->target === '' || $dto->timestamp === '') {
             return 'Fehler: Unvollständige Angaben für Restore.';
         }
 
-        return $this->migrationService->restore($timestamp, $target, $engine);
+        return $this->migrationService->restore($dto->timestamp, $dto->target, $dto->engine);
     }
 }

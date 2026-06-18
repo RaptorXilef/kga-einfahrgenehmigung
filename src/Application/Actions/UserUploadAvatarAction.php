@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -36,13 +38,18 @@ final readonly class UserUploadAvatarAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
+
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'user_id');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
         $file = $_FILES['avatar'] ?? null;
         if (! $file || $file['error'] !== 0) {
             return 'Fehler beim Upload.';
         }
 
-        $userId = (string) ($post['user_id'] ?? '');
-
-        return $this->userRepository->uploadImage($userId, $file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->userRepository->uploadImage($dto->identifier, $file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
     }
 }

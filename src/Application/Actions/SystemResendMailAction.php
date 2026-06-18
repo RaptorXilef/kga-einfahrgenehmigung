@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -38,7 +40,6 @@ final readonly class SystemResendMailAction implements ActionInterface
      */
     public function execute(array $post): string
     {
-        // Reines 'view' Recht reicht nicht aus, um System-Mails abzufeuern!
         if (
             ! $this->auth->hasPermission('dashboard.logs.view')
             || ! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')
@@ -46,11 +47,16 @@ final readonly class SystemResendMailAction implements ActionInterface
             return 'Fehler: Keine Berechtigung zum aktiven Neuversand von E-Mails.';
         }
 
-        $timestamp = (string) ($post['timestamp'] ?? '');
-        $logs      = $this->mailLog->loadLogs();
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'timestamp');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
+        $logs = $this->mailLog->loadLogs();
 
         foreach ($logs as $log) {
-            if (! (($log['timestamp'] ?? '') === $timestamp)) {
+            if (! (($log['timestamp'] ?? '') === $dto->identifier)) {
                 continue;
             }
 

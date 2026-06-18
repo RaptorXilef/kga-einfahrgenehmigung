@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
@@ -39,10 +41,16 @@ final readonly class VoucherToggleAction implements ActionInterface
             return 'Fehler: Keine Berechtigung für diese Aktion.';
         }
 
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
         $action = $post['action'] ?? '';
         $status = $action === 'activate_voucher' ? 'aktiv' : 'deaktiviert';
 
-        $this->voucherService->toggleStatus((string) ($post['code'] ?? ''), $status);
+        $this->voucherService->toggleStatus($dto->identifier, $status);
 
         return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
     }

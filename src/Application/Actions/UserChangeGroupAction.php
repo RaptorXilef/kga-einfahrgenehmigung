@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\UserChangeGroupRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum Ändern der Berechtigungsgruppe eines Benutzers.
  *
  * Path: src/Application/Actions/UserChangeGroupAction.php
  *
@@ -36,15 +38,20 @@ final readonly class UserChangeGroupAction implements ActionInterface
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
-        $userId = (string) ($post['user_id'] ?? '');
-        $group  = (string) ($post['group'] ?? '');
-        $users  = $this->userRepository->loadAll();
 
-        if (isset($users[$userId])) {
-            $users[$userId]['group'] = $group;
+        try {
+            $dto = UserChangeGroupRequest::fromArray($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
+        }
+
+        $users = $this->userRepository->loadAll();
+
+        if (isset($users[$dto->userId])) {
+            $users[$dto->userId]['group'] = $dto->group;
             $this->userRepository->saveAll($users);
 
-            return "Gruppe für '" . ($users[$userId]['username'] ?? $userId) . "' geändert.";
+            return "Gruppe für '" . ($users[$dto->userId]['username'] ?? $dto->userId) . "' geändert.";
         }
 
         return 'Fehler: Benutzer nicht gefunden.';
