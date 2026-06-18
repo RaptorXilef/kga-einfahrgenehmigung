@@ -28,10 +28,6 @@ final readonly class ApiGetDateInfoAction implements ViewActionInterface
 
     public function execute(array $requestData): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            JsonResponse::error('Methode nicht erlaubt.', 405);
-        }
-
         try {
             $dto         = ApiDateInfoRequest::fromArray($requestData['input']);
             $holidays    = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);

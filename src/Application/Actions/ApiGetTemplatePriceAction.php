@@ -36,10 +36,6 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 
     public function execute(array $requestData): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            JsonResponse::error('Methode nicht erlaubt.', 405);
-        }
-
         try {
             $vehicleTypes = $this->config->get('vehicle_types', []);
             $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);

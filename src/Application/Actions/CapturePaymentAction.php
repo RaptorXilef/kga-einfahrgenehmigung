@@ -31,12 +31,6 @@ final readonly class CapturePaymentAction implements ViewActionInterface
 
     public function execute(array $requestData): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            JsonResponse::error('Methode nicht erlaubt.', 405);
-
-            return;
-        }
-
         try {
             $dto = CapturePaymentRequest::fromArray($requestData['input']);
         } catch (ValidationException $exception) {

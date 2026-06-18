@@ -7,7 +7,6 @@ namespace App\Application\Actions;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -29,7 +28,6 @@ final readonly class AdminPrintAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
-        private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
         private StorageInterface $storage,

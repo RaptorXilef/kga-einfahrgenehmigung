@@ -29,10 +29,6 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
 
     public function execute(array $requestData): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            JsonResponse::error('Methode nicht erlaubt.', 405);
-        }
-
         try {
             $dto = SimpleIdentifierRequest::fromArray($requestData['post'], 'token');
         } catch (ValidationException $e) {

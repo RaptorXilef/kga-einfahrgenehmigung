@@ -17,7 +17,6 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\ExportService;
-use App\Core\Service\HolidayService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
@@ -52,7 +51,6 @@ final readonly class AdminController
         private CronScheduler $cronScheduler,
         private ExportService $exportService,
         private GroupRepositoryInterface $groupRepository,
-        private HolidayService $holidayService,
         private MailLogInterface $mailLog,
         private PermitService $permitService,
         private ReportingService $reportingService,

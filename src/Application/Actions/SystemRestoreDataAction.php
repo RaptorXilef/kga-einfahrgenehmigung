@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SystemMaintenanceRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -41,10 +42,10 @@ final readonly class SystemRestoreDataAction implements ActionInterface
             return 'Fehler: Keine Berechtigung.';
         }
 
-        $dto = SystemMaintenanceRequest::fromArray($post);
-
-        if ($dto->target === '' || $dto->timestamp === '') {
-            return 'Fehler: Unvollständige Angaben für Restore.';
+        try {
+            $dto = SystemMaintenanceRequest::forRestore($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
         }
 
         return $this->migrationService->restore($dto->timestamp, $dto->target, $dto->engine);

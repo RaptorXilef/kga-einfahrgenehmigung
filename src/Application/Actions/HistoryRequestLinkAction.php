@@ -7,7 +7,6 @@ namespace App\Application\Actions;
 use App\Application\DTO\HistoryRequestLinkRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Event\MagicLinkRequestedEvent;
@@ -27,7 +26,6 @@ use App\Core\Service\PermitService;
 final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
-        private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
         private MagicLinkService $magicLinkService,
         private PermitService $permitService,

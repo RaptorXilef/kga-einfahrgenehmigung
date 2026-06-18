@@ -8,6 +8,7 @@ use App\Application\Actions\ApiActionFactory;
 use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\ApiPermissionMiddleware;
 use App\Application\Middleware\ApiRateLimitMiddleware;
+use App\Application\Middleware\HttpMethodMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Security\RateLimiterInterface;
@@ -40,6 +41,8 @@ final readonly class ApiController
 
         $pipeline = new MiddlewarePipeline();
 
+        // Der Controller schickt den Request nun durch die HTTP-Methoden-Prüfung
+        $pipeline->add(new HttpMethodMiddleware(['POST']));
         // Alle APIs brauchen CSRF
         $pipeline->add(new ApiCsrfMiddleware());
 

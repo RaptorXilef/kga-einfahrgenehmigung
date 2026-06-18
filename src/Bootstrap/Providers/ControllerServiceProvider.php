@@ -134,7 +134,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(AdminPrintAction::class, fn () => new AdminPrintAction(
             $container->get(AuthService::class),
-            $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(HolidayService::class),
             $container->get(StorageInterface::class),
@@ -207,7 +206,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(CronScheduler::class),
             $container->get(ExportService::class),
             $container->get(GroupRepositoryInterface::class),
-            $container->get(HolidayService::class),
             $container->get(MailLogInterface::class),
             $container->get(PermitService::class),
             $container->get(ReportingService::class),
@@ -321,7 +319,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // History Actions
         $container->bind(HistoryLogoutAction::class, fn () => new HistoryLogoutAction());
         $container->bind(HistoryRequestLinkAction::class, fn () => new HistoryRequestLinkAction(
-            $container->get(ConfigInterface::class),
             $container->get(EventDispatcherInterface::class),
             $container->get(MagicLinkService::class),
             $container->get(PermitService::class),

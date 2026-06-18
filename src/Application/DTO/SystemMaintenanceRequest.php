@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\DTO;
 
+use App\Application\Exception\ValidationException;
+
 /**
- * TODO DOCBLOCK
+ * DTO für System-Wartungsaufgaben.
+ * Nutzt "Named Constructors", um je nach Aufgabe streng zu validieren.
  *
  * Path: src/Application/DTO/SystemMaintenanceRequest.php
  *
@@ -25,13 +28,35 @@ final readonly class SystemMaintenanceRequest
     }
 
     // TODO DOCBLOCK
-    public static function fromArray(array $post): self
+    public static function forMigration(array $post): self
     {
-        return new self(
-            \trim((string) ($post['target'] ?? '')),
-            \trim((string) ($post['direction'] ?? 'sync')),
-            \trim((string) ($post['timestamp'] ?? '')),
-            \trim((string) ($post['engine'] ?? 'all')),
-        );
+        $target = \trim((string) ($post['target'] ?? ''));
+        if ($target === '') {
+            throw ValidationException::withMessage('Fehler: Kein Zielbereich ausgewählt.');
+        }
+
+        return new self($target, \trim((string) ($post['direction'] ?? 'sync')), '', 'all');
+    }
+
+    public static function forRestore(array $post): self
+    {
+        $target    = \trim((string) ($post['target'] ?? ''));
+        $timestamp = \trim((string) ($post['timestamp'] ?? ''));
+
+        if ($target === '' || $timestamp === '') {
+            throw ValidationException::withMessage('Fehler: Unvollständige Angaben für Restore.');
+        }
+
+        return new self($target, '', $timestamp, \trim((string) ($post['engine'] ?? 'all')));
+    }
+
+    public static function forTruncate(array $post): self
+    {
+        $target = \trim((string) ($post['target'] ?? ''));
+        if ($target === '') {
+            throw ValidationException::withMessage('Fehler: Kein Zielbereich ausgewählt.');
+        }
+
+        return new self($target, '', '', \trim((string) ($post['engine'] ?? 'all')));
     }
 }

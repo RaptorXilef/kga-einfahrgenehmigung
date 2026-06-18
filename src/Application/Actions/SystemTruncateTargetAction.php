@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SystemMaintenanceRequest;
+use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -41,10 +42,10 @@ final readonly class SystemTruncateTargetAction implements ActionInterface
             return 'Fehler: Keine Berechtigung, Datenbestände zu löschen.';
         }
 
-        $dto = SystemMaintenanceRequest::fromArray($post);
-
-        if ($dto->target === '') {
-            return 'Fehler: Kein Zielbereich ausgewählt.';
+        try {
+            $dto = SystemMaintenanceRequest::forTruncate($post);
+        } catch (ValidationException $e) {
+            return $e->getMessage();
         }
 
         return $this->migrationService->truncateTarget($dto->target, $dto->engine);
