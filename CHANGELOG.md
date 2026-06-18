@@ -2,6 +2,13 @@
 
 
 
+## [0.47.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.2...v0.47.3) (2026-06-18)
+
+### ⚙️ Refactoring
+
+* **api,dto:** decouple HTTP methods from actions and enforce strict maintenance DTOs ([42ebe6a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/42ebe6ae98d8c93c048ef9c4acf94322a496d93b))
+* **controllers,adr:** enforce pure middleware pipelines and extract procedural checks ([9494729](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/94947290045081495dc985d172849cec64ea2c8a))
+
 ## [0.47.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.1...v0.47.2) (2026-06-18)
 
 ### ⚙️ Refactoring
