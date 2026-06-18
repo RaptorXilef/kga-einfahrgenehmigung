@@ -7,6 +7,7 @@ namespace App\Bootstrap\Providers;
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Actions\AdminLoginAction;
 use App\Application\Actions\AdminLogoutAction;
+use App\Application\Actions\AdminPrintAction;
 use App\Application\Actions\ApiActionFactory;
 use App\Application\Actions\ApiGetDateInfoAction;
 use App\Application\Actions\ApiGetTemplatePriceAction;
@@ -130,6 +131,15 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(AdminLogoutAction::class, fn () => new AdminLogoutAction(
             $container->get(AuthService::class),
+        ));
+        $container->bind(AdminPrintAction::class, fn () => new AdminPrintAction(
+            $container->get(AuthService::class),
+            $container->get(ConfigInterface::class),
+            $container->get(GroupRepositoryInterface::class),
+            $container->get(HolidayService::class),
+            $container->get(StorageInterface::class),
+            $container->get(TemplateRenderer::class),
+            $container->get(UserRepositoryInterface::class),
         ));
         $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction());
         $container->bind(PermitCreateManualAction::class, fn () => new PermitCreateManualAction(
@@ -411,6 +421,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // Verification Controller
         $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
             $container->get(VerificationActionFactory::class),
+            $container->get(RateLimiterInterface::class),
         ));
 
         // API Actions

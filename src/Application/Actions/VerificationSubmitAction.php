@@ -40,12 +40,6 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
             exit;
         }
 
-        // Bis wir die Middleware in Block B aktivieren, nutzen wir temporär $dto->ip
-        if ($this->rateLimiter->isBlocked($dto->ip)) {
-            \header('Location: verify.php?error=1&msg=' . \urlencode('Zu viele Versuche. IP gesperrt.'));
-            exit;
-        }
-
         $result = $this->permitService->confirmEmail($dto->token);
 
         if ($result === null) {

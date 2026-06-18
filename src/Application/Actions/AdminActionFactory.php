@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Bootstrap\Container;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\ViewActionInterface;
 
 /**
  * Factory zur dynamischen (Lazy Loading) Erstellung von Admin-Actions.
@@ -31,10 +32,11 @@ final readonly class AdminActionFactory
      *
      * @return ActionInterface|null Die instanziierte Action oder null, falls nicht gefunden.
      */
-    public function create(string $actionKey): ?ActionInterface
+    public function create(string $actionKey): ActionInterface|ViewActionInterface|null
     {
         $actionClass = match ($actionKey) {
             'activate_voucher'   => VoucherToggleAction::class,
+            'admin_print'        => AdminPrintAction::class,
             'anonymize_archive'  => SystemAnonymizeArchiveAction::class,
             'clear_cache'        => SystemClearCacheAction::class,
             'create_manual'      => PermitCreateManualAction::class,

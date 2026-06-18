@@ -7,7 +7,6 @@ namespace App\Application;
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
-use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
@@ -148,9 +147,15 @@ final readonly class AdminController
                 }
             }
 
-            // Print Preview
-            if ($this->shouldStopRequest($g)) {
-                return;
+            // Print Preview Delegation
+            $getAction = (string) ($g['action'] ?? '');
+            if ($getAction === 'print') {
+                $printAction = $this->actionFactory->create('admin_print');
+                if ($printAction !== null) {
+                    $printAction->execute($g);
+
+                    return;
+                }
             }
 
             // Render Dashboard
@@ -330,71 +335,5 @@ final readonly class AdminController
             'voucherValidities' => $voucherValidities, // VORBERECHNET!
             'yearlyStats'       => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
-    }
-
-    /**
-     * Prüft, ob ein spezieller Request (z.B. Druckansicht) abgebrochen werden muss.
-     *
-     * Überprüft Zugriff und rendert 'admin_print_view'.
-     *
-     * @param array<string, mixed> $get
-     *
-     * @return bool True wenn Print-View gerendert wurde.
-     */
-    private function shouldStopRequest(array $get): bool
-    {
-        // Wenn die Bedingung nicht zutrifft, muss hier ein 'false' zurückgegeben werden
-        if (! isset($get['action']) || $get['action'] !== 'print' || ! isset($get['code'])) {
-            return false;
-        }
-
-        // Zuerst das Objekt laden, um den Zustand zu prüfen!
-        $permit = $this->storage->findByHash((string) $get['code']);
-        if (! $permit instanceof Permit) {
-            return false;
-        }
-
-        $now       = new \DateTimeImmutable('today');
-        $isExpired = $permit->getValidUntil() < $now;
-        $isFuture  = $permit->getValidFrom() > $now;
-
-        // Kontext-sensitive Rechteprüfung (State-Aware Access Control)
-        $hasRight = false;
-        if ($this->auth->hasPermission('check.admin.print')) {
-            $hasRight = true;
-        } elseif ($isExpired && $this->auth->hasPermission('dashboard.expired.print')) {
-            $hasRight = true;
-        } elseif ($isFuture && $this->auth->hasPermission('dashboard.future.print')) {
-            $hasRight = true;
-        } elseif (! $isExpired && ! $isFuture && $this->auth->hasPermission('dashboard.active.print')) {
-            $hasRight = true;
-        }
-
-        if (! $hasRight) {
-            exit('Fehler: Sie haben keine Berechtigung, Genehmigungen in diesem spezifischen Status zu drucken.');
-        }
-
-        $config = $this->config;
-        // [x] sortiert
-        $this->renderer->render('admin_print_view', [
-            'auth'            => $this->auth,
-            'groupRepository' => $this->groupRepository,
-            'holidayNotice'   => HolidayHtmlPresenter::formatHolidayNotice(
-                $this->holidayService->getHolidaysInRange(
-                    $permit->getValidFrom(),
-                    $permit->getValidUntil(),
-                ),
-            ),
-            'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
-                $this->holidayService->getOpeningHoursDataForDateRange(
-                    $permit->getValidFrom(),
-                    $permit->getValidUntil(),
-                ),
-            ),
-            'permit'         => $permit,
-            'userRepository' => $this->userRepository,
-        ]);
-
-        return true;
     }
 }

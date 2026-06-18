@@ -7,9 +7,11 @@ namespace App\Application;
 use App\Application\Actions\VerificationActionFactory;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\RateLimitMiddleware;
+use App\Contracts\Security\RateLimiterInterface;
 
 /**
- * Front Controller zur Verifizierung von E-Mail-Adressen (Double-Opt-In).
+ * Controller für den Verifizierungsprozess (Double-Opt-In).
  *
  * Path: src/Application/VerificationController.php
  *
@@ -22,6 +24,7 @@ final readonly class VerificationController
 {
     public function __construct(
         private VerificationActionFactory $factory,
+        private RateLimiterInterface $rateLimiter,
     ) {
     }
 
@@ -34,7 +37,11 @@ final readonly class VerificationController
     public function handleRequest(array $get, array $post): void
     {
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new CsrfMiddleware('verify.php?error=1'));
+
+        // Die Türsteher-Pipeline: Zuerst Rate-Limit, dann CSRF
+        $pipeline
+            ->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'))
+            ->add(new CsrfMiddleware('verify.php?error=1'));
 
         $pipeline->process([
             'get'  => $get,
