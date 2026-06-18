@@ -19,8 +19,9 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class ExportService
 {
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+    ) {
     }
 
     // TODO DOCBLOCK

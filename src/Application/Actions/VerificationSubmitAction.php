@@ -7,10 +7,8 @@ namespace App\Application\Actions;
 use App\Application\DTO\VerificationSubmitRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
-use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
 
 /**
@@ -26,7 +24,6 @@ use App\Core\Service\PermitService;
 final readonly class VerificationSubmitAction implements ViewActionInterface
 {
     public function __construct(
-        private MailServiceInterface $mailService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
     ) {
@@ -58,10 +55,6 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
         }
 
         $this->rateLimiter->clearAttempts($ip);
-
-        if ($this->mailService instanceof MailQueueService) {
-            $this->mailService->processQueue(3); // Dokumente sofort losschicken!
-        }
 
         // Fall A: Sofort finalisiert (z.B. durch Gutschein)
         if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {

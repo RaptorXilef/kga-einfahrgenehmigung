@@ -7,7 +7,6 @@ namespace App\Application\Actions;
 use App\Application\DTO\PermitSubmitRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -24,7 +23,6 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 {
     public function __construct(
         private PermitService $permitService,
-        private VerificationRepositoryInterface $verificationRepo,
     ) {
     }
 
@@ -42,49 +40,24 @@ final readonly class PermitSubmitAction implements ViewActionInterface
         $_SESSION['form_data'] = $dto->toArray();
 
         try {
-            // KORREKTUR-MODUS
-            if (
-                isset($_SESSION['verified_email'], $_SESSION['edit_token'])
-                && \strtolower($dto->email) === \strtolower(\trim($_SESSION['verified_email']))
-            ) {
-                $token   = $_SESSION['edit_token'];
-                $oldData = $this->permitService->getVerifiedRequest($token);
+            // KORREKTUR-MODUS: Logik wurde sauber an den Service übergeben!
+            if (isset($_SESSION['verified_email'], $_SESSION['edit_token'])) {
+                $result = $this->permitService->updateVerifiedRequest(
+                    $_SESSION['edit_token'],
+                    $_SESSION['verified_email'],
+                    $dto->toArray(),
+                );
 
-                if ($oldData !== null) {
-                    $priceRelevantChanged = ($oldData['template_key'] ?? '') !== $dto->templateKey
-                        || ($oldData['typ'] ?? '') !== $dto->typ
-                        || ($oldData['voucher'] ?? '') !== $dto->voucher;
+                unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
 
-                    if (! $priceRelevantChanged) {
-                        // Nur Name/Kennzeichen geändert -> Alter Preis bleibt erhalten!
-                        $merged           = \array_merge($oldData, $dto->toArray());
-                        $merged['preis']  = $oldData['preis'] ?? 0;
-                        $merged['status'] = 'offen';
-
-                        $allVerified         = $this->verificationRepo->loadVerified();
-                        $allVerified[$token] = $merged;
-                        $this->verificationRepo->saveVerified($allVerified);
-
-                        unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
-                        \header('Location: checkout.php?token=' . $token);
-                        exit;
-                    }
-
-                    // Preisrelevante Änderung -> Alten Token löschen
-                    $allVerified = $this->verificationRepo->loadVerified();
-                    if (isset($allVerified[$token])) {
-                        unset($allVerified[$token]);
-                        $this->verificationRepo->saveVerified($allVerified);
-                    }
-
-                    // Neustart der Bestätigung nötig
-                    $this->permitService->createPendingVerification($dto->toArray());
-                    unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
-
-                    $msg = 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Zu Ihrer Sicherheit müssen Sie Ihre E-Mail kurz erneut bestätigen, da sich der Preis geändert hat.';
-                    \header('Location: index.php?sent=1&msg=' . \urlencode($msg));
+                if ($result === 'redirect_checkout') {
+                    \header('Location: checkout.php?token=' . $_SESSION['edit_token']);
                     exit;
                 }
+
+                $msg = 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Zu Ihrer Sicherheit müssen Sie Ihre E-Mail kurz erneut bestätigen, da sich der Preis geändert hat.';
+                \header('Location: index.php?sent=1&msg=' . \urlencode($msg));
+                exit;
             }
 
             // NORMALER DURCHLAUF (Neuer Antrag)

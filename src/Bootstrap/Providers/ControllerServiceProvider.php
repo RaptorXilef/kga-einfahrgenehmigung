@@ -73,7 +73,6 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
@@ -115,70 +114,56 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
             $container->get(UserRepositoryInterface::class),
         ));
-
         $container->bind(AdminLogoutAction::class, fn () => new AdminLogoutAction(
             $container->get(AuthService::class),
         ));
-
         $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction());
-
         $container->bind(PermitCreateManualAction::class, fn () => new PermitCreateManualAction(
             $container->get(AuthService::class),
             $container->get(PermitService::class),
         ));
-
         $container->bind(PermitMarkAsPaidAction::class, fn () => new PermitMarkAsPaidAction(
             $container->get(AuthService::class),
             $container->get(PermitService::class),
         ));
-
         $container->bind(PermitToggleSuspensionAction::class, fn () => new PermitToggleSuspensionAction(
             $container->get(AuthService::class),
             $container->get(PermitService::class),
             $container->get(StorageInterface::class),
         ));
-
         $container->bind(SystemAnonymizeArchiveAction::class, fn () => new SystemAnonymizeArchiveAction(
             $container->get(AuthService::class),
             $container->get(PermitArchiveRepositoryInterface::class),
         ));
-
         $container->bind(SystemClearCacheAction::class, fn () => new SystemClearCacheAction(
             $container->get(AuthService::class),
             $container->get(MigrationService::class),
         ));
-
         $container->bind(SystemMigrateDataAction::class, fn () => new SystemMigrateDataAction(
             $container->get(AuthService::class),
             $container->get(MigrationService::class),
         ));
-
         $container->bind(SystemResendMailAction::class, fn () => new SystemResendMailAction(
             $container->get(AuthService::class),
             $container->get(MailLogInterface::class),
             $container->get(MailServiceInterface::class),
         ));
-
         $container->bind(SystemRestoreDataAction::class, fn () => new SystemRestoreDataAction(
             $container->get(AuthService::class),
             $container->get(MigrationService::class),
         ));
-
         $container->bind(SystemTruncateTargetAction::class, fn () => new SystemTruncateTargetAction(
             $container->get(AuthService::class),
             $container->get(MigrationService::class),
         ));
-
         $container->bind(VoucherCreateAction::class, fn () => new VoucherCreateAction(
             $container->get(AuthService::class),
             $container->get(VoucherService::class),
         ));
-
         $container->bind(VoucherDeleteAction::class, fn () => new VoucherDeleteAction(
             $container->get(AuthService::class),
             $container->get(VoucherService::class),
         ));
-
         $container->bind(VoucherToggleAction::class, fn () => new VoucherToggleAction(
             $container->get(AuthService::class),
             $container->get(VoucherService::class),
@@ -201,7 +186,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(HolidayService::class),
             $container->get(MailLogInterface::class),
             $container->get(MigrationService::class),
-            $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(PermitService::class),
             $container->get(ReportingService::class),
             $container->get(StorageBootstrapper::class),
@@ -212,7 +196,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(VoucherService::class),
         ));
 
-        // User & Group Actions
+        // Group Actions
         $container->bind(GroupDeleteAction::class, fn () => new GroupDeleteAction(
             $container->get(AuthService::class),
             $container->get(ConfigInterface::class),
@@ -231,6 +215,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(GroupRepositoryInterface::class),
         ));
 
+        // User Actions
         $container->bind(UserChangeGroupAction::class, fn () => new UserChangeGroupAction(
             $container->get(AuthService::class),
             $container->get(UserRepositoryInterface::class),
@@ -304,7 +289,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
             $container->get(UserRepositoryInterface::class),
         ));
-
         $container->bind(CheckoutAction::class, fn () => new CheckoutAction(
             $container->get(ConfigInterface::class),
             $container->get(HolidayService::class),
@@ -314,7 +298,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // History Actions
         $container->bind(HistoryLogoutAction::class, fn () => new HistoryLogoutAction());
-
         $container->bind(HistoryRequestLinkAction::class, fn () => new HistoryRequestLinkAction(
             $container->get(ConfigInterface::class),
             $container->get(EventDispatcherInterface::class),
@@ -352,17 +335,14 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(HistoryActionFactory::class),
             $container->get(RateLimiterInterface::class),
         ));
-
         $container->bind(DatenschutzAction::class, fn () => new DatenschutzAction(
             $container->get(ConfigInterface::class),
             $container->get(TemplateRenderer::class),
         ));
-
         $container->bind(ImpressumAction::class, fn () => new ImpressumAction(
             $container->get(ConfigInterface::class),
             $container->get(TemplateRenderer::class),
         ));
-
         $container->bind(CapturePaymentAction::class, fn () => new CapturePaymentAction(
             $container->get(PermitService::class),
         ));
@@ -371,7 +351,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(PermitEditAction::class, fn () => new PermitEditAction(
             $container->get(PermitService::class),
         ));
-
         $container->bind(PermitRenderAction::class, fn () => new PermitRenderAction(
             $container->get(ConfigInterface::class),
             $container->get(TemplateRenderer::class),
@@ -381,7 +360,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         $container->bind(PermitSubmitAction::class, fn () => new PermitSubmitAction(
             $container->get(PermitService::class),
-            $container->get(VerificationRepositoryInterface::class),
         ));
 
         // Permit Factory
@@ -393,7 +371,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
             $container->get(PermitActionFactory::class),
         ));
-
         $container->bind(SuccessAction::class, fn () => new SuccessAction(
             $container->get(BankQrGenerator::class),
             $container->get(ConfigInterface::class),
@@ -407,7 +384,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
 
         $container->bind(VerificationSubmitAction::class, fn () => new VerificationSubmitAction(
-            $container->get(MailServiceInterface::class),
             $container->get(PermitService::class),
             $container->get(RateLimiterInterface::class),
         ));

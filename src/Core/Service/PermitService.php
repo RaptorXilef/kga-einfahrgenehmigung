@@ -83,6 +83,46 @@ final readonly class PermitService
         return $token;
     }
 
+    public function updateVerifiedRequest(string $token, string $sessionEmail, array $newData): string
+    {
+        $oldData = $this->getVerifiedRequest($token);
+
+        // Fallback, falls Token abgelaufen: Ganz neu anfangen
+        if ($oldData === null || \strtolower($newData['email']) !== \strtolower(\trim($sessionEmail))) {
+            $this->createPendingVerification($newData);
+
+            return 'redirect_verify';
+        }
+
+        $priceRelevantChanged = ($oldData['template_key'] ?? '') !== $newData['template_key']
+            || ($oldData['typ'] ?? '') !== $newData['typ']
+            || ($oldData['voucher'] ?? '') !== $newData['voucher'];
+
+        if (! $priceRelevantChanged) {
+            // Nur Name/Kennzeichen geändert -> Alter Preis bleibt erhalten!
+            $merged           = \array_merge($oldData, $newData);
+            $merged['preis']  = $oldData['preis'] ?? 0;
+            $merged['status'] = 'offen';
+
+            $allVerified         = $this->verificationRepository->loadVerified();
+            $allVerified[$token] = $merged;
+            $this->verificationRepository->saveVerified($allVerified);
+
+            return 'redirect_checkout';
+        }
+
+        // Preisrelevante Änderung -> Alten Token löschen und komplett neu verifizieren
+        $allVerified = $this->verificationRepository->loadVerified();
+        if (isset($allVerified[$token])) {
+            unset($allVerified[$token]);
+            $this->verificationRepository->saveVerified($allVerified);
+        }
+
+        $this->createPendingVerification($newData);
+
+        return 'redirect_verify';
+    }
+
     public function confirmEmail(string $input): ?array
     {
         $allPending   = $this->verificationRepository->loadPending();

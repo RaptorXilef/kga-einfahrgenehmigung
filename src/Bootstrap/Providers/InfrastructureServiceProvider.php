@@ -22,7 +22,6 @@ use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\MailQueueService;
-use App\Core\Service\PermitService;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
@@ -58,7 +57,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(\PDO::class, fn (): ?\PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(StorageInterface::class, fn (): StorageInterface => StorageFactory::create(
             $container->get(ConfigInterface::class),
             $container->get(\PDO::class),
@@ -69,44 +67,34 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(UserRepositoryInterface::class, fn () => new UserRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(PermitArchiveRepositoryInterface::class, fn () => new PermitArchiveRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(VerificationRepositoryInterface::class, fn () => new VerificationRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(VoucherRepositoryInterface::class, fn () => new VoucherRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(MagicLinkRepositoryInterface::class, fn () => new MagicLinkRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(MailQueueRepositoryInterface::class, fn () => new MailQueueRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
-        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-
+        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService($container->get(\PDO::class), $container->get(ConfigInterface::class)));
         $container->bind(MailLogInterface::class, fn () => $container->get('mail.smtp'));
+
         $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
             $container->get('mail.smtp'),
@@ -115,20 +103,17 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PaymentProviderInterface::class, fn (): PayPalService => new PayPalService(
             $container->get(ConfigInterface::class),
         ));
-
         // --- 1.4 Sicherheit & System-Bootstrapping ---
         $container->bind(RateLimiterInterface::class, fn () => new RateLimiter(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-
         $container->bind(LockManagerInterface::class, fn () => new FileLockManager(
             $container->get(ConfigInterface::class),
         ));
 
         $container->bind(StorageBootstrapper::class, fn (): StorageBootstrapper => new StorageBootstrapper(
             $container->get(\PDO::class),
-            $container->get(AuthService::class),
             $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(UserRepositoryInterface::class),
@@ -149,7 +134,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(MagicLinkRepositoryInterface::class),
             $container->get(MailLogInterface::class),
             $container->get(PermitArchiveRepositoryInterface::class),
-            $container->get(PermitService::class),
             $container->get(StorageInterface::class),
             $container->get(UserRepositoryInterface::class),
             $container->get(VerificationRepositoryInterface::class),

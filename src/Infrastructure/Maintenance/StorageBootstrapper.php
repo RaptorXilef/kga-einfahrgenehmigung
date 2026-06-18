@@ -7,7 +7,6 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Service\AuthService;
 
 /**
  * Bootstrapper für die Initialisierung der Speicher-Infrastruktur.
@@ -25,7 +24,6 @@ final readonly class StorageBootstrapper
 {
     public function __construct(
         private ?\PDO $pdo,
-        private AuthService $authService,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private UserRepositoryInterface $userRepository,

@@ -12,7 +12,6 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
@@ -58,7 +57,6 @@ final readonly class AdminController
         private HolidayService $holidayService,
         private MailLogInterface $mailLog,
         private MigrationService $migrationService,
-        private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
         private ReportingService $reportingService,
         private StorageBootstrapper $bootstrapper,
