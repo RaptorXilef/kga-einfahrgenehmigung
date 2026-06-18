@@ -8,13 +8,14 @@ use App\Application\DTO\HistoryRequestLinkRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Core\Event\MagicLinkRequestedEvent;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
 
 /**
- * TODO DOCBLOCK
+ * Action für die Anforderung eines Magic-Links zur Historie.
  *
  * Path: src/Application/Actions/HistoryRequestLinkAction.php
  *
@@ -27,8 +28,8 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
+        private EventDispatcherInterface $eventDispatcher, // <-- NEU!
         private MagicLinkService $magicLinkService,
-        private MailServiceInterface $mailService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
     ) {
@@ -54,19 +55,10 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         } else {
             $this->rateLimiter->clearAttempts($ip);
             $data = $this->magicLinkService->createToken($dto->email);
-            $link = $this->config->getBaseUrl() . 'history.php?token=' . $data['token'];
 
-            $this->mailService->sendTemplate(
-                $dto->email,
-                'Login-Code: Ihre Genehmigungen',
-                'magic_link',
-                [
-                    'baseUrl'     => $this->config->getBaseUrl(),
-                    'code'        => $data['code'],
-                    'duration'    => $this->config->get('magic_link_duration'),
-                    'link'        => $link,
-                    'vereinsName' => $this->config->get('vereins_name'),
-                ],
+            // ENTKOPPELT: Event feuern statt direktem Template-Versand!
+            $this->eventDispatcher->dispatch(
+                new MagicLinkRequestedEvent($dto->email, $data['token'], $data['code']),
             );
         }
 

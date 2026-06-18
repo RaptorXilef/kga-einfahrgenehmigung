@@ -65,6 +65,7 @@ use App\Application\View\TemplateRenderer;
 use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -317,8 +318,8 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         $container->bind(HistoryRequestLinkAction::class, fn () => new HistoryRequestLinkAction(
             $container->get(ConfigInterface::class),
+            $container->get(EventDispatcherInterface::class),
             $container->get(MagicLinkService::class),
-            $container->get(MailServiceInterface::class),
             $container->get(PermitService::class),
             $container->get(RateLimiterInterface::class),
         ));

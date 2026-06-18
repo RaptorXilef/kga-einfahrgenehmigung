@@ -18,6 +18,7 @@ use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 use App\Core\Event\PermitCreatedEvent;
+use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Utils\DateRangeHelper;
 use App\Infrastructure\Storage\JsonHelper;
 
@@ -78,18 +79,8 @@ final readonly class PermitService
         $allPending[$token]         = $data;
         $this->verificationRepository->savePending($allPending);
 
-        $this->mailService->sendTemplate(
-            (string) $data['email'],
-            "E-Mail bestätigen: {$shortCode}",
-            'verify_email',
-            [
-                'baseUrl'     => $this->config->getBaseUrl(),
-                'code'        => $shortCode,
-                'name'        => (string) $data['name'],
-                'vereinsName' => $this->config->get('vereins_name'),
-                'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $token,
-            ],
-        );
+        // ENTKOPPELT: Statt direktem Mail-Versand werfen wir jetzt ein Event!
+        $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode));
 
         return $token;
     }

@@ -111,36 +111,29 @@ const configs = {
  * Optimiert den Code-Inhalt basierend auf dem Dateityp
  * @param {string} content - Der rohe Code
  * @param {string} fileExtension - Die Dateiendung (z.B. '.php')
- * @param {boolean} forceKeepPathComments - Wenn true, werden Pfadkommentare IMMER behalten (für Option 6)
  */
-function optimizeTokens(content, fileExtension, forceKeepPathComments = false) {
+function optimizeTokens(content, fileExtension) {
     const ext = fileExtension.toLowerCase();
     const isPhpOrPhtml = ext === '.php' || ext === '.phtml';
     const isJsOrScss = ext === '.js' || ext === '.scss';
 
-    // 1. Schritt: Kommentare entfernen (außer deine geschützten Pfad-Kommentare)
+    // 1. Schritt: Alle Kommentare restlos entfernen
     if (isJsOrScss || isPhpOrPhtml) {
         // Multi-line Kommentare /* ... */ entfernen
-        content = content.replace(/\/\*[\s\S]*?\*\//g, (match) => {
-            if ((forceKeepPathComments || isJsOrScss) && /path:|pfad:|file:/i.test(match)) {
-                return match;
-            }
-            return '';
-        });
+        content = content.replace(/\/\*[\s\S]*?\*\//g, '');
 
         // Single-line Kommentare // ... entfernen
-        content = content.replace(/(^|[^:])\/\/.*$/gm, (match, prefix) => {
-            if ((forceKeepPathComments || isJsOrScss) && /path:|pfad:|file:/i.test(match)) {
-                return match;
-            }
+        content = content.replace(/(^|[^:])\/\/.*$/gm, (_match, prefix) => {
             return prefix; // Behalte das Zeichen vor dem //
         });
 
-        // Speziell für PHP/PHTML: # Kommentare entfernen
+        // Speziell für PHP/PHTML: # Kommentare und SQL-Kommentare entfernen
         if (isPhpOrPhtml) {
             content = content.replace(/(^|[^"'])#.*$/gm, (_match, prefix) => {
                 return prefix;
             });
+            // SQL "-- " Kommentare entfernen, damit Zeilen sicher kombiniert werden können
+            content = content.replace(/--\s.*$/gm, '');
         }
     }
 
@@ -148,9 +141,31 @@ function optimizeTokens(content, fileExtension, forceKeepPathComments = false) {
     content = content.replace(/\s*(=>|==|=|<=|>=|\+=|-=)\s*/g, ' $1 ');
 
     // 2. Schritt: Whitespace & Zeilenumbrüche minimieren
+
+    // PHTML OPTIMIERUNG
     if (ext === '.phtml') {
-        content = content.replace(/\n\s*\n/g, '\n');
-        return content.trim();
+        const lines = content.split(/\r?\n/);
+        const optimizedLines = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.length === 0) continue;
+
+            if (optimizedLines.length > 0) {
+                const lastLine = optimizedLines[optimizedLines.length - 1];
+                // Zusammenhängen wenn: Aktuelle Zeile ist kein neues Tag ('<')
+                // ODER vorherige Zeile wurde nicht sauber mit '>' (HTML) oder '?>' (PHP) beendet
+                if (
+                    !line.startsWith('<') ||
+                    (!lastLine.endsWith('>') && !lastLine.endsWith('?>'))
+                ) {
+                    optimizedLines[optimizedLines.length - 1] += ' ' + line;
+                    continue;
+                }
+            }
+            optimizedLines.push(line);
+        }
+        return optimizedLines.join('\n');
     }
 
     // Für JS, PHP und SCSS gehen wir zeilenweise vor, um die Struktur präzise zu stauchen
@@ -161,12 +176,6 @@ function optimizeTokens(content, fileExtension, forceKeepPathComments = false) {
         const line = lines[i].trim();
         if (line.length === 0) continue;
 
-        // JS/SCSS: Wenn die Zeile ein geschützter Kommentar ist, MUSS sie eine eigene Zeile bleiben
-        if ((forceKeepPathComments || isJsOrScss) && /^\/\/.*(path:|pfad:|file:)/i.test(line)) {
-            optimizedLines.push(line);
-            continue;
-        }
-
         // Sicherheitsmaßnahme für PHP-Tags und Deklarationen
         if (ext === '.php' && (/^<\?php/i.test(line) || /^declare\s*\(/i.test(line))) {
             optimizedLines.push(line);
@@ -176,10 +185,6 @@ function optimizeTokens(content, fileExtension, forceKeepPathComments = false) {
         // Zeilen zusammenhängen, wenn die vorherige Zeile kein kritischer Stopper war
         if (
             optimizedLines.length > 0 &&
-            !(
-                (forceKeepPathComments || isJsOrScss) &&
-                /^\/\/.*(path:|pfad:|file:)/i.test(optimizedLines[optimizedLines.length - 1])
-            ) &&
             !(ext === '.php' && /^<\?php/i.test(optimizedLines[optimizedLines.length - 1]))
         ) {
             const lastLine = optimizedLines[optimizedLines.length - 1];
@@ -264,21 +269,18 @@ function startStructureMirror() {
         try {
             const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
 
-            // Wichtig: forceKeepPathComments=true, damit bei Einzeldateien JEDER Typ den Pfad behält
-            let optimizedContent = optimizeTokens(rawContent, file.ext, true);
+            // Komplette Bereinigung aller Alt-Kommentare inkl. alter Path-Kommentare
+            let optimizedContent = optimizeTokens(rawContent, file.ext);
 
-            // Falls die Datei noch keinen Pfad-Kommentar am Anfang hat, setzen wir ihn davor
-            if (!/^\/\/.*(path:|pfad:|file:)/i.test(optimizedContent)) {
-                const commentPrefix = `// Path: ${file.relPath}\n`;
-                // Bei PHP darauf achten, dass der Kommentar nach dem <?php Tag landet
-                if (file.ext.toLowerCase() === '.php' && /^<\?php/i.test(optimizedContent)) {
-                    optimizedContent = optimizedContent.replace(
-                        /^<\?php/i,
-                        `<?php\n${commentPrefix.trim()}`
-                    );
-                } else {
-                    optimizedContent = commentPrefix + optimizedContent;
-                }
+            // Setze IMMER den neuen, korrekten Pfad-Kommentar an die Spitze
+            const commentPrefix = `// Path: ${file.relPath}\n`;
+            if (file.ext.toLowerCase() === '.php' && /^<\?php/i.test(optimizedContent)) {
+                optimizedContent = optimizedContent.replace(
+                    /^<\?php/i,
+                    `<?php\n${commentPrefix.trim()}`
+                );
+            } else {
+                optimizedContent = commentPrefix + optimizedContent;
             }
 
             // Zielpfad innerhalb des neuen Zeitstempel-Ordners berechnen
@@ -332,8 +334,8 @@ function startFileCollection(configKey, silent = false) {
         try {
             const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
 
-            // Hier passiert die Magie der Token-Optimierung
-            const optimizedContent = optimizeTokens(rawContent, file.ext, false);
+            // Optimierung ohne jegliche Alt-Kommentare
+            const optimizedContent = optimizeTokens(rawContent, file.ext);
 
             combinedContent += `// ========== START FILE: [${file.relPath}] ==========\n`;
             combinedContent += `${optimizedContent}\n`;
