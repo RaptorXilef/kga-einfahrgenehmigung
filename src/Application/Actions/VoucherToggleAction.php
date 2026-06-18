@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\DTO\VoucherToggleRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
@@ -42,16 +42,15 @@ final readonly class VoucherToggleAction implements ActionInterface
         }
 
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+            // Leck geschlossen: Wir nutzen jetzt das dedizierte DTO!
+            $dto = VoucherToggleRequest::fromArray($post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
 
-        $action = $post['action'] ?? '';
-        $status = $action === 'activate_voucher' ? 'aktiv' : 'deaktiviert';
+        // Kein roher $post Zugriff mehr! Das DTO hat das Flag bereits in 'aktiv' / 'deaktiviert' übersetzt.
+        $this->voucherService->toggleStatus($dto->code, $dto->targetStatus);
 
-        $this->voucherService->toggleStatus($dto->identifier, $status);
-
-        return 'Gutschein wurde ' . ($status === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
+        return 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
     }
 }

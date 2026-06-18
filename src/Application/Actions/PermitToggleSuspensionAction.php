@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\DTO\PermitToggleSuspensionRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -39,12 +39,13 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
     public function execute(array $post): string
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+            // Leck geschlossen: Wir nutzen jetzt das dedizierte DTO!
+            $dto = PermitToggleSuspensionRequest::fromArray($post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
 
-        $permit = $this->storage->findByHash($dto->identifier);
+        $permit = $this->storage->findByHash($dto->code);
 
         if (! $permit instanceof Permit) {
             return 'Fehler: Genehmigung nicht gefunden.';
@@ -63,11 +64,9 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
             return 'Fehler: Keine Berechtigung, diesen spezifischen Status zu sperren/entsperren.';
         }
 
-        $suspended = ($post['action'] ?? '') === 'suspend_permit';
-        $reason    = (string) ($post['reason'] ?? '');
+        // Kein roher $post Zugriff mehr in der Action! Alles kommt sauber aus dem DTO.
+        $this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason);
 
-        $this->permitService->toggleSuspension($dto->identifier, $suspended, $reason);
-
-        return 'Genehmigung wurde ' . ($suspended ? 'gesperrt.' : 'freigegeben.');
+        return 'Genehmigung wurde ' . ($dto->isSuspended ? 'gesperrt.' : 'freigegeben.');
     }
 }
