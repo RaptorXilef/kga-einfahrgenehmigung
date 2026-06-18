@@ -2,6 +2,14 @@
 
 
 
+## [0.47.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.1...v0.47.2) (2026-06-18)
+
+### ⚙️ Refactoring
+
+* **controllers,adr:** purge procedural logic from entrypoints and enforce middleware pipelines ([214bf74](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/214bf7441c1f4f8e2857c7e91e45c81f2347d361))
+* **core,dto:** secure file uploads and client IPs via strict DTO encapsulation ([684ca84](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/684ca84d873796b78f459a66d398ab03fd71e58e))
+* **core,types:** eradicate dead code dependencies and enforce strict typing rules ([060658c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/060658c27f596b74872e5b802f6744c750f99bbf))
+
 ## [0.47.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.0...v0.47.1) (2026-06-18)
 
 ### 🐛 Bug Fixes
