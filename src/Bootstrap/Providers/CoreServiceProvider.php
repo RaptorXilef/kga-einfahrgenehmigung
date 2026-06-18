@@ -7,6 +7,7 @@ namespace App\Bootstrap\Providers;
 use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -55,12 +56,11 @@ final class CoreServiceProvider implements ServiceProviderInterface
 
         // --- 2.2 Haupt-Geschäftslogik ---
         $container->bind(PermitService::class, fn () => new PermitService(
-            $container->get(BankQrGenerator::class),
             $container->get(ConfigInterface::class),
-            $container->get(HolidayService::class),
+            $container->get(EventDispatcherInterface::class),
             $container->get(LicensePlateFormatter::class),
             $container->get(LockManagerInterface::class),
-            $container->get(MailServiceInterface::class),
+            $container->get(MailServiceInterface::class), // Bleibt, da er noch die Opt-In-Mail sendet
             $container->get(PaymentProviderInterface::class),
             $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(StorageInterface::class),

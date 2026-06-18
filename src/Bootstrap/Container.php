@@ -6,6 +6,7 @@ namespace App\Bootstrap;
 
 use App\Bootstrap\Providers\ControllerServiceProvider;
 use App\Bootstrap\Providers\CoreServiceProvider;
+use App\Bootstrap\Providers\EventServiceProvider;
 use App\Bootstrap\Providers\InfrastructureServiceProvider;
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Config\Config;
@@ -64,6 +65,7 @@ class Container
         $providers = [
             new InfrastructureServiceProvider(),
             new CoreServiceProvider(),
+            new EventServiceProvider(),
             new ControllerServiceProvider(),
         ];
 
