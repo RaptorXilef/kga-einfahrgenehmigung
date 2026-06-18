@@ -6,7 +6,6 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
@@ -43,7 +42,6 @@ final readonly class PermitService
         private EventDispatcherInterface $eventDispatcher,
         private LicensePlateFormatter $plateFormatter,
         private LockManagerInterface $lockManager,
-        private MailServiceInterface $mailService,
         private PaymentProviderInterface $paymentProvider,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private StorageInterface $storage,

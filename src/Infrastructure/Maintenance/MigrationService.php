@@ -6,7 +6,6 @@ namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
-use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
@@ -47,7 +46,6 @@ final readonly class MigrationService
         private GroupRepositoryInterface $groupRepository,
         private MagicLinkRepositoryInterface $magicLinkRepository,
         private MailLogInterface $mailLog,
-        private MailServiceInterface $mailService,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
         private StorageInterface $storage,

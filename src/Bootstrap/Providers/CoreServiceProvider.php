@@ -8,7 +8,6 @@ use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
-use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -60,7 +59,6 @@ final class CoreServiceProvider implements ServiceProviderInterface
             $container->get(EventDispatcherInterface::class),
             $container->get(LicensePlateFormatter::class),
             $container->get(LockManagerInterface::class),
-            $container->get(MailServiceInterface::class), // Bleibt, da er noch die Opt-In-Mail sendet
             $container->get(PaymentProviderInterface::class),
             $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(StorageInterface::class),

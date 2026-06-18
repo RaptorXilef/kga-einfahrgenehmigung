@@ -200,7 +200,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(GroupRepositoryInterface::class),
             $container->get(HolidayService::class),
             $container->get(MailLogInterface::class),
-            $container->get(MailServiceInterface::class),
             $container->get(MigrationService::class),
             $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(PermitService::class),

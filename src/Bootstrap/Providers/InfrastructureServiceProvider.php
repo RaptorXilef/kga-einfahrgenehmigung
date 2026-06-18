@@ -21,7 +21,24 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
+use App\Core\Service\MailQueueService;
 use App\Core\Service\PermitService;
+use App\Infrastructure\Database\PdoFactory;
+use App\Infrastructure\Mail\SmtpMailService;
+use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\MigrationService;
+use App\Infrastructure\Maintenance\StorageBootstrapper;
+use App\Infrastructure\Payment\PayPalService;
+use App\Infrastructure\Security\RateLimiter;
+use App\Infrastructure\Storage\FileLockManager;
+use App\Infrastructure\Storage\GroupRepository;
+use App\Infrastructure\Storage\MagicLinkRepository;
+use App\Infrastructure\Storage\MailQueueRepository;
+use App\Infrastructure\Storage\PermitArchiveRepository;
+use App\Infrastructure\Storage\StorageFactory;
+use App\Infrastructure\Storage\UserRepository;
+use App\Infrastructure\Storage\VerificationRepository;
+use App\Infrastructure\Storage\VoucherRepository;
 
 /**
  * Registriert alle Hardware-, Netzwerk- und Dateisystem-nahen Komponenten.
@@ -38,78 +55,78 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
     public function register(Container $container): void
     {
         // --- 1.1 Datenbank & Basis-Storage ---
-        $container->bind(\PDO::class, fn (): ?\PDO => \App\Infrastructure\Database\PdoFactory::create(
+        $container->bind(\PDO::class, fn (): ?\PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(StorageInterface::class, fn (): StorageInterface => \App\Infrastructure\Storage\StorageFactory::create(
+        $container->bind(StorageInterface::class, fn (): StorageInterface => StorageFactory::create(
             $container->get(ConfigInterface::class),
             $container->get(\PDO::class),
         ));
 
         // --- 1.2 Repositories (Datenzugriff) ---
-        $container->bind(GroupRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\GroupRepository(
+        $container->bind(GroupRepositoryInterface::class, fn () => new GroupRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(UserRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\UserRepository(
+        $container->bind(UserRepositoryInterface::class, fn () => new UserRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(PermitArchiveRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\PermitArchiveRepository(
+        $container->bind(PermitArchiveRepositoryInterface::class, fn () => new PermitArchiveRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(VerificationRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\VerificationRepository(
+        $container->bind(VerificationRepositoryInterface::class, fn () => new VerificationRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(VoucherRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\VoucherRepository(
+        $container->bind(VoucherRepositoryInterface::class, fn () => new VoucherRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(MagicLinkRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\MagicLinkRepository(
+        $container->bind(MagicLinkRepositoryInterface::class, fn () => new MagicLinkRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(MailQueueRepositoryInterface::class, fn () => new \App\Infrastructure\Storage\MailQueueRepository(
+        $container->bind(MailQueueRepositoryInterface::class, fn () => new MailQueueRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
         // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
-        $container->bind('mail.smtp', fn (): \App\Infrastructure\Mail\SmtpMailService => new \App\Infrastructure\Mail\SmtpMailService(
+        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
         $container->bind(MailLogInterface::class, fn () => $container->get('mail.smtp'));
-        $container->bind(MailServiceInterface::class, fn (): \App\Core\Service\MailQueueService => new \App\Core\Service\MailQueueService(
+        $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
             $container->get('mail.smtp'),
         ));
 
-        $container->bind(PaymentProviderInterface::class, fn (): \App\Infrastructure\Payment\PayPalService => new \App\Infrastructure\Payment\PayPalService(
+        $container->bind(PaymentProviderInterface::class, fn (): PayPalService => new PayPalService(
             $container->get(ConfigInterface::class),
         ));
 
         // --- 1.4 Sicherheit & System-Bootstrapping ---
-        $container->bind(RateLimiterInterface::class, fn () => new \App\Infrastructure\Security\RateLimiter(
+        $container->bind(RateLimiterInterface::class, fn () => new RateLimiter(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(LockManagerInterface::class, fn () => new \App\Infrastructure\Storage\FileLockManager(
+        $container->bind(LockManagerInterface::class, fn () => new FileLockManager(
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(\App\Infrastructure\Maintenance\StorageBootstrapper::class, fn (): \App\Infrastructure\Maintenance\StorageBootstrapper => new \App\Infrastructure\Maintenance\StorageBootstrapper(
+        $container->bind(StorageBootstrapper::class, fn (): StorageBootstrapper => new StorageBootstrapper(
             $container->get(\PDO::class),
             $container->get(AuthService::class),
             $container->get(ConfigInterface::class),
@@ -118,20 +135,19 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         ));
 
         // --- 1.5 System-Maintenance & Wartung ---
-        $container->bind(\App\Infrastructure\Maintenance\BackupService::class, fn (): \App\Infrastructure\Maintenance\BackupService => new \App\Infrastructure\Maintenance\BackupService(
+        $container->bind(BackupService::class, fn (): BackupService => new BackupService(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(\App\Infrastructure\Maintenance\MigrationService::class, fn (): \App\Infrastructure\Maintenance\MigrationService => new \App\Infrastructure\Maintenance\MigrationService(
+        $container->bind(MigrationService::class, fn (): MigrationService => new MigrationService(
             $container->get(\PDO::class),
             $container->get(AuthService::class),
-            $container->get(\App\Infrastructure\Maintenance\BackupService::class),
+            $container->get(BackupService::class),
             $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(MagicLinkRepositoryInterface::class),
             $container->get(MailLogInterface::class),
-            $container->get(MailServiceInterface::class),
             $container->get(PermitArchiveRepositoryInterface::class),
             $container->get(PermitService::class),
             $container->get(StorageInterface::class),
