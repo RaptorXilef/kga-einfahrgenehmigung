@@ -14,7 +14,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\AuthService;
 
 /**
- * Zentraler Front-Controller für alle asynchronen (JSON) API-Routen.
+ * Zentraler Front-Controller für alle asynchronen (JSON & Form) API-Routen.
  *
  * Path: src/Application/ApiController.php
  *
@@ -40,7 +40,7 @@ final readonly class ApiController
 
         $pipeline = new MiddlewarePipeline();
 
-        // Alle APIs brauchen CSRF (außer sie verzichten explizit darauf, was hier nicht der Fall ist)
+        // Alle APIs brauchen CSRF
         $pipeline->add(new ApiCsrfMiddleware());
 
         if ($rateLimit) {
@@ -51,9 +51,11 @@ final readonly class ApiController
             $pipeline->add(new ApiPermissionMiddleware($this->auth, $permission));
         }
 
-        // 1. JSON Stream global und sicher abgreifen
-        $inputData = [];
-        if (\in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH'], true)) {
+        // 1. Payload Stream global und sicher abgreifen - ABER NUR WENN ES JSON IST!
+        $inputData   = [];
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+        if (\in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH'], true) && \str_contains($contentType, 'application/json')) {
             $raw = \file_get_contents('php://input');
             if ($raw !== '' && $raw !== false) {
                 try {
@@ -70,7 +72,7 @@ final readonly class ApiController
         $requestData = [
             'get'   => $_GET,
             'post'  => $_POST,
-            'input' => $inputData, // Hier liegen die entschlüsselten JSON-Werte!
+            'input' => $inputData, // Hier liegen die entschlüsselten JSON-Werte (falls vorhanden)
             'ip'    => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
         ];
 
