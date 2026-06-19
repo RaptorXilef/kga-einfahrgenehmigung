@@ -6,6 +6,7 @@ namespace App\Application;
 
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Middleware\AdminAuthGuardMiddleware;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Contracts\Application\ActionInterface;
@@ -33,6 +34,7 @@ final readonly class AdminController
     public function __construct(
         private AdminActionFactory $actionFactory,
         private AdminAuthGuardMiddleware $authGuard,
+        private AnalyticsMiddleware $analyticsMiddleware,
         private BackupServiceInterface $backupService,
         private CronScheduler $cronScheduler,
         private StorageBootstrapper $bootstrapper,
@@ -78,7 +80,9 @@ final readonly class AdminController
 
         // Pipeline aufbauen
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new CsrfMiddleware('admin.php'));
+        $pipeline
+            ->add($this->analyticsMiddleware)
+            ->add(new CsrfMiddleware('admin.php'));
 
         // Die Login-Logik umgeht natürlich den Guard, alles andere muss durch den Türsteher
         if ($actionKey !== 'login' && $actionKey !== 'logout') {

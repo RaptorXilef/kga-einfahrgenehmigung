@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\HistoryActionFactory;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
@@ -24,6 +25,7 @@ use App\Contracts\Security\RateLimiterInterface;
 final readonly class HistoryController
 {
     public function __construct(
+        private AnalyticsMiddleware $analyticsMiddleware,
         private HistoryActionFactory $actionFactory,
         private RateLimiterInterface $rateLimiter,
         private TerminateMailQueueMiddleware $mailQueueMiddleware
@@ -43,6 +45,7 @@ final readonly class HistoryController
         $pipeline
             ->add(new RateLimitMiddleware($this->rateLimiter, 'history.php'))
             ->add(new CsrfMiddleware('history.php'))
+            ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
         // 2. Request durchschicken

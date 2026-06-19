@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\VerificationActionFactory;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
@@ -24,6 +25,7 @@ use App\Contracts\Security\RateLimiterInterface;
 final readonly class VerificationController
 {
     public function __construct(
+        private AnalyticsMiddleware $analyticsMiddleware,
         private RateLimiterInterface $rateLimiter,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private VerificationActionFactory $factory,
@@ -44,6 +46,7 @@ final readonly class VerificationController
         $pipeline
             ->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'))
             ->add(new CsrfMiddleware('verify.php?error=1'))
+            ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
         $pipeline->process([

@@ -78,6 +78,7 @@ use App\Application\CronController;
 use App\Application\FrontendController;
 use App\Application\HistoryController;
 use App\Application\Middleware\AdminAuthGuardMiddleware;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\PermitController;
 use App\Application\Session\SessionManager;
@@ -134,11 +135,18 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // --- 3.x Session and Auth ---
         $container->bind(SessionManager::class, fn () => new SessionManager());
 
+        // --- Middleware ---
         $container->bind(AdminAuthGuardMiddleware::class, fn () => new AdminAuthGuardMiddleware(
             $container->get(AuthService::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(TemplateRenderer::class),
             $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(TerminateMailQueueMiddleware::class, fn () => new TerminateMailQueueMiddleware(
+            $container->get(MailServiceInterface::class),
+        ));
+        $container->bind(AnalyticsMiddleware::class, fn () => new AnalyticsMiddleware(
+            $container->get(ConfigInterface::class),
         ));
 
         // --- 3.2 Backend Controller (Admin) ---
@@ -227,6 +235,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(AdminController::class, fn (): AdminController => new AdminController(
             $container->get(AdminActionFactory::class),
             $container->get(AdminAuthGuardMiddleware::class),
+            $container->get(AnalyticsMiddleware::class),
             $container->get(BackupServiceInterface::class),
             $container->get(CronScheduler::class),
             $container->get(StorageBootstrapper::class),
@@ -327,6 +336,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // User / Profile / Group Controller
         $container->bind(UserController::class, fn (): UserController => new UserController(
+            $container->get(AnalyticsMiddleware::class),
             $container->get(AuthService::class),
             $container->get(TerminateMailQueueMiddleware::class),
             $container->get(UserActionFactory::class),
@@ -383,6 +393,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // History Controller
         $container->bind(HistoryController::class, fn (): HistoryController => new HistoryController(
+            $container->get(AnalyticsMiddleware::class),
             $container->get(HistoryActionFactory::class),
             $container->get(RateLimiterInterface::class),
             $container->get(TerminateMailQueueMiddleware::class),
@@ -423,6 +434,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // Permit Controller
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
+            $container->get(AnalyticsMiddleware::class),
             $container->get(PermitActionFactory::class),
             $container->get(TerminateMailQueueMiddleware::class),
         ));
@@ -450,6 +462,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // Verification Controller
         $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
+            $container->get(AnalyticsMiddleware::class),
             $container->get(RateLimiterInterface::class),
             $container->get(TerminateMailQueueMiddleware::class),
             $container->get(VerificationActionFactory::class),
@@ -503,10 +516,8 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(RateLimiterInterface::class),
         ));
 
-        $container->bind(TerminateMailQueueMiddleware::class, fn () => new TerminateMailQueueMiddleware(
-            $container->get(MailServiceInterface::class),
-        ));
         $container->bind(FrontendController::class, fn () => new FrontendController(
+            $container->get(AnalyticsMiddleware::class),
             $container->get(TerminateMailQueueMiddleware::class),
         ));
         $container->bind(SystemCronAction::class, fn () => new SystemCronAction(

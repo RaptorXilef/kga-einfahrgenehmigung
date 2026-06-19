@@ -298,64 +298,6 @@ $exceptionHandler = new \App\Application\Exception\GlobalExceptionHandler($error
 $exceptionHandler->register();
 // --- ENDE EXCEPTIONS ---
 
-// =========================================================================
-// SERVER-SIDE GA4 TRACKING (100% GENAUE SEITENAUFRUFE — UMGEHT ADBLOCKER) - Wird local übersprungen
-// =========================================================================
-$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-
-// HIER GEÄNDERT: Führe cURL-Tracking nur aus, wenn wir NICHT lokal sind
-if (
-    empty($settings['is_local_env'])
-    && ! \str_contains($scriptName, '/api/')
-    && ! \str_contains($scriptName, 'cron.php')
-    && ! \str_contains($scriptName, 'process_mail_queue.php')
-) {
-    // Holt sich die Daten vollautomatisch aus dem secrets.php-Zweig
-    $gaId      = $settings['ga4_server_side']['measurement_id'] ?? '';
-    $apiSecret = $settings['ga4_server_side']['api_secret'] ?? '';
-
-    if (! empty($gaId) && ! empty($apiSecret)) {
-        // Generiert eine anonyme, sitzungsbasierte Client-ID für GA4
-        if (empty($_SESSION['ga4_client_id'])) {
-            $_SESSION['ga4_client_id'] = \bin2hex(\random_bytes(16));
-        }
-
-        // Saubere Seiten-URL für Google Analytics (Kein HTTP_HOST)
-        $baseForGa    = ! empty($settings['base_url']) ? \rtrim($settings['base_url'], '/') : 'https://' . ($_SERVER['SERVER_NAME'] ?? 'localhost');
-        $pageLocation = $baseForGa . ($_SERVER['REQUEST_URI'] ?? '');
-        $pageTitle    = \basename($scriptName, '.php');
-
-        $payload = [
-            'client_id' => $_SESSION['ga4_client_id'],
-            'events'    => [[
-                'name'   => 'page_view',
-                'params' => [
-                    'page_location'        => $pageLocation,
-                    'page_title'           => \ucfirst($pageTitle),
-                    'engagement_time_msec' => 1,
-                ],
-            ]],
-        ];
-
-        // Schneller, asynchroner Server-to-Server POST-Request an Google
-        $ch = \curl_init('https://www.google-analytics.com/mp/collect?measurement_id=' . \urlencode($gaId) . '&api_secret=' . \urlencode($apiSecret));
-
-        // FIX: Protokoll-Smuggling abwehren! cURL darf NUR HTTPS verwenden.
-        \curl_setopt($ch, \CURLOPT_PROTOCOLS, \CURLPROTO_HTTPS);
-        \curl_setopt($ch, \CURLOPT_REDIR_PROTOCOLS, \CURLPROTO_HTTPS);
-        \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($ch, \CURLOPT_POST, true);
-        \curl_setopt($ch, \CURLOPT_POSTFIELDS, \json_encode($payload));
-        \curl_setopt($ch, \CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        // Timeout auf 1 Sekunde limitieren, damit die Seite niemals blockiert
-        // Von 1 Sekunde auf max. 250ms Latenz-Limit senken, um die TTFB (Time to First Byte) zu schützen
-        \curl_setopt($ch, \CURLOPT_TIMEOUT_MS, 250);
-        \curl_exec($ch);
-        \curl_close($ch);
-    }
-}
-// =========================================================================
-
 // Wir geben direkt die Container-Instanz zurück
 /**
  * @return Container Gibt die fertig konfigurierte Dependency-Injection-Container-Instanz zurück.

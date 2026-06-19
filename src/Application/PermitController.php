@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\PermitActionFactory;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
@@ -22,6 +23,7 @@ use App\Application\Middleware\TerminateMailQueueMiddleware;
 final readonly class PermitController
 {
     public function __construct(
+        private AnalyticsMiddleware $analyticsMiddleware,
         private PermitActionFactory $actionFactory,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
     ) {
@@ -42,6 +44,7 @@ final readonly class PermitController
         $pipeline = new MiddlewarePipeline();
         $pipeline
             ->add(new CsrfMiddleware('index.php'))
+            ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {

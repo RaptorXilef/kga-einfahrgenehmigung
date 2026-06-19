@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Contracts\Application\ViewActionInterface;
@@ -20,8 +21,10 @@ use App\Contracts\Application\ViewActionInterface;
  */
 final readonly class FrontendController
 {
-    public function __construct(private TerminateMailQueueMiddleware $mailQueueMiddleware)
-    {
+    public function __construct(
+        private AnalyticsMiddleware $analyticsMiddleware,
+        private TerminateMailQueueMiddleware $mailQueueMiddleware,
+    ) {
     }
 
     public function handleRequest(ViewActionInterface $action, array $get, array $post = []): void
@@ -29,7 +32,9 @@ final readonly class FrontendController
         $pipeline = new MiddlewarePipeline();
 
         // Fügt die Mail-Queue an das Ende der Ausführung an
-        $pipeline->add($this->mailQueueMiddleware);
+        $pipeline
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         $pipeline->process(['get' => $get, 'post' => $post], function (array $req) use ($action): void {
             $action->execute($req);
