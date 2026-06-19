@@ -2,6 +2,13 @@
 
 
 
+## [0.47.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.6...v0.47.7) (2026-06-19)
+
+### ⚙️ Refactoring
+
+* **core,arch:** eradicate persistent leaky abstractions and solidify domain decoupling ([6545e0b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6545e0b92f0834b7f031e2880ca828227506e2e4))
+* **core,middlewares:** introduce robust HTTP response abstraction & dynamic permission routing ([7e5d692](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e5d69299e1c6512cf1033df9455be52e59af1bb))
+
 ## [0.47.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.5...v0.47.6) (2026-06-19)
 
 ### 🐛 Bug Fixes
