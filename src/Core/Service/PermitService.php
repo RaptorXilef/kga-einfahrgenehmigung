@@ -393,13 +393,13 @@ final readonly class PermitService
             $filtered[] = $permit;
         }
 
-        \usort($filtered, fn ($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
+        \usort($filtered, fn ($a, $b): int => $b->getCreatedAt() <=> $a->getCreatedAt());
 
         $total  = \count($filtered);
         $offset = ($page - 1) * $limit;
         $items  = \array_slice($filtered, $offset, $limit);
 
-        $formattedItems = \array_map(fn ($permit) => [
+        $formattedItems = \array_map(fn ($permit): array => [
             'bis'          => $permit->getValidUntil()->format('d.m.Y'),
             'code'         => $permit->code,
             'email'        => $permit->getOwnerEmail(),

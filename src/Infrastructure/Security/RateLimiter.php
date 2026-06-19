@@ -116,7 +116,7 @@ final readonly class RateLimiter implements RateLimiterInterface
 
         // Sicheres Inkrementieren mit exklusivem File-Lock (LOCK_EX)
         $path = $this->config->getStoragePath($cfg['file']);
-        $this->executeJsonTransaction($path, function (array &$data) use ($ip, $nowStr) {
+        $this->executeJsonTransaction($path, function (array &$data) use ($ip, $nowStr): bool {
             // Garbage Collection (Speicher-Leck / JSON-Bloat verhindern!)
             // Löscht alle IPs, deren letzter Versuch länger als die Lockout-Zeit her ist.
             $threshold = \time() - (self::LOCKOUT_MINUTES * 60);
@@ -150,7 +150,7 @@ final readonly class RateLimiter implements RateLimiterInterface
 
         // Sicheres Löschen mit exklusivem File-Lock (LOCK_EX)
         $path = $this->config->getStoragePath($cfg['file']);
-        $this->executeJsonTransaction($path, function (array &$data) use ($ip) {
+        $this->executeJsonTransaction($path, function (array &$data) use ($ip): bool {
             if (isset($data[$ip])) {
                 unset($data[$ip]);
 

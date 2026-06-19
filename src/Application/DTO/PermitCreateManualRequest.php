@@ -27,7 +27,7 @@ final readonly class PermitCreateManualRequest
     // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
-        $sanitized = \array_map(function ($value) {
+        $sanitized = \array_map(function ($value): mixed {
             return \is_string($value) ? \trim(\strip_tags($value)) : $value;
         }, $post);
 

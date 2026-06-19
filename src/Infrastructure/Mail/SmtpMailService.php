@@ -376,7 +376,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // --- Sicherer JSON Code ---
         $path = $this->config->getStoragePath($cfg['file']);
 
-        $this->executeJsonTransaction($path, function (array &$logs) use ($data, $recipient, $statusStr, $subject, $template, $maxEntries) {
+        $this->executeJsonTransaction($path, function (array &$logs) use ($data, $recipient, $statusStr, $subject, $template, $maxEntries): bool {
             \array_unshift($logs, [
                 'data'      => $data,
                 'recipient' => $recipient,

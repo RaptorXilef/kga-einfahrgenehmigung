@@ -38,7 +38,7 @@ final readonly class PermitSubmitRequest
     public static function fromArray(array $post): self
     {
         // 1. Array komplett säubern (XSS-Schutz, Trimmen)
-        $sanitized = \array_map(function ($value) {
+        $sanitized = \array_map(function ($value): mixed {
             return \is_string($value) ? \trim(\strip_tags($value)) : $value;
         }, $post);
 

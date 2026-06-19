@@ -41,7 +41,7 @@ final class MiddlewarePipeline
         for ($i = \count($this->middlewares) - 1; $i >= 0; --$i) {
             $middleware = $this->middlewares[$i];
 
-            $next = function (array $req) use ($middleware, $next) {
+            $next = function (array $req) use ($middleware, $next): mixed {
                 return $middleware->process($req, $next);
             };
         }

@@ -49,7 +49,7 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
-        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($permit) {
+        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($permit): bool {
             $data[$permit->code] = $this->flattenEntity($permit);
 
             return true;
@@ -67,7 +67,7 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function delete(string $code): bool
     {
-        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($code) {
+        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($code): bool {
             if (isset($data[$code])) {
                 unset($data[$code]);
 
@@ -87,7 +87,7 @@ final readonly class JsonStorage implements StorageInterface
             return 0;
         }
 
-        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($codes) {
+        $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($codes): int {
             $deletedCount = 0;
             foreach ($codes as $code) {
                 if (isset($data[$code])) {
