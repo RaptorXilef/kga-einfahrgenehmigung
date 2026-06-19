@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SuccessRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -39,11 +40,12 @@ final readonly class SuccessAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        // FIX: Und auch hier auf ['get'] zugreifen!
-        $code   = (string) ($requestData['get']['code'] ?? '');
-        $method = (string) ($requestData['method'] ?? 'wire');
+        $dto    = SuccessRequest::fromArray($requestData['get'] ?? []);
+        $code   = $dto->code;
+        $method = $dto->method;
 
         $permit = $this->storage->findByHash($code);
+
         if (! $permit) {
             \header('Location: index.php');
             exit;

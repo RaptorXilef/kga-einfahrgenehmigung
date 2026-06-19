@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleCodeRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -36,8 +37,9 @@ final readonly class HistoryPrintAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        $get            = $requestData['get'];
-        $code           = (string) ($get['code'] ?? '');
+        $dto  = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $code = $dto->code;
+
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
 
         $permit = $this->storage->findByHash($code);

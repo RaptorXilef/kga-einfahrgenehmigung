@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleTokenRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -40,8 +41,9 @@ final readonly class CheckoutAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        // FIX: Auch hier auf ['get'] zugreifen!
-        $token    = (string) ($requestData['get']['token'] ?? '');
+        $dto   = SimpleTokenRequest::fromArray($requestData['get'] ?? []);
+        $token = $dto->token;
+
         $tempData = $this->permitService->getVerifiedRequest($token);
 
         if ($token === '' || $tempData === null) {

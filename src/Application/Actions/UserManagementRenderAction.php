@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\ViewRenderRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -35,12 +36,13 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $get = $requestData['get'];
+        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+
         $this->renderer->render('admin_users', [
             'auth'            => $this->auth,
             'groupRepository' => $this->groupRepository,
             'groups'          => $this->groupRepository->loadAll(),
-            'message'         => (string) ($get['msg'] ?? ''),
+            'message'         => $dto->message,
             'permissions'     => $this->config->get('permissions', []),
             'structure'       => $this->config->get('structure', []),
             'userRepository'  => $this->userRepository,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\ExportRequest;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\ExportService;
@@ -32,10 +33,11 @@ final readonly class DashboardExportAction implements ViewActionInterface
             exit('Fehler: Keine Berechtigung für Daten-Exporte.');
         }
 
-        $get    = $requestData['get'] ?? [];
-        $format = (string) ($get['export'] ?? 'csv');
-        $start  = (string) ($get['start'] ?? 'all');
-        $end    = (string) ($get['end'] ?? 'all');
+        $dto = ExportRequest::fromArray($requestData['get'] ?? []);
+
+        $format = $dto->format;
+        $start  = $dto->start;
+        $end    = $dto->end;
 
         // Hinweis: Das `$requestData['filteredPermits']` füllen wir gleich im Controller ab!
         $filtered = $requestData['filteredPermits'] ?? [];

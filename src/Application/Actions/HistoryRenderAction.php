@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\ViewRenderRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -38,24 +39,21 @@ final readonly class HistoryRenderAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        $get            = $requestData['get'];
+        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+
         $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
-        $message        = (string) ($get['msg'] ?? '');
-        $isSuccess      = ($get['sent'] ?? '') === '1';
-        $step           = ($get['sent'] ?? '0') === '1' ? 2 : 1;
+        $message        = $dto->message;
+        $isSuccess      = $dto->isSuccess;
+        $step           = $dto->step;
 
         if ($emailInSession === '') {
-            $this->renderer->render('history_login', [
-                'isSuccess' => $isSuccess,
-                'message'   => $message,
-                'step'      => $step,
-            ]);
+            $this->renderer->render('history_login', ['isSuccess' => $isSuccess, 'message' => $message, 'step' => $step]);
 
             return;
         }
 
         $permits    = $this->permitService->getHistoryByEmail($emailInSession);
-        $loadedYear = (int) ($get['load_archive'] ?? 0);
+        $loadedYear = $dto->loadArchive;
 
         if ($loadedYear > 0) {
             $arcCfg      = $this->config->get('storage_config')['permits_archive'];

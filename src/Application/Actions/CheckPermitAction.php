@@ -44,9 +44,9 @@ final readonly class CheckPermitAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        // FIX: Wir greifen jetzt in das ['get'] Schubfach der Pipeline!
-        $get  = $requestData['get'] ?? [];
-        $code = \strtoupper(\trim((string) ($get['code'] ?? '')));
+        // DTO statt rohem $requestData['get']
+        $dto  = \App\Application\DTO\SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $code = $dto->code;
         $now  = new \DateTimeImmutable();
 
         // 1. Suche in echten Permits (zuerst via Code/Hash)
@@ -102,7 +102,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
 
         // Fall 2: Genehmigung gefunden
         if ($permit instanceof Permit) {
-            $showAdminView = $this->determineViewPrivileges($permit, $get);
+            $showAdminView = $this->determineViewPrivileges($permit, $dto->token);
 
             // Config auslesen
             $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
@@ -136,7 +136,6 @@ final readonly class CheckPermitAction implements ViewActionInterface
             return;
         }
 
-        // Fall 3: Code/Kennzeichen nicht gefunden (bei Fehler)
         $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
     }
 
@@ -144,12 +143,11 @@ final readonly class CheckPermitAction implements ViewActionInterface
      * Bestimmt die Rechte des aktuellen Betrachters für die Detailansicht.
      * Evaluierte Bedingungen: Admin-Dev-Mode aktiv, Admin eingeloggt oder gültiger Signatur-Hash.
      *
-     * @param Permit               $permit Das zu prüfende Genehmigungs-Objekt.
-     * @param array<string, mixed> $get    Entspricht $_GET (für Token-Abgleich).
+     * @param Permit $permit Das zu prüfende Genehmigungs-Objekt.
      *
      * @return bool True, wenn erweiterte Admin-Informationen angezeigt werden dürfen.
      */
-    private function determineViewPrivileges(Permit $permit, array $get): bool
+    private function determineViewPrivileges(Permit $permit, string $token): bool
     {
         // A. Entwickler-Modus
         if ((bool) $this->config->get('admin_dev_mode', false)) {
@@ -161,8 +159,6 @@ final readonly class CheckPermitAction implements ViewActionInterface
             return true;
         }
 
-        // C. Token im Link (SHA256 Abgleich) für Vorstandsansicht
-        $token     = (string) ($get['token'] ?? '');
         $geheimnis = (string) $this->config->get('geheimnis', '');
 
         // Verhindere Bypass-Berechnungen durch unkonfiguriertes System-Geheimnis!

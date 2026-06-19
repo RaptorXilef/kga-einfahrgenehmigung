@@ -5,32 +5,26 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 /**
- * DTO für alle allgemeinen View-Render-Requests (GET-Parameter).
- *
- * Path: src/Application/DTO/ViewRenderRequest.php
+ * TODO DOCBLOCK
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class ViewRenderRequest
+final readonly class SimpleCodeRequest
 {
     private function __construct(
-        public string $message,
-        public bool $isSuccess,
-        public int $step,
-        public int $loadArchive,
+        public string $code,
+        public string $token,
     ) {
     }
 
     public static function fromArray(array $get): self
     {
         return new self(
-            \trim((string) ($get['msg'] ?? '')),
-            isset($get['sent']),
-            ($get['sent'] ?? '0') === '1' ? 2 : 1,
-            (int) ($get['load_archive'] ?? 0),
+            \strtoupper(\trim((string) ($get['code'] ?? ''))),
+            (string) ($get['token'] ?? ''),
         );
     }
 }

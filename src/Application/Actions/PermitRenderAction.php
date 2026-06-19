@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\ViewRenderRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -33,15 +34,14 @@ final readonly class PermitRenderAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $get = $requestData['get'];
+        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
 
-        $message = (string) ($get['msg'] ?? '');
-        $success = false;
+        $message = $dto->message;
+        $success = $dto->isSuccess;
 
-        // Dynamische Bestätigungsnachricht abfangen
-        if (isset($get['sent'])) {
-            $success = true;
-            $message = $get['msg'] ?? 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
+        if ($success && $message === '') {
+            $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
+                'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
         }
 
         $this->renderer->render('formular', [

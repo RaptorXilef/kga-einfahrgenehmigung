@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\ViewRenderRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -33,7 +34,8 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
-        $get         = $requestData['get'];
+        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+
         $userId      = $_SESSION['user_id'] ?? '';
         $users       = $this->userRepository->loadAll();
         $groups      = $this->groupRepository->loadAll();
@@ -43,7 +45,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             'auth'            => $this->auth,
             'group'           => $groups[$userGroupId]['name'] ?? $userGroupId,
             'groupRepository' => $this->groupRepository,
-            'message'         => (string) ($get['msg'] ?? ''),
+            'message'         => $dto->message,
             'userId'          => $userId,
             'username'        => $users[$userId]['username'] ?? 'Unbekannt',
             'userRepository'  => $this->userRepository,
