@@ -3,5 +3,11 @@
 #
 # @since: 0.1.0 Initiale Erstellung
 
+# Aktivieren mit "git config blame.ignoreRevsFile .git-blame-ignore-revs"
+
 # Beschreibung/Commit-Name
 # Commit-ID
+
+# Cleanup: Vereinfachung der Lizenz-Header
+857c6a2a2d0640652885a7799dcfe016f353a102
+736858b7f7dfe2a6bacd17b6a71222aaa4e6c0a8
