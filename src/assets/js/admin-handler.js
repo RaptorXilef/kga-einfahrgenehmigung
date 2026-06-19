@@ -12,6 +12,9 @@
  * Path: public/assets/js/admin-handler.min.js
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
+ */
+class AdminDashboardHandler {
+    constructor() {
         this.tabs = document.querySelectorAll('[data-tab-target]');
         this.contents = document.querySelectorAll('.c-tabs__content');
         this.searchInput = document.getElementById('adminSearch');

@@ -11,6 +11,9 @@ use App\Contracts\Config\ConfigInterface;
  * Formatiert Arrays zu CSV-Strings oder JSON. Greift NICHT in die HTTP-Schicht ein.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
+ */
+final readonly class ExportService
+{
     public function __construct(
         private ConfigInterface $config,
     ) {

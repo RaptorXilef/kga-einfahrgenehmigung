@@ -26,6 +26,9 @@ use App\Infrastructure\Maintenance\StorageBootstrapper;
  * Baut die Middleware-Pipelines und delegiert an die ActionFactory.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
+ */
+final readonly class AdminController
+{
     /**
      * Initiiert den Controller mit allen Abhängigkeiten (Dependency Injection).
      */

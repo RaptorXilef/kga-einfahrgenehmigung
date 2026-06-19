@@ -9,6 +9,9 @@
  * Path: public/check.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
+ */
+
+declare(strict_types=1);
 
 use App\Application\Actions\CheckPermitAction;
 use App\Application\FrontendController;
