@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
@@ -44,8 +45,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
         }
 
         if (! $hasRight) {
-            \header('Location: admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung, diesen spezifischen Status zu sperren/entsperren.'));
-            exit;
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung zum Sperren.'));
         }
 
         return $next($requestData);

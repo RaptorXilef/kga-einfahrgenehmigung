@@ -13,18 +13,19 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class RequireLoginMiddleware implements MiddlewareInterface
+final readonly class MigrationPermissionMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private AuthService $auth,
-        private string $fallbackUrl,
     ) {
     }
 
     public function process(array $requestData, callable $next): mixed
     {
-        if (! $this->auth->isLoggedIn()) {
-            return new RedirectResponse($this->fallbackUrl);
+        $target = $requestData['post']['target'] ?? '';
+        $dir    = $requestData['post']['direction'] ?? '';
+        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$dir}")) {
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung für diese Migrations-Aktion.'));
         }
 
         return $next($requestData);

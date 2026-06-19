@@ -34,10 +34,6 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.finance.mark_paid')) {
-            return 'Fehler: Keine Berechtigung für diese Aktion.';
-        }
-
         try {
             // Hinweis: Das Formular übergibt 'code', nicht 'id'
             $dto = SimpleIdentifierRequest::fromArray($post, 'code');

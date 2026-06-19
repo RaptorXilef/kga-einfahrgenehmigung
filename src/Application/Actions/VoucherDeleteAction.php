@@ -29,10 +29,6 @@ final readonly class VoucherDeleteAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.vouchers.remove')) {
-            return 'Fehler: Keine Berechtigung zum Löschen von Gutscheinen.';
-        }
-
         try {
             $dto = SimpleIdentifierRequest::fromArray($post, 'code');
         } catch (ValidationException $e) {

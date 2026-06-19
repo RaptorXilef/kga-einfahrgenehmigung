@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -26,9 +25,6 @@ final readonly class SystemChangelogAction implements ViewActionInterface
 
     public function execute(array $requestData): mixed
     {
-        if (! $this->auth->isLoggedIn() || ! $this->auth->hasPermission('system.update.view')) {
-            return new RedirectResponse('index.php');
-        }
         $root          = \rtrim((string) $this->config->get('root_path'), '/\\');
         $changelogPath = $root . '/CHANGELOG.md';
         if (! \file_exists($changelogPath)) {

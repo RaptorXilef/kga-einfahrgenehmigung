@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Response\TextResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\Maintenance\CronScheduler;
@@ -23,22 +24,12 @@ final readonly class SystemCronAction implements ViewActionInterface
 
     public function execute(array $requestData): mixed
     {
-        $providedToken = $requestData['get']['token'] ?? '';
-        $requiredToken = (string) $this->config->get('cron_secret', 'unconfigured');
-
-        if (\php_sapi_name() !== 'cli' && $providedToken !== $requiredToken) {
-            \http_response_code(403);
-            exit('Forbidden: Ungültiges Token.');
-        }
-
         try {
             $this->cron->runForce();
-            echo "Status 200 OK: Cronjobs (Archivierung & Backup) erfolgreich ausgeführt.\n";
-        } catch (\Throwable $e) {
-            \http_response_code(500);
-            echo 'Fehler bei der Ausführung: ' . $e->getMessage() . "\n";
-        }
 
-        return null;
+            return new TextResponse("Status 200 OK: Cronjobs (Archivierung & Backup) erfolgreich ausgeführt.\n");
+        } catch (\Throwable $e) {
+            return new TextResponse('Fehler bei der Ausführung: ' . $e->getMessage() . "\n", 500);
+        }
     }
 }

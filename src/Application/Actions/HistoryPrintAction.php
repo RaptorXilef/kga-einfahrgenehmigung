@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Response\RedirectResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -48,11 +49,10 @@ final readonly class HistoryPrintAction implements ViewActionInterface
                 ),
                 'permit' => $permit,
             ]);
-        } else {
-            \header('Location: history.php');
-            exit;
+
+            return null;
         }
 
-        return null;
+        return new RedirectResponse('history.php');
     }
 }

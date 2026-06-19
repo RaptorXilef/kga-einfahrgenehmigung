@@ -30,10 +30,6 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';
-        }
-
         try {
             // 10 Jahre gesetzliche Aufbewahrungsfrist
             $count = $this->archiveRepository->anonymizeOldRecords(10);

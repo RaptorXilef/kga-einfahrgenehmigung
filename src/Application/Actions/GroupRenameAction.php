@@ -29,10 +29,6 @@ final readonly class GroupRenameAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             $dto = GroupRenameRequest::fromArray($post);
         } catch (ValidationException $e) {

@@ -32,10 +32,6 @@ final readonly class VoucherToggleAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.vouchers.suspend')) {
-            return 'Fehler: Keine Berechtigung für diese Aktion.';
-        }
-
         try {
             // Leck geschlossen: Wir nutzen jetzt das dedizierte DTO!
             $dto = VoucherToggleRequest::fromArray($post);

@@ -30,10 +30,6 @@ final readonly class UserDeleteAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.users.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             $dto = SimpleIdentifierRequest::fromArray($post, 'user_id');
         } catch (ValidationException $e) {

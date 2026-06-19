@@ -33,10 +33,6 @@ final readonly class SystemRestoreDataAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             $dto = SystemMaintenanceRequest::forRestore($post);
         } catch (ValidationException $e) {

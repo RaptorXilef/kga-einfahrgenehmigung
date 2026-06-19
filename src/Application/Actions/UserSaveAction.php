@@ -29,10 +29,6 @@ final readonly class UserSaveAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.users.manage')) {
-            return 'Fehler: Keine Berechtigung für die Benutzerverwaltung.';
-        }
-
         try {
             $dto = UserSaveRequest::fromArray($post, $_FILES);
         } catch (ValidationException $e) {

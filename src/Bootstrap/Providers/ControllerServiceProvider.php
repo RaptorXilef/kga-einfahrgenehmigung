@@ -518,6 +518,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(CronScheduler::class),
         ));
         $container->bind(CronController::class, fn () => new CronController(
+            $container->get(ConfigInterface::class),
             $container->get(SystemCronAction::class),
         ));
         $container->bind(SystemChangelogAction::class, fn () => new SystemChangelogAction(
@@ -527,6 +528,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(ChangelogController::class, fn () => new ChangelogController(
             $container->get(AnalyticsMiddleware::class),
+            $container->get(AuthService::class),
             $container->get(SystemChangelogAction::class),
             $container->get(TerminateMailQueueMiddleware::class),
         ));

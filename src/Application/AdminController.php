@@ -9,11 +9,13 @@ use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\MigrationPermissionMiddleware;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\PrintAuthorizationMiddleware;
 use App\Application\Middleware\ToggleSuspensionMiddleware;
 use App\Application\Middleware\VoucherIssuanceMiddleware;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -83,16 +85,37 @@ final readonly class AdminController
 
         // Pipeline aufbauen
         $pipeline = new MiddlewarePipeline();
-        $pipeline
-            ->add($this->analyticsMiddleware)
-            ->add(new CsrfMiddleware('admin.php'));
+        $pipeline->add($this->analyticsMiddleware);
+        $pipeline->add(new CsrfMiddleware('admin.php'));
 
         // Die Login-Logik umgeht natürlich den Guard, alles andere muss durch den Türsteher
         if ($actionKey !== 'login' && $actionKey !== 'logout') {
             $pipeline->add($this->authGuard);
         }
-        if ($actionKey === 'dashboard_export') {
-            $pipeline->add(new PermissionMiddleware($this->auth, 'finance.export.execute', 'admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung für Exporte.')));
+
+        $permissionMap = [
+            'clear_cache'        => 'dashboard.migration.delete-cache.execute',
+            'truncate_target'    => 'dashboard.migration.delete-data.execute',
+            'anonymize_archive'  => 'dashboard.migration.anonymize.execute',
+            'restore_data'       => 'dashboard.migration.restore.execute',
+            'mark_as_paid'       => 'dashboard.finance.mark_paid',
+            'delete_voucher'     => 'dashboard.vouchers.remove',
+            'activate_voucher'   => 'dashboard.vouchers.suspend',
+            'deactivate_voucher' => 'dashboard.vouchers.suspend',
+            'create_manual'      => 'dashboard.generator-tools.manual_permit.execute',
+            'dashboard_export'   => 'finance.export.execute',
+        ];
+
+        if (isset($permissionMap[$actionKey])) {
+            $pipeline->add(new PermissionMiddleware($this->auth, $permissionMap[$actionKey], 'admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung.')));
+        }
+
+        if ($actionKey === 'migrate_data') {
+            $pipeline->add(new MigrationPermissionMiddleware($this->auth));
+        }
+        if ($actionKey === 'resend_mail') {
+            $pipeline->add(new PermissionMiddleware($this->auth, 'dashboard.logs.view', 'admin.php'));
+            $pipeline->add(new PermissionMiddleware($this->auth, 'dashboard.generator-tools.direct_issue.execute', 'admin.php'));
         }
         if ($actionKey === 'admin_print') {
             $pipeline->add(new PrintAuthorizationMiddleware($this->auth, $this->storage));
@@ -104,30 +127,22 @@ final readonly class AdminController
             $pipeline->add(new VoucherIssuanceMiddleware($this->auth));
         }
 
-        $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): void {
+        $response = $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): mixed {
             $action = $this->actionFactory->create($actionKey);
-
             if ($action instanceof ActionInterface) {
-                $result = $action->execute($req['post']);
-
-                // Wenn die Action einen Redirect auslöst, führe ihn hier im HTTP-Layer aus!
-                if ($result instanceof Response\RedirectResponse) {
-                    $result->send();
-                } else {
-                    // Fallback für alte Actions, die nur einen String (Nachricht) zurückgeben
-                    \header('Location: admin.php?msg=' . \urlencode($result));
-                    exit;
-                }
+                return $action->execute($req['post']);
             } elseif ($action instanceof ViewActionInterface) {
-                // View-Action (wie DashboardRenderAction, AdminPrintAction)
-                $result = $action->execute($req);
-                if ($result instanceof Response\RedirectResponse) {
-                    $result->send();
-                }
-            } else {
-                \header('Location: admin.php');
-                exit;
+                return $action->execute($req);
             }
+
+            return new Response\RedirectResponse('admin.php');
         });
+
+        // POLYMORPHISMUS PUR: Alle Hard-Exits wurden in die Interface-Send Methode verlagert!
+        if ($response instanceof ResponseInterface) {
+            $response->send();
+        } elseif (\is_string($response)) {
+            (new Response\RedirectResponse('admin.php?msg=' . \urlencode($response)))->send();
+        }
     }
 }

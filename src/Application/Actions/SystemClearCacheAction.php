@@ -30,10 +30,6 @@ final readonly class SystemClearCacheAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.migration.delete-cache.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';
-        }
-
         return $this->migrationService->clearCache();
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Security\RateLimiterInterface;
 
@@ -20,7 +21,6 @@ final readonly class RateLimitMiddleware implements MiddlewareInterface
     ) {
     }
 
-    // TODO DOCBLOCK
     public function process(array $requestData, callable $next): mixed
     {
         $ip = $requestData['ip'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -30,10 +30,8 @@ final readonly class RateLimitMiddleware implements MiddlewareInterface
 
             // Hängt die Parameter sauber an die URL an
             $separator = \str_contains($this->fallbackUrl, '?') ? '&' : '?';
-            $url       = $this->fallbackUrl . $separator . 'sent=0&msg=' . \urlencode($msg);
 
-            \header("Location: $url");
-            exit;
+            return new RedirectResponse($this->fallbackUrl . $separator . 'sent=0&msg=' . \urlencode($msg));
         }
 
         return $next($requestData);

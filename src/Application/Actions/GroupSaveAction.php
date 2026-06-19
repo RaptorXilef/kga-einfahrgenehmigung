@@ -30,10 +30,6 @@ final readonly class GroupSaveAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             $dto = GroupSaveRequest::fromArray($post, $_FILES);
         } catch (ValidationException $e) {

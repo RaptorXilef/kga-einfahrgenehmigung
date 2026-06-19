@@ -13,6 +13,7 @@ use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
 
 /**
@@ -42,41 +43,41 @@ final readonly class UserController
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
-        // 2. Den Request durch die Pipeline schicken
-        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
-            $post = $req['post'];
-            $get  = $req['get'];
+        $actionKey = $post['action'] ?? '';
+        $userMap   = [
+            'change_user_group'    => 'system.permissions.users.manage',
+            'change_user_password' => 'system.permissions.users.manage',
+            'delete_user'          => 'system.permissions.users.manage',
+            'rename_user'          => 'system.permissions.users.manage',
+            'save_user'            => 'system.permissions.users.manage',
+            'upload_avatar'        => 'system.permissions.users.manage',
+            'delete_group'         => 'system.permissions.groups.manage',
+            'rename_group'         => 'system.permissions.groups.manage',
+            'save_group'           => 'system.permissions.groups.manage',
+            'upload_group_image'   => 'system.permissions.groups.manage',
+        ];
+        if (isset($userMap[$actionKey])) {
+            $pipeline->add(new PermissionMiddleware($this->auth, $userMap[$actionKey], 'users.php?msg=' . \urlencode('Fehler: Keine Berechtigung.')));
+        }
 
-            // Ab hier wissen wir zu 100%: Der Nutzer hat Rechte und das CSRF-Token stimmt!
+        $response = $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): mixed {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $actionKey = $post['action'] ?? '';
-                $focusId   = $post['user_id'] ?? ($post['group_id'] ?? '');
-                $action    = $this->factory->create($actionKey);
-
+                $action = $this->factory->create($actionKey);
                 if ($action instanceof ActionInterface) {
-                    $result = $action->execute($post);
-
-                    // NEU: RedirectResponse abfangen
-                    if ($result instanceof RedirectResponse) {
-                        $result->send();
-                    } else {
-                        // Fallback für alte String-Meldungen
-                        $redirectUrl = 'users.php?msg=' . \urlencode((string) $result);
-                        if ($focusId !== '') {
-                            $redirectUrl .= '&focus=' . \urlencode((string) $focusId);
-                        }
-                        \header('Location: ' . $redirectUrl);
-                        exit;
-                    }
+                    return $action->execute($req['post']);
                 }
             }
 
-            $renderAction = $this->factory->create('render_users');
-            $result       = $renderAction->execute(['get' => $get]);
-            if ($result instanceof RedirectResponse) {
-                $result->send();
-            }
+            return $this->factory->create('render_users')->execute(['get' => $req['get']]);
         });
+
+        if ($response instanceof ResponseInterface) {
+            $response->send();
+        } elseif (\is_string($response)) {
+            $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
+            $url     = 'users.php?msg=' . \urlencode($response) . ($focusId !== '' ? '&focus=' . \urlencode($focusId) : '');
+            (new RedirectResponse($url))->send();
+        }
     }
 
     /**
@@ -90,32 +91,21 @@ final readonly class UserController
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
-        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
-            $post = $req['post'];
-            $get  = $req['get'];
-
+        $response = $pipeline->process(['post' => $post, 'get' => $get], function (array $req): mixed {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $actionKey = $post['action'] ?? '';
-                $action    = $this->factory->create($actionKey);
-
+                $action = $this->factory->create($req['post']['action'] ?? '');
                 if ($action instanceof ActionInterface) {
-                    $result = $action->execute($post);
-
-                    // RedirectResponse abfangen
-                    if ($result instanceof RedirectResponse) {
-                        $result->send();
-                    } else {
-                        \header('Location: profile.php?msg=' . \urlencode((string) $result));
-                        exit;
-                    }
+                    return $action->execute($req['post']);
                 }
             }
 
-            $renderAction = $this->factory->create('render_profile');
-            $result       = $renderAction->execute(['get' => $get]);
-            if ($result instanceof RedirectResponse) {
-                $result->send();
-            }
+            return $this->factory->create('render_profile')->execute(['get' => $req['get']]);
         });
+
+        if ($response instanceof ResponseInterface) {
+            $response->send();
+        } elseif (\is_string($response)) {
+            (new RedirectResponse('profile.php?msg=' . \urlencode($response)))->send();
+        }
     }
 }

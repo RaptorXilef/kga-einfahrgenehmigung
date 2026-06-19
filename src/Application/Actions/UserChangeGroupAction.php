@@ -27,10 +27,6 @@ final readonly class UserChangeGroupAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.users.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             $dto = UserChangeGroupRequest::fromArray($post);
         } catch (ValidationException $e) {

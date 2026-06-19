@@ -34,10 +34,6 @@ final readonly class PermitCreateManualAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.generator-tools.manual_permit.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, manuelle Genehmigungen zu erstellen.';
-        }
-
         try {
             $dto = PermitCreateManualRequest::fromArray($post);
         } catch (ValidationException $e) {

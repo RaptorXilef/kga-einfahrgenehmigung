@@ -35,13 +35,6 @@ final readonly class SystemResendMailAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (
-            ! $this->auth->hasPermission('dashboard.logs.view')
-            || ! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')
-        ) {
-            return 'Fehler: Keine Berechtigung zum aktiven Neuversand von E-Mails.';
-        }
-
         try {
             $dto = SimpleIdentifierRequest::fromArray($post, 'timestamp');
         } catch (ValidationException $e) {

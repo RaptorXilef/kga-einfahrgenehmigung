@@ -30,10 +30,6 @@ final readonly class UserUploadAvatarAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.users.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             // Kapselung des Uploads via DTO
             $dto = SimpleUploadImageRequest::fromRequest($post, 'user_id', $_FILES);

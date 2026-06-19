@@ -32,10 +32,6 @@ final readonly class GroupUploadImageAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             // Vollständige Kapselung von ID und Datei im DTO
             $dto = SimpleUploadImageRequest::fromRequest($post, 'group_id', $_FILES);

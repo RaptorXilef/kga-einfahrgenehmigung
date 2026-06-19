@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
@@ -50,8 +51,7 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
         }
 
         if (! $hasRight) {
-            \header('Location: admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.'));
-            exit;
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.'));
         }
 
         return $next($requestData);

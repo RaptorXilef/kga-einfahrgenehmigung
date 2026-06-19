@@ -29,10 +29,6 @@ final readonly class UserRenameAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('system.permissions.users.manage')) {
-            return 'Fehler: Keine Berechtigung.';
-        }
-
         try {
             $dto = UserRenameRequest::fromArray($post);
         } catch (ValidationException $e) {

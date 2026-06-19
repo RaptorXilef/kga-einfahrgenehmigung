@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Response\RedirectResponse;
 use App\Application\Security\CsrfHelper;
 use App\Contracts\Application\MiddlewareInterface;
 
@@ -14,11 +15,11 @@ use App\Contracts\Application\MiddlewareInterface;
  */
 final readonly class CsrfMiddleware implements MiddlewareInterface
 {
-    public function __construct(private string $fallbackUrl)
-    {
+    public function __construct(
+        private string $fallbackUrl,
+    ) {
     }
 
-    // TODO DOCBLOCK
     public function process(array $requestData, callable $next): mixed
     {
         // CSRF greift nur bei POST-Requests!
@@ -29,8 +30,7 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
                 $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
                 $url = $this->fallbackUrl . (\str_contains($this->fallbackUrl, '?') ? '&' : '?') . 'msg=' . \urlencode($msg);
 
-                \header("Location: $url");
-                exit;
+                return new RedirectResponse($url);
             }
         }
 

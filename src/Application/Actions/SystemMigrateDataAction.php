@@ -38,10 +38,6 @@ final readonly class SystemMigrateDataAction implements ActionInterface
             return $e->getMessage();
         }
 
-        if (! $this->auth->hasPermission("dashboard.migration.{$dto->target}.{$dto->direction}")) {
-            return 'Fehler: Sie haben keine Berechtigung für diese Migrations-Aktion.';
-        }
-
         return $this->migrationService->execute($dto->target, $dto->direction);
     }
 }

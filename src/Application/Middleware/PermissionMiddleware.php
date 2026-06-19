@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Core\Service\AuthService;
 
@@ -21,12 +22,10 @@ final readonly class PermissionMiddleware implements MiddlewareInterface
     ) {
     }
 
-    // TODO DOCBLOCK
     public function process(array $requestData, callable $next): mixed
     {
         if (! $this->auth->hasPermission($this->requiredPermission)) {
-            \header("Location: {$this->fallbackUrl}");
-            exit;
+            return new RedirectResponse($this->fallbackUrl);
         }
 
         return $next($requestData);

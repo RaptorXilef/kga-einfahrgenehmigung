@@ -33,10 +33,6 @@ final readonly class SystemTruncateTargetAction implements ActionInterface
      */
     public function execute(array $post): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
-            return 'Fehler: Keine Berechtigung, Datenbestände zu löschen.';
-        }
-
         try {
             $dto = SystemMaintenanceRequest::forTruncate($post);
         } catch (ValidationException $e) {

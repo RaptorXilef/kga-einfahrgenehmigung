@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ExportRequest;
+use App\Application\Response\EmptyResponse;
+use App\Application\Response\FileDownloadResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\ExportService;
 
@@ -32,19 +34,12 @@ final readonly class DashboardExportAction implements ViewActionInterface
         $filename = $this->exportService->generateFilename($format, $start, $end);
 
         if ($format === 'json') {
-            \header('Content-Type: application/json');
-            \header('Content-Disposition: attachment; filename="' . $filename . '"');
-            echo $this->exportService->generateJson($filtered);
-            exit;
+            return new FileDownloadResponse($this->exportService->generateJson($filtered), $filename, 'application/json');
         }
-
         if ($format === 'csv') {
-            \header('Content-Type: text/csv; charset=utf-8');
-            \header('Content-Disposition: attachment; filename="' . $filename . '"');
-            echo $this->exportService->generateCsv($filtered);
-            exit;
+            return new FileDownloadResponse($this->exportService->generateCsv($filtered), $filename, 'text/csv; charset=utf-8');
         }
 
-        exit('Unbekanntes Export-Format.');
+        return new EmptyResponse(400);
     }
 }
