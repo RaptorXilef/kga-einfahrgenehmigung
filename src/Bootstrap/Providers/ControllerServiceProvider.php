@@ -116,8 +116,6 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
 /**
  * Registriert sämtliche Controller und View-Renderer der Application.
  *
- * Path: src/Bootstrap/Providers/ControllerServiceProvider.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -531,6 +529,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(TemplateRenderer::class),
         ));
         $container->bind(ChangelogController::class, fn () => new ChangelogController(
+            $container->get(AnalyticsMiddleware::class),
             $container->get(SystemChangelogAction::class),
             $container->get(TerminateMailQueueMiddleware::class),
         ));

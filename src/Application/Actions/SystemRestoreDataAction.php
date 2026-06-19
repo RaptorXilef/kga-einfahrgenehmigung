@@ -13,8 +13,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 /**
  * Action zur System-Wiederherstellung (Restore) aus einem Backup.
  *
- * Path: src/Application/Actions/SystemRestoreDataAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -36,7 +34,7 @@ final readonly class SystemRestoreDataAction implements ActionInterface
      *
      * @return string Statusmeldung über den Erfolg oder Misserfolg des Restores.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.migration.restore.execute')) {
             return 'Fehler: Keine Berechtigung.';

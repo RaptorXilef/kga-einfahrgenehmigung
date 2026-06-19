@@ -13,8 +13,6 @@ use App\Infrastructure\Logging\ErrorLogger;
  * Fängt ungeprüfte Ausnahmen sowie klassische PHP-Fehler ab, loggt diese
  * revisionssicher und gibt eine nutzerfreundliche HTML- oder JSON-Fehlerseite zurück.
  *
- * Path: src/Application/Exception/GlobalExceptionHandler.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -81,7 +79,10 @@ final readonly class GlobalExceptionHandler
      */
     private function renderErrorPage(\Throwable $exception, bool $isDev): void
     {
-        \http_response_code(500);
+        if (! \headers_sent()) {
+            \http_response_code(500);
+        }
+
         $vereinsName = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));
 
         $errorTitle   = 'Ups! Etwas ist schiefgelaufen';

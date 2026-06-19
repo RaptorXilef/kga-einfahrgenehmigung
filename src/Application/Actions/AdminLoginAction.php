@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\AdminLoginRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -14,8 +15,6 @@ use App\Core\Service\AuthService;
 
 /**
  * Action für den Login von Administratoren inkl. Rate-Limiting und CSRF-Schutz.
- *
- * Path: src/Application/Actions/AdminLoginAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -32,36 +31,31 @@ final readonly class AdminLoginAction implements ActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             $dto = AdminLoginRequest::fromArray($post);
         } catch (ValidationException $e) {
             $this->renderForm($e->getMessage());
-            exit;
+
+            return null;
         }
 
         try {
             if ($this->auth->login($dto->username, $dto->password)) {
-                // Der Code kommt streng typisiert aus dem DTO!
                 if ($dto->redirectCode !== '') {
-                    \header('Location: check.php?code=' . \urlencode($dto->redirectCode));
-                    exit;
+                    return new RedirectResponse('check.php?code=' . \urlencode($dto->redirectCode));
                 }
 
-                \header('Location: admin.php');
-                exit;
+                return new RedirectResponse('admin.php');
             }
-
-            // Normaler Fehler (Passwort falsch)
             $this->renderForm('Benutzername oder Passwort ist falsch.');
-            exit;
 
+            return null;
         } catch (\RuntimeException $e) {
-            // Rate Limit Fehler abfangen
             $this->renderForm($e->getMessage());
-            exit;
+
+            return null;
         }
     }
 

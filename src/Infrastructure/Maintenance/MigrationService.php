@@ -13,6 +13,8 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Core\Entity\Group;
+use App\Core\Entity\User;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonStorage;
@@ -25,8 +27,6 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Überträgt relationale und flache Dateistrukturen (JSON <-> MySQL) bidirektional,
  * steuert automatische Backup-Zyklen und stellt Tabellen-Schemata sowie Initialdaten (Seeding) her.
  * Kontext: Administrativer Wartungs- und Backup-Manager der Anwendung.
- *
- * Path: src/Infrastructure/Maintenance/MigrationService.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -440,18 +440,38 @@ final readonly class MigrationService
     /**
      * Routet Rohdaten an die zuständigen Service-Klassen zur korrekten SQL-Persistierung weiter.
      * Nutzt einen generischen Fallback für Tabellen ohne spezifischen Service.
-     *
-     * @param string               $key  Ziel-Domainkomponente.
-     * @param array<string, mixed> $data Liste der zu injectenden Datensätze.
      */
     private function saveToSql(string $key, array $data): void
     {
-        // Wir nutzen die Services als stark typisierte Bausteine statt einer unsicheren generic-Schleife
-        // Wir delegieren an die Services, da diese bereits die Logik für "Save" haben!
-        // Das ist sauberer als genericSqlInsert, da die Services die Spalten kennen.
-        // [x] Sortiert
+        if ($key === 'groups') {
+            $objects = [];
+            foreach ($data as $id => $row) {
+                $objects[$id] = new Group(
+                    (string) $id,
+                    $row['name'] ?? '',
+                    $row['permissions'] ?? [],
+                );
+            }
+            $this->groupRepository->saveAll($objects, true);
+
+            return;
+        }
+        if ($key === 'users') {
+            $objects = [];
+            foreach ($data as $id => $row) {
+                $objects[$id] = new User(
+                    (string) $id,
+                    $row['username'] ?? '',
+                    $row['group'] ?? 'guest',
+                    $row['pass'] ?? '',
+                );
+            }
+            $this->userRepository->saveAll($objects, true);
+
+            return;
+        }
+
         match ($key) {
-            'groups'               => $this->groupRepository->saveAll($data, true),
             'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
             'mail_log'             => $this->mailLog->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
@@ -459,7 +479,6 @@ final readonly class MigrationService
             'permits_archive'      => $this->archiveRepository->archivePermits(0, $data),
             'permits'              => $this->migratePermitsToSql($data),
             'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
-            'users'                => $this->userRepository->saveAll($data, true),
             'verified_pending'     => $this->verificationRepository->saveVerified($data, true),
             'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
             'vouchers'             => $this->voucherRepository->saveAll($data, true),

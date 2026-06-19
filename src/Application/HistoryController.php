@@ -10,12 +10,11 @@ use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Security\RateLimiterInterface;
 
 /**
  * Front Controller für die historische Antragsübersicht von Endnutzern.
- *
- * Path: src/Application/HistoryController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -28,7 +27,7 @@ final readonly class HistoryController
         private AnalyticsMiddleware $analyticsMiddleware,
         private HistoryActionFactory $actionFactory,
         private RateLimiterInterface $rateLimiter,
-        private TerminateMailQueueMiddleware $mailQueueMiddleware
+        private TerminateMailQueueMiddleware $mailQueueMiddleware,
     ) {
     }
 
@@ -42,11 +41,10 @@ final readonly class HistoryController
     {
         // 1. Zwiebelschalen aufbauen
         $pipeline = new MiddlewarePipeline();
-        $pipeline
-            ->add(new RateLimitMiddleware($this->rateLimiter, 'history.php'))
-            ->add(new CsrfMiddleware('history.php'))
-            ->add($this->analyticsMiddleware)
-            ->add($this->mailQueueMiddleware);
+        $pipeline->add(new RateLimitMiddleware($this->rateLimiter, 'history.php'));
+        $pipeline->add(new CsrfMiddleware('history.php'));
+        $pipeline->add($this->analyticsMiddleware);
+        $pipeline->add($this->mailQueueMiddleware);
 
         // 2. Request durchschicken
         $pipeline->process([
@@ -56,7 +54,12 @@ final readonly class HistoryController
         ], function (array $req): void {
             // Die Action wird nur erreicht, wenn RateLimit und CSRF erfolgreich passiert wurden!
             $action = $this->actionFactory->create($req['get'], $req['post']);
-            $action->execute($req);
+            $result = $action->execute($req);
+
+            // Response-Objekt abfangen!
+            if ($result instanceof RedirectResponse) {
+                $result->send();
+            }
         });
     }
 }

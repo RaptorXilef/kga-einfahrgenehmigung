@@ -8,11 +8,10 @@ use App\Application\DTO\ProfileUpdateUsernameRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
 
 /**
  * Action zum Aktualisieren des eigenen Anzeigenamens/Login-Namens.
- *
- * Path: src/Application/Actions/ProfileUpdateUsernameAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -26,26 +25,22 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             $dto = ProfileUpdateUsernameRequest::fromArray($post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $userId = $_SESSION['user_id'] ?? '';
         $users  = $this->userRepository->loadAll();
-
-        // Eindeutigkeit prüfen (Business-Logik bleibt in der Action)
         foreach ($users as $id => $userData) {
-            if ($id !== $userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($dto->newUsername)) {
+            if ($id !== $userId && \strtolower(\trim((string) $userData->username)) === \strtolower($dto->newUsername)) {
                 return "Fehler: Der Anzeigename '{$dto->newUsername}' ist bereits vergeben.";
             }
         }
-
-        $users[$userId]['username'] = $dto->newUsername;
+        $u              = $users[$userId];
+        $users[$userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
         $this->userRepository->saveAll($users);
         $_SESSION['admin_user'] = $dto->newUsername;
 

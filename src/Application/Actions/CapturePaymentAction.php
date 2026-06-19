@@ -14,8 +14,6 @@ use App\Core\Service\PermitService;
 /**
  * Action zur Abwicklung und Erfassung externer Zahlungen (PayPal-Capture).
  *
- * Path: src/Application/Actions/CapturePaymentAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -29,14 +27,14 @@ final readonly class CapturePaymentAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         try {
             $dto = CapturePaymentRequest::fromArray($requestData['input']);
         } catch (ValidationException $exception) {
             JsonResponse::error($exception->getMessage(), 400);
 
-            return;
+            return null;
         }
 
         try {
@@ -46,7 +44,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
             if ($tempRequest === null) {
                 JsonResponse::error('Sitzung nicht gefunden oder abgelaufen', 400);
 
-                return;
+                return null;
             }
 
             // Zahlung ausführen
@@ -60,5 +58,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
         } catch (\Exception $exception) {
             JsonResponse::error($exception->getMessage(), 400);
         }
+
+        return null;
     }
 }

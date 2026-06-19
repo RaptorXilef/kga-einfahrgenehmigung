@@ -12,8 +12,6 @@ use App\Infrastructure\Mail\MailQueueService;
 /**
  * Action zum manuellen Anstoßen der Mail-Warteschlange.
  *
- * Path: src/Application/Actions/SystemProcessMailQueueAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -25,7 +23,7 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
     {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         // Wir prüfen, ob der injizierte Service die Queue-Funktion überhaupt besitzt
         if ($this->mailService instanceof MailQueueService) {
@@ -35,5 +33,7 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
             // Falls das System z.B. nur synchron sendet (SmtpMailService)
             JsonResponse::success(['status' => 'skipped_no_queue']);
         }
+
+        return null;
     }
 }

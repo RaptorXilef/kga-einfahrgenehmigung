@@ -11,8 +11,6 @@ use App\Core\Service\Maintenance\CronScheduler;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/SystemCronAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -26,7 +24,7 @@ final readonly class SystemCronAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $providedToken = $requestData['get']['token'] ?? '';
         $requiredToken = (string) $this->config->get('cron_secret', 'unconfigured');
@@ -43,5 +41,7 @@ final readonly class SystemCronAction implements ViewActionInterface
             \http_response_code(500);
             echo 'Fehler bei der Ausführung: ' . $e->getMessage() . "\n";
         }
+
+        return null;
     }
 }

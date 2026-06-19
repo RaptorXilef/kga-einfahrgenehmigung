@@ -11,8 +11,6 @@ use App\Core\Service\AuthService;
 /**
  * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
  *
- * Path: src/Application/Actions/SystemAnonymizeArchiveAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -33,7 +31,7 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface
      *
      * @return string Status- oder Erfolgsmeldung über die Anzahl anonymisierter Einträge.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.migration.anonymize.execute')) {
             return 'Fehler: Sie haben keine Berechtigung für die DSGVO-Anonymisierung.';

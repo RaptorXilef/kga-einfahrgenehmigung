@@ -6,14 +6,13 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\HistorySubmitCodeRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\MagicLinkService;
 
 /**
  * Action für das Absenden des Verifizierungscodes im Portal.
- *
- * Path: src/Application/Actions/HistorySubmitCodeAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -28,29 +27,24 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         try {
-            // IP-Isolierung ins DTO verlagert
             $dto = HistorySubmitCodeRequest::fromRequestData($requestData);
         } catch (ValidationException $e) {
-            \header('Location: history.php?sent=1&msg=' . \urlencode($e->getMessage()));
-            exit;
+            return new RedirectResponse('history.php?sent=1&msg=' . \urlencode($e->getMessage()));
         }
-
         $verifiedEmail = $this->magicLinkService->verifyAny($dto->loginCode);
-
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($dto->ip);
             \session_regenerate_id(true);
             $_SESSION['user_history_email'] = $verifiedEmail;
-            \header('Location: history.php');
-            exit;
-        }
 
+            return new RedirectResponse('history.php');
+        }
         $this->rateLimiter->recordFailedAttempt($dto->ip);
-        \header('Location: history.php?sent=1&msg=' . \urlencode('Der Code ist ungültig oder abgelaufen.'));
-        exit;
+
+        return new RedirectResponse('history.php?sent=1&msg=' . \urlencode(
+            'Der Code ist ungültig oder abgelaufen.'));
     }
 }

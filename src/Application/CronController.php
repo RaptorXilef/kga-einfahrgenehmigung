@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemCronAction;
+use App\Application\Response\RedirectResponse;
 
 /**
  * TODO DOCBLOCK
- *
- * Path: src/Application/CronController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -18,12 +17,18 @@ use App\Application\Actions\SystemCronAction;
  */
 final readonly class CronController
 {
-    public function __construct(private SystemCronAction $action)
-    {
+    public function __construct(
+        private SystemCronAction $action,
+    ) {
     }
 
     public function handleRequest(array $get): void
     {
-        $this->action->execute(['get' => $get]);
+        $result = $this->action->execute(['get' => $get]);
+
+        // Response-Objekt abfangen!
+        if ($result instanceof RedirectResponse) {
+            $result->send();
+        }
     }
 }

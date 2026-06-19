@@ -13,8 +13,6 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/SystemPerformUpdateAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -26,14 +24,14 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface
     {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         try {
             $dto = ApiPerformUpdateRequest::fromArray($requestData['input']);
         } catch (ValidationException $e) {
             JsonResponse::error($e->getMessage(), 400);
 
-            return;
+            return null;
         }
 
         try {
@@ -42,5 +40,7 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface
         } catch (\Throwable $e) {
             JsonResponse::error($e->getMessage());
         }
+
+        return null;
     }
 }

@@ -13,8 +13,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 /**
  * Action für Daten-Migrationen (Sync/Backup) zwischen Storage-Engines.
  *
- * Path: src/Application/Actions/SystemMigrateDataAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -35,7 +33,7 @@ final readonly class SystemMigrateDataAction implements ActionInterface
      *
      * @return string Ergebnis der Migration.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             $dto = SystemMaintenanceRequest::forMigration($post);

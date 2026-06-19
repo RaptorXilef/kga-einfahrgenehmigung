@@ -14,8 +14,6 @@ use App\Core\Service\AuthService;
 /**
  * Action zum Löschen einer Berechtigungsgruppe.
  *
- * Path: src/Application/Actions/GroupDeleteAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -37,7 +35,7 @@ final readonly class GroupDeleteAction implements ActionInterface
      *
      * @return string Ergebnisnachricht.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';

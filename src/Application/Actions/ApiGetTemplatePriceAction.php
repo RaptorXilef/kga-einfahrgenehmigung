@@ -16,8 +16,6 @@ use App\Core\Service\VoucherService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/ApiGetTemplatePriceAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -34,7 +32,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         try {
             $vehicleTypes = $this->config->get('vehicle_types', []);
@@ -83,5 +81,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 400,
             );
         }
+
+        return null;
     }
 }

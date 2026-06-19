@@ -14,8 +14,6 @@ use App\Core\Service\AuthService;
 /**
  * Action zum Löschen eines Benutzers.
  *
- * Path: src/Application/Actions/UserDeleteAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -32,12 +30,8 @@ final readonly class UserDeleteAction implements ActionInterface
 
     /**
      * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
-     *
-     * @param array<string, mixed> $post Datensatz mit der Ziel-user_id.
-     *
-     * @return string Erfolgs- oder Fehlermeldung.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
@@ -48,17 +42,14 @@ final readonly class UserDeleteAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         if ($dto->identifier === $this->auth->getUserId()) {
             return 'Fehler: Selbstausschluss nicht möglich.';
         }
-
         $users = $this->userRepository->loadAll();
         if (isset($users[$dto->identifier])) {
-            $name = $users[$dto->identifier]['username'] ?? $dto->identifier;
+            $name = $users[$dto->identifier]->username;
             unset($users[$dto->identifier]);
             $this->userRepository->saveAll($users);
-
             $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $dto->identifier . '.webp';
             if (\file_exists($avatarPath)) {
                 @\unlink($avatarPath);

@@ -6,13 +6,12 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
 
 /**
  * Implementierung des User-Repositories.
  * Regelt den lesenden und schreibenden Zugriff auf die Systemadministratoren,
  * unabhängig davon, ob JSON oder MySQL als Speicher-Backend dient.
- *
- * Path: src/Infrastructure/Storage/UserRepository.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -31,53 +30,64 @@ final readonly class UserRepository implements UserRepositoryInterface
     /**
      * Lädt alle Benutzerkonten aus der konfigurierten JSON- oder MySQL-Datenbank.
      *
-     * @return array<string, array<string, mixed>> Liste der Benutzer, indiziert nach User-ID.
+     * @return User[] Liste der Benutzer, indiziert nach User-ID.
      */
     public function loadAll(): array
     {
-        $cfg = $this->config->get('storage_config')['users'];
+        $cfg   = $this->config->get('storage_config')['users'];
+        $users = [];
+
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt  = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
-            $users = [];
+            $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
             foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
-                $users[$row['id']] = [
-                    'username' => $row['username'],
-                    'group'    => $row['group'],
-                    'pass'     => $row['pass'],
-                ];
+                $users[$row['id']] = new User(
+                    $row['id'],
+                    $row['username'],
+                    $row['group'],
+                    $row['pass'],
+                );
             }
 
             return $users;
         }
 
         $path = $this->config->getStoragePath($cfg['file']);
+        $data = JsonHelper::read($path);
+        foreach ($data as $id => $row) {
+            $users[$id] = new User(
+                $id,
+                $row['username'],
+                $row['group'],
+                $row['pass'],
+            );
+        }
 
-        return JsonHelper::read($path);
+        return $users;
     }
 
     /**
      * Überschreibt die Benutzer-JSON-Datei oder MySQL-Tabelle permanent mit dem übergebenen Array.
      *
+     * @param User[]                              $users
      * @param array<string, array<string, mixed>> $users    Das vollständige Benutzer-Array.
      * @param bool                                $forceSql Erzwingt das Speichern in MySQL.
+     *
+     * @param User[] $users
      */
     public function saveAll(array $users, bool $forceSql = false): void
     {
         $cfg    = $this->config->get('storage_config')['users'];
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
+        // 1. In MySQL speichern (Direkt aus den Entities)
         if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
-                // Bei kompletten Array-Updates löschen wir vorher alles, um auch gelöschte Nutzer zu entfernen
                 $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-                // Wichtig: `group` ist in MySQL ein reserviertes Wort und muss in Backticks ` ` gesetzt werden!
-                $stmt = $this->pdo->prepare(
-                    "INSERT INTO `{$cfg['table']}` (id, username, `group`, pass) VALUES (?, ?, ?, ?)",
-                );
-                foreach ($users as $id => $u) {
-                    $stmt->execute([$id, $u['username'], $u['group'], $u['pass']]);
+                $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (id, username, `group`, pass) VALUES (?, ?, ?, ?)");
+                foreach ($users as $id => $user) {
+                    $stmt->execute([$id, $user->username, $user->groupId, $user->passwordHash]);
                 }
                 $this->pdo->commit();
             } catch (\Exception $e) {
@@ -85,15 +95,23 @@ final readonly class UserRepository implements UserRepositoryInterface
 
                 throw $e;
             }
-            // Wenn NUR SQL erzwungen wurde, brechen wir hier ab.
             if ($forceSql) {
                 return;
             }
         }
 
+        // 2. In JSON speichern (Entities wieder zu flachen Arrays umwandeln)
         if (! $forceSql) {
+            $dataToSave = [];
+            foreach ($users as $id => $user) {
+                $dataToSave[$id] = [
+                    'username' => $user->username,
+                    'group'    => $user->groupId,
+                    'pass'     => $user->passwordHash,
+                ];
+            }
             $path = $this->config->getStoragePath($cfg['file']);
-            $this->writeJsonSafely($path, $users);
+            $this->writeJsonSafely($path, $dataToSave);
         }
     }
 

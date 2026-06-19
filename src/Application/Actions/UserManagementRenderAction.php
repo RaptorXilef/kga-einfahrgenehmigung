@@ -15,8 +15,6 @@ use App\Core\Service\AuthService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/UserManagementRenderAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -34,7 +32,7 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
     }
 
     // TODO DOCBLOCK
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
 
@@ -48,5 +46,7 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
             'userRepository'  => $this->userRepository,
             'users'           => $this->userRepository->loadAll(),
         ]);
+
+        return null;
     }
 }

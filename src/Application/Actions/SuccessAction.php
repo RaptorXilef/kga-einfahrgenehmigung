@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SuccessRequest;
+use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -15,8 +16,6 @@ use App\Core\Service\BankQrGenerator;
  * Action für die Erfolgs- und Bestätigungsseite nach Abschluss eines Antrags.
  * Generiert bei Bedarf Bank-QR-Codes (EPC) für offene Überweisungen und zeigt
  * dem Benutzer die finalen Zahlungsanweisungen an.
- *
- * Path: src/Application/Actions/SuccessAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -38,40 +37,28 @@ final readonly class SuccessAction implements ViewActionInterface
      * Haupt-Request-Handler für die Success-Seite.
      * Validiert das Ticket und bereitet die Bezahlinformationen auf.
      */
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto    = SuccessRequest::fromArray($requestData['get'] ?? []);
         $code   = $dto->code;
         $method = $dto->method;
-
         $permit = $this->storage->findByHash($code);
-
         if (! $permit) {
-            \header('Location: index.php');
-            exit;
+            return new RedirectResponse('index.php');
         }
-
         $epcData = '';
         $usage   = '';
         if ($method === 'wire' && $permit->getStatus() !== 'bezahlt') {
-            // Verwendungszweck aus dem Code generieren (letzte 6 Zeichen)
             $shortCode = \substr($permit->code, -6);
             $nameParts = \explode(' ', $permit->getOwnerName());
             $vorname   = $nameParts[0] ?? 'Unbekannt';
             $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
             $usage     = "EFG-{$nachname}-{$vorname}-{$shortCode}";
-
-            $epcData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
+            $epcData   = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
         }
-
-        // Dynamische Zahlungslogik
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
         $dueDays        = (int) $this->config->get('payment_due_days', 14);
-
-        // Frist ab Erstellungsdatum berechnen (wie in der Mail)
-        $dueDate = $permit->getCreatedAt()->modify("+$dueDays days")->format('d.m.Y');
-
-        // [x] sortiert
+        $dueDate        = $permit->getCreatedAt()->modify("+$dueDays days")->format('d.m.Y');
         $this->renderer->render('checkout/success', [
             'dueDate'        => $dueDate,
             'epcData'        => \urlencode($epcData),
@@ -80,5 +67,7 @@ final readonly class SuccessAction implements ViewActionInterface
             'requirePayment' => $requirePayment,
             'usage'          => $usage,
         ]);
+
+        return null;
     }
 }

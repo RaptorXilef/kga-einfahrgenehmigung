@@ -7,13 +7,13 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\Group;
+use App\Core\Entity\User;
 
 /**
  * Bootstrapper für die Initialisierung der Speicher-Infrastruktur.
  * Stellt sicher, dass Datenbanktabellen oder JSON-Dateien beim Start vorhanden sind,
  * und führt bei Bedarf initiale Auto-Setups aus.
- *
- * Path: src/Infrastructure/Maintenance/StorageBootstrapper.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -102,26 +102,25 @@ final readonly class StorageBootstrapper
         $changed = false;
 
         // Referenz (&) nutzen, um das Array direkt zu modifizieren
-        foreach ($groups as $id => &$group) {
-            if (! isset($group['permissions']) || ! \is_array($group['permissions'])) {
-                continue;
-            }
-
-            $originalCount = \count($group['permissions']);
+        foreach ($groups as $id => $group) {
+            $originalCount = \count($group->permissions);
             $cleanedPerms  = [];
 
-            foreach ($group['permissions'] as $perm) {
+            foreach ($group->permissions as $perm) {
                 // Deny-Prefix (-) für den Abgleich entfernen
                 $basePerm = \ltrim($perm, '-');
-
                 if (\in_array($basePerm, $validKeys, true)) {
                     $cleanedPerms[] = $perm;
                 }
             }
 
             if (\count($cleanedPerms) !== $originalCount) {
-                $group['permissions'] = \array_values($cleanedPerms); // Indizes neu ordnen
-                $changed              = true;
+                $groups[$id] = new Group(
+                    $group->id,
+                    $group->name,
+                    \array_values($cleanedPerms),
+                );
+                $changed = true;
             }
         }
 
@@ -160,11 +159,12 @@ final readonly class StorageBootstrapper
     private function getDefaultUsers(): array
     {
         return [
-            'usr_7c13b491' => [
-                'username' => 'Admin',
-                'group'    => 'grp_71cb1c0d',
-                'pass'     => '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
-            ],
+            'usr_7c13b491' => new User(
+                'usr_7c13b491',
+                'Admin',
+                'grp_71cb1c0d',
+                '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
+            ),
         ];
     }
 
@@ -177,10 +177,10 @@ final readonly class StorageBootstrapper
     {
         // phpcs:disable Generic.Files.LineLength.TooLong
         return [
-            'grp_71cb1c0d' => ['name' => 'Administrator', 'permissions' => ['*']],
-            'grp_180a3ec6' => ['name' => 'Finanzen', 'permissions' => ['privacy.finance.reveal', 'privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print', 'dashboard.active.details', 'dashboard.active.suspend', 'dashboard.finance.view', 'dashboard.finance.details', 'dashboard.finance.suspend', 'dashboard.finance.mark_paid', 'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details', 'dashboard.future.suspend', 'dashboard.expired.view', 'dashboard.expired.print', 'dashboard.expired.details', 'dashboard.stats.view', 'dashboard.stats.current', 'dashboard.stats.charts', 'dashboard.stats.history', 'dashboard.ranking.view', 'dashboard.export.view', 'finance.export.execute', 'dashboard.export.csv', 'dashboard.export.json', 'dashboard.vouchers.view', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.vouchers.remove', 'dashboard.vouchers.archive', 'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute', 'template.manage', 'template.std.7', 'template.std.14', 'template.std.30', 'template.perm.3', 'template.perm.6', 'template.perm.9', 'template.perm.12', 'template.custom.std', 'template.custom.perm']],
-            'grp_fd72d38c' => ['name' => 'Sachbearbeitung', 'permissions' => ['privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print', 'dashboard.active.details', 'dashboard.finance.view', 'dashboard.finance.details', 'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details', 'dashboard.expired.view', 'dashboard.vouchers.view', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute', 'dashboard.logs.view', 'template.manage', 'template.std.7', 'template.std.14', 'template.std.30', 'template.perm.3', 'template.perm.6', 'template.perm.9', 'template.perm.12', 'template.custom.std', 'template.custom.perm']],
-            'grp_a53d6b56' => ['name' => 'Prüfer vor Ort', 'permissions' => ['dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.active.view', 'dashboard.active.details']],
+            'grp_71cb1c0d' => new Group('grp_71cb1c0d', 'Administrator', ['*']),
+            'grp_180a3ec6' => new Group('grp_180a3ec6', 'Finanzen', ['privacy.finance.reveal', 'privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print', 'dashboard.active.details', 'dashboard.active.suspend', 'dashboard.finance.view', 'dashboard.finance.details', 'dashboard.finance.suspend', 'dashboard.finance.mark_paid', 'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details', 'dashboard.future.suspend', 'dashboard.expired.view', 'dashboard.expired.print', 'dashboard.expired.details', 'dashboard.stats.view', 'dashboard.stats.current', 'dashboard.stats.charts', 'dashboard.stats.history', 'dashboard.ranking.view', 'dashboard.export.view', 'finance.export.execute', 'dashboard.export.csv', 'dashboard.export.json', 'dashboard.vouchers.view', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.vouchers.remove', 'dashboard.vouchers.archive', 'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute', 'template.manage', 'template.std.7', 'template.std.14', 'template.std.30', 'template.perm.3', 'template.perm.6', 'template.perm.9', 'template.perm.12', 'template.custom.std', 'template.custom.perm']),
+            'grp_fd72d38c' => new Group('grp_fd72d38c', 'Sachbearbeitung', ['privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print', 'dashboard.active.details', 'dashboard.finance.view', 'dashboard.finance.details', 'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details', 'dashboard.expired.view', 'dashboard.vouchers.view', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute', 'dashboard.logs.view', 'template.manage', 'template.std.7', 'template.std.14', 'template.std.30', 'template.perm.3', 'template.perm.6', 'template.perm.9', 'template.perm.12', 'template.custom.std', 'template.custom.perm']),
+            'grp_a53d6b56' => new Group('grp_a53d6b56', 'Prüfer vor Ort', ['dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.active.view', 'dashboard.active.details']),
         ];
         // phpcs:enable Generic.Files.LineLength.TooLong
     }

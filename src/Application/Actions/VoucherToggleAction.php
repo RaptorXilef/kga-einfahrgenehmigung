@@ -13,8 +13,6 @@ use App\Core\Service\VoucherService;
 /**
  * Action zum Aktivieren oder Deaktivieren eines Gutscheins.
  *
- * Path: src/Application/Actions/VoucherToggleAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -35,7 +33,7 @@ final readonly class VoucherToggleAction implements ActionInterface
      *
      * @return string Statusänderungs-Meldung.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.vouchers.suspend')) {
             return 'Fehler: Keine Berechtigung für diese Aktion.';

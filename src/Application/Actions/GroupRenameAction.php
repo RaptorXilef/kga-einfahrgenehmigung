@@ -8,12 +8,11 @@ use App\Application\DTO\GroupRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Core\Entity\Group;
 use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
- *
- * Path: src/Application/Actions/GroupRenameAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -30,12 +29,8 @@ final readonly class GroupRenameAction implements ActionInterface
 
     /**
      * Ändert den Anzeigenamen einer spezifischen Gruppe im System.
-     *
-     * @param array<string, mixed> $post Datensatz mit group_id und new_group_name.
-     *
-     * @return string Statusnachricht.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';
@@ -46,13 +41,12 @@ final readonly class GroupRenameAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $groups = $this->groupRepository->loadAll();
         if (! isset($groups[$dto->groupId])) {
             return 'Fehler: Gruppe nicht gefunden.';
         }
-
-        $groups[$dto->groupId]['name'] = $dto->newGroupName;
+        $g                     = $groups[$dto->groupId];
+        $groups[$dto->groupId] = new Group($g->id, $dto->newGroupName, $g->permissions);
         $this->groupRepository->saveAll($groups);
 
         return "Gruppe wurde in '{$dto->newGroupName}' umbenannt.";

@@ -11,8 +11,6 @@ use App\Contracts\Config\ConfigInterface;
 /**
  * Action zum Rendern der Datenschutzerklärung.
  *
- * Path: src/Application/Actions/DatenschutzAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -29,7 +27,7 @@ final readonly class DatenschutzAction implements ViewActionInterface
     /**
      * Lädt die statischen Daten aus der Konfiguration und rendert die Datenschutzerklärung.
      */
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $root      = $this->config->get('root_path');
         $legalData = include $root . '/config/datenschutz.php';
@@ -37,5 +35,7 @@ final readonly class DatenschutzAction implements ViewActionInterface
         $this->renderer->render('datenschutz', [
             'legal' => $legalData,
         ]);
+
+        return null;
     }
 }

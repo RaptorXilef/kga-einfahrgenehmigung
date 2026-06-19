@@ -9,11 +9,10 @@ use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Response\RedirectResponse;
 
 /**
  * Front Controller für den öffentlichen Genehmigungs-Beantragungsprozess.
- *
- * Path: src/Application/PermitController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -42,14 +41,18 @@ final readonly class PermitController
         }
 
         $pipeline = new MiddlewarePipeline();
-        $pipeline
-            ->add(new CsrfMiddleware('index.php'))
-            ->add($this->analyticsMiddleware)
-            ->add($this->mailQueueMiddleware);
+        $pipeline->add(new CsrfMiddleware('index.php'));
+        $pipeline->add($this->analyticsMiddleware);
+        $pipeline->add($this->mailQueueMiddleware);
 
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
             $action = $this->actionFactory->create($req['get'], $req['post']);
-            $action->execute($req);
+            $result = $action->execute($req);
+
+            // Response-Objekt abfangen!
+            if ($result instanceof RedirectResponse) {
+                $result->send();
+            }
         });
     }
 }

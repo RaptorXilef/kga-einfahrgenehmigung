@@ -8,12 +8,11 @@ use App\Application\DTO\UserResetPasswordRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
 use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
- *
- * Path: src/Application/Actions/UserResetPasswordAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -30,12 +29,8 @@ final readonly class UserResetPasswordAction implements ActionInterface
 
     /**
      * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und Passwörtern.
-     *
-     * @return string Ergebnisnachricht.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
@@ -46,11 +41,10 @@ final readonly class UserResetPasswordAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $users = $this->userRepository->loadAll();
-
         if (isset($users[$dto->userId])) {
-            $users[$dto->userId]['pass'] = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
+            $u                   = $users[$dto->userId];
+            $users[$dto->userId] = new User($u->id, $u->username, $u->groupId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
             $this->userRepository->saveAll($users);
 
             return 'Passwort wurde zurückgesetzt.';

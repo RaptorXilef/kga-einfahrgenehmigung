@@ -8,11 +8,10 @@ use App\Application\DTO\ProfileUpdatePasswordRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
 
 /**
  * Action zum Ändern des eigenen Passworts (inkl. Alt-Passwort-Prüfung).
- *
- * Path: src/Application/Actions/ProfileUpdatePasswordAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -26,25 +25,26 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             $dto = ProfileUpdatePasswordRequest::fromArray($post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $userId = $_SESSION['user_id'] ?? '';
         $users  = $this->userRepository->loadAll();
-
-        // Die Prüfung gegen den Hash in der DB muss hier in der Action bleiben,
-        // da das DTO keinen Datenbankzugriff haben soll!
-        if (! isset($users[$userId]) || ! \password_verify($dto->oldPassword, (string) $users[$userId]['pass'])) {
+        if (! isset($users[$userId]) || ! \password_verify(
+            $dto->oldPassword,
+            (string) $users[$userId]->passwordHash,
+        )) {
             return 'Fehler: Das aktuelle Passwort ist nicht korrekt.';
         }
-
-        $users[$userId]['pass'] = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
+        $u              = $users[$userId];
+        $users[$userId] = new User($u->id, $u->username, $u->groupId, \password_hash(
+            $dto->newPassword,
+            \PASSWORD_DEFAULT,
+        ));
         $this->userRepository->saveAll($users);
 
         return 'Erfolg: Ihr Passwort wurde geändert.';

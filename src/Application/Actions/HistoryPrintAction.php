@@ -15,8 +15,6 @@ use App\Core\Service\HolidayService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/HistoryPrintAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -35,7 +33,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
     /**
      * Validiert den Zugriff und rendert die Druckansicht einer spezifischen Genehmigung.
      */
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto  = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
         $code = $dto->code;
@@ -57,5 +55,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
             \header('Location: history.php');
             exit;
         }
+
+        return null;
     }
 }

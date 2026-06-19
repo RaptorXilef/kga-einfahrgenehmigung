@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemChangelogAction;
+use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Response\RedirectResponse;
 
 /**
  * TODO DOCBLOCK
- *
- * Path: src/Application/ChangelogController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -21,6 +21,7 @@ use App\Application\Middleware\TerminateMailQueueMiddleware;
 final readonly class ChangelogController
 {
     public function __construct(
+        private AnalyticsMiddleware $analyticsMiddleware,
         private SystemChangelogAction $action,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
     ) {
@@ -29,10 +30,16 @@ final readonly class ChangelogController
     public function handleRequest(array $get): void
     {
         $pipeline = new MiddlewarePipeline();
+        $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
         $pipeline->process(['get' => $get], function (array $req): void {
-            $this->action->execute($req);
+            $result = $this->action->execute($req);
+
+            // Response-Objekt abfangen!
+            if ($result instanceof RedirectResponse) {
+                $result->send();
+            }
         });
     }
 }

@@ -13,8 +13,6 @@ use App\Core\Service\PermitService;
 /**
  * Action zum manuellen Markieren einer Genehmigung als 'bezahlt'.
  *
- * Path: src/Application/Actions/PermitMarkAsPaidAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -37,7 +35,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface
      *
      * @return string Erfolgsmeldung oder leerer String bei Fehler.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.finance.mark_paid')) {
             return 'Fehler: Keine Berechtigung für diese Aktion.';

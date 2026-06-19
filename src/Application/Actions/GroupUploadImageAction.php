@@ -13,8 +13,6 @@ use App\Core\Service\AuthService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/GroupUploadImageAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -35,7 +33,7 @@ final readonly class GroupUploadImageAction implements ActionInterface
      *
      * @return string UI-Meldungstext.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';

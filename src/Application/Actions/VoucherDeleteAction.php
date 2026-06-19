@@ -13,8 +13,6 @@ use App\Core\Service\VoucherService;
 /**
  * Action zum unwiderruflichen Löschen eines Gutscheins.
  *
- * Path: src/Application/Actions/VoucherDeleteAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -32,7 +30,7 @@ final readonly class VoucherDeleteAction implements ActionInterface
      * TODO DOCBLOCK
      * Löscht einen Gutschein unwiderruflich.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.vouchers.remove')) {
             return 'Fehler: Keine Berechtigung zum Löschen von Gutscheinen.';

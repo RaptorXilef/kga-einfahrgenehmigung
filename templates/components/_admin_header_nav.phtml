@@ -24,7 +24,7 @@ $groupImage = '';
 // (Absicherung falls nicht eingeloggt/übergeben))
 if (isset($groupRepository) && $auth->isLoggedIn()) {
     $groups     = $groupRepository->loadAll(); // Wir brauchen die Liste für den Namen
-    $groupName  = $groups[$groupId]['name'] ?? $groupId; // Name finden, sonst ID als Fallback
+    $groupName  = isset($groups[$groupId]) ? $groups[$groupId]->name : $groupId; // Name finden, sonst ID als Fallback
     $groupImage = $groupRepository->getImageUrl($groupId);
 }
 ?>

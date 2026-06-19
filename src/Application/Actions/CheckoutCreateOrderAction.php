@@ -14,8 +14,6 @@ use App\Core\Service\PermitService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/CheckoutCreateOrderAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -27,14 +25,14 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
     {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         try {
             $dto = SimpleIdentifierRequest::fromArray($requestData['post'], 'token');
         } catch (ValidationException $e) {
             JsonResponse::error($e->getMessage());
 
-            return;
+            return null;
         }
 
         try {
@@ -52,5 +50,7 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
         } catch (\Throwable $e) {
             JsonResponse::error($e->getMessage());
         }
+
+        return null;
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contracts\Storage;
 
+use App\Core\Entity\User;
+
 /**
  * Interface für das Speicher-Repository der Administratoren/Benutzer.
  * Definiert CRUD- und Profilbild-Operationen für Systemnutzer.
- *
- * Path: src/Contracts/Storage/UserRepositoryInterface.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -20,7 +20,7 @@ interface UserRepositoryInterface
     /**
      * Lädt alle Administratoren/Benutzer.
      *
-     * @return array<string, array<string, mixed>> Benutzer indiziert nach ID.
+     * @return User[]
      */
     public function loadAll(): array;
 
@@ -29,6 +29,8 @@ interface UserRepositoryInterface
      *
      * @param array<string, array<string, mixed>> $users    Die zu speichernden Benutzer.
      * @param bool                                $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
+     *
+     * @param User[] $users
      */
     public function saveAll(array $users, bool $forceSql = false): void;
 

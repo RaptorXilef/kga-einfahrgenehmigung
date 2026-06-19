@@ -23,7 +23,7 @@ final readonly class DashboardExportAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto = ExportRequest::fromArray($requestData['get'] ?? []);
 

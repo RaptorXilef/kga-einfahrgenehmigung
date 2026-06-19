@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\VerificationSubmitRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
@@ -13,8 +14,6 @@ use App\Core\Service\PermitService;
 
 /**
  * Action zur Verarbeitung des übermittelten Verifizierungscodes (Token oder OTP).
- *
- * Path: src/Application/Actions/VerificationSubmitAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -29,41 +28,29 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         try {
-            // Das DTO kapselt nun auch die IP-Adresse vollumfänglich
             $dto = VerificationSubmitRequest::fromRequestData($requestData);
         } catch (ValidationException $e) {
-            \header('Location: verify.php?error=1&msg=' . \urlencode($e->getMessage()));
-            exit;
+            return new RedirectResponse('verify.php?error=1&msg=' . \urlencode($e->getMessage()));
         }
-
         $result = $this->permitService->confirmEmail($dto->token);
-
         if ($result === null) {
             $this->rateLimiter->recordFailedAttempt($dto->ip);
-            \header('Location: verify.php?error=1&msg=' . \urlencode('Code ungültig oder abgelaufen.'));
-            exit;
-        }
 
+            return new RedirectResponse('verify.php?error=1&msg=' . \urlencode('Code ungültig oder abgelaufen.'));
+        }
         $this->rateLimiter->clearAttempts($dto->ip);
-
-        // Fall A: Sofort finalisiert (z.B. durch Gutschein)
         if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
-            \header('Location: check.php?code=' . $result['finalised']->code . '&verified=1');
-            exit;
+            return new RedirectResponse('check.php?code=' . $result['finalised']->code . '&verified=1');
         }
-
-        // Fall B: Nur E-Mail bestätigt, wartet nun auf Zahlung
         if (\is_array($result)) {
             $redirectToken = $result['actual_token'] ?? $dto->token;
-            \header('Location: checkout.php?token=' . $redirectToken . '&verified=1');
-            exit;
+
+            return new RedirectResponse('checkout.php?token=' . $redirectToken . '&verified=1');
         }
 
-        \header('Location: verify.php?error=1&msg=' . \urlencode('Fehler bei der Verifizierung.'));
-        exit;
+        return new RedirectResponse('verify.php?error=1&msg=' . \urlencode('Fehler bei der Verifizierung.'));
     }
 }

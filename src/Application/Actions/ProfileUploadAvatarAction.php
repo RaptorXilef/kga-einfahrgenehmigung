@@ -12,8 +12,6 @@ use App\Contracts\Storage\UserRepositoryInterface;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/ProfileUploadAvatarAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -27,7 +25,7 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
     }
 
     // TODO DOCBLOCK
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             // Keine ungeschützte $_FILES-Abfrage mehr!

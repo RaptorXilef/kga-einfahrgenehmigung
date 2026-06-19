@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
 /**
  * Action für den "Daten korrigieren" Einstieg aus dem Checkout.
  * Lädt die temporären Daten und bereitet die Formular-Session vor.
- *
- * Path: src/Application/Actions/PermitEditAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -24,19 +23,16 @@ final readonly class PermitEditAction implements ViewActionInterface
     {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
-        $get = $requestData['get'];
-
+        $get      = $requestData['get'];
         $tempData = $this->permitService->getVerifiedRequest((string) ($get['token'] ?? ''));
         if ($tempData !== null) {
             $_SESSION['form_data']      = $tempData;
-            $_SESSION['verified_email'] = $tempData['email']; // Wir merken uns: Diese E-Mail ist safe!
+            $_SESSION['verified_email'] = $tempData['email'];
             $_SESSION['edit_token']     = $get['token'];
         }
 
-        \header('Location: index.php');
-        exit;
+        return new RedirectResponse('index.php');
     }
 }

@@ -8,12 +8,11 @@ use App\Application\DTO\UserChangeGroupRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
 use App\Core\Service\AuthService;
 
 /**
  * Action zum Ändern der Berechtigungsgruppe eines Benutzers.
- *
- * Path: src/Application/Actions/UserChangeGroupAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -28,12 +27,8 @@ final readonly class UserChangeGroupAction implements ActionInterface
 
     /**
      * Weist einem Benutzer eine neue Berechtigungsgruppe/Rolle zu.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und group.
-     *
-     * @return string Bestätigungstext.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
@@ -44,14 +39,13 @@ final readonly class UserChangeGroupAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $users = $this->userRepository->loadAll();
-
         if (isset($users[$dto->userId])) {
-            $users[$dto->userId]['group'] = $dto->group;
+            $u                   = $users[$dto->userId];
+            $users[$dto->userId] = new User($u->id, $u->username, $dto->group, $u->passwordHash);
             $this->userRepository->saveAll($users);
 
-            return "Gruppe für '" . ($users[$dto->userId]['username'] ?? $dto->userId) . "' geändert.";
+            return "Gruppe für '{$u->username}' geändert.";
         }
 
         return 'Fehler: Benutzer nicht gefunden.';

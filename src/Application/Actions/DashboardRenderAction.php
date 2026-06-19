@@ -24,8 +24,6 @@ use App\Core\Service\VoucherService;
 /**
  * Rendert das zentrale Admin-Dashboard.
  *
- * Path: src/Application/Actions/DashboardRenderAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -50,7 +48,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $get = $requestData['get'] ?? [];
         $dto = ViewRenderRequest::fromArray($get);
@@ -131,5 +129,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'voucherValidities' => $voucherValidities,
             'yearlyStats'       => $this->reportingService->calculateYearlyStats($allPermits),
         ]);
+
+        return null;
     }
 }

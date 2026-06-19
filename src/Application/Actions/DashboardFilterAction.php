@@ -11,8 +11,6 @@ use App\Contracts\Application\ActionInterface;
 /**
  * Action zum Speichern der Dashboard-Filter in der aktuellen Session.
  *
- * Path: src/Application/Actions/DashboardFilterAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -32,7 +30,7 @@ final readonly class DashboardFilterAction implements ActionInterface
      *
      * @return string Statusmeldung über den Erfolg der Anwendung.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         // Wirft keine ValidationException, da Standardwerte greifen
         $dto = DashboardFilterRequest::fromArray($post);

@@ -29,7 +29,7 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
      * Setzt den Sperrstatus (Suspension) einer Genehmigung.
      * Kontext: Interaktion mit PermitService::toggleSuspension().
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             $dto = PermitToggleSuspensionRequest::fromArray($post);

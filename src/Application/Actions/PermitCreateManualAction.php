@@ -13,8 +13,6 @@ use App\Core\Service\PermitService;
 /**
  * Action zur manuellen Ausstellung einer Genehmigung (ohne Zahlungsfluss).
  *
- * Path: src/Application/Actions/PermitCreateManualAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -37,7 +35,7 @@ final readonly class PermitCreateManualAction implements ActionInterface
      *
      * @return string Bestätigung mit dem generierten Genehmigungscode.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.generator-tools.manual_permit.execute')) {
             return 'Fehler: Sie haben keine Berechtigung, manuelle Genehmigungen zu erstellen.';

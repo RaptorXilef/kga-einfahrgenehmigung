@@ -15,8 +15,6 @@ use App\Infrastructure\Storage\JsonHelper;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/HistoryRenderAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -37,7 +35,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
      * Bereitet die Benutzeroberfläche (Login oder Datenliste) vor und lädt optionale Archivdaten.
      * Kombiniert Live-Daten mit historischen JSON-Jahresarchiven bei Bedarf.
      */
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
 
@@ -49,7 +47,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         if ($emailInSession === '') {
             $this->renderer->render('history_login', ['isSuccess' => $isSuccess, 'message' => $message, 'step' => $step]);
 
-            return;
+            return null;
         }
 
         $permits    = $this->permitService->getHistoryByEmail($emailInSession);
@@ -85,5 +83,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             'overdueLevels'      => $overdueLevels,
             'permits'            => $permits,
         ]);
+
+        return null;
     }
 }

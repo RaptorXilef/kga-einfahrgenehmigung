@@ -35,18 +35,18 @@ final readonly class AdminPrintAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto  = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
         $code = $dto->code;
 
         if ($code === '') {
-            return;
+            return null;
         }
 
         $permit = $this->storage->findByHash($code);
         if (! $permit instanceof Permit) {
-            return;
+            return null;
         }
 
         $this->renderer->render('admin_print_view', [
@@ -61,5 +61,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
             'permit'         => $permit,
             'userRepository' => $this->userRepository,
         ]);
+
+        return null;
     }
 }

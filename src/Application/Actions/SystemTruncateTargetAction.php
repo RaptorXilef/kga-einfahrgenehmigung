@@ -13,8 +13,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 /**
  * Action zum rigorosen Löschen aller Daten eines bestimmten Speicher-Ziels.
  *
- * Path: src/Application/Actions/SystemTruncateTargetAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -36,7 +34,7 @@ final readonly class SystemTruncateTargetAction implements ActionInterface
      *
      * @return string Statusmeldung über die Löschung.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.migration.delete-data.execute')) {
             return 'Fehler: Keine Berechtigung, Datenbestände zu löschen.';

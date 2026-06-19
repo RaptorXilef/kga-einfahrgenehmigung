@@ -19,8 +19,6 @@ use App\Core\Service\HolidayService;
  * Action zur Überprüfung von Genehmigungen und Kennzeichen.
  * Erlaubt die öffentliche und administrative Abfrage von Gültigkeiten (z.B. via QR-Code).
  *
- * Path: src/Application/Actions/CheckPermitAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -42,7 +40,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
     /**
      * TODO DOCBLOCK
      */
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         // DTO statt rohem $requestData['get']
         $dto  = \App\Application\DTO\SimpleCodeRequest::fromArray($requestData['get'] ?? []);
@@ -62,7 +60,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
             // Bei fehlendem Code:
             $this->renderer->render('check/search', ['error' => null]);
 
-            return;
+            return null;
         }
 
         // Standard-Daten für die Header-Navigation (falls eingeloggt)
@@ -133,10 +131,12 @@ final readonly class CheckPermitAction implements ViewActionInterface
                 ],
             ));
 
-            return;
+            return null;
         }
 
         $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
+
+        return null;
     }
 
     /**

@@ -72,7 +72,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                         <select name="group"
                                 class="c-form-select">
                             <?php foreach ($groups as $id => $g) { ?>
-                                <option value="<?php echo $id; ?>"><?php echo \htmlspecialchars($g['name'] ?? 'Unbenannt'); ?></option>
+                                <option value="<?php echo $id; ?>"><?php echo \htmlspecialchars($g->name ?? 'Unbenannt'); ?></option>
                             <?php } ?>
                         </select>
                     </div>
@@ -112,22 +112,22 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
 
             <?php foreach ($users as $userId => $u) {
                 $userImage    = $userRepository->getImageUrl($userId);
-                $groupData    = $groups[$u['group']] ?? ['name' => 'Unbekannt'];
-                $displayLogin = $u['username'] ?? $userId; // Fallback auf ID
+                $groupData    = $groups[$u->groupId] ?? null;
+                $displayLogin = $u->username ?? $userId; // Fallback auf ID
                 ?>
                 <div class="category-card is-closed"
                      id="card-<?php echo $userId; ?>">
                     <header class="category-header u-flex u-justify-between u-align-center"
-                            style="background: #fff; border: 1px solid #e2e8f0; padding: 15px 25px;">
+                            style="background: #fff; padding: 12px 20px; border-radius: 12px;">
                         <div class="u-flex u-align-center u-gap-m"
                              onclick="this.parentElement.parentElement.classList.toggle('is-closed')"
                              style="cursor: pointer; flex-grow: 1;">
                             <img src="<?php echo $userImage; ?>"
                                  style="width: 38px; height: 38px; border-radius: 50%;">
                             <div>
-                                <strong style="font-size: 1.05rem; color: var(--text-main);"><?php echo \htmlspecialchars((string) ($u['username'] ?? $userId)); ?></strong>
+                                <strong style="font-size: 1.05rem; color: var(--text-main);"><?php echo \htmlspecialchars((string) $displayLogin); ?></strong>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">
-                                    <?php echo \htmlspecialchars($groupData['name'] ?? 'Unbekannt'); ?>
+                                    <?php echo \htmlspecialchars($groupData ? $groupData->name : 'Unbekannt'); ?>
                                     <span style="opacity: 0.6; font-family: monospace;">(ID: <?php echo \htmlspecialchars($userId); ?>)</span>
                                 </div>
                             </div>
@@ -188,7 +188,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                             class="c-tabs__btn u-width-100"
                                             style="font-size: 0.75rem;">Bild ändern</button>
                                 </form>
-                                <hr style="border:none; border-top:1px solid #eee; margin: 15px 0;">
+                                <hr style="border:none; border-top:1px solid #eee; margin:20px 0;">
                                 <form method="POST">
                                     <input type="hidden"
                                            name="csrf_token"
@@ -205,7 +205,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                                name="new_username"
                                                class="c-form-input"
                                                style="height:34px;"
-                                               value="<?php echo \htmlspecialchars((string) ($u['username'] ?? '')); ?>">
+                                               value="<?php echo \htmlspecialchars((string) $u->username); ?>">
                                         <button type="submit"
                                                 class="c-button--primary"
                                                 style="height:34px; padding: 0 10px;">OK</button>
@@ -259,8 +259,8 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                             onchange="this.form.submit()">
                                         <?php foreach ($groups as $gid => $g) { ?>
                                             <option value="<?php echo $gid; ?>"
-                                                    <?php echo ($u['group'] === $gid) ? 'selected' : ''; ?>>
-                                                <?php echo \htmlspecialchars($g['name'] ?? 'Unbekannt'); ?>
+                                                    <?php echo ($u->groupId === $gid) ? 'selected' : ''; ?>>
+                                                <?php echo \htmlspecialchars($g->name); ?>
                                             </option>
                                         <?php } ?>
                                     </select>

@@ -15,8 +15,6 @@ use App\Infrastructure\Storage\JsonHelper;
 /**
  * Action für den manuellen Neuversand von E-Mails aus den System-Logs.
  *
- * Path: src/Application/Actions/SystemResendMailAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -38,7 +36,7 @@ final readonly class SystemResendMailAction implements ActionInterface
      *
      * @return string Statusmeldung über den Erfolg des Neuversands.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (
             ! $this->auth->hasPermission('dashboard.logs.view')

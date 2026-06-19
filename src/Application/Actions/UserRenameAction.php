@@ -8,12 +8,11 @@ use App\Application\DTO\UserRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
 use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
- *
- * Path: src/Application/Actions/UserRenameAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -30,12 +29,8 @@ final readonly class UserRenameAction implements ActionInterface
 
     /**
      * Benennt den Login-Namen eines existierenden Benutzers um.
-     *
-     * @param array<string, mixed> $post Datensatz mit user_id und new_username.
-     *
-     * @return string Erfolgs- oder Fehlermeldung.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.users.manage')) {
             return 'Fehler: Keine Berechtigung.';
@@ -46,17 +41,15 @@ final readonly class UserRenameAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $users = $this->userRepository->loadAll();
-
         foreach ($users as $id => $userData) {
-            if ($id !== $dto->userId && \strtolower(\trim((string) ($userData['username'] ?? ''))) === \strtolower($dto->newUsername)) {
+            if ($id !== $dto->userId && \strtolower(\trim((string) $userData->username)) === \strtolower($dto->newUsername)) {
                 return "Fehler: Ein Benutzer mit dem Namen '{$dto->newUsername}' existiert bereits.";
             }
         }
-
         if (isset($users[$dto->userId])) {
-            $users[$dto->userId]['username'] = $dto->newUsername;
+            $u                   = $users[$dto->userId];
+            $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
             $this->userRepository->saveAll($users);
 
             return 'Login-Name aktualisiert.';

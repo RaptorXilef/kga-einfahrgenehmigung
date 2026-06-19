@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 
 /**
  * Action für den sicheren Logout von Administratoren.
- *
- * Path: src/Application/Actions/AdminLogoutAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -24,11 +23,10 @@ final readonly class AdminLogoutAction implements ActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         $this->auth->logout();
-        \header('Location: admin.php');
-        exit; // Zwingendes Beenden des Scripts nach einem Redirect (PRG Pattern)
+
+        return new RedirectResponse('admin.php');
     }
 }

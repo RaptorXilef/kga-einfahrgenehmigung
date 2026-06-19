@@ -10,12 +10,11 @@ use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Security\RateLimiterInterface;
 
 /**
  * Controller für den Verifizierungsprozess (Double-Opt-In).
- *
- * Path: src/Application/VerificationController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -41,13 +40,10 @@ final readonly class VerificationController
     public function handleRequest(array $get, array $post): void
     {
         $pipeline = new MiddlewarePipeline();
-
-        // Die Türsteher-Pipeline: Zuerst Rate-Limit, dann CSRF
-        $pipeline
-            ->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'))
-            ->add(new CsrfMiddleware('verify.php?error=1'))
-            ->add($this->analyticsMiddleware)
-            ->add($this->mailQueueMiddleware);
+        $pipeline->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'));
+        $pipeline->add(new CsrfMiddleware('verify.php?error=1'));
+        $pipeline->add($this->analyticsMiddleware);
+        $pipeline->add($this->mailQueueMiddleware);
 
         $pipeline->process([
             'get'  => $get,
@@ -55,7 +51,12 @@ final readonly class VerificationController
             'ip'   => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
         ], function (array $req): void {
             $action = $this->factory->create($req['get'], $req['post']);
-            $action->execute($req);
+            $result = $action->execute($req);
+
+            // Response-Objekt abfangen!
+            if ($result instanceof RedirectResponse) {
+                $result->send();
+            }
         });
     }
 }

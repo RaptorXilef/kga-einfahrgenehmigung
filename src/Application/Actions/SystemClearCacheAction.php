@@ -11,8 +11,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 /**
  * Action zum Leeren des Anwendungs-Caches.
  *
- * Path: src/Application/Actions/SystemClearCacheAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -33,7 +31,7 @@ final readonly class SystemClearCacheAction implements ActionInterface
      *
      * @return string Statusmeldung über die Ausführung.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('dashboard.migration.delete-cache.execute')) {
             return 'Fehler: Sie haben keine Berechtigung für diese Aktion.';

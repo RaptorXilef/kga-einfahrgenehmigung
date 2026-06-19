@@ -111,13 +111,22 @@ final readonly class AdminController
             $action = $this->actionFactory->create($actionKey);
 
             if ($action instanceof ActionInterface) {
-                // Mutations-Action
-                $message = $action->execute($req['post']);
-                \header('Location: admin.php?msg=' . \urlencode($message));
-                exit;
+                $result = $action->execute($req['post']);
+
+                // Wenn die Action einen Redirect auslöst, führe ihn hier im HTTP-Layer aus!
+                if ($result instanceof Response\RedirectResponse) {
+                    $result->send();
+                } else {
+                    // Fallback für alte Actions, die nur einen String (Nachricht) zurückgeben
+                    \header('Location: admin.php?msg=' . \urlencode($result));
+                    exit;
+                }
             } elseif ($action instanceof ViewActionInterface) {
                 // View-Action (wie DashboardRenderAction, AdminPrintAction)
-                $action->execute($req);
+                $result = $action->execute($req);
+                if ($result instanceof Response\RedirectResponse) {
+                    $result->send();
+                }
             } else {
                 \header('Location: admin.php');
                 exit;

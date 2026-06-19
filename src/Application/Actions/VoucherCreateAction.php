@@ -33,7 +33,7 @@ final readonly class VoucherCreateAction implements ActionInterface
      *
      * @return string Bestätigung mit dem generierten Gutscheincode.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         try {
             $dto = VoucherCreateRequest::fromArray($post);

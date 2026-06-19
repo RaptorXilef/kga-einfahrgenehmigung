@@ -7,12 +7,11 @@ namespace App\Application;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 
 /**
- * Generischer Controller für einfache Frontend-Views, die durch eine Pipeline fließen müssen.
- *
- * Path: src/Application/FrontendController.php
+ * Generischer Controller für einfache Frontend-Views.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -30,14 +29,16 @@ final readonly class FrontendController
     public function handleRequest(ViewActionInterface $action, array $get, array $post = []): void
     {
         $pipeline = new MiddlewarePipeline();
-
-        // Fügt die Mail-Queue an das Ende der Ausführung an
-        $pipeline
-            ->add($this->analyticsMiddleware)
-            ->add($this->mailQueueMiddleware);
+        $pipeline->add($this->analyticsMiddleware);
+        $pipeline->add($this->mailQueueMiddleware);
 
         $pipeline->process(['get' => $get, 'post' => $post], function (array $req) use ($action): void {
-            $action->execute($req);
+            $result = $action->execute($req);
+
+            // Response-Objekt abfangen!
+            if ($result instanceof RedirectResponse) {
+                $result->send();
+            }
         });
     }
 }

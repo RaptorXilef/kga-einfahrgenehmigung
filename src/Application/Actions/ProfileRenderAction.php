@@ -14,8 +14,6 @@ use App\Core\Service\AuthService;
 /**
  * TODO DOCBLOCK
  *
- * Path: src/Application/Actions/ProfileRenderAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -31,24 +29,28 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
-        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+        $dto    = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+        $userId = $_SESSION['user_id'] ?? '';
 
-        $userId      = $_SESSION['user_id'] ?? '';
-        $users       = $this->userRepository->loadAll();
-        $groups      = $this->groupRepository->loadAll();
-        $userGroupId = $users[$userId]['group'] ?? 'guest';
+        $users  = $this->userRepository->loadAll();
+        $groups = $this->groupRepository->loadAll();
+
+        $user        = $users[$userId] ?? null;
+        $userGroupId = $user ? $user->groupId : 'guest';
+        $group       = $groups[$userGroupId] ?? null;
 
         $this->renderer->render('profile', [
             'auth'            => $this->auth,
-            'group'           => $groups[$userGroupId]['name'] ?? $userGroupId,
+            'group'           => $group ? $group->name : $userGroupId,
             'groupRepository' => $this->groupRepository,
             'message'         => $dto->message,
             'userId'          => $userId,
-            'username'        => $users[$userId]['username'] ?? 'Unbekannt',
+            'username'        => $user ? $user->username : 'Unbekannt',
             'userRepository'  => $this->userRepository,
         ]);
+
+        return null;
     }
 }

@@ -8,12 +8,11 @@ use App\Application\DTO\GroupSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Core\Entity\Group;
 use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
- *
- * Path: src/Application/Actions/GroupSaveAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -31,53 +30,35 @@ final readonly class GroupSaveAction implements ActionInterface
     /**
      * Erstellt eine neue Benutzergruppe oder aktualisiert bestehende Rechte-Zuordnungen.
      * Aktualisiert die Session-Rechte zur Laufzeit, falls die eigene Gruppe modifiziert wurde.
-     *
-     * @param array<string, mixed> $post Rechte- und Gruppendaten.
-     *
-     * @return string Operations-Ergebnistext.
      */
-    public function execute(array $post): string
+    public function execute(array $post): mixed
     {
         if (! $this->auth->hasPermission('system.permissions.groups.manage')) {
             return 'Fehler: Keine Berechtigung.';
         }
 
         try {
-            // Wir reichen $_FILES direkt in den Named Constructor des DTOs!
             $dto = GroupSaveRequest::fromArray($post, $_FILES);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-
         $groups   = $this->groupRepository->loadAll();
         $isUpdate = $dto->groupId !== '' && isset($groups[$dto->groupId]);
         $groupId  = $dto->groupId;
-
         if (! $isUpdate) {
             do {
                 $groupId = $this->auth->generateId('grp_');
             } while (isset($groups[$groupId]));
         }
-
         $newPermissions = $dto->permissions;
-
-        // Vererbung anwenden
         if (! $isUpdate && $dto->inheritGroup !== '' && isset($groups[$dto->inheritGroup])) {
-            $newPermissions = $groups[$dto->inheritGroup]['permissions'];
+            $newPermissions = $groups[$dto->inheritGroup]->permissions;
         }
-
-        $groups[$groupId] = [
-            'name'        => $dto->groupName,
-            'permissions' => $newPermissions,
-        ];
-
+        $groups[$groupId] = new Group($groupId, $dto->groupName, $newPermissions);
         $this->groupRepository->saveAll($groups);
-
-        // Das DTO stellt das Bild bereit; kein $_FILES Zugriff mehr in der Action-Logik!
         if ($dto->groupIcon !== null) {
             $this->groupRepository->uploadImage($groupId, $dto->groupIcon);
         }
-
         if ($isUpdate) {
             if ($this->auth->getGroup() === $groupId) {
                 $this->auth->refreshSessionPermissions($groupId);

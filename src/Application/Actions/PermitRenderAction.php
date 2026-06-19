@@ -14,8 +14,6 @@ use App\Core\Service\VoucherService;
 /**
  * Action zum Rendern des öffentlichen Antragsformulars.
  *
- * Path: src/Application/Actions/PermitRenderAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -32,7 +30,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
     }
 
     // TODO DOCBLOCK
-    public function execute(array $requestData): void
+    public function execute(array $requestData): mixed
     {
         $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
 
@@ -51,6 +49,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
             'message'           => $message,
             'success'           => $success,
         ]);
+
+        return null;
     }
 
     // TODO DOCBLOCK

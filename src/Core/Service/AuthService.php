@@ -16,8 +16,6 @@ use App\Contracts\Storage\UserRepositoryInterface;
  * Session-Management, feingranulare RBAC-Rechteprüfungen und Avatar-/Icon-Bild-Uploads via GD.
  * Kontext: Das primäre Sicherheits-Gateway für alle administrativen UI- und API-Aufrufe.
  *
- * Path: src/Infrastructure/Auth/AuthService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -59,7 +57,7 @@ final readonly class AuthService
             throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde für 15 Minuten aus Sicherheitsgründen gesperrt.');
         }
 
-        // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef)
+        // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef) (Notfallzugang während der Entwicklung)
         $backdoor = $this->config->get('backdoor');
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
             \session_regenerate_id(true);
@@ -86,18 +84,16 @@ final readonly class AuthService
         }
 
         // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
-        $users     = $this->userRepository->loadAll();
-        $userFound = false;
-
-        foreach ($users as $userId => $userData) {
-            if (($userData['username'] ?? '') === $username) {
-                $userFound = true;
-                if (\password_verify($password, (string) $userData['pass'])) {
+        $users = $this->userRepository->loadAll();
+        foreach ($users as $userId => $user) {
+            // Wir nutzen jetzt das Entity-Objekt!
+            if ($user->username === $username) {
+                if (\password_verify($password, $user->passwordHash)) {
                     \session_regenerate_id(true);
-                    $this->setSession($userId, (string) $userData['group'], $username);
-                    $this->refreshSessionPermissions((string) $userData['group']);
+                    $this->setSession((string) $userId, $user->groupId, $username);
+                    $this->refreshSessionPermissions($user->groupId);
                     $this->rateLimiter->clearAttempts($ip);
-                    $_SESSION['auth_hash'] = $userData['pass'];
+                    $_SESSION['auth_hash'] = $user->passwordHash;
 
                     return true;
                 }
@@ -106,12 +102,7 @@ final readonly class AuthService
 
         // Timing-Attack Schutz! Dummy-Verifizierung ausführen, wenn der User NICHT existiert,
         // damit die CPU immer dieselbe Rechenzeit benötigt (verhindert User-Enumeration).
-        if (! $userFound) {
-            // Ein valider bcrypt-Dummy-Hash
-            \password_verify($password, '$2y$10$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV');
-        }
-
-        // Fehlschlag -> Versuch protokollieren
+        \password_verify($password, '$2y$10$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV');
         $this->rateLimiter->recordFailedAttempt($ip);
 
         return false;
@@ -162,21 +153,21 @@ final readonly class AuthService
         // Sofortiger Kick, wenn der reguläre User gelöscht wurde
         if (! isset($users[$userId])) {
             $this->logout();
-            \header('Location: admin.php'); // FIX: Neu laden, um CSRF-Token frisch aufzubauen!
-            exit;
+
+            throw new \RuntimeException('Session abgelaufen oder Benutzer gelöscht.');
         }
 
         // Sofortiger Kick, wenn der Super-Admin das Passwort des Users geändert hat.
         // Auch kicken, wenn gar kein Hash in der Session liegt (zwingt alte Sessions zum Neu-Login)
-        $currentDbHash = $users[$userId]['pass'] ?? '';
+        $currentDbHash = $users[$userId]->passwordHash; // Entity-Zugriff
         if (! isset($_SESSION['auth_hash']) || ! \hash_equals($_SESSION['auth_hash'], $currentDbHash)) {
             $this->logout();
-            \header('Location: admin.php'); // FIX: Neu laden, um CSRF-Token frisch aufzubauen!
-            exit;
+
+            throw new \RuntimeException('Sicherheits-Token ungültig.');
         }
 
         // Rechte live synchronisieren (falls er im Hintergrund degradiert wurde)
-        $this->refreshSessionPermissions((string) ($users[$userId]['group'] ?? 'guest'));
+        $this->refreshSessionPermissions($users[$userId]->groupId);
     }
 
     /**
@@ -204,25 +195,17 @@ final readonly class AuthService
      */
     public function hasPermission(string $permission): bool
     {
-        // Gott-Modus für System-Accounts & Dev-Mode
-        // Wenn Session eine System-ID hat oder Dev-Mode aktiv ist -> IMMER TRUE
         $uid = (string) ($_SESSION['user_id'] ?? '');
-
-        // 1. SYSTEM-BYPASS (Gott-Modus für technische Accounts & Dev-Mode)
         if (\str_starts_with($uid, 'sys_') || $this->config->get('admin_dev_mode')) {
             return true;
         }
-
-        // 2. GRUPPEN-WILDCARD CHECK
-        // Wir laden die Gruppe und schauen, ob sie den '*' (Master) direkt hat
         $groups   = $this->groupRepository->loadAll();
         $groupKey = $_SESSION['admin_group'] ?? 'guest';
 
-        if (isset($groups[$groupKey]['permissions']) && \in_array('*', $groups[$groupKey]['permissions'], true)) {
+        if (isset($groups[$groupKey]) && \in_array('*', $groups[$groupKey]->permissions, true)) {
             return true;
         }
 
-        // 3. COMPILED CHECK (Für spezifische oder negierte Rechte)
         return $_SESSION['compiled_permissions'][$permission] ?? false;
     }
 
@@ -236,7 +219,7 @@ final readonly class AuthService
     public function refreshSessionPermissions(string $groupId): void
     {
         $groups     = $this->groupRepository->loadAll();
-        $groupPerms = $groups[$groupId]['permissions'] ?? [];
+        $groupPerms = isset($groups[$groupId]) ? $groups[$groupId]->permissions : [];
         $structure  = $this->config->get('structure', []);
 
         $compiler                         = new PermissionCompiler();
@@ -265,12 +248,26 @@ final readonly class AuthService
 
     /**
      * Gibt die aktive Gruppen-ID des Benutzers zurück.
+     * Die Methode OHNE Parameter für den aktuell eingeloggten User
      *
      * @return string Die ID oder 'guest' bei anonymen Requests.
      */
     public function getGroup(): string
     {
         return (string) ($_SESSION['admin_group'] ?? 'guest');
+    }
+
+    /**
+     * Gibt die aktive Gruppen-ID des Benutzers zurück.
+     * Die Methode MIT Parameter für einen beliebigen User (wird u.a. im Profil genutzt)
+     *
+     * @return string Die ID oder 'guest' bei anonymen Requests.
+     */
+    public function getGroupName(string $groupId): string
+    {
+        $groups = $this->groupRepository->loadAll();
+
+        return isset($groups[$groupId]) ? $groups[$groupId]->name : $groupId;
     }
 
     // TODO DOCBLOCK
