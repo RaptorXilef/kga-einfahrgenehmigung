@@ -7,13 +7,10 @@ namespace App\Application\Actions;
 use App\Application\DTO\VoucherCreateRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
-use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
 
 /**
  * Action zum Erstellen eines neuen Gutscheins.
- *
- * Path: src/Application/Actions/VoucherCreateAction.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -23,7 +20,6 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private VoucherService $voucherService,
     ) {
     }
@@ -39,18 +35,10 @@ final readonly class VoucherCreateAction implements ActionInterface
      */
     public function execute(array $post): string
     {
-        if (! $this->auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) {
-            return 'Fehler: Sie haben keine Berechtigung, Gutscheine zu erstellen.';
-        }
-
         try {
             $dto = VoucherCreateRequest::fromArray($post);
         } catch (ValidationException $e) {
             return $e->getMessage();
-        }
-
-        if (! $this->auth->hasPermission("template.{$dto->templateKey}")) {
-            return "Fehler: Sie haben keine Berechtigung, den Typ '{$dto->templateKey}' zu verwenden.";
         }
 
         try {

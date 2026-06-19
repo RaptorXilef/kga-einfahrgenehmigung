@@ -169,7 +169,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(UserRepositoryInterface::class),
         ));
         $container->bind(DashboardExportAction::class, fn () => new DashboardExportAction(
-            $container->get(AuthService::class),
             $container->get(ExportService::class),
         ));
         $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction(
@@ -184,9 +183,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(PermitService::class),
         ));
         $container->bind(PermitToggleSuspensionAction::class, fn () => new PermitToggleSuspensionAction(
-            $container->get(AuthService::class),
             $container->get(PermitService::class),
-            $container->get(StorageInterface::class),
         ));
         $container->bind(SystemAnonymizeArchiveAction::class, fn () => new SystemAnonymizeArchiveAction(
             $container->get(AuthService::class),
@@ -214,7 +211,6 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(MigrationService::class),
         ));
         $container->bind(VoucherCreateAction::class, fn () => new VoucherCreateAction(
-            $container->get(AuthService::class),
             $container->get(VoucherService::class),
         ));
         $container->bind(VoucherDeleteAction::class, fn () => new VoucherDeleteAction(
@@ -236,9 +232,11 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(AdminActionFactory::class),
             $container->get(AdminAuthGuardMiddleware::class),
             $container->get(AnalyticsMiddleware::class),
+            $container->get(AuthService::class),
             $container->get(BackupServiceInterface::class),
             $container->get(CronScheduler::class),
             $container->get(StorageBootstrapper::class),
+            $container->get(StorageInterface::class),
         ));
 
         $container->bind(DashboardRenderAction::class, fn () => new DashboardRenderAction(

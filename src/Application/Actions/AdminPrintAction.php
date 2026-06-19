@@ -18,8 +18,6 @@ use App\Core\Service\HolidayService;
 /**
  * Action zum Rendern der administrativen Druckansicht.
  *
- * Path: src/Application/Actions/AdminPrintAction.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
  * Usage without explicit permission is strictly prohibited.
@@ -49,25 +47,6 @@ final readonly class AdminPrintAction implements ViewActionInterface
         $permit = $this->storage->findByHash($code);
         if (! $permit instanceof Permit) {
             return;
-        }
-
-        $now       = new \DateTimeImmutable('today');
-        $isExpired = $permit->getValidUntil() < $now;
-        $isFuture  = $permit->getValidFrom() > $now;
-
-        $hasRight = false;
-        if ($this->auth->hasPermission('check.admin.print')) {
-            $hasRight = true;
-        } elseif ($isExpired && $this->auth->hasPermission('dashboard.expired.print')) {
-            $hasRight = true;
-        } elseif ($isFuture && $this->auth->hasPermission('dashboard.future.print')) {
-            $hasRight = true;
-        } elseif (! $isExpired && ! $isFuture && $this->auth->hasPermission('dashboard.active.print')) {
-            $hasRight = true;
-        }
-
-        if (! $hasRight) {
-            exit('Fehler: Sie haben keine Berechtigung, Genehmigungen in diesem spezifischen Status zu drucken.');
         }
 
         $this->renderer->render('admin_print_view', [

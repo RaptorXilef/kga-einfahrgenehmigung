@@ -9,17 +9,21 @@ use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\PermissionMiddleware;
+use App\Application\Middleware\PrintAuthorizationMiddleware;
+use App\Application\Middleware\ToggleSuspensionMiddleware;
+use App\Application\Middleware\VoucherIssuanceMiddleware;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Storage\StorageInterface;
+use App\Core\Service\AuthService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 
 /**
  * Front-Controller für den gesicherten Admin-Bereich.
  * Baut die Middleware-Pipelines und delegiert an die ActionFactory.
- *
- * Path: src/Application/AdminController.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
@@ -35,9 +39,11 @@ final readonly class AdminController
         private AdminActionFactory $actionFactory,
         private AdminAuthGuardMiddleware $authGuard,
         private AnalyticsMiddleware $analyticsMiddleware,
+        private AuthService $auth,
         private BackupServiceInterface $backupService,
         private CronScheduler $cronScheduler,
         private StorageBootstrapper $bootstrapper,
+        private StorageInterface $storage,
     ) {
     }
 
@@ -87,6 +93,18 @@ final readonly class AdminController
         // Die Login-Logik umgeht natürlich den Guard, alles andere muss durch den Türsteher
         if ($actionKey !== 'login' && $actionKey !== 'logout') {
             $pipeline->add($this->authGuard);
+        }
+        if ($actionKey === 'dashboard_export') {
+            $pipeline->add(new PermissionMiddleware($this->auth, 'finance.export.execute', 'admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung für Exporte.')));
+        }
+        if ($actionKey === 'admin_print') {
+            $pipeline->add(new PrintAuthorizationMiddleware($this->auth, $this->storage));
+        }
+        if ($actionKey === 'suspend_permit' || $actionKey === 'unsuspend_permit') {
+            $pipeline->add(new ToggleSuspensionMiddleware($this->auth, $this->storage));
+        }
+        if ($actionKey === 'create_voucher') {
+            $pipeline->add(new VoucherIssuanceMiddleware($this->auth));
         }
 
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): void {
