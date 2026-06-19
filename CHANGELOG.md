@@ -2,6 +2,17 @@
 
 
 
+## [0.47.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.5...v0.47.6) (2026-06-19)
+
+### 🐛 Bug Fixes
+
+* simplify license headers ([857c6a2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/857c6a2a2d0640652885a7799dcfe016f353a102))
+
+### 🧹 Chore / Maintenance
+
+* add license cleanup commits to .git-blame-ignore-revs ([5826268](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/58262689e7977ae9491c4951712d091e0e1c6171))
+* simplify license headers ([736858b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/736858b7f7dfe2a6bacd17b6a71222aaa4e6c0a8))
+
 ## [0.47.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.4...v0.47.5) (2026-06-19)
 
 ### ⚙️ Refactoring
