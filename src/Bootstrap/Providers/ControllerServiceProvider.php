@@ -17,6 +17,7 @@ use App\Application\Actions\CheckoutAction;
 use App\Application\Actions\CheckoutCreateOrderAction;
 use App\Application\Actions\CheckoutFinalizeWireAction;
 use App\Application\Actions\CheckPermitAction;
+use App\Application\Actions\DashboardExportAction;
 use App\Application\Actions\DashboardFilterAction;
 use App\Application\Actions\DatenschutzAction;
 use App\Application\Actions\GroupDeleteAction;
@@ -90,17 +91,17 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\ExportService;
-use App\Core\Service\GitHubUpdaterService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
-use App\Core\Service\UpdateMigrationService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
+use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
  * Registriert sämtliche Controller und View-Renderer der Application.
@@ -139,6 +140,10 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
             $container->get(UserRepositoryInterface::class),
+        ));
+        $container->bind(DashboardExportAction::class, fn () => new DashboardExportAction(
+            $container->get(AuthService::class),
+            $container->get(ExportService::class),
         ));
         $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction());
         $container->bind(PermitCreateManualAction::class, fn () => new PermitCreateManualAction(

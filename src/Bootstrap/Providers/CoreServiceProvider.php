@@ -9,6 +9,7 @@ use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
@@ -20,15 +21,15 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\ExportService;
-use App\Core\Service\GitHubUpdaterService;
 use App\Core\Service\HolidayService;
 use App\Core\Service\LicensePlateFormatter;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
-use App\Core\Service\UpdateMigrationService;
 use App\Core\Service\VoucherService;
+use App\Infrastructure\Maintenance\GitHubUpdaterService;
+use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
  * Registriert die reine Geschäftslogik (Domain Services).
@@ -103,7 +104,7 @@ final class CoreServiceProvider implements ServiceProviderInterface
         ));
 
         $container->bind(CronScheduler::class, fn () => new CronScheduler(
-            $container->get(\App\Infrastructure\Maintenance\BackupService::class),
+            $container->get(BackupServiceInterface::class),
             $container->get(ConfigInterface::class),
             $container->get(PermitService::class),
         ));

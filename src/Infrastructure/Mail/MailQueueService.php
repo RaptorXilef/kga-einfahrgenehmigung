@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
@@ -11,7 +11,7 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
  * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
  * Speichert ausgehende E-Mails zunächst im Repository und verarbeitet sie gestaffelt.
  *
- * Path: src/Core/Service/MailQueueService.php
+ * Path: src/Infrastructure/Mail/MailQueueService.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.

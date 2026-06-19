@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 use App\Application\Actions\SuccessAction;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Service\MailQueueService;
+use App\Infrastructure\Mail\MailQueueService;
 
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 $action    = $container->get(SuccessAction::class);

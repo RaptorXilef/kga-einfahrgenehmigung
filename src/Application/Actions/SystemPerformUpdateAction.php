@@ -8,7 +8,7 @@ use App\Application\DTO\ApiPerformUpdateRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
-use App\Core\Service\GitHubUpdaterService;
+use App\Infrastructure\Maintenance\GitHubUpdaterService;
 
 /**
  * TODO DOCBLOCK

@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 use App\Application\VerificationController;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Service\MailQueueService;
+use App\Infrastructure\Mail\MailQueueService;
 
 // Lädt die Bootstrap-Logik und liefert direkt den Container
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';

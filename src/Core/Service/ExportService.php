@@ -7,8 +7,8 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * TODO DOCBLOCK
- * Service für den Export von Domain-Entitäten in verschiedene Dateiformate.
+ * Service für den reinen Datenexport.
+ * Formatiert Arrays zu CSV-Strings oder JSON. Greift NICHT in die HTTP-Schicht ein.
  *
  * Path: src/Core/Service/ExportService.php
  *
@@ -24,49 +24,20 @@ final readonly class ExportService
     ) {
     }
 
-    // TODO DOCBLOCK
-    public function export(string $format, array $filteredPermits, string $start, string $end): void
+    public function generateCsv(array $filteredPermits): string
     {
-        $slug = \strtolower(
-            (string) \preg_replace('/[^A-Za-z0-9]/', '_', (string) $this->config->get('vereins_name', 'export')),
-        );
-        $filename = "export_{$slug}_{$start}_bis_{$end}.{$format}";
-
-        if ($format === 'csv') {
-            $this->streamCsv($filename, $filteredPermits);
-
-            return;
-        }
-
-        if ($format === 'json') {
-            $this->streamJson($filename, $filteredPermits);
-
-            return;
-        }
-    }
-
-    // TODO DOCBLOCK
-    private function streamCsv(string $filename, array $permits): void
-    {
-        \header('Content-Type: text/csv; charset=utf-8');
-        \header('Content-Disposition: attachment; filename="' . $filename . '"');
-
-        $output = \fopen('php://output', 'w');
+        $output = \fopen('php://temp', 'r+');
         if (! $output) {
-            return;
+            return '';
         }
 
-        // UTF-8 BOM für Excel Kompatibilität
-        \fprintf($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
-
-        \fputcsv($output, [
-            'Kennung', 'Name', 'E-Mail', 'Parzelle', 'Typ', 'Kennzeichen',
-            'Firma', 'Zweck', 'Einnahme (€)', 'Status', 'Erstellt am',
-        ], ';', '"', '\\');
+        // BOM für Excel
+        \fwrite($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
+        \fputcsv($output, ['Kennung', 'Name', 'E-Mail', 'Parzelle', 'Typ', 'Kennzeichen', 'Firma', 'Zweck', 'Einnahme (€)', 'Status', 'Erstellt am'], ';', '"', '\\');
 
         $vehicleTypes = $this->config->get('vehicle_types', []);
 
-        foreach ($permits as $permit) {
+        foreach ($filteredPermits as $permit) {
             $typKey = $permit->getVehicleType();
             $row    = [
                 $permit->code,
@@ -82,10 +53,10 @@ final readonly class ExportService
                 $permit->getCreatedAt()->format('d.m.Y H:i'),
             ];
 
-            // CSV-Injection-Schutz
+            // Schutz vor CSV-Injection
             foreach ($row as &$cell) {
                 $firstChar = \substr((string) $cell, 0, 1);
-                if ($cell !== '' && \in_array($firstChar, ['=', '+', '-', '@', '\t', '\r'], true)) {
+                if ($cell !== '' && \in_array($firstChar, ['=', '+', '-', '@', "\t", "\r"], true)) {
                     $cell = "'" . $cell;
                 }
             }
@@ -94,14 +65,22 @@ final readonly class ExportService
             \fputcsv($output, $row, ';', '"', '\\');
         }
 
+        \rewind($output);
+        $csvContent = \stream_get_contents($output);
         \fclose($output);
+
+        return (string) $csvContent;
     }
 
-    // TODO DOCBLOCK
-    private function streamJson(string $filename, array $permits): void
+    public function generateJson(array $filteredPermits): string
     {
-        \header('Content-Type: application/json');
-        \header('Content-Disposition: attachment; filename="' . $filename . '"');
-        echo \json_encode(\array_values($permits), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+        return \json_encode(\array_values($filteredPermits), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE) ?: '';
+    }
+
+    public function generateFilename(string $format, string $start, string $end): string
+    {
+        $slug = \strtolower((string) \preg_replace('/[^A-Za-z0-9]/', '_', (string) $this->config->get('vereins_name', 'export')));
+
+        return "export_{$slug}_{$start}_bis_{$end}.{$format}";
     }
 }

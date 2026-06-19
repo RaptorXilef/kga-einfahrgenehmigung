@@ -11,6 +11,7 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
@@ -21,8 +22,8 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\MailQueueService;
 use App\Infrastructure\Database\PdoFactory;
+use App\Infrastructure\Mail\MailQueueService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -138,6 +139,10 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(UserRepositoryInterface::class),
             $container->get(VerificationRepositoryInterface::class),
             $container->get(VoucherRepositoryInterface::class),
+        ));
+
+        $container->bind(BackupServiceInterface::class, fn () => $container->get(
+            BackupService::class,
         ));
     }
 }

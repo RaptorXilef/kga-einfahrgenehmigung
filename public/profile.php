@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 use App\Application\UserController;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Service\MailQueueService;
+use App\Infrastructure\Mail\MailQueueService;
 
 // 1. Nutze den zentralen Bootstrapper (garantiert alle Pfade und den Container)
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';

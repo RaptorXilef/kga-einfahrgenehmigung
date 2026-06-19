@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 
@@ -12,7 +12,7 @@ use App\Contracts\Config\ConfigInterface;
  * Lädt Releases herunter, wendet Whitelists an und schützt Konfigurations-
  * sowie Speicherdaten.
  *
- * Path: src/Core/Service/GitHubUpdaterService.php
+ * Path: src/Infrastructure/Maintenance/GitHubUpdaterService.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.

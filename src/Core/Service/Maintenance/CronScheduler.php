@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Core\Service\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\BackupServiceInterface;
 use App\Core\Service\PermitService;
-use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -27,7 +27,7 @@ final readonly class CronScheduler
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private BackupService $backupService,
+        private BackupServiceInterface $backupService,
         private ConfigInterface $config,
         private PermitService $permitService,
     ) {

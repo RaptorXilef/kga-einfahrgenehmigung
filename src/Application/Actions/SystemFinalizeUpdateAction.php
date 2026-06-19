@@ -7,7 +7,7 @@ namespace App\Application\Actions;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\UpdateMigrationService;
+use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
  * TODO DOCBLOCK

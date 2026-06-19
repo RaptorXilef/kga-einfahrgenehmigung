@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\BackupServiceInterface;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
@@ -19,7 +20,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Usage without explicit permission is strictly prohibited.
  * See LICENSE.md for full license details.
  */
-final readonly class BackupService
+final readonly class BackupService implements BackupServiceInterface
 {
     use SafeJsonWriterTrait;
 

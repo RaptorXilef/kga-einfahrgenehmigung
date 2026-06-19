@@ -7,7 +7,7 @@ namespace App\Application\Actions;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Service\MailQueueService;
+use App\Infrastructure\Mail\MailQueueService;
 
 /**
  * Action zum manuellen Anstoßen der Mail-Warteschlange.

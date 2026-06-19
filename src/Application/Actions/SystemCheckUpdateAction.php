@@ -7,7 +7,7 @@ namespace App\Application\Actions;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\GitHubUpdaterService;
+use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Storage\JsonHelper;
 
 /**

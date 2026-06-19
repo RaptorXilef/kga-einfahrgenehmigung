@@ -281,12 +281,13 @@ final readonly class AdminController
 
         // Export abfangen
         if (isset($get['export'])) {
-            // Zwingende Backend-Überprüfung für Daten-Exporte!
-            if (! $this->auth->hasPermission('finance.export.execute')) {
-                exit('Fehler: Keine Berechtigung für Daten-Exporte.');
+            $exportAction = $this->actionFactory->create('dashboard_export');
+            if ($exportAction !== null) {
+                // Wir reichen die fertig gefilterten Daten sauber an die Action weiter
+                $exportAction->execute(['get' => $get, 'filteredPermits' => $filtered]);
             }
-            $this->exportService->export((string) $get['export'], $filtered, $filterStart, $filterEnd);
-            exit; // Wichtig: Nach dem Download darf kein HTML mehr gesendet werden!
+
+            return;
         }
 
         $vouchers          = $this->voucherRepository->loadAll();

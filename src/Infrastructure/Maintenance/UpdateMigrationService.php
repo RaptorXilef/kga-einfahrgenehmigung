@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Storage\JsonHelper;
@@ -11,7 +11,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
 /**
  * Service zur Ausführung von Datenbank- und Struktur-Updates (Migrationen).
  *
- * Path: src/Core/Service/UpdateMigrationService.php
+ * Path: src/Infrastructure/Maintenance/UpdateMigrationService.php
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
