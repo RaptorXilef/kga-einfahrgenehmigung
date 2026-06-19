@@ -11,12 +11,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
 /**
  * Service zur Ausführung von Datenbank- und Struktur-Updates (Migrationen).
  *
- * Path: src/Infrastructure/Maintenance/UpdateMigrationService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class UpdateMigrationService
 {

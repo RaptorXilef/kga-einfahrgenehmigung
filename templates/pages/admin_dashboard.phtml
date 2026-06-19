@@ -12,9 +12,6 @@ use App\Infrastructure\Storage\JsonHelper;
  * Path: templates/pages/admin_dashboard.phtml
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  *
  * @var \App\Contracts\Config\ConfigInterface              $config            Anwendungs-Konfiguration.
  * @var string                                             $appRoot           Absoluter Pfad zum Installationsverzeichnis.
@@ -32,7 +29,7 @@ use App\Infrastructure\Storage\JsonHelper;
  * @var \App\Core\Service\VoucherService                   $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
  * @var array                                              $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
  * @var \App\Core\Service\PermitService                    $permitService     Zentraler Genehmigungs-Dienst.
- * @var \App\Infrastructure\Maintenance\MigrationService     $migrationService  Migrations- & Backup-Manager.
+ * @var \App\Infrastructure\Maintenance\MigrationService   $migrationService  Migrations- & Backup-Manager.
  */
 $now = new \DateTimeImmutable();
 

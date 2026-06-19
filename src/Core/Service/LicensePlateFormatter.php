@@ -7,12 +7,7 @@ namespace App\Core\Service;
 /**
  * Service zur Formatierung und Normalisierung von deutschen KFZ-Kennzeichen.
  *
- * Path: src/Core/Service/LicensePlateFormatter.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class LicensePlateFormatter
 {

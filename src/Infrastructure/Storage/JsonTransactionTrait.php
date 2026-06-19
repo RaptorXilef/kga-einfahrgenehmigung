@@ -8,12 +8,7 @@ namespace App\Infrastructure\Storage;
  * Kapselt die komplexe Logik für sichere, atomare Lese- und Schreibvorgänge
  * auf JSON-Dateien (File Locking, Race-Condition Protection).
  *
- * Path: src/Infrastructure/Storage/JsonTransactionTrait.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 trait JsonTransactionTrait
 {

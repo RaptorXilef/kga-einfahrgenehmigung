@@ -14,12 +14,7 @@ use App\Infrastructure\Storage\JsonHelper;
  * Speichert Fehlversuche je IP-Adresse (in MySQL oder JSON) und sperrt den
  * Zugang temporär nach Überschreiten der definierten Limits (Lockout-Time).
  *
- * Path: src/Infrastructure/Security/RateLimiter.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class RateLimiter implements RateLimiterInterface
 {

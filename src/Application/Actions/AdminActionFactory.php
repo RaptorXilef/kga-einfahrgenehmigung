@@ -12,12 +12,7 @@ use App\Contracts\Application\ViewActionInterface;
  * Factory zur dynamischen (Lazy Loading) Erstellung von Admin-Actions.
  * Verhindert das "Fat Constructor" Problem im AdminController.
  *
- * Path: src/Application/Actions/AdminActionFactory.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class AdminActionFactory
 {

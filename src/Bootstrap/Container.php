@@ -18,12 +18,7 @@ use App\Infrastructure\Config\Config;
  * Core-Services und Controller und injiziert benötigte Abhängigkeiten.
  * Kontext: Zentraler Registry- und Inversion-of-Control (IoC) Knotenpunkt der Applikation.
  *
- * Path: src/Bootstrap/Container.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  *
  * @copyright (c) 2026 Felix Maywald. All rights reserved.
  * @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE

@@ -11,12 +11,7 @@ use App\Core\Event\MagicLinkRequestedEvent;
 /**
  * Sendet die E-Mail mit dem Magic-Link und dem 6-stelligen OTP-Code an den Nutzer.
  *
- * Path: src/Application/Listener/SendMagicLinkMailListener.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SendMagicLinkMailListener
 {

@@ -14,12 +14,7 @@ use App\Core\Service\HolidayService;
 /**
  * Lauscht auf PermitCreatedEvent und versendet die System-E-Mails.
  *
- * Path: src/Application/Listener/SendPermitMailListener.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SendPermitMailListener
 {

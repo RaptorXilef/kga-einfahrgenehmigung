@@ -14,12 +14,7 @@ use App\Contracts\Storage\MagicLinkRepositoryInterface;
  * Ablaufzeitfenster (TTL) und persistiert diese sitzungsübergreifend per JSON oder MySQL.
  * Kontext: Authentifizierungskomponente für Endbenutzer-Historienzugriffe.
  *
- * Path: src/Core/Service/MagicLinkService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class MagicLinkService
 {

@@ -13,9 +13,6 @@ use App\Core\Service\PermitService;
  * Lädt die temporären Daten und bereitet die Formular-Session vor.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class PermitEditAction implements ViewActionInterface
 {

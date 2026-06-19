@@ -13,12 +13,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
  * Handhabt die automatisierte Ausführung, sowie Datei- und Datenbankdumps.
  *
- * Path: src/Infrastructure/Maintenance/BackupService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class BackupService implements BackupServiceInterface
 {

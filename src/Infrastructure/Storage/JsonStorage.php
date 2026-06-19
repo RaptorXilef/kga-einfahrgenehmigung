@@ -17,12 +17,7 @@ use App\Core\Entity\Permit;
  * beim Schreiben sowie Kennzeichen-Suchalgorithmen mit Relevanz-Sortierung.
  * Kontext: Leichtgewichtiges NoSQL-Datei-Backend für kleine Umgebungen ohne MySQL-Server.
  *
- * Path: src/Infrastructure/Storage/JsonStorage.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class JsonStorage implements StorageInterface
 {

@@ -10,12 +10,7 @@ use App\Application\Exception\ValidationException;
  * Generisches DTO für Aktionen, die nur eine einzige ID oder einen Code benötigen
  * (z.B. Löschen, Umschalten, als bezahlt markieren).
  *
- * Path: src/Application/DTO/SimpleIdentifierRequest.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SimpleIdentifierRequest
 {

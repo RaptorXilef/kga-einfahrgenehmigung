@@ -12,12 +12,7 @@ use App\Contracts\Storage\VerificationRepositoryInterface;
  * Hält Anträge zwischen, deren E-Mail-Adresse (Opt-In) noch nicht bestätigt wurde
  * oder die noch auf den Abschluss einer PayPal-Zahlung warten.
  *
- * Path: src/Infrastructure/Storage/VerificationRepository.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class VerificationRepository implements VerificationRepositoryInterface
 {

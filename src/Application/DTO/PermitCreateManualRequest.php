@@ -9,12 +9,7 @@ use App\Application\Exception\ValidationException;
 /**
  * DTO für das manuelle Anlegen einer Genehmigung im Admin-Panel.
  *
- * Path: src/Application/DTO/PermitCreateManualRequest.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class PermitCreateManualRequest
 {

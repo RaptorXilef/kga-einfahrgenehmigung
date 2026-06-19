@@ -12,12 +12,7 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
  * Schiebt alte, abgelaufene Genehmigungen in ein separates Langzeit-Archiv,
  * um die Hauptdatenbank / das Haupt-JSON klein und performant zu halten.
  *
- * Path: src/Infrastructure/Storage/PermitArchiveRepository.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class PermitArchiveRepository implements PermitArchiveRepositoryInterface
 {

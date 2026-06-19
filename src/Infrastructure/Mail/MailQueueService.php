@@ -11,12 +11,7 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
  * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
  * Speichert ausgehende E-Mails zunächst im Repository und verarbeitet sie gestaffelt.
  *
- * Path: src/Infrastructure/Mail/MailQueueService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class MailQueueService implements MailServiceInterface
 {

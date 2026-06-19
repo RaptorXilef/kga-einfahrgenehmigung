@@ -11,12 +11,7 @@ use App\Core\Event\VerificationRequestedEvent;
 /**
  * Sendet die Double-Opt-In-Verifizierungsmail an den Antragsteller.
  *
- * Path: src/Application/Listener/SendVerificationMailListener.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SendVerificationMailListener
 {

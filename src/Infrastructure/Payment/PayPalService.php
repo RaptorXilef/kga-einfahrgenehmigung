@@ -18,12 +18,7 @@ use App\Infrastructure\Config\Config;
  * und validiert Transaktionen beim Capture-Prozess durch harten Abgleich mit dem System-Soll-Betrag.
  * Kontext: Schnittstelle für bargeldlose Online-Zahlungsabwicklungen.
  *
- * Path: src/Infrastructure/Payment/PayPalService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class PayPalService implements PaymentProviderInterface
 {

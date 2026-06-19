@@ -8,12 +8,7 @@ namespace App\Contracts\Storage;
  * Interface für das Speicher-Repository historischer Genehmigungen.
  * Kümmert sich um die langfristige Archivierung abgelaufener Einträge.
  *
- * Path: src/Contracts/Storage/PermitArchiveRepositoryInterface.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 interface PermitArchiveRepositoryInterface
 {

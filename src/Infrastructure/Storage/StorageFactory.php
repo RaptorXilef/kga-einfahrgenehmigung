@@ -13,12 +13,7 @@ use App\Contracts\Storage\StorageInterface;
  * Wertet die Systemkonfiguration aus und initialisiert entweder das
  * relationale MySQL-Backend oder das dateibasierte JSON-Backend für Hauptdaten.
  *
- * Path: src/Infrastructure/Storage/StorageFactory.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final class StorageFactory
 {

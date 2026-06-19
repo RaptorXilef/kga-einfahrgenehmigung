@@ -8,12 +8,7 @@ namespace App\Application\Session;
  * Kapselt alle Zugriffe auf den globalen $_SESSION State.
  * Verhindert direkte Array-Mutationen in den Actions (Leaky Abstractions).
  *
- * Path: src/Application/Session/SessionManager.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final class SessionManager
 {

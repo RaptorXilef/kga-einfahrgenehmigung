@@ -12,9 +12,6 @@ use App\Core\Service\AuthService;
  * Action für den sicheren Logout von Administratoren.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class AdminLogoutAction implements ActionInterface
 {

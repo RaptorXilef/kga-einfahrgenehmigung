@@ -9,12 +9,7 @@ use App\Application\Exception\ValidationException;
 /**
  * DTO für das Ändern des eigenen Anzeigenamens.
  *
- * Path: src/Application/DTO/ProfileUpdateUsernameRequest.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class ProfileUpdateUsernameRequest
 {

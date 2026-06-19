@@ -16,9 +16,6 @@ use App\Core\Entity\User;
  * und führt bei Bedarf initiale Auto-Setups aus.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class StorageBootstrapper
 {

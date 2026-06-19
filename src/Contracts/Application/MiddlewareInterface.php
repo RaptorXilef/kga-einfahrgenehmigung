@@ -7,12 +7,7 @@ namespace App\Contracts\Application;
 /**
  * Interface für alle HTTP-Middlewares (Türsteher).
  *
- * Path: src/Contracts/Application/MiddlewareInterface.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 interface MiddlewareInterface
 {

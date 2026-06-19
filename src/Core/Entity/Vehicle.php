@@ -11,12 +11,7 @@ namespace App\Core\Entity;
  * automatisierte Suchmasken sowie optionale Angaben zu Firmennamen bei Lieferverkehr.
  * Kontext: Identifikationsbasis bei physischen Kontrollen auf dem Gelände.
  *
- * Path: src/Core/Entity/Vehicle.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class Vehicle
 {

@@ -10,12 +10,7 @@ use App\Contracts\Application\MiddlewareInterface;
 /**
  * Liest sichere JSON-Bodys asynchroner Anfragen aus und mappt sie in den Request.
  *
- * Path: src/Application/Middleware/JsonBodyParserMiddleware.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class JsonBodyParserMiddleware implements MiddlewareInterface
 {

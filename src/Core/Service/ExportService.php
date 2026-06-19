@@ -10,15 +10,7 @@ use App\Contracts\Config\ConfigInterface;
  * Service für den reinen Datenexport.
  * Formatiert Arrays zu CSV-Strings oder JSON. Greift NICHT in die HTTP-Schicht ein.
  *
- * Path: src/Core/Service/ExportService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
- */
-final readonly class ExportService
-{
     public function __construct(
         private ConfigInterface $config,
     ) {

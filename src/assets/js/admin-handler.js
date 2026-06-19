@@ -12,12 +12,6 @@
  * Path: public/assets/js/admin-handler.min.js
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
- */
-class AdminDashboardHandler {
-    constructor() {
         this.tabs = document.querySelectorAll('[data-tab-target]');
         this.contents = document.querySelectorAll('.c-tabs__content');
         this.searchInput = document.getElementById('adminSearch');

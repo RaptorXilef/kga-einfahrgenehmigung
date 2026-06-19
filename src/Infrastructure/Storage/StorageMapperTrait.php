@@ -17,12 +17,7 @@ use App\Core\Entity\Vehicle;
  * in flache, speicherbare Array-Strukturen zu transformieren und umgekehrt (Hydrierung).
  * Dient als Data Mapper für alle Storage-Engines.
  *
- * Path: src/Infrastructure/Storage/StorageMapperTrait.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 trait StorageMapperTrait
 {

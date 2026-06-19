@@ -12,12 +12,7 @@ use App\Contracts\Config\ConfigInterface;
  * Kapselt die komplexe Logik des Verbindungsaufbaus, das automatische Anlegen
  * fehlender Datenbanken (Auto-Setup) und das Ausrollen des initialen Tabellenschemas.
  *
- * Path: src/Infrastructure/Database/PdoFactory.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final class PdoFactory
 {

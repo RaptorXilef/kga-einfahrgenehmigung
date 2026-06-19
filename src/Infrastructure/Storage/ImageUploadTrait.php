@@ -6,15 +6,11 @@ namespace App\Infrastructure\Storage;
 
 /**
  * Trait für das Hochladen, Skalieren und Konvertieren von Bildern.
+ * 
  * Bietet wiederverwendbare Methoden zur transparenten Umwandlung von
  * Profil- und Gruppenbildern in das speichereffiziente WebP-Format.
  *
- * Path: src/Infrastructure/Storage/ImageUploadTrait.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 trait ImageUploadTrait
 {

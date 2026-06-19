@@ -10,12 +10,7 @@
  * Findet den Root-Pfad, lädt den Autoloader, mergt die Konfigurationen
  * (config.php + config.local.php) und initialisiert den Dependency Container.
  *
- * Path: src/Bootstrap/app.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  *
  * return App\Bootstrap\Container Gibt die fertig konfigurierte Dependency-Injection-Container-Instanz zurück.
  */

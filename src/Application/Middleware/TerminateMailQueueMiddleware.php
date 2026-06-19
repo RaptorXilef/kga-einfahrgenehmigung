@@ -11,12 +11,7 @@ use App\Infrastructure\Mail\MailQueueService;
 /**
  * Führt Aufgaben aus, NACHDEM die eigentliche Action beendet wurde (Terminate Phase).
  *
- * Path: src/Application/Middleware/TerminateMailQueueMiddleware.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
 {

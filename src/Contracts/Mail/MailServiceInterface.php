@@ -11,12 +11,7 @@ namespace App\Contracts\Mail;
  * sowie den Lese- und Schreibzugriff auf die Versandprotokolle (Logs).
  * Kontext: Kommunikationsschnittstelle für Systembenachrichtigungen (z.B. Queue oder SMTP-Direktversand).
  *
- * Path: src/Contracts/Mail/MailServiceInterface.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 interface MailServiceInterface
 {

@@ -9,12 +9,7 @@ use App\Contracts\Config\ConfigInterface;
 /**
  * Service zur Generierung von EPC-GiroCodes für SEPA-Überweisungen.
  *
- * Path: src/Core/Service/BankQrGenerator.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class BankQrGenerator
 {

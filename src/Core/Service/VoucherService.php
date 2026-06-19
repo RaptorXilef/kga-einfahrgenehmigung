@@ -14,12 +14,7 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
  * Verfallsdaten, Vorbefüllungs-Schablonen für Anträge und protokolliert Einlösungen revisionssicher im Archiv.
  * Kontext: Marketing- und Administrations-Subkomponente für das Gutscheinwesen.
  *
- * Path: src/Core/Service/VoucherService.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class VoucherService
 {

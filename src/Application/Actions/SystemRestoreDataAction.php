@@ -14,9 +14,6 @@ use App\Infrastructure\Maintenance\MigrationService;
  * Action zur System-Wiederherstellung (Restore) aus einem Backup.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SystemRestoreDataAction implements ActionInterface
 {

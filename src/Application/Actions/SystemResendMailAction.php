@@ -16,9 +16,6 @@ use App\Infrastructure\Storage\JsonHelper;
  * Action für den manuellen Neuversand von E-Mails aus den System-Logs.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SystemResendMailAction implements ActionInterface
 {

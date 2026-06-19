@@ -15,12 +15,7 @@ use App\Core\Entity\Permit;
  *
  * Definiert die Verträge für JSON- und MySQL-Implementierungen.
  *
- * Path: src/Contracts/Storage/StorageInterface.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 interface StorageInterface
 {

@@ -11,12 +11,7 @@ namespace App\Contracts\Config;
  * die System-URLs, Testmodi sowie spezifische Preis- und Mail-Einstellungen.
  * Kontext: Abstraktionsschicht für das zentrale Konfigurationsmanagement.
  *
- * Path: src/Contracts/Config/ConfigInterface.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 interface ConfigInterface
 {

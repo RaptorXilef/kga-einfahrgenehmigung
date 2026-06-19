@@ -12,12 +12,7 @@ use App\Contracts\Storage\MailQueueRepositoryInterface;
  * Legt ausgehende E-Mails in der Datenbank oder JSON-Datei ab und holt sie
  * gestaffelt (Batch-Verarbeitung) für den asynchronen Versand wieder ab.
  *
- * Path: src/Infrastructure/Storage/MailQueueRepository.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 {

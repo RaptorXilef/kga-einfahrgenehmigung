@@ -15,12 +15,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  * Steuert zeitbasierte Routinen wie die Auto-Archivierung veralteter Genehmigungen
  * und die regelmäßige Erstellung von Backups.
  *
- * Path: src/Core/Service/Maintenance/CronScheduler.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class CronScheduler
 {

@@ -8,12 +8,7 @@ namespace App\Application\DTO;
  * DTO für den asynchronen PayPal-Webhook/API-Call.
  * Kapselt das Lesen aus dem php://input Stream.
  *
- * Path: src/Application/DTO/ApiDateInfoRequest.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class ApiDateInfoRequest
 {

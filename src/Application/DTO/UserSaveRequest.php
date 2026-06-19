@@ -10,12 +10,7 @@ use App\Application\Exception\ValidationException;
  * Data Transfer Object (DTO) für das Erstellen eines neuen Benutzers.
  * Kapselt die Validierung, Typisierung und die hochgeladene Avatar-Datei.
  *
- * Path: src/Application/DTO/UserSaveRequest.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class UserSaveRequest
 {

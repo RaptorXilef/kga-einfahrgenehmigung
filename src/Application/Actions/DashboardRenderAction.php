@@ -25,9 +25,6 @@ use App\Core\Service\VoucherService;
  * Rendert das zentrale Admin-Dashboard.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class DashboardRenderAction implements ViewActionInterface
 {

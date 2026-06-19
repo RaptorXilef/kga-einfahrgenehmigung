@@ -17,9 +17,6 @@ use App\Core\Service\AuthService;
  * Action für den Login von Administratoren inkl. Rate-Limiting und CSRF-Schutz.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class AdminLoginAction implements ActionInterface
 {

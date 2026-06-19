@@ -11,12 +11,7 @@ namespace App\Core\Entity;
  * der Einfahrt sowie einen unveränderlichen Preis-Snapshot zum Zeitpunkt der Buchung.
  * Kontext: Revisionssichere Abrechnungsbasis und zeitliche Validierungsgrundlage.
  *
- * Path: src/Core/Entity/Validity.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class Validity
 {

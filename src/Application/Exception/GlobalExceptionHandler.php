@@ -14,9 +14,6 @@ use App\Infrastructure\Logging\ErrorLogger;
  * revisionssicher und gibt eine nutzerfreundliche HTML- oder JSON-Fehlerseite zurück.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class GlobalExceptionHandler
 {

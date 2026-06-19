@@ -9,12 +9,7 @@ use App\Contracts\Application\MiddlewareInterface;
 /**
  * Reiht Middlewares aneinander und führt sie sequenziell aus.
  *
- * Path: src/Application/Middleware/MiddlewarePipeline.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final class MiddlewarePipeline
 {

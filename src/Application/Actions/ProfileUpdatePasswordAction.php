@@ -14,9 +14,6 @@ use App\Core\Entity\User;
  * Action zum Ändern des eigenen Passworts (inkl. Alt-Passwort-Prüfung).
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {

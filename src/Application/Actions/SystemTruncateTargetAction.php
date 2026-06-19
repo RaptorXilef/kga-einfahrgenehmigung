@@ -14,9 +14,6 @@ use App\Infrastructure\Maintenance\MigrationService;
  * Action zum rigorosen Löschen aller Daten eines bestimmten Speicher-Ziels.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class SystemTruncateTargetAction implements ActionInterface
 {

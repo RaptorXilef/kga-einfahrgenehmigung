@@ -17,9 +17,6 @@ use App\Contracts\Security\RateLimiterInterface;
  * Front Controller für die historische Antragsübersicht von Endnutzern.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class HistoryController
 {

@@ -12,12 +12,7 @@ use App\Contracts\Application\ViewActionInterface;
  * TODO DOCBLOCK
  * Factory zur dynamischen Auflösung von User- und Profil-Routen.
  *
- * Path: src/Application/Actions/UserActionFactory.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class UserActionFactory
 {

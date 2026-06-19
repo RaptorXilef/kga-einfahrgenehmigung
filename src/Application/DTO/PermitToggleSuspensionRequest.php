@@ -10,12 +10,7 @@ use App\Application\Exception\ValidationException;
  * DTO für das Sperren/Entsperren einer Genehmigung.
  * Kapselt den Code, die gewählte Aktion und den optionalen Begründungstext.
  *
- * Path: src/Application/DTO/PermitToggleSuspensionRequest.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
- * Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
- * Usage without explicit permission is strictly prohibited.
- * See LICENSE.md for full license details.
  */
 final readonly class PermitToggleSuspensionRequest
 {
