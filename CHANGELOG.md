@@ -2,6 +2,19 @@
 
 
 
+## [0.47.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.3...v0.47.4) (2026-06-19)
+
+### 🐛 Bug Fixes
+
+* **actions:** correct request payload access in frontend view actions ([8845db7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8845db7455c63cf6dd5a59e33895347ab558b477))
+
+### ⚙️ Refactoring
+
+* **core,arch:** encapsulate global state mutations and eliminate god-closures ([dc10e4f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dc10e4fbf73b496e273c04c6abb7cd740a323d3c))
+* **core,arch:** resolve DIP violations and isolate domain logic from infrastructure ([86e38b6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/86e38b6d3ac2e0236a855d85dfec3c41e7eea19e))
+* **core,types:** enforce strict return types on closures for static analysis ([64e737a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/64e737ace5cec787b9ff7bbea4bf80fac1614383))
+* **public,adr:** obliterate entry-script duplication and strictly route via controllers ([0038b52](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0038b52e4b8594daff3f6136c3d9c5e7fda4d650))
+
 ## [0.47.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.2...v0.47.3) (2026-06-18)
 
 ### ⚙️ Refactoring
