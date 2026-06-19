@@ -39,7 +39,8 @@ final readonly class SuccessAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        $code   = (string) ($requestData['code'] ?? '');
+        // FIX: Und auch hier auf ['get'] zugreifen!
+        $code   = (string) ($requestData['get']['code'] ?? '');
         $method = (string) ($requestData['method'] ?? 'wire');
 
         $permit = $this->storage->findByHash($code);

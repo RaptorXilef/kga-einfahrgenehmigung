@@ -40,7 +40,8 @@ final readonly class CheckoutAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        $token    = (string) ($requestData['token'] ?? '');
+        // FIX: Auch hier auf ['get'] zugreifen!
+        $token    = (string) ($requestData['get']['token'] ?? '');
         $tempData = $this->permitService->getVerifiedRequest($token);
 
         if ($token === '' || $tempData === null) {

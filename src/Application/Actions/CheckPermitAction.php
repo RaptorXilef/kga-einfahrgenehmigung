@@ -44,7 +44,8 @@ final readonly class CheckPermitAction implements ViewActionInterface
      */
     public function execute(array $requestData): void
     {
-        $get  = $requestData; // Konsistenz für den alten Code
+        // FIX: Wir greifen jetzt in das ['get'] Schubfach der Pipeline!
+        $get  = $requestData['get'] ?? [];
         $code = \strtoupper(\trim((string) ($get['code'] ?? '')));
         $now  = new \DateTimeImmutable();
 
