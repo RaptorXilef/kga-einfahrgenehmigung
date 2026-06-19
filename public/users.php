@@ -14,22 +14,6 @@
 declare(strict_types=1);
 
 use App\Application\UserController;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Infrastructure\Mail\MailQueueService;
 
-// Lädt die Bootstrap-Logik und liefert direkt den Container
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-
-$controller = $container->get(UserController::class);
-
-$controller->handleRequest($_POST, $_GET);
-
-try {
-    $mailService = $container->get(MailServiceInterface::class);
-    if ($mailService instanceof MailQueueService) {
-        // Wir verarbeiten bis zu 10 Mails. Das reicht für Vorstand + Pächter + Dokument
-        $mailService->processQueue(10);
-    }
-} catch (\Throwable) {
-    // Fehler beim Mailversand sollen die Seite nicht abstürzen lassen
-}
+$container->get(UserController::class)->handleRequest($_POST, $_GET);

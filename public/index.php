@@ -17,23 +17,6 @@
 declare(strict_types=1);
 
 use App\Application\PermitController;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Infrastructure\Mail\MailQueueService;
 
-// Lädt die Bootstrap-Logik und liefert direkt den Container
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-
-$controller = $container->get(PermitController::class);
-
-$controller->handleRequest($_POST, $_GET);
-
-// --- Mail-Queue Trigger ---
-try {
-    $mailService = $container->get(MailServiceInterface::class);
-    if ($mailService instanceof MailQueueService) {
-        // Wir verarbeiten bis zu 10 Mails. Das reicht für Vorstand + Pächter + Dokument
-        $mailService->processQueue(10);
-    }
-} catch (\Throwable) {
-    // Fehler beim Mailversand sollen die Seite nicht abstürzen lassen
-}
+$container->get(PermitController::class)->handleRequest($_POST, $_GET);

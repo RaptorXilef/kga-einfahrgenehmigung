@@ -14,24 +14,6 @@
 declare(strict_types=1);
 
 use App\Application\UserController;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Infrastructure\Mail\MailQueueService;
 
-// 1. Nutze den zentralen Bootstrapper (garantiert alle Pfade und den Container)
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-
-// 2. Controller direkt aus dem Container holen
-$controller = $container->get(UserController::class);
-
-// 3. Request an den Controller übergeben
-$controller->handleProfileRequest($_POST, $_GET);
-
-// 4. Mail-Queue verarbeiten
-try {
-    $mailService = $container->get(MailServiceInterface::class);
-    if ($mailService instanceof MailQueueService) {
-        $mailService->processQueue(10);
-    }
-} catch (\Throwable) {
-    // Silent fail für Mails
-}
+$container->get(UserController::class)->handleProfileRequest($_POST, $_GET);

@@ -45,8 +45,10 @@ use App\Application\Actions\ProfileUpdateUsernameAction;
 use App\Application\Actions\ProfileUploadAvatarAction;
 use App\Application\Actions\SuccessAction;
 use App\Application\Actions\SystemAnonymizeArchiveAction;
+use App\Application\Actions\SystemChangelogAction;
 use App\Application\Actions\SystemCheckUpdateAction;
 use App\Application\Actions\SystemClearCacheAction;
+use App\Application\Actions\SystemCronAction;
 use App\Application\Actions\SystemFinalizeUpdateAction;
 use App\Application\Actions\SystemMigrateDataAction;
 use App\Application\Actions\SystemPerformUpdateAction;
@@ -70,7 +72,11 @@ use App\Application\Actions\VoucherDeleteAction;
 use App\Application\Actions\VoucherToggleAction;
 use App\Application\AdminController;
 use App\Application\ApiController;
+use App\Application\ChangelogController;
+use App\Application\CronController;
+use App\Application\FrontendController;
 use App\Application\HistoryController;
+use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\PermitController;
 use App\Application\UserController;
 use App\Application\VerificationController;
@@ -217,6 +223,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(StorageBootstrapper::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
+            $container->get(TerminateMailQueueMiddleware::class),
             $container->get(UserRepositoryInterface::class),
             $container->get(VoucherRepositoryInterface::class),
             $container->get(VoucherService::class),
@@ -301,8 +308,9 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // User / Profile / Group Controller
         $container->bind(UserController::class, fn (): UserController => new UserController(
-            $container->get(UserActionFactory::class),
             $container->get(AuthService::class),
+            $container->get(TerminateMailQueueMiddleware::class),
+            $container->get(UserActionFactory::class),
         ));
 
         // --- 3.3 Frontend Controller (Public) ---
@@ -358,6 +366,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(HistoryController::class, fn (): HistoryController => new HistoryController(
             $container->get(HistoryActionFactory::class),
             $container->get(RateLimiterInterface::class),
+            $container->get(TerminateMailQueueMiddleware::class),
         ));
         $container->bind(DatenschutzAction::class, fn () => new DatenschutzAction(
             $container->get(ConfigInterface::class),
@@ -395,6 +404,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // Permit Controller
         $container->bind(PermitController::class, fn (): PermitController => new PermitController(
             $container->get(PermitActionFactory::class),
+            $container->get(TerminateMailQueueMiddleware::class),
         ));
         $container->bind(SuccessAction::class, fn () => new SuccessAction(
             $container->get(BankQrGenerator::class),
@@ -420,8 +430,9 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // Verification Controller
         $container->bind(VerificationController::class, fn (): VerificationController => new VerificationController(
-            $container->get(VerificationActionFactory::class),
             $container->get(RateLimiterInterface::class),
+            $container->get(TerminateMailQueueMiddleware::class),
+            $container->get(VerificationActionFactory::class),
         ));
 
         // API Actions
@@ -470,6 +481,29 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(ApiActionFactory::class),
             $container->get(AuthService::class),
             $container->get(RateLimiterInterface::class),
+        ));
+
+        $container->bind(TerminateMailQueueMiddleware::class, fn () => new TerminateMailQueueMiddleware(
+            $container->get(MailServiceInterface::class),
+        ));
+        $container->bind(FrontendController::class, fn () => new FrontendController(
+            $container->get(TerminateMailQueueMiddleware::class),
+        ));
+        $container->bind(SystemCronAction::class, fn () => new SystemCronAction(
+            $container->get(ConfigInterface::class),
+            $container->get(CronScheduler::class),
+        ));
+        $container->bind(CronController::class, fn () => new CronController(
+            $container->get(SystemCronAction::class),
+        ));
+        $container->bind(SystemChangelogAction::class, fn () => new SystemChangelogAction(
+            $container->get(AuthService::class),
+            $container->get(ConfigInterface::class),
+            $container->get(TemplateRenderer::class),
+        ));
+        $container->bind(ChangelogController::class, fn () => new ChangelogController(
+            $container->get(SystemChangelogAction::class),
+            $container->get(TerminateMailQueueMiddleware::class),
         ));
     }
 }

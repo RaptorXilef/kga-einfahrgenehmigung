@@ -13,19 +13,8 @@
 declare(strict_types=1);
 
 use App\Application\Actions\CheckoutAction;
-use App\Contracts\Mail\MailServiceInterface;
-use App\Infrastructure\Mail\MailQueueService;
+use App\Application\FrontendController;
 
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-
-$action = $container->get(CheckoutAction::class);
-$action->execute($_GET);
-
-// E-Mails im Hintergrund abarbeiten
-try {
-    $mailService = $container->get(MailServiceInterface::class);
-    if ($mailService instanceof MailQueueService) {
-        $mailService->processQueue(10);
-    }
-} catch (\Throwable) {
-}
+$action    = $container->get(CheckoutAction::class);
+$container->get(FrontendController::class)->handleRequest($action, $_GET);

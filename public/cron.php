@@ -16,28 +16,7 @@
 
 declare(strict_types=1);
 
-use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\Maintenance\CronScheduler;
+use App\Application\CronController;
 
-try {
-    $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-    $config    = $container->get(ConfigInterface::class);
-
-    $providedToken = $_GET['token'] ?? '';
-    $requiredToken = (string) $config->get('cron_secret', 'unconfigured');
-
-    // Schutz: Nur wenn das Token stimmt oder es via Terminal (CLI) ausgeführt wird
-    if (\php_sapi_name() !== 'cli' && $providedToken !== $requiredToken) {
-        \http_response_code(403);
-        exit('Forbidden: Ungültiges Token.');
-    }
-
-    $cron = $container->get(CronScheduler::class);
-    $cron->runForce();
-
-    echo "Status 200 OK: Cronjobs (Archivierung & Backup) erfolgreich ausgefuehrt.\n";
-
-} catch (\Throwable $e) {
-    \http_response_code(500);
-    echo 'Fehler bei der Ausfuehrung: ' . $e->getMessage() . "\n";
-}
+$container = require_once __DIR__ . '/../src/Bootstrap/app.php';
+$container->get(CronController::class)->handleRequest($_GET);

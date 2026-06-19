@@ -7,6 +7,7 @@ namespace App\Application;
 use App\Application\Actions\PermitActionFactory;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\TerminateMailQueueMiddleware;
 
 /**
  * Front Controller für den öffentlichen Genehmigungs-Beantragungsprozess.
@@ -22,6 +23,7 @@ final readonly class PermitController
 {
     public function __construct(
         private PermitActionFactory $actionFactory,
+        private TerminateMailQueueMiddleware $mailQueueMiddleware,
     ) {
     }
 
@@ -38,7 +40,9 @@ final readonly class PermitController
         }
 
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new CsrfMiddleware('index.php'));
+        $pipeline
+            ->add(new CsrfMiddleware('index.php'))
+            ->add($this->mailQueueMiddleware);
 
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
             $action = $this->actionFactory->create($req['get'], $req['post']);

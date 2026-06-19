@@ -8,6 +8,7 @@ use App\Application\Actions\VerificationActionFactory;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
+use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Contracts\Security\RateLimiterInterface;
 
 /**
@@ -23,8 +24,9 @@ use App\Contracts\Security\RateLimiterInterface;
 final readonly class VerificationController
 {
     public function __construct(
-        private VerificationActionFactory $factory,
         private RateLimiterInterface $rateLimiter,
+        private TerminateMailQueueMiddleware $mailQueueMiddleware,
+        private VerificationActionFactory $factory,
     ) {
     }
 
@@ -41,7 +43,8 @@ final readonly class VerificationController
         // Die Türsteher-Pipeline: Zuerst Rate-Limit, dann CSRF
         $pipeline
             ->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'))
-            ->add(new CsrfMiddleware('verify.php?error=1'));
+            ->add(new CsrfMiddleware('verify.php?error=1'))
+            ->add($this->mailQueueMiddleware);
 
         $pipeline->process([
             'get'  => $get,

@@ -7,6 +7,7 @@ namespace App\Application;
 use App\Application\Actions\AdminActionFactory;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
@@ -57,6 +58,7 @@ final readonly class AdminController
         private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
+        private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private UserRepositoryInterface $userRepository,
         private VoucherRepositoryInterface $voucherRepository,
         private VoucherService $voucherService,
@@ -100,7 +102,9 @@ final readonly class AdminController
         // 3. PIPELINE FÜR AUTH (Login/Logout)
         if ($action !== '') {
             $pipeline = new MiddlewarePipeline();
-            $pipeline->add(new CsrfMiddleware('admin.php'));
+            $pipeline
+                ->add(new CsrfMiddleware('admin.php'))
+                ->add($this->mailQueueMiddleware);
 
             $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($action): void {
                 $actionHandler = $this->actionFactory->create($action);
@@ -123,6 +127,7 @@ final readonly class AdminController
             $this->renderer,
             $this->userRepository,
         ));
+        $pipeline->add($this->mailQueueMiddleware);
 
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
             $p = $req['post'];

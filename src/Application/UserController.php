@@ -9,6 +9,7 @@ use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
+use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 
@@ -28,8 +29,9 @@ use App\Core\Service\AuthService;
 final readonly class UserController
 {
     public function __construct(
-        private UserActionFactory $factory,
         private AuthService $auth,
+        private TerminateMailQueueMiddleware $mailQueueMiddleware,
+        private UserActionFactory $factory,
     ) {
     }
 
@@ -40,7 +42,8 @@ final readonly class UserController
         $pipeline = new MiddlewarePipeline();
         $pipeline
             ->add(new PermissionMiddleware($this->auth, 'system.permissions.view', 'admin.php'))
-            ->add(new CsrfMiddleware('users.php'));
+            ->add(new CsrfMiddleware('users.php'))
+            ->add($this->mailQueueMiddleware);
 
         // 2. Den Request durch die Pipeline schicken
         $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
