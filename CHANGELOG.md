@@ -2,6 +2,15 @@
 
 
 
+## [0.47.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.4...v0.47.5) (2026-06-19)
+
+### ⚙️ Refactoring
+
+* **actions,middlewares:** eradicate procedural security logic from business actions ([d4fadec](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d4fadeca7d1d8a1d92cca7dbc515fd9983fcb3e8))
+* **bootstrap,middleware:** eradicate infrastructure leak and encapsulate server-side tracking ([bc346e6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bc346e6cc68cfa91b64520f3506798a7084f33ab))
+* **core,arch:** introduce domain entities and psr-7 inspired response abstraction ([4c86251](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4c862514d9ae0102b3e5ea66a30a6879b59d28de))
+* **core,dto:** eradicate global array access in read-only View Actions ([54e04e7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/54e04e754298c81f2ab8fc343e2989e02f9b830c))
+
 ## [0.47.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.3...v0.47.4) (2026-06-19)
 
 ### 🐛 Bug Fixes
