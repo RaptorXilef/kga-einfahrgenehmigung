@@ -19,6 +19,7 @@ use App\Application\Actions\CheckoutFinalizeWireAction;
 use App\Application\Actions\CheckPermitAction;
 use App\Application\Actions\DashboardExportAction;
 use App\Application\Actions\DashboardFilterAction;
+use App\Application\Actions\DashboardRenderAction;
 use App\Application\Actions\DatenschutzAction;
 use App\Application\Actions\GroupDeleteAction;
 use App\Application\Actions\GroupRenameAction;
@@ -76,8 +77,10 @@ use App\Application\ChangelogController;
 use App\Application\CronController;
 use App\Application\FrontendController;
 use App\Application\HistoryController;
+use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\PermitController;
+use App\Application\Session\SessionManager;
 use App\Application\UserController;
 use App\Application\VerificationController;
 use App\Application\View\TemplateRenderer;
@@ -89,6 +92,7 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -103,7 +107,6 @@ use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
-use App\Infrastructure\Maintenance\BackupService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
@@ -126,6 +129,16 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // --- 3.1 View Renderer ---
         $container->bind(TemplateRenderer::class, fn (): TemplateRenderer => new TemplateRenderer(
             $container->get(ConfigInterface::class),
+        ));
+
+        // --- 3.x Session and Auth ---
+        $container->bind(SessionManager::class, fn () => new SessionManager());
+
+        $container->bind(AdminAuthGuardMiddleware::class, fn () => new AdminAuthGuardMiddleware(
+            $container->get(AuthService::class),
+            $container->get(GroupRepositoryInterface::class),
+            $container->get(TemplateRenderer::class),
+            $container->get(UserRepositoryInterface::class),
         ));
 
         // --- 3.2 Backend Controller (Admin) ---
@@ -151,7 +164,9 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(AuthService::class),
             $container->get(ExportService::class),
         ));
-        $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction());
+        $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction(
+            $container->get(SessionManager::class),
+        ));
         $container->bind(PermitCreateManualAction::class, fn () => new PermitCreateManualAction(
             $container->get(AuthService::class),
             $container->get(PermitService::class),
@@ -211,19 +226,23 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // Admin Controller
         $container->bind(AdminController::class, fn (): AdminController => new AdminController(
             $container->get(AdminActionFactory::class),
-            $container->get(AuthService::class),
-            $container->get(BackupService::class),
-            $container->get(ConfigInterface::class),
+            $container->get(AdminAuthGuardMiddleware::class),
+            $container->get(BackupServiceInterface::class),
             $container->get(CronScheduler::class),
-            $container->get(ExportService::class),
+            $container->get(StorageBootstrapper::class),
+        ));
+
+        $container->bind(DashboardRenderAction::class, fn () => new DashboardRenderAction(
+            $container->get(AuthService::class),
+            $container->get(BackupServiceInterface::class),
+            $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(MailLogInterface::class),
             $container->get(PermitService::class),
             $container->get(ReportingService::class),
-            $container->get(StorageBootstrapper::class),
+            $container->get(SessionManager::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
-            $container->get(TerminateMailQueueMiddleware::class),
             $container->get(UserRepositoryInterface::class),
             $container->get(VoucherRepositoryInterface::class),
             $container->get(VoucherService::class),
@@ -394,6 +413,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         $container->bind(PermitSubmitAction::class, fn () => new PermitSubmitAction(
             $container->get(PermitService::class),
+            $container->get(SessionManager::class),
         ));
 
         // Permit Factory

@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\PermitSubmitRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
@@ -23,10 +24,10 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 {
     public function __construct(
         private PermitService $permitService,
+        private SessionManager $sessionManager,
     ) {
     }
 
-    // TODO DOCBLOCK
     public function execute(array $requestData): void
     {
         try {
@@ -36,40 +37,37 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             exit;
         }
 
-        // Wir legen die gereinigten Daten sofort in der Session ab (für Formular-Neuaufbau bei Fehlern)
-        $_SESSION['form_data'] = $dto->toArray();
+        $this->sessionManager->setFormData($dto->toArray());
 
         try {
-            // KORREKTUR-MODUS: Logik wurde sauber an den Service übergeben!
-            if (isset($_SESSION['verified_email'], $_SESSION['edit_token'])) {
-                $result = $this->permitService->updateVerifiedRequest(
-                    $_SESSION['edit_token'],
-                    $_SESSION['verified_email'],
-                    $dto->toArray(),
-                );
+            $verifiedEmail = $this->sessionManager->getVerifiedEmail();
+            $editToken     = $this->sessionManager->getEditToken();
 
-                unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
+            if ($verifiedEmail !== null && $editToken !== null) {
+                $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toArray());
+                $this->sessionManager->clearFormData();
+                $this->sessionManager->clearEditState();
 
                 if ($result === 'redirect_checkout') {
-                    \header('Location: checkout.php?token=' . $_SESSION['edit_token']);
+                    \header('Location: checkout.php?token=' . $editToken);
                     exit;
                 }
 
-                $msg = 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Zu Ihrer Sicherheit müssen Sie Ihre E-Mail kurz erneut bestätigen, da sich der Preis geändert hat.';
+                $msg = 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.';
                 \header('Location: index.php?sent=1&msg=' . \urlencode($msg));
                 exit;
             }
 
             // NORMALER DURCHLAUF (Neuer Antrag)
             $this->permitService->createPendingVerification($dto->toArray());
-            unset($_SESSION['form_data'], $_SESSION['verified_email'], $_SESSION['edit_token']);
-
+            $this->sessionManager->clearFormData();
+            $this->sessionManager->clearEditState();
             \header('Location: index.php?sent=1');
             exit;
         } catch (\Exception $exception) {
             \error_log('Permit Creation Error: ' . $exception->getMessage());
             $msg = 'Ein technischer Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
-            \header('Location: index.php?msg=' . \urlencode($msg));
+            \header('Location: index.php?msg=' . \urlencode('Ein Fehler ist aufgetreten.'));
             exit;
         }
     }

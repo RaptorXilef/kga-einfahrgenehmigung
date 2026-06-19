@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Actions\DashboardExportAction;
 use App\Bootstrap\Container;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\ViewActionInterface;
@@ -50,6 +49,7 @@ final readonly class AdminActionFactory
             'logout'             => AdminLogoutAction::class,
             'mark_as_paid'       => PermitMarkAsPaidAction::class,
             'migrate_data'       => SystemMigrateDataAction::class,
+            'render_dashboard'   => DashboardRenderAction::class,
             'resend_mail'        => SystemResendMailAction::class,
             'restore_data'       => SystemRestoreDataAction::class,
             'suspend_permit'     => PermitToggleSuspensionAction::class,
