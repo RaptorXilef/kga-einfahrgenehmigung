@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
@@ -16,18 +18,19 @@ use App\Core\Service\PermitService;
  */
 final readonly class PermitEditAction implements ViewActionInterface
 {
-    public function __construct(private PermitService $permitService)
-    {
+    public function __construct(
+        private PermitService $permitService,
+        private SessionManager $sessionManager,
+    ) {
     }
 
     public function execute(array $requestData): mixed
     {
-        $get      = $requestData['get'];
-        $tempData = $this->permitService->getVerifiedRequest((string) ($get['token'] ?? ''));
+        $dto      = SimpleTokenRequest::fromArray($requestData['get'] ?? []);
+        $tempData = $this->permitService->getVerifiedRequest($dto->token);
         if ($tempData !== null) {
-            $_SESSION['form_data']      = $tempData;
-            $_SESSION['verified_email'] = $tempData['email'];
-            $_SESSION['edit_token']     = $get['token'];
+            $this->sessionManager->setFormData($tempData);
+            $this->sessionManager->setEditState($tempData['email'] ?? '', $dto->token);
         }
 
         return new RedirectResponse('index.php');

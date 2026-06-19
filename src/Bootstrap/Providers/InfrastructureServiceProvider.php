@@ -21,6 +21,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Mail\MailQueueService;
@@ -39,6 +40,7 @@ use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\Storage\UserRepository;
 use App\Infrastructure\Storage\VerificationRepository;
 use App\Infrastructure\Storage\VoucherRepository;
+use App\Infrastructure\Utils\SystemClock;
 
 /**
  * Registriert alle Hardware-, Netzwerk- und Dateisystem-nahen Komponenten.
@@ -57,6 +59,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(\PDO::class),
         ));
+        $container->bind(ClockInterface::class, fn () => new SystemClock());
 
         // --- 1.2 Repositories (Datenzugriff) ---
         $container->bind(GroupRepositoryInterface::class, fn () => new GroupRepository(

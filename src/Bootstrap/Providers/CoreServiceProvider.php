@@ -18,6 +18,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\ExportService;
@@ -27,6 +28,7 @@ use App\Core\Service\MagicLinkService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
+use App\Core\Service\SystemInfoService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
@@ -48,8 +50,13 @@ final class CoreServiceProvider implements ServiceProviderInterface
             $container->get(UserRepositoryInterface::class),
         ));
 
+        $container->bind(SystemInfoService::class, fn () => new SystemInfoService(
+            $container->get(ConfigInterface::class),
+        ));
+
         // --- 2.2 Haupt-Geschäftslogik ---
         $container->bind(PermitService::class, fn () => new PermitService(
+            $container->get(ClockInterface::class),
             $container->get(ConfigInterface::class),
             $container->get(EventDispatcherInterface::class),
             $container->get(LicensePlateFormatter::class),
@@ -61,6 +68,7 @@ final class CoreServiceProvider implements ServiceProviderInterface
         ));
 
         $container->bind(VoucherService::class, fn (): VoucherService => new VoucherService(
+            $container->get(ClockInterface::class),
             $container->get(VoucherRepositoryInterface::class),
         ));
 
@@ -69,6 +77,7 @@ final class CoreServiceProvider implements ServiceProviderInterface
         ));
 
         $container->bind(MagicLinkService::class, fn (): MagicLinkService => new MagicLinkService(
+            $container->get(ClockInterface::class),
             $container->get(MagicLinkRepositoryInterface::class),
             $container->get(ConfigInterface::class),
         ));

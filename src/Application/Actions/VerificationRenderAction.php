@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\VerificationRenderRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 
@@ -14,19 +15,15 @@ use App\Contracts\Application\ViewActionInterface;
  */
 final readonly class VerificationRenderAction implements ViewActionInterface
 {
-    public function __construct(private TemplateRenderer $renderer)
-    {
+    public function __construct(
+        private TemplateRenderer $renderer,
+    ) {
     }
 
-    // TODO DOCBLOCK
     public function execute(array $requestData): mixed
     {
-        $get = $requestData['get'];
-
-        $this->renderer->render('verify_input', [
-            'isError' => isset($get['error']),
-            'message' => (string) ($get['msg'] ?? ''),
-        ]);
+        $dto = VerificationRenderRequest::fromArray($requestData['get'] ?? []);
+        $this->renderer->render('verify_input', ['isError' => $dto->isError, 'message' => $dto->message]);
 
         return null;
     }

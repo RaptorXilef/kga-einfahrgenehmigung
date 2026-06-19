@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ViewRenderRequest;
+use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -20,6 +21,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
+        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private VoucherRepositoryInterface $voucherRepository,
         private VoucherService $voucherService,
@@ -41,7 +43,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
         $this->renderer->render('formular', [
             'agreements'        => $this->getParsedAgreements(),
-            'formData'          => $_SESSION['form_data'] ?? [],
+            'formData'          => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),
             'message'           => $message,
             'success'           => $success,

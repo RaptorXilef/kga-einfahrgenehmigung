@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
+use App\Core\Service\SystemInfoService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Storage\JsonHelper;
 
@@ -17,14 +18,18 @@ use App\Infrastructure\Storage\JsonHelper;
  */
 final readonly class SystemCheckUpdateAction implements ViewActionInterface
 {
-    public function __construct(private ConfigInterface $config, private GitHubUpdaterService $updater)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+        private GitHubUpdaterService $updater,
+        private SystemInfoService $sysInfo,
+    ) {
     }
 
     public function execute(array $requestData): mixed
     {
         try {
-            $currentVersion  = 'v0.0.0';
+            $currentVersion  = $this->sysInfo->getCurrentVersion();
+            $updateData      = $this->updater->checkForUpdate($currentVersion);
             $packageJsonPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/package.json';
 
             if (\file_exists($packageJsonPath)) {
@@ -37,7 +42,6 @@ final readonly class SystemCheckUpdateAction implements ViewActionInterface
                 }
             }
 
-            $updateData = $this->updater->checkForUpdate($currentVersion);
             JsonResponse::success(['update_available' => $updateData !== null, 'data' => $updateData]);
         } catch (\Throwable $e) {
             JsonResponse::error($e->getMessage());

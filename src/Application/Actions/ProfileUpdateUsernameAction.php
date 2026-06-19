@@ -6,9 +6,11 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\ProfileUpdateUsernameRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuthService;
 
 /**
  * Action zum Aktualisieren des eigenen Anzeigenamens/Login-Namens.
@@ -18,6 +20,8 @@ use App\Core\Entity\User;
 final readonly class ProfileUpdateUsernameAction implements ActionInterface
 {
     public function __construct(
+        private AuthService $auth,
+        private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -29,7 +33,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-        $userId = $_SESSION['user_id'] ?? '';
+        $userId = $this->auth->getUserId();
         $users  = $this->userRepository->loadAll();
         foreach ($users as $id => $userData) {
             if ($id !== $userId && \strtolower(\trim((string) $userData->username)) === \strtolower($dto->newUsername)) {
@@ -39,7 +43,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         $u              = $users[$userId];
         $users[$userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
         $this->userRepository->saveAll($users);
-        $_SESSION['admin_user'] = $dto->newUsername;
+        $this->sessionManager->updateAdminUsername($dto->newUsername);
 
         return 'Erfolg: Ihr Anzeigename wurde aktualisiert.';
     }

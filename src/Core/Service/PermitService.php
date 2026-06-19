@@ -10,6 +10,8 @@ use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\Utils\ClockInterface;
+use App\Core\DTO\PermitFormData;
 use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
 use App\Core\Entity\Status;
@@ -32,6 +34,7 @@ use App\Infrastructure\Storage\JsonHelper;
 final readonly class PermitService
 {
     public function __construct(
+        private ClockInterface $clock,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
         private LicensePlateFormatter $plateFormatter,
@@ -65,9 +68,12 @@ final readonly class PermitService
         $data['verification_token'] = $token;
         $data['verification_code']  = $shortCode;
         $hours                      = (int) $this->config->get('hours_pending_verify', 24);
-        $data['expires']            = \date('Y-m-d H:i:s', APP_REQUEST_TIME + (3600 * $hours));
-        $allPending                 = $this->verificationRepository->loadPending();
-        $allPending[$token]         = $data;
+
+        // Entkoppelt über das Clock-Interface
+        $data['expires'] = \date('Y-m-d H:i:s', $this->clock->now()->getTimestamp() + (3600 * $hours));
+
+        $allPending         = $this->verificationRepository->loadPending();
+        $allPending[$token] = $data;
         $this->verificationRepository->savePending($allPending);
 
         // ENTKOPPELT: Statt direktem Mail-Versand werfen wir jetzt ein Event!
@@ -147,8 +153,8 @@ final readonly class PermitService
         $this->verificationRepository->savePending($allPending);
 
         $hours               = (int) $this->config->get('hours_pending_finalize', 48);
-        $data['verified_at'] = APP_REQUEST_TIME_STR;
-        $data['expires']     = \date('Y-m-d H:i:s', APP_REQUEST_TIME + (3600 * $hours));
+        $data['verified_at'] = $this->clock->nowAsString();
+        $data['expires']     = \date('Y-m-d H:i:s', $this->clock->now()->getTimestamp() + (3600 * $hours));
 
         $voucherCode = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
         if ($voucherCode !== '') {
@@ -199,7 +205,9 @@ final readonly class PermitService
             $data                       = (array) $allVerified[$token];
             $data['status']             = $status;
             $data['interner_kommentar'] = $kommentar;
-            $permit                     = $this->createPermit($data, true);
+
+            $dto    = PermitFormData::fromArray($data);
+            $permit = $this->createPermit($dto, true);
 
             unset($allVerified[$token]);
             $this->verificationRepository->saveVerified($allVerified);
@@ -208,17 +216,16 @@ final readonly class PermitService
         });
     }
 
-    public function createPermit(array $data, bool $sendMails = true): Permit
+    public function createPermit(PermitFormData $data, bool $sendMails = true): Permit
     {
-        $this->validateEmail((string) ($data['email'] ?? ''));
-
-        $tKey      = (string) ($data['template_key'] ?? 'std_7');
+        $this->validateEmail($data->email);
+        $tKey      = $data->templateKey;
         $templates = (array) $this->config->get('permit_templates', []);
         $template  = (array) ($templates[$tKey] ?? $templates['std_7']);
-        $startDate = new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now'));
+        $startDate = new \DateTimeImmutable((string) $data->datumVon);
 
         if ($template['days'] === 'custom') {
-            $endDate = new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now'));
+            $endDate = new \DateTimeImmutable((string) $data->datumBis);
         } else {
             $daysToAdd = \max(0, (int) $template['days'] - 1);
             $endDate   = $startDate->modify('+' . $daysToAdd . ' days');
@@ -226,14 +233,14 @@ final readonly class PermitService
 
         $vehicleTypes = $this->config->get('vehicle_types', []);
         $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
-        $typ          = (string) ($data['typ'] ?? $defaultType);
-        $preis        = isset($data['manual_price'])
-            ? (float) $data['manual_price']
+        $typ          = (string) $data->typ;
+        $preis        = $data->manualPrice > 0.0
+            ? $data->manualPrice
             : (float) ($template['prices'][$typ] ?? 0.0);
 
         do {
             $randomId        = $this->generateV4Suffix();
-            $displayPlate    = $this->plateFormatter->format((string) ($data['kennzeichen'] ?? ''));
+            $displayPlate    = $this->plateFormatter->format((string) $data->kennzeichen);
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
             $platePart       = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
             $useLongCode     = (bool) $this->config->get('use_long_permit_code', false);
@@ -242,7 +249,7 @@ final readonly class PermitService
                 $fullIdentifier = \sprintf(
                     '%s-%s-%s-%s',
                     $this->config->get('prefix', 'ML'),
-                    \str_pad((string) ($data['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
+                    \str_pad((string) $data->parzelle, 4, '0', \STR_PAD_LEFT),
                     $platePart,
                     $randomId,
                 );
@@ -252,26 +259,26 @@ final readonly class PermitService
         } while (! $this->isCodeGloballyUnique($fullIdentifier));
 
         $purposes = (array) $this->config->get('purposes', []);
-        $zweck    = (string) ($purposes[(string) ($data['zweck'] ?? '')] ?? 'Privat');
+        $zweck    = (string) ($purposes[(string) $data->zweck] ?? 'Privat');
 
         $permit = new Permit(
             code: $fullIdentifier,
             template_key: $tKey,
             owner: new Owner(
-                \strip_tags((string) $data['name']),
-                (string) $data['email'],
-                \str_pad((string) $data['parzelle'], 4, '0', \STR_PAD_LEFT),
+                \strip_tags((string) $data->name),
+                (string) $data->email,
+                \str_pad((string) $data->parzelle, 4, '0', \STR_PAD_LEFT),
             ),
             vehicle: new Vehicle(
                 $typ,
                 $displayPlate,
-                isset($data['firma']) ? \strip_tags((string) $data['firma']) : null,
+                $data->firma ? \strip_tags((string) $data->firma) : null,
             ),
             validity: new Validity($startDate, $endDate, $preis, $zweck),
-            status: new Status((string) ($data['status'] ?? 'offen')),
-            erstellt: new \DateTimeImmutable(),
-            interner_kommentar: $data['interner_kommentar'] ?? null,
-            agreements: $data['agreements'] ?? [],
+            status: new Status((string) $data->status),
+            erstellt: $this->clock->now(),
+            interner_kommentar: $data->internerKommentar,
+            agreements: $data->agreements,
         );
 
         if (! $this->storage->save($permit)) {
@@ -356,7 +363,7 @@ final readonly class PermitService
         $combined   = \array_merge($allActive, $archived);
         $filtered   = [];
         $queryLower = \strtolower($query);
-        $now        = new \DateTimeImmutable();
+        $now        = $this->clock->now();
 
         $permitTemplates = $this->config->get('permit_templates', []);
 
@@ -442,7 +449,7 @@ final readonly class PermitService
             return 0;
         }
 
-        $now                 = new \DateTimeImmutable();
+        $now                 = $this->clock->now();
         $dueDays             = (int) $this->config->get('payment_due_days', 14);
         $notifyDays          = (int) $this->config->get('payment_due_days_notify', 2);
         $userDeadline        = $permit->getCreatedAt()->modify("+{$dueDays} days");
@@ -464,7 +471,7 @@ final readonly class PermitService
         $allPermits    = $this->storage->getAll();
         $toArchive     = [];
         $codesToDelete = [];
-        $cutoffDate    = (new \DateTimeImmutable())->modify("-{$graceDays} days")->setTime(0, 0, 0);
+        $cutoffDate    = $this->clock->now()->modify("-{$graceDays} days")->setTime(0, 0, 0);
 
         foreach ($allPermits as $permit) {
             if ($permit->getValidUntil() < $cutoffDate) {
@@ -498,7 +505,7 @@ final readonly class PermitService
         }
 
         $allPending = $this->verificationRepository->loadPending();
-        $nowStr     = APP_REQUEST_TIME_STR;
+        $nowStr     = $this->clock->nowAsString();
 
         foreach ($allPending as $pending) {
             $pPlot   = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);

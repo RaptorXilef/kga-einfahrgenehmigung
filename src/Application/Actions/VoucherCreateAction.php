@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\VoucherCreateRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
+use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
 
 /**
@@ -17,6 +18,7 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(
+        private AuthService $auth,
         private VoucherService $voucherService,
     ) {
     }
@@ -41,7 +43,7 @@ final readonly class VoucherCreateAction implements ActionInterface
         try {
             $code = $this->voucherService->createVoucher(
                 $dto->reason,
-                (string) ($_SESSION['user_id'] ?? 'sys_admin'),
+                $this->auth->getUserId(),
                 $dto->templateKey,
                 $dto->prefillData,
                 $dto->type,

@@ -69,12 +69,11 @@ final readonly class PermitSubmitRequest
     }
 
     /**
-     * Baut ein absolut sicheres, typsicheres Array für den Service zusammen.
-     * Das Leck ist geschlossen!
+     * TODO DOCBLOCK
      */
-    public function toArray(): array
+    public function toDomainDto(): \App\Core\DTO\PermitFormData
     {
-        return [
+        return \App\Core\DTO\PermitFormData::fromArray([
             'agreements'   => $this->agreements,
             'datum_bis'    => $this->datumBis,
             'datum_von'    => $this->datumVon,
@@ -87,6 +86,6 @@ final readonly class PermitSubmitRequest
             'typ'          => $this->typ,
             'voucher'      => $this->voucher,
             'zweck'        => $this->zweck,
-        ];
+        ]);
     }
 }

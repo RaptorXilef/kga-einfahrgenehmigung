@@ -6,8 +6,8 @@ namespace App\Application\Actions;
 
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuthService;
+use App\Core\Service\SystemInfoService;
 
 /**
  * TODO DOCBLOCK
@@ -18,25 +18,14 @@ final readonly class SystemChangelogAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
-        private ConfigInterface $config,
         private TemplateRenderer $renderer,
+        private SystemInfoService $sysInfo,
     ) {
     }
 
     public function execute(array $requestData): mixed
     {
-        $root          = \rtrim((string) $this->config->get('root_path'), '/\\');
-        $changelogPath = $root . '/CHANGELOG.md';
-        if (! \file_exists($changelogPath)) {
-            $changelogPath = $root . '/CHANGELOG.MD';
-        }
-        $markdownContent = \file_exists($changelogPath)
-            ? \file_get_contents($changelogPath)
-            : 'Kein Changelog gefunden.';
-        $this->renderer->render('changelog', [
-            'auth'            => $this->auth,
-            'markdownContent' => $markdownContent,
-        ]);
+        $this->renderer->render('changelog', ['auth' => $this->auth, 'markdownContent' => $this->sysInfo->getChangelog()]);
 
         return null;
     }

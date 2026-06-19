@@ -6,6 +6,7 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Contracts\Utils\ClockInterface;
 
 /**
  * Service für das passwortlose Benutzer-Login-Verfahren (Magic-Links / Login-Codes).
@@ -21,8 +22,9 @@ final readonly class MagicLinkService
     private string $storagePath;
 
     public function __construct(
-        private MagicLinkRepositoryInterface $repository,
+        private ClockInterface $clock,
         private ConfigInterface $config,
+        private MagicLinkRepositoryInterface $repository,
     ) {
         // storagePath wird für JSON weiter berechnet
         $cfg               = $this->config->get('storage_config')['magic_links'];
@@ -50,7 +52,7 @@ final readonly class MagicLinkService
         $links[$token] = [
             'email'   => $email,
             'code'    => $code,
-            'expires' => \date('Y-m-d H:i:s', APP_REQUEST_TIME + ($duration * 60)), // DATETIME statt INT
+            'expires' => \date('Y-m-d H:i:s', $this->clock->now()->getTimestamp() + ($duration * 60)),
         ];
 
         $this->repository->saveAll($links);
@@ -72,7 +74,7 @@ final readonly class MagicLinkService
     public function verifyAny(string $input): ?string
     {
         $links      = $this->repository->loadAll();
-        $now        = APP_REQUEST_TIME_STR; // String-Vergleich für DATETIME
+        $now        = $this->clock->nowAsString(); // <-- AUFLÖSUNG VIA CLOCK
         $trimmed    = \trim($input);
         $foundEmail = null;
 
@@ -84,7 +86,7 @@ final readonly class MagicLinkService
                 continue;
             }
 
-            // NEU: Differenzierte Prüfung
+            // Differenzierte Prüfung
             // 1. Vergleich gegen Lang-Token (Case-Insensitive für Hex)
             // 2. Vergleich gegen Kurz-Code (Immer Großbuchstaben)
             $isLongTokenMatch = \strlen($token) === \strlen($trimmed)

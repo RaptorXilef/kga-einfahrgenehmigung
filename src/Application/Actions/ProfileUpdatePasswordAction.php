@@ -9,6 +9,7 @@ use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuthService;
 
 /**
  * Action zum Ändern des eigenen Passworts (inkl. Alt-Passwort-Prüfung).
@@ -18,6 +19,7 @@ use App\Core\Entity\User;
 final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {
     public function __construct(
+        private AuthService $auth,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -29,7 +31,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-        $userId = $_SESSION['user_id'] ?? '';
+        $userId = $this->auth->getUserId();
         $users  = $this->userRepository->loadAll();
         if (! isset($users[$userId]) || ! \password_verify(
             $dto->oldPassword,

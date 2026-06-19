@@ -8,6 +8,7 @@ use App\Application\DTO\ProfileUploadAvatarRequest;
 use App\Application\Exception\ValidationException;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
@@ -17,6 +18,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 final readonly class ProfileUploadAvatarAction implements ActionInterface
 {
     public function __construct(
+        private AuthService $auth,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -31,7 +33,7 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
             return $e->getMessage();
         }
 
-        $userId = $_SESSION['user_id'] ?? '';
+        $userId = $this->auth->getUserId();
         if ($this->userRepository->uploadImage($userId, $dto->file)) {
             return 'Erfolg: Profilbild wurde aktualisiert.';
         }

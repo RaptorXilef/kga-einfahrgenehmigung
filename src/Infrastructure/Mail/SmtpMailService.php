@@ -388,4 +388,12 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             return true;
         });
     }
+
+    /**
+     * Diese Methode ist da, um das Interface zu erfüllen - es tut hier einfach absichtlich nichts!
+     */
+    public function processQueue(int $limit = 5): int
+    {
+        return 0;
+    }
 }

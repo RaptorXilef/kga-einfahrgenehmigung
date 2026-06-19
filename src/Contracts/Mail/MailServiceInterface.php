@@ -24,4 +24,7 @@ interface MailServiceInterface
      * @return bool|string True bei Erfolg, Fehlermeldung als String bei Fehlern.
      */
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string;
+
+    // TODO DOCBLOCK
+    public function processQueue(int $limit = 5): int;
 }

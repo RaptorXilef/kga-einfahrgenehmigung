@@ -107,6 +107,7 @@ use App\Core\Service\MagicLinkService;
 use App\Core\Service\Maintenance\CronScheduler;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
+use App\Core\Service\SystemInfoService;
 use App\Core\Service\VoucherService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -206,6 +207,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(MigrationService::class),
         ));
         $container->bind(VoucherCreateAction::class, fn () => new VoucherCreateAction(
+            $container->get(AuthService::class),
             $container->get(VoucherService::class),
         ));
         $container->bind(VoucherDeleteAction::class, fn () => new VoucherDeleteAction(
@@ -298,12 +300,16 @@ final class ControllerServiceProvider implements ServiceProviderInterface
 
         // Profile Actions
         $container->bind(ProfileUpdatePasswordAction::class, fn () => new ProfileUpdatePasswordAction(
+            $container->get(AuthService::class),
             $container->get(UserRepositoryInterface::class),
         ));
         $container->bind(ProfileUpdateUsernameAction::class, fn () => new ProfileUpdateUsernameAction(
+            $container->get(AuthService::class),
+            $container->get(SessionManager::class),
             $container->get(UserRepositoryInterface::class),
         ));
         $container->bind(ProfileUploadAvatarAction::class, fn () => new ProfileUploadAvatarAction(
+            $container->get(AuthService::class),
             $container->get(UserRepositoryInterface::class),
         ));
 
@@ -369,12 +375,14 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(HistoryPrintAction::class, fn () => new HistoryPrintAction(
             $container->get(HolidayService::class),
+            $container->get(SessionManager::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
         ));
         $container->bind(HistoryRenderAction::class, fn () => new HistoryRenderAction(
             $container->get(ConfigInterface::class),
             $container->get(PermitService::class),
+            $container->get(SessionManager::class),
             $container->get(StorageInterface::class),
             $container->get(TemplateRenderer::class),
         ));
@@ -407,9 +415,11 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // Permit Actions
         $container->bind(PermitEditAction::class, fn () => new PermitEditAction(
             $container->get(PermitService::class),
+            $container->get(SessionManager::class),
         ));
         $container->bind(PermitRenderAction::class, fn () => new PermitRenderAction(
             $container->get(ConfigInterface::class),
+            $container->get(SessionManager::class),
             $container->get(TemplateRenderer::class),
             $container->get(VoucherRepositoryInterface::class),
             $container->get(VoucherService::class),
@@ -465,6 +475,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(SystemCheckUpdateAction::class, fn () => new SystemCheckUpdateAction(
             $container->get(ConfigInterface::class),
             $container->get(GitHubUpdaterService::class),
+            $container->get(SystemInfoService::class),
         ));
         $container->bind(CheckoutCreateOrderAction::class, fn () => new CheckoutCreateOrderAction(
             $container->get(PermitService::class),

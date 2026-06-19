@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\Utils\ClockInterface;
 
 /**
  * Service zur Verwaltung von Gutscheincodes und Rabatten.
@@ -19,6 +20,7 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 final readonly class VoucherService
 {
     public function __construct(
+        private ClockInterface $clock,
         private VoucherRepositoryInterface $repository,
     ) {
     }
@@ -65,6 +67,7 @@ final readonly class VoucherService
 
         // Wir sammeln alle bereits vergebenen Codes in einer Liste für den Abgleich
         $alreadyUsedCodes = \array_keys($activeVouchers);
+
         foreach ($archivedItems as $archivedEntry) {
             $alreadyUsedCodes[] = $archivedEntry['code']; // Füge benutzte Codes zur Sperrliste hinzu
         }
@@ -88,7 +91,7 @@ final readonly class VoucherService
         // [x] sortiert
         $activeVouchers[$newGeneratedCode] = [
             'code'         => $newGeneratedCode,
-            'created_at'   => APP_REQUEST_TIME_STR,
+            'created_at'   => $this->clock->nowAsString(),
             'created_by'   => $created_by,
             'data'         => $prefillData,
             'date_mode'    => $date_mode,
@@ -127,7 +130,7 @@ final readonly class VoucherService
         if (! empty($voucher['expires_at'])) {
             try {
                 $expiry = new \DateTimeImmutable($voucher['expires_at']);
-                if ($expiry < new \DateTimeImmutable()) {
+                if ($expiry < $this->clock->now()) {
                     return false;
                 }
             } catch (\Exception) {
@@ -169,7 +172,7 @@ final readonly class VoucherService
             'code'        => $code,
             'reason'      => $voucher['reason'],
             'template'    => $voucher['template_key'],
-            'redeemed_at' => APP_REQUEST_TIME_STR,
+            'redeemed_at' => $this->clock->nowAsString(),
             'user_name'   => $userData['name'] ?? 'Unbekannt',
             'user_plot'   => $userData['parzelle'] ?? '?',
             'user_email'  => $userData['email'] ?? '?',

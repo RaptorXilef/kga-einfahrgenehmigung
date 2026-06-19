@@ -29,7 +29,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     public function execute(array $requestData): mixed
     {
         $dto    = ViewRenderRequest::fromArray($requestData['get'] ?? []);
-        $userId = $_SESSION['user_id'] ?? '';
+        $userId = $this->auth->getUserId();
 
         $users  = $this->userRepository->loadAll();
         $groups = $this->groupRepository->loadAll();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ViewRenderRequest;
+use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -22,6 +23,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
     public function __construct(
         private ConfigInterface $config,
         private PermitService $permitService,
+        private SessionManager $sessionManager,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
     ) {
@@ -34,9 +36,8 @@ final readonly class HistoryRenderAction implements ViewActionInterface
      */
     public function execute(array $requestData): mixed
     {
-        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
-
-        $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
+        $dto            = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+        $emailInSession = (string) $this->sessionManager->getHistoryEmail();
         $message        = $dto->message;
         $isSuccess      = $dto->isSuccess;
         $step           = $dto->step;

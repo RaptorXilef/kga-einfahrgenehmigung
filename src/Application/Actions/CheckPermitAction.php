@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleCodeRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -40,7 +41,12 @@ final readonly class CheckPermitAction implements ViewActionInterface
     public function execute(array $requestData): mixed
     {
         // DTO statt rohem $requestData['get']
-        $dto  = \App\Application\DTO\SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $dto = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        if (! $dto->hasCode) {
+            $this->renderer->render('check/search', ['error' => null]);
+
+            return null;
+        }
         $code = $dto->code;
         $now  = new \DateTimeImmutable();
 

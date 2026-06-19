@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -22,6 +23,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
 {
     public function __construct(
         private HolidayService $holidayService,
+        private SessionManager $sessionManager,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
     ) {
@@ -33,10 +35,9 @@ final readonly class HistoryPrintAction implements ViewActionInterface
      */
     public function execute(array $requestData): mixed
     {
-        $dto  = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
-        $code = $dto->code;
-
-        $emailInSession = (string) ($_SESSION['user_history_email'] ?? '');
+        $dto            = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $code           = $dto->code;
+        $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         $permit = $this->storage->findByHash($code);
         if ($permit instanceof Permit && \strtolower($permit->getOwnerEmail()) === \strtolower($emailInSession)) {

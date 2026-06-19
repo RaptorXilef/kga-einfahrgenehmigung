@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
+use App\Core\DTO\PermitFormData;
 
 /**
  * DTO für das manuelle Anlegen einer Genehmigung im Admin-Panel.
@@ -13,8 +14,8 @@ use App\Application\Exception\ValidationException;
  */
 final readonly class PermitCreateManualRequest
 {
-    private function __construct(
-        public array $rawSanitized,
+    public function __construct(
+        public PermitFormData $formData,
         public bool $sendEmail,
     ) {
     }
@@ -40,10 +41,8 @@ final readonly class PermitCreateManualRequest
             throw ValidationException::withMessage('Fehler: Der Preis darf nicht negativ sein.');
         }
 
-        // Sicherstellen, dass der Preis als korrekter String/Float im Array liegt
-        $sanitized['preis'] = $preis;
-        $sendEmail          = isset($post['send_email']);
+        $sanitized['manual_price'] = $preis; // Wichtig für PermitService
 
-        return new self($sanitized, $sendEmail);
+        return new self(PermitFormData::fromArray($sanitized), isset($post['send_email']));
     }
 }

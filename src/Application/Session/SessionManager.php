@@ -77,4 +77,9 @@ final class SessionManager
     {
         unset($_SESSION['user_history_email']);
     }
+
+    public function updateAdminUsername(string $newName): void
+    {
+        $_SESSION['admin_user'] = $newName;
+    }
 }

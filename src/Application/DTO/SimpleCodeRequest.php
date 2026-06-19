@@ -11,17 +11,17 @@ namespace App\Application\DTO;
  */
 final readonly class SimpleCodeRequest
 {
-    private function __construct(
+    public function __construct(
         public string $code,
         public string $token,
+        public bool $hasCode,
     ) {
     }
 
     public static function fromArray(array $get): self
     {
-        return new self(
-            \strtoupper(\trim((string) ($get['code'] ?? ''))),
-            (string) ($get['token'] ?? ''),
-        );
+        $code = \strtoupper(\trim((string) ($get['code'] ?? '')));
+
+        return new self($code, (string) ($get['token'] ?? ''), $code !== '');
     }
 }
