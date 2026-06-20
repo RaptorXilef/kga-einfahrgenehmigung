@@ -29,9 +29,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
         try {
             $dto = CapturePaymentRequest::fromArray($requestData['input']);
         } catch (ValidationException $exception) {
-            JsonResponse::error($exception->getMessage(), 400);
-
-            return null;
+            return JsonResponse::error($exception->getMessage(), 400);
         }
 
         try {
@@ -39,23 +37,20 @@ final readonly class CapturePaymentAction implements ViewActionInterface
             $tempRequest = $this->permitService->getVerifiedRequest($dto->token);
 
             if ($tempRequest === null) {
-                JsonResponse::error('Sitzung nicht gefunden oder abgelaufen', 400);
-
-                return null;
+                return JsonResponse::error('Sitzung nicht gefunden oder abgelaufen', 400);
             }
 
             // Zahlung ausführen
             if ($this->paymentProvider->captureOrder($dto->orderId, (float) $tempRequest['preis'])) {
                 // Bei Erfolg: Den Service anweisen, die Genehmigung zu finalisieren
                 $this->permitService->finaliseRequest($dto->token, 'bezahlt', 'Bezahlt via PayPal');
-                JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
-            } else {
-                JsonResponse::error('Fehler bei Verifizierung der Zahlung', 400);
-            }
-        } catch (\Exception $exception) {
-            JsonResponse::error($exception->getMessage(), 400);
-        }
 
-        return null;
+                return JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
+            }
+
+            return JsonResponse::error('Fehler bei Verifizierung der Zahlung', 400);
+        } catch (\Exception $exception) {
+            return JsonResponse::error($exception->getMessage(), 400);
+        }
     }
 }

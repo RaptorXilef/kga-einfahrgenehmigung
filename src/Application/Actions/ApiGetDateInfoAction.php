@@ -11,7 +11,8 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\HolidayService;
 
 /**
- * TODO DOCBLOCK
+ * Action für den API-Aufruf zur Abfrage der erlaubten Einfahrtszeiten
+ * und Ruhetage für einen gewählten Zeitraum.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -33,14 +34,12 @@ final readonly class ApiGetDateInfoAction implements ViewActionInterface
                 '<span style="color: var(--primary-color); font-weight: bold;">' .
                 HolidayHtmlPresenter::formatOpeningHours($openingData) . '</span>';
 
-            JsonResponse::success([
+            return JsonResponse::success([
                 'openingHours'  => $openingHtml,
                 'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice($holidays),
             ]);
         } catch (\Throwable $e) {
-            JsonResponse::error($e->getMessage());
+            return JsonResponse::error($e->getMessage());
         }
-
-        return null;
     }
 }

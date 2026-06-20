@@ -12,7 +12,7 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
 
 /**
- * TODO DOCBLOCK
+ * Action zur Erstellung einer Zahlungs-Order (PayPal) aus dem Checkout.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -27,9 +27,7 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
         try {
             $dto = SimpleIdentifierRequest::fromArray($requestData['post'], 'token');
         } catch (ValidationException $e) {
-            JsonResponse::error($e->getMessage());
-
-            return null;
+            return JsonResponse::error($e->getMessage());
         }
 
         try {
@@ -40,14 +38,12 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
 
             $orderId = $this->payment->createOrder((float) $tempRequest['preis']);
             if ($orderId) {
-                JsonResponse::success(['id' => $orderId]);
-            } else {
-                JsonResponse::error('PayPal Error', 500);
+                return JsonResponse::success(['id' => $orderId]);
             }
-        } catch (\Throwable $e) {
-            JsonResponse::error($e->getMessage());
-        }
 
-        return null;
+            return JsonResponse::error('PayPal Error', 500);
+        } catch (\Throwable $e) {
+            return JsonResponse::error($e->getMessage());
+        }
     }
 }

@@ -10,7 +10,7 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
 /**
- * TODO DOCBLOCK
+ * Action für die asynchrone Suche nach Genehmigungen im Admin-Dashboard.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -32,7 +32,7 @@ final readonly class ApiSearchPermitsAction implements ViewActionInterface
                 $dto->limit,
             );
 
-            JsonResponse::success([
+            return JsonResponse::success([
                 'data' => $result['items'],
                 'meta' => [
                     'total'       => $result['total'],
@@ -42,9 +42,7 @@ final readonly class ApiSearchPermitsAction implements ViewActionInterface
                 ],
             ]);
         } catch (\Throwable $e) {
-            JsonResponse::error($e->getMessage(), 500);
+            return JsonResponse::error($e->getMessage(), 500);
         }
-
-        return null;
     }
 }

@@ -14,22 +14,19 @@ use App\Contracts\Application\ViewActionInterface;
  */
 final readonly class PermitActionFactory
 {
-    public function __construct(private Container $container)
-    {
+    public function __construct(
+        private Container $container,
+    ) {
     }
 
-    // TODO DOCBLOCK
-    public function create(array $get, array $post): ViewActionInterface
+    public function create(string $actionKey): ViewActionInterface
     {
-        if (isset($get['edit'], $get['token'])) {
-            return $this->container->get(PermitEditAction::class);
-        }
+        $class = match ($actionKey) {
+            'edit'   => PermitEditAction::class,
+            'submit' => PermitSubmitAction::class,
+            default  => PermitRenderAction::class,
+        };
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            return $this->container->get(PermitSubmitAction::class);
-        }
-
-        // Fallback: Normales Rendering des Formulars
-        return $this->container->get(PermitRenderAction::class);
+        return $this->container->get($class);
     }
 }

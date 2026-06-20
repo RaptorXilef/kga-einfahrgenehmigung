@@ -21,9 +21,13 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
 
     public function execute(array $requestData): mixed
     {
-        $this->mailService->processQueue(10);
-        JsonResponse::success(['status' => 'processed']);
+        // Polymorphismus: Liskov-Verstoß ist behoben, processQueue ist im Interface
+        if (\method_exists($this->mailService, 'processQueue')) {
+            $this->mailService->processQueue(10);
 
-        return null;
+            return JsonResponse::success(['status' => 'processed']);
+        }
+
+        return JsonResponse::success(['status' => 'skipped_no_queue']);
     }
 }

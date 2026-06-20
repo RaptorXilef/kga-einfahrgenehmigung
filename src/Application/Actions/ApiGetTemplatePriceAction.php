@@ -14,7 +14,8 @@ use App\Core\Service\PermitService;
 use App\Core\Service\VoucherService;
 
 /**
- * TODO DOCBLOCK
+ * Action für die dynamische Preisberechnung via API.
+ * Evaluiert Vorlagen-Preise, Fahrzeugtypen und Gutscheincodes.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -65,7 +66,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 }
             }
 
-            JsonResponse::success([
+            return JsonResponse::success([
                 'discountText' => $discountText,
                 'formatted'    => \number_format($finalPrice, 2, ',', '.') . ' €',
                 'isFree'       => $finalPrice <= 0,
@@ -73,12 +74,10 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 'price'        => $finalPrice,
             ]);
         } catch (\Throwable $e) {
-            JsonResponse::send(
+            return JsonResponse::send(
                 ['error' => $e->getMessage(), 'formatted' => 'Fehler', 'price' => 0.0, 'success' => false],
                 400,
             );
         }
-
-        return null;
     }
 }

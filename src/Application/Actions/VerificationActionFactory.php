@@ -14,17 +14,18 @@ use App\Contracts\Application\ViewActionInterface;
  */
 final readonly class VerificationActionFactory
 {
-    public function __construct(private Container $container)
-    {
+    public function __construct(
+        private Container $container,
+    ) {
     }
 
-    // TODO DOCBLOCK
-    public function create(array $get, array $post): ViewActionInterface
+    public function create(string $actionKey): ViewActionInterface
     {
-        if (isset($get['token']) || isset($post['submit_code'])) {
-            return $this->container->get(VerificationSubmitAction::class);
-        }
+        $class = match ($actionKey) {
+            'submit' => VerificationSubmitAction::class,
+            default  => VerificationRenderAction::class,
+        };
 
-        return $this->container->get(VerificationRenderAction::class);
+        return $this->container->get($class);
     }
 }

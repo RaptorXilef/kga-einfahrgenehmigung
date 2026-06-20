@@ -42,8 +42,16 @@ final readonly class PermitController
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
-        $pipeline->process(['post' => $post, 'get' => $get], function (array $req): void {
-            $action = $this->actionFactory->create($req['get'], $req['post']);
+        // ROUTING LOGIK
+        $actionKey = 'render';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $actionKey = 'submit';
+        } elseif (isset($get['edit'], $get['token'])) {
+            $actionKey = 'edit';
+        }
+
+        $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): void {
+            $action = $this->actionFactory->create($actionKey);
             $result = $action->execute($req);
 
             // Response-Objekt abfangen!

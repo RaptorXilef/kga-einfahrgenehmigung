@@ -13,6 +13,7 @@ use App\Application\Middleware\HttpMethodMiddleware;
 use App\Application\Middleware\JsonBodyParserMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Response\JsonResponse;
+use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\AuthService;
 
@@ -64,14 +65,18 @@ final readonly class ApiController
             'ip'    => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
         ];
 
-        // 7. Durch die Pipeline an die Action schicken
-        $pipeline->process($requestData, function (array $req) use ($actionKey): void {
+        // Wir fangen die Response jetzt sauber ab, statt sie in der Action zu killen!
+        $response = $pipeline->process($requestData, function (array $req) use ($actionKey): mixed {
             $action = $this->factory->create($actionKey);
             if ($action !== null) {
-                $action->execute($req);
-            } else {
-                JsonResponse::error("API Endpoint '$actionKey' not found.", 404);
+                return $action->execute($req);
             }
+
+            return JsonResponse::error("API Endpoint '$actionKey' not found.", 404);
         });
+
+        if ($response instanceof ResponseInterface) {
+            $response->send();
+        }
     }
 }

@@ -11,7 +11,7 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum Entpacken und Anwenden eines System-Updates (Phase 1).
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -26,18 +26,15 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface
         try {
             $dto = ApiPerformUpdateRequest::fromArray($requestData['input']);
         } catch (ValidationException $e) {
-            JsonResponse::error($e->getMessage(), 400);
-
-            return null;
+            return JsonResponse::error($e->getMessage(), 400);
         }
 
         try {
             $this->updater->performUpdate($dto->zipUrl);
-            JsonResponse::success(['message' => 'Update erfolgreich installiert!']);
-        } catch (\Throwable $e) {
-            JsonResponse::error($e->getMessage());
-        }
 
-        return null;
+            return JsonResponse::success(['message' => 'Update erfolgreich installiert!']);
+        } catch (\Throwable $e) {
+            return JsonResponse::error($e->getMessage());
+        }
     }
 }

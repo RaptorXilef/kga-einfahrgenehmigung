@@ -20,9 +20,7 @@ final readonly class ApiCsrfMiddleware implements MiddlewareInterface
         $sessionToken  = $_SESSION['csrf_token'] ?? '';
 
         if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
-            JsonResponse::unauthorized('Fehler: Ungültiges Sicherheits-Token (CSRF).');
-
-            return null;
+            return JsonResponse::unauthorized('Fehler: Ungültiges Sicherheits-Token (CSRF).');
         }
 
         return $next($requestData);

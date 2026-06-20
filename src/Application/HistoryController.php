@@ -43,14 +43,28 @@ final readonly class HistoryController
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
+        // ROUTING LOGIK
+        $actionKey = 'render';
+        if (isset($post['action']) && $post['action'] === 'logout') {
+            $actionKey = 'logout';
+        } elseif (isset($post['request_link'])) {
+            $actionKey = 'request_link';
+        } elseif (isset($post['submit_code'])) {
+            $actionKey = 'submit_code';
+        } elseif (isset($get['token'])) {
+            $actionKey = 'verify_token';
+        } elseif (isset($get['action'], $get['code']) && $get['action'] === 'print') {
+            $actionKey = 'print';
+        }
+
         // 2. Request durchschicken
         $pipeline->process([
             'get'  => $get,
             'post' => $post,
             'ip'   => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-        ], function (array $req): void {
+        ], function (array $req) use ($actionKey): void {
             // Die Action wird nur erreicht, wenn RateLimit und CSRF erfolgreich passiert wurden!
-            $action = $this->actionFactory->create($req['get'], $req['post']);
+            $action = $this->actionFactory->create($actionKey);
             $result = $action->execute($req);
 
             // Response-Objekt abfangen!

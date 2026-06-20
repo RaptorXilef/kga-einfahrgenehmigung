@@ -11,7 +11,7 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum finalisieren eines Antrags via klassischer Banküberweisung.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -26,9 +26,7 @@ final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
         try {
             $dto = SimpleIdentifierRequest::fromArray($requestData['post'], 'token');
         } catch (ValidationException $e) {
-            JsonResponse::error($e->getMessage());
-
-            return null;
+            return JsonResponse::error($e->getMessage());
         }
 
         try {
@@ -37,11 +35,10 @@ final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
                 'offen',
                 'Zahlung per Überweisung gewählt',
             );
-            JsonResponse::success(['code' => $permit->code]);
-        } catch (\Throwable $e) {
-            JsonResponse::error($e->getMessage());
-        }
 
-        return null;
+            return JsonResponse::success(['code' => $permit->code]);
+        } catch (\Throwable $e) {
+            return JsonResponse::error($e->getMessage());
+        }
     }
 }

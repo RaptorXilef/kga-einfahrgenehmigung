@@ -42,12 +42,15 @@ final readonly class VerificationController
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
+        // ROUTING LOGIK
+        $actionKey = (isset($get['token']) || isset($post['submit_code'])) ? 'submit' : 'render';
+
         $pipeline->process([
             'get'  => $get,
             'post' => $post,
             'ip'   => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-        ], function (array $req): void {
-            $action = $this->factory->create($req['get'], $req['post']);
+        ], function (array $req) use ($actionKey): void {
+            $action = $this->factory->create($actionKey);
             $result = $action->execute($req);
 
             // Response-Objekt abfangen!

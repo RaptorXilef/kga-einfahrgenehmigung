@@ -25,9 +25,7 @@ final readonly class JsonBodyParserMiddleware implements MiddlewareInterface
                 try {
                     $requestData['input'] = \json_decode($raw, true, 512, \JSON_THROW_ON_ERROR);
                 } catch (\JsonException) {
-                    JsonResponse::error('Bad Request: Ungültiges JSON-Format gesendet.', 400);
-
-                    return null; // Pipeline abbrechen
+                    return JsonResponse::error('Bad Request: Ungültiges JSON-Format gesendet.', 400);
                 }
             }
         }

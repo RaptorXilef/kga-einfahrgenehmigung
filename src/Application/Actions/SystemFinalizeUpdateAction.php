@@ -10,7 +10,7 @@ use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
- * TODO DOCBLOCK
+ * Action zum Ausführen von DB-Migrationen nach einem Update (Phase 2).
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -30,11 +30,9 @@ final readonly class SystemFinalizeUpdateAction implements ViewActionInterface
                 ? 'Update abgeschlossen. System ist auf dem neuesten Stand.'
                 : 'Update abgeschlossen. Datenbank aktualisiert: ' . \implode(', ', $executedScripts);
 
-            JsonResponse::success(['message' => $msg, 'executed' => $executedScripts]);
+            return JsonResponse::success(['message' => $msg, 'executed' => $executedScripts]);
         } catch (\Throwable $e) {
-            JsonResponse::error('Fehler bei der Datenbank-Migration: ' . $e->getMessage());
+            return JsonResponse::error('Fehler bei der Datenbank-Migration: ' . $e->getMessage());
         }
-
-        return null;
     }
 }
