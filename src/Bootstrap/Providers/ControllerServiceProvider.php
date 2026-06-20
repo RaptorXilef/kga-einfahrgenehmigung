@@ -136,6 +136,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(RateLimiterInterface::class),
+            $container->get(SessionManager::class),
             $container->get(UserRepositoryInterface::class),
         ));
 

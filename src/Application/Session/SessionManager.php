@@ -170,4 +170,12 @@ final class SessionManager
     {
         return $_SESSION['csrf_token'] ?? '';
     }
+
+    /**
+     * Rotiert das CSRF-Token (wichtig bei Authentifizierungs-Wechseln).
+     */
+    public function rotateCsrfToken(): void
+    {
+        $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
+    }
 }

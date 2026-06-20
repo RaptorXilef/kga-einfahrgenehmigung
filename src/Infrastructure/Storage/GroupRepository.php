@@ -17,7 +17,6 @@ use App\Core\Entity\Group;
  */
 final readonly class GroupRepository implements GroupRepositoryInterface
 {
-    use ImageUploadTrait;
     use SafeJsonWriterTrait;
 
     public function __construct(
@@ -112,36 +111,5 @@ final readonly class GroupRepository implements GroupRepositoryInterface
             $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $dataToSave);
         }
-    }
-
-    /**
-     * Lädt das Gruppen-Icon hoch und konvertiert es.
-     *
-     * @param string               $groupId Die ID der Gruppe.
-     * @param array<string, mixed> $file    Upload-Daten.
-     *
-     * @return bool True bei Erfolg.
-     */
-    public function uploadImage(string $groupId, array $file): bool
-    {
-        return $this->doUploadImage('group_images', $groupId, $file, (string) $this->config->get('root_path'));
-    }
-
-    /**
-     * Gibt die URL des Gruppen-Icons zurück. Fällt auf ein Standard-Icon zurück, falls keines existiert.
-     *
-     * @param string $groupId Die ID der Gruppe.
-     *
-     * @return string URL zum Bild.
-     */
-    public function getImageUrl(string $groupId): string
-    {
-        return $this->doGetImageUrl(
-            'group_images',
-            $groupId,
-            'icon-group-default.webp',
-            (string) $this->config->get('root_path'),
-            $this->config->getBaseUrl(),
-        );
     }
 }

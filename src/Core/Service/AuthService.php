@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
+use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -24,13 +25,9 @@ final readonly class AuthService
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private RateLimiterInterface $rateLimiter,
+        private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
     ) {
-        if (\session_status() !== \PHP_SESSION_NONE) {
-            return;
-        }
-
-        \session_start();
     }
 
     // --- Core Authentication API ---
@@ -48,18 +45,17 @@ final readonly class AuthService
      */
     public function login(string $username, string $password, string $ip = 'unknown'): bool
     {
-
         if ($this->rateLimiter->isBlocked($ip)) {
-            throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde für 15 Minuten aus Sicherheitsgründen gesperrt.');
+            throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde gesperrt.');
         }
 
         // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef) (Notfallzugang während der Entwicklung)
         $backdoor = $this->config->get('backdoor');
         if (\is_array($backdoor) && $username === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
-            \session_regenerate_id(true);
-            // Wir nutzen das Label als Gruppenname für die Anzeige
-            $this->setSession('sys_backdoor', 'admin', $backdoor['label']);
-            $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
+            $this->sessionManager->regenerate();
+            $this->sessionManager->rotateCsrfToken();
+            $this->sessionManager->setAuthSession('sys_backdoor', 'admin', $backdoor['label']);
+            $this->rateLimiter->clearAttempts($ip);
 
             // Backdoor braucht kein compiled_permissions, da hasPermission() sys_ erkennt
             return true;
@@ -71,9 +67,10 @@ final readonly class AuthService
             $storedPass = $superCfg['pass'] ?? '';
             // Erlaubt Klartext (für den allerersten Start) ODER Hash
             if ($password === $storedPass || \password_verify($password, $storedPass)) {
-                \session_regenerate_id(true);
-                $this->setSession('sys_superadmin', 'admin', $superCfg['label'] ?? 'Dev-Admin');
-                $this->rateLimiter->clearAttempts($ip); // Erfolgreich -> Reset
+                $this->sessionManager->regenerate();
+                $this->sessionManager->rotateCsrfToken();
+                $this->sessionManager->setAuthSession('sys_superadmin', 'admin', $superCfg['label'] ?? 'Dev-Admin');
+                $this->rateLimiter->clearAttempts($ip);
 
                 return true;
             }
@@ -82,22 +79,21 @@ final readonly class AuthService
         // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
         $users = $this->userRepository->loadAll();
         foreach ($users as $userId => $user) {
-            // Wir nutzen jetzt das Entity-Objekt!
             if ($user->username === $username) {
                 if (\password_verify($password, $user->passwordHash)) {
-                    \session_regenerate_id(true);
-                    $this->setSession((string) $userId, $user->groupId, $username);
+                    $this->sessionManager->regenerate();
+                    $this->sessionManager->rotateCsrfToken();
+                    $this->sessionManager->setAuthSession((string) $userId, $user->groupId, $username, $user->passwordHash);
                     $this->refreshSessionPermissions($user->groupId);
                     $this->rateLimiter->clearAttempts($ip);
-                    $_SESSION['auth_hash'] = $user->passwordHash;
 
                     return true;
                 }
             }
         }
 
-        // Timing-Attack Schutz! Dummy-Verifizierung ausführen, wenn der User NICHT existiert,
-        // damit die CPU immer dieselbe Rechenzeit benötigt (verhindert User-Enumeration).
+        // Fake-Delay gegen Timing-Attacks
+        // Damit die CPU immer dieselbe Rechenzeit benötigt (verhindert User-Enumeration).
         \password_verify($password, '$2y$10$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV');
         $this->rateLimiter->recordFailedAttempt($ip);
 
@@ -109,38 +105,23 @@ final readonly class AuthService
      */
     public function logout(): void
     {
-        // Vollständige Zerstörung des Session-Lebenszyklus (Sicherer Logout)
-        $_SESSION = []; // Speicher im aktuellen Request sofort leeren
-
-        if (\ini_get('session.use_cookies')) {
-            $params = \session_get_cookie_params();
-            \setcookie(
-                \session_name(),
-                '',
-                \time() - 42000, // In die Vergangenheit setzen, um Cookie im Browser zu löschen
-                $params['path'],
-                $params['domain'],
-                $params['secure'],
-                $params['httponly'],
-            );
+        $this->sessionManager->destroy();
+        // Neue leere Session starten, um sofort ein neues CSRF-Token auszustellen
+        if (\session_status() === \PHP_SESSION_NONE) {
+            \session_start();
         }
-
-        \session_destroy();
+        $this->sessionManager->rotateCsrfToken();
     }
 
     // TODO DOCBLOCK
     // Methode zur strikten Session-Validierung
     private function validateActiveSession(): void
     {
-        $userId = $_SESSION['user_id'] ?? '';
-
-        if ($userId === '') {
-            return; // Kein Login, nichts zu prüfen
-        }
+        $userId = $this->sessionManager->getUserId();
 
         // System-Accounts (Superadmin / Backdoor) existieren nicht in der regulären
         // Benutzer-Datenbank. Wir müssen sie von der strikten Prüfung ausnehmen!
-        if (\str_starts_with($userId, 'sys_')) {
+        if ($userId === '' || \str_starts_with($userId, 'sys_')) {
             return;
         }
 
@@ -156,7 +137,8 @@ final readonly class AuthService
         // Sofortiger Kick, wenn der Super-Admin das Passwort des Users geändert hat.
         // Auch kicken, wenn gar kein Hash in der Session liegt (zwingt alte Sessions zum Neu-Login)
         $currentDbHash = $users[$userId]->passwordHash; // Entity-Zugriff
-        if (! isset($_SESSION['auth_hash']) || ! \hash_equals($_SESSION['auth_hash'], $currentDbHash)) {
+        $sessionHash   = $this->sessionManager->getAuthHash();
+        if ($sessionHash === null || ! \hash_equals($sessionHash, $currentDbHash)) {
             $this->logout();
 
             throw new \RuntimeException('Sicherheits-Token ungültig.');
@@ -175,7 +157,9 @@ final readonly class AuthService
     {
         $this->validateActiveSession();
 
-        return isset($_SESSION['user_id']) || isset($_SESSION['sys_superadmin']) || isset($_SESSION['sys_backdoor']);
+        return $this->sessionManager->getUserId() !== ''
+            || $this->sessionManager->getAdminUser() === ($this->config->get('superadmin')['label'] ?? 'Dev-Admin')
+            || $this->sessionManager->getAdminUser() === ($this->config->get('backdoor')['label'] ?? '');
     }
 
     // --- Authorization & RBAC State ---
@@ -191,18 +175,19 @@ final readonly class AuthService
      */
     public function hasPermission(string $permission): bool
     {
-        $uid = (string) ($_SESSION['user_id'] ?? '');
+        $uid = $this->sessionManager->getUserId();
         if (\str_starts_with($uid, 'sys_') || $this->config->get('admin_dev_mode')) {
             return true;
         }
+
         $groups   = $this->groupRepository->loadAll();
-        $groupKey = $_SESSION['admin_group'] ?? 'guest';
+        $groupKey = $this->sessionManager->getAdminGroup();
 
         if (isset($groups[$groupKey]) && \in_array('*', $groups[$groupKey]->permissions, true)) {
             return true;
         }
 
-        return $_SESSION['compiled_permissions'][$permission] ?? false;
+        return $this->sessionManager->getPermissions()[$permission] ?? false;
     }
 
     /**
@@ -218,8 +203,8 @@ final readonly class AuthService
         $groupPerms = isset($groups[$groupId]) ? $groups[$groupId]->permissions : [];
         $structure  = $this->config->get('structure', []);
 
-        $compiler                         = new PermissionCompiler();
-        $_SESSION['compiled_permissions'] = $compiler->compile($structure, $groupPerms);
+        $compiler = new PermissionCompiler();
+        $this->sessionManager->setPermissions($compiler->compile($structure, $groupPerms));
     }
 
     // --- Session Identity Getters ---
@@ -231,7 +216,7 @@ final readonly class AuthService
      */
     public function getUsername(): string
     {
-        return (string) ($_SESSION['admin_user'] ?? 'Unbekannt');
+        return $this->sessionManager->getAdminUser();
     }
 
     /**
@@ -239,7 +224,7 @@ final readonly class AuthService
      */
     public function getUserId(): string
     {
-        return (string) ($_SESSION['user_id'] ?? '');
+        return $this->sessionManager->getUserId();
     }
 
     /**
@@ -250,7 +235,7 @@ final readonly class AuthService
      */
     public function getGroup(): string
     {
-        return (string) ($_SESSION['admin_group'] ?? 'guest');
+        return $this->sessionManager->getAdminGroup();
     }
 
     /**
@@ -264,37 +249,6 @@ final readonly class AuthService
         $groups = $this->groupRepository->loadAll();
 
         return isset($groups[$groupId]) ? $groups[$groupId]->name : $groupId;
-    }
-
-    // TODO DOCBLOCK
-    private function getClientIp(): string
-    {
-        $ipKeys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
-        foreach ($ipKeys as $key) {
-            if (! empty($_SERVER[$key])) {
-                $ips = \explode(',', $_SERVER[$key]);
-
-                return \trim($ips[0]); // Erste IP in der Kette ist der Original-Client
-            }
-        }
-
-        return 'unknown';
-    }
-
-    /**
-     * Schreibt Identifikationsmerkmale in die globale $_SESSION Supervariable.
-     *
-     * Private Hilfsmethode, gehört direkt unter die Session-Getter
-     *
-     * @param string $userId  Eindeutige ID (z.B. 'usr_7c13b491' oder 'sys_backdoor').
-     * @param string $groupId Die zugehörige Rechtegruppe (z.B. 'grp_71cb1c0d').
-     * @param string $label   Der Anzeigename des Benutzers.
-     */
-    private function setSession(string $userId, string $groupId, string $label): void
-    {
-        $_SESSION['user_id']     = $userId;
-        $_SESSION['admin_user']  = $label;
-        $_SESSION['admin_group'] = $groupId;
     }
 
     // --- Media & Identity Utilities ---

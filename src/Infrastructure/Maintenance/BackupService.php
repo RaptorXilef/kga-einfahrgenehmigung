@@ -42,7 +42,7 @@ final readonly class BackupService implements BackupServiceInterface
         $backupPath = $this->config->getStoragePath($subFolder . '/' . $timestamp);
 
         if (! \is_dir($backupPath)) {
-            \mkdir($backupPath, 0o777, true);
+            \mkdir($backupPath, 0o755, true);
         }
 
         $jsonFlags     = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;

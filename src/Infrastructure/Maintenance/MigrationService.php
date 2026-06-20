@@ -182,7 +182,11 @@ final readonly class MigrationService
         // MySQL Tabelle leeren (Wenn engine 'all' oder 'mysql' ist)
         if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof \PDO) {
             try {
-                $tableName = $cfg['table'];
+                $tableName     = $cfg['table'];
+                $allowedTables = \array_column($this->config->get('storage_config'), 'table');
+                if (! \in_array($tableName, $allowedTables, true)) {
+                    throw new \RuntimeException('Sicherheitsabbruch: Tabellenname nicht in Config autorisiert.');
+                }
                 $this->pdo->exec("TRUNCATE TABLE `$tableName`");
                 $clearedIn[] = 'MySQL';
             } catch (\PDOException $e) {

@@ -17,7 +17,6 @@ use App\Core\Entity\User;
  */
 final readonly class UserRepository implements UserRepositoryInterface
 {
-    use ImageUploadTrait;
     use SafeJsonWriterTrait;
 
     public function __construct(private ?\PDO $pdo, private ConfigInterface $config)
@@ -110,30 +109,5 @@ final readonly class UserRepository implements UserRepositoryInterface
             $path = $this->config->getStoragePath($cfg['file']);
             $this->writeJsonSafely($path, $dataToSave);
         }
-    }
-
-    /**
-     * Lädt einen Avatar für den Benutzer hoch.
-     *
-     * @param string               $userId Benutzer-ID.
-     * @param array<string, mixed> $file   Upload-Daten.
-     *
-     * @return bool True bei Erfolg.
-     */
-    public function uploadImage(string $userId, array $file): bool
-    {
-        return $this->doUploadImage('user_images', $userId, $file, (string) $this->config->get('root_path'));
-    }
-
-    /**
-     * Ruft die URL zum Avatar des Benutzers ab.
-     *
-     * @param string $userId Benutzer-ID.
-     *
-     * @return string Bild-URL.
-     */
-    public function getImageUrl(string $userId): string
-    {
-        return $this->doGetImageUrl('user_images', $userId, 'icon-user-default.webp', (string) $this->config->get('root_path'), $this->config->getBaseUrl());
     }
 }
