@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ViewRenderRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -29,9 +30,9 @@ final readonly class PermitRenderAction implements ViewActionInterface
     }
 
     // TODO DOCBLOCK
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+        $dto = ViewRenderRequest::fromArray($request->get);
 
         $message = $dto->message;
         $success = $dto->isSuccess;

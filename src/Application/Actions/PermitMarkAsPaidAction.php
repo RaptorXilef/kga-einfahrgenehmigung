@@ -6,8 +6,8 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Core\Service\AuthService;
 use App\Core\Service\PermitService;
 
 /**
@@ -18,7 +18,6 @@ use App\Core\Service\PermitService;
 final readonly class PermitMarkAsPaidAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private PermitService $permitService,
     ) {
     }
@@ -28,15 +27,13 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface
      *
      * Nutzt PermitService::manualActivate().
      *
-     * @param array<string, mixed> $post
-     *
      * @return string Erfolgsmeldung oder leerer String bei Fehler.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             // Hinweis: Das Formular übergibt 'code', nicht 'id'
-            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

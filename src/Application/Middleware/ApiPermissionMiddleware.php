@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Core\Service\AuthService;
@@ -21,12 +22,12 @@ final readonly class ApiPermissionMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
         if (! $this->auth->isLoggedIn() || ! $this->auth->hasPermission($this->permission)) {
             return JsonResponse::error('Nicht autorisiert. Es fehlen die Rechte.', 403);
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

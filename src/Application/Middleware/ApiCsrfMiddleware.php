@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\MiddlewareInterface;
 
 /**
@@ -14,15 +16,20 @@ use App\Contracts\Application\MiddlewareInterface;
  */
 final readonly class ApiCsrfMiddleware implements MiddlewareInterface
 {
-    public function process(array $requestData, callable $next): mixed
+    public function __construct(
+        private SessionManager $sessionManager,
+    ) {
+    }
+
+    public function process(ServerRequest $request, callable $next): mixed
     {
-        $providedToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($requestData['post']['csrf_token'] ?? '');
-        $sessionToken  = $_SESSION['csrf_token'] ?? '';
+        $providedToken = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
+        $sessionToken  = $this->sessionManager->getCsrfToken();
 
         if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
             return JsonResponse::unauthorized('Fehler: Ungültiges Sicherheits-Token (CSRF).');
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

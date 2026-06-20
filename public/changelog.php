@@ -11,6 +11,9 @@
 declare(strict_types=1);
 
 use App\Application\ChangelogController;
+use App\Application\Http\ServerRequest;
 
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-$container->get(ChangelogController::class)->handleRequest($_GET);
+
+$req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
+$container->get(ChangelogController::class)->handleRequest($req);

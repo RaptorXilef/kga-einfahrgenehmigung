@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\UserSaveRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
@@ -27,10 +28,10 @@ final readonly class UserSaveAction implements ActionInterface
     /**
      * Erstellt einen neuen Datensatz in der Benutzerverwaltung inklusive Passwort-Hashing.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = UserSaveRequest::fromArray($post, $_FILES);
+            $dto = UserSaveRequest::fromArray($request->post, $request->files);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

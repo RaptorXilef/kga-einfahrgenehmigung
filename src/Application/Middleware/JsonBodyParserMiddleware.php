@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\MiddlewareInterface;
 
@@ -14,22 +15,22 @@ use App\Contracts\Application\MiddlewareInterface;
  */
 final readonly class JsonBodyParserMiddleware implements MiddlewareInterface
 {
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
-        $method      = $_SERVER['REQUEST_METHOD'] ?? '';
-        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $method      = $request->getMethod() ?? '';
+        $contentType = $request->getContentType() ?? '';
 
         if (\in_array($method, ['POST', 'PUT', 'PATCH'], true) && \str_contains($contentType, 'application/json')) {
             $raw = \file_get_contents('php://input');
             if ($raw !== '' && $raw !== false) {
                 try {
-                    $requestData['input'] = \json_decode($raw, true, 512, \JSON_THROW_ON_ERROR);
+                    $request = $request->withInput(\json_decode($raw, true, 512, \JSON_THROW_ON_ERROR));
                 } catch (\JsonException) {
                     return JsonResponse::error('Bad Request: Ungültiges JSON-Format gesendet.', 400);
                 }
             }
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

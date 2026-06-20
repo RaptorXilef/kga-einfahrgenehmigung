@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
@@ -17,14 +18,15 @@ use App\Core\Service\PermitService;
  */
 final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
 {
-    public function __construct(private PermitService $permitService)
-    {
+    public function __construct(
+        private PermitService $permitService,
+    ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($requestData['post'], 'token');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'token');
         } catch (ValidationException $e) {
             return JsonResponse::error($e->getMessage());
         }

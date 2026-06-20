@@ -6,8 +6,8 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -18,7 +18,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 final readonly class SystemRestoreDataAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private MigrationService $migrationService,
     ) {
     }
@@ -27,14 +26,12 @@ final readonly class SystemRestoreDataAction implements ActionInterface
      * Führt eine System-Wiederherstellung (Restore) aus einem Backup durch.
      * Stellt Daten für das angegebene Ziel aus dem gewählten Zeitstempel wieder her.
      *
-     * @param array<string, mixed> $post Formulardaten mit Ziel (target), Zeitstempel (timestamp) und Engine.
-     *
      * @return string Statusmeldung über den Erfolg oder Misserfolg des Restores.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SystemMaintenanceRequest::forRestore($post);
+            $dto = SystemMaintenanceRequest::forRestore($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

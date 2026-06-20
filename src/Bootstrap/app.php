@@ -233,6 +233,9 @@ $settings['root_path'] = $appRoot;
 
 // NEU: Zentrale Erkennung der lokalen Testumgebung (XAMPP / .local)
 $httpHost                 = $_SERVER['HTTP_HOST'] ?? '';
+$settings['server_host'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$settings['server_protocol'] = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
+$settings['server_script'] = $_SERVER['SCRIPT_NAME'] ?? '';
 $settings['is_local_env'] = \str_ends_with($httpHost, '.local')
     || $httpHost === 'localhost'
     || $httpHost === '127.0.0.1'

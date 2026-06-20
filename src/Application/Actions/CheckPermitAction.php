@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -38,10 +39,9 @@ final readonly class CheckPermitAction implements ViewActionInterface
     /**
      * TODO DOCBLOCK
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        // DTO statt rohem $requestData['get']
-        $dto = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $dto = SimpleCodeRequest::fromArray($request->get);
         if (! $dto->hasCode) {
             $this->renderer->render('check/search', ['error' => null]);
 

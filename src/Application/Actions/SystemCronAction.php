@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\TextResponse;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\Maintenance\CronScheduler;
 
 /**
@@ -17,12 +17,11 @@ use App\Core\Service\Maintenance\CronScheduler;
 final readonly class SystemCronAction implements ViewActionInterface
 {
     public function __construct(
-        private ConfigInterface $config,
         private CronScheduler $cron,
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             $this->cron->runForce();

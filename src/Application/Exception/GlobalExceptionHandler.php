@@ -77,7 +77,7 @@ final readonly class GlobalExceptionHandler
     private function renderErrorPage(\Throwable $exception, bool $isDev): void
     {
         if (! \headers_sent()) {
-            \http_response_code(500);
+            @\http_response_code(500);
         }
 
         $vereinsName = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));

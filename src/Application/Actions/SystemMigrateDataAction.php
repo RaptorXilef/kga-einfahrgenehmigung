@@ -6,8 +6,8 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -18,7 +18,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 final readonly class SystemMigrateDataAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private MigrationService $migrationService,
     ) {
     }
@@ -26,14 +25,12 @@ final readonly class SystemMigrateDataAction implements ActionInterface
     /**
      * Führt Daten-Migrationen (Sync/Backup) durch (Sync SQL/JSON).
      *
-     * @param array<string, mixed> $post
-     *
      * @return string Ergebnis der Migration.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SystemMaintenanceRequest::forMigration($post);
+            $dto = SystemMaintenanceRequest::forMigration($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

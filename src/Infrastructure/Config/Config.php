@@ -112,9 +112,9 @@ final readonly class Config implements ConfigInterface
 
         // Fallback NUR für lokale Entwicklungsumgebungen (.local, localhost)
         if ($this->get('is_local_env', false)) {
-            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
-            $host     = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
-            $path     = \rtrim(\dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')), '/\\');
+            $protocol = $this->get('server_protocol', 'http://');
+            $host     = $this->get('server_host', 'localhost');
+            $path     = \rtrim(\dirname($this->get('server_script', '')), '/\\');
             $path     = \str_replace('/api', '', $path);
 
             return $protocol . $host . $path . '/';
@@ -128,6 +128,6 @@ final readonly class Config implements ConfigInterface
     public function getStoragePath(string $fileName): string
     {
         return \rtrim((string) $this->get('root_path'), '/\\') . '/' .
-               \ltrim((string) $this->get('storage_path_prefix'), '/\\') . $fileName;
+            \ltrim((string) $this->get('storage_path_prefix'), '/\\') . $fileName;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -25,7 +26,7 @@ final readonly class AdminAuthGuardMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
         try {
             if (! $this->auth->isLoggedIn()) {
@@ -43,6 +44,6 @@ final readonly class AdminAuthGuardMiddleware implements MiddlewareInterface
             return null;
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

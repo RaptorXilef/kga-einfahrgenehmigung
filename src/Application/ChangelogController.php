@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemChangelogAction;
+use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\PermissionMiddleware;
@@ -28,7 +29,7 @@ final readonly class ChangelogController
     ) {
     }
 
-    public function handleRequest(array $get): void
+    public function handleRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new RequireLoginMiddleware($this->auth, 'index.php'));
@@ -36,7 +37,7 @@ final readonly class ChangelogController
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
-        $response = $pipeline->process(['get' => $get], function (array $req): mixed {
+        $response = $pipeline->process($request, function (ServerRequest $req): mixed {
             return $this->action->execute($req);
         });
 

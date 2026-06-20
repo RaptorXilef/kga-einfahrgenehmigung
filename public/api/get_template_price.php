@@ -11,6 +11,9 @@
 declare(strict_types=1);
 
 use App\Application\ApiController;
+use App\Application\Http\ServerRequest;
 
 $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
-$container->get(ApiController::class)->handle('get_template_price', null, true);
+
+$req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
+$container->get(ApiController::class)->handle($req, 'get_template_price', null, true);

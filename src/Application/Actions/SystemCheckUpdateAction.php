@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\SystemInfoService;
@@ -17,12 +18,12 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
 final readonly class SystemCheckUpdateAction implements ViewActionInterface
 {
     public function __construct(
-        private SystemInfoService $sysInfo,
         private GitHubUpdaterService $updater,
+        private SystemInfoService $sysInfo,
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             $currentVersion = $this->sysInfo->getCurrentVersion();

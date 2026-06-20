@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\HistorySubmitCodeRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -24,10 +25,10 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = HistorySubmitCodeRequest::fromRequestData($requestData);
+            $dto = HistorySubmitCodeRequest::fromRequest($request);
         } catch (ValidationException $e) {
             return new RedirectResponse('history.php?sent=1&msg=' . \urlencode($e->getMessage()));
         }

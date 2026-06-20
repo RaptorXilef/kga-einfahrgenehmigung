@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
@@ -16,11 +17,13 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
  */
 final readonly class SystemFinalizeUpdateAction implements ViewActionInterface
 {
-    public function __construct(private UpdateMigrationService $migrationService, private AuthService $auth)
-    {
+    public function __construct(
+        private AuthService $auth,
+        private UpdateMigrationService $migrationService,
+    ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             $executedScripts = $this->migrationService->runAllPending();

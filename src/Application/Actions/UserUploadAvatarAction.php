@@ -6,9 +6,9 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
-use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
@@ -17,22 +17,21 @@ use App\Core\Service\AuthService;
  */
 final readonly class UserUploadAvatarAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        private UserRepositoryInterface $userRepository,
+    ) {
     }
 
     /**
      * Verarbeitet den Upload und die Skalierung/Speicherung eines Benutzer-Profilbildes.
      *
-     * @param array<string, mixed> $post Das Post-Array mit der Ziel-User-ID.
-     *
      * @return string UI-Meldungstext.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             // Kapselung des Uploads via DTO
-            $dto = SimpleUploadImageRequest::fromRequest($post, 'user_id', $_FILES);
+            $dto = SimpleUploadImageRequest::fromRequest($request->post, 'user_id', $request->files);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

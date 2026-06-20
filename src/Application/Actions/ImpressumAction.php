@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -24,7 +25,7 @@ final readonly class ImpressumAction implements ViewActionInterface
     /**
      * Lädt die statischen Daten aus der Konfiguration und rendert die Impressum-Seite.
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         $root      = $this->config->get('root_path');
         $legalData = include $root . '/config/impressum.php';

@@ -12,7 +12,10 @@ declare(strict_types=1);
 
 use App\Application\Actions\ImpressumAction;
 use App\Application\FrontendController;
+use App\Application\Http\ServerRequest;
 
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
-$action    = $container->get(ImpressumAction::class);
-$container->get(FrontendController::class)->handleRequest($action, $_GET);
+
+$req    = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
+$action = $container->get(ImpressumAction::class);
+$container->get(FrontendController::class)->handleRequest($action, $req);

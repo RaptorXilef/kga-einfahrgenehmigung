@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
@@ -33,9 +34,9 @@ final readonly class HistoryPrintAction implements ViewActionInterface
     /**
      * Validiert den Zugriff und rendert die Druckansicht einer spezifischen Genehmigung.
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto            = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $dto            = SimpleCodeRequest::fromArray($request->get);
         $code           = $dto->code;
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 

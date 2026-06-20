@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\MiddlewareInterface;
 
@@ -18,13 +19,13 @@ final readonly class HttpMethodMiddleware implements MiddlewareInterface
     {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
-        $method = $_SERVER['REQUEST_METHOD'] ?? '';
+        $method = $request->getMethod() ?? '';
         if (! \in_array($method, $this->allowedMethods, true)) {
             return JsonResponse::error('Methode nicht erlaubt.', 405);
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

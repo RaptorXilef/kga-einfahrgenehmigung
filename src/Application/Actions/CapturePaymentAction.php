@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\CapturePaymentRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
@@ -19,15 +20,15 @@ use App\Core\Service\PermitService;
 final readonly class CapturePaymentAction implements ViewActionInterface
 {
     public function __construct(
-        private PermitService $permitService,
         private PaymentProviderInterface $paymentProvider,
+        private PermitService $permitService,
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = CapturePaymentRequest::fromArray($requestData['input']);
+            $dto = CapturePaymentRequest::fromArray($request->input);
         } catch (ValidationException $exception) {
             return JsonResponse::error($exception->getMessage(), 400);
         }

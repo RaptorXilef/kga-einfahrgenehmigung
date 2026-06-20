@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\VerificationSubmitRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -25,10 +26,10 @@ final readonly class VerificationSubmitAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = VerificationSubmitRequest::fromRequestData($requestData);
+            $dto = VerificationSubmitRequest::fromRequest($request);
         } catch (ValidationException $e) {
             return new RedirectResponse('verify.php?error=1&msg=' . \urlencode($e->getMessage()));
         }

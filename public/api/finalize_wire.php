@@ -12,6 +12,9 @@
 declare(strict_types=1);
 
 use App\Application\ApiController;
+use App\Application\Http\ServerRequest;
 
 $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
-$container->get(ApiController::class)->handle('finalize_wire');
+
+$req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
+$container->get(ApiController::class)->handle($req, 'finalize_wire');

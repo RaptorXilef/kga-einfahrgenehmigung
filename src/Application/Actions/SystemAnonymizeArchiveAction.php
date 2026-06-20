@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
-use App\Core\Service\AuthService;
 
 /**
  * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
@@ -16,19 +16,11 @@ use App\Core\Service\AuthService;
 final readonly class SystemAnonymizeArchiveAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private PermitArchiveRepositoryInterface $archiveRepository,
     ) {
     }
 
-    /**
-     * Führt die DSGVO-konforme Anonymisierung von alten Archiv-Einträgen durch.
-     *
-     * @param array<string, mixed> $post Das POST-Array der Anfrage.
-     *
-     * @return string Status- oder Erfolgsmeldung über die Anzahl anonymisierter Einträge.
-     */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             // 10 Jahre gesetzliche Aufbewahrungsfrist

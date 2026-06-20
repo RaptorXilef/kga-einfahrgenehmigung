@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleTokenRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
@@ -35,9 +36,9 @@ final readonly class CheckoutAction implements ViewActionInterface
      * Verifiziert das übergebene Token, validiert die Session-Daten und rendert
      * die Zusammenfassungs-Seite mit Feiertagsberechnung.
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto      = SimpleTokenRequest::fromArray($requestData['get'] ?? []);
+        $dto      = SimpleTokenRequest::fromArray($request->get);
         $token    = $dto->token;
         $tempData = $this->permitService->getVerifiedRequest($token);
         if ($token === '' || $tempData === null) {

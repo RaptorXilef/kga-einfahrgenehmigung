@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
@@ -23,7 +24,7 @@ final readonly class SystemChangelogAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         $this->renderer->render('changelog', ['auth' => $this->auth, 'markdownContent' => $this->sysInfo->getChangelog()]);
 

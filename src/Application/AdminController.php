@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\AdminActionFactory;
+use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -14,6 +15,8 @@ use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\PrintAuthorizationMiddleware;
 use App\Application\Middleware\ToggleSuspensionMiddleware;
 use App\Application\Middleware\VoucherIssuanceMiddleware;
+use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Application\ViewActionInterface;
@@ -41,6 +44,7 @@ final readonly class AdminController
         private AuthService $auth,
         private BackupServiceInterface $backupService,
         private CronScheduler $cronScheduler,
+        private SessionManager $sessionManager,
         private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
     ) {
@@ -51,11 +55,8 @@ final readonly class AdminController
      *
      * Steuert Authentifizierung, System-Initialisierung und Weiterleitung.
      * Orchestriert: Authentifizierung -> Wartungs-Checks -> POST-Aktionen -> Rendering.
-     *
-     * @param array<string, mixed> $get  Entspricht $_GET
-     * @param array<string, mixed> $post Entspricht $_POST
      */
-    public function handleRequest(array $get, array $post): void
+    public function handleRequest(ServerRequest $request): void
     {
         // 1. SYSTEM-INITIALISIERUNG
         try {
@@ -73,10 +74,10 @@ final readonly class AdminController
         }
 
         // Action-Key ermitteln
-        $actionKey = (string) ($post['action'] ?? ($get['action'] ?? 'render_dashboard'));
+        $actionKey = (string) ($request->post['action'] ?? ($request->get['action'] ?? 'render_dashboard'));
 
         // Export & Print als ViewActions abfangen
-        if (isset($get['export'])) {
+        if (isset($request->get['export'])) {
             $actionKey = 'dashboard_export';
         }
         if ($actionKey === 'print') {
@@ -86,7 +87,7 @@ final readonly class AdminController
         // Pipeline aufbauen
         $pipeline = new MiddlewarePipeline();
         $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add(new CsrfMiddleware('admin.php'));
+        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'admin.php'));
 
         // Die Login-Logik umgeht natürlich den Guard, alles andere muss durch den Türsteher
         if ($actionKey !== 'login' && $actionKey !== 'logout') {
@@ -127,22 +128,22 @@ final readonly class AdminController
             $pipeline->add(new VoucherIssuanceMiddleware($this->auth));
         }
 
-        $response = $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): mixed {
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
             $action = $this->actionFactory->create($actionKey);
             if ($action instanceof ActionInterface) {
-                return $action->execute($req['post']);
+                return $action->execute($req);
             } elseif ($action instanceof ViewActionInterface) {
                 return $action->execute($req);
             }
 
-            return new Response\RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php');
         });
 
         // POLYMORPHISMUS PUR: Alle Hard-Exits wurden in die Interface-Send Methode verlagert!
         if ($response instanceof ResponseInterface) {
             $response->send();
         } elseif (\is_string($response)) {
-            (new Response\RedirectResponse('admin.php?msg=' . \urlencode($response)))->send();
+            (new RedirectResponse('admin.php?msg=' . \urlencode($response)))->send();
         }
     }
 }

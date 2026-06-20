@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SuccessRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -34,9 +35,9 @@ final readonly class SuccessAction implements ViewActionInterface
      * Haupt-Request-Handler für die Success-Seite.
      * Validiert das Ticket und bereitet die Bezahlinformationen auf.
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto    = SuccessRequest::fromArray($requestData['get'] ?? []);
+        $dto    = SuccessRequest::fromArray($request->get);
         $code   = $dto->code;
         $method = $dto->method;
         $permit = $this->storage->findByHash($code);

@@ -6,10 +6,10 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\UserRenameRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
-use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
@@ -19,7 +19,6 @@ use App\Core\Service\AuthService;
 final readonly class UserRenameAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -27,10 +26,10 @@ final readonly class UserRenameAction implements ActionInterface
     /**
      * Benennt den Login-Namen eines existierenden Benutzers um.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = UserRenameRequest::fromArray($post);
+            $dto = UserRenameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

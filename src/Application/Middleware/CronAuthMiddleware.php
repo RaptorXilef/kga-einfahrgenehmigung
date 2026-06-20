@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -20,14 +21,14 @@ final readonly class CronAuthMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
-        $provided = $requestData['get']['token'] ?? '';
+        $provided = $request->get['token'] ?? '';
         $req      = (string) $this->config->get('cron_secret', '');
         if (\php_sapi_name() !== 'cli' && $provided !== $req) {
             return new EmptyResponse(403);
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

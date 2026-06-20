@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\MiddlewareInterface;
 
 /**
@@ -28,7 +29,7 @@ final class MiddlewarePipeline
     /**
      * Schickt den Request durch alle Middlewares bis zur Kern-Aktion.
      */
-    public function process(array $requestData, callable $coreAction): mixed
+    public function process(ServerRequest $request, callable $coreAction): mixed
     {
         $next = $coreAction;
 
@@ -36,12 +37,12 @@ final class MiddlewarePipeline
         for ($i = \count($this->middlewares) - 1; $i >= 0; --$i) {
             $middleware = $this->middlewares[$i];
 
-            $next = function (array $req) use ($middleware, $next): mixed {
+            $next = function (ServerRequest $req) use ($middleware, $next): mixed {
                 return $middleware->process($req, $next);
             };
         }
 
         // Startschuss: Der Request betritt die äußerste Schicht
-        return $next($requestData);
+        return $next($request);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ApiDateInfoRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Application\ViewActionInterface;
@@ -18,14 +19,15 @@ use App\Core\Service\HolidayService;
  */
 final readonly class ApiGetDateInfoAction implements ViewActionInterface
 {
-    public function __construct(private HolidayService $holidayService)
-    {
+    public function __construct(
+        private HolidayService $holidayService,
+    ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto         = ApiDateInfoRequest::fromArray($requestData['input']);
+            $dto         = ApiDateInfoRequest::fromArray($request->input);
             $holidays    = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
             $openingData = $this->holidayService->getOpeningHoursDataForDateRange($dto->von, $dto->bis);
 

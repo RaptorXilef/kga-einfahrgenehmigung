@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -21,9 +22,9 @@ final readonly class RateLimitMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
-        $ip = $requestData['ip'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip = $request->getIp();
 
         if ($this->rateLimiter->isBlocked($ip)) {
             $msg = 'Zu viele Versuche. Die IP-Adresse wurde für 15 Minuten gesperrt.';
@@ -34,6 +35,6 @@ final readonly class RateLimitMiddleware implements MiddlewareInterface
             return new RedirectResponse($this->fallbackUrl . $separator . 'sent=0&msg=' . \urlencode($msg));
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

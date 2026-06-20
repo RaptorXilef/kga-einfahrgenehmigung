@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -15,11 +16,12 @@ use App\Contracts\Mail\MailServiceInterface;
  */
 final readonly class SystemProcessMailQueueAction implements ViewActionInterface
 {
-    public function __construct(private MailServiceInterface $mailService)
-    {
+    public function __construct(
+        private MailServiceInterface $mailService,
+    ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         // Polymorphismus: Liskov-Verstoß ist behoben, processQueue ist im Interface
         if (\method_exists($this->mailService, 'processQueue')) {

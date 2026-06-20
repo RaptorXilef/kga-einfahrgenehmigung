@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ApiTemplatePriceRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -30,13 +31,13 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             $vehicleTypes = $this->config->get('vehicle_types', []);
             $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
 
-            $dto = ApiTemplatePriceRequest::fromArray($requestData['input'], $defaultType);
+            $dto = ApiTemplatePriceRequest::fromArray($request->input, $defaultType);
 
             $templates     = $this->config->get('permit_templates', []);
             $template      = $templates[$dto->key] ?? $templates['std_7'];
@@ -50,7 +51,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 $v        = $vouchers[$dto->voucherCode] ?? null;
 
                 if ($v && $this->voucherService->isValid($v)) {
-                    $this->rateLimiter->clearAttempts($requestData['ip']);
+                    $this->rateLimiter->clearAttempts($request->getIp());
                     $finalPrice = $this->permitService->calculateDiscountedPrice($originalPrice, $v);
 
                     $discountText = match ($v['type']) {
@@ -60,7 +61,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                         default   => ''
                     };
                 } else {
-                    $this->rateLimiter->recordFailedAttempt($requestData['ip']);
+                    $this->rateLimiter->recordFailedAttempt($request->getIp());
                     $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
                     $discountText  = $v ? ($isDeactivated ? 'Code gesperrt' : 'Code abgelaufen') : 'Ungültiger Code';
                 }
@@ -74,7 +75,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 'price'        => $finalPrice,
             ]);
         } catch (\Throwable $e) {
-            return JsonResponse::send(
+            return JsonResponse::sendPayload(
                 ['error' => $e->getMessage(), 'formatted' => 'Fehler', 'price' => 0.0, 'success' => false],
                 400,
             );

@@ -286,7 +286,6 @@ final readonly class PermitService
         }
 
         if ($sendMails) {
-            // EREIGNIS GESTEUERTE ARCHITEKTUR: Nur noch Event feuern, statt selbst zu verarbeiten!
             $this->eventDispatcher->dispatch(new PermitCreatedEvent($permit, $randomId));
         }
 

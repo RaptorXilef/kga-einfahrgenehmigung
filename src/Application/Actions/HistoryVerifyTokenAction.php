@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -22,10 +23,10 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $get           = $requestData['get'];
-        $ip            = $requestData['ip'];
+        $get           = $request->get;
+        $ip            = $request->getIp();
         $verifiedEmail = $this->magicLinkService->verifyAny((string) ($get['token'] ?? ''));
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($ip);

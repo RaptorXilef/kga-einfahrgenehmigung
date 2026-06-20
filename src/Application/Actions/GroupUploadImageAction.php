@@ -6,9 +6,9 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
@@ -18,7 +18,6 @@ use App\Core\Service\AuthService;
 final readonly class GroupUploadImageAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
     ) {
     }
@@ -26,15 +25,13 @@ final readonly class GroupUploadImageAction implements ActionInterface
     /**
      * Verarbeitet den Upload eines Bildes für Gruppen-Icons.
      *
-     * @param array<string, mixed> $post Das Post-Array mit der group_id.
-     *
      * @return string UI-Meldungstext.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
             // Vollständige Kapselung von ID und Datei im DTO
-            $dto = SimpleUploadImageRequest::fromRequest($post, 'group_id', $_FILES);
+            $dto = SimpleUploadImageRequest::fromRequest($request->post, 'group_id', $request->files);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

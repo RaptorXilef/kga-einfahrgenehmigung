@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\HistoryActionFactory;
+use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
-use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
+use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
 
 /**
@@ -24,53 +26,46 @@ final readonly class HistoryController
         private AnalyticsMiddleware $analyticsMiddleware,
         private HistoryActionFactory $actionFactory,
         private RateLimiterInterface $rateLimiter,
+        private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
     ) {
     }
 
     /**
      * Haupt-Request-Handler für die Benutzerhistorie.
-     *
-     * @param array<string, mixed> $get  Entspricht $_GET
-     * @param array<string, mixed> $post Entspricht $_POST
      */
-    public function handleRequest(array $get, array $post): void
+    public function handleRequest(ServerRequest $request): void
     {
         // 1. Zwiebelschalen aufbauen
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new RateLimitMiddleware($this->rateLimiter, 'history.php'));
-        $pipeline->add(new CsrfMiddleware('history.php'));
+        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'history.php'));
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
         // ROUTING LOGIK
         $actionKey = 'render';
-        if (isset($post['action']) && $post['action'] === 'logout') {
+        if (isset($request->post['action']) && $request->post['action'] === 'logout') {
             $actionKey = 'logout';
-        } elseif (isset($post['request_link'])) {
+        } elseif (isset($request->post['request_link'])) {
             $actionKey = 'request_link';
-        } elseif (isset($post['submit_code'])) {
+        } elseif (isset($request->post['submit_code'])) {
             $actionKey = 'submit_code';
-        } elseif (isset($get['token'])) {
+        } elseif (isset($request->get['token'])) {
             $actionKey = 'verify_token';
-        } elseif (isset($get['action'], $get['code']) && $get['action'] === 'print') {
+        } elseif (isset($request->get['action'], $request->get['code']) && $request->get['action'] === 'print') {
             $actionKey = 'print';
         }
 
         // 2. Request durchschicken
-        $pipeline->process([
-            'get'  => $get,
-            'post' => $post,
-            'ip'   => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-        ], function (array $req) use ($actionKey): void {
-            // Die Action wird nur erreicht, wenn RateLimit und CSRF erfolgreich passiert wurden!
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
             $action = $this->actionFactory->create($actionKey);
-            $result = $action->execute($req);
 
-            // Response-Objekt abfangen!
-            if ($result instanceof RedirectResponse) {
-                $result->send();
-            }
+            return $action->execute($req);
         });
+
+        if ($response instanceof ResponseInterface) {
+            $response->send();
+        }
     }
 }

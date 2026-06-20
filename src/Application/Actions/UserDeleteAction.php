@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -28,10 +29,10 @@ final readonly class UserDeleteAction implements ActionInterface
     /**
      * Löscht einen Benutzer aus dem System. Verhindert den Selbstausschluss des aktiven Admins.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'user_id');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'user_id');
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

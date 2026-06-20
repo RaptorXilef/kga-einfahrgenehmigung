@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\PermitSubmitRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
@@ -24,20 +25,20 @@ final readonly class PermitSubmitAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = PermitSubmitRequest::fromArray($requestData['post']);
+            $dto = PermitSubmitRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return new RedirectResponse('index.php?msg=' . \urlencode($e->getMessage()));
         }
-        $this->sessionManager->setFormData($dto->toArray());
+        $this->sessionManager->setFormData($dto->toDomainDto());
 
         try {
             $verifiedEmail = $this->sessionManager->getVerifiedEmail();
             $editToken     = $this->sessionManager->getEditToken();
             if ($verifiedEmail !== null && $editToken !== null) {
-                $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toArray());
+                $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
                 $this->sessionManager->clearFormData();
                 $this->sessionManager->clearEditState();
                 if ($result === 'redirect_checkout') {
@@ -48,7 +49,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
                     'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.',
                 ));
             }
-            $this->permitService->createPendingVerification($dto->toArray());
+            $this->permitService->createPendingVerification($dto->toDomainDto());
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
 

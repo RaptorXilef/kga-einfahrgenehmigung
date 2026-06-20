@@ -6,8 +6,8 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\PermitCreateManualRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Core\Service\AuthService;
 use App\Core\Service\PermitService;
 
 /**
@@ -18,8 +18,7 @@ use App\Core\Service\PermitService;
 final readonly class PermitCreateManualAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
-        private PermitService $permitService
+        private PermitService $permitService,
     ) {
     }
 
@@ -28,21 +27,20 @@ final readonly class PermitCreateManualAction implements ActionInterface
      *
      * Erzwingt 'status' = 'bezahlt' und nutzt PermitService::createPermit().
      *
-     * @param array<string, mixed> $post
-     *
      * @return string Bestätigung mit dem generierten Genehmigungscode.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = PermitCreateManualRequest::fromArray($post);
+            $dto = PermitCreateManualRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
 
         try {
             // Wir übergeben das sauber gefilterte Array aus dem DTO an den Service
-            $this->permitService->createPermit($dto->rawSanitized, $dto->sendEmail);
+            $this->permitService->createPermit($dto->formData, $dto->sendEmail);
+
             return 'Manuelle Genehmigung wurde erfolgreich erstellt.';
         } catch (\Exception $e) {
             return 'Fehler: ' . $e->getMessage();

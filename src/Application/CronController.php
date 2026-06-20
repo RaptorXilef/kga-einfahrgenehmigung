@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemCronAction;
+use App\Application\Http\ServerRequest;
 use App\Application\Middleware\CronAuthMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Contracts\Application\ResponseInterface;
@@ -23,13 +24,13 @@ final readonly class CronController
     ) {
     }
 
-    public function handleRequest(array $get): void
+    public function handleRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new CronAuthMiddleware($this->config));
 
-        $response = $pipeline->process(['get' => $get], function (array $req): mixed {
-            return $this->action->execute(['get' => $req['get']]);
+        $response = $pipeline->process($request, function (ServerRequest $req): mixed {
+            return $this->action->execute($req);
         });
 
         if ($response instanceof ResponseInterface) {

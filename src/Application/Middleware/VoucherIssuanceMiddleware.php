@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Core\Service\AuthService;
@@ -19,18 +20,18 @@ final readonly class VoucherIssuanceMiddleware implements MiddlewareInterface
     {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
         if (! $this->auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) {
             return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung, Gutscheine zu erstellen.'));
         }
 
-        $templateKey = (string) ($requestData['post']['template_key'] ?? 'std_7');
+        $templateKey = (string) ($request->post['template_key'] ?? 'std_7');
 
         if (! $this->auth->hasPermission("template.{$templateKey}")) {
             return new RedirectResponse('admin.php?msg=' . \urlencode("Fehler: Sie haben keine Berechtigung für Typ '{$templateKey}'."));
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

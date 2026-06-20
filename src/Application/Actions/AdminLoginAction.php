@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\AdminLoginRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
@@ -28,10 +29,10 @@ final readonly class AdminLoginAction implements ActionInterface
     ) {
     }
 
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = AdminLoginRequest::fromArray($post);
+            $dto = AdminLoginRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             $this->renderForm($e->getMessage());
 
@@ -39,7 +40,7 @@ final readonly class AdminLoginAction implements ActionInterface
         }
 
         try {
-            if ($this->auth->login($dto->username, $dto->password)) {
+            if ($this->auth->login($dto->username, $dto->password, $request->getIp())) {
                 if ($dto->redirectCode !== '') {
                     return new RedirectResponse('check.php?code=' . \urlencode($dto->redirectCode));
                 }

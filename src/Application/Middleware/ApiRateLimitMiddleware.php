@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -19,13 +20,13 @@ final readonly class ApiRateLimitMiddleware implements MiddlewareInterface
     {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         if ($this->rateLimiter->isBlocked($ip)) {
             return JsonResponse::error('Zu viele Anfragen. Bitte versuchen Sie es später erneut.', 429);
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

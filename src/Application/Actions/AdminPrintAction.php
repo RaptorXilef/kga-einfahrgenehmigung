@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -32,9 +33,9 @@ final readonly class AdminPrintAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto  = SimpleCodeRequest::fromArray($requestData['get'] ?? []);
+        $dto = SimpleCodeRequest::fromArray($request->get);
         $code = $dto->code;
 
         if ($code === '') {

@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\ApiPerformUpdateRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
@@ -17,14 +18,15 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
  */
 final readonly class SystemPerformUpdateAction implements ViewActionInterface
 {
-    public function __construct(private GitHubUpdaterService $updater)
-    {
+    public function __construct(
+        private GitHubUpdaterService $updater,
+    ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = ApiPerformUpdateRequest::fromArray($requestData['input']);
+            $dto = ApiPerformUpdateRequest::fromArray($request->input);
         } catch (ValidationException $e) {
             return JsonResponse::error($e->getMessage(), 400);
         }

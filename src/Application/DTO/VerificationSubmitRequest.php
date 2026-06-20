@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 
 /**
  * DTO für die Übermittlung des Verifizierungscodes inklusive IP-Kapselung.
@@ -19,19 +20,16 @@ final readonly class VerificationSubmitRequest
     ) {
     }
 
-    // TODO DOCBLOCK
-    public static function fromRequestData(array $requestData): self
+    public static function fromRequest(ServerRequest $request): self
     {
-        // Prüft, ob es per GET (Link) oder POST (Formular) kam
-        $token = isset($requestData['get']['token'])
-            ? (string) $requestData['get']['token']
-            : \trim((string) ($requestData['post']['verification_code'] ?? ''));
+        $token = isset($request->get['token'])
+            ? (string) $request->get['token']
+            : \trim((string) ($request->post['verification_code'] ?? ''));
 
         if ($token === '') {
             throw ValidationException::withMessage('Bitte geben Sie einen Verifizierungscode ein.');
         }
-
-        $ip = (string) ($requestData['ip'] ?? 'unknown');
+        $ip = $request->getIp();
 
         return new self($token, $ip);
     }

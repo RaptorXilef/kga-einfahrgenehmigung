@@ -6,8 +6,8 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
 
 /**
@@ -18,19 +18,14 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherDeleteAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private VoucherService $voucherService,
     ) {
     }
 
-    /**
-     * TODO DOCBLOCK
-     * Löscht einen Gutschein unwiderruflich.
-     */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'code');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

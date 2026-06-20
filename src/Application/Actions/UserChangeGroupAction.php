@@ -6,10 +6,10 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\UserChangeGroupRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
-use App\Core\Service\AuthService;
 
 /**
  * Action zum Ändern der Berechtigungsgruppe eines Benutzers.
@@ -18,17 +18,18 @@ use App\Core\Service\AuthService;
  */
 final readonly class UserChangeGroupAction implements ActionInterface
 {
-    public function __construct(private AuthService $auth, private UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        private UserRepositoryInterface $userRepository,
+    ) {
     }
 
     /**
      * Weist einem Benutzer eine neue Berechtigungsgruppe/Rolle zu.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = UserChangeGroupRequest::fromArray($post);
+            $dto = UserChangeGroupRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

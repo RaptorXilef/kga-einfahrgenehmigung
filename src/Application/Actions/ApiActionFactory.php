@@ -14,8 +14,9 @@ use App\Contracts\Application\ViewActionInterface;
  */
 final readonly class ApiActionFactory
 {
-    public function __construct(private Container $container)
-    {
+    public function __construct(
+        private Container $container,
+    ) {
     }
 
     public function create(string $actionKey): ?ViewActionInterface

@@ -6,10 +6,10 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Core\Service\AuthService;
 
 /**
  * Action zum Löschen einer Berechtigungsgruppe.
@@ -19,7 +19,6 @@ use App\Core\Service\AuthService;
 final readonly class GroupDeleteAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
     ) {
@@ -28,14 +27,12 @@ final readonly class GroupDeleteAction implements ActionInterface
     /**
      * Löscht eine Gruppe aus dem Berechtigungssystem. Schützt die Kern-Gruppe 'admin'.
      *
-     * @param array<string, mixed> $post Datensatz mit group_id.
-     *
      * @return string Ergebnisnachricht.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'group_id');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'group_id');
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

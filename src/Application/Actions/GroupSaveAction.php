@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\GroupSaveRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
@@ -28,10 +29,10 @@ final readonly class GroupSaveAction implements ActionInterface
      * Erstellt eine neue Benutzergruppe oder aktualisiert bestehende Rechte-Zuordnungen.
      * Aktualisiert die Session-Rechte zur Laufzeit, falls die eigene Gruppe modifiziert wurde.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = GroupSaveRequest::fromArray($post, $_FILES);
+            $dto = GroupSaveRequest::fromArray($request->post, $request->files);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

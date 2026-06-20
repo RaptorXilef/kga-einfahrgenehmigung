@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\PermitActionFactory;
+use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
-use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
+use App\Contracts\Application\ResponseInterface;
 
 /**
  * Front Controller für den öffentlichen Genehmigungs-Beantragungsprozess.
@@ -21,43 +23,41 @@ final readonly class PermitController
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
         private PermitActionFactory $actionFactory,
+        private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
     ) {
     }
 
     /**
      * Haupt-Request-Handler.
-     *
-     * @param array<string, mixed> $post Entspricht $_POST
-     * @param array<string, mixed> $get  Entspricht $_GET
      */
-    public function handleRequest(array $post, array $get): void
+    public function handleRequest(ServerRequest $request): void
     {
         if (\session_status() === \PHP_SESSION_NONE) {
             \session_start();
         }
 
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new CsrfMiddleware('index.php'));
+        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'index.php'));
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
         // ROUTING LOGIK
         $actionKey = 'render';
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($request->getMethod() === 'POST') {
             $actionKey = 'submit';
-        } elseif (isset($get['edit'], $get['token'])) {
+        } elseif (isset($request->get['edit'], $request->get['token'])) {
             $actionKey = 'edit';
         }
 
-        $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): void {
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
             $action = $this->actionFactory->create($actionKey);
-            $result = $action->execute($req);
 
-            // Response-Objekt abfangen!
-            if ($result instanceof RedirectResponse) {
-                $result->send();
-            }
+            return $action->execute($req);
         });
+
+        if ($response instanceof ResponseInterface) {
+            $response->send();
+        }
     }
 }

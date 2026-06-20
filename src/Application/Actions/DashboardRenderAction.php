@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ViewRenderRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -45,9 +46,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $get = $requestData['get'] ?? [];
+        $get = $request->get;
         $dto = ViewRenderRequest::fromArray($get);
 
         if (isset($get['reset_filters'])) {

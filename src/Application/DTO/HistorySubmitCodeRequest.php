@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 
 /**
  * DTO für die Code-Eingabe im History-Portal inklusive IP-Kapselung.
@@ -19,16 +20,14 @@ final readonly class HistorySubmitCodeRequest
     ) {
     }
 
-    public static function fromRequestData(array $requestData): self
+    public static function fromRequest(ServerRequest $request): self
     {
-        $post = $requestData['post'] ?? [];
+        $post = $request->post;
         $code = \trim((string) ($post['login_code'] ?? ''));
-
         if ($code === '') {
             throw ValidationException::withMessage('Bitte geben Sie den 6-stelligen Code ein.');
         }
-
-        $ip = (string) ($requestData['ip'] ?? 'unknown');
+        $ip = $request->getIp();
 
         return new self($code, $ip);
     }

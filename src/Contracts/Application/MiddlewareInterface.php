@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contracts\Application;
 
+use App\Application\Http\ServerRequest;
+
 /**
  * Interface für alle HTTP-Middlewares (Türsteher).
  *
@@ -14,8 +16,7 @@ interface MiddlewareInterface
     /**
      * Verarbeitet den Request und entscheidet, ob er an die nächste Schicht weitergegeben wird.
      *
-     * @param array<string, mixed> $requestData Die gesammelten Request-Daten (GET, POST, etc.).
-     * @param callable             $next        Die nächste Middleware oder die finale Action.
+     * @param callable $next Die nächste Middleware oder die finale Action.
      */
-    public function process(array $requestData, callable $next): mixed;
+    public function process(\App\Application\Http\ServerRequest $request, callable $next): mixed;
 }

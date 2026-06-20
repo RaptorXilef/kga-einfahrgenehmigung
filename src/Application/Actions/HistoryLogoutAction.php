@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
 
@@ -17,7 +18,7 @@ final readonly class HistoryLogoutAction implements ViewActionInterface
     /**
      * Verarbeitet den Logout-Prozess für die History-Sitzung.
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
         unset($_SESSION['user_history_email']);
 

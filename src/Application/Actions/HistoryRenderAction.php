@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ViewRenderRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -34,9 +35,9 @@ final readonly class HistoryRenderAction implements ViewActionInterface
      * Bereitet die Benutzeroberfläche (Login oder Datenliste) vor und lädt optionale Archivdaten.
      * Kombiniert Live-Daten mit historischen JSON-Jahresarchiven bei Bedarf.
      */
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto            = ViewRenderRequest::fromArray($requestData['get'] ?? []);
+        $dto            = ViewRenderRequest::fromArray($request->get);
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
         $message        = $dto->message;
         $isSuccess      = $dto->isSuccess;

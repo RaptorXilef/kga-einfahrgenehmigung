@@ -6,10 +6,10 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\GroupRenameRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
-use App\Core\Service\AuthService;
 
 /**
  * TODO DOCBLOCK
@@ -19,7 +19,6 @@ use App\Core\Service\AuthService;
 final readonly class GroupRenameAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
     ) {
     }
@@ -27,10 +26,10 @@ final readonly class GroupRenameAction implements ActionInterface
     /**
      * Ändert den Anzeigenamen einer spezifischen Gruppe im System.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = GroupRenameRequest::fromArray($post);
+            $dto = GroupRenameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

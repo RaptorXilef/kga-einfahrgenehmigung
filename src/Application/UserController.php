@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\UserActionFactory;
+use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
@@ -12,6 +13,7 @@ use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
@@ -29,21 +31,22 @@ final readonly class UserController
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
         private AuthService $auth,
+        private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private UserActionFactory $factory,
     ) {
     }
 
-    public function handleRequest(array $post, array $get): void
+    public function handleRequest(ServerRequest $request): void
     {
         // 1. Die Pipeline für die Benutzerverwaltung definieren
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new PermissionMiddleware($this->auth, 'system.permissions.view', 'admin.php'));
-        $pipeline->add(new CsrfMiddleware('users.php'));
+        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'users.php'));
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
-        $actionKey = $post['action'] ?? '';
+        $actionKey = $request->post['action'] ?? '';
         $userMap   = [
             'change_user_group'    => 'system.permissions.users.manage',
             'change_user_password' => 'system.permissions.users.manage',
@@ -60,21 +63,21 @@ final readonly class UserController
             $pipeline->add(new PermissionMiddleware($this->auth, $userMap[$actionKey], 'users.php?msg=' . \urlencode('Fehler: Keine Berechtigung.')));
         }
 
-        $response = $pipeline->process(['post' => $post, 'get' => $get], function (array $req) use ($actionKey): mixed {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
+            if ($req->getMethod() === 'POST') {
                 $action = $this->factory->create($actionKey);
                 if ($action instanceof ActionInterface) {
-                    return $action->execute($req['post']);
+                    return $action->execute($req);
                 }
             }
 
-            return $this->factory->create('render_users')->execute(['get' => $req['get']]);
+            return $this->factory->create('render_users')->execute($req);
         });
 
         if ($response instanceof ResponseInterface) {
             $response->send();
         } elseif (\is_string($response)) {
-            $focusId = $post['user_id'] ?? ($post['group_id'] ?? '');
+            $focusId = $request->post['user_id'] ?? ($request->post['group_id'] ?? '');
             $url     = 'users.php?msg=' . \urlencode($response) . ($focusId !== '' ? '&focus=' . \urlencode($focusId) : '');
             (new RedirectResponse($url))->send();
         }
@@ -83,23 +86,23 @@ final readonly class UserController
     /**
      * TODO DOCBLOCK
      */
-    public function handleProfileRequest(array $post, array $get): void
+    public function handleProfileRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new RequireLoginMiddleware($this->auth, 'admin.php'));
-        $pipeline->add(new CsrfMiddleware('profile.php'));
+        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'profile.php'));
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 
-        $response = $pipeline->process(['post' => $post, 'get' => $get], function (array $req): mixed {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $response = $pipeline->process($request, function (ServerRequest $req): mixed {
+            if ($req->getMethod() === 'POST') {
                 $action = $this->factory->create($req['post']['action'] ?? '');
                 if ($action instanceof ActionInterface) {
-                    return $action->execute($req['post']);
+                    return $action->execute($req);
                 }
             }
 
-            return $this->factory->create('render_profile')->execute(['get' => $req['get']]);
+            return $this->factory->create('render_profile')->execute($req);
         });
 
         if ($response instanceof ResponseInterface) {

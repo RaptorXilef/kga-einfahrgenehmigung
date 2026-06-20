@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\ExportRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Contracts\Application\ViewActionInterface;
@@ -22,14 +23,14 @@ final readonly class DashboardExportAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto = ExportRequest::fromArray($requestData['get'] ?? []);
+        $dto = ExportRequest::fromArray($request->get);
 
         $format   = $dto->format;
         $start    = $dto->start;
         $end      = $dto->end;
-        $filtered = $requestData['filteredPermits'] ?? [];
+        $filtered = []; // Das heir später fixen!
 
         $filename = $this->exportService->generateFilename($format, $start, $end);
 

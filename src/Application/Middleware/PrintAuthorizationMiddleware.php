@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -23,16 +24,16 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
     ) {
     }
 
-    public function process(array $requestData, callable $next): mixed
+    public function process(ServerRequest $request, callable $next): mixed
     {
-        $code = (string) ($requestData['get']['code'] ?? '');
+        $code = (string) ($request->get['code'] ?? '');
         if ($code === '') {
-            return $next($requestData);
+            return $next($request);
         }
 
         $permit = $this->storage->findByHash($code);
         if (! $permit instanceof Permit) {
-            return $next($requestData);
+            return $next($request);
         }
 
         $now       = new \DateTimeImmutable('today');
@@ -54,6 +55,6 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
             return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.'));
         }
 
-        return $next($requestData);
+        return $next($request);
     }
 }

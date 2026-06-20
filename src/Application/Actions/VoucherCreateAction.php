@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\VoucherCreateRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
@@ -27,15 +28,11 @@ final readonly class VoucherCreateAction implements ActionInterface
      * Erstellt einen neuen Gutschein mit spezifischen Konditionen über VoucherService.
      *
      * Kontext: Beinhaltet Sicherheitsprüfung (hasPermission). Übergibt diverse Gutschein-Parameter.
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Bestätigung mit dem generierten Gutscheincode.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = VoucherCreateRequest::fromArray($post);
+            $dto = VoucherCreateRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

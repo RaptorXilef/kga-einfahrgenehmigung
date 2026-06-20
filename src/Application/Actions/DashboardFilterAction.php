@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\DashboardFilterRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 
@@ -23,14 +24,12 @@ final readonly class DashboardFilterAction implements ActionInterface
     /**
      * Hilfsmethode zum Speichern der Dashboard-Filter in der aktuellen Session.
      *
-     * @param array<string, mixed> $post Das POST-Array mit den Filterdaten.
-     *
      * @return string Statusmeldung über den Erfolg der Anwendung.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         // Wirft keine ValidationException, da Standardwerte greifen
-        $dto = DashboardFilterRequest::fromArray($post);
+        $dto = DashboardFilterRequest::fromArray($request->post);
 
         $this->sessionManager->setAdminFilters([
             'end'   => $dto->end,

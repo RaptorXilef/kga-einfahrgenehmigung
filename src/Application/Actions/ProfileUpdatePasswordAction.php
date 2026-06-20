@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\ProfileUpdatePasswordRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
@@ -24,10 +25,10 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
     ) {
     }
 
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = ProfileUpdatePasswordRequest::fromArray($post);
+            $dto = ProfileUpdatePasswordRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

@@ -71,9 +71,9 @@ final readonly class PermitSubmitRequest
     /**
      * TODO DOCBLOCK
      */
-    public function toDomainDto(): \App\Core\DTO\PermitFormData
+    public function toDomainDto(): array
     {
-        return \App\Core\DTO\PermitFormData::fromArray([
+        return [
             'agreements'   => $this->agreements,
             'datum_bis'    => $this->datumBis,
             'datum_von'    => $this->datumVon,
@@ -86,6 +86,6 @@ final readonly class PermitSubmitRequest
             'typ'          => $this->typ,
             'voucher'      => $this->voucher,
             'zweck'        => $this->zweck,
-        ]);
+        ];
     }
 }

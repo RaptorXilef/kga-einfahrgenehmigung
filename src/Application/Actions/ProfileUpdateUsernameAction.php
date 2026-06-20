@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\ProfileUpdateUsernameRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -26,10 +27,10 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
     ) {
     }
 
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = ProfileUpdateUsernameRequest::fromArray($post);
+            $dto = ProfileUpdateUsernameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

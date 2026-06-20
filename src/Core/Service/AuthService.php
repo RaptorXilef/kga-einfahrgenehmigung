@@ -46,9 +46,8 @@ final readonly class AuthService
      *
      * @return bool True wenn der Login erfolgreich war, sonst false.
      */
-    public function login(string $username, string $password): bool
+    public function login(string $username, string $password, string $ip = 'unknown'): bool
     {
-        $ip = $this->getClientIp();
 
         if ($this->rateLimiter->isBlocked($ip)) {
             throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde für 15 Minuten aus Sicherheitsgründen gesperrt.');

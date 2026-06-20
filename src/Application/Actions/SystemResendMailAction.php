@@ -6,10 +6,10 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\JsonHelper;
 
 /**
@@ -20,7 +20,6 @@ use App\Infrastructure\Storage\JsonHelper;
 final readonly class SystemResendMailAction implements ActionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
     ) {
@@ -28,15 +27,11 @@ final readonly class SystemResendMailAction implements ActionInterface
 
     /**
      * Trigger für den Neuversand von E-Mails basierend auf den System-Logs.
-     *
-     * @param array<string, mixed> $post
-     *
-     * @return string Statusmeldung über den Erfolg des Neuversands.
      */
-    public function execute(array $post): mixed
+    public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = SimpleIdentifierRequest::fromArray($post, 'timestamp');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'timestamp');
         } catch (ValidationException $e) {
             return $e->getMessage();
         }

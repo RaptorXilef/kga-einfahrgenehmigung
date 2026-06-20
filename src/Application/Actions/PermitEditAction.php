@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleTokenRequest;
+use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
@@ -24,9 +25,9 @@ final readonly class PermitEditAction implements ViewActionInterface
     ) {
     }
 
-    public function execute(array $requestData): mixed
+    public function execute(ServerRequest $request): mixed
     {
-        $dto      = SimpleTokenRequest::fromArray($requestData['get'] ?? []);
+        $dto      = SimpleTokenRequest::fromArray($request->get);
         $tempData = $this->permitService->getVerifiedRequest($dto->token);
         if ($tempData !== null) {
             $this->sessionManager->setFormData($tempData);
