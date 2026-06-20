@@ -11,6 +11,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuthService;
+use App\Core\Service\ImageStorageService;
 
 /**
  * Action zum Erstellen eines neuen Benutzers.
@@ -22,6 +23,7 @@ final readonly class UserSaveAction implements ActionInterface
     public function __construct(
         private AuthService $auth,
         private UserRepositoryInterface $userRepository,
+        private ImageStorageService $imageStorage,
     ) {
     }
 
@@ -52,8 +54,9 @@ final readonly class UserSaveAction implements ActionInterface
             \password_hash($dto->password, \PASSWORD_DEFAULT),
         );
         $this->userRepository->saveAll($users);
+
         if ($dto->avatar !== null) {
-            $this->userRepository->uploadImage($newId, $dto->avatar);
+            $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
         }
 
         return "Benutzer '{$dto->username}' erfolgreich erstellt.";

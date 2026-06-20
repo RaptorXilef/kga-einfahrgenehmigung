@@ -31,11 +31,11 @@ use App\Infrastructure\Storage\JsonHelper;
  * @var \App\Core\Service\PermitService                    $permitService     Zentraler Genehmigungs-Dienst.
  * @var \App\Infrastructure\Maintenance\MigrationService   $migrationService  Migrations- & Backup-Manager.
  */
-$now = new \DateTimeImmutable();
+$now            = new \DateTimeImmutable();
+$currentVersion = 'v0.0.0';
 
 if ($auth->hasPermission('system.update.view')) {
     // --- Aktuelle Version aus package.json auslesen ---
-    $currentVersion  = 'v0.0.0';
     $packageJsonPath = $appRoot . '/package.json';
     if (\file_exists($packageJsonPath)) {
         try {

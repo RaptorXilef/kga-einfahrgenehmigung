@@ -30,23 +30,4 @@ interface UserRepositoryInterface
      * @param User[] $users
      */
     public function saveAll(array $users, bool $forceSql = false): void;
-
-    /**
-     * Lädt ein Profilbild für einen Benutzer hoch.
-     *
-     * @param string               $userId Die ID des Benutzers.
-     * @param array<string, mixed> $file   Das $_FILES Array.
-     *
-     * @return bool True bei Erfolg.
-     */
-    public function uploadImage(string $userId, array $file): bool;
-
-    /**
-     * Gibt die URL zum Profilbild eines Benutzers zurück.
-     *
-     * @param string $userId Die ID des Benutzers.
-     *
-     * @return string Die vollständige Bild-URL.
-     */
-    public function getImageUrl(string $userId): string;
 }

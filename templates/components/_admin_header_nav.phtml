@@ -11,7 +11,7 @@
  *
  * @var \App\Core\Service\AuthService                   $auth
  * @var \App\Contracts\Storage\GroupRepositoryInterface $groupRepository
- * @var \App\Contracts\Storage\UserRepositoryInterface  $userRepository
+ * @var \App\Core\Service\ImageStorageService           $imageStorage
  * @var array                                           $settings
  */
 $groupId    = $auth->getGroup();
@@ -22,11 +22,13 @@ $groupImage = '';
 if (isset($groupRepository) && $auth->isLoggedIn()) {
     $groups     = $groupRepository->loadAll(); // Wir brauchen die Liste für den Namen
     $groupName  = isset($groups[$groupId]) ? $groups[$groupId]->name : $groupId; // Name finden, sonst ID als Fallback
-    $groupImage = $groupRepository->getImageUrl($groupId);
+    $groupImage = isset($imageStorage) ? $imageStorage->getImageUrl('group_images', $groupId, 'icon-group-default.webp') : '';
 }
+
+$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : '';
 ?>
 <nav
-     style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+     style="background: var(--bg-light); border-bottom: 1px solid var(--border-color); padding: 10px 0; margin-bottom: 2rem;">
     <div class="c-tab-content-container"
          style="display: flex; justify-content: space-between; align-items: center;">
 
@@ -34,37 +36,55 @@ if (isset($groupRepository) && $auth->isLoggedIn()) {
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <div class="c-user-pill">
                 <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                    <img src="<?php echo isset($userRepository) ? $userRepository->getImageUrl($auth->getUserId()) : ''; ?>"
-                        style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
-                    <!-- Klickbarer Name führt zum Profil -->
-                    <a href="profile.php" style="text-decoration: none; color: inherit;" title="Zum Profil">
+                    <img src="<?php echo $userImgUrl; ?>"
+                         style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);"
+                         alt="User Avatar">
+                    <a href="profile.php" style="text-decoration: none; color: inherit;"
+                       title="Zum Profil">
                         <?php echo \htmlspecialchars($auth->getUsername()); ?>
                     </a>
                 </span>
 
                 <div class="c-group-badge">
                     <img src="<?php echo $groupImage; ?>"
-                         style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover;">
+                         style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover;"
+                         alt="Group Icon">
                     <span><?php echo \htmlspecialchars($groupName); ?></span>
                 </div>
             </div>
 
             <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('system.permissions.view')) { ?>
-                <a href="users.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" style="width:16px;"> Benutzer-Rechteverwaltung
-                </a>
+                <a href="users.php"
+                   class="c-tabs__btn"
+                   style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" c
+                     lass="c-icon"
+                     style="width:16px;"
+                     alt=""> Benutzer-Rechteverwaltung
+            </a>
             <?php } ?>
 
             <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('dashboard.view')) { ?>
-                <a href="admin.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp" class="c-icon" style="width:16px;"> Dashboard
-                </a>
+                <a href="admin.php"
+                   class="c-tabs__btn"
+                   style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp"
+                     class="c-icon"
+                     style="width:16px;"
+                     alt=""> Dashboard
+            </a>
             <?php } ?>
 
-            <a href="check.php" class="c-tabs__btn" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;" target="_blank">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" style="width:16px;"> Check
+            <a href="check.php"
+               class="c-tabs__btn"
+               style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;"
+               target="_blank">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                     class="c-icon"
+                     style="width:16px;"
+                     alt=""> Check
             </a>
         </div>
 

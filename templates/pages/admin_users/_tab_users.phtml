@@ -108,7 +108,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
             <h3 class="u-margin-none u-margin-left-s">Registrierte Konten (<?php echo \count($users); ?>)</h3>
 
             <?php foreach ($users as $userId => $u) {
-                $userImage    = $userRepository->getImageUrl($userId);
+                $userImage    = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
                 $groupData    = $groups[$u->groupId] ?? null;
                 $displayLogin = $u->username ?? $userId; // Fallback auf ID
                 ?>

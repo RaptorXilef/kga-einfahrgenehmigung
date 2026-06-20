@@ -24,7 +24,7 @@
  */
 
 // $userId wird nun vom Controller übergeben
-$userImage = $userRepository->getImageUrl($userId);
+$userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
 ?>
 <!DOCTYPE html>
 <html lang="de">

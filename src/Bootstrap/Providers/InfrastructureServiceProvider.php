@@ -105,6 +105,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // --- 1.4 Sicherheit & System-Bootstrapping ---
         $container->bind(RateLimiterInterface::class, fn () => new RateLimiter(
             $container->get(\PDO::class),
+            $container->get(ClockInterface::class),
             $container->get(ConfigInterface::class),
         ));
         $container->bind(LockManagerInterface::class, fn () => new FileLockManager(
@@ -121,6 +122,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // --- 1.5 System-Maintenance & Wartung ---
         $container->bind(BackupService::class, fn (): BackupService => new BackupService(
             $container->get(\PDO::class),
+            $container->get(ClockInterface::class),
             $container->get(ConfigInterface::class),
         ));
 

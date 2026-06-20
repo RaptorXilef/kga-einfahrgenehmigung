@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\View;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Core\Service\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -17,6 +18,7 @@ final readonly class TemplateRenderer
 {
     public function __construct(
         private ConfigInterface $config,
+        private ImageStorageService $imageStorage,
     ) {
     }
 
@@ -25,13 +27,18 @@ final readonly class TemplateRenderer
     {
         $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
 
-        $templateData = \array_merge([
-            'appRoot'  => $appRoot,
-            'config'   => $this->config,
-            'settings' => $this->getGlobalSettings(),
-        ], $data);
+        // 1. Systemvariablen bereitstellen
+        $systemVars = [
+            'appRoot'      => $appRoot,
+            'config'       => $this->config,
+            'settings'     => $this->getGlobalSettings(),
+            'imageStorage' => $this->imageStorage,
+        ];
+        \extract($systemVars);
 
-        \extract($templateData, \EXTR_SKIP);
+        // 2. Nutzerdaten bereitstellen (EXTR_SKIP verhindert das Überschreiben der Systemvariablen!)
+        \extract($data, \EXTR_SKIP);
+
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 

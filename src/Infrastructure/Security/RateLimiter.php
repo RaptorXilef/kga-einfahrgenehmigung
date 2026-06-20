@@ -6,6 +6,7 @@ namespace App\Infrastructure\Security;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Storage\JsonHelper;
 
 /**
@@ -25,6 +26,7 @@ final readonly class RateLimiter implements RateLimiterInterface
 
     public function __construct(
         private ?\PDO $pdo,
+        private ClockInterface $clock,
         private ConfigInterface $config,
     ) {
     }
@@ -42,7 +44,7 @@ final readonly class RateLimiter implements RateLimiterInterface
     public function isBlocked(string $ip): bool
     {
         $cfg = $this->config->get('storage_config')['login_attempts'];
-        $now = new \DateTimeImmutable();
+        $now = $this->clock->now();
 
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $stmt = $this->pdo->prepare("SELECT attempts, last_attempt FROM `{$cfg['table']}` WHERE ip_address = ?");
@@ -94,7 +96,7 @@ final readonly class RateLimiter implements RateLimiterInterface
     public function recordFailedAttempt(string $ip): void
     {
         $cfg    = $this->config->get('storage_config')['login_attempts'];
-        $nowStr = APP_REQUEST_TIME_STR;
+        $nowStr = $this->clock->nowAsString();
 
         if (($cfg['type'] ?? 'json') === 'mysql' && $this->pdo instanceof \PDO) {
             $sql = "INSERT INTO `{$cfg['table']}` (ip_address, attempts, last_attempt)

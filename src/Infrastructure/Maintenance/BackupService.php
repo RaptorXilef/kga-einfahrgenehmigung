@@ -6,6 +6,7 @@ namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
@@ -21,6 +22,7 @@ final readonly class BackupService implements BackupServiceInterface
 
     public function __construct(
         private ?\PDO $pdo,
+        private ClockInterface $clock,
         private ConfigInterface $config,
     ) {
     }
@@ -37,7 +39,7 @@ final readonly class BackupService implements BackupServiceInterface
      */
     public function createBackup(string $target): string
     {
-        $timestamp  = \date('Ymd-His');
+        $timestamp  = $this->clock->now()->format('Ymd-His');
         $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
         $backupPath = $this->config->getStoragePath($subFolder . '/' . $timestamp);
 
@@ -190,7 +192,7 @@ final readonly class BackupService implements BackupServiceInterface
 
         $stateFile  = $logDir . '/last_auto_backup.txt';
         $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
-        $now        = \time();
+        $now        = $this->clock->now()->getTimestamp();
 
         // Prüfen, ob das Intervall abgelaufen ist
         if (($now - $lastBackup) >= $interval) {

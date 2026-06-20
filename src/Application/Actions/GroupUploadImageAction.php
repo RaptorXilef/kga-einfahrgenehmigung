@@ -8,7 +8,7 @@ use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Core\Service\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -18,7 +18,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 final readonly class GroupUploadImageAction implements ActionInterface
 {
     public function __construct(
-        private GroupRepositoryInterface $groupRepository,
+        private ImageStorageService $imageStorage,
     ) {
     }
 
@@ -36,6 +36,8 @@ final readonly class GroupUploadImageAction implements ActionInterface
             return $e->getMessage();
         }
 
-        return $this->groupRepository->uploadImage($dto->identifier, $dto->file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->imageStorage->uploadImage('group_images', $dto->identifier, $dto->file)
+            ? 'Gruppen-Icon aktualisiert.'
+            : 'Fehler beim Verarbeiten.';
     }
 }

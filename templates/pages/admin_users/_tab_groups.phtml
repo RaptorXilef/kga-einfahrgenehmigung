@@ -162,7 +162,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
 
         <div class="u-flex u-flex-column u-gap-m">
             <?php foreach ($groups as $groupId => $gData) {
-                $groupImage = $groupRepository->getImageUrl($groupId);
+                $groupImage = $imageStorage->getImageUrl('group_images', $groupId, 'icon-group-default.webp');
                 ?>
                 <div class="category-card is-closed"
                      id="card-<?php echo $groupId; ?>">

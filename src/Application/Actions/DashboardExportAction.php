@@ -8,8 +8,10 @@ use App\Application\DTO\ExportRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\ExportService;
+use App\Core\Service\PermitFilterService;
 
 /**
  * TODO DOCBLOCK
@@ -20,24 +22,29 @@ final readonly class DashboardExportAction implements ViewActionInterface
 {
     public function __construct(
         private ExportService $exportService,
+        private PermitFilterService $filterService,
+        private SessionManager $sessionManager,
     ) {
     }
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto = ExportRequest::fromArray($request->get);
+        $dto            = ExportRequest::fromArray($request->get);
+        $sessionFilters = $this->sessionManager->getAdminFilters();
 
-        $format   = $dto->format;
-        $start    = $dto->start;
-        $end      = $dto->end;
-        $filtered = []; // Das heir später fixen!
+        $start = $dto->start !== 'all' ? $dto->start : ($sessionFilters['start'] ?? \date('Y-01-01'));
+        $end   = $dto->end !== 'all' ? $dto->end : ($sessionFilters['end'] ?? \date('Y-12-31'));
+        $type  = $sessionFilters['type'] ?? 'all';
+        $query = $sessionFilters['q'] ?? '';
 
-        $filename = $this->exportService->generateFilename($format, $start, $end);
+        $filtered = $this->filterService->getFilteredPermits($start, $end, $type, $query);
+        $filename = $this->exportService->generateFilename($dto->format, $start, $end);
 
-        if ($format === 'json') {
+        if ($dto->format === 'json') {
             return new FileDownloadResponse($this->exportService->generateJson($filtered), $filename, 'application/json');
         }
-        if ($format === 'csv') {
+
+        if ($dto->format === 'csv') {
             return new FileDownloadResponse($this->exportService->generateCsv($filtered), $filename, 'text/csv; charset=utf-8');
         }
 

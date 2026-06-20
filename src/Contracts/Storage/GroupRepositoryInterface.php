@@ -30,23 +30,4 @@ interface GroupRepositoryInterface
      * @param Group[] $groups
      */
     public function saveAll(array $groups, bool $forceSql = false): void;
-
-    /**
-     * Lädt ein Gruppen-Icon hoch und konvertiert es nach WebP.
-     *
-     * @param string               $groupId Die ID der Gruppe.
-     * @param array<string, mixed> $file    Das $_FILES Array des Uploads.
-     *
-     * @return bool True bei Erfolg, false bei einem Fehler.
-     */
-    public function uploadImage(string $groupId, array $file): bool;
-
-    /**
-     * Gibt die URL zum Gruppen-Icon zurück.
-     *
-     * @param string $groupId Die ID der Gruppe.
-     *
-     * @return string Die vollständige URL zum Bild.
-     */
-    public function getImageUrl(string $groupId): string;
 }

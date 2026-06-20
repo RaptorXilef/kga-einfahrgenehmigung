@@ -16,8 +16,8 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
-use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
+use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
@@ -35,6 +35,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private MailLogInterface $mailLog,
+        private PermitFilterService $filterService,
         private PermitService $permitService,
         private ReportingService $reportingService,
         private SessionManager $sessionManager,
@@ -68,29 +69,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $itemsPerPage   = \in_array($requestedLimit, $allowedLimits, true) ? $requestedLimit : $defaultLimit;
         $currentPage    = \max(1, (int) ($get['page'] ?? 1));
 
-        $allPermits      = $this->storage->getAll();
-        $permitTemplates = $this->config->get('permit_templates', []);
+        $allPermits = $this->storage->getAll();
 
-        $filtered = \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $searchQuery): bool {
-            $date = $permit->getCreatedAt()->format('Y-m-d');
-            if ($date < $filterStart || $date > $filterEnd) {
-                return false;
-            }
-            if ($filterType !== 'all') {
-                $tplType = $permitTemplates[$permit->template_key]['type'] ?? 'standard';
-                if ($tplType !== $filterType) {
-                    return false;
-                }
-            }
-            if ($searchQuery !== '') {
-                $haystack = \strtolower($permit->code . ' ' . $permit->getOwnerName() . ' ' . $permit->getOwnerEmail() . ' ' . $permit->getPlotNumber() . ' ' . $permit->getLicensePlate() . ' ' . $permit->getPurpose());
-                if (! \str_contains($haystack, $searchQuery)) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
+        // Ausgelagert in den neuen PermitFilterService (SRP)
+        $filtered = $this->filterService->getFilteredPermits($filterStart, $filterEnd, $filterType, $searchQuery);
 
         $vouchers          = $this->voucherRepository->loadAll();
         $voucherValidities = [];

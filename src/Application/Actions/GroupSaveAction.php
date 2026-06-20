@@ -11,6 +11,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
 use App\Core\Service\AuthService;
+use App\Core\Service\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -22,6 +23,7 @@ final readonly class GroupSaveAction implements ActionInterface
     public function __construct(
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
+        private ImageStorageService $imageStorage,
     ) {
     }
 
@@ -50,8 +52,9 @@ final readonly class GroupSaveAction implements ActionInterface
         }
         $groups[$groupId] = new Group($groupId, $dto->groupName, $newPermissions);
         $this->groupRepository->saveAll($groups);
+
         if ($dto->groupIcon !== null) {
-            $this->groupRepository->uploadImage($groupId, $dto->groupIcon);
+            $this->imageStorage->uploadImage('group_images', $groupId, $dto->groupIcon);
         }
         if ($isUpdate) {
             if ($this->auth->getGroup() === $groupId) {

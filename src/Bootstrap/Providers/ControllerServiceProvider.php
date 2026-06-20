@@ -104,8 +104,10 @@ use App\Core\Service\AuthService;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\ExportService;
 use App\Core\Service\HolidayService;
+use App\Core\Service\ImageStorageService;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\Maintenance\CronScheduler;
+use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\SystemInfoService;
@@ -127,6 +129,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         // --- 3.1 View Renderer ---
         $container->bind(TemplateRenderer::class, fn (): TemplateRenderer => new TemplateRenderer(
             $container->get(ConfigInterface::class),
+            $container->get(ImageStorageService::class),
         ));
 
         // --- 3.x Session and Auth ---
@@ -158,6 +161,15 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(SessionManager::class),
         ));
 
+        // -- Services ---
+        $container->bind(ImageStorageService::class, fn () => new ImageStorageService(
+            $container->get(ConfigInterface::class),
+        ));
+        $container->bind(PermitFilterService::class, fn (): PermitFilterService => new PermitFilterService(
+            $container->get(ConfigInterface::class),
+            $container->get(StorageInterface::class),
+        ));
+
         // --- 3.2 Backend Controller (Admin) ---
         // Admin Actions
         $container->bind(AdminLoginAction::class, fn () => new AdminLoginAction(
@@ -179,6 +191,8 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(DashboardExportAction::class, fn () => new DashboardExportAction(
             $container->get(ExportService::class),
+            $container->get(PermitFilterService::class),
+            $container->get(SessionManager::class),
         ));
         $container->bind(DashboardFilterAction::class, fn () => new DashboardFilterAction(
             $container->get(SessionManager::class),
@@ -246,6 +260,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(MailLogInterface::class),
+            $container->get(PermitFilterService::class),
             $container->get(PermitService::class),
             $container->get(ReportingService::class),
             $container->get(SessionManager::class),
@@ -267,9 +282,10 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(GroupSaveAction::class, fn () => new GroupSaveAction(
             $container->get(AuthService::class),
             $container->get(GroupRepositoryInterface::class),
+            $container->get(ImageStorageService::class),
         ));
         $container->bind(GroupUploadImageAction::class, fn () => new GroupUploadImageAction(
-            $container->get(GroupRepositoryInterface::class),
+            $container->get(ImageStorageService::class),
         ));
 
         // User Actions
@@ -290,9 +306,10 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         $container->bind(UserSaveAction::class, fn () => new UserSaveAction(
             $container->get(AuthService::class),
             $container->get(UserRepositoryInterface::class),
+            $container->get(ImageStorageService::class),
         ));
         $container->bind(UserUploadAvatarAction::class, fn () => new UserUploadAvatarAction(
-            $container->get(UserRepositoryInterface::class),
+            $container->get(ImageStorageService::class),
         ));
 
         // Profile Actions
@@ -307,7 +324,7 @@ final class ControllerServiceProvider implements ServiceProviderInterface
         ));
         $container->bind(ProfileUploadAvatarAction::class, fn () => new ProfileUploadAvatarAction(
             $container->get(AuthService::class),
-            $container->get(UserRepositoryInterface::class),
+            $container->get(ImageStorageService::class),
         ));
 
         // Render Actions

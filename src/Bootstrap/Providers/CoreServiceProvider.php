@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
+use App\Application\Session\SessionManager;
 use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -47,6 +48,7 @@ final class CoreServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(GroupRepositoryInterface::class),
             $container->get(RateLimiterInterface::class),
+            $container->get(SessionManager::class),
             $container->get(UserRepositoryInterface::class),
         ));
 

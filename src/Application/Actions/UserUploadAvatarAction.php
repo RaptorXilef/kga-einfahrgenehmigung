@@ -8,7 +8,7 @@ use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Service\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -18,7 +18,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 final readonly class UserUploadAvatarAction implements ActionInterface
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
+        private ImageStorageService $imageStorage,
     ) {
     }
 
@@ -36,6 +36,8 @@ final readonly class UserUploadAvatarAction implements ActionInterface
             return $e->getMessage();
         }
 
-        return $this->userRepository->uploadImage($dto->identifier, $dto->file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
+        return $this->imageStorage->uploadImage('user_images', $dto->identifier, $dto->file)
+            ? 'Profilbild aktualisiert.'
+            : 'Fehler beim Verarbeiten.';
     }
 }
