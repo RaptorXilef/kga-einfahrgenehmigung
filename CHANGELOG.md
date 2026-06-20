@@ -2,6 +2,15 @@
 
 
 
+## [0.47.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.7...v0.47.8) (2026-06-20)
+
+### ⚙️ Refactoring
+
+* **api,routing:** eradicate API hard-exits & extract routing intelligence from action factories ([81b670c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/81b670cbd1310ff425ac726883dedc30412dda10))
+* **core,arch:** implement PermitFilterService, inject ClockInterface, secure template rendering ([296fedd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/296fedd9ce9c37f6fac5ee4cbda669e48da9dd68))
+* **http,core:** introduce PSR-7 inspired ServerRequest, purge superglobal leaks, and ... ([b2794c3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b2794c3cdc464c0b4f0f5f51208bcf12c936e892))
+* **security,core:** harden architecture, rotate CSRF tokens, & extract image processing service ([fca36b1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fca36b1d6c0629d62b281a8447d9f069ed929d1e))
+
 ## [0.47.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.6...v0.47.7) (2026-06-19)
 
 ### ⚙️ Refactoring
