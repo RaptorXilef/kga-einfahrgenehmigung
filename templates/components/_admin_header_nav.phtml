@@ -28,7 +28,7 @@ if (isset($groupRepository) && $auth->isLoggedIn()) {
 $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : '';
 ?>
 <nav
-     style="background: var(--bg-light); border-bottom: 1px solid var(--border-color); padding: 10px 0; margin-bottom: 2rem;">
+     style="background: var(--bg-light); border-bottom: 1px solid var(--border-color); padding: 10px 0; margin-bottom: 2rem; position: relative; z-index: 100;">
     <div class="c-tab-content-container"
          style="display: flex; justify-content: space-between; align-items: center;">
 
@@ -88,20 +88,158 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
             </a>
         </div>
 
-        <!-- Logout -->
-        <form method="POST"
-              action="admin.php"
-              style="display: inline; margin: 0;">
-            <input type="hidden"
-                   name="csrf_token"
-                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-            <input type="hidden"
-                   name="action"
-                   value="logout">
-            <button type="submit"
-                    style="background: none; border: none; padding: 0; color: var(--danger-color); font-weight: 700; font-size: 0.85rem; cursor: pointer;">
-                ✕ Abmelden
-            </button>
-        </form>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div title="Automatische Abmeldung bei Inaktivität"
+                 style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                ⏳ <span id="ui-session-timer">20:00</span>
+            </div>
+
+            <!-- Logout -->
+            <form method="POST"
+                  action="admin.php"
+                  style="display: inline; margin: 0;">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                <input type="hidden"
+                       name="action"
+                       value="logout">
+                <button type="submit"
+                        style="background: none; border: none; padding: 0; color: var(--danger-color); font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                    ✕ Abmelden
+                </button>
+            </form>
+        </div>
     </div>
 </nav>
+
+<div id="session-warning-modal"
+     style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="c-card"
+         style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
+        </h3>
+        <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong
+                    id="modal-session-countdown"
+                    style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
+            abgemeldet.</p>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 25px;">
+            <button onclick="sessionHandler.logoutNow()"
+                    class="c-button c-button--secondary"
+                    style="font-size: 0.85rem;">Abmelden</button>
+            <button onclick="sessionHandler.stayLoggedIn()"
+                    class="c-button c-button--primary"
+                    style="background: var(--success-color); font-size: 0.85rem;">Angemeldet bleiben</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const sessionHandler = (function() {
+    const MAX_IDLE_TIME = 20 * 60; // 20 Minuten in Sekunden
+    const WARNING_TIME = 3 * 60; // 3 Minuten Warnung
+
+    let idleSeconds = 0;
+    let countdownInterval;
+    let isWarningActive = false;
+
+    const uiTimer = document.getElementById('ui-session-timer');
+    const modalTimer = document.getElementById('modal-session-countdown');
+    const modal = document.getElementById('session-warning-modal');
+
+    function formatTime(totalSeconds) {
+        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const s = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    // Setzt den lokalen Client-Timer bei Bewegung zurück
+    function resetIdleTime() {
+        if (!isWarningActive) {
+            idleSeconds = 0;
+            updateDisplay(MAX_IDLE_TIME);
+        }
+    }
+
+    // Belausche alle Aktivitäten (Maus, Tastatur, Touch)
+    ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt =>
+        document.addEventListener(evt, resetIdleTime, {
+            passive: true
+        })
+    );
+
+    function updateDisplay(remaining) {
+        if (uiTimer) {
+            uiTimer.innerText = formatTime(remaining);
+            uiTimer.style.color = remaining <= WARNING_TIME ? 'var(--danger-color)' : 'var(--text-muted)';
+        }
+        if (modalTimer && isWarningActive) {
+            modalTimer.innerText = formatTime(remaining);
+        }
+    }
+
+    function tick() {
+        idleSeconds++;
+        const remaining = MAX_IDLE_TIME - idleSeconds;
+
+        updateDisplay(remaining);
+
+        if (remaining <= WARNING_TIME && remaining > 0 && !isWarningActive) {
+            isWarningActive = true;
+            modal.style.display = 'flex';
+        }
+
+        if (remaining <= 0) {
+            clearInterval(countdownInterval);
+            logoutNow();
+        }
+    }
+
+    function stayLoggedIn() {
+        // Ping an den Server via HEAD (lädt keine Daten herunter, weckt aber PHP auf)
+        fetch(window.KGA_CONFIG.baseUrl + 'admin.php?ping=1', {
+                method: 'HEAD'
+            })
+            .then(() => {
+                idleSeconds = 0;
+                isWarningActive = false;
+                modal.style.display = 'none';
+                updateDisplay(MAX_IDLE_TIME);
+            })
+            .catch(err => console.error("Konnte Session nicht verlängern", err));
+    }
+
+    function logoutNow() {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.KGA_CONFIG.baseUrl + 'admin.php';
+
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'logout';
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = window.KGA_CONFIG.csrfToken;
+
+        form.appendChild(actionInput);
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Starte den Takt
+    countdownInterval = setInterval(tick, 1000);
+    updateDisplay(MAX_IDLE_TIME);
+
+    return {
+        stayLoggedIn,
+        logoutNow
+    };
+})();
+
+</script>

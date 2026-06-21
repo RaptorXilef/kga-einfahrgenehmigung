@@ -12,11 +12,53 @@ namespace App\Application\Session;
  */
 final class SessionManager
 {
+    private const int MAX_LIFETIME = 43200; // 12 Stunden absolutes Limit
+    private const int IDLE_TIMEOUT = 7200;  // 2 Stunden Inaktivität führt zum Logout
+
     public function __construct()
     {
         if (\session_status() === \PHP_SESSION_NONE) {
             \session_start();
         }
+        $this->enforceServerSideTimeout();
+    }
+
+    /**
+     * Setzt strikte serverseitige Timeouts durch, da moderne Browser
+     * "lifetime=0" Session-Cookies oft absichtlich wiederherstellen.
+     */
+    private function enforceServerSideTimeout(): void
+    {
+        $now = \time();
+
+        if (! isset($_SESSION['session_created'])) {
+            $_SESSION['session_created'] = $now;
+            $_SESSION['last_activity']   = $now;
+
+            return;
+        }
+
+        // Idle Timeout: User war zu lange inaktiv
+        if (($now - $_SESSION['last_activity']) > self::IDLE_TIMEOUT) {
+            $this->destroy();
+            \session_start();
+            $_SESSION['session_created'] = $now;
+            $_SESSION['last_activity']   = $now;
+
+            return;
+        }
+
+        // Absolute Timeout: Session existiert insgesamt zu lange
+        if (($now - $_SESSION['session_created']) > self::MAX_LIFETIME) {
+            $this->destroy();
+            \session_start();
+            $_SESSION['session_created'] = $now;
+            $_SESSION['last_activity']   = $now;
+
+            return;
+        }
+
+        $_SESSION['last_activity'] = $now;
     }
 
     public function setFormData(array $data): void

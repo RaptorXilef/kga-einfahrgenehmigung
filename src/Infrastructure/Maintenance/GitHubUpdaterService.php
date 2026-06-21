@@ -50,7 +50,7 @@ final readonly class GitHubUpdaterService
         'README.md',
         'composer.json',
         'package.json',
-        'update_manifest.json', // NEU
+        'update_manifest.json',
     ];
 
     // Fallback für kritische Core-Configs, falls das Manifest fehlt
@@ -202,31 +202,14 @@ final readonly class GitHubUpdaterService
 
         // 4. Den Hauptordner im ZIP finden
         $extractedFolders = \glob($extractPath . '/*', \GLOB_ONLYDIR);
-        $sourceRoot       = $extractPath; // Default: Direkt im Root entpackt
+        $sourceFolder     = $extractedFolders[0] ?? $extractPath;
 
-        if (! empty($extractedFolders) && \count(\glob($extractPath . '/*')) === 1) {
-            $sourceRoot = $extractedFolders[0];
-        }
+        // 1. NEUE & GEÄNDERTE DATEIEN KOPIEREN
+        $this->copyAllowedFiles($sourceFolder, $rootPath, self::DEFAULT_WHITELIST, self::DEFAULT_BLACKLIST, self::DEFAULT_CORE_CONFIGS);
 
-        // --- DER MAGISCHE TEIL: Manifest laden ---
-        $manifestPath = $sourceRoot . '/update_manifest.json';
-        $whitelist    = self::DEFAULT_WHITELIST;
-        $blacklist    = self::DEFAULT_BLACKLIST;
-        $coreConfigs  = self::DEFAULT_CORE_CONFIGS;
+        // 2. ORPHANED FILES (DATENMÜLL) LÖSCHEN
+        $this->purgeOrphanedFiles($rootPath, $sourceFolder);
 
-        if (\file_exists($manifestPath)) {
-            $manifestData = \json_decode(\file_get_contents($manifestPath), true);
-            if (\is_array($manifestData)) {
-                $whitelist   = $manifestData['whitelist'] ?? self::DEFAULT_WHITELIST;
-                $blacklist   = $manifestData['blacklist'] ?? self::DEFAULT_BLACKLIST;
-                $coreConfigs = $manifestData['core_configs'] ?? self::DEFAULT_CORE_CONFIGS;
-            }
-        }
-
-        // 5. Dateien mit dynamischen Regeln kopieren
-        $this->copyAllowedFiles($sourceRoot, $rootPath, $whitelist, $blacklist, $coreConfigs);
-
-        // 6. Aufräumen
         $this->cleanup($tempDir);
 
         return true;
@@ -265,6 +248,55 @@ final readonly class GitHubUpdaterService
                 }
 
                 \copy($item->getPathname(), $targetFile);
+            }
+        }
+    }
+
+    private function purgeOrphanedFiles(string $targetRoot, string $sourceRoot): void
+    {
+        // public/ ist jetzt enthalten, aber durch isProtectedPath abgesichert!
+        $directoriesToClean = ['src', 'templates', 'public', 'config'];
+
+        foreach ($directoriesToClean as $dir) {
+            $targetDir = $targetRoot . '/' . $dir;
+            if (! \is_dir($targetDir)) {
+                continue;
+            }
+
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($targetDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST, // Wichtig für rekursives rmdir
+            );
+
+            foreach ($iterator as $item) {
+                $relativePath = \str_replace($targetRoot . \DIRECTORY_SEPARATOR, '', $item->getPathname());
+                $relativePath = \str_replace('\\', '/', $relativePath);
+
+                // Benutzer-Uploads und Storage komplett ignorieren
+                if ($this->isProtectedPath($relativePath)) {
+                    continue;
+                }
+
+                $sourceEquivalent = $sourceRoot . '/' . $relativePath;
+
+                if ($item->isFile()) {
+                    // Konfigurations-Dateien: Niemals löschen, es sei denn es ist eine ".default.php" Datei!
+                    if (\str_starts_with($relativePath, 'config/')) {
+                        if (! \str_ends_with($relativePath, '.default.php')) {
+                            continue;
+                        }
+                    }
+
+                    // Existiert die Datei im Update-Paket nicht mehr? -> Löschen!
+                    if (! \file_exists($sourceEquivalent)) {
+                        @\unlink($item->getPathname());
+                    }
+                } elseif ($item->isDir()) {
+                    // Leere verwaiste Ordner löschen
+                    if (! \file_exists($sourceEquivalent)) {
+                        @\rmdir($item->getPathname());
+                    }
+                }
             }
         }
     }
@@ -311,6 +343,29 @@ final readonly class GitHubUpdaterService
     /**
      * Lädt eine Datei via cURL herunter.
      */
+    private function isProtectedPath(string $path): bool
+    {
+        $protectedPrefixes = [
+            'public/assets/img/user_images/',
+            'public/assets/img/group_images/',
+            'public/assets/documents/',
+            'storage/',
+        ];
+
+        foreach ($protectedPrefixes as $prefix) {
+            if (\str_starts_with($path, $prefix)) {
+                return true;
+            }
+        }
+
+        // Spezifischer Schutz für das Logo (schützt alle Formate im logo Ordner)
+        if (\str_starts_with($path, 'public/assets/img/logo/')) {
+            return true;
+        }
+
+        return false;
+    }
+
     private function downloadFile(string $url, string $saveTo): bool
     {
         $fp = \fopen($saveTo, 'w+');
@@ -350,10 +405,10 @@ final readonly class GitHubUpdaterService
 
         foreach ($files as $fileinfo) {
             $todo = $fileinfo->isDir() ? 'rmdir' : 'unlink';
-            $todo($fileinfo->getRealPath());
+            @$todo($fileinfo->getRealPath());
         }
 
-        \rmdir($dir);
+        @\rmdir($dir);
     }
 
     // --- Low-Level Network Core (Private) ---
