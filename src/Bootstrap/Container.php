@@ -50,6 +50,10 @@ class Container
      */
     private function setup(): void
     {
+        // Basis-Instanzen hart registrieren
+        $this->instances[self::class]      = $this; // Verhindert, dass der Container geklont wird!
+        $this->instances[Container::class] = $this;
+
         // Konfiguration (Wird direkt als Instanz übergeben, da sie schon existiert)
         $this->instances[Config::class]          = $this->config;
         $this->instances[ConfigInterface::class] = $this->config;

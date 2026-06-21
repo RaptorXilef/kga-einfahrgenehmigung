@@ -35,7 +35,12 @@ if (\session_status() === \PHP_SESSION_NONE) {
 
     // Harte kryptografische Absicherung des Session-Cookies erzwingen!
     \session_set_cookie_params([
-        'lifetime' => 86400, // 24 Stunden
+        /* 'lifetime' => 86400, // 24 Stunden */
+        /**
+         * Die Null sagt dem Browser:
+         * "Dies ist ein Session-Cookie. Sobald der Browser komplett beendet wird, vernichte das Cookie!"
+         */
+        'lifetime' => 0,
         'path'     => '/',
         'domain'   => '', // Leer lassen. Der Browser bindet den Cookie so automatisch an den korrekten Host.
         'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // Nur über HTTPS
@@ -232,11 +237,11 @@ foreach ($configFiles as $key => $file) {
 $settings['root_path'] = $appRoot;
 
 // NEU: Zentrale Erkennung der lokalen Testumgebung (XAMPP / .local)
-$httpHost                 = $_SERVER['HTTP_HOST'] ?? '';
-$settings['server_host'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$httpHost                    = $_SERVER['HTTP_HOST'] ?? '';
+$settings['server_host']     = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $settings['server_protocol'] = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
-$settings['server_script'] = $_SERVER['SCRIPT_NAME'] ?? '';
-$settings['is_local_env'] = \str_ends_with($httpHost, '.local')
+$settings['server_script']   = $_SERVER['SCRIPT_NAME'] ?? '';
+$settings['is_local_env']    = \str_ends_with($httpHost, '.local')
     || $httpHost === 'localhost'
     || $httpHost === '127.0.0.1'
     || \php_sapi_name() === 'cli';
