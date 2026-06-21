@@ -2,6 +2,16 @@
 
 
 
+## [0.49.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.48.0...v0.49.0) (2026-06-21)
+
+### 🚀 Features
+
+* **updates,security:** bind manual update polling and secure tenant histories ([3a6c607](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a6c607187f25035126414564f79bca5baa3211e))
+
+### 🐛 Bug Fixes
+
+* **ui:** refine update banner ([cc82a73](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cc82a73d515feee7d423084be9ba3e009164f9c4))
+
 ## [0.48.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.10...v0.48.0) (2026-06-21)
 
 ### 🚀 Features
