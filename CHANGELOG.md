@@ -2,6 +2,16 @@
 
 
 
+## [0.49.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.0...v0.49.1) (2026-06-21)
+
+### 🐛 Bug Fixes
+
+* **updater,core:** patch destructive ZIP root resolution and prevent autoloader crashes ([8908605](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8908605bc88a4728b26849cbbe2ea13666af470c))
+
+### ⚙️ Refactoring
+
+* **ui:** open print views in new tabs to preserve scroll state ([29ebb56](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29ebb563f272b272e5b3f98962aafb0756f51357))
+
 ## [0.49.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.48.0...v0.49.0) (2026-06-21)
 
 ### 🚀 Features
