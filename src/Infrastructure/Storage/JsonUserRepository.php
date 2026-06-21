@@ -17,8 +17,9 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
 {
     use SafeJsonWriterTrait;
 
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+    ) {
     }
 
     public function loadAll(): array

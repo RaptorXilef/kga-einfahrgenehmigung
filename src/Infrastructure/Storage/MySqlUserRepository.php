@@ -15,8 +15,10 @@ use App\Core\Entity\User;
  */
 final readonly class MySqlUserRepository implements UserRepositoryInterface
 {
-    public function __construct(private \PDO $pdo, private ConfigInterface $config)
-    {
+    public function __construct(
+        private \PDO $pdo,
+        private ConfigInterface $config,
+    ) {
     }
 
     public function loadAll(): array

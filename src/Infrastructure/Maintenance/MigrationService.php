@@ -18,6 +18,7 @@ use App\Core\Entity\User;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonStorage;
+use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
@@ -481,13 +482,12 @@ final readonly class MigrationService
         if ($key === 'groups') {
             $objects = [];
             foreach ($data as $id => $row) {
-                $objects[$id] = new Group(
-                    (string) $id,
-                    $row['name'] ?? '',
-                    $row['permissions'] ?? [],
-                );
+                $objects[$id] = new Group((string) $id, $row['name'] ?? '', $row['permissions'] ?? []);
             }
-            $this->groupRepository->saveAll($objects, true);
+            // TEMPORÄRER FIX FÜR PHASE 1: Harte SQL-Bindung für Migrationen
+            if ($this->pdo instanceof \PDO) {
+                (new MySqlGroupRepository($this->pdo, $this->config))->saveAll($objects);
+            }
 
             return;
         }

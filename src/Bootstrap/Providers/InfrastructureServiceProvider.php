@@ -32,10 +32,11 @@ use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
-use App\Infrastructure\Storage\GroupRepository;
+use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\MagicLinkRepository;
 use App\Infrastructure\Storage\MailQueueRepository;
+use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\PermitArchiveRepository;
 use App\Infrastructure\Storage\StorageFactory;
@@ -63,10 +64,19 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(ClockInterface::class, fn () => new SystemClock());
 
         // --- 1.2 Repositories (Datenzugriff) ---
-        $container->bind(GroupRepositoryInterface::class, fn () => new GroupRepository(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
+        $container->bind(GroupRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+            $type   = $config->get('storage_config')['groups']['type'] ?? 'json';
+
+            if ($type === 'mysql') {
+                return new MySqlGroupRepository(
+                    $container->get(\PDO::class),
+                    $config,
+                );
+            }
+
+            return new JsonGroupRepository($config);
+        });
         $container->bind(UserRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
             $type   = $config->get('storage_config')['users']['type'] ?? 'json';
