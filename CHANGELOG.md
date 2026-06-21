@@ -2,6 +2,23 @@
 
 
 
+## [0.48.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.10...v0.48.0) (2026-06-21)
+
+### 🚀 Features
+
+* **infrastructure,ui:** introduce mass-migration operations, manual backups, expand session secure ([20833d7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/20833d7319a1fb55ccfa9b23e1a71707582a3722))
+
+### 🐛 Bug Fixes
+
+* **core,ui:** prevent interval underflow, catch migration exceptions, and patch modal buttons ([cf55e39](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cf55e39f236d969440b58e1581654e1ac08e9b72))
+* **core:** prevent swallowed exceptions by explicitly routing action errors to the system logger ([9fc8392](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9fc8392d7d27bc9b4c898fa64835eb7ec77d2733))
+* **cron,ui:** compensate for 24h cron drift, enforce daily DSGVO purge, enhance tenant session UX ([67a7821](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/67a7821afd8200a7975547ab7598038c4dce0c90))
+* **db:** resolve migration PK collision and append missing GDPR column ([c148b4b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c148b4b176780da8ce07fb7de389262b64884f0d))
+* **infrastructure:** resolve migration path errors and type-safety in permit archiving ([5e153c2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5e153c2438cd3a41f1a80f9f57703acb99c3f160))
+* **migration,ui:** patch missing SQL mappers, repair marker inserts and fix button layout ([b041e8e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b041e8ed422eba364677d13079be289698ec5a9f))
+* **ui,migrations:** correct flex layout rendering and harden directory resolution for updates ([22d03ca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/22d03caf7c37b386c38a26143aaccfd96c6ad0a0))
+* **ui,migrations:** use dynamic config for 00x scripts and patch button grids ([31ef6a1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/31ef6a1749ee218458d7003a05a7690141cc27aa))
+
 ## [0.47.10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.9...v0.47.10) (2026-06-21)
 
 ### 🐛 Bug Fixes
