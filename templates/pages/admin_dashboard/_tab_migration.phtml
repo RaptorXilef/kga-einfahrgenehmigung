@@ -62,11 +62,11 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                     </div>
                     <div class="c-card__body"
                          style="padding: 1.25rem 1.5rem; background: rgba(0,0,0,0.02);">
-                        <div
-                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+
                             <form method="POST"
                                   onsubmit="return confirm('ALLE Datenstrukturen nach MySQL migrieren?')"
-                                  style="margin: 0;">
+                                  style="margin: 0; flex: 1; min-width: 200px;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -80,15 +80,15 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                        name="direction"
                                        value="json_to_mysql">
                                 <button type="submit"
-                                        class="c-button c-button--primary u-width-100"
-                                        style="font-size: 0.85rem; padding: 12px;">
+                                        class="c-button c-button--primary"
+                                        style="font-size: 0.85rem; width: 100%; height: 100%; min-height: 46px;">
                                     ALLE: JSON ➔ SQL
                                 </button>
                             </form>
 
                             <form method="POST"
                                   onsubmit="return confirm('ALLE Datenstrukturen nach JSON migrieren?')"
-                                  style="margin: 0;">
+                                  style="margin: 0; flex: 1; min-width: 200px;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -102,11 +102,12 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                        name="direction"
                                        value="mysql_to_json">
                                 <button type="submit"
-                                        class="c-button c-button--secondary u-width-100"
-                                        style="font-size: 0.85rem; padding: 12px; border: 2px solid var(--primary-color);">
+                                        class="c-button c-button--secondary"
+                                        style="font-size: 0.85rem; width: 100%; height: 100%; min-height: 46px; border: 2px solid var(--primary-color);">
                                     ALLE: SQL ➔ JSON
                                 </button>
                             </form>
+
                         </div>
                     </div>
                 </div>

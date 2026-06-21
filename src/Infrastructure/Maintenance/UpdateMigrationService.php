@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
@@ -18,8 +19,9 @@ final readonly class UpdateMigrationService
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private ConfigInterface $config,
         private ?\PDO $pdo = null,
+        private ClockInterface $clock,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -127,25 +129,24 @@ final readonly class UpdateMigrationService
     private function markAsExecuted(string $version): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+        $now = $this->clock->now()->format('Y-m-d H:i:s');
 
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $stmt = $this->pdo->prepare("INSERT IGNORE INTO `{$cfg['table']}` (`version`, `executed_at`) VALUES (?, ?)");
-            $stmt->execute([$version, $now]);
+            // FIX: Hier muss zwingend eine ID übergeben werden, da MySQL sonst blockiert!
+            $stmt = $this->pdo->prepare("INSERT IGNORE INTO `{$cfg['table']}` (`id`, `version`, `executed_at`) VALUES (?, ?, ?)");
+            $stmt->execute([\uniqid('mig_', true), $version, $now]);
 
             return;
         }
 
         // JSON Speicherung
-        $path = $this->config->getStoragePath($cfg['file']);
-        $data = JsonHelper::read($path);
-
+        $path   = $this->config->getStoragePath($cfg['file']);
+        $data   = JsonHelper::read($path);
         $data[] = [
             'id'          => \uniqid('mig_', true),
             'version'     => $version,
             'executed_at' => $now,
         ];
-
         $this->writeJsonSafely($path, $data);
     }
 }

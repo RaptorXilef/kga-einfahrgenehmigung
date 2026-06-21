@@ -509,6 +509,7 @@ final readonly class MigrationService
         }
 
         match ($key) {
+            'login_attempts'       => $this->migrateLoginAttemptsToSql($data),
             'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
             'mail_log'             => $this->mailLog->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
@@ -658,5 +659,22 @@ final readonly class MigrationService
             'permits'              => 'code',
             default                => 'code'
         };
+    }
+
+    private function migrateLoginAttemptsToSql(array $data): void
+    {
+        if (! $this->pdo instanceof \PDO) {
+            return;
+        }
+        $table = $this->config->get('storage_config')['login_attempts']['table'];
+        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (ip_address, attempts, last_attempt) VALUES (?, ?, ?)");
+
+        foreach ($data as $ip => $item) {
+            $stmt->execute([
+                $ip,
+                (int) ($item['attempts'] ?? 0),
+                $item['last_attempt'] ?? '',
+            ]);
+        }
     }
 }

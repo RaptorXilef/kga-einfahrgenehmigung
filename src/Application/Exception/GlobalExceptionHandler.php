@@ -18,8 +18,8 @@ use App\Infrastructure\Logging\ErrorLogger;
 final readonly class GlobalExceptionHandler
 {
     public function __construct(
-        private ErrorLogger $logger,
         private ConfigInterface $config,
+        private ErrorLogger $logger,
     ) {
     }
 

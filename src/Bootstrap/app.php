@@ -17,8 +17,10 @@
 
 declare(strict_types=1);
 
+use App\Application\Exception\GlobalExceptionHandler;
 use App\Bootstrap\Container;
 use App\Infrastructure\Config\Config;
+use App\Infrastructure\Logging\ErrorLogger;
 
 // Session global starten, da fast alle Seiten sie benötigen
 if (\session_status() === \PHP_SESSION_NONE) {
@@ -294,8 +296,8 @@ if (! $isMaintenancePage) {
 
 // --- EXCEPTIONS / FEHLERMELDUNGEN ---
 $configInstance   = new Config($settings);
-$errorLogger      = new \App\Infrastructure\Logging\ErrorLogger($configInstance);
-$exceptionHandler = new \App\Application\Exception\GlobalExceptionHandler($errorLogger, $configInstance);
+$errorLogger      = new ErrorLogger($configInstance);
+$exceptionHandler = new GlobalExceptionHandler($configInstance, $errorLogger);
 
 // Aktiviert das globale Error-Handling ab sofort!
 $exceptionHandler->register();
