@@ -73,46 +73,54 @@ final readonly class MigrationService
             return 'Fehler: MySQL-Server ist nicht erreichbar.';
         }
 
-        // NEU: Logik für das "Alles Migrieren"
-        if ($target === 'all') {
-            $targetsToMigrate = [
-                'groups',
-                'login_attempts',
-                'magic_links',
-                'mail_log',
-                'mail_queue',
-                'pending_verification',
-                'permits_archive',
-                'permits',
-                'update_migrations',
-                'users',
-                'verified_pending',
-                'vouchers_archive',
-                'vouchers',
-            ];
-            $count = 0;
-            foreach ($targetsToMigrate as $t) {
-                match ($action) {
-                    'json_to_mysql' => $this->migrateJsonToSql($t),
-                    'mysql_to_json' => $this->migrateSqlToJson($t),
-                    'sync'          => $this->syncBoth($t),
-                    default         => null,
-                };
-                ++$count;
+        try {
+            // Logik für das "Alles Migrieren"
+            if ($target === 'all') {
+                $targetsToMigrate = [
+                    'groups',
+                    'login_attempts',
+                    'magic_links',
+                    'mail_log',
+                    'mail_queue',
+                    'pending_verification',
+                    'permits_archive',
+                    'permits',
+                    'update_migrations',
+                    'users',
+                    'verified_pending',
+                    'vouchers_archive',
+                    'vouchers',
+                ];
+                $count = 0;
+                foreach ($targetsToMigrate as $t) {
+                    match ($action) {
+                        'json_to_mysql' => $this->migrateJsonToSql($t),
+                        'mysql_to_json' => $this->migrateSqlToJson($t),
+                        'sync'          => $this->syncBoth($t),
+                        default         => null,
+                    };
+                    ++$count;
+                }
+
+                return "Voll-Backup erstellt in $backupFolder. <br>Erfolg: $count Bereiche komplett migriert ($action).";
             }
 
-            return "Voll-Backup erstellt in $backupFolder. <br>Erfolg: $count Bereiche komplett migriert ($action).";
+            // Bisherige Einzel-Logik
+            $result = match ($action) {
+                'json_to_mysql' => $this->migrateJsonToSql($target),
+                'mysql_to_json' => $this->migrateSqlToJson($target),
+                'sync'          => $this->syncBoth($target),
+                default         => 'Fehler: Unbekannte Aktion.'
+            };
+
+            return "Backup erstellt in $backupFolder. <br>" . $result;
+        } catch (\Throwable $e) {
+            // Fehler direkt in die Log-Datei schreiben...
+            \error_log("Migration Error ({$target} / {$action}): " . $e->getMessage() . "\n" . $e->getTraceAsString());
+
+            // ... und als rote Meldung ins Dashboard zurückgeben!
+            return 'Kritischer Fehler bei der Migration: ' . $e->getMessage();
         }
-
-        // Bisherige Einzel-Logik
-        $result = match ($action) {
-            'json_to_mysql' => $this->migrateJsonToSql($target),
-            'mysql_to_json' => $this->migrateSqlToJson($target),
-            'sync'          => $this->syncBoth($target),
-            default         => 'Fehler: Unbekannte Aktion.'
-        };
-
-        return "Backup erstellt in $backupFolder. <br>" . $result;
     }
 
     /**

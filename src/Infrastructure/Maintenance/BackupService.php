@@ -195,7 +195,11 @@ final readonly class BackupService implements BackupServiceInterface
         $now        = $this->clock->now()->getTimestamp();
 
         // Prüfen, ob das Intervall abgelaufen ist
-        if (($now - $lastBackup) >= ($interval - 600)) {
+        // Schützt vor negativen Werten, wenn das Intervall < 10 Minuten ist.
+        // Nutzt bei kleinen Intervallen stattdessen 90% der Zeit als Schwellenwert.
+        $threshold = \max((int) ($interval * 0.9), $interval - 600);
+
+        if (($now - $lastBackup) >= $threshold) {
             try {
                 // BUGFIX: Ziel 'auto_maintenance' übergeben, damit alles gesichert wird
                 $this->createBackup('auto_maintenance');

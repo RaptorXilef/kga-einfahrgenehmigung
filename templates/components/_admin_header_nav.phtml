@@ -125,13 +125,17 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                     style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
             abgemeldet.</p>
 
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 25px;">
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px; flex-wrap: wrap;">
             <button onclick="sessionHandler.logoutNow()"
                     class="c-button c-button--secondary"
-                    style="font-size: 0.85rem;">Abmelden</button>
+                    style="font-size: 0.85rem; flex: 1; min-width: 140px; padding: 12px;">
+                Abmelden
+            </button>
             <button onclick="sessionHandler.stayLoggedIn()"
                     class="c-button c-button--primary"
-                    style="background: var(--success-color); font-size: 0.85rem;">Angemeldet bleiben</button>
+                    style="background: var(--success-color); font-size: 0.85rem; flex: 1; min-width: 140px; padding: 12px; border: 2px solid var(--success-color);">
+                Angemeldet bleiben
+            </button>
         </div>
     </div>
 </div>
@@ -173,7 +177,9 @@ const sessionHandler = (function() {
     */
     // Ressourcen-schonend: Belausche nur echte Klicks und Tastenanschläge
     ['click', 'keyup'].forEach(evt =>
-        document.addEventListener(evt, resetIdleTime, {passive: true})
+        document.addEventListener(evt, resetIdleTime, {
+            passive: true
+        })
     );
 
     function updateDisplay(remaining) {
