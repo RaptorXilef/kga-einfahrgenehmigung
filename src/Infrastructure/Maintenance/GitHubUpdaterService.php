@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Utils\ClockInterface;
+use App\Infrastructure\Storage\JsonHelper;
+use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Service für automatische ZIP-Updates via GitHub.
@@ -16,6 +19,8 @@ use App\Contracts\Config\ConfigInterface;
  */
 final readonly class GitHubUpdaterService
 {
+    use SafeJsonWriterTrait;
+
     // TODO URL
     private const GITHUB_API_URL = 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung';
 
@@ -61,6 +66,7 @@ final readonly class GitHubUpdaterService
     ];
 
     public function __construct(
+        private ClockInterface $clock,
         private ConfigInterface $config,
     ) {
     }
@@ -76,19 +82,46 @@ final readonly class GitHubUpdaterService
      *
      * @return array|null Array mit Release-Daten oder null, wenn aktuell.
      */
-    public function checkForUpdate(string $currentVersion): ?array
+    public function checkForUpdate(string $currentVersion, bool $force = false): ?array
     {
         // NEU: Wenn wir uns in einer lokalen Testumgebung befinden, cURL-Anfrage überspringen
         if ($this->config->get('is_local_env', false)) {
             return null;
         }
 
+        $logDir = $this->config->getStoragePath('logs');
+        if (! \is_dir($logDir)) {
+            \mkdir($logDir, 0o755, true);
+        }
+
+        $cacheFile = $logDir . '/latest_release.json';
+        $now       = $this->clock->now()->getTimestamp();
+
+        // 1. Aus Cache lesen, wenn nicht erzwungen und jünger als 24 Stunden
+        if (! $force && \file_exists($cacheFile)) {
+            if (($now - \filemtime($cacheFile)) < 86400) { // 86400 Sekunden = 24h
+                $cachedResponse = JsonHelper::read($cacheFile);
+                if (! empty($cachedResponse)) {
+                    return $this->compareAndFormatRelease($cachedResponse, $currentVersion);
+                }
+            }
+        }
+
+        // 2. Live von GitHub abrufen
         $response = $this->makeApiRequest('/releases/latest');
 
         if (! $response || ! isset($response['tag_name'])) {
             return null;
         }
 
+        // 3. Im Cache speichern
+        $this->writeJsonSafely($cacheFile, $response);
+
+        return $this->compareAndFormatRelease($response, $currentVersion);
+    }
+
+    private function compareAndFormatRelease(array $response, string $currentVersion): ?array
+    {
         $latestVersion = $response['tag_name'];
 
         // Versionsnummern vergleichen (entfernt 'v' für sauberen Vergleich)
@@ -141,7 +174,7 @@ final readonly class GitHubUpdaterService
      */
     public function performUpdate(string $zipUrl): bool
     {
-        // NEU: Lokale Installationen blockieren, um cURL-Fehler abzufangen
+        // Lokale Installationen blockieren, um cURL-Fehler abzufangen
         if ($this->config->get('is_local_env', false)) {
             throw new \RuntimeException('GitHub-Updates sind in der lokalen Testumgebung deaktiviert.');
         }
@@ -204,11 +237,28 @@ final readonly class GitHubUpdaterService
         $extractedFolders = \glob($extractPath . '/*', \GLOB_ONLYDIR);
         $sourceFolder     = $extractedFolders[0] ?? $extractPath;
 
-        // 1. NEUE & GEÄNDERTE DATEIEN KOPIEREN
-        $this->copyAllowedFiles($sourceFolder, $rootPath, self::DEFAULT_WHITELIST, self::DEFAULT_BLACKLIST, self::DEFAULT_CORE_CONFIGS);
+        // DYNAMISCHES MANIFEST LADEN
+        $whitelist   = self::DEFAULT_WHITELIST;
+        $blacklist   = self::DEFAULT_BLACKLIST;
+        $coreConfigs = self::DEFAULT_CORE_CONFIGS;
 
-        // 2. ORPHANED FILES (DATENMÜLL) LÖSCHEN
-        $this->purgeOrphanedFiles($rootPath, $sourceFolder);
+        $manifestPath = $sourceFolder . '/update_manifest.json';
+        if (\file_exists($manifestPath)) {
+            try {
+                $manifestData = JsonHelper::read($manifestPath);
+                $whitelist    = $manifestData['whitelist'] ?? $whitelist;
+                $blacklist    = $manifestData['blacklist'] ?? $blacklist;
+                $coreConfigs  = $manifestData['core_configs'] ?? $coreConfigs;
+            } catch (\Exception) {
+                // Bei fehlerhaftem JSON auf Defaults zurückfallen
+            }
+        }
+
+        // 1. NEUE & GEÄNDERTE DATEIEN KOPIEREN
+        $this->copyAllowedFiles($sourceFolder, $rootPath, $whitelist, $blacklist, $coreConfigs);
+
+        // 2. ORPHANED FILES (DATENMÜLL) LÖSCHEN (Wir übergeben die dynamische Blacklist als Schutz!)
+        $this->purgeOrphanedFiles($rootPath, $sourceFolder, $blacklist);
 
         $this->cleanup($tempDir);
 
@@ -252,7 +302,7 @@ final readonly class GitHubUpdaterService
         }
     }
 
-    private function purgeOrphanedFiles(string $targetRoot, string $sourceRoot): void
+    private function purgeOrphanedFiles(string $targetRoot, string $sourceRoot, array $blacklist): void
     {
         // public/ ist jetzt enthalten, aber durch isProtectedPath abgesichert!
         $directoriesToClean = ['src', 'templates', 'public', 'config'];
@@ -272,8 +322,8 @@ final readonly class GitHubUpdaterService
                 $relativePath = \str_replace($targetRoot . \DIRECTORY_SEPARATOR, '', $item->getPathname());
                 $relativePath = \str_replace('\\', '/', $relativePath);
 
-                // Benutzer-Uploads und Storage komplett ignorieren
-                if ($this->isProtectedPath($relativePath)) {
+                // Benutzer-Uploads und Storage komplett ignorieren (Die Blacklist definiert unsere geschützten Daten!)
+                if ($this->isProtectedPath($relativePath, $blacklist)) {
                     continue;
                 }
 
@@ -343,22 +393,17 @@ final readonly class GitHubUpdaterService
     /**
      * Lädt eine Datei via cURL herunter.
      */
-    private function isProtectedPath(string $path): bool
+    private function isProtectedPath(string $path, array $blacklist): bool
     {
-        $protectedPrefixes = [
-            'public/assets/img/user_images/',
-            'public/assets/img/group_images/',
-            'public/assets/documents/',
-            'storage/',
-        ];
-
-        foreach ($protectedPrefixes as $prefix) {
-            if (\str_starts_with($path, $prefix)) {
+        // Wir nutzen die Blacklist aus dem Manifest als Schutz-Schild!
+        // Was nicht überschrieben werden darf, darf auch nicht gelöscht werden.
+        foreach ($blacklist as $protectedPrefix) {
+            if (\str_starts_with($path, $protectedPrefix)) {
                 return true;
             }
         }
 
-        // Spezifischer Schutz für das Logo (schützt alle Formate im logo Ordner)
+        // Spezifischer Schutz für alle Formate im logo Ordner
         if (\str_starts_with($path, 'public/assets/img/logo/')) {
             return true;
         }

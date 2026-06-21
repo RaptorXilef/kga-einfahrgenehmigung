@@ -378,36 +378,72 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             const installBtn = document.getElementById('gh-install-btn');
             const releaseLink = document.getElementById('gh-release-link');
 
+            // Wir rendern dynamisch einen "Neu laden" Button neben den Install-Button
+            let checkBtn = null;
+            if (installBtn) {
+                checkBtn = document.createElement('button');
+                checkBtn.className = 'c-button c-button--secondary u-margin-top-s u-width-100';
+                checkBtn.innerHTML = '🔄 Auf Updates prüfen';
+                checkBtn.style.fontSize = '0.8rem';
+                checkBtn.onclick = (e) => {
+                    e.preventDefault();
+                    checkBtn.innerText = 'Prüfe...';
+                    checkBtn.disabled = true;
+                    performCheck(true);
+                };
+                installBtn.parentNode.appendChild(checkBtn);
+            }
+
             // 1. Im Hintergrund prüfen, ob ein Update da ist
             // CSRF-Header hinzugefügt, da die API nun gehärtet ist
-            fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php', {
-                    headers: {
-                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success && data.update_available) {
-                        versionLabel.innerText = data.data.version;
-
-                        // Release Notes dynamisch verlinken
-                        releaseLink.href =
-                            'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
-                            .data.version;
-
-                        // NEU: Setze die Download-URL als Data-Attribut für den JS-Handler
-                        if (installBtn) {
-                            installBtn.setAttribute('data-url', data.data.zipball_url);
+            function performCheck(force = false) {
+                fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                        },
+                        body: JSON.stringify({
+                            force: force
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (checkBtn) {
+                            checkBtn.innerText = '🔄 Auf Updates prüfen';
+                            checkBtn.disabled = false;
                         }
 
-                        if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
-                        banner.classList.remove('u-hidden');
-                    }
-                })
-                .catch(err => console.error('Update-Check fehlgeschlagen:', err));
+                        if (data.success && data.update_available) {
+                            versionLabel.innerText = data.data.version;
 
-            // Die Klick-Logik wurde in die admin-handler.js ausgelagert,
-            // weshalb der manuelle Listener hier entfernt wurde.
+                        // Release Notes dynamisch verlinken
+                            releaseLink.href =
+                                'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
+                                .data.version;
+
+                        // NEU: Setze die Download-URL als Data-Attribut für den JS-Handler
+                            if (installBtn) {
+                                installBtn.setAttribute('data-url', data.data.zipball_url);
+                            }
+
+                            if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
+                            banner.classList.remove('u-hidden');
+                        } else if (force) {
+                            alert('Das System ist aktuell. Es wurden keine neuen Versionen gefunden.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Update-Check fehlgeschlagen:', err);
+                        if (checkBtn) {
+                            checkBtn.innerText = 'Fehler beim Prüfen';
+                            checkBtn.disabled = false;
+                        }
+                    });
+            }
+
+            // Beim Laden der Seite normalen (gecachten) Check ausführen
+            performCheck(false);
         });
 
         </script>

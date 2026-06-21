@@ -26,8 +26,11 @@ final readonly class SystemCheckUpdateAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
+            $force          = isset($request->input['force']) && $request->input['force'] === true;
             $currentVersion = $this->sysInfo->getCurrentVersion();
-            $updateData     = $this->updater->checkForUpdate($currentVersion);
+
+            // Reicht das "force" Flag durch, um den 24h-Cache zu umgehen
+            $updateData = $this->updater->checkForUpdate($currentVersion, $force);
 
             return JsonResponse::success(['update_available' => $updateData !== null, 'data' => $updateData]);
         } catch (\Throwable $e) {
