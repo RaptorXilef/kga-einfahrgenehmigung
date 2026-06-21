@@ -98,7 +98,7 @@ final readonly class AdminController
             'activate_voucher'      => 'dashboard.vouchers.suspend',
             'anonymize_archive'     => 'dashboard.migration.anonymize.execute',
             'clear_cache'           => 'dashboard.migration.delete-cache.execute',
-            'create_backup'         => 'dashboard.migration.view',
+            'create_backup'         => 'dashboard.migration.backup.execute',
             'create_manual'         => 'dashboard.generator-tools.manual_permit.execute',
             'dashboard_export'      => 'finance.export.execute',
             'deactivate_voucher'    => 'dashboard.vouchers.suspend',

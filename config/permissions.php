@@ -560,6 +560,10 @@ return [
                             'label'    => 'Migration: Liste der verfügbaren Backup-Ordner (Archiv) einsehen',
                             'key'      => 'dashboard.migration.backups.view',
                             'children' => [
+                                'create' => [
+                                    'label' => 'Migration: Manuelles Voll-Backup erstellen',
+                                    'key'   => 'dashboard.migration.backup.execute',
+                                ],
                                 'restore' => [
                                     'label' => 'System-Wiederherstellung aus einem alten Backup-Ordner ausführen',
                                     'key'   => 'dashboard.migration.restore.execute',

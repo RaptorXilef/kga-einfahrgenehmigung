@@ -6,10 +6,17 @@ use App\Contracts\Config\ConfigInterface;
 
 return function (?\PDO $pdo, ConfigInterface $config): void {
     if ($pdo instanceof \PDO) {
+        $cfg = $config->get('storage_config')['update_migrations'] ?? null;
+        if (! $cfg) {
+            return;
+        }
+
+        $table = $cfg['table'];
+
+        // Nur noch den VARCHAR(50) Typ sicherstellen.
+        // Der gefährliche "INT"-Zwischenschritt wurde entfernt, um "0"-Kollisionen zu vermeiden.
         try {
-            // Nur noch den VARCHAR(50) Typ sicherstellen.
-            // Der gefährliche "INT"-Zwischenschritt wurde entfernt, um "0"-Kollisionen zu vermeiden.
-            $pdo->exec('ALTER TABLE `update_migrations` MODIFY COLUMN `id` VARCHAR(50) NOT NULL;');
+            $pdo->exec("ALTER TABLE `{$table}` MODIFY COLUMN `id` VARCHAR(50) NOT NULL;");
         } catch (\PDOException $e) {
             // Lautlos ignorieren
         }

@@ -20,6 +20,13 @@ declare(strict_types=1);
 use App\Contracts\Config\ConfigInterface;
 
 return function (?\PDO $pdo, ConfigInterface $config): void {
+    $cfg = $config->get('storage_config')['update_migrations'] ?? null;
+    if (! $cfg) {
+        return;
+    }
+
+    $newTable = $cfg['table'];
+    $newFile  = $cfg['file'];
 
     // 1. MySQL Migration (Falls Datenbank aktiv ist)
     if ($pdo instanceof \PDO) {
@@ -28,10 +35,10 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
             $oldTableExists = $pdo->query("SHOW TABLES LIKE 'migrations'")->rowCount() > 0;
 
             // Prüfen, ob die neue Tabelle 'update_migrations' schon existiert (um Konflikte zu vermeiden)
-            $newTableExists = $pdo->query("SHOW TABLES LIKE 'update_migrations'")->rowCount() > 0;
+            $newTableExists = $pdo->query("SHOW TABLES LIKE '{$newTable}'")->rowCount() > 0;
 
             if ($oldTableExists && ! $newTableExists) {
-                $pdo->exec('RENAME TABLE `migrations` TO `update_migrations`');
+                $pdo->exec("RENAME TABLE `migrations` TO `{$newTable}`");
             } elseif ($oldTableExists && $newTableExists) {
                 // Falls aus irgendeinem Grund beide existieren, löschen wir die alte leere,
                 // um künftige Verwirrung zu vermeiden (optional, aber sauber)
@@ -45,11 +52,8 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
 
     // 2. JSON Fallback Migration (Falls das System ohne MySQL läuft)
     try {
-        $storagePrefix = \ltrim((string) $config->get('storage_path_prefix', 'storage/'), '/\\');
-        $rootPath      = \rtrim((string) $config->get('root_path', ''), '/\\');
-
-        $oldJsonPath = $rootPath . '/' . $storagePrefix . 'migrations.json';
-        $newJsonPath = $rootPath . '/' . $storagePrefix . 'update_migrations.json';
+        $oldJsonPath = $config->getStoragePath('migrations.json');
+        $newJsonPath = $config->getStoragePath($newFile);
 
         if (\file_exists($oldJsonPath) && ! \file_exists($newJsonPath)) {
             \rename($oldJsonPath, $newJsonPath);
@@ -59,5 +63,4 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
     } catch (\Throwable $e) {
         \error_log('Migration 001 (JSON): ' . $e->getMessage());
     }
-
 };

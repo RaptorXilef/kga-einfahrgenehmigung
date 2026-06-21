@@ -62,11 +62,11 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                     </div>
                     <div class="c-card__body"
                          style="padding: 1.25rem 1.5rem; background: rgba(0,0,0,0.02);">
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-
+                        <div
+                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                             <form method="POST"
                                   onsubmit="return confirm('ALLE Datenstrukturen nach MySQL migrieren?')"
-                                  style="margin: 0; flex: 1; min-width: 200px;">
+                                  style="margin: 0;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -88,7 +88,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
 
                             <form method="POST"
                                   onsubmit="return confirm('ALLE Datenstrukturen nach JSON migrieren?')"
-                                  style="margin: 0; flex: 1; min-width: 200px;">
+                                  style="margin: 0;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -107,7 +107,6 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                     ALLE: SQL ➔ JSON
                                 </button>
                             </form>
-
                         </div>
                     </div>
                 </div>
@@ -226,36 +225,36 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                 <div class="u-grid"
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
 
-                    <?php // TODO Permission für Button erstellen
-                        ?>
-                    <div class="c-card"
-                         style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
-                        <div class="c-card__header u-flex u-align-center u-gap-s"
-                             style="padding: 1rem 1.5rem;">
-                            <h4 class="u-margin-none"
-                                style="font-size: 1.1rem;">📦 Manuelles Voll-Backup</h4>
+                    <?php if ($auth->hasPermission('dashboard.migration.backup.execute')) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;">📦 Manuelles Voll-Backup</h4>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                                <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände (JSON &
+                                    SQL)
+                                    im Backup-Verzeichnis.</p>
+                                <form method="POST"
+                                      class="u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="create_backup">
+                                    <button type="submit"
+                                            class="c-button c-button--success u-width-100"
+                                            style="font-size: 0.9rem;">
+                                        Backup jetzt erstellen
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="c-card__body u-flex u-flex-column u-gap-m"
-                             style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                            <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände (JSON &
-                                SQL)
-                                im Backup-Verzeichnis.</p>
-                            <form method="POST"
-                                  class="u-margin-top-auto">
-                                <input type="hidden"
-                                       name="csrf_token"
-                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="action"
-                                       value="create_backup">
-                                <button type="submit"
-                                        class="c-button c-button--success u-width-100"
-                                        style="font-size: 0.9rem;">
-                                    Backup jetzt erstellen
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    <?php } ?>
 
                     <?php if ($auth->hasPermission('dashboard.migration.anonymize.execute')) { ?>
                         <div class="c-card"
@@ -406,6 +405,8 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         <?php } ?>
 
         <!-- Backups -->
+        <?php // TODO PERMISSION testen
+            ?>
         <?php if ($auth->hasPermission('dashboard.migration.backups.view')) { ?>
             <div class="u-margin-top-xl">
                 <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
