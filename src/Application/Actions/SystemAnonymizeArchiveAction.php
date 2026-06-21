@@ -31,7 +31,10 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface
             }
 
             return "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.";
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Fehler zwingend ins Log schreiben!
+            \error_log('DSGVO Anonymize Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
             return 'Fehler bei der Anonymisierung: ' . $e->getMessage();
         }
     }

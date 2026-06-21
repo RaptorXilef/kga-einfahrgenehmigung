@@ -231,8 +231,8 @@ final readonly class MigrationService
         }
 
         // JSON Datei leeren (Wenn engine 'all' oder 'json' ist)
-        $path = $this->config->getStoragePath($target);
-        if (\in_array($engine, ['all', 'json'], true) && \file_exists($path)) {
+        if (\in_array($engine, ['all', 'json'], true) && isset($cfg['file'])) {
+            $path      = $this->config->getStoragePath($cfg['file']);
             $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
             $this->writeJsonSafely($path, [], $jsonFlags);
             $clearedIn[] = 'JSON';
@@ -364,13 +364,11 @@ final readonly class MigrationService
      */
     private function loadRawJson(string $key): array
     {
-        $cfg = $this->config->get('storage_config')[$key];
-
-        // FIX: Prüfen, ob überhaupt ein Dateiname konfiguriert ist
+        $cfg = $this->config->get('storage_config')[$key] ?? null;
         if (! isset($cfg['file'])) {
             return [];
         }
-        $path = $this->config->getStoragePath($key);
+        $path = $this->config->getStoragePath($cfg['file']);
 
         return JsonHelper::read($path);
     }
@@ -461,17 +459,13 @@ final readonly class MigrationService
      */
     private function saveToJson(string $key, array $data): void
     {
-        $cfg = $this->config->get('storage_config')[$key];
-
-        // Nur speichern, wenn ein Dateiname definiert ist
+        $cfg = $this->config->get('storage_config')[$key] ?? null;
         if (! isset($cfg['file'])) {
             return;
         }
-
-        // Normalisierung vor dem Schreiben ins JSON: Wenn Daten aus SQL kommen, sind 'data' oder 'permissions' Objekte eventuell noch Arrays.
-        // Das sorgt für eine saubere, einheitliche Struktur im Dateisystem.
         $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
-        $this->writeJsonSafely($this->config->getStoragePath($key), $data, $jsonFlags);
+        $path      = $this->config->getStoragePath($cfg['file']);
+        $this->writeJsonSafely($path, $data, $jsonFlags);
     }
 
     /**

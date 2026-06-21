@@ -30,6 +30,8 @@ final readonly class SystemCreateBackupAction implements ActionInterface
 
             return "Erfolg: Vollständiges Backup erstellt in Ordner '" . \basename($folder) . "'.";
         } catch (\Throwable $e) {
+            \error_log('Manual Backup Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
             return 'Fehler beim Backup: ' . $e->getMessage();
         }
     }

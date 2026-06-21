@@ -31,6 +31,8 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface
 
             return 'Erfolg: Folgende Datenbank-Skripte wurden ausgeführt: ' . \implode(', ', $executed);
         } catch (\Throwable $e) {
+            \error_log('Manual Update Migration Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
             return 'Fehler bei der Ausführung: ' . $e->getMessage();
         }
     }
