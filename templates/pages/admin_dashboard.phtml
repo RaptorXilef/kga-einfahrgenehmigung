@@ -382,9 +382,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             let checkBtn = null;
             if (installBtn) {
                 checkBtn = document.createElement('button');
-                checkBtn.className = 'c-button c-button--secondary u-margin-top-s u-width-100';
-                checkBtn.innerHTML = '🔄 Auf neuere Version';
-                checkBtn.style.fontSize = '0.8rem';
+                // Keine Standard-Klassen, sondern exakt auf das Banner abgestimmtes Design:
+                checkBtn.style.cssText =
+                    'background: rgba(59, 130, 246, 0.1); color: #1e40af; border: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 16px; margin-top: 10px; font-size: 0.85rem; width: 100%; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 6px;';
+
+                checkBtn.onmouseover = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                checkBtn.onmouseout = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.1)';
+
+                checkBtn.innerHTML = '🔄 Auf Updates prüfen';
+
                 checkBtn.onclick = (e) => {
                     e.preventDefault();
                     checkBtn.innerText = 'Prüfe...';
@@ -417,12 +423,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         if (data.success && data.update_available) {
                             versionLabel.innerText = data.data.version;
 
-                        // Release Notes dynamisch verlinken
+                            // Release Notes dynamisch verlinken
                             releaseLink.href =
                                 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
                                 .data.version;
 
-                        // NEU: Setze die Download-URL als Data-Attribut für den JS-Handler
+                            // NEU: Setze die Download-URL als Data-Attribut für den JS-Handler
                             if (installBtn) {
                                 installBtn.setAttribute('data-url', data.data.zipball_url);
                             }
