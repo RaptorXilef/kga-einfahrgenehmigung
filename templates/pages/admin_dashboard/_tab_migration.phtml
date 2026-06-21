@@ -53,6 +53,61 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                     <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Es wird automatisch ein Backup erstellt.</span>
                 </div>
 
+                <div class="c-card"
+                     style="margin-bottom: 2rem; border-top: 4px solid var(--primary-color);">
+                    <div class="c-card__header u-flex u-align-center u-justify-between"
+                         style="padding: 1rem 1.5rem;">
+                        <h4 class="u-margin-none"
+                            style="font-size: 1.1rem;">🚀 Globale Massen-Aktionen</h4>
+                    </div>
+                    <div class="c-card__body u-flex u-gap-m u-flex-wrap"
+                         style="padding: 1.25rem 1.5rem; background: rgba(0,0,0,0.02);">
+
+                        <form method="POST"
+                              onsubmit="return confirm('ALLE Datenstrukturen nach MySQL migrieren?')">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <input type="hidden"
+                                   name="action"
+                                   value="migrate_data">
+                            <input type="hidden"
+                                   name="target"
+                                   value="all">
+                            <input type="hidden"
+                                   name="direction"
+                                   value="json_to_mysql">
+                            <button type="submit"
+                                    class="c-button c-button--primary"
+                                    style="font-size: 0.85rem; background: var(--primary-color);">
+                                ALLE: JSON ➔ SQL
+                            </button>
+                        </form>
+
+                        <form method="POST"
+                              onsubmit="return confirm('ALLE Datenstrukturen nach JSON migrieren?')">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <input type="hidden"
+                                   name="action"
+                                   value="migrate_data">
+                            <input type="hidden"
+                                   name="target"
+                                   value="all">
+                            <input type="hidden"
+                                   name="direction"
+                                   value="mysql_to_json">
+                            <button type="submit"
+                                    class="c-button c-button--secondary"
+                                    style="font-size: 0.85rem;">
+                                ALLE: SQL ➔ JSON
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+
                 <div class="u-grid"
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
                     <?php foreach ($targets as $key => $data) { ?>
@@ -166,6 +221,66 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                 <div class="u-grid"
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
 
+                    <?php // TODO Permission für Button erstellen?>
+                    <div class="c-card"
+                         style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
+                        <div class="c-card__header u-flex u-align-center u-gap-s"
+                             style="padding: 1rem 1.5rem;">
+                            <h4 class="u-margin-none"
+                                style="font-size: 1.1rem;">📦 Manuelles Voll-Backup</h4>
+                        </div>
+                        <div class="c-card__body u-flex u-flex-column u-gap-m"
+                             style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                            <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände (JSON & SQL)
+                                im Backup-Verzeichnis.</p>
+                            <form method="POST"
+                                  class="u-margin-top-auto">
+                                <input type="hidden"
+                                       name="csrf_token"
+                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                <input type="hidden"
+                                       name="action"
+                                       value="create_backup">
+                                <button type="submit"
+                                        class="c-button c-button--success u-width-100"
+                                        style="font-size: 0.9rem;">
+                                    Backup jetzt erstellen
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <?php if ($auth->hasPermission('dashboard.migration.anonymize.execute')) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;">🛡️ DSGVO-Anonymisierung</h4>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                                <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in
+                                    Archiv-Einträgen, die älter als 10 Jahre sind (Aufbewahrungsfrist).</p>
+                                <form method="POST"
+                                      onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
+                                      class="u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="anonymize_archive">
+                                    <button type="submit"
+                                            class="c-button c-button--secondary u-width-100"
+                                            style="font-size: 0.9rem;">
+                                        Jetzt prüfen & bereinigen
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
+
                     <?php if ($auth->hasPermission('dashboard.migration.delete-cache.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
@@ -246,31 +361,31 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
                         </div>
                     <?php } ?>
-                    <?php if ($auth->hasPermission('dashboard.migration.anonymize.execute')) { ?>
+
+                    <?php if ($auth->hasPermission('system.update.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
                                  style="padding: 1rem 1.5rem;">
                                 <h4 class="u-margin-none"
-                                    style="font-size: 1.1rem;">🛡️ DSGVO-Anonymisierung</h4>
+                                    style="font-size: 1.1rem;">⚡ Datenbank-Update Skripte</h4>
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                                <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in
-                                    Archiv-Einträgen, die älter als 10 Jahre sind (Aufbewahrungsfrist).</p>
+                                <p class="u-text-small u-margin-none">Löst alle ausstehenden Datenbank-Anpassungen
+                                    (00x_...php) manuell aus. Wichtig für lokale Testumgebungen ohne cURL.</p>
                                 <form method="POST"
-                                      onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
                                            name="action"
-                                           value="anonymize_archive">
+                                           value="run_update_migrations">
                                     <button type="submit"
                                             class="c-button c-button--secondary u-width-100"
                                             style="font-size: 0.9rem;">
-                                        Jetzt prüfen & bereinigen
+                                        Updates ausführen
                                     </button>
                                 </form>
                             </div>

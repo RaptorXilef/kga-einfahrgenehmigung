@@ -95,16 +95,18 @@ final readonly class AdminController
         }
 
         $permissionMap = [
-            'clear_cache'        => 'dashboard.migration.delete-cache.execute',
-            'truncate_target'    => 'dashboard.migration.delete-data.execute',
-            'anonymize_archive'  => 'dashboard.migration.anonymize.execute',
-            'restore_data'       => 'dashboard.migration.restore.execute',
-            'mark_as_paid'       => 'dashboard.finance.mark_paid',
-            'delete_voucher'     => 'dashboard.vouchers.remove',
-            'activate_voucher'   => 'dashboard.vouchers.suspend',
-            'deactivate_voucher' => 'dashboard.vouchers.suspend',
-            'create_manual'      => 'dashboard.generator-tools.manual_permit.execute',
-            'dashboard_export'   => 'finance.export.execute',
+            'activate_voucher'      => 'dashboard.vouchers.suspend',
+            'anonymize_archive'     => 'dashboard.migration.anonymize.execute',
+            'clear_cache'           => 'dashboard.migration.delete-cache.execute',
+            'create_backup'         => 'dashboard.migration.view',
+            'create_manual'         => 'dashboard.generator-tools.manual_permit.execute',
+            'dashboard_export'      => 'finance.export.execute',
+            'deactivate_voucher'    => 'dashboard.vouchers.suspend',
+            'delete_voucher'        => 'dashboard.vouchers.remove',
+            'mark_as_paid'          => 'dashboard.finance.mark_paid',
+            'restore_data'          => 'dashboard.migration.restore.execute',
+            'run_update_migrations' => 'system.update.execute',
+            'truncate_target'       => 'dashboard.migration.delete-data.execute',
         ];
 
         if (isset($permissionMap[$actionKey])) {

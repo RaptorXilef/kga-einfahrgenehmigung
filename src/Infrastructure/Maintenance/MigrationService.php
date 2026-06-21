@@ -63,20 +63,48 @@ final readonly class MigrationService
      */
     public function execute(string $target, string $action): string
     {
-        // 1. Sicherheit: Backup erstellen, bevor wir IRGENDWAS anfassen
         try {
             $backupFolder = $this->backupService->createBackup($target);
         } catch (\Exception $e) {
             return 'Abbruch: Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
         }
 
-        // 2. MySQL Check
         if (! $this->pdo && \str_contains($action, 'mysql')) {
             return 'Fehler: MySQL-Server ist nicht erreichbar.';
         }
 
-        // 3. Eigentliche Aktion ausführen
-        // [x] Sortiert
+        // NEU: Logik für das "Alles Migrieren"
+        if ($target === 'all') {
+            $targetsToMigrate = [
+                'groups',
+                'login_attempts',
+                'magic_links',
+                'mail_log',
+                'mail_queue',
+                'pending_verification',
+                'permits_archive',
+                'permits',
+                'update_migrations',
+                'users',
+                'verified_pending',
+                'vouchers_archive',
+                'vouchers',
+            ];
+            $count = 0;
+            foreach ($targetsToMigrate as $t) {
+                match ($action) {
+                    'json_to_mysql' => $this->migrateJsonToSql($t),
+                    'mysql_to_json' => $this->migrateSqlToJson($t),
+                    'sync'          => $this->syncBoth($t),
+                    default         => null,
+                };
+                ++$count;
+            }
+
+            return "Voll-Backup erstellt in $backupFolder. <br>Erfolg: $count Bereiche komplett migriert ($action).";
+        }
+
+        // Bisherige Einzel-Logik
         $result = match ($action) {
             'json_to_mysql' => $this->migrateJsonToSql($target),
             'mysql_to_json' => $this->migrateSqlToJson($target),
