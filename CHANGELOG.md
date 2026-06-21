@@ -2,6 +2,12 @@
 
 
 
+## [0.49.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.1...v0.49.2) (2026-06-21)
+
+### 🐛 Bug Fixes
+
+* **analytics,config:** enforce GDPR consent, fix GA4 sessions and add sharing vehicle type ([acd8c7b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/acd8c7ba01f49e0220c987a99bc4c262d087953a))
+
 ## [0.49.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.0...v0.49.1) (2026-06-21)
 
 ### 🐛 Bug Fixes
