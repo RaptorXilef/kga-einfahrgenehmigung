@@ -2,6 +2,12 @@
 
 
 
+## [0.47.9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.8...v0.47.9) (2026-06-21)
+
+### ⚙️ Refactoring
+
+* **di,core:** implement reflection-based autowiring container and eradicate boilerplate ([7440d29](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7440d29b954eb2e4a3b775744ae92cb8e3618ae3))
+
 ## [0.47.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.7...v0.47.8) (2026-06-20)
 
 ### ⚙️ Refactoring
