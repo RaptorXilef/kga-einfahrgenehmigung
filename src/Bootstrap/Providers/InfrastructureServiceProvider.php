@@ -33,11 +33,12 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\GroupRepository;
+use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\MagicLinkRepository;
 use App\Infrastructure\Storage\MailQueueRepository;
+use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\PermitArchiveRepository;
 use App\Infrastructure\Storage\StorageFactory;
-use App\Infrastructure\Storage\UserRepository;
 use App\Infrastructure\Storage\VerificationRepository;
 use App\Infrastructure\Storage\VoucherRepository;
 use App\Infrastructure\Utils\SystemClock;
@@ -66,10 +67,19 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-        $container->bind(UserRepositoryInterface::class, fn () => new UserRepository(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
+        $container->bind(UserRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+            $type   = $config->get('storage_config')['users']['type'] ?? 'json';
+
+            if ($type === 'mysql') {
+                return new MySqlUserRepository(
+                    $container->get(\PDO::class),
+                    $config,
+                );
+            }
+
+            return new JsonUserRepository($config);
+        });
         $container->bind(PermitArchiveRepositoryInterface::class, fn () => new PermitArchiveRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),

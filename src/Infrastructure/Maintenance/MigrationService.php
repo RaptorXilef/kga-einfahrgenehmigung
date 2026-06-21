@@ -19,6 +19,7 @@ use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlStorage;
+use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -493,14 +494,13 @@ final readonly class MigrationService
         if ($key === 'users') {
             $objects = [];
             foreach ($data as $id => $row) {
-                $objects[$id] = new User(
-                    (string) $id,
-                    $row['username'] ?? '',
-                    $row['group'] ?? 'guest',
-                    $row['pass'] ?? '',
-                );
+                $objects[$id] = new User((string) $id, $row['username'] ?? '', $row['group'] ?? 'guest', $row['pass'] ?? '');
             }
-            $this->userRepository->saveAll($objects, true);
+            // TEMPORÄRER FIX FÜR PHASE 1: Wir zwingen den MigrationService, das MySqlRepo direkt zu nutzen,
+            // falls das aktuelle userRepository das JsonUserRepository ist. Wird in Phase 2 refactored!
+            if ($this->pdo instanceof \PDO) {
+                (new MySqlUserRepository($this->pdo, $this->config))->saveAll($objects);
+            }
 
             return;
         }
