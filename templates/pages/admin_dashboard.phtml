@@ -155,7 +155,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 if ($createdCode) { ?>
                                     <div class="u-flex u-gap-xs u-align-center">
                                         <?php if ($auth->hasPermission('dashboard.info_alert.print')) { ?>
-                                            <a href="?action=print&code=<?php echo $createdCode; ?>" class="c-button c-button--secondary"
+                                            <a href="?action=print&code=<?php echo $createdCode; ?>" target="_blank" class="c-button c-button--secondary"
                                                 style="width: 34px; height: 34px;" title="Druckvorschau">
                                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
                                                     class="c-icon" style="width: 18px; height: 18px;" alt="Drucken">

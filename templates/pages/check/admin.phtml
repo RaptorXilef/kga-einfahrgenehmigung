@@ -111,7 +111,7 @@ if ($permit) {
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung
                 </a>
                 <?php if ($auth->hasPermission('check.admin.print')) { ?>
-                    <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
+                    <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" target="_blank" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
                     </a>
                 <?php } ?>

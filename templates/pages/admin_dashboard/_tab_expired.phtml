@@ -150,7 +150,7 @@ $expiredPermits = \array_slice($allExpired, $offset, $limit);
                                     <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('dashboard.expired.print')) { ?>
-                                                <a href="?action=print&code=<?php echo $permit->code; ?>" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Drucken">
+                                                <a href="?action=print&code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Drucken">
                                                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt="">
                                                 </a>
                                             <?php } ?>

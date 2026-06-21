@@ -178,9 +178,10 @@ if ($auth->hasPermission('dashboard.future.view')) { ?>
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('dashboard.future.print')) { ?>
                                                 <a href="?action=print&code=<?php echo $permit->code; ?>"
-                                                    class="c-button c-button--secondary"
-                                                    style="width: 36px; height: 36px;"
-                                                    title="Drucken">
+                                                   target="_blank"
+                                                   class="c-button c-button--secondary"
+                                                   style="width: 36px; height: 36px;"
+                                                   title="Drucken">
                                                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
                                                         class="c-icon"
                                                         alt="">
@@ -189,9 +190,9 @@ if ($auth->hasPermission('dashboard.future.view')) { ?>
 
                                             <?php if ($auth->hasPermission('dashboard.future.details')) { ?>
                                                 <a href="check.php?code=<?php echo $permit->code; ?>"
-                                                    target="_blank" class="c-button c-button--secondary"
-                                                    style="width: 36px; height: 36px;"
-                                                    title="Details">
+                                                   target="_blank" class="c-button c-button--secondary"
+                                                   style="width: 36px; height: 36px;"
+                                                   title="Details">
                                                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
                                                         class="c-icon"
                                                         alt="">

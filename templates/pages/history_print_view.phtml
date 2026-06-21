@@ -138,7 +138,7 @@
 
 <body>
     <div class="print-toolbar u-no-print">
-        <a href="history.php" class="c-button c-button--secondary">← Zurück zum Dashboard</a>
+        <button type="button" onclick="window.close()" class="c-button c-button--secondary">✕ Druckansicht schließen</button>
         <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()"
                 class="c-button c-button--primary"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"

@@ -186,6 +186,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('dashboard.active.print')) { ?>
                                                 <a href="?action=print&code=<?php echo $permit->code; ?>"
+                                                   target="_blank"
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
                                                    title="Druckvorschau">

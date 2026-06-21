@@ -25,7 +25,7 @@
  * @var \App\Core\Service\PermitService       $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
  */
 $now = new \DateTimeImmutable('today');
-\usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
+\usort($permits, fn($a, $b) => $b->erstellt <=> $a->erstellt);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -95,7 +95,7 @@ $now = new \DateTimeImmutable('today');
 
         <?php if (! empty($message)) {
             $alertClass = ($isSuccess ?? false) ? 'c-alert--success' : 'c-alert--danger';
-            ?>
+        ?>
             <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
                 <div class="u-flex u-align-center u-gap-s">
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/<?php echo ($isSuccess ?? false) ? 'status-success' : 'status-invalid'; ?>.webp"
@@ -176,7 +176,7 @@ $now = new \DateTimeImmutable('today');
                                 $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                                ?>
+                            ?>
                                 <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                         style="vertical-align: middle;">
@@ -249,6 +249,7 @@ $now = new \DateTimeImmutable('today');
                                                      alt="">
                                             </a>
                                             <a href="history.php?action=print&code=<?php echo $permit->code; ?>"
+                                               target="_blank"
                                                class="c-button c-button--primary"
                                                style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;"
                                                title="Dokument anzeigen">
@@ -269,8 +270,8 @@ $now = new \DateTimeImmutable('today');
                  style="background: #fcfdfe;">
                 <?php
                 $lastYear = (int) \date('Y') - 1;
-if ($currentArchiveYear !== $lastYear) {
-    ?>
+                if ($currentArchiveYear !== $lastYear) {
+                ?>
                     <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary" style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
                         📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
                     </a>
