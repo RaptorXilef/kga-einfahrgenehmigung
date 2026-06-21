@@ -13,7 +13,9 @@ namespace App\Application\Session;
 final class SessionManager
 {
     private const int MAX_LIFETIME = 43200; // 12 Stunden absolutes Limit
-    private const int IDLE_TIMEOUT = 7200;  // 2 Stunden Inaktivität führt zum Logout
+    // private const int IDLE_TIMEOUT = 7200;  // 2 Stunden Inaktivität führt zum Logout
+    // ÄNDERUNG: Reduziert auf 30 Min. (Bietet 10 Min Puffer für den 20-Minuten JS-Timer)
+    private const int IDLE_TIMEOUT = 1800;
 
     public function __construct()
     {

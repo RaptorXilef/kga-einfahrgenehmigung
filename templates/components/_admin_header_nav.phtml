@@ -163,11 +163,17 @@ const sessionHandler = (function() {
         }
     }
 
+    /*
     // Belausche alle Aktivitäten (Maus, Tastatur, Touch)
     ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt =>
         document.addEventListener(evt, resetIdleTime, {
             passive: true
         })
+    );
+    */
+    // Ressourcen-schonend: Belausche nur echte Klicks und Tastenanschläge
+    ['click', 'keyup'].forEach(evt =>
+        document.addEventListener(evt, resetIdleTime, {passive: true})
     );
 
     function updateDisplay(remaining) {
