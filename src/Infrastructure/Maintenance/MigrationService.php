@@ -261,7 +261,8 @@ final readonly class MigrationService
     {
         if ($target === 'permits') {
             // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
-            $json  = new JsonStorage($this->config->getStoragePath('permits'));
+            $file  = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
+            $json  = new JsonStorage($this->config->getStoragePath($file));
             $sql   = new MySqlStorage($this->pdo);
             $count = $sql->migrateTo($json);
 
@@ -289,7 +290,8 @@ final readonly class MigrationService
     {
         if ($target === 'permits') {
             // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
-            $json  = new JsonStorage($this->config->getStoragePath('permits'));
+            $file  = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
+            $json  = new JsonStorage($this->config->getStoragePath($file));
             $sql   = new MySqlStorage($this->pdo);
             $count = $json->migrateTo($sql);
 
@@ -317,7 +319,8 @@ final readonly class MigrationService
     {
         // Bei Permits nutzen wir die Domain-Objekte für den sauberen Sync
         if ($target === 'permits') {
-            $json = new JsonStorage($this->config->getStoragePath('permits'));
+            $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
+            $json = new JsonStorage($this->config->getStoragePath($file));
             $sql  = new MySqlStorage($this->pdo);
 
             $jsonPermits = $json->getAll();
@@ -508,7 +511,7 @@ final readonly class MigrationService
             'mail_log'             => $this->mailLog->saveLogs($data, true),
             'mail_queue'           => $this->migrateMailQueueToSql($data),
             'pending_verification' => $this->verificationRepository->savePending($data, true),
-            'permits_archive'      => $this->archiveRepository->archivePermits(0, $data),
+            'permits_archive'      => $this->migratePermitsArchiveToSql($data),
             'permits'              => $this->migratePermitsToSql($data),
             'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
             'verified_pending'     => $this->verificationRepository->saveVerified($data, true),
@@ -539,6 +542,24 @@ final readonly class MigrationService
             }
             $storage->save($this->storage->mapToEntity($item));
         }
+    }
+
+    /**
+     * Hilfsmethode zur spezifischen SQL-Hydrierung und Speicherung von Archiv-Entitäten.
+     *
+     * @param array<int, array<string, mixed>> $data
+     */
+    private function migratePermitsArchiveToSql(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $key => $item) {
+            if (! isset($item['code'])) {
+                $item['code'] = $key;
+            }
+            // Hier passiert die Magie: Das Array wird in ein Permit-Objekt umgewandelt!
+            $objects[] = $this->storage->mapToEntity($item);
+        }
+        $this->archiveRepository->archivePermits(0, $objects);
     }
 
     /**
