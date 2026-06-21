@@ -27,6 +27,12 @@ return [
             'show_company' => true,  // Zeigt das Firmenfeld
             'active'       => true,
         ],
+        'sharing' => [
+            'label'        => 'Privat (Leihfahrzeug/Car-Sharing)',
+            'icon'         => 'assets/img/icons/icon-carsharing.webp',
+            'show_company' => true,
+            'active'       => true,
+        ],
         'entsorg' => [
             'label'        => 'Abwasser / Entsorgung',
             'icon'         => 'assets/img/icons/icon-biohazard.webp',
