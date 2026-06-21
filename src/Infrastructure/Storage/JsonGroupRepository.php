@@ -44,6 +44,9 @@ final readonly class JsonGroupRepository implements GroupRepositoryInterface
         return $groups;
     }
 
+    /**
+     * @param Group[] $groups
+     */
     public function saveAll(array $groups, bool $forceSql = false): void
     {
         if ($forceSql) {

@@ -494,13 +494,13 @@ final readonly class MigrationService
 
             return;
         }
+
         if ($key === 'users') {
             $objects = [];
             foreach ($data as $id => $row) {
                 $objects[$id] = new User((string) $id, $row['username'] ?? '', $row['group'] ?? 'guest', $row['pass'] ?? '');
             }
-            // TEMPORÄRER FIX FÜR PHASE 1: Wir zwingen den MigrationService, das MySqlRepo direkt zu nutzen,
-            // falls das aktuelle userRepository das JsonUserRepository ist. Wird in Phase 2 refactored!
+            // TEMPORÄRER FIX FÜR PHASE 1
             if ($this->pdo instanceof \PDO) {
                 (new MySqlUserRepository($this->pdo, $this->config))->saveAll($objects);
             }

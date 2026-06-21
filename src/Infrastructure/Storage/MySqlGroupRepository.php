@@ -42,6 +42,9 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
         return $groups;
     }
 
+    /**
+     * @param Group[] $groups
+     */
     public function saveAll(array $groups, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['groups'];

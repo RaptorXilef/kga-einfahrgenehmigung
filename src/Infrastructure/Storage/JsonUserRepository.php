@@ -45,6 +45,9 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
         return $users;
     }
 
+    /**
+     * @param User[] $users
+     */
     public function saveAll(array $users, bool $forceSql = false): void
     {
         // Wenn jemand (z.B. MigrationService) explizit SQL erzwingt, brechen wir hier ab,

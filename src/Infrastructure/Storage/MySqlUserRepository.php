@@ -39,6 +39,9 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
         return $users;
     }
 
+    /**
+     * @param User[] $users
+     */
     public function saveAll(array $users, bool $forceSql = false): void
     {
         // $forceSql wird hier ignoriert, da wir ohnehin in MySQL speichern.
