@@ -2,6 +2,19 @@
 
 
 
+## [0.47.10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.9...v0.47.10) (2026-06-21)
+
+### 🐛 Bug Fixes
+
+* **core,ui:** resolve print-view crashes, enforce session expiration, and patch container cloning ([93081a7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/93081a7e5430e91da003a5fc3c1dfa47c5d37997))
+* **database,storage:** resolve schema drift by adding missing 'agreements' column to MySQL ([e543c6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e543c6fed10c8bccdb5f8ce3fd549a648e425719))
+* **security,ui:** implement interactive session timeout and refine updater garbage collection ([42c8999](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/42c899960107baafdbc5c03b7475ff0f96b8bc5f))
+* **updater,arch:** implement dynamic manifest parsing and GitHub API rate limit caching ([c849714](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c849714add3e21fd69123b42dc4bc29d51acd4f0))
+
+### ⚙️ Refactoring
+
+* **sec,ui:** optimize idle tracking events and synchronize backend timeout ([160168d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/160168d9e875b8bdb752dfcbcd018f553089567f))
+
 ## [0.47.9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.47.8...v0.47.9) (2026-06-21)
 
 ### ⚙️ Refactoring
