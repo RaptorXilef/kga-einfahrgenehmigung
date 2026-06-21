@@ -33,15 +33,18 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\JsonGroupRepository;
+use App\Infrastructure\Storage\JsonMagicLinkRepository;
 use App\Infrastructure\Storage\JsonUserRepository;
-use App\Infrastructure\Storage\MagicLinkRepository;
+use App\Infrastructure\Storage\JsonVerificationRepository;
+use App\Infrastructure\Storage\JsonVoucherRepository;
 use App\Infrastructure\Storage\MailQueueRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
+use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlUserRepository;
+use App\Infrastructure\Storage\MySqlVerificationRepository;
+use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\PermitArchiveRepository;
 use App\Infrastructure\Storage\StorageFactory;
-use App\Infrastructure\Storage\VerificationRepository;
-use App\Infrastructure\Storage\VoucherRepository;
 use App\Infrastructure\Utils\SystemClock;
 
 /**
@@ -94,18 +97,27 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-        $container->bind(VerificationRepositoryInterface::class, fn () => new VerificationRepository(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-        $container->bind(VoucherRepositoryInterface::class, fn () => new VoucherRepository(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-        $container->bind(MagicLinkRepositoryInterface::class, fn () => new MagicLinkRepository(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
+        $container->bind(VerificationRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['pending_verification']['type'] ?? 'json') === 'mysql'
+                ? new MySqlVerificationRepository($container->get(\PDO::class), $config)
+                : new JsonVerificationRepository($config);
+        });
+        $container->bind(VoucherRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['vouchers']['type'] ?? 'json') === 'mysql'
+                ? new MySqlVoucherRepository($container->get(\PDO::class), $config)
+                : new JsonVoucherRepository($config);
+        });
+        $container->bind(MagicLinkRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['magic_links']['type'] ?? 'json') === 'mysql'
+                ? new MySqlMagicLinkRepository($container->get(\PDO::class), $config)
+                : new JsonMagicLinkRepository($config);
+        });
         $container->bind(MailQueueRepositoryInterface::class, fn () => new MailQueueRepository(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),

@@ -19,8 +19,11 @@ use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\MySqlGroupRepository;
+use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
+use App\Infrastructure\Storage\MySqlVerificationRepository;
+use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -505,20 +508,22 @@ final readonly class MigrationService
             return;
         }
 
-        match ($key) {
-            'login_attempts'       => $this->migrateLoginAttemptsToSql($data),
-            'magic_links'          => $this->magicLinkRepository->saveAll($data, true),
-            'mail_log'             => $this->mailLog->saveLogs($data, true),
-            'mail_queue'           => $this->migrateMailQueueToSql($data),
-            'pending_verification' => $this->verificationRepository->savePending($data, true),
-            'permits_archive'      => $this->migratePermitsArchiveToSql($data),
-            'permits'              => $this->migratePermitsToSql($data),
-            'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
-            'verified_pending'     => $this->verificationRepository->saveVerified($data, true),
-            'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
-            'vouchers'             => $this->voucherRepository->saveAll($data, true),
-            default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
-        };
+        if ($this->pdo instanceof \PDO) {
+            match ($key) {
+                'login_attempts'       => $this->migrateLoginAttemptsToSql($data),
+                'magic_links'          => (new MySqlMagicLinkRepository($this->pdo, $this->config))->saveAll($data),
+                'mail_log'             => $this->mailLog->saveLogs($data, true),
+                'mail_queue'           => $this->migrateMailQueueToSql($data),
+                'pending_verification' => (new MySqlVerificationRepository($this->pdo, $this->config))->savePending($data),
+                'permits_archive'      => $this->migratePermitsArchiveToSql($data),
+                'permits'              => $this->migratePermitsToSql($data),
+                'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
+                'verified_pending'     => (new MySqlVerificationRepository($this->pdo, $this->config))->saveVerified($data),
+                'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
+                'vouchers'             => (new MySqlVoucherRepository($this->pdo, $this->config))->saveAll($data),
+                default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
+            };
+        }
     }
 
     // Kleine Hilfsmethoden, um saveToSql sauber zu halten:
