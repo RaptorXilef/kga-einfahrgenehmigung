@@ -25,6 +25,10 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
+        // FIX: Klasse explizit in den RAM laden, um Autoloader-Abstürze
+        // während des Live-Austauschs von Systemdateien zu verhindern!
+        \class_exists(JsonResponse::class);
+
         try {
             $dto = ApiPerformUpdateRequest::fromArray($request->input);
         } catch (ValidationException $e) {

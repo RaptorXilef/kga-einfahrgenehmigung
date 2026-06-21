@@ -21,6 +21,8 @@ final readonly class GlobalExceptionHandler
         private ConfigInterface $config,
         private ErrorLogger $logger,
     ) {
+        // Preload ins Memory, falls Exception während eines Datei-Updates auftritt
+        \class_exists(JsonResponse::class);
     }
 
     /**
@@ -61,7 +63,8 @@ final readonly class GlobalExceptionHandler
 
         if ($isApi) {
             $msg = $isDev ? $exception->getMessage() : 'Ein interner Serverfehler ist aufgetreten.';
-            JsonResponse::error($msg, 500);
+            // FIX: Senden erzwingen, um HTML-Rückgaben im API-Layer abzublocken
+            JsonResponse::error($msg, 500)->send();
         }
 
         // HTML-Fehlerseite für normale Browser-Nutzer
@@ -79,16 +82,14 @@ final readonly class GlobalExceptionHandler
         if (! \headers_sent()) {
             @\http_response_code(500);
         }
-
-        $vereinsName = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));
-
+        $vereinsName  = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));
         $errorTitle   = 'Ups! Etwas ist schiefgelaufen';
         $errorMessage = 'Das System hat einen unerwarteten Fehler festgestellt. Keine Sorge, die Administratoren wurden automatisch benachrichtigt um das Problem zu beheben.';
 
         if ($isDev) {
             $errorTitle   = \sprintf('Dev-Mode: %s', \get_class($exception));
             $errorMessage = \sprintf(
-                "<strong>Fehler:</strong> %s<br><br><strong>Datei:</strong> %s:%d<br><br><strong>Stacktrace:</strong><pre style='background:#f4f4f4; padding:10px; overflow:auto;'>%s</pre>",
+                "<strong>Fehler:</strong> %s<br><br><strong>Datei:</strong> %s:%d<br><br><strong>Stacktrace:</strong><pre style='background:#f4f4f4; padding:10px; overflow-x:auto; font-size:12px;'>%s</pre>",
                 \htmlspecialchars($exception->getMessage()),
                 \htmlspecialchars($exception->getFile()),
                 $exception->getLine(),
@@ -97,30 +98,30 @@ final readonly class GlobalExceptionHandler
         }
 
         ?>
-        <!DOCTYPE html>
-        <html lang="de">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Systemfehler - <?php echo $vereinsName; ?></title>
-            <style>
-                body { background: #f8fafc; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; color: #334155; }
-                .error-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 600px; width: 100%; border-top: 5px solid #ef4444; }
-                h1 { color: #dc2626; margin-top: 0; font-size: 1.5rem; }
-                p { line-height: 1.6; color: #64748b; }
-                .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
-                .btn:hover { background: #2563eb; }
-            </style>
-        </head>
-        <body>
-            <div class="error-card">
-                <h1>🛑 <?php echo $errorTitle; ?></h1>
-                <p><?php echo $errorMessage; ?></p>
-                <a href="index.php" class="btn">Zur Startseite</a>
-            </div>
-        </body>
-        </html>
-        <?php
-        exit;
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systemfehler - <?php echo $vereinsName; ?></title>
+    <style>
+        body { background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
+        .error-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 600px; width: 100%; border-top: 5px solid #ef4444; text-align: center; }
+        h1 { color: #ef4444; margin-top: 0; }
+        p { line-height: 1.6; color: #475569; }
+        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .btn:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <h1>🛑 <?php echo $errorTitle; ?></h1>
+        <p><?php echo $errorMessage; ?></p>
+        <a href="index.php" class="btn">Zur Startseite</a>
+    </div>
+</body>
+</html>
+<?php
+                exit;
     }
 }

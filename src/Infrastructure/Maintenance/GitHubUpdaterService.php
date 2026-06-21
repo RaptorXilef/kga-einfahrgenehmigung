@@ -50,7 +50,7 @@ final readonly class GitHubUpdaterService
         'src/Core/',
         'src/Infrastructure/',
         'templates/',
-        'vendor/', // Vendor kommt fertig aus der GitHub Action
+        'vendor/',
         'CHANGELOG.md',
         'README.md',
         'composer.json',
@@ -219,7 +219,7 @@ final readonly class GitHubUpdaterService
             $zip->close();
             $this->cleanup($tempDir);
 
-            throw new \RuntimeException('Sicherheitsabbruch: Das Update-Archiv überschreitet das zulässige Größenlimit (ZIP-Bomben-Schutz).');
+            throw new \RuntimeException('Sicherheitsabbruch: Das Update-Archiv überschreitet das Größenlimit.');
         }
 
         $extractPath = $tempDir . '/extracted';
@@ -229,13 +229,19 @@ final readonly class GitHubUpdaterService
             $zip->close();
             $this->cleanup($tempDir);
 
-            throw new \RuntimeException('Das Update-Archiv ist fehlerhaft oder konnte nicht entpackt werden. Abbruch.');
+            throw new \RuntimeException('Das Update-Archiv konnte nicht entpackt werden.');
         }
         $zip->close();
 
         // 4. Den Hauptordner im ZIP finden
-        $extractedFolders = \glob($extractPath . '/*', \GLOB_ONLYDIR);
-        $sourceFolder     = $extractedFolders[0] ?? $extractPath;
+        // FIX: Sichere Erkennung des Quell-Ordners!
+        $sourceFolder   = $extractPath;
+        $extractedItems = \array_values(\array_diff(\scandir($extractPath), ['.', '..']));
+
+        // Wenn genau 1 Element existiert UND es ein Ordner ist, dann ist das der GitHub-Source-Wrapper!
+        if (\count($extractedItems) === 1 && \is_dir($extractPath . '/' . $extractedItems[0])) {
+            $sourceFolder = $extractPath . '/' . $extractedItems[0];
+        }
 
         // DYNAMISCHES MANIFEST LADEN
         $whitelist   = self::DEFAULT_WHITELIST;
@@ -285,8 +291,9 @@ final readonly class GitHubUpdaterService
             }
 
             // Relativen Pfad (aus Sicht des Projekt-Roots) berechnen
-            $relativePath = \str_replace($sourceDir . \DIRECTORY_SEPARATOR, '', $item->getPathname());
-            $relativePath = \str_replace('\\', '/', $relativePath); // Für Windows
+            // FIX: Strikte String-Längen-Berechnung verhindert falsche Ersetzungen
+            $relativePath = \substr($item->getPathname(), \strlen($sourceDir) + 1);
+            $relativePath = \str_replace('\\', '/', $relativePath);
 
             // Prüfen, ob der Pfad erlaubt ist
             if ($this->isPathAllowed($relativePath, $whitelist, $blacklist, $coreConfigs)) {
@@ -319,7 +326,8 @@ final readonly class GitHubUpdaterService
             );
 
             foreach ($iterator as $item) {
-                $relativePath = \str_replace($targetRoot . \DIRECTORY_SEPARATOR, '', $item->getPathname());
+                // FIX: Strikte String-Längen-Berechnung
+                $relativePath = \substr($item->getPathname(), \strlen($targetRoot) + 1);
                 $relativePath = \str_replace('\\', '/', $relativePath);
 
                 // Benutzer-Uploads und Storage komplett ignorieren (Die Blacklist definiert unsere geschützten Daten!)
