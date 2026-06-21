@@ -41,6 +41,7 @@ final readonly class AdminActionFactory
             'deactivate_voucher'    => VoucherToggleAction::class,
             'delete_voucher'        => VoucherDeleteAction::class,
             'filter_dashboard'      => DashboardFilterAction::class,
+            'force_update_check'    => SystemForceUpdateCheckAction::class,
             'login'                 => AdminLoginAction::class,
             'logout'                => AdminLogoutAction::class,
             'mark_as_paid'          => PermitMarkAsPaidAction::class,

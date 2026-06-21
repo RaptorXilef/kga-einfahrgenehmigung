@@ -383,7 +383,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             if (installBtn) {
                 checkBtn = document.createElement('button');
                 checkBtn.className = 'c-button c-button--secondary u-margin-top-s u-width-100';
-                checkBtn.innerHTML = '🔄 Auf Updates prüfen';
+                checkBtn.innerHTML = '🔄 Auf neuere Version';
                 checkBtn.style.fontSize = '0.8rem';
                 checkBtn.onclick = (e) => {
                     e.preventDefault();
@@ -410,7 +410,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     .then(res => res.json())
                     .then(data => {
                         if (checkBtn) {
-                            checkBtn.innerText = '🔄 Auf Updates prüfen';
+                            checkBtn.innerText = '🔄 Auf neuere Version';
                             checkBtn.disabled = false;
                         }
 

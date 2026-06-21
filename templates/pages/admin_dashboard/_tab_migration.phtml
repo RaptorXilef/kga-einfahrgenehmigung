@@ -400,6 +400,36 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         </div>
                     <?php } ?>
 
+                    <?php if ($auth->hasPermission('system.update.view')) { ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
+                            <div class="c-card__header u-flex u-align-center u-gap-s"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;">🔄 Nach Updates suchen</h4>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                                <p class="u-text-small u-margin-none">Umgeht den 24h-Cache und fragt sofort live bei
+                                    GitHub an, ob eine neue Version verfügbar ist.</p>
+                                <form method="POST"
+                                      class="u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="action"
+                                           value="force_update_check">
+                                    <button type="submit"
+                                            class="c-button c-button--primary u-width-100"
+                                            style="font-size: 0.9rem;">
+                                        Jetzt live prüfen
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
+
                 </div>
             </div>
         <?php } ?>

@@ -103,6 +103,7 @@ final readonly class AdminController
             'dashboard_export'      => 'finance.export.execute',
             'deactivate_voucher'    => 'dashboard.vouchers.suspend',
             'delete_voucher'        => 'dashboard.vouchers.remove',
+            'force_update_check'    => 'system.update.view',
             'mark_as_paid'          => 'dashboard.finance.mark_paid',
             'restore_data'          => 'dashboard.migration.restore.execute',
             'run_update_migrations' => 'system.update.execute',
