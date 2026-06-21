@@ -26,8 +26,6 @@ use App\Infrastructure\Config\Config;
  * @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung/
  *
  * @author    Felix Maywald (@RaptorXilef)
- *
- * @SuppressWarnings("PHPMD.CouplingBetweenObjects")
  */
 class Container
 {
@@ -91,10 +89,76 @@ class Container
      */
     public function get(string $id): mixed
     {
-        if (! isset($this->instances[$id])) {
-            $this->instances[$id] = ($this->services[$id])();
+        // 1. Haben wir schon eine fertige Instanz? (Singleton-Verhalten)
+        if (isset($this->instances[$id])) {
+            return $this->instances[$id];
         }
 
-        return $this->instances[$id];
+        // 2. Haben wir ein explizites Binding (Closure aus den Providern)?
+        if (isset($this->services[$id])) {
+            $this->instances[$id] = ($this->services[$id])();
+
+            return $this->instances[$id];
+        }
+
+        // 3. AUTOWIRING: Versuche, die Klasse automatisch aufzulösen!
+        if (\class_exists($id)) {
+            $this->instances[$id] = $this->autowire($id);
+
+            return $this->instances[$id];
+        }
+
+        throw new \RuntimeException("Container Error: Konnte Service oder Klasse '{$id}' nicht auflösen.");
+    }
+
+    /**
+     * Löst Abhängigkeiten einer Klasse automatisch über PHP Reflection auf.
+     */
+    private function autowire(string $className): object
+    {
+        try {
+            $reflectionClass = new \ReflectionClass($className);
+        } catch (\ReflectionException) {
+            throw new \RuntimeException("Container Autowiring Error: Klasse '{$className}' nicht gefunden.");
+        }
+
+        if (! $reflectionClass->isInstantiable()) {
+            throw new \RuntimeException("Container Autowiring Error: Klasse '{$className}' ist nicht instanziierbar (Interface oder Abstract).");
+        }
+
+        $constructor = $reflectionClass->getConstructor();
+
+        // Wenn es keinen Konstruktor gibt, einfach instanziieren
+        if ($constructor === null) {
+            return $reflectionClass->newInstance();
+        }
+
+        $parameters   = $constructor->getParameters();
+        $dependencies = [];
+
+        foreach ($parameters as $parameter) {
+            $type = $parameter->getType();
+
+            // Primitiv-Typen (string, int) können nicht geraten werden
+            if (! $type instanceof \ReflectionNamedType || $type->isBuiltin()) {
+                if ($parameter->isDefaultValueAvailable()) {
+                    $dependencies[] = $parameter->getDefaultValue();
+
+                    continue;
+                }
+
+                throw new \RuntimeException(\sprintf(
+                    "Container Autowiring Error: Kann Parameter '$%s' in Klasse '%s' nicht auflösen (Typ fehlt oder ist primitiv).",
+                    $parameter->getName(),
+                    $className,
+                ));
+            }
+
+            // Hole die benötigte Instanz rekursiv aus dem Container
+            $dependencyClass = $type->getName();
+            $dependencies[]  = $this->get($dependencyClass);
+        }
+
+        return $reflectionClass->newInstanceArgs($dependencies);
     }
 }
