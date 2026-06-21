@@ -60,51 +60,54 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         <h4 class="u-margin-none"
                             style="font-size: 1.1rem;">🚀 Globale Massen-Aktionen</h4>
                     </div>
-                    <div class="c-card__body u-flex u-gap-m u-flex-wrap"
+                    <div class="c-card__body"
                          style="padding: 1.25rem 1.5rem; background: rgba(0,0,0,0.02);">
+                        <div
+                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <form method="POST"
+                                  onsubmit="return confirm('ALLE Datenstrukturen nach MySQL migrieren?')"
+                                  style="margin: 0;">
+                                <input type="hidden"
+                                       name="csrf_token"
+                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                <input type="hidden"
+                                       name="action"
+                                       value="migrate_data">
+                                <input type="hidden"
+                                       name="target"
+                                       value="all">
+                                <input type="hidden"
+                                       name="direction"
+                                       value="json_to_mysql">
+                                <button type="submit"
+                                        class="c-button c-button--primary u-width-100"
+                                        style="font-size: 0.85rem; padding: 12px;">
+                                    ALLE: JSON ➔ SQL
+                                </button>
+                            </form>
 
-                        <form method="POST"
-                              onsubmit="return confirm('ALLE Datenstrukturen nach MySQL migrieren?')">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="migrate_data">
-                            <input type="hidden"
-                                   name="target"
-                                   value="all">
-                            <input type="hidden"
-                                   name="direction"
-                                   value="json_to_mysql">
-                            <button type="submit"
-                                    class="c-button c-button--primary"
-                                    style="font-size: 0.85rem; background: var(--primary-color);">
-                                ALLE: JSON ➔ SQL
-                            </button>
-                        </form>
-
-                        <form method="POST"
-                              onsubmit="return confirm('ALLE Datenstrukturen nach JSON migrieren?')">
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="migrate_data">
-                            <input type="hidden"
-                                   name="target"
-                                   value="all">
-                            <input type="hidden"
-                                   name="direction"
-                                   value="mysql_to_json">
-                            <button type="submit"
-                                    class="c-button c-button--secondary"
-                                    style="font-size: 0.85rem;">
-                                ALLE: SQL ➔ JSON
-                            </button>
-                        </form>
-
+                            <form method="POST"
+                                  onsubmit="return confirm('ALLE Datenstrukturen nach JSON migrieren?')"
+                                  style="margin: 0;">
+                                <input type="hidden"
+                                       name="csrf_token"
+                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                <input type="hidden"
+                                       name="action"
+                                       value="migrate_data">
+                                <input type="hidden"
+                                       name="target"
+                                       value="all">
+                                <input type="hidden"
+                                       name="direction"
+                                       value="mysql_to_json">
+                                <button type="submit"
+                                        class="c-button c-button--secondary u-width-100"
+                                        style="font-size: 0.85rem; padding: 12px; border: 2px solid var(--primary-color);">
+                                    ALLE: SQL ➔ JSON
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -213,7 +216,8 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                     <span class="u-font-xl">🛠️</span>
                     <div>
                         <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
-                        <p class="u-text-muted u-text-small u-margin-none">Cache leeren und Datenbestände zurücksetzen.
+                        <p class="u-text-muted u-text-small u-margin-none">Cache leeren und Datenbestände
+                            zurücksetzen.
                         </p>
                     </div>
                 </header>
@@ -221,7 +225,8 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                 <div class="u-grid"
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
 
-                    <?php // TODO Permission für Button erstellen?>
+                    <?php // TODO Permission für Button erstellen
+                        ?>
                     <div class="c-card"
                          style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
                         <div class="c-card__header u-flex u-align-center u-gap-s"
@@ -231,7 +236,8 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         </div>
                         <div class="c-card__body u-flex u-flex-column u-gap-m"
                              style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                            <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände (JSON & SQL)
+                            <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände (JSON &
+                                SQL)
                                 im Backup-Verzeichnis.</p>
                             <form method="POST"
                                   class="u-margin-top-auto">
@@ -291,7 +297,8 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                                <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac Caches
+                                <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac
+                                    Caches
                                     oder kompilierte Rechte). Behebt oft Anzeige-Bugs nach Updates.</p>
                                 <form method="POST"
                                       onsubmit="return confirm('Cache jetzt leeren?')"
@@ -322,7 +329,8 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                                <p class="u-text-small u-margin-none">Leert eine komplette Tabelle oder JSON-Datei. Es
+                                <p class="u-text-small u-margin-none">Leert eine komplette Tabelle oder JSON-Datei.
+                                    Es
                                     wird automatisch ein Sicherungs-Backup erstellt.</p>
                                 <form method="POST"
                                       onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"

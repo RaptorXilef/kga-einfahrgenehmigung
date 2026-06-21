@@ -32,16 +32,25 @@ final readonly class UpdateMigrationService
      */
     public function runAllPending(): array
     {
-        $executed      = $this->getExecutedMigrations();
-        $migrationsDir = $this->config->get('root_path') . '/src/Infrastructure/UpdateMigrations';
+        $executed = $this->getExecutedMigrations();
+
+        // Nutze den garantierten Root-Pfad aus der Config
+        $migrationsDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/src/Infrastructure/UpdateMigrations';
         $executedNow   = [];
 
         if (! \is_dir($migrationsDir)) {
+            \error_log('Migration Error: Ordner nicht gefunden: ' . $migrationsDir);
+
             return $executedNow;
         }
 
-        // Alle .php Dateien im Ordner suchen
-        $files = \glob($migrationsDir . '/*.php');
+        // Wir erzwingen das korrekte Slashen für Windows UND Linux
+        $files = \glob($migrationsDir . \DIRECTORY_SEPARATOR . '*.php');
+
+        if ($files === false) {
+            return $executedNow;
+        }
+
         \sort($files); // WICHTIG: Chronologisch sortieren (z.B. 001_update.php, 002_update.php)
 
         foreach ($files as $file) {
@@ -49,17 +58,22 @@ final readonly class UpdateMigrationService
 
             // Wenn diese Version noch nicht ausgeführt wurde
             if (! \in_array($version, $executed, true)) {
+                try {
+                    // Wir erwarten, dass die Datei eine anonyme Funktion (Closure) zurückgibt
+                    $migrationClosure = require $file;
 
-                // Wir erwarten, dass die Datei eine anonyme Funktion (Closure) zurückgibt
-                $migrationClosure = require $file;
+                    if (\is_callable($migrationClosure)) {
+                        // Führe die Closure aus der Datei aus
+                        $migrationClosure($this->pdo, $this->config);
 
-                if (\is_callable($migrationClosure)) {
-                    // Führe die Migration aus und übergebe PDO & Config für volle Flexibilität
-                    $migrationClosure($this->pdo, $this->config);
-
-                    // Erfolgreich ausgeführt -> in DB/JSON eintragen
-                    $this->markAsExecuted($version);
-                    $executedNow[] = $version;
+                        // Erfolgreich ausgeführt -> in DB/JSON eintragen
+                        $this->markAsExecuted($version);
+                        $executedNow[] = $version;
+                    } else {
+                        \error_log("Migration Error: Datei {$version}.php liefert keine Closure zurück.");
+                    }
+                } catch (\Throwable $e) {
+                    \error_log("Kritischer Fehler bei Migration {$version}: " . $e->getMessage());
                 }
             }
         }
