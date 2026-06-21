@@ -65,25 +65,32 @@ $now = new \DateTimeImmutable('today');
                     Meine Genehmigungen
                 </h2>
                 <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als:
-                    <strong style="color: #1e293b;"><?php echo \htmlspecialchars($email); ?></strong>
+                    <strong style="color: var(--text-main);"><?php echo \htmlspecialchars($email); ?></strong>
                 </p>
             </div>
 
-            <form method="POST"
-                  action="history.php"
-                  style="margin: 0; display: inline;">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <input type="hidden"
-                       name="action"
-                       value="logout">
-                <button type="submit"
-                        class="c-button c-button--secondary"
-                        style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color); height: 42px; background: none; font-weight: 600; cursor: pointer;">
-                    Abmelden ✕
-                </button>
-            </form>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div title="Automatische Abmeldung bei Inaktivität"
+                     style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                    ⏳ <span id="ui-session-timer">20:00</span>
+                </div>
+
+                <form method="POST"
+                      action="history.php"
+                      style="margin: 0; display: inline;">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <input type="hidden"
+                           name="action"
+                           value="logout">
+                    <button type="submit"
+                            class="c-button c-button--secondary"
+                            style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color); height: 42px; background: none; font-weight: 600; cursor: pointer;">
+                        Abmelden ✕
+                    </button>
+                </form>
+            </div>
         </header>
 
         <?php if (! empty($message)) {
@@ -280,107 +287,136 @@ if ($currentArchiveYear !== $lastYear) {
         </footer>
     </div>
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
-    <div id="session-warning-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-    <div class="c-card" style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
-        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
-        </h3>
-        <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong id="modal-session-countdown" style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch abgemeldet.</p>
+    <div id="session-warning-modal"
+         style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+        <div class="c-card"
+             style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
+            </h3>
+            <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong
+                        id="modal-session-countdown"
+                        style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
+                abgemeldet.</p>
 
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 25px;">
-            <button onclick="sessionHandler.logoutNow()" class="c-button c-button--secondary" style="font-size: 0.85rem;">Abmelden</button>
-            <button onclick="sessionHandler.stayLoggedIn()" class="c-button c-button--primary" style="background: var(--success-color); font-size: 0.85rem;">Angemeldet bleiben</button>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 25px;">
+                <button onclick="sessionHandler.logoutNow()"
+                        class="c-button c-button--secondary"
+                        style="font-size: 0.85rem;">Abmelden</button>
+                <button onclick="sessionHandler.stayLoggedIn()"
+                        class="c-button c-button--primary"
+                        style="background: var(--success-color); font-size: 0.85rem;">Angemeldet bleiben</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-const sessionHandler = (function() {
-    const MAX_IDLE_TIME = 20 * 60; // 20 Minuten in Sekunden
-    const WARNING_TIME = 3 * 60;   // 3 Minuten Warnung
+    <script>
+    const sessionHandler = (function() {
+        const MAX_IDLE_TIME = 20 * 60; // 20 Minuten in Sekunden
+        const WARNING_TIME = 3 * 60; // 3 Minuten Warnung
 
-    let idleSeconds = 0;
-    let countdownInterval;
-    let isWarningActive = false;
+        let idleSeconds = 0;
+        let countdownInterval;
+        let isWarningActive = false;
 
-    const modalTimer = document.getElementById('modal-session-countdown');
-    const modal = document.getElementById('session-warning-modal');
+        const uiTimer = document.getElementById('ui-session-timer');
+        const modalTimer = document.getElementById('modal-session-countdown');
+        const modal = document.getElementById('session-warning-modal');
 
-    function formatTime(totalSeconds) {
-        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-        const s = (totalSeconds % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-    }
-
-    // Setzt den lokalen Client-Timer bei Bewegung zurück
-    function resetIdleTime() {
-        if (!isWarningActive) {
-            idleSeconds = 0;
-        }
-    }
-
-    // Ressourcen-schonend: Belausche nur echte Klicks und Tastenanschläge
-    ['click', 'keyup'].forEach(evt =>
-        document.addEventListener(evt, resetIdleTime, {passive: true})
-    );
-
-    function tick() {
-        idleSeconds++;
-        const remaining = MAX_IDLE_TIME - idleSeconds;
-
-        if (modalTimer && isWarningActive) {
-            modalTimer.innerText = formatTime(remaining);
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
         }
 
-        if (remaining <= WARNING_TIME && remaining > 0 && !isWarningActive) {
-            isWarningActive = true;
-            modal.style.display = 'flex';
+        function updateDisplay(remaining) {
+            if (uiTimer) {
+                uiTimer.innerText = formatTime(remaining);
+                uiTimer.style.color = remaining <= WARNING_TIME ? 'var(--danger-color)' : 'var(--text-muted)';
+            }
+            if (modalTimer && isWarningActive) {
+                modalTimer.innerText = formatTime(remaining);
+            }
         }
 
-        if (remaining <= 0) {
-            clearInterval(countdownInterval);
-            logoutNow();
-        }
-    }
-
-    function stayLoggedIn() {
-        // Ping an history.php, um die PHP-Session serverseitig zu verlängern
-        fetch(window.KGA_CONFIG.baseUrl + 'history.php?ping=1', { method: 'HEAD' })
-            .then(() => {
+        // Setzt den lokalen Client-Timer bei Bewegung zurück
+        function resetIdleTime() {
+            if (!isWarningActive) {
                 idleSeconds = 0;
-                isWarningActive = false;
-                modal.style.display = 'none';
+                updateDisplay(MAX_IDLE_TIME);
+            }
+        }
+
+        // Ressourcen-schonend: Belausche nur echte Klicks und Tastenanschläge
+        ['click', 'keyup'].forEach(evt =>
+            document.addEventListener(evt, resetIdleTime, {
+                passive: true
             })
-            .catch(err => console.error("Konnte Session nicht verlängern", err));
-    }
+        );
 
-    function logoutNow() {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = window.KGA_CONFIG.baseUrl + 'history.php';
+        function tick() {
+            idleSeconds++;
+            const remaining = MAX_IDLE_TIME - idleSeconds;
 
-        const actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        actionInput.value = 'logout';
+            updateDisplay(remaining);
 
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = window.KGA_CONFIG.csrfToken;
+            if (remaining <= WARNING_TIME && remaining > 0 && !isWarningActive) {
+                isWarningActive = true;
+                modal.style.display = 'flex';
+            }
 
-        form.appendChild(actionInput);
-        form.appendChild(csrfInput);
-        document.body.appendChild(form);
-        form.submit();
-    }
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                logoutNow();
+            }
+        }
 
-    // Starte den Takt
-    countdownInterval = setInterval(tick, 1000);
+        function stayLoggedIn() {
+            // Ping an history.php, um die PHP-Session serverseitig zu verlängern
+            fetch(window.KGA_CONFIG.baseUrl + 'history.php?ping=1', {
+                    method: 'HEAD'
+                })
+                .then(() => {
+                    idleSeconds = 0;
+                    isWarningActive = false;
+                    modal.style.display = 'none';
+                    updateDisplay(MAX_IDLE_TIME);
+                })
+                .catch(err => console.error("Konnte Session nicht verlängern", err));
+        }
 
-    return { stayLoggedIn, logoutNow };
-})();
-</script>
+        function logoutNow() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = window.KGA_CONFIG.baseUrl + 'history.php';
+
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'logout';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = window.KGA_CONFIG.csrfToken;
+
+            form.appendChild(actionInput);
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Starte den Takt
+        countdownInterval = setInterval(tick, 1000);
+        updateDisplay(MAX_IDLE_TIME);
+
+        return {
+            stayLoggedIn,
+            logoutNow
+        };
+    })();
+
+    </script>
     <script src="<?php echo $settings['base_url']; ?>assets/js/table-sorter.min.js"></script>
 </body>
 

@@ -6,6 +6,7 @@ namespace App\Core\Service\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Service\PermitService;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
@@ -24,6 +25,7 @@ final readonly class CronScheduler
     public function __construct(
         private BackupServiceInterface $backupService,
         private ConfigInterface $config,
+        private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
     ) {
     }
@@ -58,7 +60,10 @@ final readonly class CronScheduler
 
             $lastRun = \file_exists($logPath) ? (int) \file_get_contents($logPath) : 0;
 
-            if (($now - $lastRun) >= 86400) {
+            // TODO Zeitspanne für BAckup/Cronjob in config auslagern
+            // FIX: 23 Stunden und 50 Minuten (85800 Sekunden) als Trigger.
+            // Verhindert das Überspringen von Tagen durch leichte Zeitverschiebungen!
+            if (($now - $lastRun) >= 85800) {
 
                 // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
                 $result = @\file_put_contents(
@@ -73,7 +78,7 @@ final readonly class CronScheduler
                 try {
                     $this->runForce();
                 } catch (\Throwable $t) {
-                    // Bei fatalem Abbruch den Zeitstempel zurücksetzen, damit der nächste Request es reparieren kann
+                    // Bei Fehler Rollback des Zeitstempels
                     $result = @\file_put_contents(
                         $logPath,
                         (string) $lastRun,
@@ -86,6 +91,7 @@ final readonly class CronScheduler
                     throw $t;
                 }
             }
+
             \flock($fp, \LOCK_UN);
             \fclose($fp);
         }
@@ -99,11 +105,14 @@ final readonly class CronScheduler
      */
     public function runForce(): void
     {
-        // 1. Auto-Archivierung
+        // 1. Abgelaufene Genehmigungen archivieren
         $graceDays = (int) $this->config->get('archive_grace_days', 0);
         $this->permitService->autoArchiveExpiredPermits($graceDays);
 
-        // 2. Auto-Backup prüfen (der BackupService hat intern noch eigene Timer-Logik)
+        // 2. DSGVO Anonymisierung täglich ausführen (Einträge > 10 Jahre)
+        $this->archiveRepository->anonymizeOldRecords(10);
+
+        // 3. Auto-Backups prüfen und ggf. rotieren
         $this->backupService->checkAutoBackup();
     }
 }
