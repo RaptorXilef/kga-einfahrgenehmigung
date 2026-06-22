@@ -2,6 +2,26 @@
 
 
 
+## [0.49.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.2...v0.49.3) (2026-06-22)
+
+### 🐛 Bug Fixes
+
+* **core:** cast array keys to string in PermitService to resolve type warnings ([79de918](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/79de91848c6ad1dae630a0d1bdb6b749f30f12dc))
+* **core:** ensure Value Objects are passed to entity constructors in PermitService ([03182b4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/03182b449160625a80a0b0cd955a3104f60101ad))
+* **storage,maintenance:** resolve Intelephense type warnings and ensure safe FQCN instantiations ([fcadc34](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fcadc3454ea8f6673c7e6d473350bf50bf44e676))
+
+### ⚙️ Refactoring
+
+* **actions:** extract procedural array logic into strictly typed DTOs ([f765938](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f765938f9ec331371088e71eb26a44ffda641618))
+* **core:** introduce Value Objects to mitigate primitive obsession ([242bbe8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/242bbe8367b4486246b4693c6d7c548aa7938f2e))
+* **core:** replace raw arrays with Domain Entities for MagicLink and MailLog ([e0849db](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e0849db6e08af4b38358b77598991981635e3e59))
+* **core:** replace raw arrays with Domain Entities for Vouchers and resolve Linter warnings ([0ba2b12](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0ba2b12aa98d789622d7e69ab5cf13e54905b49c))
+* **core:** replace raw arrays with Domain Entity for Pending Verifications ([31c631f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/31c631faec1d8775f877de49a70adbced3806454))
+* **maintenance:** depower MigrationService and delegate data import to repositories ([b4a4bc9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b4a4bc967666167842bd9d47301cff9abb2b414b))
+* **storage:** split GroupRepository into MySQL and JSON implementations ([97638e0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/97638e08618b41c1fd1f60eb311500df49c08373))
+* **storage:** split remaining repositories into MySQL and JSON implementations ([29b7b33](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29b7b33545d830c737a0e5d4f4caad4811bc9db7))
+* **storage:** split UserRepository into MySQL and JSON specific implementations ([5759408](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5759408f72821f363b352877e11a17fe05f1a4f4))
+
 ## [0.49.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.1...v0.49.2) (2026-06-21)
 
 ### 🐛 Bug Fixes
