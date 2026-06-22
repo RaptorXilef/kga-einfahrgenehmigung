@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\DTO\ViewRenderRequest;
+use App\Application\DTO\DashboardViewRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
@@ -49,30 +49,19 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $get = $request->get;
-        $dto = ViewRenderRequest::fromArray($get);
+        $paginationCfg = $this->config->get('pagination', []);
+        $dto           = DashboardViewRequest::fromRequest(
+            $request->get,
+            $this->sessionManager->getAdminFilters(),
+            $paginationCfg,
+        );
 
-        if (isset($get['reset_filters'])) {
+        if ($dto->resetFilters) {
             $this->sessionManager->clearAdminFilters();
         }
 
-        $sessionFilters = $this->sessionManager->getAdminFilters();
-        $filterStart    = (string) ($sessionFilters['start'] ?? $get['start'] ?? \date('Y-01-01'));
-        $filterEnd      = (string) ($sessionFilters['end'] ?? $get['end'] ?? \date('Y-12-31'));
-        $filterType     = (string) ($sessionFilters['type'] ?? $get['type'] ?? 'all');
-        $searchQuery    = \strtolower(\trim((string) ($sessionFilters['q'] ?? $get['q'] ?? '')));
-
-        $paginationCfg  = $this->config->get('pagination', []);
-        $allowedLimits  = $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100];
-        $defaultLimit   = (int) ($paginationCfg['default_limit'] ?? 25);
-        $requestedLimit = (int) ($sessionFilters['limit'] ?? $get['limit'] ?? $defaultLimit);
-        $itemsPerPage   = \in_array($requestedLimit, $allowedLimits, true) ? $requestedLimit : $defaultLimit;
-        $currentPage    = \max(1, (int) ($get['page'] ?? 1));
-
         $allPermits = $this->storage->getAll();
-
-        // Ausgelagert in den neuen PermitFilterService (SRP)
-        $filtered = $this->filterService->getFilteredPermits($filterStart, $filterEnd, $filterType, $searchQuery);
+        $filtered   = $this->filterService->getFilteredPermits($dto->start, $dto->end, $dto->type, $dto->query);
 
         $vouchers          = $this->voucherRepository->loadAll();
         $voucherValidities = [];
@@ -87,16 +76,16 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         $this->renderer->render('admin_dashboard', [
-            'allowedLimits'     => $allowedLimits,
+            'allowedLimits'     => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits'        => $allPermits,
             'auth'              => $this->auth,
             'backups'           => $this->backupService->listBackups(),
-            'currentPage'       => $currentPage,
-            'filterEnd'         => $filterEnd,
-            'filterStart'       => $filterStart,
-            'filterType'        => $filterType,
+            'currentPage'       => $dto->page,
+            'filterEnd'         => $dto->end,
+            'filterStart'       => $dto->start,
+            'filterType'        => $dto->type,
             'groupRepository'   => $this->groupRepository,
-            'itemsPerPage'      => $itemsPerPage,
+            'itemsPerPage'      => $dto->limit,
             'mailLogs'          => $this->mailLog->loadLogs(),
             'message'           => $dto->message,
             'overdueLevels'     => $overdueLevels,

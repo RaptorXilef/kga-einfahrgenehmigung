@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\ApiCheckUpdateRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
@@ -26,11 +27,12 @@ final readonly class SystemCheckUpdateAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $force          = isset($request->input['force']) && $request->input['force'] === true;
+            $dto = ApiCheckUpdateRequest::fromArray($request->input);
+
             $currentVersion = $this->sysInfo->getCurrentVersion();
 
             // Reicht das "force" Flag durch, um den 24h-Cache zu umgehen
-            $updateData = $this->updater->checkForUpdate($currentVersion, $force);
+            $updateData = $this->updater->checkForUpdate($currentVersion, $dto->force);
 
             return JsonResponse::success(['update_available' => $updateData !== null, 'data' => $updateData]);
         } catch (\Throwable $e) {
