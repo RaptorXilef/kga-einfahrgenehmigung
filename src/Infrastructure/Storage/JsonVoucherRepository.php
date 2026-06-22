@@ -54,4 +54,11 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
         $archive[]   = $archiveEntry;
         $this->writeJsonSafely($archivePath, $archive);
     }
+
+    public function importArchive(array $data): void
+    {
+        $cfg  = $this->config->get('storage_config')['vouchers_archive'];
+        $path = $this->config->getStoragePath($cfg['file']);
+        $this->writeJsonSafely($path, \array_values($data));
+    }
 }

@@ -88,4 +88,22 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
             'user_plot'   => $archiveEntry['user_plot'],
         ]);
     }
+
+    public function importArchive(array $data): void
+    {
+        $table = $this->config->get('storage_config')['vouchers_archive']['table'];
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare("REPLACE INTO `$table` (id,code,redeemed_at,user_name,user_plot) VALUES (?, ?, ?, ?, ?)");
+            foreach ($data as $id => $item) {
+                $stmt->execute([$id, $item['code'] ?? '', $item['redeemed_at'] ?? '', $item['user_name'] ?? '', $item['user_plot'] ?? '']);
+            }
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+
+            throw $e;
+        }
+    }
 }

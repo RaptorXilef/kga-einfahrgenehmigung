@@ -13,18 +13,25 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
-use App\Core\Entity\Group;
-use App\Core\Entity\User;
 use App\Core\Service\AuthService;
+use App\Infrastructure\Security\RateLimiter;
+use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonHelper;
+use App\Infrastructure\Storage\JsonMagicLinkRepository;
 use App\Infrastructure\Storage\JsonStorage;
+use App\Infrastructure\Storage\JsonUserRepository;
+use App\Infrastructure\Storage\JsonVerificationRepository;
+use App\Infrastructure\Storage\JsonVoucherRepository;
+use App\Infrastructure\Storage\MailQueueRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
+use App\Infrastructure\Storage\PermitArchiveRepository;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
+use App\Infrastructure\Utils\SystemClock;
 
 /**
  * Service für Daten-Migrationen, automatisierte Datensicherungen (Backups) und System-Recovery.
@@ -96,6 +103,7 @@ final readonly class MigrationService
                     'vouchers_archive',
                     'vouchers',
                 ];
+
                 $count = 0;
                 foreach ($targetsToMigrate as $t) {
                     match ($action) {
@@ -148,6 +156,7 @@ final readonly class MigrationService
 
         // 2. Daten aus dem Backup-Archiv abrufen
         $data = $this->backupService->getBackupData($timestamp, $target);
+
         if ($data === null) {
             return "Fehler: Keine gültige Backup-Datei für '$target' im Ordner $timestamp gefunden.";
         }
@@ -184,6 +193,7 @@ final readonly class MigrationService
 
         // 1. Deptrac Cache löschen
         $deptracCache = $root . '/.cache/deptrac/.deptrac.cache';
+
         if (\file_exists($deptracCache)) {
             \unlink($deptracCache);
         }
@@ -225,9 +235,11 @@ final readonly class MigrationService
             try {
                 $tableName     = $cfg['table'];
                 $allowedTables = \array_column($this->config->get('storage_config'), 'table');
+
                 if (! \in_array($tableName, $allowedTables, true)) {
                     throw new \RuntimeException('Sicherheitsabbruch: Tabellenname nicht in Config autorisiert.');
                 }
+
                 $this->pdo->exec("TRUNCATE TABLE `$tableName`");
                 $clearedIn[] = 'MySQL';
             } catch (\PDOException $e) {
@@ -275,6 +287,7 @@ final readonly class MigrationService
         }
 
         $data = $this->loadRawSql($target);
+
         if ($data === []) {
             return "Keine Daten in MySQL-Quelle für $target gefunden.";
         }
@@ -304,6 +317,7 @@ final readonly class MigrationService
         }
 
         $data = $this->loadRawJson($target);
+
         if ($data === []) {
             return "Keine Daten in JSON-Quelle für $target gefunden.";
         }
@@ -324,10 +338,9 @@ final readonly class MigrationService
     {
         // Bei Permits nutzen wir die Domain-Objekte für den sauberen Sync
         if ($target === 'permits') {
-            $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
-            $json = new JsonStorage($this->config->getStoragePath($file));
-            $sql  = new MySqlStorage($this->pdo);
-
+            $file        = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
+            $json        = new JsonStorage($this->config->getStoragePath($file));
+            $sql         = new MySqlStorage($this->pdo);
             $jsonPermits = $json->getAll();
             $sqlPermits  = $sql->getAll();
 
@@ -373,9 +386,11 @@ final readonly class MigrationService
     private function loadRawJson(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key] ?? null;
+
         if (! isset($cfg['file'])) {
             return [];
         }
+
         $path = $this->config->getStoragePath($cfg['file']);
 
         return JsonHelper::read($path);
@@ -392,6 +407,7 @@ final readonly class MigrationService
     private function loadRawSql(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
+
         if (! $this->pdo instanceof \PDO) {
             return [];
         }
@@ -403,7 +419,7 @@ final readonly class MigrationService
             $rows      = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             if (empty($rows)) {
-                \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
+                // \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
 
                 return [];
             }
@@ -454,9 +470,33 @@ final readonly class MigrationService
         return $res;
     }
 
-    // --- Private Data Savers & Hydrators ---
+    /**
+     * Routet Rohdaten an die zuständigen Service-Klassen zur korrekten SQL-Persistierung weiter.
+     * Nutzt einen generischen Fallback für Tabellen ohne spezifischen Service.
+     */
+    private function saveToSql(string $key, array $data): void
+    {
+        if (! $this->pdo instanceof \PDO) {
+            return;
+        }
 
-    // --- Helfer für direkten Zugriff ohne Rücksicht auf die aktuelle Config-Einstellung ---
+        match ($key) {
+            'groups'               => (new MySqlGroupRepository($this->pdo, $this->config))->import($data),
+            'users'                => (new MySqlUserRepository($this->pdo, $this->config))->import($data),
+            'login_attempts'       => (new RateLimiter($this->pdo, new SystemClock(), $this->config))->import($data, true),
+            'magic_links'          => (new MySqlMagicLinkRepository($this->pdo, $this->config))->saveAll($data, true),
+            'mail_log'             => $this->mailLog->saveLogs($data, true),
+            'mail_queue'           => (new MailQueueRepository($this->pdo, $this->config))->import($data, true),
+            'pending_verification' => (new MySqlVerificationRepository($this->pdo, $this->config))->savePending($data, true),
+            'permits'              => (new MySqlStorage($this->pdo))->import($data),
+            'permits_archive'      => (new PermitArchiveRepository($this->pdo, $this->config))->import($data),
+            'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, true),
+            'verified_pending'     => (new MySqlVerificationRepository($this->pdo, $this->config))->saveVerified($data, true),
+            'vouchers'             => (new MySqlVoucherRepository($this->pdo, $this->config))->saveAll($data, true),
+            'vouchers_archive'     => (new MySqlVoucherRepository($this->pdo, $this->config))->importArchive($data),
+            default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
+        };
+    }
 
     /**
      * Schreibt Daten-Arrays formatiert zurück in die physische JSON-Zieldatei.
@@ -467,193 +507,23 @@ final readonly class MigrationService
      */
     private function saveToJson(string $key, array $data): void
     {
-        $cfg = $this->config->get('storage_config')[$key] ?? null;
-        if (! isset($cfg['file'])) {
-            return;
-        }
-        $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
-        $path      = $this->config->getStoragePath($cfg['file']);
-        $this->writeJsonSafely($path, $data, $jsonFlags);
+        match ($key) {
+            'groups'               => (new JsonGroupRepository($this->config))->import($data),
+            'users'                => (new JsonUserRepository($this->config))->import($data),
+            'login_attempts'       => (new RateLimiter($this->pdo, new SystemClock(), $this->config))->import($data, false),
+            'magic_links'          => (new JsonMagicLinkRepository($this->config))->saveAll($data, false),
+            'mail_log'             => $this->mailLog->saveLogs($data, false),
+            'mail_queue'           => (new MailQueueRepository($this->pdo, $this->config))->import($data, false),
+            'pending_verification' => (new JsonVerificationRepository($this->config))->savePending($data, false),
+            'permits'              => (new JsonStorage($this->config->getStoragePath($this->config->get('storage_config')['permits']['file'] ?? 'permits.json')))->import($data),
+            'permits_archive'      => (new PermitArchiveRepository($this->pdo, $this->config))->import($data),
+            'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, false),
+            'verified_pending'     => (new JsonVerificationRepository($this->config))->saveVerified($data, false),
+            'vouchers'             => (new JsonVoucherRepository($this->config))->saveAll($data, false),
+            'vouchers_archive'     => (new JsonVoucherRepository($this->config))->importArchive($data),
+            default                => throw new \InvalidArgumentException("Kein JSON-Mapper für Speicherbereich '$key' definiert.")
+        };
     }
-
-    /**
-     * Routet Rohdaten an die zuständigen Service-Klassen zur korrekten SQL-Persistierung weiter.
-     * Nutzt einen generischen Fallback für Tabellen ohne spezifischen Service.
-     */
-    private function saveToSql(string $key, array $data): void
-    {
-        if ($key === 'groups') {
-            $objects = [];
-            foreach ($data as $id => $row) {
-                $objects[$id] = new Group((string) $id, $row['name'] ?? '', $row['permissions'] ?? []);
-            }
-            // TEMPORÄRER FIX FÜR PHASE 1: Harte SQL-Bindung für Migrationen
-            if ($this->pdo instanceof \PDO) {
-                (new MySqlGroupRepository($this->pdo, $this->config))->saveAll($objects);
-            }
-
-            return;
-        }
-
-        if ($key === 'users') {
-            $objects = [];
-            foreach ($data as $id => $row) {
-                $objects[$id] = new User((string) $id, $row['username'] ?? '', $row['group'] ?? 'guest', $row['pass'] ?? '');
-            }
-            // TEMPORÄRER FIX FÜR PHASE 1
-            if ($this->pdo instanceof \PDO) {
-                (new MySqlUserRepository($this->pdo, $this->config))->saveAll($objects);
-            }
-
-            return;
-        }
-
-        if ($this->pdo instanceof \PDO) {
-            match ($key) {
-                'login_attempts'       => $this->migrateLoginAttemptsToSql($data),
-                'magic_links'          => (new MySqlMagicLinkRepository($this->pdo, $this->config))->saveAll($data),
-                'mail_log'             => $this->mailLog->saveLogs($data, true),
-                'mail_queue'           => $this->migrateMailQueueToSql($data),
-                'pending_verification' => (new MySqlVerificationRepository($this->pdo, $this->config))->savePending($data),
-                'permits_archive'      => $this->migratePermitsArchiveToSql($data),
-                'permits'              => $this->migratePermitsToSql($data),
-                'update_migrations'    => $this->migrateUpdateMigrationsToSql($data),
-                'verified_pending'     => (new MySqlVerificationRepository($this->pdo, $this->config))->saveVerified($data),
-                'vouchers_archive'     => $this->migrateVouchersArchiveToSql($data),
-                'vouchers'             => (new MySqlVoucherRepository($this->pdo, $this->config))->saveAll($data),
-                default                => throw new \InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
-            };
-        }
-    }
-
-    // Kleine Hilfsmethoden, um saveToSql sauber zu halten:
-
-    /**
-     * Hilfsmethode zur spezifischen SQL-Hydrierung und Speicherung von Genehmigungs-Entitäten.
-     *
-     * @param array<int, array<string, mixed>> $data
-     */
-    private function migratePermitsToSql(array $data): void
-    {
-        if (! $this->pdo instanceof \PDO) {
-            return;
-        }
-        $storage = new MySqlStorage($this->pdo);
-        foreach ($data as $key => $item) {
-            // Falls das Array assoziativ ist (Key=Code), nutze $item
-            // Wir müssen sicherstellen, dass 'code' im Item gesetzt ist
-            if (! isset($item['code'])) {
-                $item['code'] = $key;
-            }
-            $storage->save($this->storage->mapToEntity($item));
-        }
-    }
-
-    /**
-     * Hilfsmethode zur spezifischen SQL-Hydrierung und Speicherung von Archiv-Entitäten.
-     *
-     * @param array<int, array<string, mixed>> $data
-     */
-    private function migratePermitsArchiveToSql(array $data): void
-    {
-        $objects = [];
-        foreach ($data as $key => $item) {
-            if (! isset($item['code'])) {
-                $item['code'] = $key;
-            }
-            // Hier passiert die Magie: Das Array wird in ein Permit-Objekt umgewandelt!
-            $objects[] = $this->storage->mapToEntity($item);
-        }
-        $this->archiveRepository->archivePermits(0, $objects);
-    }
-
-    /**
-     * Migriert den Protokoll-Verlauf ausgeführter System-Updates in die MySQL-Datenbank.
-     *
-     * @param array<int|string, array<string, mixed>> $data Rohdaten der bisherigen Updates.
-     */
-    private function migrateUpdateMigrationsToSql(array $data): void
-    {
-        if (! $this->pdo instanceof \PDO) {
-            return;
-        }
-        $table = $this->config->get('storage_config')['update_migrations']['table'];
-        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (id, version, executed_at) VALUES (?, ?, ?)");
-        foreach ($data as $id => $item) {
-            $stmt->execute([
-                $id,
-                $item['version'] ?? '',
-                $item['executed_at'] ?? '',
-            ]);
-        }
-    }
-
-    /**
-     * Migriert das Gutschein-Archiv (Vouchers) in die MySQL-Datenbank.
-     *
-     * @param array<int|string, array<string, mixed>> $data Rohdaten aus der Quelle.
-     */
-    private function migrateVouchersArchiveToSql(array $data): void
-    {
-        if (! $this->pdo instanceof \PDO) {
-            return;
-        }
-        $table = $this->config->get('storage_config')['vouchers_archive']['table'];
-        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (
-            id,
-            code,
-            redeemed_at,
-            user_name,
-            user_plot
-        ) VALUES (?, ?, ?, ?, ?)");
-
-        foreach ($data as $id => $item) {
-            $stmt->execute([
-                $id,
-                $item['code'] ?? '',
-                $item['redeemed_at'] ?? '',
-                $item['user_name'] ?? '',
-                $item['user_plot'] ?? '',
-            ]);
-        }
-    }
-
-    /**
-     * Migriert die E-Mail-Warteschlange (Mail Queue) in die MySQL-Datenbank.
-     *
-     * @param array<int|string, array<string, mixed>> $data Rohdaten aus der Quelle.
-     */
-    private function migrateMailQueueToSql(array $data): void
-    {
-        if (! $this->pdo instanceof \PDO) {
-            return;
-        }
-        $table = $this->config->get('storage_config')['mail_queue']['table'];
-        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (
-            id,
-            recipient,
-            subject,
-            template,
-            data,
-            attempts,
-            created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)");
-
-        foreach ($data as $id => $item) {
-            $payload = $item['data'] ?? [];
-            $stmt->execute([
-                $id,
-                $item['recipient'] ?? '',
-                $item['subject'] ?? '',
-                $item['template'] ?? '',
-                \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
-                (int) ($item['attempts'] ?? 0),
-                $item['created_at'] ?? '',
-            ]);
-        }
-    }
-
-    // --- Private Utilities ---
 
     /**
      * Ermittelt den Namen der Primärschlüssel-Spalte (ID) für einen bestimmten Speicherbereich.
@@ -664,7 +534,6 @@ final readonly class MigrationService
      */
     private function getIdFieldForKey(string $key): string
     {
-        // [x] Sortiert
         return match ($key) {
             'groups'               => 'id',
             'mail_log'             => 'id',
@@ -679,22 +548,5 @@ final readonly class MigrationService
             'permits'              => 'code',
             default                => 'code'
         };
-    }
-
-    private function migrateLoginAttemptsToSql(array $data): void
-    {
-        if (! $this->pdo instanceof \PDO) {
-            return;
-        }
-        $table = $this->config->get('storage_config')['login_attempts']['table'];
-        $stmt  = $this->pdo->prepare("REPLACE INTO `$table` (ip_address, attempts, last_attempt) VALUES (?, ?, ?)");
-
-        foreach ($data as $ip => $item) {
-            $stmt->execute([
-                $ip,
-                (int) ($item['attempts'] ?? 0),
-                $item['last_attempt'] ?? '',
-            ]);
-        }
     }
 }

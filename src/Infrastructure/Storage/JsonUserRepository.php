@@ -70,4 +70,13 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
         $path = $this->config->getStoragePath($cfg['file']);
         $this->writeJsonSafely($path, $dataToSave);
     }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $id => $row) {
+            $objects[$id] = new User((string) $id, $row['username'] ?? '', $row['group'] ?? 'guest', $row['pass'] ?? '');
+        }
+        $this->saveAll($objects);
+    }
 }

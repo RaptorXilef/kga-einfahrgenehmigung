@@ -168,4 +168,16 @@ final readonly class PermitArchiveRepository implements PermitArchiveRepositoryI
 
         return $anonymizedCount;
     }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $key => $item) {
+            if (! isset($item['code'])) {
+                $item['code'] = $key;
+            }
+            $objects[] = $this->mapToEntity($item);
+        }
+        $this->archivePermits(0, $objects);
+    }
 }

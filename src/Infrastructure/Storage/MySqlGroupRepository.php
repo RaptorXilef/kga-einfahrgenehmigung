@@ -69,4 +69,13 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
             throw $e;
         }
     }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $id => $row) {
+            $objects[$id] = new Group((string) $id, $row['name'] ?? '', $row['permissions'] ?? []);
+        }
+        $this->saveAll($objects);
+    }
 }

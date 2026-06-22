@@ -157,4 +157,28 @@ final readonly class RateLimiter implements RateLimiterInterface
             return false;
         });
     }
+
+    public function import(array $data, bool $forceSql = false): void
+    {
+        $cfg    = $this->config->get('storage_config')['login_attempts'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+        if ($useSql && $this->pdo instanceof \PDO) {
+            $this->pdo->beginTransaction();
+
+            try {
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (ip_address, attempts, last_attempt) VALUES (?, ?, ?)");
+                foreach ($data as $ip => $item) {
+                    $stmt->execute([$ip, (int) ($item['attempts'] ?? 0), $item['last_attempt'] ?? '']);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
+
+                throw $e;
+            }
+        } elseif (! $forceSql) {
+            $path = $this->config->getStoragePath($cfg['file']);
+            \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
+        }
+    }
 }

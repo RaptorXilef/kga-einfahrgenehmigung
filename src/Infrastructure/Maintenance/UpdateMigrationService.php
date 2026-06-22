@@ -149,4 +149,28 @@ final readonly class UpdateMigrationService
         ];
         $this->writeJsonSafely($path, $data);
     }
+
+    public function import(array $data, bool $forceSql = false): void
+    {
+        $cfg    = $this->config->get('storage_config')['update_migrations'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+        if ($useSql && $this->pdo instanceof \PDO) {
+            $this->pdo->beginTransaction();
+
+            try {
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id, version, executed_at) VALUES (?, ?, ?)");
+                foreach ($data as $id => $item) {
+                    $stmt->execute([$id, $item['version'] ?? '', $item['executed_at'] ?? '']);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
+
+                throw $e;
+            }
+        } elseif (! $forceSql) {
+            $path = $this->config->getStoragePath($cfg['file']);
+            $this->writeJsonSafely($path, \array_values($data));
+        }
+    }
 }

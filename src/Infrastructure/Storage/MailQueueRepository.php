@@ -143,4 +143,33 @@ final readonly class MailQueueRepository implements MailQueueRepositoryInterface
 
         return $sentCount;
     }
+
+    public function import(array $data, bool $forceSql = false): void
+    {
+        $cfg    = $this->config->get('storage_config')['mail_queue'];
+        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+        if ($useSql && $this->pdo instanceof \PDO) {
+            $this->pdo->beginTransaction();
+
+            try {
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,recipient,subject,template,data,attempts,created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data as $id => $item) {
+                    $payload = $item['data'] ?? [];
+                    $stmt->execute([
+                        $id, $item['recipient'] ?? '', $item['subject'] ?? '', $item['template'] ?? '',
+                        \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
+                        (int) ($item['attempts'] ?? 0), $item['created_at'] ?? '',
+                    ]);
+                }
+                $this->pdo->commit();
+            } catch (\Exception $e) {
+                $this->pdo->rollBack();
+
+                throw $e;
+            }
+        } elseif (! $forceSql) {
+            $path = $this->config->getStoragePath($cfg['file']);
+            $this->writeJsonSafely($path, \array_values($data));
+        }
+    }
 }

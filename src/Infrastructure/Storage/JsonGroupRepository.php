@@ -66,4 +66,13 @@ final readonly class JsonGroupRepository implements GroupRepositoryInterface
         $path = $this->config->getStoragePath($cfg['file']);
         $this->writeJsonSafely($path, $dataToSave);
     }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $id => $row) {
+            $objects[$id] = new Group((string) $id, $row['name'] ?? '', $row['permissions'] ?? []);
+        }
+        $this->saveAll($objects);
+    }
 }
