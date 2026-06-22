@@ -20,7 +20,9 @@ use App\Core\Entity\Vehicle;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Utils\DateRangeHelper;
+use App\Core\ValueObject\EmailAddress;
 use App\Core\ValueObject\LicensePlate;
+use App\Core\ValueObject\PlotNumber;
 use App\Infrastructure\Storage\JsonHelper;
 
 /**
@@ -267,12 +269,12 @@ final readonly class PermitService
             template_key: $tKey,
             owner: new Owner(
                 \strip_tags((string) $data->name),
-                (string) $data->email,
-                \str_pad((string) $data->parzelle, 4, '0', \STR_PAD_LEFT),
+                new EmailAddress((string) $data->email),
+                new PlotNumber((string) $data->parzelle),
             ),
             vehicle: new Vehicle(
                 $typ,
-                $displayPlate,
+                $plateVO,
                 $data->firma ? \strip_tags((string) $data->firma) : null,
             ),
             validity: new Validity($startDate, $endDate, $preis, $zweck),
