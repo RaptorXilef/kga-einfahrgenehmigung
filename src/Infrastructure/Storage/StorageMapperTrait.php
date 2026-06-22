@@ -9,6 +9,9 @@ use App\Core\Entity\Permit;
 use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
+use App\Core\ValueObject\EmailAddress;
+use App\Core\ValueObject\LicensePlate;
+use App\Core\ValueObject\PlotNumber;
 
 /**
  * Trait für die bidirektionale Transformation zwischen Objekten und relationalen Arrays.
@@ -83,12 +86,12 @@ trait StorageMapperTrait
             template_key: (string) $tKey,
             owner: new Owner(
                 $name,
-                (string) ($item['email'] ?? ''),
-                \str_pad((string) ($item['parzelle'] ?? '0'), 4, '0', \STR_PAD_LEFT),
+                new EmailAddress((string) ($item['email'] ?? '')),
+                new PlotNumber((string) ($item['parzelle'] ?? '0')),
             ),
             vehicle: new Vehicle(
                 (string) ($item['typ'] ?? 'pkw'),
-                (string) ($item['kennzeichen'] ?? ''),
+                new LicensePlate((string) ($item['kennzeichen'] ?? '')),
                 $item['firma'] ?? null,
             ),
             validity: new Validity(
@@ -126,10 +129,10 @@ trait StorageMapperTrait
             'code'               => $permit->code,
             'template_key'       => $permit->template_key,
             'name'               => $permit->getOwnerName(),
-            'email'              => $permit->getOwnerEmail(),
-            'parzelle'           => $permit->getPlotNumber(),
-            'typ'                => $permit->getVehicleType(),
-            'kennzeichen'        => $permit->getLicensePlate(),
+            'email'              => $permit->owner->email->value,
+            'parzelle'           => $permit->owner->parzelle->value,
+            'typ'                => $permit->vehicle->typ,
+            'kennzeichen'        => $permit->vehicle->kennzeichen->value,
             'firma'              => $permit->getCompany(),
             'von'                => $permit->getValidFrom()->format('Y-m-d'),
             'bis'                => $permit->getValidUntil()->format('Y-m-d'),

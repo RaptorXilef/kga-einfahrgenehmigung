@@ -99,13 +99,13 @@ final readonly class Permit
     // TODO DOCBLOCK
     public function getOwnerEmail(): string
     {
-        return $this->owner->email;
+        return $this->owner->email->value;
     }
 
     // TODO DOCBLOCK
     public function getPlotNumber(): string
     {
-        return $this->owner->parzelle;
+        return $this->owner->parzelle->value;
     }
 
     // --- Vehicle Delegation ---
@@ -118,7 +118,7 @@ final readonly class Permit
     // TODO DOCBLOCK
     public function getLicensePlate(): string
     {
-        return $this->vehicle->kennzeichen;
+        return $this->vehicle->kennzeichen->value;
     }
 
     // TODO DOCBLOCK
@@ -178,9 +178,9 @@ final readonly class Permit
         $searchString = \strtolower(
             $this->code . ' ' .
             $this->owner->name . ' ' .
-            $this->owner->email . ' ' .
-            $this->vehicle->kennzeichen . ' ' .
-            $this->owner->parzelle . ' ' .
+            $this->owner->email->value . ' ' .
+            $this->vehicle->kennzeichen->value . ' ' .
+            $this->owner->parzelle->value . ' ' .
             $this->validity->zweck,
         );
 

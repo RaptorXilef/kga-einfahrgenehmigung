@@ -2,40 +2,42 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Core\ValueObject;
 
 /**
- * Service zur Formatierung und Normalisierung von deutschen KFZ-Kennzeichen.
+ * TODO DOCBLOCK
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class LicensePlateFormatter
+final readonly class LicensePlate
 {
-    /**
-     * Formatiert und normalisiert rohe Kennzeichen-Eingaben in ein standardisiertes, deutsches Kennzeichenformat.
-     * Bereinigt Sonderzeichen, trennt Ortskennungen per Bindestrich ab und setzt Leerzeichen vor die Erkennungsnummer
-     * (inkl. Berücksichtigung von E- und H-Kennzeichen sowie Sonderregeln für Berlin 'B').
-     *
-     * Formatiert Kennzeichen (z.B. BHD7398 -> B-HD 7398).
-     * Erkennt manuelle Bindestriche und unterstützt 4-er Blöcke (LL-LL).
-     * Unterstützt jetzt auch E- und H-Zusätze am Ende.
-     *
-     * @param string $plate Die rohe Benutzereingabe (z.B. "b-mw1234e" oder "M  XY 999").
-     *
-     * @return string Das sauber formatierte Kennzeichen (z.B. "B-MW 1234E" oder "M-XY 999").
-     */
-    public function format(string $plate): string
+    public string $value;
+
+    public function __construct(string $plate)
+    {
+        $this->value = $this->format($plate);
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
+    }
+
+    public function getCleanForSearch(): string
+    {
+        return \preg_replace('/[^A-Z0-9]/', '', \strtoupper($this->value)) ?? '';
+    }
+
+    private function format(string $plate): string
     {
         $original = \trim(\strtoupper($plate));
         if ($original === '') {
             return '';
         }
-
         // 1. Wenn der Nutzer bereits ein Minus gesetzt hat -> Automatik deaktivieren
         if (\str_contains($original, '-')) {
             return (string) \preg_replace('/([A-Z])(\d)/', '$1 $2', $original);
         }
-
         // 2. Komplettreinigung für die Automatik
         $val = (string) \preg_replace('/[^A-Z0-9]/', '', $original);
 

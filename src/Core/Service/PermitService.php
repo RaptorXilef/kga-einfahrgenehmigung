@@ -20,6 +20,7 @@ use App\Core\Entity\Vehicle;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Utils\DateRangeHelper;
+use App\Core\ValueObject\LicensePlate;
 use App\Infrastructure\Storage\JsonHelper;
 
 /**
@@ -37,7 +38,6 @@ final readonly class PermitService
         private ClockInterface $clock,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
-        private LicensePlateFormatter $plateFormatter,
         private LockManagerInterface $lockManager,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private StorageInterface $storage,
@@ -240,7 +240,8 @@ final readonly class PermitService
 
         do {
             $randomId        = $this->generateV4Suffix();
-            $displayPlate    = $this->plateFormatter->format((string) $data->kennzeichen);
+            $plateVO         = new LicensePlate((string) $data->kennzeichen);
+            $displayPlate    = $plateVO->value;
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
             $platePart       = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
             $useLongCode     = (bool) $this->config->get('use_long_permit_code', false);
