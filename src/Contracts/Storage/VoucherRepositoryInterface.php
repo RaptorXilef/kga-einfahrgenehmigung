@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contracts\Storage;
 
+use App\Core\Entity\Voucher;
+
 /**
  * Interface für das Speicher-Repository von Gutscheinen.
  * Verwaltet aktive Gutscheincodes sowie das Historien-Archiv bereits eingelöster Codes.
@@ -15,15 +17,15 @@ interface VoucherRepositoryInterface
     /**
      * Lädt alle aktiven Gutscheine.
      *
-     * @return array<string, array<string, mixed>> Aktive Gutscheine.
+     * @return Voucher[]
      */
     public function loadAll(): array;
 
     /**
      * Speichert die aktiven Gutscheine.
      *
-     * @param array<string, array<string, mixed>> $vouchers Die Gutscheindaten.
-     * @param bool                                $forceSql Erzwingt das Speichern in MySQL.
+     * @param Voucher[] $vouchers
+     * @param bool      $forceSql Erzwingt das Speichern in MySQL.
      */
     public function saveAll(array $vouchers, bool $forceSql = false): void;
 
@@ -40,4 +42,8 @@ interface VoucherRepositoryInterface
      * @param array<string, mixed> $archiveEntry Der hinzuzufügende Datensatz.
      */
     public function appendToArchive(array $archiveEntry): void;
+
+    public function import(array $data): void;
+
+    public function importArchive(array $data): void;
 }

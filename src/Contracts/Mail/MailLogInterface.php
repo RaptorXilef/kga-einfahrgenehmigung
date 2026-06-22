@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contracts\Mail;
 
+use App\Core\Entity\MailLogEntry;
+
 /**
  * TODO DOCBLOCK
  *
@@ -11,9 +13,15 @@ namespace App\Contracts\Mail;
  */
 interface MailLogInterface
 {
-    // TODO DOCBLOCK
+    /**
+     * @return MailLogEntry[]
+     */
     public function loadLogs(): array;
 
-    // TODO DOCBLOCK
+    /**
+     * @param MailLogEntry[] $logs
+     */
     public function saveLogs(array $logs, bool $forceSql = false): void;
+
+    public function importLogs(array $data, bool $forceSql = false): void;
 }

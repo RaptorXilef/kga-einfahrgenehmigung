@@ -6,6 +6,7 @@ namespace App\Core\Service;
 
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\Core\Entity\Voucher;
 
 /**
  * Service zur Verwaltung von Gutscheincodes und Rabatten.
@@ -88,23 +89,24 @@ final readonly class VoucherService
             } while (\in_array($newGeneratedCode, $alreadyUsedCodes, true));
         }
 
-        // [x] sortiert
-        $activeVouchers[$newGeneratedCode] = [
-            'code'         => $newGeneratedCode,
-            'created_at'   => $this->clock->nowAsString(),
-            'created_by'   => $created_by,
-            'data'         => $prefillData,
-            'date_mode'    => $date_mode,
-            'expires_at'   => $expires_at,
-            'max_uses'     => $max_uses,
-            'multi_use'    => $multi_use,
-            'reason'       => $reason,
-            'template_key' => $template_key,
-            'type'         => $type,
-            'uses_count'   => 0,
-            'value'        => $value,
-        ];
+        $voucher = new Voucher(
+            $newGeneratedCode,
+            $reason,
+            $template_key,
+            $type,
+            $value,
+            $multi_use,
+            $max_uses ?? 1,
+            0,
+            $expires_at ? new \DateTimeImmutable($expires_at) : null,
+            $date_mode,
+            $created_by,
+            clone $this->clock->now(),
+            'aktiv',
+            $prefillData,
+        );
 
+        $activeVouchers[$newGeneratedCode] = $voucher;
         $this->repository->saveAll($activeVouchers);
 
         return $newGeneratedCode;
@@ -115,87 +117,48 @@ final readonly class VoucherService
      *
      * Prüft, ob ein gegebener Gutschein aktuell gültig ist (Verfallsdatum, Status & Nutzungen).
      *
-     * @param array<string, mixed> $voucher Das Gutschein-Daten-Array.
-     *
      * @return bool True, wenn der Gutschein noch eingelöst werden kann.
      */
-    public function isValid(array $voucher): bool
+    public function isValid(Voucher $voucher): bool
     {
-        // 1. Check: Administrativ deaktiviert?
-        if (($voucher['status'] ?? 'aktiv') === 'deaktiviert') {
-            return false;
-        }
-
-        // 2. Check: Ablaufdatum überschritten?
-        if (! empty($voucher['expires_at'])) {
-            try {
-                $expiry = new \DateTimeImmutable($voucher['expires_at']);
-                if ($expiry < $this->clock->now()) {
-                    return false;
-                }
-            } catch (\Exception) {
-                // Bei korruptem Datumsformat lieber ungültig
-                return false;
-            }
-        }
-
-        // 3. Check: Nutzungslimit erreicht? (Zusatz-Sicherheit für die Anzeige)
-        $multi = (bool) ($voucher['multi_use'] ?? false);
-        $max   = (int) ($voucher['max_uses'] ?? 1);
-        $count = (int) ($voucher['uses_count'] ?? 0);
-
-        return ! $multi || $max <= 0 || $count < $max;
+        return $voucher->isValid($this->clock->now());
     }
 
     /**
      * Schritt 3: Code einlösen, Zähler hochsetzen, ins Archiv loggen
      *
      * Löst einen Gutschein ein, inkrementiert den Zähler und verschiebt ihn bei Erschöpfung ins Archiv.
-     *
-     * @param string               $code     Der einzulösende Gutscheincode.
-     * @param array<string, mixed> $userData Daten des Nutzers für das Archiv (Name, Parzelle, E-Mail).
-     *
-     * @return array<string, mixed>|null Die Daten des Gutscheins bei Erfolg, sonst null.
      */
-    public function useVoucher(string $code, array $userData = []): ?array
+    public function useVoucher(string $code, array $userData = []): ?Voucher
     {
         $vouchers = $this->repository->loadAll();
         if (! isset($vouchers[$code])) {
             return null;
         }
 
-        $voucher = &$vouchers[$code];
-        ++$voucher['uses_count'];
+        $voucher  = $vouchers[$code];
+        $redeemed = $voucher->redeem();
 
         // --- ARCHIV-LOGIK VIA CONFIG ---
         $this->repository->appendToArchive([
             'code'        => $code,
-            'reason'      => $voucher['reason'],
-            'template'    => $voucher['template_key'],
+            'reason'      => $redeemed->reason,
+            'template'    => $redeemed->templateKey,
             'redeemed_at' => $this->clock->nowAsString(),
             'user_name'   => $userData['name'] ?? 'Unbekannt',
             'user_plot'   => $userData['parzelle'] ?? '?',
             'user_email'  => $userData['email'] ?? '?',
         ]);
 
-        // Lösch-Logik für den aktiven Gutschein
-        $shouldDelete = ! ($voucher['multi_use'] ?? false);
-        if (
-            ($voucher['multi_use'] ?? false)
-            && (int) $voucher['max_uses'] > 0
-            && $voucher['uses_count'] >= $voucher['max_uses']
-        ) {
-            $shouldDelete = true;
-        }
-
-        if ($shouldDelete) {
-            // Aus aktiven Gutscheinen löschen
+        if (! $redeemed->multiUse || $redeemed->isDepleted()) {
             unset($vouchers[$code]);
+        } else {
+            $vouchers[$code] = $redeemed;
         }
 
         $this->repository->saveAll($vouchers);
 
-        return $voucher;
+        return $redeemed;
     }
 
     // --- Administrative Management ---
@@ -217,32 +180,7 @@ final readonly class VoucherService
             return false;
         }
 
-        $vouchers[$code]['status'] = $status;
-        $this->repository->saveAll($vouchers);
-
-        return true;
-    }
-
-    /**
-     * Gutschein vorzeitig mit Begründung sperren
-     *
-     * Deaktiviert (Sperrt) einen aktiven Gutschein vorzeitig unter Angabe einer Begründung.
-     *
-     * @param string $code   Der zu deaktivierende Gutscheincode.
-     * @param string $reason Die Begründung für die Deaktivierung.
-     *
-     * @return bool True bei Erfolg, false wenn der Code nicht gefunden wurde.
-     */
-    public function deactivateVoucher(string $code, string $reason): bool
-    {
-        $vouchers = $this->repository->loadAll();
-        if (! isset($vouchers[$code])) {
-            return false;
-        }
-
-        $vouchers[$code]['status'] = 'deaktiviert';
-        $vouchers[$code]['note']   = $reason;
-
+        $vouchers[$code] = $vouchers[$code]->withStatus($status);
         $this->repository->saveAll($vouchers);
 
         return true;

@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Core\Entity\Voucher;
 
 /**
  * TODO DOCBLOCK
@@ -26,9 +27,26 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
         $stmt     = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         $vouchers = [];
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $r['data'] = \is_string($r['data']) ? JsonHelper::decode($r['data']) : $r['data'];
-            $r['data'] ??= [];
-            $vouchers[$r['code']] = $r;
+            $data    = \is_string($r['data']) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []);
+            $expires = $r['expires_at'] ? new \DateTimeImmutable($r['expires_at']) : null;
+            $created = $r['created_at'] ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
+
+            $vouchers[$r['code']] = new Voucher(
+                $r['code'],
+                $r['reason'],
+                $r['template_key'],
+                $r['type'],
+                (float) $r['value'],
+                (bool) $r['multi_use'],
+                (int) $r['max_uses'],
+                (int) $r['uses_count'],
+                $expires,
+                $r['date_mode'],
+                $r['created_by'],
+                $created,
+                $r['status'],
+                $data,
+            );
         }
 
         return $vouchers;
@@ -45,20 +63,20 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
             $stmt = $this->pdo->prepare($sql);
             foreach ($vouchers as $v) {
                 $stmt->execute([
-                    'code'         => $v['code'] ?? '',
-                    'reason'       => $v['reason'] ?? '',
-                    'template_key' => $v['template_key'] ?? 'std_7',
-                    'type'         => $v['type'] ?? 'free',
-                    'value'        => (float) ($v['value'] ?? 0.0),
-                    'multi_use'    => (int) ($v['multi_use'] ?? 0),
-                    'max_uses'     => (int) ($v['max_uses'] ?? 1),
-                    'uses_count'   => (int) ($v['uses_count'] ?? 0),
-                    'expires_at'   => $v['expires_at'] ?? null,
-                    'date_mode'    => $v['date_mode'] ?? 'fixed',
-                    'created_by'   => $v['created_by'] ?? '',
-                    'created_at'   => $v['created_at'] ?? APP_REQUEST_TIME_STR,
-                    'status'       => $v['status'] ?? 'aktiv',
-                    'data'         => \is_array($v['data'] ?? null) ? \json_encode($v['data'], \JSON_UNESCAPED_UNICODE) : '{}',
+                    'code'         => $v->code,
+                    'reason'       => $v->reason,
+                    'template_key' => $v->templateKey,
+                    'type'         => $v->type,
+                    'value'        => $v->value,
+                    'multi_use'    => (int) $v->multiUse,
+                    'max_uses'     => $v->maxUses,
+                    'uses_count'   => $v->usesCount,
+                    'expires_at'   => $v->expiresAt?->format('Y-m-d H:i:s'),
+                    'date_mode'    => $v->dateMode,
+                    'created_by'   => $v->createdBy,
+                    'created_at'   => $v->createdAt->format('Y-m-d H:i:s'),
+                    'status'       => $v->status,
+                    'data'         => \json_encode($v->data, \JSON_UNESCAPED_UNICODE),
                 ]);
             }
             $this->pdo->commit();
@@ -80,13 +98,40 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
     {
         $arcCfg = $this->config->get('storage_config')['vouchers_archive'];
         $sql    = "INSERT INTO `{$arcCfg['table']}` (code, redeemed_at, user_name, user_plot) VALUES (:code, :redeemed_at, :user_name, :user_plot)";
-        $stmt   = $this->pdo->prepare($sql);
-        $stmt->execute([
+        $this->pdo->prepare($sql)->execute([
             'code'        => $archiveEntry['code'],
             'redeemed_at' => $archiveEntry['redeemed_at'],
             'user_name'   => $archiveEntry['user_name'],
             'user_plot'   => $archiveEntry['user_plot'],
         ]);
+    }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $code => $r) {
+            $payload = \is_string($r['data'] ?? []) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []);
+            $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
+            $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
+
+            $objects[$code] = new Voucher(
+                (string) $code,
+                $r['reason'] ?? '',
+                $r['template_key'] ?? 'std_7',
+                $r['type'] ?? 'free',
+                (float) ($r['value'] ?? 0),
+                (bool) ($r['multi_use'] ?? false),
+                (int) ($r['max_uses'] ?? 1),
+                (int) ($r['uses_count'] ?? 0),
+                $expires,
+                $r['date_mode'] ?? 'fixed',
+                $r['created_by'] ?? '',
+                $created,
+                $r['status'] ?? 'aktiv',
+                $payload,
+            );
+        }
+        $this->saveAll($objects, true);
     }
 
     public function importArchive(array $data): void

@@ -52,17 +52,16 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 
                 if ($v && $this->voucherService->isValid($v)) {
                     $this->rateLimiter->clearAttempts($request->getIp());
-                    $finalPrice = $this->permitService->calculateDiscountedPrice($originalPrice, $v);
-
-                    $discountText = match ($v['type']) {
+                    $finalPrice   = $this->permitService->calculateDiscountedPrice($originalPrice, $v);
+                    $discountText = match ($v->type) {
                         'fixed'   => 'Sonderpreis aktiviert',
                         'free'    => '100% Rabatt (Kostenlos)',
-                        'percent' => (float) $v['value'] . '% Rabatt',
+                        'percent' => $v->value . '% Rabatt',
                         default   => ''
                     };
                 } else {
                     $this->rateLimiter->recordFailedAttempt($request->getIp());
-                    $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
+                    $isDeactivated = $v ? $v->isDeactivated() : false;
                     $discountText  = $v ? ($isDeactivated ? 'Code gesperrt' : 'Code abgelaufen') : 'Ungültiger Code';
                 }
             }

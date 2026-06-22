@@ -55,26 +55,16 @@
                                         </td>
                                     </tr>
                                 <?php } else { ?>
-                                    <?php foreach ($activeVouchers as $v) {
-                                        $url = $config->getBaseUrl() . 'index.php?voucher=' . $v['code'];
-
-                                        // NUTZE DEN SERVICE (Zentralisierte Logik für Sperre, Ablauf und Limits)
-                                        $isValid       = $voucherValidities[$v['code']] ?? false;
-                                        $isDeactivated = ($v['status'] ?? 'aktiv') === 'deaktiviert';
-
-                                        // Ablaufdatum prüfen
-                                        $isExpired = false;
-                                        if (! empty($v['expires_at'])) {
-                                            $expiryDate = new \DateTimeImmutable($v['expires_at']);
-                                            $isExpired  = $expiryDate < new \DateTimeImmutable();
-                                        }
-
-                                        // Rabatt-Text bauen
-                                        $discountText = 'Kostenlos';
-                                        if (($v['type'] ?? 'free') === 'percent') {
-                                            $discountText = $v['value'] . '% Rabatt';
-                                        } elseif (($v['type'] ?? 'free') === 'fixed') {
-                                            $discountText = \number_format((float) $v['value'], 2, ',', '.') . ' € Festpreis';
+                                    <?php foreach ($vouchers as $v) {
+                                        $url           = $config->getBaseUrl() . 'index.php?voucher=' . $v->code;
+                                        $isValid       = $voucherValidities[$v->code] ?? false;
+                                        $isDeactivated = $v->isDeactivated();
+                                        $isExpired     = $v->isExpired(new \DateTimeImmutable());
+                                        $discountText  = 'Kostenlos';
+                                        if ($v->type === 'percent') {
+                                            $discountText = $v->value . '% Rabatt';
+                                        } elseif ($v->type === 'fixed') {
+                                            $discountText = \number_format($v->value, 2, ',', '.') . ' € Festpreis';
                                         }
                                         ?>
                                         <tr class="<?php echo ! $isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
@@ -84,49 +74,62 @@
                                                             class="c-button c-button--secondary"
                                                             style="padding: 4px 8px; font-size: 0.75rem;"
                                                             title="QR-Code anzeigen"
-                                                            onclick="showVoucherQr('<?php echo \htmlspecialchars($v['code']); ?>', '<?php echo \htmlspecialchars($url); ?>')">
+                                                            onclick="showVoucherQr('<?php echo \htmlspecialchars($v->code); ?>', '<?php echo \htmlspecialchars($url); ?>')">
                                                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
                                                              class="c-icon"
                                                              alt=""
                                                              style="width: 14px;"> QR
                                                     </button>
-                                                    <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;"><?php echo $v['code']; ?></code>
+                                                    <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;">
+                                                        <?php echo $v->code; ?>
+                                                    </code>
                                                 </div>
                                             </td>
                                             <td>
                                                 <strong
                                                         style="display:block; font-size: 1rem; color: var(--text-dark);">
-                                                    <?php echo \htmlspecialchars($v['reason']); ?>
+                                                    <?php echo \htmlspecialchars($v->reason); ?>
                                                     <?php if ($isExpired) {
                                                         echo '<span style="color: var(--danger-color); font-size: 0.8rem; margin-left: 10px;">(Abgelaufen)</span>';
                                                     } ?>
                                                 </strong>
                                                 <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap"
                                                      style="font-size: 0.8rem;">
-                                                    <span class="c-badge" style="background: #e0f2fe; color: #0ea5e9; border: 1px solid #bae6fd; font-weight: 700;"><?php echo $discountText; ?></span>
-
-                                                    <?php if ($v['multi_use'] ?? false) { ?>
-                                                        <span class="c-badge" style="background: #fef9c3; color: #0284c7; font-weight: 700;">
-                                                            🔄 Mehrfach (<?php echo $v['uses_count'] ?? 0; ?>/<?php echo $v['max_uses'] ?? '&infin;'; ?>)
-                                                        </span>
+                                                    <span class="c-badge"
+                                                          style="background: <?php echo $v->type === 'free' ? 'var(--success-color)' : 'var(--primary-color)'; ?>; color: white;">
+                <?php echo $discountText; ?>
+            </span>
+                                                    <?php if ($v->multiUse) { ?>
+                                                        <span class="c-badge"
+                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
+                    🔄 Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
+                </span>
                                                     <?php } else { ?>
-                                                        <span class="c-badge" style="background: #f1f5f9; color: #475569; font-weight: 700;">Einmalig</span>
+                                                        <span class="c-badge"
+                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
+                    Einweg
+                </span>
                                                     <?php } ?>
-
-                                                    <?php if (($v['date_mode'] ?? 'fixed') === 'flexible') { ?>
-                                                        <span class="c-badge" style="background: #f3e8ff; color: #7e22ce; font-weight: 700;">Ab Einlösung</span>
+                                                    <?php if ($v->dateMode === 'flexible') { ?>
+                                                        <span class="c-badge"
+                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
+                    Flexible Datenwahl
+                </span>
                                                     <?php } else { ?>
-                                                        <span class="c-badge" style="background: #f3e8ff; color: #7e22ce; font-weight: 700;">Fixe Daten</span>
+                                                        <span class="c-badge"
+                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
+                    Gefixte Daten
+                </span>
                                                     <?php } ?>
                                                 </div>
 
                                                 <div class="u-margin-top-s"
                                                      style="font-size: 0.8rem; color: var(--text-muted);">
-                                                    <?php if (! empty($v['data']['name'])) { ?>
-                                                        Vorbefüllt für: <strong><?php echo \htmlspecialchars($v['data']['name']); ?></strong> (Parz: <?php echo $v['data']['parzelle'] ?: '?'; ?>)<br>
+                                                    <?php if (! empty($v->data['name'])) { ?>
+                                                        Vorbefüllt für: <strong><?php echo \htmlspecialchars($v->data['name']); ?></strong> (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
                                                     <?php } ?>
-                                                    <?php if (! empty($v['expires_at'])) { ?>
-                                                        Gültig bis: <strong><?php echo (new \DateTimeImmutable($v['expires_at']))->format('d.m.Y H:i'); ?> Uhr</strong>
+                                                    <?php if ($v->expiresAt) { ?>
+                                                        Gültig bis: <strong><?php echo $v->expiresAt->format('d.m.Y H:i'); ?> Uhr</strong>
                                                     <?php } ?>
                                                 </div>
 
@@ -134,8 +137,11 @@
                                                     <span class="u-text-link"
                                                           style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
                                                           onclick="copyVoucherLink('<?php echo $url; ?>', this)">
-                                                        Link kopieren <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp" class="c-icon" alt="">
-                                                    </span>
+                                                        Link kopieren
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp"
+                                                             class="c-icon"
+                                                             alt="">
+            </span>
                                                 </div>
                                             </td>
                                             <td class="u-text-right">
@@ -148,7 +154,7 @@
                                                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                             <input type="hidden"
                                                                    name="code"
-                                                                   value="<?php echo $v['code']; ?>">
+                                                                   value="<?php echo $v->code; ?>">
                                                             <?php if ($isDeactivated) { ?>
                                                                 <input type="hidden"
                                                                        name="action"
@@ -185,10 +191,10 @@
                                                                    value="delete_voucher">
                                                             <input type="hidden"
                                                                    name="code"
-                                                                   value="<?php echo $v['code']; ?>">
+                                                                   value="<?php echo $v->code; ?>">
                                                             <button type="submit"
                                                                     class="c-button c-button--small"
-                                                                    style="background: #f1f5f9; border: 1px solid #cbd5e1;"
+                                                                    style="background: transparent; border-color: var(--danger-color);"
                                                                     title="Löschen"><img
                                                                      src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
                                                                      class="c-icon"

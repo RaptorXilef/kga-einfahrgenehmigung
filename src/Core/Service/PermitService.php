@@ -568,10 +568,10 @@ final readonly class PermitService
         return \range($startQ, $endQ);
     }
 
-    public function calculateDiscountedPrice(float $originalPrice, array $voucher): float
+    public function calculateDiscountedPrice(float $originalPrice, \App\Core\Entity\Voucher $voucher): float
     {
-        $type  = $voucher['type'] ?? 'free';
-        $value = (float) ($voucher['value'] ?? 0.0);
+        $type  = $voucher->type;
+        $value = $voucher->value;
 
         $newPrice = match ($type) {
             'fixed'   => $value,
