@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Core\Entity\VerificationRequest;
 
 /**
  * TODO DOCBLOCK
@@ -23,10 +24,10 @@ final readonly class JsonVerificationRepository implements VerificationRepositor
 
     public function loadPending(): array
     {
-        $data   = $this->loadJson('pending_verification');
-        $nowStr = APP_REQUEST_TIME_STR;
+        $data = $this->loadJson('pending_verification');
+        $now  = new \DateTimeImmutable();
 
-        return \array_filter($data, fn (array $item): bool => isset($item['expires']) && $item['expires'] > $nowStr);
+        return \array_filter($data, fn (VerificationRequest $req): bool => ! $req->isExpired($now));
     }
 
     public function savePending(array $data, bool $forceSql = false): void
@@ -48,24 +49,46 @@ final readonly class JsonVerificationRepository implements VerificationRepositor
         }
     }
 
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $token => $row) {
+            $exp             = $row['expires'] ?? 'now';
+            $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+            $objects[$token] = new VerificationRequest((string) $token, $dt, $row['data'] ?? []);
+        }
+        $this->saveJson('pending_verification', $objects);
+    }
+
     private function loadJson(string $targetKey): array
     {
         $cfg  = $this->config->get('storage_config')[$targetKey];
         $path = $this->config->getStoragePath($cfg['file']);
-        $data = \file_exists($path) ? JsonHelper::read($path) : [];
-        foreach ($data as &$item) {
-            if (isset($item['expires']) && \is_numeric($item['expires'])) {
-                $item['expires'] = \date('Y-m-d H:i:s', (int) $item['expires']);
-            }
+        $raw  = \file_exists($path) ? JsonHelper::read($path) : [];
+
+        $data = [];
+        foreach ($raw as $token => $row) {
+            $exp          = $row['expires'] ?? 'now';
+            $dt           = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+            $data[$token] = new VerificationRequest((string) $token, $dt, $row['data'] ?? []);
         }
 
         return $data;
     }
 
-    private function saveJson(string $targetKey, array $data): void
+    private function saveJson(string $targetKey, array $requests): void
     {
         $cfg  = $this->config->get('storage_config')[$targetKey];
         $path = $this->config->getStoragePath($cfg['file']);
-        $this->writeJsonSafely($path, $data);
+
+        $dataToSave = [];
+        foreach ($requests as $token => $req) {
+            $dataToSave[$token] = [
+                'token'   => $req->token,
+                'expires' => $req->expiresAt->format('Y-m-d H:i:s'),
+                'data'    => $req->data,
+            ];
+        }
+        $this->writeJsonSafely($path, $dataToSave);
     }
 }

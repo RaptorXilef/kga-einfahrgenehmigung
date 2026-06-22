@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Core\Entity\VerificationRequest;
 
 /**
  * TODO DOCBLOCK
@@ -22,10 +23,10 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
 
     public function loadPending(): array
     {
-        $data   = $this->loadSql('pending_verification');
-        $nowStr = APP_REQUEST_TIME_STR;
+        $data = $this->loadSql('pending_verification');
+        $now  = new \DateTimeImmutable();
 
-        return \array_filter($data, fn (array $item): bool => isset($item['expires']) && $item['expires'] > $nowStr);
+        return \array_filter($data, fn (VerificationRequest $req): bool => ! $req->isExpired($now));
     }
 
     public function savePending(array $data, bool $forceSql = false): void
@@ -43,20 +44,34 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
         $this->saveSql('verified_pending', $data);
     }
 
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $token => $row) {
+            $exp             = $row['expires'] ?? 'now';
+            $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+            $payload         = \is_string($row['data'] ?? []) ? JsonHelper::decode($row['data']) : ($row['data'] ?? []);
+            $objects[$token] = new VerificationRequest((string) $token, $dt, $payload);
+        }
+        $this->saveSql('pending_verification', $objects); // Import geht primär auf pending (für Migration)
+    }
+
     private function loadSql(string $targetKey): array
     {
         $cfg  = $this->config->get('storage_config')[$targetKey];
         $data = [];
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $data[$r['token']]            = JsonHelper::decode((string) $r['data']);
-            $data[$r['token']]['expires'] = \is_numeric($r['expires']) ? \date('Y-m-d H:i:s', (int) $r['expires']) : $r['expires'];
+            $payload           = \is_string($r['data']) ? JsonHelper::decode($r['data']) : [];
+            $exp               = $r['expires'];
+            $dt                = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+            $data[$r['token']] = new VerificationRequest($r['token'], $dt, $payload);
         }
 
         return $data;
     }
 
-    private function saveSql(string $targetKey, array $data): void
+    private function saveSql(string $targetKey, array $requests): void
     {
         $cfg = $this->config->get('storage_config')[$targetKey];
         $this->pdo->beginTransaction();
@@ -64,12 +79,8 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
         try {
             $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
             $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, expires, data) VALUES (?, ?, ?)");
-            foreach ($data as $token => $item) {
-                $exp = $item['expires'] ?? APP_REQUEST_TIME_STR;
-                if (\is_numeric($exp)) {
-                    $exp = \date('Y-m-d H:i:s', (int) $exp);
-                }
-                $stmt->execute([$token, $exp, \json_encode($item, \JSON_UNESCAPED_UNICODE)]);
+            foreach ($requests as $token => $req) {
+                $stmt->execute([$token, $req->expiresAt->format('Y-m-d H:i:s'), \json_encode($req->data, \JSON_UNESCAPED_UNICODE)]);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

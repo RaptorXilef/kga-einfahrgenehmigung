@@ -92,8 +92,9 @@ final readonly class MagicLinkService
             // Differenzierte Prüfung
             // 1. Vergleich gegen Lang-Token (Case-Insensitive für Hex)
             // 2. Vergleich gegen Kurz-Code (Immer Großbuchstaben)
-            $isLongTokenMatch = \strlen($token) === \strlen($trimmed)
-                && \hash_equals(\strtolower($token), \strtolower($trimmed));
+            $strToken         = (string) $token;
+            $isLongTokenMatch = \strlen($strToken) === \strlen($trimmed)
+                && \hash_equals(\strtolower($strToken), \strtolower($trimmed));
             $isShortCodeMatch = \strlen($magicLink->code) === \strlen($trimmed)
                 && \hash_equals(\strtoupper($magicLink->code), \strtoupper($trimmed));
 

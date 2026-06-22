@@ -17,6 +17,7 @@ use App\Core\Entity\Permit;
 use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
+use App\Core\Entity\VerificationRequest;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Utils\DateRangeHelper;
@@ -25,15 +26,6 @@ use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PlotNumber;
 use App\Infrastructure\Storage\JsonHelper;
 
-/**
- * Haupt-Service für die Erstellung, Prüfung und Verwaltung von Einfahrtsgenehmigungen.
- * Handhabt den Workflow von der initialen Anfrage bis zur finalen Genehmigung.
- *
- * Steuert Kollisionsprüfungen, Validierungsketten, Kennzeichen-Formatierung, E-Mail-Verifikationen,
- * Rechnungsstellungen, PayPal-Zahlungsabschlüsse und automatisierte Archivierungsprozesse.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class PermitService
 {
     public function __construct(
@@ -62,23 +54,22 @@ final readonly class PermitService
         $vehicleTypes  = (array) $this->config->get('vehicle_types', []);
         $defaultType   = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
         $typ           = $data['typ'] ?? $defaultType;
-        $data['preis'] = (float) (
-            $template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0)
-        );
+        $data['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
+
         $token                      = \bin2hex(\random_bytes(32));
         $shortCode                  = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
         $data['verification_token'] = $token;
         $data['verification_code']  = $shortCode;
-        $hours                      = (int) $this->config->get('hours_pending_verify', 24);
 
-        // Entkoppelt über das Clock-Interface
-        $data['expires'] = \date('Y-m-d H:i:s', $this->clock->now()->getTimestamp() + (3600 * $hours));
+        $hours   = (int) $this->config->get('hours_pending_verify', 24);
+        $expires = $this->clock->now()->modify("+{$hours} hours");
+
+        $req = new VerificationRequest($token, $expires, $data);
 
         $allPending         = $this->verificationRepository->loadPending();
-        $allPending[$token] = $data;
+        $allPending[$token] = $req;
         $this->verificationRepository->savePending($allPending);
 
-        // ENTKOPPELT: Statt direktem Mail-Versand werfen wir jetzt ein Event!
         $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode));
 
         return $token;
@@ -88,7 +79,6 @@ final readonly class PermitService
     {
         $oldData = $this->getVerifiedRequest($token);
 
-        // Fallback, falls Token abgelaufen: Ganz neu anfangen
         if ($oldData === null || \strtolower($newData['email']) !== \strtolower(\trim($sessionEmail))) {
             $this->createPendingVerification($newData);
 
@@ -100,19 +90,19 @@ final readonly class PermitService
             || ($oldData['voucher'] ?? '') !== $newData['voucher'];
 
         if (! $priceRelevantChanged) {
-            // Nur Name/Kennzeichen geändert -> Alter Preis bleibt erhalten!
             $merged           = \array_merge($oldData, $newData);
             $merged['preis']  = $oldData['preis'] ?? 0;
             $merged['status'] = 'offen';
 
             $allVerified         = $this->verificationRepository->loadVerified();
-            $allVerified[$token] = $merged;
+            $expires             = $allVerified[$token]->expiresAt ?? $this->clock->now()->modify('+48 hours');
+            $allVerified[$token] = new VerificationRequest($token, $expires, $merged);
+
             $this->verificationRepository->saveVerified($allVerified);
 
             return 'redirect_checkout';
         }
 
-        // Preisrelevante Änderung -> Alten Token löschen und komplett neu verifizieren
         $allVerified = $this->verificationRepository->loadVerified();
         if (isset($allVerified[$token])) {
             unset($allVerified[$token]);
@@ -130,8 +120,8 @@ final readonly class PermitService
         $input        = \strtoupper(\trim($input));
         $matchedToken = null;
 
-        foreach ($allPending as $t => $d) {
-            if (\strtoupper($t) === $input || \strtoupper((string) ($d['verification_code'] ?? '')) === $input) {
+        foreach ($allPending as $t => $req) {
+            if (\strtoupper($t) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
                 $matchedToken = $t;
 
                 break;
@@ -140,9 +130,9 @@ final readonly class PermitService
 
         if ($matchedToken === null) {
             $allVerified = $this->verificationRepository->loadVerified();
-            foreach ($allVerified as $t => $d) {
-                if (\strtoupper($t) === $input || \strtoupper((string) ($d['verification_code'] ?? '')) === $input) {
-                    return $d;
+            foreach ($allVerified as $t => $req) {
+                if (\strtoupper($t) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
+                    return $req->data;
                 }
             }
 
@@ -150,13 +140,15 @@ final readonly class PermitService
         }
 
         $token = $matchedToken;
-        $data  = (array) $allPending[$token];
+        $req   = $allPending[$token];
+        $data  = $req->data;
+
         unset($allPending[$token]);
         $this->verificationRepository->savePending($allPending);
 
         $hours               = (int) $this->config->get('hours_pending_finalize', 48);
+        $expires             = $this->clock->now()->modify("+{$hours} hours");
         $data['verified_at'] = $this->clock->nowAsString();
-        $data['expires']     = \date('Y-m-d H:i:s', $this->clock->now()->getTimestamp() + (3600 * $hours));
 
         $voucherCode = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
         if ($voucherCode !== '') {
@@ -170,7 +162,7 @@ final readonly class PermitService
                     $data['status'] = 'bezahlt';
 
                     $allVerified         = $this->verificationRepository->loadVerified();
-                    $allVerified[$token] = $data;
+                    $allVerified[$token] = new VerificationRequest($token, $expires, $data);
                     $this->verificationRepository->saveVerified($allVerified);
 
                     return ['finalised' => $this->finaliseRequest(
@@ -182,12 +174,12 @@ final readonly class PermitService
 
                 $data['preis']           = $finalPrice;
                 $data['voucher_applied'] = $voucherCode;
-                $data['voucher_details'] = ['type' => $voucher['type'], 'value' => $voucher['value']];
+                $data['voucher_details'] = ['type' => $voucher->type, 'value' => $voucher->value];
             }
         }
 
         $allVerified         = $this->verificationRepository->loadVerified();
-        $allVerified[$token] = $data;
+        $allVerified[$token] = new VerificationRequest($token, $expires, $data);
         $this->verificationRepository->saveVerified($allVerified);
 
         $data['actual_token'] = $token;
@@ -204,7 +196,7 @@ final readonly class PermitService
                 throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
             }
 
-            $data                       = (array) $allVerified[$token];
+            $data                       = $allVerified[$token]->data;
             $data['status']             = $status;
             $data['interner_kommentar'] = $kommentar;
 
@@ -308,11 +300,7 @@ final readonly class PermitService
             $permit->owner,
             $permit->vehicle,
             $permit->validity,
-            new Status(
-                'bezahlt',
-                $permit->isSuspended(),
-                $permit->getSuspensionReason(),
-            ),
+            new Status('bezahlt', $permit->isSuspended(), $permit->getSuspensionReason()),
             $permit->getCreatedAt(),
             $grund ?? $permit->interner_kommentar,
         );
@@ -333,11 +321,7 @@ final readonly class PermitService
             $permit->owner,
             $permit->vehicle,
             $permit->validity,
-            new Status(
-                $permit->getStatus(),
-                $status,
-                $reason,
-            ),
+            new Status($permit->getStatus(), $status, $reason),
             $permit->getCreatedAt(),
             $permit->interner_kommentar,
         );
@@ -389,7 +373,6 @@ final readonly class PermitService
             if ($tab === 'archive' && ! $isArchived) {
                 continue;
             }
-
             if (! $permit->matchesSearch($queryLower)) {
                 continue;
             }
@@ -419,20 +402,14 @@ final readonly class PermitService
             'zweck'        => $permit->getPurpose(),
         ], $items);
 
-        return [
-            'items' => $formattedItems,
-            'total' => $total,
-        ];
+        return ['items' => $formattedItems, 'total' => $total];
     }
 
     public function getHistoryByEmail(string $email): array
     {
         $all = $this->storage->getAll();
 
-        return \array_filter(
-            $all,
-            fn (Permit $permit): bool => \strtolower($permit->getOwnerEmail()) === \strtolower($email),
-        );
+        return \array_filter($all, fn (Permit $permit): bool => \strtolower($permit->getOwnerEmail()) === \strtolower($email));
     }
 
     public function getVerifiedRequest(string $token): ?array
@@ -442,7 +419,7 @@ final readonly class PermitService
         }
         $all = $this->verificationRepository->loadVerified();
 
-        return (array) ($all[$token] ?? null) ?: null;
+        return isset($all[$token]) ? $all[$token]->data : null;
     }
 
     public function getOverdueLevel(Permit $permit): int
@@ -460,7 +437,6 @@ final readonly class PermitService
         if ($now > $staffAlertThreshold) {
             return 2;
         }
-
         if ($now > $userDeadline) {
             return 1;
         }
@@ -507,17 +483,14 @@ final readonly class PermitService
         }
 
         $allPending = $this->verificationRepository->loadPending();
-        $nowStr     = $this->clock->nowAsString();
-
-        foreach ($allPending as $pending) {
-            $pPlot   = \str_pad((string) ($pending['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
-            $pStart  = new \DateTimeImmutable((string) ($pending['datum_von'] ?? 'now'));
-            $pEnd    = new \DateTimeImmutable((string) ($pending['datum_bis'] ?? 'now'));
-            $expires = $pending['expires'] ?? '';
+        foreach ($allPending as $pendingReq) {
+            $pendingData = $pendingReq->data;
+            $pPlot       = \str_pad((string) ($pendingData['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
+            $pStart      = new \DateTimeImmutable((string) ($pendingData['datum_von'] ?? 'now'));
+            $pEnd        = new \DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
 
             if (
                 $pPlot === $parzelleFormatted
-                && $expires > $nowStr
                 && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)
             ) {
                 throw new \RuntimeException(
@@ -532,7 +505,6 @@ final readonly class PermitService
     {
         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         $res   = '';
-
         for ($i = 0; $i < 8; ++$i) {
             $res .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
@@ -545,7 +517,6 @@ final readonly class PermitService
         if (\trim($email) === '') {
             return;
         }
-
         if (! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw new \RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
