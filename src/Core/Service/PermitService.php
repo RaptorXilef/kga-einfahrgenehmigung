@@ -121,8 +121,9 @@ final readonly class PermitService
         $matchedToken = null;
 
         foreach ($allPending as $t => $req) {
-            if (\strtoupper($t) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
-                $matchedToken = $t;
+            $strToken = (string) $t; // Linter-Fix: Expliziter Cast
+            if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
+                $matchedToken = $strToken;
 
                 break;
             }
@@ -131,7 +132,8 @@ final readonly class PermitService
         if ($matchedToken === null) {
             $allVerified = $this->verificationRepository->loadVerified();
             foreach ($allVerified as $t => $req) {
-                if (\strtoupper($t) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
+                $strToken = (string) $t; // Linter-Fix: Expliziter Cast
+                if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
                     return $req->data;
                 }
             }
@@ -139,7 +141,7 @@ final readonly class PermitService
             return null;
         }
 
-        $token = $matchedToken;
+        $token = $matchedToken; // Ist jetzt garantiert ein String
         $req   = $allPending[$token];
         $data  = $req->data;
 
