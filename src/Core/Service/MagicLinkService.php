@@ -7,6 +7,7 @@ namespace App\Core\Service;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\Core\Entity\MagicLink;
 
 /**
  * Service für das passwortlose Benutzer-Login-Verfahren (Magic-Links / Login-Codes).
@@ -45,15 +46,17 @@ final readonly class MagicLinkService
     {
         $token = \bin2hex(\random_bytes(32));
         // Kurzer, gut lesbarer Code für manuelle Eingabe
-        $code     = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
+        $code = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
+
         $links    = $this->repository->loadAll();
         $duration = (int) $this->config->get('magic_link_duration', 15);
 
-        $links[$token] = [
-            'email'   => $email,
-            'code'    => $code,
-            'expires' => \date('Y-m-d H:i:s', $this->clock->now()->getTimestamp() + ($duration * 60)),
-        ];
+        $links[$token] = new MagicLink(
+            $token,
+            $email,
+            $code,
+            $this->clock->now()->modify("+{$duration} minutes"),
+        );
 
         $this->repository->saveAll($links);
 
@@ -74,13 +77,13 @@ final readonly class MagicLinkService
     public function verifyAny(string $input): ?string
     {
         $links      = $this->repository->loadAll();
-        $now        = $this->clock->nowAsString(); // <-- AUFLÖSUNG VIA CLOCK
+        $now        = $this->clock->now();
         $trimmed    = \trim($input);
         $foundEmail = null;
 
-        foreach ($links as $token => $data) {
+        foreach ($links as $token => $magicLink) {
             // Passive Bereinigung abgelaufener Tokens
-            if ($data['expires'] < $now) {
+            if ($magicLink->isExpired($now)) {
                 unset($links[$token]);
 
                 continue;
@@ -91,13 +94,11 @@ final readonly class MagicLinkService
             // 2. Vergleich gegen Kurz-Code (Immer Großbuchstaben)
             $isLongTokenMatch = \strlen($token) === \strlen($trimmed)
                 && \hash_equals(\strtolower($token), \strtolower($trimmed));
-
-            $isShortCodeMatch = isset($data['code'])
-                && \strlen($data['code']) === \strlen($trimmed)
-                && \hash_equals(\strtoupper($data['code']), \strtoupper($trimmed));
+            $isShortCodeMatch = \strlen($magicLink->code) === \strlen($trimmed)
+                && \hash_equals(\strtoupper($magicLink->code), \strtoupper($trimmed));
 
             if ($isLongTokenMatch || $isShortCodeMatch) {
-                $foundEmail = $data['email'];
+                $foundEmail = $magicLink->email;
                 unset($links[$token]); // Einmal-Nutzung
 
                 break; // Schleife abbrechen, wir haben einen Treffer

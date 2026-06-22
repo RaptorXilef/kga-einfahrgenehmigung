@@ -10,7 +10,6 @@ use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Action für den manuellen Neuversand von E-Mails aus den System-Logs.
@@ -39,30 +38,23 @@ final readonly class SystemResendMailAction implements ActionInterface
         $logs = $this->mailLog->loadLogs();
 
         foreach ($logs as $log) {
-            if (! (($log['timestamp'] ?? '') === $dto->identifier)) {
+            if ($log->timestamp->format('Y-m-d H:i:s') !== $dto->identifier) {
                 continue;
             }
 
-            $payload = $log['data'] ?? [];
-
-            // Wenn aus MySQL geladen, ist data ein JSON-String und muss decodiert werden
-            if (\is_string($payload)) {
-                $payload = JsonHelper::decode($payload);
-            }
-
-            if (empty($payload)) {
+            if (empty($log->data)) {
                 return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
             }
 
             // Erneuter Versand
             $this->mailService->sendTemplate(
-                $log['recipient'],
-                $log['subject'],
-                $log['template'],
-                $payload,
+                $log->recipient,
+                $log->subject,
+                $log->template,
+                $log->data,
             );
 
-            return "E-Mail an {$log['recipient']} wurde erfolgreich erneut versendet.";
+            return "E-Mail an {$log->recipient} wurde erfolgreich erneut versendet.";
         }
 
         return 'Fehler: Log-Eintrag nicht gefunden.';

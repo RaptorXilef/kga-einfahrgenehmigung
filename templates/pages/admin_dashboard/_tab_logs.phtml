@@ -58,16 +58,16 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($logs as $log) {
-                                $isSuccess = $log['status'] === 'Erfolg';
+                                $isSuccess = $log->isSuccess();
                                 ?>
                                 <tr class="u-hover-fade">
                                     <!-- 1. Zeitpunkt -->
                                     <td style="vertical-align: middle;">
                                         <div style="line-height: 1.2;">
                                             <span style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;">
-                                                <?php echo \date('d.m.Y', \strtotime($log['timestamp'])); ?>
+                                                <?php echo $log->timestamp->format('d.m.Y'); ?>
                                             </span><br>
-                                            <small class="u-text-muted"><?php echo \date('H:i', \strtotime($log['timestamp'])); ?> Uhr</small>
+                                            <small class="u-text-muted"><?php echo $log->timestamp->format('H:i'); ?> Uhr</small>
                                         </div>
                                     </td>
 
@@ -79,8 +79,8 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                                      class="c-icon"
                                                      style="width: 14px; opacity: 0.5;">
                                                 <span style="font-weight: 700; font-size: 0.9rem; word-break: break-all;">
-                                                    <?php echo \htmlspecialchars($log['recipient']); ?>
-                                                </span>
+                <?php echo \htmlspecialchars($log->recipient); ?>
+            </span>
                                             </div>
                                         </td>
                                     <?php } ?>
@@ -88,25 +88,25 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                     <!-- 3. Betreff & Fehlermeldung -->
                                     <td style="vertical-align: middle;">
                                         <div style="margin-bottom: 2px;">
-                                            <strong style="color: #1e293b;"><?php echo \htmlspecialchars($log['subject']); ?></strong>
+                                            <strong style="color: var(--text-main); font-size: 0.95rem;"><?php echo \htmlspecialchars($log->subject); ?>
+                                            </strong>
                                         </div>
                                         <div class="u-flex u-align-center u-gap-s">
-                                            <code style = "font-size: 0.7rem; color: var(--text-muted); background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">
-                                                <?php echo \htmlspecialchars($log['template'], \ENT_QUOTES, 'UTF-8'); ?>
+                                            <code style="font-size: 0.7rem; color: var(--text-muted); background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">
+                                                <?php echo \htmlspecialchars($log->template, \ENT_QUOTES, 'UTF-8'); ?>
                                             </code>
                                         </div>
 
                                         <!-- FEHLERANZEIGE (Nur wenn Status nicht Erfolg) -->
-                                        <?php if (! $isSuccess && ! empty($log['status'])) { ?>
+                                        <?php if (! $isSuccess && ! empty($log->status)) { ?>
                                             <div
-                                                 style="margin-top: 8px; background: #fef2f2; border-left: 3px solid var(--danger-color); padding: 6px 10px; border-radius: 4px;">
+                                                 style="margin-top: 8px; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 6px; border: 1px solid rgba(225, 29, 72, 0.1);">
                                                 <div
                                                      style="color: var(--danger-color); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 2px;">
                                                     Fehlermeldung:
                                                 </div>
-                                                <div
-                                                     style="font-size: 0.8rem; color: #991b1b; font-family: 'Inter', sans-serif; line-height: 1.3;">
-                                                    <?php echo \htmlspecialchars($log['status']); ?>
+                                                <div style="font-size: 0.8rem; color: var(--text-main);">
+                                                    <?php echo \htmlspecialchars($log->status); ?>
                                                 </div>
                                             </div>
                                         <?php } ?>
@@ -115,10 +115,13 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                     <!-- 4. Status -->
                                     <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center">
-                                            <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>" style="min-width: 100px; justify-content: center; height: 32px; display: inline-flex; align-items: center;">
-            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-<?php echo $isSuccess ? 'success' : 'invalid'; ?>.webp" class="c-icon" alt="">
-            <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
-        </span>
+                                            <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>"
+                                                  style="min-width: 100px; justify-content: center; height: 32px; display: inline-flex; align-items: center;">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-<?php echo $isSuccess ? 'success' : 'invalid'; ?>.webp"
+                                                     class="c-icon"
+                                                     alt="">
+                                                <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
+                                            </span>
 
                                             <form method="POST"
                                                   style="margin: 0;"
@@ -131,7 +134,7 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                                        value="resend_mail">
                                                 <input type="hidden"
                                                        name="timestamp"
-                                                       value="<?php echo $log['timestamp']; ?>">
+                                                       value="<?php echo $log->timestamp->format('Y-m-d H:i:s'); ?>">
                                                 <button type="submit"
                                                         class="c-button c-button--primary"
                                                         style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;"

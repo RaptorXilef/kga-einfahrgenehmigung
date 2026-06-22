@@ -6,6 +6,7 @@ namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Core\Entity\MailLogEntry;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonTransactionTrait;
@@ -26,7 +27,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private ?\PDO $pdo, // Datenbank-Verbindung
+        private ?\PDO $pdo,
         private Config $config,
     ) {
     }
@@ -84,7 +85,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      *
      * Speichert eine Liste von Mail-Logs (wichtig für Migration/Sync).
      *
-     * @param array<int, array<string, mixed>> $logs
+     * @param MailLogEntry[] $logs
      */
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
@@ -95,27 +96,16 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             $this->pdo->beginTransaction();
 
             try {
-                // REPLACE sorgt dafür, dass IDs bei Migration nicht dupliziert werden
-                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (
-                id,
-                timestamp,
-                recipient,
-                subject,
-                template,
-                status,
-                data
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                foreach ($logs as $id => $log) {
-                    $rawPayload = $log['data'] ?? null;
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($logs as $log) {
                     $stmt->execute([
-                        $id,
-                        $log['timestamp'] ?? null,
-                        $log['recipient'] ?? null,
-                        $log['subject'] ?? null,
-                        $log['template'] ?? null,
-                        $log['status'] ?? null,
-                        \is_array($rawPayload) ? \json_encode($rawPayload, \JSON_UNESCAPED_UNICODE)
-                            : $rawPayload,
+                        $log->id,
+                        $log->timestamp->format('Y-m-d H:i:s'),
+                        $log->recipient,
+                        $log->subject,
+                        $log->template,
+                        $log->status,
+                        \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
                     ]);
                 }
                 $this->pdo->commit();
@@ -130,35 +120,84 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         }
 
         if (! $forceSql) {
-            $path = $this->config->getStoragePath($cfg['file']);
-            $this->writeJsonSafely($path, $logs);
+            $path       = $this->config->getStoragePath($cfg['file']);
+            $dataToSave = [];
+            foreach ($logs as $log) {
+                $dataToSave[$log->id] = [
+                    'id'        => $log->id,
+                    'timestamp' => $log->timestamp->format('Y-m-d H:i:s'),
+                    'recipient' => $log->recipient,
+                    'subject'   => $log->subject,
+                    'template'  => $log->template,
+                    'status'    => $log->status,
+                    'data'      => $log->data,
+                ];
+            }
+            $this->writeJsonSafely($path, \array_values($dataToSave));
         }
     }
 
     /**
      * Lädt die chronologische Liste aller E-Mail-Logs absteigend nach Zeitstempel.
      *
-     * @return array<int, array<string, mixed>>
+     * @return MailLogEntry[]
      */
     public function loadLogs(): array
     {
-        $cfg = $this->config->get('storage_config')['mail_log'];
+        $cfg  = $this->config->get('storage_config')['mail_log'];
+        $logs = [];
 
-        if ($cfg['type'] === 'mysql') {
-            if (! $this->pdo instanceof \PDO) {
-                return [];
+        if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
+            $rows = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($rows as $r) {
+                $logs[] = new MailLogEntry(
+                    (string) $r['id'],
+                    new \DateTimeImmutable($r['timestamp']),
+                    $r['recipient'],
+                    $r['subject'],
+                    $r['template'],
+                    $r['status'],
+                    \is_string($r['data']) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []),
+                );
             }
 
-            // Wir laden die neuesten zuerst
-            return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll();
+            return $logs;
         }
 
         $path = $this->config->getStoragePath($cfg['file']);
-        if (! \file_exists($path)) {
-            return [];
+        if (\file_exists($path)) {
+            $data = JsonHelper::read($path);
+            foreach ($data as $r) {
+                $logs[] = new MailLogEntry(
+                    (string) ($r['id'] ?? \uniqid()),
+                    new \DateTimeImmutable($r['timestamp']),
+                    $r['recipient'],
+                    $r['subject'],
+                    $r['template'],
+                    $r['status'],
+                    $r['data'] ?? [],
+                );
+            }
         }
 
-        return JsonHelper::read($path);
+        return $logs;
+    }
+
+    public function importLogs(array $data, bool $forceSql = false): void
+    {
+        $objects = [];
+        foreach ($data as $id => $r) {
+            $objects[] = new MailLogEntry(
+                (string) $id,
+                new \DateTimeImmutable($r['timestamp'] ?? 'now'),
+                $r['recipient'] ?? '',
+                $r['subject'] ?? '',
+                $r['template'] ?? '',
+                $r['status'] ?? '',
+                \is_string($r['data'] ?? []) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []),
+            );
+        }
+        $this->saveLogs($objects, $forceSql);
     }
 
     // --- Private Engine ---
@@ -190,9 +229,8 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // 2. Output Buffering starten, um das PHP-Template zu "fangen"
         \ob_start();
         include $fullPath;
-        $content = \ob_get_clean();
 
-        return (string) $content;
+        return (string) \ob_get_clean();
     }
 
     /**
@@ -229,10 +267,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             return 'Server meldet sich nicht (Timeout)';
         }
 
-        // Sichere Host-Ermittlung aus der Config (verhindert Header Injection)
-        $configUrl    = $this->config->getBaseUrl();
-        $parsedUrl    = \parse_url($configUrl);
-        $smtpEhloHost = $parsedUrl['host'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        $smtpEhloHost = \parse_url($this->config->getBaseUrl())['host'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
 
         // 2. EHLO senden mit sicherem, server-kontrolliertem Hostnamen
         \fwrite($socket, 'EHLO ' . $smtpEhloHost . "\r\n");
@@ -243,10 +278,8 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // 3. Login starten
         \fwrite($socket, "AUTH LOGIN\r\n");
         $this->getServerResponse($socket); // 334 erwartet
-
         \fwrite($socket, \base64_encode((string) $user) . "\r\n");
         $this->getServerResponse($socket);
-
         \fwrite($socket, \base64_encode($pass) . "\r\n");
         if (! $this->checkResponse($socket, '235')) {
             return 'SMTP Login fehlgeschlagen (Daten prüfen)';
@@ -255,7 +288,6 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // 4. Absender & Empfänger
         \fwrite($socket, "MAIL FROM: <$from>\r\n");
         $this->getServerResponse($socket);
-
         \fwrite($socket, "RCPT TO: <$recipient>\r\n");
         if (! $this->checkResponse($socket, '250')) {
             return "Empfänger $recipient wurde vom Server abgelehnt";
@@ -263,7 +295,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
 
         // 5. Daten senden
         \fwrite($socket, "DATA\r\n");
-        $this->getServerResponse($socket); // 354 erwartet
+        $this->getServerResponse($socket);
 
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
@@ -334,59 +366,27 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         bool|string $status,
         array $data = [],
     ): void {
-        $cfg        = $this->config->get('storage_config')['mail_log'];
-        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
         $statusStr  = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
+        $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
-        if ($cfg['type'] === 'mysql') {
-            // Hier wird das data-Array als JSON-String in die DB geladen
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (
-                timestamp,
-                recipient,
-                subject,
-                template,
-                status,
-                data
-            ) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                APP_REQUEST_TIME_STR,
-                $recipient,
-                $subject,
-                $template,
-                $statusStr,
-                \json_encode($data, \JSON_UNESCAPED_UNICODE),
-            ]);
+        $entry = new MailLogEntry(
+            \uniqid('ml_'),
+            new \DateTimeImmutable(APP_REQUEST_TIME_STR),
+            $recipient,
+            $subject,
+            $template,
+            $statusStr,
+            $data,
+        );
 
-            // 2. Cleanup (Optional: Hält die Datenbank schlank wie bei JSON)
-            // Wir löschen alle alten Einträge, die über das Limit hinausgehen
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}` WHERE id NOT IN (
-                SELECT id FROM (
-                    SELECT id FROM `{$cfg['table']}` ORDER BY timestamp DESC LIMIT $maxEntries
-                ) foo
-            )");
+        $logs = $this->loadLogs();
+        \array_unshift($logs, $entry);
 
-            return;
+        if (\count($logs) > $maxEntries) {
+            $logs = \array_slice($logs, 0, $maxEntries);
         }
 
-        // --- Sicherer JSON Code ---
-        $path = $this->config->getStoragePath($cfg['file']);
-
-        $this->executeJsonTransaction($path, function (array &$logs) use ($data, $recipient, $statusStr, $subject, $template, $maxEntries): bool {
-            \array_unshift($logs, [
-                'data'      => $data,
-                'recipient' => $recipient,
-                'status'    => $statusStr,
-                'subject'   => $subject,
-                'template'  => $template,
-                'timestamp' => APP_REQUEST_TIME_STR,
-            ]);
-
-            if (\count($logs) > $maxEntries) {
-                $logs = \array_slice($logs, 0, $maxEntries);
-            }
-
-            return true;
-        });
+        $this->saveLogs($logs);
     }
 
     /**

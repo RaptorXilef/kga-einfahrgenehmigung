@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Core\Entity\MagicLink;
 
 /**
  * TODO DOCBLOCK
@@ -26,16 +27,17 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
         $links = [];
         $stmt  = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $links[$r['token']] = [
-                'email'   => $r['email'],
-                'code'    => $r['code'],
-                'expires' => \is_numeric($r['expires']) ? \date('Y-m-d H:i:s', (int) $r['expires']) : $r['expires'],
-            ];
+            $exp                = $r['expires'];
+            $dt                 = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+            $links[$r['token']] = new MagicLink($r['token'], $r['email'], $r['code'], $dt);
         }
 
         return $links;
     }
 
+    /**
+     * @param MagicLink[] $links
+     */
     public function saveAll(array $links, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['magic_links'];
@@ -44,12 +46,8 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
         try {
             $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
             $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, email, code, expires) VALUES (?, ?, ?, ?)");
-            foreach ($links as $token => $d) {
-                $exp = $d['expires'] ?? APP_REQUEST_TIME_STR;
-                if (\is_numeric($exp)) {
-                    $exp = \date('Y-m-d H:i:s', (int) $exp);
-                }
-                $stmt->execute([$token, $d['email'], $d['code'], $exp]);
+            foreach ($links as $token => $link) {
+                $stmt->execute([$token, $link->email, $link->code, $link->expires->format('Y-m-d H:i:s')]);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {
@@ -57,5 +55,16 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
 
             throw $e;
         }
+    }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $token => $row) {
+            $exp             = $row['expires'] ?? 'now';
+            $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+            $objects[$token] = new MagicLink((string) $token, $row['email'] ?? '', $row['code'] ?? '', $dt);
+        }
+        $this->saveAll($objects, true);
     }
 }
