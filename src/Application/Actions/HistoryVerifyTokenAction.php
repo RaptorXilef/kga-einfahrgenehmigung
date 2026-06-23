@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\DTO\SimpleTokenRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ViewActionInterface;
@@ -25,9 +27,18 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $get           = $request->get;
-        $ip            = $request->getIp();
-        $verifiedEmail = $this->magicLinkService->verifyAny((string) ($get['token'] ?? ''));
+        $ip = $request->getIp();
+
+        try {
+            $dto = SimpleTokenRequest::fromArray($request->get);
+        } catch (ValidationException $e) {
+            $this->rateLimiter->recordFailedAttempt($ip);
+
+            return new RedirectResponse('history.php?sent=1&msg=' . \urlencode($e->getMessage()));
+        }
+
+        $verifiedEmail = $this->magicLinkService->verifyAny($dto->token);
+
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($ip);
             \session_regenerate_id(true);
@@ -35,10 +46,11 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 
             return new RedirectResponse('history.php');
         }
+
         $this->rateLimiter->recordFailedAttempt($ip);
 
         return new RedirectResponse('history.php?sent=1&msg=' . \urlencode(
-            'Der Link ist ungültig oder abgelaufen. Sie können den Code manuell eingeben.',
+            'Der Link ist ungültig oder abgelaufen.',
         ));
     }
 }

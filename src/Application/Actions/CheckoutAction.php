@@ -38,10 +38,16 @@ final readonly class CheckoutAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $dto      = SimpleTokenRequest::fromArray($request->get);
+        try {
+            $dto = SimpleTokenRequest::fromArray($request->get);
+        } catch (\Exception $e) {
+            return new RedirectResponse('index.php');
+        }
+
         $token    = $dto->token;
         $tempData = $this->permitService->getVerifiedRequest($token);
-        if ($token === '' || $tempData === null) {
+
+        if ($tempData === null) {
             return new RedirectResponse('index.php');
         }
         $dtVon = new \DateTimeImmutable($tempData['datum_von'] ?? 'now');

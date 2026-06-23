@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\DTO;
 
+use App\Application\Exception\ValidationException;
+
 /**
  * TODO DOCBLOCK
  *
@@ -17,6 +19,11 @@ final readonly class SimpleTokenRequest
 
     public static function fromArray(array $get): self
     {
-        return new self(\trim((string) ($get['token'] ?? '')));
+        $token = \trim((string) ($get['token'] ?? ''));
+        if ($token === '') {
+            throw ValidationException::withMessage('Fehler: Sicherheits-Token fehlt.');
+        }
+
+        return new self($token);
     }
 }
