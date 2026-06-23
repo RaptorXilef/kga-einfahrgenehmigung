@@ -8,8 +8,10 @@ use App\Application\Actions\VerificationActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ResponseInterface;
@@ -28,6 +30,8 @@ final readonly class VerificationController
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private VerificationActionFactory $factory,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
@@ -37,18 +41,19 @@ final readonly class VerificationController
     public function handleRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'));
-        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'verify.php?error=1'));
-        $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add($this->mailQueueMiddleware);
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'))
+            ->add(new CsrfMiddleware($this->sessionManager, 'verify.php?error=1'))
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         // ROUTING LOGIK
         $actionKey = (isset($request->get['token']) || isset($request->post['submit_code'])) ? 'submit' : 'render';
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            $action = $this->factory->create($actionKey);
-
-            return $action->execute($req);
+            return $this->factory->create($actionKey)->execute($req);
         });
 
         if ($response instanceof ResponseInterface) {

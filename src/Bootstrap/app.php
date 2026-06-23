@@ -53,30 +53,6 @@ if (\session_status() === \PHP_SESSION_NONE) {
     \session_start();
 }
 
-// Globale Sicherheits-Header gegen Clickjacking und MIME-Sniffing
-if (! \headers_sent()) {
-    \header('X-Frame-Options: SAMEORIGIN'); // Verbietet iframes von Fremd-Domains
-    \header('X-Content-Type-Options: nosniff'); // Verhindert bösartiges Umdeuten von Dateitypen
-    \header('X-XSS-Protection: 1; mode=block'); // Aktiviert Browser-internen XSS-Filter
-    \header('Referrer-Policy: strict-origin-when-cross-origin'); // Verhindert URL-Lecks an externe Seiten
-    // NEU: Die ultimative XSS-Schutzwand (Content Security Policy)
-    // Erlaubt Skripte und Bilder von der eigenen Domain sowie zwingend benötigten Drittanbietern
-    // (QR-Codes, Chart.js, Markdown-Parser, PayPal SDK & Google Analytics)
-    \header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.paypal.com https://www.sandbox.paypal.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.qrserver.com https://www.google-analytics.com https://www.paypalobjects.com; connect-src 'self' https://www.google-analytics.com https://www.paypal.com https://www.sandbox.paypal.com; frame-src 'self' https://www.paypal.com https://www.sandbox.paypal.com;");
-
-    // Quick-Check für lokale Umgebung, um HSTS-Aussperrungen bei lokaler Entwicklung ohne SSL zu verhindern
-    $host    = $_SERVER['HTTP_HOST'] ?? '';
-    $isLocal = \str_ends_with($host, '.local')
-        || $host === 'localhost'
-        || $host === '127.0.0.1'
-        || \php_sapi_name() === 'cli';
-
-    if (! $isLocal) {
-        // HSTS nur in der Live-Umgebung erzwingen (1 Jahr lang zwingend HTTPS)
-        \header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-    }
-}
-
 $appRoot = (function (): string {
     $dir = __DIR__;
     while ($dir !== \dirname($dir)) {
@@ -183,11 +159,7 @@ if (! \file_exists($configFiles['dev'])) {
             'label' => 'Systembetreuer'
         ];
         PHP;
-    $result = \file_put_contents(
-        $configFiles['dev'],
-        $defaultDevContent,
-        \LOCK_EX,
-    );
+    $result = \file_put_contents($configFiles['dev'], $defaultDevContent, \LOCK_EX);
     if ($result === false) {
         throw new \RuntimeException("Kritischer Schreibfehler: Konnte {$configFiles['dev']} nicht erstellen.");
     }
@@ -253,50 +225,10 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
 }
 
-// --- Erweiterte Wartungsmodus-Logik v0.24.2 (Internal Load) ---
-$currentScript     = \basename((string) $_SERVER['SCRIPT_NAME']);
-$isMaintenancePage = $currentScript === 'maintenance.php';
-
-if (! $isMaintenancePage) {
-    // Sicherstellen, dass wir Booleans vergleichen
-    $adminMaintenance  = isset($settings['maintenance_mode_admin']) && $settings['maintenance_mode_admin'] === true;
-    $publicMaintenance = isset($settings['maintenance_mode']) && $settings['maintenance_mode'] === true;
-
-    $shouldShowMaintenance = false;
-
-    if ($adminMaintenance) {
-        // Totalsperre
-        $shouldShowMaintenance = true;
-    } elseif ($publicMaintenance) {
-        // Nur Pächter-Seiten sperren
-        $allowedAdminScripts = ['admin.php', 'users.php'];
-
-        // Hinweis: API-Anrufe lassen wir durch, da sie oft vom Admin-Panel
-        // oder für die Preisberechnung im Hintergrund genutzt werden.
-        if (
-            ! \in_array($currentScript, $allowedAdminScripts, true)
-            && ! \str_contains((string) $_SERVER['SCRIPT_NAME'], '/api/')
-        ) {
-            $shouldShowMaintenance = true;
-        }
-    }
-
-    if ($shouldShowMaintenance) {
-        // Wir setzen einen HTTP Status 503 (Service Unavailable)
-        // Das ist gut für Suchmaschinen, damit diese wissen: "Wir kommen gleich wieder"
-        \http_response_code(503);
-        \header('Retry-After: 3600'); // Empfehlung: In einer Stunde wiederkommen
-
-        // Wir laden die Datei intern, ohne die URL im Browser zu ändern
-        require $appRoot . '/public/maintenance.php';
-        exit;
-    }
-}
-// --- Ende Wartungsmodus ---
-
 // --- EXCEPTIONS / FEHLERMELDUNGEN ---
-$configInstance   = new Config($settings);
-$errorLogger      = new ErrorLogger($configInstance);
+$configInstance = new Config($settings);
+$errorLogger    = new ErrorLogger($configInstance);
+
 $exceptionHandler = new GlobalExceptionHandler($configInstance, $errorLogger);
 
 // Aktiviert das globale Error-Handling ab sofort!

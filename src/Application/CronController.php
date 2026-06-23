@@ -7,7 +7,9 @@ namespace App\Application;
 use App\Application\Actions\SystemCronAction;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\CronAuthMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Config\ConfigInterface;
 
@@ -21,14 +23,18 @@ final readonly class CronController
     public function __construct(
         private ConfigInterface $config,
         private SystemCronAction $action,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
     public function handleRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new CronAuthMiddleware($this->config));
-
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add(new CronAuthMiddleware($this->config));
         $response = $pipeline->process($request, function (ServerRequest $req): mixed {
             return $this->action->execute($req);
         });

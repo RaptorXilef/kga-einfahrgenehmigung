@@ -7,9 +7,11 @@ namespace App\Application;
 use App\Application\Actions\SystemChangelogAction;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
@@ -27,14 +29,18 @@ final readonly class ChangelogController
         private AuthService $auth,
         private SystemChangelogAction $action,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
     public function handleRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new RequireLoginMiddleware($this->auth, 'index.php'));
-
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add(new RequireLoginMiddleware($this->auth, 'index.php'));
         if ($this->action instanceof RequiresPermissionInterface) {
             $pipeline->add(new PermissionMiddleware(
                 $this->auth,
@@ -43,8 +49,9 @@ final readonly class ChangelogController
             ));
         }
 
-        $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add($this->mailQueueMiddleware);
+        $pipeline
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         $response = $pipeline->process($request, function (ServerRequest $req): mixed {
             return $this->action->execute($req);

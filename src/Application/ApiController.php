@@ -12,7 +12,9 @@ use App\Application\Middleware\ApiRateLimitMiddleware;
 use App\Application\Middleware\CorsMiddleware;
 use App\Application\Middleware\HttpMethodMiddleware;
 use App\Application\Middleware\JsonBodyParserMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\RequiresPermissionInterface;
@@ -32,6 +34,8 @@ final readonly class ApiController
         private AuthService $auth,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
@@ -40,17 +44,12 @@ final readonly class ApiController
         $action = $this->factory->create($actionKey);
 
         $pipeline = new MiddlewarePipeline();
-
-        // 1. CORS Pre-Flights abfangen
-        $pipeline->add(new CorsMiddleware());
-
-        // 2. HTTP-Methoden absichern
-        $pipeline->add(new HttpMethodMiddleware(['POST']));
-
-        // 3. CSRF-Schutz
-        $pipeline->add(new ApiCsrfMiddleware($this->sessionManager));
-
-        // 4. Rate-Limiting (falls gefordert)
+        $pipeline
+            ->add($this->securityHeaders) // TODO Überarbeitung prüfen
+            ->add($this->maintenanceGuard) // TODO Überarbeitung prüfen
+            ->add(new CorsMiddleware())
+            ->add(new HttpMethodMiddleware(['POST']))
+            ->add(new ApiCsrfMiddleware($this->sessionManager));
         if ($rateLimit) {
             $pipeline->add(new ApiRateLimitMiddleware($this->rateLimiter));
         }

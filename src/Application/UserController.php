@@ -8,9 +8,11 @@ use App\Application\Actions\UserActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -35,6 +37,8 @@ final readonly class UserController
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private UserActionFactory $factory,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
@@ -42,10 +46,13 @@ final readonly class UserController
     {
         // 1. Die Pipeline für die Benutzerverwaltung definieren
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new PermissionMiddleware($this->auth, 'system.permissions.view', 'admin.php'));
-        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'users.php'));
-        $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add($this->mailQueueMiddleware);
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add(new PermissionMiddleware($this->auth, 'system.permissions.view', 'admin.php'))
+            ->add(new CsrfMiddleware($this->sessionManager, 'users.php'))
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         $actionKey = $request->post['action'] ?? '';
         $action    = $this->factory->create($actionKey);
@@ -71,8 +78,12 @@ final readonly class UserController
             $response->send();
         } elseif (\is_string($response)) {
             $focusId = $request->post['user_id'] ?? ($request->post['group_id'] ?? '');
-            $url     = 'users.php?msg=' . \urlencode($response) . ($focusId !== '' ? '&focus=' . \urlencode($focusId) : '');
-            (new RedirectResponse($url))->send();
+            (new RedirectResponse(
+                'users.php?msg=' .
+                    \urlencode($response) .
+                    ($focusId !== '' ? '&focus=' .
+                    \urlencode($focusId) : ''),
+            ))->send();
         }
     }
 
@@ -82,10 +93,13 @@ final readonly class UserController
     public function handleProfileRequest(ServerRequest $request): void
     {
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new RequireLoginMiddleware($this->auth, 'admin.php'));
-        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'profile.php'));
-        $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add($this->mailQueueMiddleware);
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add(new RequireLoginMiddleware($this->auth, 'admin.php'))
+            ->add(new CsrfMiddleware($this->sessionManager, 'profile.php'))
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         $response = $pipeline->process($request, function (ServerRequest $req): mixed {
             if ($req->getMethod() === 'POST') {

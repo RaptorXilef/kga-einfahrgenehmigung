@@ -9,10 +9,12 @@ use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\MigrationPermissionMiddleware;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\PrintAuthorizationMiddleware;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\SystemMaintenanceMiddleware;
 use App\Application\Middleware\ToggleSuspensionMiddleware;
 use App\Application\Middleware\VoucherIssuanceMiddleware;
@@ -44,6 +46,8 @@ final readonly class AdminController
         private SessionManager $sessionManager,
         private StorageInterface $storage,
         private SystemMaintenanceMiddleware $maintenanceMiddleware,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
@@ -70,11 +74,13 @@ final readonly class AdminController
 
         // Pipeline aufbauen
         $pipeline = new MiddlewarePipeline();
-
         // Die System-Wartung läuft nun sicher über die Middleware!
-        $pipeline->add($this->maintenanceMiddleware);
-        $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'admin.php'));
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add($this->maintenanceMiddleware)
+            ->add($this->analyticsMiddleware)
+            ->add(new CsrfMiddleware($this->sessionManager, 'admin.php'));
 
         // Die Login-Logik umgeht natürlich den Guard, alles andere muss durch den Türsteher
         if ($actionKey !== 'login' && $actionKey !== 'logout') {

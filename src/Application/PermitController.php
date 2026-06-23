@@ -8,7 +8,9 @@ use App\Application\Actions\PermitActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
+use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ResponseInterface;
@@ -25,6 +27,8 @@ final readonly class PermitController
         private PermitActionFactory $actionFactory,
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
+        private SecurityHeadersMiddleware $securityHeaders,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
     }
 
@@ -38,9 +42,12 @@ final readonly class PermitController
         }
 
         $pipeline = new MiddlewarePipeline();
-        $pipeline->add(new CsrfMiddleware($this->sessionManager, 'index.php'));
-        $pipeline->add($this->analyticsMiddleware);
-        $pipeline->add($this->mailQueueMiddleware);
+        $pipeline
+            ->add($this->securityHeaders)
+            ->add($this->maintenanceGuard)
+            ->add(new CsrfMiddleware($this->sessionManager, 'index.php'))
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         // ROUTING LOGIK
         $actionKey = 'render';
@@ -51,9 +58,7 @@ final readonly class PermitController
         }
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            $action = $this->actionFactory->create($actionKey);
-
-            return $action->execute($req);
+            return $this->actionFactory->create($actionKey)->execute($req);
         });
 
         if ($response instanceof ResponseInterface) {
