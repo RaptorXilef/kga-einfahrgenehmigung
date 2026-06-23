@@ -11,6 +11,7 @@ use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
 
@@ -33,7 +34,15 @@ final readonly class ChangelogController
     {
         $pipeline = new MiddlewarePipeline();
         $pipeline->add(new RequireLoginMiddleware($this->auth, 'index.php'));
-        $pipeline->add(new PermissionMiddleware($this->auth, 'system.update.view', 'index.php'));
+
+        if ($this->action instanceof RequiresPermissionInterface) {
+            $pipeline->add(new PermissionMiddleware(
+                $this->auth,
+                $this->action->getRequiredPermission(),
+                'index.php',
+            ));
+        }
+
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add($this->mailQueueMiddleware);
 

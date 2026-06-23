@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\ApiSearchPermitsRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
@@ -15,11 +16,16 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class ApiSearchPermitsAction implements ViewActionInterface
+final readonly class ApiSearchPermitsAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private PermitService $permitService)
+        private PermitService $permitService,
+    ) {
+    }
+
+    public function getRequiredPermission(): string
     {
+        return 'dashboard.control_bar.search';
     }
 
     public function execute(ServerRequest $request): mixed

@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\SystemInfoService;
@@ -15,13 +16,18 @@ use App\Core\Service\SystemInfoService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemChangelogAction implements ViewActionInterface
+final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthService $auth,
         private TemplateRenderer $renderer,
         private SystemInfoService $sysInfo,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.update.view';
     }
 
     public function execute(ServerRequest $request): mixed

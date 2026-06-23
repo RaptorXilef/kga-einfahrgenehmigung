@@ -15,6 +15,7 @@ use App\Application\Middleware\JsonBodyParserMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\AuthService;
@@ -34,12 +35,10 @@ final readonly class ApiController
     ) {
     }
 
-    public function handle(
-        ServerRequest $request,
-        string $actionKey,
-        ?string $permission = null,
-        bool $rateLimit = false,
-    ): void {
+    public function handle(ServerRequest $request, string $actionKey, bool $rateLimit = false): void
+    {
+        $action = $this->factory->create($actionKey);
+
         $pipeline = new MiddlewarePipeline();
 
         // 1. CORS Pre-Flights abfangen
@@ -56,16 +55,15 @@ final readonly class ApiController
             $pipeline->add(new ApiRateLimitMiddleware($this->rateLimiter));
         }
 
-        // 5. Rechteprüfung (falls gefordert)
-        if ($permission !== null) {
-            $pipeline->add(new ApiPermissionMiddleware($this->auth, $permission));
+        // Dynamisches Routing anhand des Interfaces
+        if ($action instanceof RequiresPermissionInterface) {
+            $pipeline->add(new ApiPermissionMiddleware($this->auth, $action->getRequiredPermission()));
         }
 
         // 6. JSON Body sicher parsen
         $pipeline->add(new JsonBodyParserMiddleware());
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            $action = $this->factory->create($actionKey);
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($action, $actionKey): mixed {
             if ($action !== null) {
                 return $action->execute($req);
             }

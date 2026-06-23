@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\ApiCheckUpdateRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\SystemInfoService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
@@ -16,7 +17,7 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemCheckUpdateAction implements ViewActionInterface
+final readonly class SystemCheckUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private GitHubUpdaterService $updater,
@@ -24,11 +25,15 @@ final readonly class SystemCheckUpdateAction implements ViewActionInterface
     ) {
     }
 
+    public function getRequiredPermission(): string
+    {
+        return 'system.update.view';
+    }
+
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = ApiCheckUpdateRequest::fromArray($request->input);
-
+            $dto            = ApiCheckUpdateRequest::fromArray($request->input);
             $currentVersion = $this->sysInfo->getCurrentVersion();
 
             // Reicht das "force" Flag durch, um den 24h-Cache zu umgehen

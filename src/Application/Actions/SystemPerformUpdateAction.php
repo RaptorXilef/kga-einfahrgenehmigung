@@ -8,6 +8,7 @@ use App\Application\DTO\ApiPerformUpdateRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 
@@ -16,11 +17,16 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemPerformUpdateAction implements ViewActionInterface
+final readonly class SystemPerformUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private GitHubUpdaterService $updater,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.update.execute';
     }
 
     public function execute(ServerRequest $request): mixed

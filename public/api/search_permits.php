@@ -19,4 +19,4 @@ use App\Application\Http\ServerRequest;
 $container = require_once __DIR__ . '/../../src/Bootstrap/app.php';
 
 $req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
-$container->get(ApiController::class)->handle($req, 'search_permits', 'dashboard.control_bar.search');
+$container->get(ApiController::class)->handle($req, 'search_permits');

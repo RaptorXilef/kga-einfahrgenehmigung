@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
@@ -15,12 +16,17 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemFinalizeUpdateAction implements ViewActionInterface
+final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthService $auth,
         private UpdateMigrationService $migrationService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.update.execute';
     }
 
     public function execute(ServerRequest $request): mixed
