@@ -2,6 +2,12 @@
 
 
 
+## [0.49.11](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.10...v0.49.11) (2026-06-23)
+
+### 🐛 Bug Fixes
+
+* **auth:** prevent idle timeout from resetting guest CSRF tokens and expose swallowed auth errors ([248780e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/248780e708804b43ec55f57aac54b495671d486d))
+
 ## [0.49.10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.9...v0.49.10) (2026-06-23)
 
 ### 🧹 Chore / Maintenance
