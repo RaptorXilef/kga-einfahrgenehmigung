@@ -2,6 +2,14 @@
 
 
 
+## [0.49.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.3...v0.49.4) (2026-06-23)
+
+### ⚙️ Refactoring
+
+* **routing:** apply RequiresPermissionInterface to remaining admin actions ([ab95182](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ab951820765ae53ac9bec6347cc6dde838f0e217))
+* **routing:** harmonize API and Changelog controllers with interface-based permission mapping ([69ff820](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/69ff820bc881836ca7582d7d20be32d6e006ec9e))
+* **routing:** replace procedural permission mapping with Action-Level interfaces ([84b4058](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/84b4058740c70d46817e504d46b5ca355b482b07))
+
 ## [0.49.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.2...v0.49.3) (2026-06-22)
 
 ### 🐛 Bug Fixes
