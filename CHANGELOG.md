@@ -2,6 +2,12 @@
 
 
 
+## [0.49.10](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.9...v0.49.10) (2026-06-23)
+
+### 🧹 Chore / Maintenance
+
+* **maintenance:** add migration script 007 to clean up obsolete core configuration files ([c5256bc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c5256bcca7f9b00207ae7a32b4e3ac82b6ced681))
+
 ## [0.49.9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.8...v0.49.9) (2026-06-23)
 
 ### 🐛 Bug Fixes
