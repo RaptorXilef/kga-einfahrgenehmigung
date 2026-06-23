@@ -2,6 +2,12 @@
 
 
 
+## [0.49.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.7...v0.49.8) (2026-06-23)
+
+### ⚙️ Refactoring
+
+* **core:** decouple infrastructure logic, implement JSON state settings, secure bootstrap ... ([924e3c8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/924e3c8348582745f37b39a40aec733b85d90013))
+
 ## [0.49.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.6...v0.49.7) (2026-06-23)
 
 ### ⚙️ Refactoring
