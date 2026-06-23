@@ -21,9 +21,6 @@ final readonly class GitHubUpdaterService
 {
     use SafeJsonWriterTrait;
 
-    // TODO URL
-    private const GITHUB_API_URL = 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung';
-
     // Fallback-Regeln, falls die update_manifest.json im ZIP mal fehlen sollte
     // Absolute Sperrzone! Diese Pfade werden beim Update NIEMALS angerührt.
     private const DEFAULT_BLACKLIST = [
@@ -473,7 +470,9 @@ final readonly class GitHubUpdaterService
      */
     private function makeApiRequest(string $endpoint): ?array
     {
-        $url = self::GITHUB_API_URL . $endpoint;
+        // TODO URL
+        $baseUrl = $this->config->get('github_api_url', 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung');
+        $url     = $baseUrl . $endpoint;
 
         $ch = \curl_init();
         \curl_setopt_array($ch, [
@@ -485,7 +484,6 @@ final readonly class GitHubUpdaterService
 
         $response = \curl_exec($ch);
         $httpCode = \curl_getinfo($ch, \CURLINFO_HTTP_CODE);
-        \curl_close($ch);
 
         if ($httpCode !== 200 || ! $response) {
             return null;

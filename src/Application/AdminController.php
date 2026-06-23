@@ -13,6 +13,7 @@ use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\MigrationPermissionMiddleware;
 use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\PrintAuthorizationMiddleware;
+use App\Application\Middleware\SystemMaintenanceMiddleware;
 use App\Application\Middleware\ToggleSuspensionMiddleware;
 use App\Application\Middleware\VoucherIssuanceMiddleware;
 use App\Application\Response\RedirectResponse;
@@ -21,11 +22,8 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Application\ViewActionInterface;
-use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\Maintenance\CronScheduler;
-use App\Infrastructure\Maintenance\StorageBootstrapper;
 
 /**
  * Front-Controller für den gesicherten Admin-Bereich.
@@ -43,11 +41,9 @@ final readonly class AdminController
         private AdminAuthGuardMiddleware $authGuard,
         private AnalyticsMiddleware $analyticsMiddleware,
         private AuthService $auth,
-        private BackupServiceInterface $backupService,
-        private CronScheduler $cronScheduler,
         private SessionManager $sessionManager,
-        private StorageBootstrapper $bootstrapper,
         private StorageInterface $storage,
+        private SystemMaintenanceMiddleware $maintenanceMiddleware,
     ) {
     }
 
@@ -59,22 +55,6 @@ final readonly class AdminController
      */
     public function handleRequest(ServerRequest $request): void
     {
-        // 1. SYSTEM-INITIALISIERUNG
-        try {
-            // Hier rufen ich jetzt NUR noch den sauberen Bootstrapper auf
-            $this->bootstrapper->bootstrap();
-
-            // Orchestriert Backup & Archivierung über Pseudo-Cron
-            $this->cronScheduler->runIfNeeded();
-
-            // Cronjob für automatische Backups darf bleiben
-            $this->backupService->checkAutoBackup();
-        } catch (\Throwable $e) {
-            // Fängt Fehler ab, damit das Dashboard nicht abstürzt
-            \error_log('Bootstrapping Warning: ' . $e->getMessage());
-        }
-
-        // Action-Key ermitteln
         $actionKey = (string) ($request->post['action'] ?? ($request->get['action'] ?? 'render_dashboard'));
 
         // Export & Print als ViewActions abfangen
@@ -90,6 +70,9 @@ final readonly class AdminController
 
         // Pipeline aufbauen
         $pipeline = new MiddlewarePipeline();
+
+        // Die System-Wartung läuft nun sicher über die Middleware!
+        $pipeline->add($this->maintenanceMiddleware);
         $pipeline->add($this->analyticsMiddleware);
         $pipeline->add(new CsrfMiddleware($this->sessionManager, 'admin.php'));
 
@@ -98,7 +81,7 @@ final readonly class AdminController
             $pipeline->add($this->authGuard);
         }
 
-        // NEU: Dynamisches Routing! Die Action entscheidet selbst, welche Rechte sie braucht.
+        // Dynamisches Routing! Die Action entscheidet selbst, welche Rechte sie braucht.
         if ($action instanceof RequiresPermissionInterface) {
             $pipeline->add(new PermissionMiddleware(
                 $this->auth,

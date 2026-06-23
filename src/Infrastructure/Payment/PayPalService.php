@@ -22,12 +22,16 @@ use App\Infrastructure\Config\Config;
  */
 final readonly class PayPalService implements PaymentProviderInterface
 {
-    private const string API_BASE_SANDBOX = 'https://api-m.sandbox.paypal.com';
-    private const string API_BASE_LIVE    = 'https://api-m.paypal.com';
-
     public function __construct(
         private Config $config,
     ) {
+    }
+
+    private function getBaseUrl(): string
+    {
+        return $this->config->isTestMode()
+            ? $this->config->get('paypal_api_sandbox', 'https://api-m.sandbox.paypal.com')
+            : $this->config->get('paypal_api_live', 'https://api-m.paypal.com');
     }
 
     // --- Public API ---
@@ -42,7 +46,7 @@ final readonly class PayPalService implements PaymentProviderInterface
     public function createOrder(float $amount): string|false
     {
         $accessToken = $this->getAccessToken();
-        $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $baseUrl     = $this->getBaseUrl();
 
         $curlHandle = \curl_init("$baseUrl/v2/checkout/orders");
         \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
@@ -64,8 +68,8 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         \curl_setopt($curlHandle, \CURLOPT_POSTFIELDS, \json_encode($payload));
         $response = \curl_exec($curlHandle);
-        $data     = \json_decode((string) $response, true);
-        // curl_close entfernt (deprecated in IDE)
+
+        $data = \json_decode((string) $response, true);
 
         return $data['id'] ?? false;
     }
@@ -85,7 +89,7 @@ final readonly class PayPalService implements PaymentProviderInterface
     public function captureOrder(string $orderId, float $expectedAmount): bool
     {
         $accessToken = $this->getAccessToken();
-        $baseUrl     = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $baseUrl     = $this->getBaseUrl();
 
         // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
         $curlHandle = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
@@ -98,7 +102,6 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         $response = \curl_exec($curlHandle);
         $httpCode = \curl_getinfo($curlHandle, \CURLINFO_HTTP_CODE);
-        // curl_close entfernt (deprecated in IDE)
 
         // Prüfen, ob die API-Anfrage technisch erfolgreich war (200 OK oder 201 Created)
         if ($httpCode !== 201 && $httpCode !== 200) {
@@ -135,7 +138,7 @@ final readonly class PayPalService implements PaymentProviderInterface
      */
     private function getAccessToken(): string
     {
-        $baseUrl = $this->config->isTestMode() ? self::API_BASE_SANDBOX : self::API_BASE_LIVE;
+        $baseUrl = $this->getBaseUrl();
 
         // Dynamische Auswahl der Credentials basierend auf dem Modus
         $ppCfg    = $this->config->get('paypal');
@@ -150,7 +153,6 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         $response = \curl_exec($curlHandle);
         $data     = \json_decode((string) $response, true);
-        // curl_close entfernt (deprecated in IDE)
 
         if (! isset($data['access_token'])) {
             throw new \RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte API-Daten prüfen.');

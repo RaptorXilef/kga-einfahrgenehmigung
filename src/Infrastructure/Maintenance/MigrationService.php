@@ -5,14 +5,6 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Mail\MailLogInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Contracts\Storage\MagicLinkRepositoryInterface;
-use App\Contracts\Storage\PermitArchiveRepositoryInterface;
-use App\Contracts\Storage\StorageInterface;
-use App\Contracts\Storage\UserRepositoryInterface;
-use App\Contracts\Storage\VerificationRepositoryInterface;
-use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\JsonGroupRepository;
@@ -51,14 +43,6 @@ final readonly class MigrationService
         private AuthService $authService,
         private BackupService $backupService,
         private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
-        private MagicLinkRepositoryInterface $magicLinkRepository,
-        private MailLogInterface $mailLog,
-        private PermitArchiveRepositoryInterface $archiveRepository,
-        private StorageInterface $storage,
-        private UserRepositoryInterface $userRepository,
-        private VerificationRepositoryInterface $verificationRepository,
-        private VoucherRepositoryInterface $voucherRepository,
     ) {
     }
 
@@ -268,7 +252,6 @@ final readonly class MigrationService
 
     /**
      * Exportiert Tabellendaten aus MySQL in eine flache JSON-Datei.
-     * Nutzt bei Permits das optimierte StorageInterface::migrateTo().
      *
      * @param string $target Der zu exportierende Bereich.
      *

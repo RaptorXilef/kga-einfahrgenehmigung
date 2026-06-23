@@ -163,14 +163,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(AuthService::class),
             $container->get(BackupService::class),
             $container->get(ConfigInterface::class),
-            $container->get(GroupRepositoryInterface::class),
-            $container->get(MagicLinkRepositoryInterface::class),
-            $container->get(MailLogInterface::class),
-            $container->get(PermitArchiveRepositoryInterface::class),
-            $container->get(StorageInterface::class),
-            $container->get(UserRepositoryInterface::class),
-            $container->get(VerificationRepositoryInterface::class),
-            $container->get(VoucherRepositoryInterface::class),
         ));
 
         $container->bind(BackupServiceInterface::class, fn () => $container->get(
