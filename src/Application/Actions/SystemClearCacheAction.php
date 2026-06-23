@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -13,11 +14,16 @@ use App\Infrastructure\Maintenance\MigrationService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemClearCacheAction implements ActionInterface
+final readonly class SystemClearCacheAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private MigrationService $migrationService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.migration.delete-cache.execute';
     }
 
     public function execute(ServerRequest $request): mixed

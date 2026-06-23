@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\VoucherService;
 
 /**
@@ -15,11 +16,16 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class VoucherDeleteAction implements ActionInterface
+final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private VoucherService $voucherService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.vouchers.remove';
     }
 
     public function execute(ServerRequest $request): mixed

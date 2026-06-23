@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 
 /**
@@ -13,11 +14,16 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemAnonymizeArchiveAction implements ActionInterface
+final readonly class SystemAnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private PermitArchiveRepositoryInterface $archiveRepository,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.migration.anonymize.execute';
     }
 
     public function execute(ServerRequest $request): mixed

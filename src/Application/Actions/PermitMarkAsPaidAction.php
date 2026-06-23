@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -15,11 +16,16 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class PermitMarkAsPaidAction implements ActionInterface
+final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private PermitService $permitService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.finance.mark_paid';
     }
 
     /**

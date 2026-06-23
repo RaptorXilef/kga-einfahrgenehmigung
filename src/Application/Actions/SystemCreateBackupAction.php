@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 
 /**
@@ -14,11 +15,16 @@ use App\Contracts\Storage\BackupServiceInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemCreateBackupAction implements ActionInterface
+final readonly class SystemCreateBackupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private BackupServiceInterface $backupService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.migration.backup.execute';
     }
 
     public function execute(ServerRequest $request): mixed

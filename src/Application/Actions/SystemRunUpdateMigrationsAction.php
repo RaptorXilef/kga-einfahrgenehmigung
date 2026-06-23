@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
@@ -14,11 +15,16 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemRunUpdateMigrationsAction implements ActionInterface
+final readonly class SystemRunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private UpdateMigrationService $migrationService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.update.execute';
     }
 
     public function execute(ServerRequest $request): mixed

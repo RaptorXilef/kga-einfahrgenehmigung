@@ -8,6 +8,7 @@ use App\Application\DTO\PermitCreateManualRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\PermitService;
 
 /**
@@ -15,11 +16,16 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class PermitCreateManualAction implements ActionInterface
+final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private PermitService $permitService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.generator-tools.direct_issue.execute';
     }
 
     /**

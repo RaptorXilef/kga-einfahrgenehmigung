@@ -9,6 +9,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\ExportService;
 use App\Core\Service\PermitFilterService;
@@ -18,13 +19,18 @@ use App\Core\Service\PermitFilterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class DashboardExportAction implements ViewActionInterface
+final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private ExportService $exportService,
         private PermitFilterService $filterService,
         private SessionManager $sessionManager,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'finance.export.execute';
     }
 
     public function execute(ServerRequest $request): mixed

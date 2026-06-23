@@ -8,6 +8,7 @@ use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -15,11 +16,16 @@ use App\Infrastructure\Maintenance\MigrationService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemTruncateTargetAction implements ActionInterface
+final readonly class SystemTruncateTargetAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private MigrationService $migrationService,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'dashboard.migration.delete-data.execute';
     }
 
     /**

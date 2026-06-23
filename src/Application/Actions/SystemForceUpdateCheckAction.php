@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\SystemInfoService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 
@@ -14,12 +15,17 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemForceUpdateCheckAction implements ActionInterface
+final readonly class SystemForceUpdateCheckAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private GitHubUpdaterService $updater,
         private SystemInfoService $sysInfo,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.update.view';
     }
 
     public function execute(ServerRequest $request): mixed
