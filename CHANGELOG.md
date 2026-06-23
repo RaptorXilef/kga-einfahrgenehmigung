@@ -2,6 +2,12 @@
 
 
 
+## [0.49.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.5...v0.49.6) (2026-06-23)
+
+### ⚙️ Refactoring
+
+* **storage:** final hybrid repositories and map MailQueue/LoginAttempts to Domain Entities ([06fbac7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/06fbac7a4b5d1b858fd25d9b087577055af659bf))
+
 ## [0.49.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.4...v0.49.5) (2026-06-23)
 
 ### 🐛 Bug Fixes
