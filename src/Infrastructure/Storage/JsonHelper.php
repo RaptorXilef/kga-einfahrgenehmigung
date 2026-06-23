@@ -26,15 +26,12 @@ final class JsonHelper
         }
 
         /**
-         * Enterprise Regex-Kommentar-Filter:
-         * 1. `/\*.*?\* /`  ` filtert mehrzeilige Blockkommentare.
-         * 2. `(?<!:)\/\/.*` filtert einzeilige Kommentare, ignoriert aber Protokolle wie https://
+         * Bulletproof Regex für JSONC:
+         * Gruppe 1: Matcht gültige JSON-Strings ("...") und bewahrt sie.
+         * Gruppe 3: Matcht Block- (/*...* /) und Zeilenkommentare (//...) außerhalb von Strings und entfernt sie.
          */
-        $jsonWithoutComments = \preg_replace(
-            '#/\*.*?\*/|(?<!:)\/\/.*#s',
-            '',
-            $json,
-        );
+        $pattern             = '/("([^"\\\\]*|\\\\.)*")|(\/\*[\s\S]*?\*\/|\/\/.*)/';
+        $jsonWithoutComments = \preg_replace($pattern, '$1', $json);
 
         try {
             return \json_decode(
