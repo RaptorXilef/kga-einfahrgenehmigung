@@ -2,6 +2,12 @@
 
 
 
+## [0.49.7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.6...v0.49.7) (2026-06-23)
+
+### ⚙️ Refactoring
+
+* **bootstrap:** decouple HTTP logic from app.php and extract into ADR middlewares ([72d860a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/72d860a8240ee043648c954889a9970fc8eae8a1))
+
 ## [0.49.6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.5...v0.49.6) (2026-06-23)
 
 ### ⚙️ Refactoring
