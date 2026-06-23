@@ -6,6 +6,7 @@ namespace App\Infrastructure\Mail;
 
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
+use App\Core\Entity\MailJob;
 
 /**
  * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
@@ -37,7 +38,16 @@ final readonly class MailQueueService implements MailServiceInterface
      */
     public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
     {
-        $this->repository->enqueue($recipient, $subject, $template, $data);
+        $job = new MailJob(
+            \uniqid('mq_'),
+            $recipient,
+            $subject,
+            $template,
+            $data,
+            0,
+            new \DateTimeImmutable(),
+        );
+        $this->repository->enqueue($job);
 
         return true;
     }

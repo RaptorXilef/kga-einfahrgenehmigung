@@ -7,22 +7,25 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Mail\SmtpMailService;
-use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonHelper;
+use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
+use App\Infrastructure\Storage\JsonMailQueueRepository;
+use App\Infrastructure\Storage\JsonPermitArchiveRepository;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
-use App\Infrastructure\Storage\MailQueueRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
+use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
+use App\Infrastructure\Storage\MySqlMailQueueRepository;
+use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
-use App\Infrastructure\Storage\PermitArchiveRepository;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use App\Infrastructure\Utils\SystemClock;
 
@@ -467,13 +470,13 @@ final readonly class MigrationService
         match ($key) {
             'groups'               => (new MySqlGroupRepository($this->pdo, $this->config))->import($data),
             'users'                => (new MySqlUserRepository($this->pdo, $this->config))->import($data),
-            'login_attempts'       => (new RateLimiter($this->pdo, new SystemClock(), $this->config))->import($data, true),
+            'login_attempts'       => (new MySqlLoginAttemptRepository($this->pdo, $this->config))->import($data),
             'magic_links'          => (new MySqlMagicLinkRepository($this->pdo, $this->config))->import($data),
             'mail_log'             => (new SmtpMailService($this->pdo, $this->config))->importLogs($data, true),
-            'mail_queue'           => (new MailQueueRepository($this->pdo, $this->config))->import($data, true),
+            'mail_queue'           => (new MySqlMailQueueRepository($this->pdo, $this->config))->import($data),
             'pending_verification' => (new MySqlVerificationRepository($this->pdo, $this->config))->savePending($data, true),
             'permits'              => (new MySqlStorage($this->pdo))->import($data),
-            'permits_archive'      => (new PermitArchiveRepository($this->pdo, $this->config))->import($data),
+            'permits_archive'      => (new MySqlPermitArchiveRepository($this->pdo, $this->config))->import($data),
             'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, true),
             'verified_pending'     => (new MySqlVerificationRepository($this->pdo, $this->config))->saveVerified($data, true),
             'vouchers'             => (new MySqlVoucherRepository($this->pdo, $this->config))->saveAll($data, true),
@@ -494,13 +497,13 @@ final readonly class MigrationService
         match ($key) {
             'groups'               => (new JsonGroupRepository($this->config))->import($data),
             'users'                => (new JsonUserRepository($this->config))->import($data),
-            'login_attempts'       => (new RateLimiter($this->pdo, new SystemClock(), $this->config))->import($data, false),
+            'login_attempts'       => (new JsonLoginAttemptRepository($this->config))->import($data),
             'magic_links'          => (new JsonMagicLinkRepository($this->config))->import($data),
             'mail_log'             => (new SmtpMailService($this->pdo, $this->config))->importLogs($data, false),
-            'mail_queue'           => (new MailQueueRepository($this->pdo, $this->config))->import($data, false),
+            'mail_queue'           => (new JsonMailQueueRepository($this->config))->import($data),
             'pending_verification' => (new JsonVerificationRepository($this->config))->savePending($data, false),
             'permits'              => (new JsonStorage($this->config->getStoragePath($this->config->get('storage_config')['permits']['file'] ?? 'permits.json')))->import($data),
-            'permits_archive'      => (new PermitArchiveRepository($this->pdo, $this->config))->import($data),
+            'permits_archive'      => (new JsonPermitArchiveRepository($this->config))->import($data),
             'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, false),
             'verified_pending'     => (new JsonVerificationRepository($this->config))->saveVerified($data, false),
             'vouchers'             => (new JsonVoucherRepository($this->config))->saveAll($data, false),

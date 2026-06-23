@@ -14,6 +14,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
+use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
@@ -33,17 +34,21 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\JsonGroupRepository;
+use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
+use App\Infrastructure\Storage\JsonMailQueueRepository;
+use App\Infrastructure\Storage\JsonPermitArchiveRepository;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
-use App\Infrastructure\Storage\MailQueueRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
+use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
+use App\Infrastructure\Storage\MySqlMailQueueRepository;
+use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
-use App\Infrastructure\Storage\PermitArchiveRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\Utils\SystemClock;
 
@@ -60,43 +65,39 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(\PDO::class, fn (): ?\PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
+
         $container->bind(StorageInterface::class, fn (): StorageInterface => StorageFactory::create(
             $container->get(ConfigInterface::class),
             $container->get(\PDO::class),
         ));
+
         $container->bind(ClockInterface::class, fn () => new SystemClock());
 
         // --- 1.2 Repositories (Datenzugriff) ---
         $container->bind(GroupRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
-            $type   = $config->get('storage_config')['groups']['type'] ?? 'json';
 
-            if ($type === 'mysql') {
-                return new MySqlGroupRepository(
-                    $container->get(\PDO::class),
-                    $config,
-                );
-            }
-
-            return new JsonGroupRepository($config);
+            return ($config->get('storage_config')['groups']['type'] ?? 'json') === 'mysql'
+                ? new MySqlGroupRepository($container->get(\PDO::class), $config)
+                : new JsonGroupRepository($config);
         });
+
         $container->bind(UserRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
-            $type   = $config->get('storage_config')['users']['type'] ?? 'json';
 
-            if ($type === 'mysql') {
-                return new MySqlUserRepository(
-                    $container->get(\PDO::class),
-                    $config,
-                );
-            }
-
-            return new JsonUserRepository($config);
+            return ($config->get('storage_config')['users']['type'] ?? 'json') === 'mysql'
+                ? new MySqlUserRepository($container->get(\PDO::class), $config)
+                : new JsonUserRepository($config);
         });
-        $container->bind(PermitArchiveRepositoryInterface::class, fn () => new PermitArchiveRepository(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
+
+        $container->bind(PermitArchiveRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['permits_archive']['type'] ?? 'json') === 'mysql'
+                ? new MySqlPermitArchiveRepository($container->get(\PDO::class), $config)
+                : new JsonPermitArchiveRepository($config);
+        });
+
         $container->bind(VerificationRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
@@ -104,6 +105,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 ? new MySqlVerificationRepository($container->get(\PDO::class), $config)
                 : new JsonVerificationRepository($config);
         });
+
         $container->bind(VoucherRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
@@ -111,6 +113,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 ? new MySqlVoucherRepository($container->get(\PDO::class), $config)
                 : new JsonVoucherRepository($config);
         });
+
         $container->bind(MagicLinkRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
@@ -118,13 +121,31 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 ? new MySqlMagicLinkRepository($container->get(\PDO::class), $config)
                 : new JsonMagicLinkRepository($config);
         });
-        $container->bind(MailQueueRepositoryInterface::class, fn () => new MailQueueRepository(
+
+        $container->bind(MailQueueRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['mail_queue']['type'] ?? 'json') === 'mysql'
+                ? new MySqlMailQueueRepository($container->get(\PDO::class), $config)
+                : new JsonMailQueueRepository($config);
+        });
+
+        $container->bind(LoginAttemptRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['login_attempts']['type'] ?? 'json') === 'mysql'
+                ? new MySqlLoginAttemptRepository($container->get(\PDO::class), $config)
+                : new JsonLoginAttemptRepository($config);
+        });
+
+        // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
+        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-        // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
-        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService($container->get(\PDO::class), $container->get(ConfigInterface::class)));
-        $container->bind(MailLogInterface::class, fn () => $container->get('mail.smtp'));
+        $container->bind(MailLogInterface::class, fn () => $container->get(
+            'mail.smtp',
+        ));
 
         $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
@@ -134,12 +155,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(PaymentProviderInterface::class, fn (): PayPalService => new PayPalService(
             $container->get(ConfigInterface::class),
         ));
+
         // --- 1.4 Sicherheit & System-Bootstrapping ---
         $container->bind(RateLimiterInterface::class, fn () => new RateLimiter(
-            $container->get(\PDO::class),
             $container->get(ClockInterface::class),
-            $container->get(ConfigInterface::class),
+            $container->get(LoginAttemptRepositoryInterface::class),
         ));
+
         $container->bind(LockManagerInterface::class, fn () => new FileLockManager(
             $container->get(ConfigInterface::class),
         ));
