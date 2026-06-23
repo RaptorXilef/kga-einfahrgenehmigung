@@ -12,10 +12,10 @@ namespace App\Application\Session;
  */
 final class SessionManager
 {
-    private const int MAX_LIFETIME = 43200; // 12 Stunden absolutes Limit
+    private const int MAX_LIFETIME = 43200; // 12 Stunden absolutes Maximum
     // private const int IDLE_TIMEOUT = 7200;  // 2 Stunden Inaktivität führt zum Logout
     // ÄNDERUNG: Reduziert auf 30 Min. (Bietet 10 Min Puffer für den 20-Minuten JS-Timer)
-    private const int IDLE_TIMEOUT = 1800;
+    private const int IDLE_TIMEOUT = 1800;  // 30 Minuten Inaktivität
 
     public function __construct()
     {
@@ -40,10 +40,17 @@ final class SessionManager
             return;
         }
 
+        // Prüfen, ob der Nutzer gerade authentifizierte Daten in der Session hat
+        $isAuthenticated = ! empty($_SESSION['user_id']) || ! empty($_SESSION['admin_user']);
+
         // Idle Timeout: User war zu lange inaktiv
         if (($now - $_SESSION['last_activity']) > self::IDLE_TIMEOUT) {
-            $this->destroy();
-            \session_start();
+            // Wir zerstören die Session nach 30 Min NUR, wenn sensible Admin-Daten drin liegen!
+            // Gast-Sessions (für das CSRF Token auf der Loginseite) lassen wir am Leben.
+            if ($isAuthenticated) {
+                $this->destroy();
+                \session_start();
+            }
             $_SESSION['session_created'] = $now;
             $_SESSION['last_activity']   = $now;
 
