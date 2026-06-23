@@ -7,7 +7,9 @@ namespace App\Infrastructure\Security;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\Core\Entity\LoginAttempt;
 use App\Infrastructure\Storage\JsonHelper;
+use App\Infrastructure\Storage\JsonTransactionTrait;
 
 /**
  * Implementierung des Rate-Limiters zum Schutz vor Brute-Force Logins.
@@ -19,7 +21,7 @@ use App\Infrastructure\Storage\JsonHelper;
  */
 final readonly class RateLimiter implements RateLimiterInterface
 {
-    use \App\Infrastructure\Storage\JsonTransactionTrait;
+    use JsonTransactionTrait;
 
     private const int MAX_ATTEMPTS    = 5;
     private const int LOCKOUT_MINUTES = 15;
@@ -52,8 +54,8 @@ final readonly class RateLimiter implements RateLimiterInterface
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if ($row) {
-                $lastAttempt = new \DateTimeImmutable($row['last_attempt']);
-                $diffMinutes = ($now->getTimestamp() - $lastAttempt->getTimestamp()) / 60;
+                $attempt     = new LoginAttempt($ip, (int) $row['attempts'], new \DateTimeImmutable($row['last_attempt']));
+                $diffMinutes = ($now->getTimestamp() - $attempt->lastAttempt->getTimestamp()) / 60;
 
                 if ($diffMinutes > self::LOCKOUT_MINUTES) {
                     $this->clearAttempts($ip);
@@ -61,7 +63,7 @@ final readonly class RateLimiter implements RateLimiterInterface
                     return false;
                 }
 
-                return (int) $row['attempts'] >= self::MAX_ATTEMPTS;
+                return $attempt->attempts >= self::MAX_ATTEMPTS;
             }
 
             return false;
@@ -69,11 +71,15 @@ final readonly class RateLimiter implements RateLimiterInterface
 
         // JSON Fallback
         $path = $this->config->getStoragePath($cfg['file']);
+        if (! \file_exists($path)) {
+            return false;
+        }
+
         $data = JsonHelper::read($path);
 
         if (isset($data[$ip])) {
-            $lastAttempt = new \DateTimeImmutable($data[$ip]['last_attempt']);
-            $diffMinutes = ($now->getTimestamp() - $lastAttempt->getTimestamp()) / 60;
+            $attempt     = new LoginAttempt($ip, (int) $data[$ip]['attempts'], new \DateTimeImmutable($data[$ip]['last_attempt']));
+            $diffMinutes = ($now->getTimestamp() - $attempt->lastAttempt->getTimestamp()) / 60;
 
             if ($diffMinutes > self::LOCKOUT_MINUTES) {
                 $this->clearAttempts($ip);
@@ -81,7 +87,7 @@ final readonly class RateLimiter implements RateLimiterInterface
                 return false;
             }
 
-            return (int) $data[$ip]['attempts'] >= self::MAX_ATTEMPTS;
+            return $attempt->attempts >= self::MAX_ATTEMPTS;
         }
 
         return false;
@@ -117,13 +123,21 @@ final readonly class RateLimiter implements RateLimiterInterface
             // Garbage Collection (Speicher-Leck / JSON-Bloat verhindern!)
             // Löscht alle IPs, deren letzter Versuch länger als die Lockout-Zeit her ist.
             $threshold = \time() - (self::LOCKOUT_MINUTES * 60);
+
+            // Garbage Collection alter Einträge
             foreach ($data as $storedIp => $info) {
                 if (isset($info['last_attempt']) && \strtotime($info['last_attempt']) < $threshold) {
                     unset($data[$storedIp]);
                 }
             }
-            $data[$ip]['attempts']     = ($data[$ip]['attempts'] ?? 0) + 1;
-            $data[$ip]['last_attempt'] = $nowStr;
+
+            $attempts = ($data[$ip]['attempts'] ?? 0) + 1;
+            $entity   = new LoginAttempt($ip, $attempts, new \DateTimeImmutable($nowStr));
+
+            $data[$ip] = [
+                'attempts'     => $entity->attempts,
+                'last_attempt' => $entity->lastAttempt->format('Y-m-d H:i:s'),
+            ];
 
             return true;
         });
@@ -162,13 +176,23 @@ final readonly class RateLimiter implements RateLimiterInterface
     {
         $cfg    = $this->config->get('storage_config')['login_attempts'];
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+
+        $objects = [];
+        foreach ($data as $ip => $item) {
+            $objects[$ip] = new LoginAttempt(
+                (string) $ip,
+                (int) ($item['attempts'] ?? 0),
+                new \DateTimeImmutable($item['last_attempt'] ?? 'now'),
+            );
+        }
+
         if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
             try {
                 $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (ip_address, attempts, last_attempt) VALUES (?, ?, ?)");
-                foreach ($data as $ip => $item) {
-                    $stmt->execute([$ip, (int) ($item['attempts'] ?? 0), $item['last_attempt'] ?? '']);
+                foreach ($objects as $obj) {
+                    $stmt->execute([$obj->ipAddress, $obj->attempts, $obj->lastAttempt->format('Y-m-d H:i:s')]);
                 }
                 $this->pdo->commit();
             } catch (\Exception $e) {
@@ -177,8 +201,15 @@ final readonly class RateLimiter implements RateLimiterInterface
                 throw $e;
             }
         } elseif (! $forceSql) {
-            $path = $this->config->getStoragePath($cfg['file']);
-            \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
+            $path   = $this->config->getStoragePath($cfg['file']);
+            $toSave = [];
+            foreach ($objects as $obj) {
+                $toSave[$obj->ipAddress] = [
+                    'attempts'     => $obj->attempts,
+                    'last_attempt' => $obj->lastAttempt->format('Y-m-d H:i:s'),
+                ];
+            }
+            \file_put_contents($path, \json_encode($toSave, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuthService;
+use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonHelper;
@@ -468,7 +469,7 @@ final readonly class MigrationService
             'users'                => (new MySqlUserRepository($this->pdo, $this->config))->import($data),
             'login_attempts'       => (new RateLimiter($this->pdo, new SystemClock(), $this->config))->import($data, true),
             'magic_links'          => (new MySqlMagicLinkRepository($this->pdo, $this->config))->import($data),
-            'mail_log'             => $this->mailLog->importLogs($data, true),
+            'mail_log'             => (new SmtpMailService($this->pdo, $this->config))->importLogs($data, true),
             'mail_queue'           => (new MailQueueRepository($this->pdo, $this->config))->import($data, true),
             'pending_verification' => (new MySqlVerificationRepository($this->pdo, $this->config))->savePending($data, true),
             'permits'              => (new MySqlStorage($this->pdo))->import($data),
@@ -495,7 +496,7 @@ final readonly class MigrationService
             'users'                => (new JsonUserRepository($this->config))->import($data),
             'login_attempts'       => (new RateLimiter($this->pdo, new SystemClock(), $this->config))->import($data, false),
             'magic_links'          => (new JsonMagicLinkRepository($this->config))->import($data),
-            'mail_log'             => $this->mailLog->importLogs($data, false),
+            'mail_log'             => (new SmtpMailService($this->pdo, $this->config))->importLogs($data, false),
             'mail_queue'           => (new MailQueueRepository($this->pdo, $this->config))->import($data, false),
             'pending_verification' => (new JsonVerificationRepository($this->config))->savePending($data, false),
             'permits'              => (new JsonStorage($this->config->getStoragePath($this->config->get('storage_config')['permits']['file'] ?? 'permits.json')))->import($data),

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Mail;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Entity\MailLogEntry;
-use App\Infrastructure\Config\Config;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonTransactionTrait;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
@@ -28,7 +28,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
 
     public function __construct(
         private ?\PDO $pdo,
-        private Config $config,
+        private ConfigInterface $config,
     ) {
     }
 
