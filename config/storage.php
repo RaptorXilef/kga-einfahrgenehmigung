@@ -1,7 +1,10 @@
 <?php
 
 /**
- * Speicher- und Backup-Einstellungen
+ * Speicher-Routen und Backup-Infrastruktur
+ *
+ * Regelt die physische Zuordnung der Datenbereiche zu den Speicher-Engines
+ * sowie die automatisierten Rotations-Zyklen der Datensicherungen.
  *
  * Path: config/storage.php
  *
@@ -11,7 +14,7 @@
 declare(strict_types=1);
 
 return [
-    // MySQL Zugangsdaten (Optional)
+    // --- RELATIONALES BACKEND (MYSQL) ---
     'database' => [
         'enabled' => false,
         'host'    => 'localhost',
@@ -22,9 +25,20 @@ return [
         'charset' => 'utf8mb4',
     ],
 
-    // WICHTIG: Aktuell bitte bei json bleiben, da die Migration von MySQl zurück zu json noch nicht fertig ist!
+    // --- PFAD-STRATEGIEN ---
+    'storage_path_prefix' => 'storage/',
+    'use_pseudo_cron'     => true, // Führt Wartungsaufgaben implizit bei Admin-Aktionen aus
+    'archive_grace_days'  => 0,    // Zusatztage, die eine abgelaufene Genehmigung bis zur Archivierung wartet
 
-    // Speicher-Strategie pro Bereich
+    // --- SYSTEM-BACKUPS (ROTATION) ---
+    'backup_settings' => [
+        'enabled'        => true,
+        'interval_hours' => 24,        // Zeitfenster zwischen automatischen Backups
+        'max_backups'    => 15,        // Maximale Anzahl vorzuhaltender Backup-Ordner
+        'sub_folder'     => 'backups', // Speicherort innerhalb des Storage-Prefix
+    ],
+
+    // --- ENGINE-MAPPING ---
     'storage_config' => [
         // Haupt-Datenbank für fertige Genehmigungen (ehemals daten.json)
         'permits' => [
@@ -104,19 +118,4 @@ return [
             'file'  => 'update_migrations.json',
         ],
     ],
-
-    // Pfad zum Storage-Ordner (relativ zum Root)
-    'storage_path_prefix' => 'storage/',
-
-    // Automatisierung & Sicherung
-    'backup_settings' => [
-        'enabled'        => true,
-        'interval_hours' => 24,       // Alle X Stunden ein Backup ziehen bei Admin-Aktivität
-        'max_backups'    => 15,       // Wie viele Backup-Ordner behalten? (Rotation)
-        'sub_folder'     => 'backups', // Ordnername innerhalb des storage-Pfads
-    ],
-
-    // -- CronJob - Automatisierte Archivierung ---
-    'use_pseudo_cron'    => true, // Pseudo-Cron beim Admin-Login aktivieren
-    'archive_grace_days' => 0,    // Tage - 0 = sofort nach Ablauf archivieren (wenn bezahlt)
 ];

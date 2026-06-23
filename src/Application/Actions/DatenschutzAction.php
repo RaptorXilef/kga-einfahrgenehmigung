@@ -8,6 +8,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
+use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * Action zum Rendern der Datenschutzerklärung.
@@ -27,8 +28,8 @@ final readonly class DatenschutzAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $root      = $this->config->get('root_path');
-        $legalData = include $root . '/config/datenschutz.php';
+        $path      = $this->config->getStoragePath('settings/datenschutz.json');
+        $legalData = \file_exists($path) ? JsonHelper::read($path) : [];
 
         $this->renderer->render('datenschutz', [
             'legal' => $legalData,

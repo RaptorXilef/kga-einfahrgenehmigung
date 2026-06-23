@@ -27,7 +27,7 @@ jobs:
       - name: Install PHP dependencies (No Dev)
         run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-      # --- NEU: Node.js Setup und Asset-Build ---
+      # --- Node.js Setup und Asset-Build ---
       - name: Setup Node.js environment
         uses: actions/setup-node@v6.4.0
         # https://github.com/marketplace/actions/setup-node-js-environment
@@ -46,21 +46,24 @@ jobs:
       - name: Create Release ZIPs
         run: |
           # 1. INSTALL-PAKET (Für Neuinstallationen)
-          # Hier packen wir die originalen Dateien (ohne .default) ein.
+          # Hier packen wir die originalen Dateien (wie im Repo) ein.
           # (Die zuvor gebauten Assets in public/assets/ werden hier automatisch mitgenommen!)
           zip -r kga-einfahrts-manager-install-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json -x "src/assets/*"
 
-          # 2. BASH-MAGIC: Umbenennen der Config-Dateien für das Update
+          # 2. BASH-MAGIC: Umbenennen ALLER Config-Dateien für das Update
+          # Da schema und permissions jetzt in src/ liegen, können wir hier gefahrlos alles umbenennen
           for file in config/*.php; do
-            filename=$(basename "$file")
-            # Wir ignorieren jetzt sql_schema.php UND permissions.php
-            if [ "$filename" != "sql_schema.php" ] && [ "$filename" != "permissions.php" ]; then
-              mv "$file" "config/${filename%.php}.default.php"
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              # Verhindert, dass bereits vorhandene .default.php nochmal umbenannt werden
+              if [[ "$filename" != *".default.php" ]]; then
+                mv "$file" "config/${filename%.php}.default.php"
+              fi
             fi
           done
 
           # 3. UPDATE-PAKET (Für Bestandskunden)
-          # Hier sind die config-Dateien nun als .default.php benannt und werden so ins ZIP gepackt.
+          # Hier sind die config-Dateien nun als .default.php benannt (verhindert Überschreiben live!)
           zip -r kga-einfahrts-manager-update-${{ env.VERSION }}.zip config/ public/ src/ templates/ vendor/ CHANGELOG.md README.md composer.json package.json update_manifest.json -x "src/assets/*" "public/assets/img/user_images/*" "public/assets/img/group_images/*" "public/assets/documents/*"
 
       - name: Upload Release Assets

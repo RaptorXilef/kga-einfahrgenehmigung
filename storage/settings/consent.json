@@ -1,0 +1,29 @@
+{
+    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "enabled": true,
+    "texts": {
+        "title": "Datenschutz & Cookies",
+        "description": "Wir nutzen Cookies und ähnliche Technologien auf unserer Website. Einige von ihnen sind essenziell für den Betrieb der Seite (z. B. für den Antragsfortschritt), während andere uns helfen, diese Website zu verbessern.",
+        "accept_all": "🍪 Ich mag Cookies! [Alle akzeptieren] 🍪",
+        "accept_essential": "[Nur essenzielle]",
+        "save_selection": "Auswahl speichern",
+        "show_details": "Details einblenden",
+        "hide_details": "Details ausblenden",
+        "link_datenschutz": "Datenschutzerklärung",
+        "link_impressum": "Impressum"
+    },
+    "groups": {
+        "essential": {
+            "id": "essential",
+            "title": "Essenziell (Technisch notwendig)",
+            "description": "Diese Cookies sind für die Kernfunktionen der Website (wie das temporäre Speichern Ihrer Formulardaten und das Session-Management) zwingend erforderlich.",
+            "required": true
+        },
+        "analytics": {
+            "id": "analytics",
+            "title": "Statistiken (Google Analytics)",
+            "description": "Erfasst anonyme Statistiken über die Nutzung unserer Website, um unser Angebot zu verbessern. Es werden keine personenbezogenen Daten an Google übermittelt. Ihre IP-Adresse wird anonymisiert. Sie helfen uns Sehr, wenn Sie diese Statistik-Cookies akzeptieren.",
+            "required": false
+        }
+    }
+}

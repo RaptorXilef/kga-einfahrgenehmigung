@@ -1,0 +1,20 @@
+{
+    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "title": "Impressum",
+    "verein": "Kleingärtnerverein Mustergarten e.V.",
+    "adresse": "Musterstraße 42, 10115 Berlin",
+    "vorstand": ["Max Mustermann (1. Vorsitzender)", "Erika Mustermann (2. Vorsitzende)"],
+    "kontakt": {
+        "telefon": "+49 (0) 30 1234567",
+        "email": "vorstand@deinedomain.de"
+    },
+    "register": {
+        "gericht": "Amtsgericht Charlottenburg (Berlin)",
+        "nummer": "VR 12345 B"
+    },
+    "ust_id": null,
+    "verantwortlich_18_mstv": {
+        "name": "Max Mustermann",
+        "adresse": "Anschrift wie oben"
+    }
+}

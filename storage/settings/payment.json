@@ -1,0 +1,22 @@
+{
+    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "bank_transfer_allowed": true,
+    "iban": "DE12 3456 7890 1234 5678 90",
+    "bic": "GENODES1M00",
+    "kontoinhaber": "KGA e.V.",
+    "usage_pattern": "EFG-{{nachname}}-{{vorname}}-{{code}}",
+    "require_payment_for_validity": true,
+    "payment_due_days": 14,
+    "payment_due_days_notify": 2,
+    "paypal": {
+        "enabled": false,
+        "sandbox": {
+            "client_id": "SANDBOX_ID_HIER",
+            "secret": "SANDBOX_SECRET_HIER"
+        },
+        "live": {
+            "client_id": "LIVE_ID_HIER",
+            "secret": "LIVE_SECRET_HIER"
+        }
+    }
+}

@@ -27,5 +27,5 @@
     "src/assets/",
     "storage/"
   ],
-  "core_configs": ["config/.htaccess", "config/permissions.php", "config/sql_schema.php"]
+  "core_configs": ["config/.htaccess"]
 }

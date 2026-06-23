@@ -1,0 +1,29 @@
+{
+    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "vehicle_types": {
+        "pkw": {
+            "label": "Privat PKW",
+            "icon": "assets\/img\/icons\/icon-automobile.webp",
+            "show_company": false,
+            "active": true
+        },
+        "lkw": {
+            "label": "Lieferant \/ Firma \/ LKW",
+            "icon": "assets\/img\/icons\/icon-delivery-truck.webp",
+            "show_company": true,
+            "active": true
+        },
+        "sharing": {
+            "label": "Privat (Leihfahrzeug\/Car-Sharing)",
+            "icon": "assets\/img\/icons\/icon-carsharing.webp",
+            "show_company": true,
+            "active": true
+        },
+        "entsorg": {
+            "label": "Abwasser \/ Entsorgung",
+            "icon": "assets\/img\/icons\/icon-biohazard.webp",
+            "show_company": true,
+            "active": false
+        }
+    }
+}

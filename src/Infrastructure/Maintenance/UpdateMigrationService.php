@@ -132,7 +132,7 @@ final readonly class UpdateMigrationService
         $now = $this->clock->now()->format('Y-m-d H:i:s');
 
         if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            // FIX: Hier muss zwingend eine ID übergeben werden, da MySQL sonst blockiert!
+            // Hier muss zwingend eine ID übergeben werden, da MySQL sonst blockiert!
             $stmt = $this->pdo->prepare("INSERT IGNORE INTO `{$cfg['table']}` (`id`, `version`, `executed_at`) VALUES (?, ?, ?)");
             $stmt->execute([\uniqid('mig_', true), $version, $now]);
 
@@ -140,8 +140,10 @@ final readonly class UpdateMigrationService
         }
 
         // JSON Speicherung
-        $path   = $this->config->getStoragePath($cfg['file']);
-        $data   = JsonHelper::read($path);
+        $path = $this->config->getStoragePath($cfg['file']);
+        // Prüfen, ob Datei existiert, bevor wir den strengen JsonHelper nutzen!
+        $data = \file_exists($path) ? JsonHelper::read($path) : [];
+
         $data[] = [
             'id'          => \uniqid('mig_', true),
             'version'     => $version,

@@ -1,0 +1,9 @@
+{
+    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "purposes": {
+        "bau": "Baumaßnahmen (genehmigt)",
+        "abriss": "Abriss",
+        "liefer": "Lieferung",
+        "entsorg": "Entsorgung\/Abfuhr"
+    }
+}

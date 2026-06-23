@@ -1,0 +1,105 @@
+{
+    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "permit_templates": {
+        "std.7": {
+            "type": "standard",
+            "label": "Ausnahmegenehmigung 7 Tage",
+            "days": 7,
+            "prices": {
+                "pkw": 3,
+                "lkw": 10
+            },
+            "public": true
+        },
+        "std.14": {
+            "type": "standard",
+            "label": "Ausnahmegenehmigung 14 Tage",
+            "days": 14,
+            "prices": {
+                "pkw": 5,
+                "lkw": 15
+            },
+            "public": false
+        },
+        "std.30": {
+            "type": "standard",
+            "label": "Ausnahmegenehmigung 1 Monat",
+            "days": 30,
+            "prices": {
+                "pkw": 10,
+                "lkw": 25
+            },
+            "public": false
+        },
+        "perm.3": {
+            "type": "permanent",
+            "label": "Dauereinfahrgenehmigung (1 Quartal)",
+            "days": 90,
+            "prices": {
+                "pkw": 20,
+                "lkw": 50
+            },
+            "public": false
+        },
+        "perm.6": {
+            "type": "permanent",
+            "label": "Dauereinfahrgenehmigung (2 Quartale)",
+            "days": 180,
+            "prices": {
+                "pkw": 35,
+                "lkw": 80
+            },
+            "public": false
+        },
+        "perm.9": {
+            "type": "permanent",
+            "label": "Dauereinfahrgenehmigung (Gesamtjahr)",
+            "days": 270,
+            "prices": {
+                "pkw": 60,
+                "lkw": 150
+            },
+            "public": false
+        },
+        "perm.12": {
+            "type": "permanent",
+            "label": "Dauereinfahrgenehmigung (Gesamtjahr)",
+            "days": 365,
+            "prices": {
+                "pkw": 60,
+                "lkw": 150
+            },
+            "public": false
+        },
+        "custom.std": {
+            "type": "standard",
+            "label": "Spezialzeitraum (Standard)",
+            "days": "custom",
+            "prices": {
+                "pkw": 0,
+                "lkw": 0
+            },
+            "public": false
+        },
+        "custom.perm": {
+            "type": "permanent",
+            "label": "Spezialzeitraum (Dauereinfahrt)",
+            "days": "custom",
+            "prices": {
+                "pkw": 0,
+                "lkw": 0
+            },
+            "public": false
+        },
+        "std.klause": {
+            "type": "standard",
+            "label": "Ausnahmegenehmigung Klause",
+            "days": "custom",
+            "prices": {
+                "pkw": 0,
+                "lkw": 0
+            },
+            "public": false
+        }
+    }
+}

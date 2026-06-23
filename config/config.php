@@ -1,32 +1,23 @@
 <?php
 
 /**
- * Technische System-Konfiguration
+ * Core-Systemsteuerung (Infrastruktur & Umgebung)
+ *
+ * Diese Datei definiert die grundlegende Laufzeitumgebung des Servers.
+ * Änderungen hier sollten nur durch den Systemadministrator vorgenommen werden.
  *
  * Path: config/config.php
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 
 declare(strict_types=1);
 
 return [
+    // --- WARTUNGSMODUS (MAINTENANCE) ---
+    'maintenance_mode'       => false, // true = Sperrt das öffentliche Pächter-Formular
+    'maintenance_mode_admin' => false, // true = Sperrt zusätzlich das gesamte Admin-Dashboard
+
     // --- UMGEBUNGSSTEUERUNG ---
-    /**
-     * GLOBALER TEST-MODUS
-     * true  => PayPal Sandbox & Kein echter Mailversand (wenn test_mail_active = false)
-     * false => PayPal LIVE & Echter Mailversand
-     */
-    'test_mode' => false, // TRUE = Sandbox & Test-Mails | FALSE = Live & Echt-Mails
-
-    /**
-     * ADMIN DEV MODE
-     * true  => Überspringt den Login in /admin.php (Vollzugriff für Entwicklung)
-     * false => Login zwingend erforderlich
-     */
-    'admin_dev_mode' => false, // TRUE = Kein Admin-Login nötig
-
-    // Wenn true, werden alle/bestimmte Seiten umgeleitet auf die maintenance.php
-    'maintenance_mode'       => false, // Pächter-Seiten sperren
-    'maintenance_mode_admin' => false, // AUCH Admin-Seiten sperren
+    'test_mode'      => false, // true = Sandbox-Modus (PayPal & Mails blockiert) | false = Produktion
+    'admin_dev_mode' => false, // true = Hebelt Admin-Login aus (Nur für lokale Entwicklung!)
 ];

