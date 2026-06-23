@@ -9,8 +9,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Core\Service\GroupService;
 
 /**
  * Action zum Löschen einer Berechtigungsgruppe.
@@ -20,8 +19,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 final readonly class GroupDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
+        private GroupService $groupService,
     ) {
     }
 
@@ -43,23 +41,13 @@ final readonly class GroupDeleteAction implements ActionInterface, RequiresPermi
             return $e->getMessage();
         }
 
-        if ($dto->identifier === 'admin') {
-            return 'Fehler: Die Admin-Gruppe kann nicht gelöscht werden.';
-        }
-
-        $groups = $this->groupRepository->loadAll();
-        if (isset($groups[$dto->identifier])) {
-            unset($groups[$dto->identifier]);
-            $this->groupRepository->saveAll($groups);
-
-            $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $dto->identifier . '.webp';
-            if (\file_exists($iconPath)) {
-                @\unlink($iconPath);
-            }
+        try {
+            // GroupService über den Konstruktor injizieren!
+            $this->groupService->deleteGroup($dto->identifier);
 
             return 'Gruppe gelöscht.';
+        } catch (\DomainException $e) {
+            return $e->getMessage();
         }
-
-        return 'Fehler: Gruppe nicht gefunden.';
     }
 }

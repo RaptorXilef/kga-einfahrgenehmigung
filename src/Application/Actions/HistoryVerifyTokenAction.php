@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\MagicLinkService;
@@ -22,6 +23,7 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
     public function __construct(
         private MagicLinkService $magicLinkService,
         private RateLimiterInterface $rateLimiter,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -41,8 +43,8 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($ip);
-            \session_regenerate_id(true);
-            $_SESSION['user_history_email'] = $verifiedEmail;
+            $this->sessionManager->regenerate();
+            $this->sessionManager->setHistoryEmail($verifiedEmail);
 
             return new RedirectResponse('history.php');
         }

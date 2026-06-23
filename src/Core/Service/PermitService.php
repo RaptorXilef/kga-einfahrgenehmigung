@@ -26,6 +26,11 @@ use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PlotNumber;
 use App\Infrastructure\Storage\JsonHelper;
 
+/**
+ * TODO DOCBLOCK
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ */
 final readonly class PermitService
 {
     public function __construct(

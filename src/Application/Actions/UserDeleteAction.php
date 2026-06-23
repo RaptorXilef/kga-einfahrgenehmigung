@@ -12,6 +12,7 @@ use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
+use App\Core\Service\UserService;
 
 /**
  * Action zum Löschen eines Benutzers.
@@ -24,6 +25,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         private AuthService $auth,
         private ConfigInterface $config,
         private UserRepositoryInterface $userRepository,
+        private UserService $userService,
     ) {
     }
 
@@ -42,22 +44,30 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-        if ($dto->identifier === $this->auth->getUserId()) {
-            return 'Fehler: Selbstausschluss nicht möglich.';
-        }
-        $users = $this->userRepository->loadAll();
-        if (isset($users[$dto->identifier])) {
-            $name = $users[$dto->identifier]->username;
-            unset($users[$dto->identifier]);
-            $this->userRepository->saveAll($users);
-            $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $dto->identifier . '.webp';
-            if (\file_exists($avatarPath)) {
-                @\unlink($avatarPath);
+
+        try {
+            $this->userService->ensureNoSelfExclusion(
+                $dto->identifier,
+                $this->auth->getUserId(),
+            );
+
+            $users = $this->userRepository->loadAll();
+            if (isset($users[$dto->identifier])) {
+                $name = $users[$dto->identifier]->username;
+                unset($users[$dto->identifier]);
+                $this->userRepository->saveAll($users);
+
+                $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $dto->identifier . '.webp';
+                if (\file_exists($avatarPath)) {
+                    @\unlink($avatarPath);
+                }
+
+                return "Benutzer '$name' wurde entfernt.";
             }
 
-            return "Benutzer '$name' wurde entfernt.";
+            return 'Fehler: Benutzer nicht gefunden.';
+        } catch (\DomainException $e) {
+            return $e->getMessage();
         }
-
-        return 'Fehler: Benutzer nicht gefunden.';
     }
 }

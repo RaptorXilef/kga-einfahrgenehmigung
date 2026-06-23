@@ -13,6 +13,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuthService;
 use App\Core\Service\ImageStorageService;
+use App\Core\Service\UserService;
 
 /**
  * Action zum Erstellen eines neuen Benutzers.
@@ -25,6 +26,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         private AuthService $auth,
         private UserRepositoryInterface $userRepository,
         private ImageStorageService $imageStorage,
+        private UserService $userService,
     ) {
     }
 
@@ -43,28 +45,33 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-        $users = $this->userRepository->loadAll();
-        foreach ($users as $userEntity) {
-            if (\strtolower(\trim((string) $userEntity->username)) === \strtolower($dto->username)) {
-                return "Fehler: Ein Benutzer mit dem Namen '{$dto->username}' existiert bereits im System.";
+
+        try {
+            // Null übergeben, da es ein neuer User ist und der Name im gesamten System eindeutig sein muss
+            $this->userService->ensureUsernameIsUnique($dto->username);
+
+            $users = $this->userRepository->loadAll();
+
+            do {
+                $newId = $this->auth->generateId('usr_');
+            } while (isset($users[$newId]));
+
+            $users[$newId] = new User(
+                $newId,
+                $dto->username,
+                $dto->group,
+                \password_hash($dto->password, \PASSWORD_DEFAULT),
+            );
+
+            $this->userRepository->saveAll($users);
+
+            if ($dto->avatar !== null) {
+                $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
             }
+
+            return "Benutzer '{$dto->username}' erfolgreich erstellt.";
+        } catch (\DomainException $e) {
+            return $e->getMessage();
         }
-        do {
-            $newId = $this->auth->generateId('usr_');
-        } while (isset($users[$newId]));
-
-        $users[$newId] = new User(
-            $newId,
-            $dto->username,
-            $dto->group,
-            \password_hash($dto->password, \PASSWORD_DEFAULT),
-        );
-        $this->userRepository->saveAll($users);
-
-        if ($dto->avatar !== null) {
-            $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
-        }
-
-        return "Benutzer '{$dto->username}' erfolgreich erstellt.";
     }
 }

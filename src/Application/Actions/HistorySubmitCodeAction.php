@@ -8,6 +8,7 @@ use App\Application\DTO\HistorySubmitCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\MagicLinkService;
@@ -22,6 +23,7 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
     public function __construct(
         private MagicLinkService $magicLinkService,
         private RateLimiterInterface $rateLimiter,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -35,14 +37,15 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
         $verifiedEmail = $this->magicLinkService->verifyAny($dto->loginCode);
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($dto->ip);
-            \session_regenerate_id(true);
-            $_SESSION['user_history_email'] = $verifiedEmail;
+            $this->sessionManager->regenerate();
+            $this->sessionManager->setHistoryEmail($verifiedEmail);
 
             return new RedirectResponse('history.php');
         }
         $this->rateLimiter->recordFailedAttempt($dto->ip);
 
         return new RedirectResponse('history.php?sent=1&msg=' . \urlencode(
-            'Der Code ist ungültig oder abgelaufen.'));
+            'Der Code ist ungültig oder abgelaufen.',
+        ));
     }
 }

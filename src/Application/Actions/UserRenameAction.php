@@ -11,6 +11,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\UserService;
 
 /**
  * TODO DOCBLOCK
@@ -21,6 +22,7 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
+        private UserService $userService,
     ) {
     }
 
@@ -39,20 +41,27 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
         } catch (ValidationException $e) {
             return $e->getMessage();
         }
-        $users = $this->userRepository->loadAll();
-        foreach ($users as $id => $userData) {
-            if ($id !== $dto->userId && \strtolower(\trim((string) $userData->username)) === \strtolower($dto->newUsername)) {
-                return "Fehler: Ein Benutzer mit dem Namen '{$dto->newUsername}' existiert bereits.";
+
+        try {
+            $this->userService->ensureUsernameIsUnique($dto->newUsername, $dto->userId);
+
+            $users = $this->userRepository->loadAll();
+            if (isset($users[$dto->userId])) {
+                $u                   = $users[$dto->userId];
+                $users[$dto->userId] = new User(
+                    $u->id,
+                    $dto->newUsername,
+                    $u->groupId,
+                    $u->passwordHash,
+                );
+                $this->userRepository->saveAll($users);
+
+                return 'Login-Name aktualisiert.';
             }
-        }
-        if (isset($users[$dto->userId])) {
-            $u                   = $users[$dto->userId];
-            $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
-            $this->userRepository->saveAll($users);
 
-            return 'Login-Name aktualisiert.';
+            return 'Fehler: Benutzer nicht gefunden.';
+        } catch (\DomainException $e) {
+            return $e->getMessage();
         }
-
-        return 'Fehler: Benutzer nicht gefunden.';
     }
 }
