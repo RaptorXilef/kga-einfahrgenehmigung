@@ -2,6 +2,12 @@
 
 
 
+## [0.49.9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.8...v0.49.9) (2026-06-23)
+
+### 🐛 Bug Fixes
+
+* **json:** implement bulletproof JSONC comment parser to prevent string corruption ([616566b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/616566bb4cfc982cc7ad35738c905d8955a77a06))
+
 ## [0.49.8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.7...v0.49.8) (2026-06-23)
 
 ### ⚙️ Refactoring
