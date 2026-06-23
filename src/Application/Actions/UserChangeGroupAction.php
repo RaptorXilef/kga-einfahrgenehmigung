@@ -8,6 +8,7 @@ use App\Application\DTO\UserChangeGroupRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 
@@ -16,11 +17,16 @@ use App\Core\Entity\User;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class UserChangeGroupAction implements ActionInterface
+final readonly class UserChangeGroupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.users.manage';
     }
 
     /**

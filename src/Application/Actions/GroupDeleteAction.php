@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 
@@ -16,12 +17,17 @@ use App\Contracts\Storage\GroupRepositoryInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class GroupDeleteAction implements ActionInterface
+final readonly class GroupDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.groups.manage';
     }
 
     /**

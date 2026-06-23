@@ -15,6 +15,7 @@ use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
 
@@ -47,28 +48,20 @@ final readonly class UserController
         $pipeline->add($this->mailQueueMiddleware);
 
         $actionKey = $request->post['action'] ?? '';
-        $userMap   = [
-            'change_user_group'    => 'system.permissions.users.manage',
-            'change_user_password' => 'system.permissions.users.manage',
-            'delete_user'          => 'system.permissions.users.manage',
-            'rename_user'          => 'system.permissions.users.manage',
-            'save_user'            => 'system.permissions.users.manage',
-            'upload_avatar'        => 'system.permissions.users.manage',
-            'delete_group'         => 'system.permissions.groups.manage',
-            'rename_group'         => 'system.permissions.groups.manage',
-            'save_group'           => 'system.permissions.groups.manage',
-            'upload_group_image'   => 'system.permissions.groups.manage',
-        ];
-        if (isset($userMap[$actionKey])) {
-            $pipeline->add(new PermissionMiddleware($this->auth, $userMap[$actionKey], 'users.php?msg=' . \urlencode('Fehler: Keine Berechtigung.')));
+        $action    = $this->factory->create($actionKey);
+
+        // Dynamisches Routing der Rechte für User- & Group-Actions
+        if ($action instanceof RequiresPermissionInterface) {
+            $pipeline->add(new PermissionMiddleware(
+                $this->auth,
+                $action->getRequiredPermission(),
+                'users.php?msg=' . \urlencode('Fehler: Keine Berechtigung.'),
+            ));
         }
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            if ($req->getMethod() === 'POST') {
-                $action = $this->factory->create($actionKey);
-                if ($action instanceof ActionInterface) {
-                    return $action->execute($req);
-                }
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($action): mixed {
+            if ($req->getMethod() === 'POST' && $action instanceof ActionInterface) {
+                return $action->execute($req);
             }
 
             return $this->factory->create('render_users')->execute($req);
@@ -96,7 +89,7 @@ final readonly class UserController
 
         $response = $pipeline->process($request, function (ServerRequest $req): mixed {
             if ($req->getMethod() === 'POST') {
-                $action = $this->factory->create($req['post']['action'] ?? '');
+                $action = $this->factory->create($req->post['action'] ?? '');
                 if ($action instanceof ActionInterface) {
                     return $action->execute($req);
                 }

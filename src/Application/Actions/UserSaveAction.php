@@ -8,6 +8,7 @@ use App\Application\DTO\UserSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuthService;
@@ -18,13 +19,18 @@ use App\Core\Service\ImageStorageService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class UserSaveAction implements ActionInterface
+final readonly class UserSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthService $auth,
         private UserRepositoryInterface $userRepository,
         private ImageStorageService $imageStorage,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.users.manage';
     }
 
     /**

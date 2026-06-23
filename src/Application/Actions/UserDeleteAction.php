@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
@@ -17,13 +18,18 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class UserDeleteAction implements ActionInterface
+final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
         private UserRepositoryInterface $userRepository,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.users.manage';
     }
 
     /**

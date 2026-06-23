@@ -8,6 +8,7 @@ use App\Application\DTO\GroupRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
 
@@ -16,11 +17,16 @@ use App\Core\Entity\Group;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class GroupRenameAction implements ActionInterface
+final readonly class GroupRenameAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private GroupRepositoryInterface $groupRepository,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.groups.manage';
     }
 
     /**

@@ -18,6 +18,7 @@ use App\Application\Middleware\VoucherIssuanceMiddleware;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\BackupServiceInterface;
@@ -84,6 +85,9 @@ final readonly class AdminController
             $actionKey = 'admin_print';
         }
 
+        // Action VOR der Pipeline instanziieren
+        $action = $this->actionFactory->create($actionKey);
+
         // Pipeline aufbauen
         $pipeline = new MiddlewarePipeline();
         $pipeline->add($this->analyticsMiddleware);
@@ -94,26 +98,16 @@ final readonly class AdminController
             $pipeline->add($this->authGuard);
         }
 
-        $permissionMap = [
-            'activate_voucher'      => 'dashboard.vouchers.suspend',
-            'anonymize_archive'     => 'dashboard.migration.anonymize.execute',
-            'clear_cache'           => 'dashboard.migration.delete-cache.execute',
-            'create_backup'         => 'dashboard.migration.backup.execute',
-            'create_manual'         => 'dashboard.generator-tools.manual_permit.execute',
-            'dashboard_export'      => 'finance.export.execute',
-            'deactivate_voucher'    => 'dashboard.vouchers.suspend',
-            'delete_voucher'        => 'dashboard.vouchers.remove',
-            'force_update_check'    => 'system.update.view',
-            'mark_as_paid'          => 'dashboard.finance.mark_paid',
-            'restore_data'          => 'dashboard.migration.restore.execute',
-            'run_update_migrations' => 'system.update.execute',
-            'truncate_target'       => 'dashboard.migration.delete-data.execute',
-        ];
-
-        if (isset($permissionMap[$actionKey])) {
-            $pipeline->add(new PermissionMiddleware($this->auth, $permissionMap[$actionKey], 'admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung.')));
+        // NEU: Dynamisches Routing! Die Action entscheidet selbst, welche Rechte sie braucht.
+        if ($action instanceof RequiresPermissionInterface) {
+            $pipeline->add(new PermissionMiddleware(
+                $this->auth,
+                $action->getRequiredPermission(),
+                'admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung.'),
+            ));
         }
 
+        // Komplexe Spezial-Middlewares
         if ($actionKey === 'migrate_data') {
             $pipeline->add(new MigrationPermissionMiddleware($this->auth));
         }
@@ -131,11 +125,8 @@ final readonly class AdminController
             $pipeline->add(new VoucherIssuanceMiddleware($this->auth));
         }
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            $action = $this->actionFactory->create($actionKey);
-            if ($action instanceof ActionInterface) {
-                return $action->execute($req);
-            } elseif ($action instanceof ViewActionInterface) {
+        $response = $pipeline->process($request, function (ServerRequest $req) use ($action): mixed {
+            if ($action instanceof ActionInterface || $action instanceof ViewActionInterface) {
                 return $action->execute($req);
             }
 

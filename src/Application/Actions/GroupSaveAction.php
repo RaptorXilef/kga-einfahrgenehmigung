@@ -8,6 +8,7 @@ use App\Application\DTO\GroupSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
 use App\Core\Service\AuthService;
@@ -18,13 +19,18 @@ use App\Core\Service\ImageStorageService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class GroupSaveAction implements ActionInterface
+final readonly class GroupSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
         private ImageStorageService $imageStorage,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.groups.manage';
     }
 
     /**
