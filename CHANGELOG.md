@@ -2,6 +2,16 @@
 
 
 
+## [0.49.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.4...v0.49.5) (2026-06-23)
+
+### 🐛 Bug Fixes
+
+* **maintenance:** resolve undefined property error and complete missing LoginAttempt entity ([8ca184a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8ca184afdc0cb352f9fcc8bb49a88aa798c21136))
+
+### ⚙️ Refactoring
+
+* **architecture:** execute final SRP audit, clear dead code, & externalize infrastructure URLs ([0a61b73](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0a61b7334230649cb97a54ed2e92dce22adcd419))
+
 ## [0.49.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.3...v0.49.4) (2026-06-23)
 
 ### ⚙️ Refactoring
