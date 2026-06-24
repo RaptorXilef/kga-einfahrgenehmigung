@@ -2,6 +2,12 @@
 
 
 
+## [0.49.14](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.13...v0.49.14) (2026-06-24)
+
+### 🐛 Bug Fixes
+
+* **pricing:** add missing sharing vehicle pricing to prevent 0 euro calculation ([6635ead](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6635ead7f98e8aa0f87efe386a24c20dcba6ec2a))
+
 ## [0.49.13](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.12...v0.49.13) (2026-06-24)
 
 ### 🐛 Bug Fixes
