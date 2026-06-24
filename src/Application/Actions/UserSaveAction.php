@@ -7,13 +7,14 @@ namespace App\Application\Actions;
 use App\Application\DTO\UserSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuthService;
-use App\Core\Service\ImageStorageService;
 use App\Core\Service\UserService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Action zum Erstellen eines neuen Benutzers.
@@ -43,35 +44,24 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         try {
             $dto = UserSaveRequest::fromArray($request->post, $request->files);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
 
         try {
-            // Null übergeben, da es ein neuer User ist und der Name im gesamten System eindeutig sein muss
             $this->userService->ensureUsernameIsUnique($dto->username);
-
             $users = $this->userRepository->loadAll();
-
             do {
                 $newId = $this->auth->generateId('usr_');
             } while (isset($users[$newId]));
-
-            $users[$newId] = new User(
-                $newId,
-                $dto->username,
-                $dto->group,
-                \password_hash($dto->password, \PASSWORD_DEFAULT),
-            );
-
+            $users[$newId] = new User($newId, $dto->username, $dto->group, \password_hash($dto->password, \PASSWORD_DEFAULT));
             $this->userRepository->saveAll($users);
-
             if ($dto->avatar !== null) {
                 $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
             }
 
-            return "Benutzer '{$dto->username}' erfolgreich erstellt.";
+            return new RedirectResponse('users.php?msg=' . \urlencode("Benutzer '{$dto->username}' erfolgreich erstellt."));
         } catch (\DomainException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
     }
 }

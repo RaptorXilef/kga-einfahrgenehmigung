@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -36,7 +37,12 @@ final readonly class HistoryPrintAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $dto            = SimpleCodeRequest::fromArray($request->get);
+        try {
+            $dto = SimpleCodeRequest::fromArray($request->get);
+        } catch (ValidationException $e) {
+            return new RedirectResponse('history.php');
+        }
+
         $code           = $dto->code;
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 

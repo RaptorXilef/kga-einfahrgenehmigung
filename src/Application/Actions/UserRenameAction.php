@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\UserRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -39,29 +40,23 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
         try {
             $dto = UserRenameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
 
         try {
             $this->userService->ensureUsernameIsUnique($dto->newUsername, $dto->userId);
-
             $users = $this->userRepository->loadAll();
             if (isset($users[$dto->userId])) {
                 $u                   = $users[$dto->userId];
-                $users[$dto->userId] = new User(
-                    $u->id,
-                    $dto->newUsername,
-                    $u->groupId,
-                    $u->passwordHash,
-                );
+                $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
 
-                return 'Login-Name aktualisiert.';
+                return new RedirectResponse('users.php?msg=' . \urlencode('Login-Name aktualisiert.'));
             }
 
-            return 'Fehler: Benutzer nicht gefunden.';
+            return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
         } catch (\DomainException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
     }
 }

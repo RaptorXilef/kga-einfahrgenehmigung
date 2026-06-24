@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Service;
+namespace App\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Storage\JsonHelper;

@@ -7,9 +7,10 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
-use App\Core\Service\ImageStorageService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -36,14 +37,12 @@ final readonly class GroupUploadImageAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // Vollständige Kapselung von ID und Datei im DTO
             $dto = SimpleUploadImageRequest::fromRequest($request->post, 'group_id', $request->files);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
+        $msg = $this->imageStorage->uploadImage('group_images', $dto->identifier, $dto->file) ? 'Gruppen-Icon aktualisiert.' : 'Fehler beim Verarbeiten.';
 
-        return $this->imageStorage->uploadImage('group_images', $dto->identifier, $dto->file)
-            ? 'Gruppen-Icon aktualisiert.'
-            : 'Fehler beim Verarbeiten.';
+        return new RedirectResponse('users.php?msg=' . \urlencode($msg));
     }
 }

@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\PermitToggleSuspensionRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\PermitService;
 
@@ -32,13 +33,14 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
         try {
             $dto = PermitToggleSuspensionRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
-
         if ($this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason)) {
-            return 'Genehmigung wurde ' . ($dto->isSuspended ? 'gesperrt.' : 'freigegeben.');
+            $msg = 'Genehmigung wurde ' . ($dto->isSuspended ? 'gesperrt.' : 'freigegeben.');
+
+            return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
         }
 
-        return 'Fehler: Genehmigung nicht gefunden.';
+        return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Genehmigung nicht gefunden.'));
     }
 }

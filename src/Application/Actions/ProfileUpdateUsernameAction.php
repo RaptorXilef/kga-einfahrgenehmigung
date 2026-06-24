@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\ProfileUpdateUsernameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -34,32 +35,25 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         try {
             $dto = ProfileUpdateUsernameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
         }
-
         $userId = $this->auth->getUserId();
 
         try {
             $this->userService->ensureUsernameIsUnique($dto->newUsername, $userId);
-
             $users = $this->userRepository->loadAll();
             if (isset($users[$userId])) {
                 $u              = $users[$userId];
-                $users[$userId] = new User(
-                    $u->id,
-                    $dto->newUsername,
-                    $u->groupId,
-                    $u->passwordHash,
-                );
+                $users[$userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
                 $this->sessionManager->updateAdminUsername($dto->newUsername);
 
-                return 'Erfolg: Ihr Anzeigename wurde aktualisiert.';
+                return new RedirectResponse('profile.php?msg=' . \urlencode('Erfolg: Ihr Anzeigename wurde aktualisiert.'));
             }
 
-            return 'Fehler: Benutzer nicht gefunden.';
+            return new RedirectResponse('profile.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
         } catch (\DomainException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
         }
     }
 }

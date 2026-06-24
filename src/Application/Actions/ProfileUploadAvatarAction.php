@@ -7,9 +7,10 @@ namespace App\Application\Actions;
 use App\Application\DTO\ProfileUploadAvatarRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\ImageStorageService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -27,17 +28,15 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // Keine ungeschützte $request->files-Abfrage mehr!
             $dto = ProfileUploadAvatarRequest::fromFiles($request->files);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
         }
-
         $userId = $this->auth->getUserId();
         if ($this->imageStorage->uploadImage('user_images', $userId, $dto->file)) {
-            return 'Erfolg: Profilbild wurde aktualisiert.';
+            return new RedirectResponse('profile.php?msg=' . \urlencode('Erfolg: Profilbild wurde aktualisiert.'));
         }
 
-        return 'Fehler bei der Bildverarbeitung.';
+        return new RedirectResponse('profile.php?msg=' . \urlencode('Fehler bei der Bildverarbeitung.'));
     }
 }

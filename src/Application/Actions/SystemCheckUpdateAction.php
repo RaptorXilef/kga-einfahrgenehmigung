@@ -9,8 +9,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
-use App\Core\Service\SystemInfoService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
+use App\Infrastructure\System\SystemInfoService;
 
 /**
  * Action für die asynchrone Prüfung auf GitHub-Updates.

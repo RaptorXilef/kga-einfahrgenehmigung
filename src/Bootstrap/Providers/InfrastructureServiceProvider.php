@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
+use App\Application\Session\SessionManager;
 use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Storage\CronStateRepositoryInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
@@ -32,6 +35,7 @@ use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
+use App\Infrastructure\Storage\FileCronStateRepository;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
@@ -137,6 +141,17 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 ? new MySqlLoginAttemptRepository($container->get(\PDO::class), $config)
                 : new JsonLoginAttemptRepository($config);
         });
+
+        $container->bind(AuthSessionInterface::class, fn () => clone $container->get(
+            SessionManager::class,
+        ));
+        $container->bind(AuthSessionInterface::class, fn () => $container->get(
+            SessionManager::class,
+        ));
+
+        $container->bind(CronStateRepositoryInterface::class, fn () => new FileCronStateRepository(
+            $container->get(ConfigInterface::class),
+        ));
 
         // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
         $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(

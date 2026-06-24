@@ -6,6 +6,7 @@ namespace App\Core\Security;
 
 /**
  * Array aller Permissions
+ * permission anpassen
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */

@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
-use App\Contracts\Application\ActionInterface;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
-use App\Core\Service\SystemInfoService;
+use App\Contracts\Application\ViewActionInterface;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
+use App\Infrastructure\System\SystemInfoService;
 
 /**
- * Action zum manuellen Auslösen der Update-Suche
+ * TODO DOCBLOCK
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemForceUpdateCheckAction implements ActionInterface, RequiresPermissionInterface
+final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private GitHubUpdaterService $updater,
@@ -32,19 +33,16 @@ final readonly class SystemForceUpdateCheckAction implements ActionInterface, Re
     {
         try {
             $currentVersion = $this->sysInfo->getCurrentVersion();
-
-            // force = true umgeht den 24h-Cache und fragt live bei GitHub an!
-            $updateData = $this->updater->checkForUpdate($currentVersion, true);
-
+            $updateData     = $this->updater->checkForUpdate($currentVersion, true);
             if ($updateData !== null) {
-                return "Erfolg: Eine neue Version ({$updateData['version']}) ist verfügbar! Wechseln Sie zum Dashboard, um das Update zu starten.";
+                return new RedirectResponse('admin.php?msg=' . \urlencode("Erfolg: Eine neue Version ({$updateData['version']}) ist verfügbar! Wechseln Sie zum Dashboard, um das Update zu starten."));
             }
 
-            return 'Hinweis: GitHub geprüft. Sie nutzen bereits die aktuellste Version.';
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Hinweis: GitHub geprüft. Sie nutzen bereits die aktuellste Version.'));
         } catch (\Throwable $e) {
             \error_log('Manual Update Check Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
 
-            return 'Fehler bei der Update-Prüfung: ' . $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler bei der Update-Prüfung: ' . $e->getMessage()));
         }
     }
 }

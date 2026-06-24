@@ -7,12 +7,13 @@ namespace App\Application\Actions;
 use App\Application\DTO\GroupSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
 use App\Core\Service\AuthService;
-use App\Core\Service\ImageStorageService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -42,7 +43,7 @@ final readonly class GroupSaveAction implements ActionInterface, RequiresPermiss
         try {
             $dto = GroupSaveRequest::fromArray($request->post, $request->files);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
         $groups   = $this->groupRepository->loadAll();
         $isUpdate = $dto->groupId !== '' && isset($groups[$dto->groupId]);
@@ -58,7 +59,6 @@ final readonly class GroupSaveAction implements ActionInterface, RequiresPermiss
         }
         $groups[$groupId] = new Group($groupId, $dto->groupName, $newPermissions);
         $this->groupRepository->saveAll($groups);
-
         if ($dto->groupIcon !== null) {
             $this->imageStorage->uploadImage('group_images', $groupId, $dto->groupIcon);
         }
@@ -67,9 +67,9 @@ final readonly class GroupSaveAction implements ActionInterface, RequiresPermiss
                 $this->auth->refreshSessionPermissions($groupId);
             }
 
-            return "Rechte für Gruppe '{$dto->groupName}' erfolgreich aktualisiert.";
+            return new RedirectResponse('users.php?msg=' . \urlencode("Rechte für Gruppe '{$dto->groupName}' erfolgreich aktualisiert."));
         }
 
-        return "Neue Gruppe '{$dto->groupName}' wurde erstellt.";
+        return new RedirectResponse('users.php?msg=' . \urlencode("Neue Gruppe '{$dto->groupName}' wurde erstellt."));
     }
 }

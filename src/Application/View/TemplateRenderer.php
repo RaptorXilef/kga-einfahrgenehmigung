@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\View;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Core\Service\ImageStorageService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK

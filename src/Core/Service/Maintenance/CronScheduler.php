@@ -6,9 +6,10 @@ namespace App\Core\Service\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Storage\CronStateRepositoryInterface;
+use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Service\PermitService;
-use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
  * Scheduler für automatisierte Wartungsaufgaben (Pseudo-Cron oder Server-Cron).
@@ -20,13 +21,13 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  */
 final readonly class CronScheduler
 {
-    use SafeJsonWriterTrait;
-
     public function __construct(
         private BackupServiceInterface $backupService,
         private ConfigInterface $config,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
+        private LockManagerInterface $lockManager,
+        private CronStateRepositoryInterface $cronState,
     ) {
     }
 
@@ -42,59 +43,25 @@ final readonly class CronScheduler
             return;
         }
 
-        // TODO Pfad und Dateiname in config/storage.php auslagern
-        $logPath  = $this->config->getStoragePath('logs/last_cron_run.txt');
-        $lockPath = $this->config->getStoragePath('logs/cron.lock');
-        $now      = \time();
-
-        // FIX: Atomarer, nicht-blockierender Lock (Verhindert mehrfache parallele Backups)
-        $fp = @\fopen($lockPath, 'c');
-        if ($fp && \flock($fp, \LOCK_EX | \LOCK_NB)) {
-
-            // Sicherstellen, dass das logs/ Verzeichnis existiert, da file_put_contents
-            // sonst fehlschlägt und der Cron bei JEDEM Seitenaufruf in eine Dauerschleife läuft.
-            $logDir = \dirname($logPath);
-            if (! \is_dir($logDir)) {
-                @\mkdir($logDir, 0o755, true);
-            }
-
-            $lastRun = \file_exists($logPath) ? (int) \file_get_contents($logPath) : 0;
+        $this->lockManager->executeWithLock('cron', function (): void {
+            $now     = \time();
+            $lastRun = $this->cronState->getLastRunTime();
 
             // TODO Zeitspanne für BAckup/Cronjob in config auslagern
             // FIX: 23 Stunden und 50 Minuten (85800 Sekunden) als Trigger.
             // Verhindert das Überspringen von Tagen durch leichte Zeitverschiebungen!
             if (($now - $lastRun) >= 85800) {
-
-                // Zeitstempel SOFORT schreiben, um parallele Überlappungen zu blockieren
-                $result = @\file_put_contents(
-                    $logPath,
-                    (string) $now,
-                    \LOCK_EX,
-                );
-                if ($result === false) {
-                    throw new \RuntimeException('Kritischer Schreibfehler: Cron-Log konnte nicht geschrieben werden.');
-                }
+                $this->cronState->setLastRunTime($now);
 
                 try {
                     $this->runForce();
                 } catch (\Throwable $t) {
-                    // Bei Fehler Rollback des Zeitstempels
-                    $result = @\file_put_contents(
-                        $logPath,
-                        (string) $lastRun,
-                        \LOCK_EX,
-                    );
-                    if ($result === false) {
-                        throw new \RuntimeException('Kritischer Schreibfehler: Cron-Log konnte nicht geschrieben werden.');
-                    }
+                    $this->cronState->setLastRunTime($lastRun);
 
                     throw $t;
                 }
             }
-
-            \flock($fp, \LOCK_UN);
-            \fclose($fp);
-        }
+        });
     }
 
     /**

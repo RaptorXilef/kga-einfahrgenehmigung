@@ -14,7 +14,6 @@ use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
-use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
@@ -74,16 +73,9 @@ final readonly class UserController
             return $this->factory->create('render_users')->execute($req);
         });
 
+        // STRING FALLBACK ENTFERNT!
         if ($response instanceof ResponseInterface) {
             $response->send();
-        } elseif (\is_string($response)) {
-            $focusId = $request->post['user_id'] ?? ($request->post['group_id'] ?? '');
-            (new RedirectResponse(
-                'users.php?msg=' .
-                    \urlencode($response) .
-                    ($focusId !== '' ? '&focus=' .
-                    \urlencode($focusId) : ''),
-            ))->send();
         }
     }
 
@@ -114,8 +106,6 @@ final readonly class UserController
 
         if ($response instanceof ResponseInterface) {
             $response->send();
-        } elseif (\is_string($response)) {
-            (new RedirectResponse('profile.php?msg=' . \urlencode($response)))->send();
         }
     }
 }

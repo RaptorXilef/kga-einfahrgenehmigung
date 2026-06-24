@@ -35,11 +35,11 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto            = ExportRequest::fromArray($request->get);
         $sessionFilters = $this->sessionManager->getAdminFilters();
+        $dto            = ExportRequest::fromArray($request->get, $sessionFilters);
 
-        $start = $dto->start !== 'all' ? $dto->start : ($sessionFilters['start'] ?? \date('Y-01-01'));
-        $end   = $dto->end !== 'all' ? $dto->end : ($sessionFilters['end'] ?? \date('Y-12-31'));
+        $start = $dto->start;
+        $end   = $dto->end;
         $type  = $sessionFilters['type'] ?? 'all';
         $query = $sessionFilters['q'] ?? '';
 

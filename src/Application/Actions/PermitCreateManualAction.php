@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\PermitCreateManualRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\PermitService;
@@ -40,16 +41,15 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
         try {
             $dto = PermitCreateManualRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
 
         try {
-            // Wir übergeben das sauber gefilterte Array aus dem DTO an den Service
             $this->permitService->createPermit($dto->formData, $dto->sendEmail);
 
-            return 'Manuelle Genehmigung wurde erfolgreich erstellt.';
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Manuelle Genehmigung wurde erfolgreich erstellt.'));
         } catch (\Exception $e) {
-            return 'Fehler: ' . $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: ' . $e->getMessage()));
         }
     }
 }

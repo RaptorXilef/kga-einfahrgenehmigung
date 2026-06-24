@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
@@ -41,27 +42,27 @@ final readonly class CheckPermitAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $dto = SimpleCodeRequest::fromArray($request->get);
-        if (! $dto->hasCode) {
+        try {
+            $dto = SimpleCodeRequest::fromArray($request->get);
+        } catch (ValidationException $e) {
             $this->renderer->render('check/search', ['error' => null]);
 
             return null;
         }
+
         $code = $dto->code;
         $now  = new \DateTimeImmutable();
 
         // 1. Suche in echten Permits (zuerst via Code/Hash)
-        $permit = $code !== '' ? $this->storage->findByHash($code) : null;
+        $permit = $this->storage->findByHash($code);
 
         // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
-        if (! $permit instanceof Permit && $code !== '') {
+        if (! $permit instanceof Permit) {
             $permit = $this->storage->findByLicensePlate($code);
         }
 
-        // Fall 1: Nichts eingegeben -> Suchmaske
-        if ($code === '') {
-            // Bei fehlendem Code:
-            $this->renderer->render('check/search', ['error' => null]);
+        if (! $permit instanceof Permit) {
+            $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
 
             return null;
         }

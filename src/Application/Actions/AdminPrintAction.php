@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\DTO\SimpleCodeRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
@@ -35,13 +36,13 @@ final readonly class AdminPrintAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto = SimpleCodeRequest::fromArray($request->get);
-        $code = $dto->code;
-
-        if ($code === '') {
+        try {
+            $dto = SimpleCodeRequest::fromArray($request->get);
+        } catch (ValidationException $e) {
             return null;
         }
 
+        $code   = $dto->code;
         $permit = $this->storage->findByHash($code);
         if (! $permit instanceof Permit) {
             return null;

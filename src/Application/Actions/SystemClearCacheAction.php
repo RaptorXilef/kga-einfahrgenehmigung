@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -28,6 +29,8 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 
     public function execute(ServerRequest $request): mixed
     {
-        return $this->migrationService->clearCache();
+        $msg = $this->migrationService->clearCache();
+
+        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
     }
 }

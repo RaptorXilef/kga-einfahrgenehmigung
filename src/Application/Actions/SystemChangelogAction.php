@@ -9,7 +9,7 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuthService;
-use App\Core\Service\SystemInfoService;
+use App\Infrastructure\System\SystemInfoService;
 
 /**
  * TODO DOCBLOCK

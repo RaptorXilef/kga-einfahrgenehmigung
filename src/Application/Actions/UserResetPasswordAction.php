@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\UserResetPasswordRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -37,7 +38,7 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
         try {
             $dto = UserResetPasswordRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
         $users = $this->userRepository->loadAll();
         if (isset($users[$dto->userId])) {
@@ -45,9 +46,9 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
             $users[$dto->userId] = new User($u->id, $u->username, $u->groupId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
             $this->userRepository->saveAll($users);
 
-            return 'Passwort wurde zurückgesetzt.';
+            return new RedirectResponse('users.php?msg=' . \urlencode('Passwort wurde zurückgesetzt.'));
         }
 
-        return 'Fehler: Benutzer nicht gefunden.';
+        return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
     }
 }

@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\GroupService;
@@ -38,16 +39,15 @@ final readonly class GroupDeleteAction implements ActionInterface, RequiresPermi
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'group_id');
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
 
         try {
-            // GroupService über den Konstruktor injizieren!
             $this->groupService->deleteGroup($dto->identifier);
 
-            return 'Gruppe gelöscht.';
+            return new RedirectResponse('users.php?msg=' . \urlencode('Gruppe gelöscht.'));
         } catch (\DomainException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
     }
 }

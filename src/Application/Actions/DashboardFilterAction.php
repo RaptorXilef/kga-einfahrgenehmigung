@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\DTO\DashboardFilterRequest;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 
@@ -28,9 +29,7 @@ final readonly class DashboardFilterAction implements ActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        // Wirft keine ValidationException, da Standardwerte greifen
         $dto = DashboardFilterRequest::fromArray($request->post);
-
         $this->sessionManager->setAdminFilters([
             'end'   => $dto->end,
             'limit' => $dto->limit,
@@ -39,6 +38,6 @@ final readonly class DashboardFilterAction implements ActionInterface
             'type'  => $dto->type,
         ]);
 
-        return 'Filter angewendet.';
+        return new RedirectResponse('admin.php?msg=' . \urlencode('Filter angewendet.'));
     }
 }

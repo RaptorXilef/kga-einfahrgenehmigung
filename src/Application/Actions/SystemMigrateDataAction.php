@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Infrastructure\Maintenance\MigrationService;
 
@@ -32,9 +33,10 @@ final readonly class SystemMigrateDataAction implements ActionInterface
         try {
             $dto = SystemMaintenanceRequest::forMigration($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
+        $msg = $this->migrationService->execute($dto->target, $dto->direction);
 
-        return $this->migrationService->execute($dto->target, $dto->direction);
+        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
     }
 }

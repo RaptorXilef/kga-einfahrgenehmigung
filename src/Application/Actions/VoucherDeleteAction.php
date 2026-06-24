@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\VoucherService;
@@ -33,11 +34,10 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
+        $msg = $this->voucherService->deleteVoucher($dto->identifier) ? "Gutschein '{$dto->identifier}' gelöscht." : "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.";
 
-        return $this->voucherService->deleteVoucher($dto->identifier)
-            ? "Gutschein '{$dto->identifier}' gelöscht."
-            : "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.";
+        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
     }
 }

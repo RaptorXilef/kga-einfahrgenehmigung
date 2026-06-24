@@ -18,12 +18,23 @@ final readonly class ExportRequest
     ) {
     }
 
-    public static function fromArray(array $get): self
+    public static function fromArray(array $get, array $sessionFilters = []): self
     {
+        $start = (string) ($get['start'] ?? 'all');
+        $end   = (string) ($get['end'] ?? 'all');
+
+        if ($start === 'all') {
+            $start = $sessionFilters['start'] ?? \date('Y-01-01');
+        }
+
+        if ($end === 'all') {
+            $end = $sessionFilters['end'] ?? \date('Y-12-31');
+        }
+
         return new self(
             (string) ($get['export'] ?? 'csv'),
-            (string) ($get['start'] ?? 'all'),
-            (string) ($get['end'] ?? 'all'),
+            $start,
+            $end,
         );
     }
 }

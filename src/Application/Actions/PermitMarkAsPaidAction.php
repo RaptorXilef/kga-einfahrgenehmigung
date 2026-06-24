@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\PermitService;
@@ -38,14 +39,12 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // Hinweis: Das Formular übergibt 'code', nicht 'id'
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
+        $msg = $this->permitService->manualActivate($dto->identifier) ? "Zahlung für {$dto->identifier} bestätigt." : 'Fehler: Genehmigung nicht gefunden oder bereits bezahlt.';
 
-        return $this->permitService->manualActivate($dto->identifier)
-            ? "Zahlung für {$dto->identifier} bestätigt."
-            : 'Fehler: Genehmigung nicht gefunden oder bereits bezahlt.';
+        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
     }
 }

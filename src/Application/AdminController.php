@@ -122,11 +122,8 @@ final readonly class AdminController
             return new RedirectResponse('admin.php');
         });
 
-        // POLYMORPHISMUS PUR: Alle Hard-Exits wurden in die Interface-Send Methode verlagert!
         if ($response instanceof ResponseInterface) {
             $response->send();
-        } elseif (\is_string($response)) {
-            (new RedirectResponse('admin.php?msg=' . \urlencode($response)))->send();
         }
     }
 }

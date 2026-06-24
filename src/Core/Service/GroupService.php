@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
-use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Core\Event\GroupDeletedEvent;
 
 /**
  * TODO DOCBLOCK
@@ -15,8 +16,8 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 final readonly class GroupService
 {
     public function __construct(
-        private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -34,9 +35,7 @@ final readonly class GroupService
         unset($groups[$groupId]);
         $this->groupRepository->saveAll($groups);
 
-        $iconPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/group_images/' . $groupId . '.webp';
-        if (\file_exists($iconPath)) {
-            @\unlink($iconPath);
-        }
+        // Infrastruktur-Logik abgekoppelt:
+        $this->eventDispatcher->dispatch(new GroupDeletedEvent($groupId));
     }
 }

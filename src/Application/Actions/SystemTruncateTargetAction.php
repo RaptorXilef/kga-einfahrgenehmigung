@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -39,9 +40,10 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
         try {
             $dto = SystemMaintenanceRequest::forTruncate($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
+        $msg = $this->migrationService->truncateTarget($dto->target, $dto->engine);
 
-        return $this->migrationService->truncateTarget($dto->target, $dto->engine);
+        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
     }
 }

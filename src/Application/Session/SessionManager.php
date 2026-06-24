@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Session;
 
+use App\Contracts\Security\AuthSessionInterface;
+
 /**
  * Kapselt alle Zugriffe auf den globalen $_SESSION State.
  * Verhindert direkte Array-Mutationen in den Actions (Leaky Abstractions).
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final class SessionManager
+final class SessionManager implements AuthSessionInterface
 {
     private const int MAX_LIFETIME = 43200; // 12 Stunden absolutes Maximum
     // private const int IDLE_TIMEOUT = 7200;  // 2 Stunden Inaktivität führt zum Logout

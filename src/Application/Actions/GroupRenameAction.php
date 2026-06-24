@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\GroupRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -37,16 +38,16 @@ final readonly class GroupRenameAction implements ActionInterface, RequiresPermi
         try {
             $dto = GroupRenameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
         $groups = $this->groupRepository->loadAll();
         if (! isset($groups[$dto->groupId])) {
-            return 'Fehler: Gruppe nicht gefunden.';
+            return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Gruppe nicht gefunden.'));
         }
         $g                     = $groups[$dto->groupId];
         $groups[$dto->groupId] = new Group($g->id, $dto->newGroupName, $g->permissions);
         $this->groupRepository->saveAll($groups);
 
-        return "Gruppe wurde in '{$dto->newGroupName}' umbenannt.";
+        return new RedirectResponse('users.php?msg=' . \urlencode("Gruppe wurde in '{$dto->newGroupName}' umbenannt."));
     }
 }

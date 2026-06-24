@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\ProfileUpdatePasswordRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -34,36 +35,26 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         try {
             $dto = ProfileUpdatePasswordRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
         }
-
         $userId = $this->auth->getUserId();
 
         try {
             $this->userService->verifyOldPassword($userId, $dto->oldPassword);
-
             $users = $this->userRepository->loadAll();
             if (isset($users[$userId])) {
-                $u       = $users[$userId];
-                $newHash = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
-
-                $users[$userId] = new User(
-                    $u->id,
-                    $u->username,
-                    $u->groupId,
-                    $newHash,
-                );
+                $u              = $users[$userId];
+                $newHash        = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
+                $users[$userId] = new User($u->id, $u->username, $u->groupId, $newHash);
                 $this->userRepository->saveAll($users);
-
-                // HINZUGEFÜGT: Session mit dem neuen Hash aktualisieren, damit der User eingeloggt bleibt
                 $this->sessionManager->setAuthSession($userId, $u->groupId, $u->username, $newHash);
 
-                return 'Erfolg: Ihr Passwort wurde geändert.';
+                return new RedirectResponse('profile.php?msg=' . \urlencode('Erfolg: Ihr Passwort wurde geändert.'));
             }
 
-            return 'Fehler: Benutzer nicht gefunden.';
+            return new RedirectResponse('profile.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
         } catch (\DomainException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
         }
     }
 }

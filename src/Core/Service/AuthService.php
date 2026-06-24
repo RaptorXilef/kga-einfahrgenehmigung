@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
-use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -25,7 +25,7 @@ final readonly class AuthService
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private RateLimiterInterface $rateLimiter,
-        private SessionManager $sessionManager,
+        private AuthSessionInterface $sessionManager,
         private UserRepositoryInterface $userRepository,
     ) {
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
@@ -26,8 +28,12 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        $code = \trim((string) ($request->post['code'] ?? ''));
-        if ($code === '') {
+        try {
+            // Nutze DTO für die Validierung statt rohem Array-Zugriff!
+            $dto  = SimpleIdentifierRequest::fromArray($request->post, 'code');
+            $code = $dto->identifier;
+        } catch (ValidationException) {
+            // Wenn Code fehlt, durchlassen -> Die Action wirft dann den Fehler!
             return $next($request);
         }
 

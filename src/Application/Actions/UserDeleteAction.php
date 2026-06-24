@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -42,32 +43,27 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'user_id');
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
 
         try {
-            $this->userService->ensureNoSelfExclusion(
-                $dto->identifier,
-                $this->auth->getUserId(),
-            );
-
+            $this->userService->ensureNoSelfExclusion($dto->identifier, $this->auth->getUserId());
             $users = $this->userRepository->loadAll();
             if (isset($users[$dto->identifier])) {
                 $name = $users[$dto->identifier]->username;
                 unset($users[$dto->identifier]);
                 $this->userRepository->saveAll($users);
-
                 $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $dto->identifier . '.webp';
                 if (\file_exists($avatarPath)) {
                     @\unlink($avatarPath);
                 }
 
-                return "Benutzer '$name' wurde entfernt.";
+                return new RedirectResponse('users.php?msg=' . \urlencode("Benutzer '$name' wurde entfernt."));
             }
 
-            return 'Fehler: Benutzer nicht gefunden.';
+            return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
         } catch (\DomainException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
     }
 }

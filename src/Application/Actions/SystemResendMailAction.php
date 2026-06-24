@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -32,31 +33,21 @@ final readonly class SystemResendMailAction implements ActionInterface
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'timestamp');
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
-
         $logs = $this->mailLog->loadLogs();
-
         foreach ($logs as $log) {
             if ($log->timestamp->format('Y-m-d H:i:s') !== $dto->identifier) {
                 continue;
             }
-
             if (empty($log->data)) {
-                return 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).';
+                return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).'));
             }
+            $this->mailService->sendTemplate($log->recipient, $log->subject, $log->template, $log->data);
 
-            // Erneuter Versand
-            $this->mailService->sendTemplate(
-                $log->recipient,
-                $log->subject,
-                $log->template,
-                $log->data,
-            );
-
-            return "E-Mail an {$log->recipient} wurde erfolgreich erneut versendet.";
+            return new RedirectResponse('admin.php?msg=' . \urlencode("E-Mail an {$log->recipient} wurde erfolgreich erneut versendet."));
         }
 
-        return 'Fehler: Log-Eintrag nicht gefunden.';
+        return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Log-Eintrag nicht gefunden.'));
     }
 }

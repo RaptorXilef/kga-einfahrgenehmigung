@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\DTO;
 
+use App\Application\Exception\ValidationException;
+
 /**
  * TODO DOCBLOCK
  *
@@ -22,6 +24,10 @@ final readonly class SimpleCodeRequest
     {
         $code = \strtoupper(\trim((string) ($get['code'] ?? '')));
 
-        return new self($code, (string) ($get['token'] ?? ''), $code !== '');
+        if ($code === '') {
+            throw ValidationException::withMessage('Kein Code übergeben.');
+        }
+
+        return new self($code, (string) ($get['token'] ?? ''), true);
     }
 }

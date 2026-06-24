@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\UserChangeGroupRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -37,7 +38,7 @@ final readonly class UserChangeGroupAction implements ActionInterface, RequiresP
         try {
             $dto = UserChangeGroupRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
         }
         $users = $this->userRepository->loadAll();
         if (isset($users[$dto->userId])) {
@@ -45,9 +46,9 @@ final readonly class UserChangeGroupAction implements ActionInterface, RequiresP
             $users[$dto->userId] = new User($u->id, $u->username, $dto->group, $u->passwordHash);
             $this->userRepository->saveAll($users);
 
-            return "Gruppe für '{$u->username}' geändert.";
+            return new RedirectResponse('users.php?msg=' . \urlencode("Gruppe für '{$u->username}' geändert."));
         }
 
-        return 'Fehler: Benutzer nicht gefunden.';
+        return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
     }
 }

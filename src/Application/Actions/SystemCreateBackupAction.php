@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\BackupServiceInterface;
@@ -30,15 +31,13 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // 'manual_trigger' ist nicht in der Config-Liste,
-            // daher sichert der BackupService automatisch ALLE Bereiche!
             $folder = $this->backupService->createBackup('manual_trigger');
 
-            return "Erfolg: Vollständiges Backup erstellt in Ordner '" . \basename($folder) . "'.";
+            return new RedirectResponse('admin.php?msg=' . \urlencode("Erfolg: Vollständiges Backup erstellt in Ordner '" . \basename($folder) . "'."));
         } catch (\Throwable $e) {
             \error_log('Manual Backup Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
 
-            return 'Fehler beim Backup: ' . $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler beim Backup: ' . $e->getMessage()));
         }
     }
 }

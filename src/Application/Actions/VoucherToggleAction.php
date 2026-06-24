@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\VoucherToggleRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\VoucherService;
@@ -36,15 +37,13 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // Leck geschlossen: Wir nutzen jetzt das dedizierte DTO!
             $dto = VoucherToggleRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return $e->getMessage();
+            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
         }
-
-        // Kein roher $post Zugriff mehr! Das DTO hat das Flag bereits in 'aktiv' / 'deaktiviert' übersetzt.
         $this->voucherService->toggleStatus($dto->code, $dto->targetStatus);
+        $msg = 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
 
-        return 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
+        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
     }
 }
