@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 /** @var array $bank_headers */
+/** @var array $bank_row_preview */
 /** @var string $bank_temp_file */
-$headersExist = ! empty($bank_headers) && \is_array($bank_headers);
+$headersExist    = ! empty($bank_headers) && \is_array($bank_headers);
+$rowPreviewExist = ! empty($bank_row_preview) && \is_array($bank_row_preview);
 $guess_id ??= 4;
 $guess_amount ??= 14;
 $guess_date ??= 1;
@@ -30,7 +32,7 @@ $guess_date ??= 1;
                     <div class="js-avatar-dropzone js-preview-only u-text-center u-padding-around-l"
                          style="border: 3px dashed var(--border-color); border-radius: 12px; background: rgba(0,0,0,0.01); padding: 40px 20px; cursor:pointer;"
                          id="csvDropzone">
-                        <span style = "font-size: 3rem; display:block; margin-bottom:10px;">📄</span>
+                        <span style="font-size: 3rem; display:block; margin-bottom:10px;">📄</span>
                         <strong class="js-preview-text">CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
                         <p class="u-text-muted u-text-small">Unterstützt Standard-Bank-CSV (Semikolon-getrennt)</p>
                         <input type="file"
@@ -43,7 +45,7 @@ $guess_date ??= 1;
                 </form>
             <?php } else { ?>
                 <div class="c-alert c-alert--info u-margin-bottom-m">
-                    Spalten automatisch erkannt! Bitte prüfen Sie die Zuordnung für die zukünftige Flexibilität.
+                    CSV erfolgreich eingelesen! Bitte bestätigen Sie die Spaltenzuordnung anhand der Live-Vorschau.
                 </div>
 
                 <form method="POST"
@@ -60,12 +62,13 @@ $guess_date ??= 1;
                            value="<?php echo \htmlspecialchars($bank_temp_file); ?>">
 
                     <div class="u-grid u-gap-m"
-                         style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                         style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
 
                         <div class="c-form-group">
                             <label class="c-form-label">Permit-ID / Verwendungszweck</label>
                             <select name="col_id"
-                                    class="c-form-select">
+                                    class="c-form-select js-bank-selector"
+                                    data-preview-target="preview_id">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
                                             <?php echo $idx === $guess_id ? 'selected' : ''; ?>>
@@ -73,12 +76,18 @@ $guess_date ??= 1;
                                     </option>
                                 <?php } ?>
                             </select>
+                            <div
+                                 style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+                                👁️ <!--Vorschau:--> <strong id="preview_id"
+                                        style="color: var(--primary-color);">---</strong>
+                            </div>
                         </div>
 
                         <div class="c-form-group">
                             <label class="c-form-label">Zahlungsbetrag (€)</label>
                             <select name="col_amount"
-                                    class="c-form-select">
+                                    class="c-form-select js-bank-selector"
+                                    data-preview-target="preview_amount">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
                                             <?php echo $idx === $guess_amount ? 'selected' : ''; ?>>
@@ -86,12 +95,18 @@ $guess_date ??= 1;
                                     </option>
                                 <?php } ?>
                             </select>
+                            <div
+                                 style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+                                👁️ <!--Vorschau:--> <strong id="preview_amount"
+                                        style="color: #059669;">---</strong>
+                            </div>
                         </div>
 
                         <div class="c-form-group">
                             <label class="c-form-label">Buchungstag / Datum</label>
                             <select name="col_date"
-                                    class="c-form-select">
+                                    class="c-form-select js-bank-selector"
+                                    data-preview-target="preview_date">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
                                             <?php echo $idx === $guess_date ? 'selected' : ''; ?>>
@@ -99,6 +114,11 @@ $guess_date ??= 1;
                                     </option>
                                 <?php } ?>
                             </select>
+                            <div
+                                 style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+                                👁️ <!--Vorschau:--> <strong id="preview_date"
+                                        style="color: #6366f1;">---</strong>
+                            </div>
                         </div>
 
                     </div>
@@ -123,25 +143,49 @@ $guess_date ??= 1;
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Drag & Drop Funktionalität absichern
     const zone = document.getElementById('csvDropzone');
     const input = document.getElementById('bankCsvInput');
-    if (!zone || !input) return;
+    if (zone && input) {
+        zone.addEventListener('click', () => input.click());
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.style.borderColor = 'var(--primary-color)';
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.style.borderColor = 'var(--border-color)';
+        });
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) {
+                input.files = e.dataTransfer.files;
+                document.getElementById('bankCsvForm').submit();
+            }
+        });
+    }
 
-    zone.addEventListener('click', () => input.click());
-    zone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        zone.style.borderColor = 'var(--primary-color)';
-    });
-    zone.addEventListener('dragleave', () => {
-        zone.style.borderColor = 'var(--border-color)';
-    });
-    zone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (e.dataTransfer.files.length > 0) {
-            input.files = e.dataTransfer.files;
-            document.getElementById('bankCsvForm').submit();
+    // 2. Dynamische Live-Vorschau der selektierten Spaltenwerte
+    <?php if ($rowPreviewExist) { ?>
+        const rowData = <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE); ?>;
+
+        function updatePreview(selectElement) {
+            const selectedIndex = parseInt(selectElement.value);
+            const targetId = selectElement.getAttribute('data-preview-target');
+            const targetDisplay = document.getElementById(targetId);
+
+            if (targetDisplay) {
+                const value = (rowData[selectedIndex] !== undefined && rowData[selectedIndex] !== '') ?
+                    rowData[selectedIndex] :
+                    '[LEER]';
+                targetDisplay.innerText = value;
+            }
         }
-    });
+
+        document.querySelectorAll('.js-bank-selector').forEach(select => {
+            select.addEventListener('change', (e) => updatePreview(e.target));
+            updatePreview(select); // Initiale Vorschau laden
+        });
+    <?php } ?>
 });
 
 </script>

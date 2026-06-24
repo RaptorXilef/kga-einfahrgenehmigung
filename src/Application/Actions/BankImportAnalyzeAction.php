@@ -43,6 +43,25 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
 
         $headers = $this->importService->extractHeaders($tempPath);
 
+        // Erste echte Datenzeile für die Live-Vorschau auslesen
+        $firstRowData = [];
+        if (! empty($headers) && $handle = \fopen($tempPath, 'r')) {
+            $firstLine = \fgets($handle);
+            \rewind($handle);
+            $delimiter = ';';
+            if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
+                $delimiter = ',';
+            }
+            // Header überspringen
+            \fgetcsv($handle, 0, $delimiter, '"', '\\');
+            // Erste Datenzeile lesen
+            $row = \fgetcsv($handle, 0, $delimiter, '"', '\\');
+            if ($row !== false) {
+                $firstRowData = $row;
+            }
+            \fclose($handle);
+        }
+
         // Intelligente Vorauswahl treffen basierend auf typischen Bank-Begriffen
         $guessedId     = 4;
         $guessedAmount = 14;
@@ -60,18 +79,19 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             }
         }
 
-        // Dashboard rendern und Wizard öffnen - jetzt mit ALLEN benötigten Fallback-Variablen!
+        // Dashboard rendern und Wizard öffnen - jetzt inkl. bank_row_preview
         $this->renderer->render('admin_dashboard', [
             'auth'            => $this->auth,
             'groupRepository' => $this->groupRepository,
             'message'         => 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.',
 
             // Für den Bank Import Wizard
-            'bank_headers'   => $headers,
-            'bank_temp_file' => $tempPath,
-            'guess_id'       => $guessedId,
-            'guess_amount'   => $guessedAmount,
-            'guess_date'     => $guessedDate,
+            'bank_headers'     => $headers,
+            'bank_row_preview' => $firstRowData, // Beispieldaten mitgeben
+            'bank_temp_file'   => $tempPath,
+            'guess_id'         => $guessedId,
+            'guess_amount'     => $guessedAmount,
+            'guess_date'       => $guessedDate,
 
             // Fallback-Dummys, damit die restlichen Tabs nicht abstürzen
             'filterStart'       => \date('Y-01-01'),
