@@ -2,6 +2,12 @@
 
 
 
+## [0.49.13](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.12...v0.49.13) (2026-06-24)
+
+### 🐛 Bug Fixes
+
+* **architecture:** resolve ADR leaks, enforce DTOs, decouple infrastructure from Domain ([66d6763](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/66d6763dee4551238ba946b60f1bf1ce64ff0ae9))
+
 ## [0.49.12](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.11...v0.49.12) (2026-06-24)
 
 ### 🐛 Bug Fixes
