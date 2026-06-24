@@ -7,7 +7,8 @@
             "days": 7,
             "prices": {
                 "pkw": 3,
-                "lkw": 10
+                "lkw": 10,
+                "sharing": 3
             },
             "public": true
         },
@@ -17,7 +18,8 @@
             "days": 14,
             "prices": {
                 "pkw": 5,
-                "lkw": 15
+                "lkw": 15,
+                "sharing": 5
             },
             "public": false
         },
@@ -27,7 +29,8 @@
             "days": 30,
             "prices": {
                 "pkw": 10,
-                "lkw": 25
+                "lkw": 25,
+                "sharing": 10
             },
             "public": false
         },
@@ -37,7 +40,8 @@
             "days": 90,
             "prices": {
                 "pkw": 20,
-                "lkw": 50
+                "lkw": 50,
+                "sharing": 20
             },
             "public": false
         },
@@ -47,7 +51,8 @@
             "days": 180,
             "prices": {
                 "pkw": 35,
-                "lkw": 80
+                "lkw": 80,
+                "sharing": 35
             },
             "public": false
         },
@@ -57,7 +62,8 @@
             "days": 270,
             "prices": {
                 "pkw": 60,
-                "lkw": 150
+                "lkw": 150,
+                "sharing": 60
             },
             "public": false
         },
@@ -67,7 +73,8 @@
             "days": 365,
             "prices": {
                 "pkw": 60,
-                "lkw": 150
+                "lkw": 150,
+                "sharing": 60
             },
             "public": false
         },
@@ -77,7 +84,8 @@
             "days": "custom",
             "prices": {
                 "pkw": 0,
-                "lkw": 0
+                "lkw": 0,
+                "sharing": 0
             },
             "public": false
         },
@@ -87,7 +95,8 @@
             "days": "custom",
             "prices": {
                 "pkw": 0,
-                "lkw": 0
+                "lkw": 0,
+                "sharing": 0
             },
             "public": false
         },
@@ -97,7 +106,8 @@
             "days": "custom",
             "prices": {
                 "pkw": 0,
-                "lkw": 0
+                "lkw": 0,
+                "sharing": 0
             },
             "public": false
         }
