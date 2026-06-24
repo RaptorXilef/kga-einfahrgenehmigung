@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\ProfileUpdatePasswordRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
@@ -22,6 +23,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,
+        private SessionManager $sessionManager, // HINZUGEFÜGT
         private UserRepositoryInterface $userRepository,
         private UserService $userService,
     ) {
@@ -42,14 +44,19 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
 
             $users = $this->userRepository->loadAll();
             if (isset($users[$userId])) {
-                $u              = $users[$userId];
+                $u       = $users[$userId];
+                $newHash = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
+
                 $users[$userId] = new User(
                     $u->id,
                     $u->username,
                     $u->groupId,
-                    \password_hash($dto->newPassword, \PASSWORD_DEFAULT),
+                    $newHash,
                 );
                 $this->userRepository->saveAll($users);
+
+                // HINZUGEFÜGT: Session mit dem neuen Hash aktualisieren, damit der User eingeloggt bleibt
+                $this->sessionManager->setAuthSession($userId, $u->groupId, $u->username, $newHash);
 
                 return 'Erfolg: Ihr Passwort wurde geändert.';
             }

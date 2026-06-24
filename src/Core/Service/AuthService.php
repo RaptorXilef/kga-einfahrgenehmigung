@@ -155,7 +155,12 @@ final readonly class AuthService
      */
     public function isLoggedIn(): bool
     {
-        $this->validateActiveSession();
+        try {
+            $this->validateActiveSession();
+        } catch (\RuntimeException) {
+            // Wenn die Session ungültig ist (z.B. User gelöscht, PW extern geändert) -> false statt Crash
+            return false;
+        }
 
         return $this->sessionManager->getUserId() !== ''
             || $this->sessionManager->getAdminUser() === ($this->config->get('superadmin')['label'] ?? 'Dev-Admin')
