@@ -2,6 +2,14 @@
 
 
 
+## [0.50.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.14...v0.50.0) (2026-06-24)
+
+### 🚀 Features
+
+* **finance:** add dynamic data row preview to banking import layout wizard ([3a0c43b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3a0c43b8f8c4a340ec578c3f0f535945476571df))
+* **finance:** implement multi-payment bank statement import ([4dbb0f0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4dbb0f082abcf7c392a8062d60190d95a7fd0614))
+* **finance:** introduce automated banking statement import engine... ([000cb24](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/000cb248745362511aa04daf26c9ec8c20f3050b))
+
 ## [0.49.14](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.13...v0.49.14) (2026-06-24)
 
 ### 🐛 Bug Fixes
