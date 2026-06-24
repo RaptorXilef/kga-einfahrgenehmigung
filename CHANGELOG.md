@@ -2,6 +2,17 @@
 
 
 
+## [0.49.12](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.11...v0.49.12) (2026-06-24)
+
+### 🐛 Bug Fixes
+
+* **auth:** prevent 500 error on profile password change and gracefully handle token mismatches ([ccfe6f9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ccfe6f94cc9840804b34fc338a17a671c2c811cb))
+
+### ⚙️ Refactoring
+
+* **architecture:** enforce strict DTO boundaries and eliminate dead dependencies ([f74bdb0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f74bdb00804e2bb956eece71075f5b3602bb52bb))
+* **core:** encapsulate session state and delegate business rules to domain services ([2321851](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2321851b319cb547e432339339f9a3c78031f2a6))
+
 ## [0.49.11](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.10...v0.49.11) (2026-06-23)
 
 ### 🐛 Bug Fixes
