@@ -20,6 +20,8 @@ final class PermissionRegistry
                 'children' => [
                     'finance_reveal' => ['label' => 'Finanzen: Sensible Beträge und Umsätze enthüllen', 'key' => 'privacy.finance.reveal'],
                     'email_reveal'   => ['label' => 'Datenschutz: E-Mail-Adressen im Klartext zeigen', 'key' => 'privacy.email.reveal'],
+                    'mark_paid'      => ['label' => 'Zahlung bestätigen', 'key' => 'dashboard.finance.mark_paid'],
+                    'bank_import'    => ['label' => 'Bank-Kontoauszug importieren', 'key' => 'dashboard.finance.bank_import'],
                 ],
             ],
             'check' => [

@@ -244,6 +244,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                      alt="">Ranking
                             </button>
                         <?php } ?>
+                        <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
+                            <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'c-tabs__btn--active' : ''; ?>"
+                                    data-tab-target="tab-bank-import">
+                                🏦 Bank-Abgleich
+                            </button>
+                        <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-export">
@@ -325,6 +331,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <div id="tab-ranking"
                              class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
+                        <div id="tab-bank-import"
+                             class="c-tabs__content <?php echo isset($bank_headers) ? 'c-tabs__content--active' : ''; ?>">
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_bank_import.phtml'; ?>
                         </div>
                     <?php } ?>
 

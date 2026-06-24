@@ -16,8 +16,9 @@ use App\Contracts\Application\ViewActionInterface;
  */
 final readonly class AdminActionFactory
 {
-    public function __construct(private Container $container)
-    {
+    public function __construct(
+        private Container $container,
+    ) {
     }
 
     /**
@@ -33,6 +34,8 @@ final readonly class AdminActionFactory
             'activate_voucher'      => VoucherToggleAction::class,
             'admin_print'           => AdminPrintAction::class,
             'anonymize_archive'     => SystemAnonymizeArchiveAction::class,
+            'bank_import_analyze'   => BankImportAnalyzeAction::class,
+            'bank_import_process'   => BankImportProcessAction::class,
             'clear_cache'           => SystemClearCacheAction::class,
             'create_backup'         => SystemCreateBackupAction::class,
             'create_manual'         => PermitCreateManualAction::class,

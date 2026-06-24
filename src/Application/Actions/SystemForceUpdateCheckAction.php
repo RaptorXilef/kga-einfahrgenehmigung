@@ -16,7 +16,7 @@ use App\Infrastructure\System\SystemInfoService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
+final readonly class SystemForceUpdateCheckAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private GitHubUpdaterService $updater,

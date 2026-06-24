@@ -294,22 +294,39 @@ final readonly class PermitService
         return $permit;
     }
 
-    public function manualActivate(string $code, ?string $grund = null): bool
+    public function manualActivate(string $code, ?string $grund = null, ?string $buchungsdatum = null): bool
     {
         $permit = $this->storage->findByHash($code);
         if (! $permit instanceof Permit) {
             return false;
         }
 
+        $dateStr            = $buchungsdatum ?? $this->clock->now()->format('d.m.Y');
+        $aktuellerKommentar = $permit->interner_kommentar ?? '';
+
+        // Verhindert doppeltes Loggen, falls die Information schon drin steht
+        if (! \str_contains($aktuellerKommentar, 'Bezahlt am')) {
+            $zusatz = 'Zahlung bestätigt am ' . $dateStr;
+            if ($grund) {
+                $zusatz .= ' (' . $grund . ')';
+            }
+            $neuerKommentar = $aktuellerKommentar !== ''
+                ? $aktuellerKommentar . ' | ' . $zusatz
+                : $zusatz;
+        } else {
+            $neuerKommentar = $aktuellerKommentar;
+        }
+
         $updated = new Permit(
-            $permit->code,
-            $permit->template_key,
-            $permit->owner,
-            $permit->vehicle,
-            $permit->validity,
-            new Status('bezahlt', $permit->isSuspended(), $permit->getSuspensionReason()),
-            $permit->getCreatedAt(),
-            $grund ?? $permit->interner_kommentar,
+            code: $permit->code,
+            template_key: $permit->template_key,
+            owner: $permit->owner,
+            vehicle: $permit->vehicle,
+            validity: $permit->validity,
+            status: new Status('bezahlt', $permit->isSuspended(), $permit->getSuspensionReason()),
+            erstellt: $permit->getCreatedAt(),
+            interner_kommentar: $neuerKommentar,
+            agreements: $permit->agreements,
         );
 
         return $this->storage->save($updated);

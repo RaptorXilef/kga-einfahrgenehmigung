@@ -69,6 +69,10 @@ final readonly class AdminController
             $actionKey = 'admin_print';
         }
 
+        if (isset($request->files['bank_csv'])) {
+            $actionKey = 'bank_import_analyze';
+        }
+
         // Action VOR der Pipeline instanziieren
         $action = $this->actionFactory->create($actionKey);
 

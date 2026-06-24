@@ -1,0 +1,147 @@
+<?php
+
+declare(strict_types=1);
+/** @var array $bank_headers */
+/** @var string $bank_temp_file */
+$headersExist = ! empty($bank_headers) && \is_array($bank_headers);
+$guess_id ??= 4;
+$guess_amount ??= 14;
+$guess_date ??= 1;
+?>
+<div class="c-tab-content-container">
+    <section class="c-card"
+             style="border-top-color: var(--success-color);">
+        <header class="c-card__header u-text-center u-padding-y-l">
+            <h3 class="u-margin-none">🏦 Automatischer Bank-Kontoauszugs-Abgleich</h3>
+            <p class="u-text-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene permits automatisch auf "bezahlt"
+                zu setzen.</p>
+        </header>
+        <div class="c-card__body u-padding-around-l">
+
+            <?php if (! $headersExist) { ?>
+                <form method="POST"
+                      action="admin.php"
+                      enctype="multipart/form-data"
+                      id="bankCsvForm">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                    <div class="js-avatar-dropzone js-preview-only u-text-center u-padding-around-l"
+                         style="border: 3px dashed var(--border-color); border-radius: 12px; background: rgba(0,0,0,0.01); padding: 40px 20px; cursor:pointer;"
+                         id="csvDropzone">
+                        <span style = "font-size: 3rem; display:block; margin-bottom:10px;">📄</span>
+                        <strong class="js-preview-text">CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
+                        <p class="u-text-muted u-text-small">Unterstützt Standard-Bank-CSV (Semikolon-getrennt)</p>
+                        <input type="file"
+                               name="bank_csv"
+                               accept=".csv,text/csv"
+                               class="u-hidden"
+                               id="bankCsvInput"
+                               onchange="document.getElementById('bankCsvForm').submit()">
+                    </div>
+                </form>
+            <?php } else { ?>
+                <div class="c-alert c-alert--info u-margin-bottom-m">
+                    Spalten automatisch erkannt! Bitte prüfen Sie die Zuordnung für die zukünftige Flexibilität.
+                </div>
+
+                <form method="POST"
+                      action="admin.php"
+                      class="c-form">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <input type="hidden"
+                           name="action"
+                           value="bank_import_process">
+                    <input type="hidden"
+                           name="temp_file"
+                           value="<?php echo \htmlspecialchars($bank_temp_file); ?>">
+
+                    <div class="u-grid u-gap-m"
+                         style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+
+                        <div class="c-form-group">
+                            <label class="c-form-label">Permit-ID / Verwendungszweck</label>
+                            <select name="col_id"
+                                    class="c-form-select">
+                                <?php foreach ($bank_headers as $idx => $name) { ?>
+                                    <option value="<?php echo $idx; ?>"
+                                            <?php echo $idx === $guess_id ? 'selected' : ''; ?>>
+                                        Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+
+                        <div class="c-form-group">
+                            <label class="c-form-label">Zahlungsbetrag (€)</label>
+                            <select name="col_amount"
+                                    class="c-form-select">
+                                <?php foreach ($bank_headers as $idx => $name) { ?>
+                                    <option value="<?php echo $idx; ?>"
+                                            <?php echo $idx === $guess_amount ? 'selected' : ''; ?>>
+                                        Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+
+                        <div class="c-form-group">
+                            <label class="c-form-label">Buchungstag / Datum</label>
+                            <select name="col_date"
+                                    class="c-form-select">
+                                <?php foreach ($bank_headers as $idx => $name) { ?>
+                                    <option value="<?php echo $idx; ?>"
+                                            <?php echo $idx === $guess_date ? 'selected' : ''; ?>>
+                                        Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                    </option>
+                                <?php } ?>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="u-margin-top-xl u-flex u-gap-m u-justify-between u-align-center"
+                         style="border-top: 1px solid var(--border-color); padding-top: 20px; flex-wrap: wrap;">
+                        <a href="admin.php" class="c-button c-button--secondary" style="width: auto; padding: 0 20px; height: 42px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none;">
+                            ✕ Abbrechen
+                        </a>
+                        <button type="submit"
+                                class="c-button c-button--primary"
+                                style="width: auto; min-width: 250px; padding: 0 24px; height: 42px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); transition: all 0.2s;">
+                            Abgleich starten & Permits aktivieren 🚀
+                        </button>
+                    </div>
+                </form>
+            <?php } ?>
+
+        </div>
+    </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const zone = document.getElementById('csvDropzone');
+    const input = document.getElementById('bankCsvInput');
+    if (!zone || !input) return;
+
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--primary-color)';
+    });
+    zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = 'var(--border-color)';
+    });
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            input.files = e.dataTransfer.files;
+            document.getElementById('bankCsvForm').submit();
+        }
+    });
+});
+
+</script>

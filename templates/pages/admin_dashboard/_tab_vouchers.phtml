@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Entity\Voucher;
+
 /**
  * Partial: Dashboard Tab - Voucher Management
  *
@@ -45,9 +47,12 @@
                             </thead>
                             <tbody>
                                 <?php
-                                $activeVouchers = \array_filter($vouchers ?? [], fn ($v) => ! ($v['used'] ?? false));
-                if (empty($activeVouchers)) {
-                    ?>
+                                // TODO DIE STELLE PRÜFEN!
+                                $activeVouchers = \array_filter($vouchers ?? [], function (Voucher $v): bool {
+                                    return $v->status === 'aktiv' && ! $v->isDepleted();
+                                });
+                if (empty($activeVouchers)) { ?>
+                                    ?>
                                     <tr>
                                         <td colspan="3"
                                             class="u-text-center u-padding-around-l u-text-muted">
