@@ -41,19 +41,19 @@ trait StorageMapperTrait
     {
         // 1. Daten-Abgleich: Wir prüfen auf den neuen sauberen Key, falls nicht vorhanden, nutzen wir den Legacy-Key
         // Rückwärts-Mapping für JSON-Dateien, die noch "template_key" haben könnten
-        $tKey = $item['template_key'] ?? ($item['template_key'] ?? 'std_7');
+        $tKey = $item['template_key'] ?? 'std_7';
 
         // Wir suchen flexibel nach alten und neuen Keys
-        $name    = (string) ($item['name'] ?? ($item['pächter'] ?? 'Unbekannt'));
-        $von     = (string) ($item['von'] ?? ($item['datum_von'] ?? 'now'));
-        $bis     = (string) ($item['bis'] ?? ($item['datum_bis'] ?? 'now'));
-        $created = (string) ($item['erstellt'] ?? ($item['erstellt_am'] ?? 'now'));
+        $name    = (string) ($item['name'] ?? 'Unbekannt');
+        $von     = (string) ($item['von'] ?? 'now');
+        $bis     = (string) ($item['bis'] ?? 'now');
+        $created = (string) ($item['erstellt'] ?? 'now');
 
         // Die harmonisierten Keys (mit Fallback auf die alten camelCase Bezeichner deiner alten JSONs)
-        $preis        = (float) ($item['preis'] ?? ($item['preis'] ?? 0.0));
-        $is_suspended = (bool) ($item['is_suspended'] ?? ($item['is_suspended'] ?? false));
-        $suspReason   = $item['suspension_reason'] ?? ($item['suspension_reason'] ?? null);
-        $kommentar    = $item['interner_kommentar'] ?? ($item['interner_kommentar'] ?? null);
+        $preis        = (float) ($item['preis'] ?? 0.0);
+        $is_suspended = (bool) ($item['is_suspended'] ?? false);
+        $suspReason   = $item['suspension_reason'] ?? null;
+        $kommentar    = $item['interner_kommentar'] ?? null;
 
         // 2. Datumsobjekte sicher generieren
         try {
@@ -74,7 +74,16 @@ trait StorageMapperTrait
             $dtCreated = new \DateTimeImmutable('now');
         }
 
-        // JSON-String wieder in ein Array umwandeln
+        // Hydrierung des neuen bezahlt_am Feldes aus den Rohdaten (JSON oder SQL)
+        $bezahltAmStr = $item['bezahlt_am'] ?? null;
+        $dtBezahltAm  = null;
+        if ($bezahltAmStr && $bezahltAmStr !== '0000-00-00 00:00:00' && $bezahltAmStr !== 'null') {
+            try {
+                $dtBezahltAm = new \DateTimeImmutable($bezahltAmStr);
+            } catch (\Exception) {
+            }
+        }
+
         $agreements = $item['agreements'] ?? [];
         if (\is_string($agreements)) {
             $agreements = JsonHelper::decode($agreements);
@@ -108,6 +117,8 @@ trait StorageMapperTrait
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
             agreements: $agreements,
+            state: null,
+            bezahlt_am: $dtBezahltAm,
         );
     }
 
@@ -143,10 +154,8 @@ trait StorageMapperTrait
             'suspension_reason'  => $permit->getSuspensionReason(),
             'erstellt'           => $permit->getCreatedAt()->format('Y-m-d H:i:s'),
             'interner_kommentar' => $permit->interner_kommentar,
-            'agreements'         => \is_array($permit->agreements) ? \json_encode(
-                $permit->agreements,
-                \JSON_UNESCAPED_UNICODE,
-            ) : '{}',
+            'agreements'         => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
+            'bezahlt_am'         => $permit->bezahlt_am ? $permit->bezahlt_am->format('Y-m-d H:i:s') : null, // Serialisierung für JSON/SQL
         ];
     }
 }

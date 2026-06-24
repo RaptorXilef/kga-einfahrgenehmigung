@@ -38,13 +38,15 @@ final readonly class MySqlStorage implements StorageInterface
     public function save(Permit $permit): bool
     {
         $sql = 'INSERT INTO `permits` (
-                    code, template_key, name, email, kennzeichen, parzelle, typ,
-                    firma, zweck, preis, von, bis, status, is_suspended,
-                    suspension_reason, erstellt, interner_kommentar, agreements
+                    code, template_key, name, email, kennzeichen, parzelle,
+                    typ, firma, zweck, preis, von, bis, status, is_suspended,
+                    suspension_reason, erstellt, interner_kommentar, agreements,
+                    bezahlt_am
                 ) VALUES (
-                    :code, :template_key, :name, :email, :kennzeichen, :parzelle, :typ,
-                    :firma, :zweck, :preis, :von, :bis, :status, :is_suspended,
-                    :suspension_reason, :erstellt, :interner_kommentar, :agreements
+                    :code, :template_key, :name, :email, :kennzeichen, :parzelle,
+                    :typ, :firma, :zweck, :preis, :von, :bis, :status, :is_suspended,
+                    :suspension_reason, :erstellt, :interner_kommentar, :agreements,
+                    :bezahlt_am
                 ) ON DUPLICATE KEY UPDATE
                     template_key = VALUES(template_key),
                     name = VALUES(name),
@@ -61,7 +63,8 @@ final readonly class MySqlStorage implements StorageInterface
                     is_suspended = VALUES(is_suspended),
                     suspension_reason = VALUES(suspension_reason),
                     interner_kommentar = VALUES(interner_kommentar),
-                    agreements = VALUES(agreements);';
+                    agreements = VALUES(agreements),
+                    bezahlt_am = VALUES(bezahlt_am);';
         // 'erstellt' wird beim Update weggelassen, da sich das Erstelldatum nicht ändern soll!
 
         return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));

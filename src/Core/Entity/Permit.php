@@ -27,6 +27,8 @@ final readonly class Permit
         public \DateTimeImmutable $erstellt = new \DateTimeImmutable(),
         public ?string $interner_kommentar = null, // Für manuelle Buchung
         public array $agreements = [],
+        public ?Status $state = null, // Kompatibilitäts-Dummy falls genutzt
+        public ?\DateTimeImmutable $bezahlt_am = null, // Separates Bezahldatum
     ) {
     }
 
@@ -193,7 +195,7 @@ final readonly class Permit
      */
     public function hasCollision(string $parzelleFormatted, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
     {
-        if ($this->owner->parzelle !== $parzelleFormatted) {
+        if ($this->owner->parzelle->value !== $parzelleFormatted) {
             return false;
         }
 

@@ -301,18 +301,21 @@ final readonly class PermitService
             return false;
         }
 
-        $dateStr            = $buchungsdatum ?? $this->clock->now()->format('d.m.Y');
-        $aktuellerKommentar = $permit->interner_kommentar ?? '';
-
-        // Verhindert doppeltes Loggen, falls die Information schon drin steht
-        if (! \str_contains($aktuellerKommentar, 'Bezahlt am')) {
-            $zusatz = 'Zahlung bestätigt am ' . $dateStr;
-            if ($grund) {
-                $zusatz .= ' (' . $grund . ')';
+        // Parse das übergebene Buchungsdatum flexibel in ein echtes DateTimeImmutable-Objekt
+        $dtBezahltAm = null;
+        if ($buchungsdatum) {
+            $dateObj = \DateTimeImmutable::createFromFormat('d.m.y', \trim($buchungsdatum));
+            if ($dateObj === false) {
+                $dateObj = \DateTimeImmutable::createFromFormat('d.m.Y', \trim($buchungsdatum));
             }
-            $neuerKommentar = $aktuellerKommentar !== ''
-                ? $aktuellerKommentar . ' | ' . $zusatz
-                : $zusatz;
+            $dtBezahltAm = $dateObj !== false ? $dateObj : $this->clock->now();
+        } else {
+            $dtBezahltAm = $this->clock->now();
+        }
+
+        $aktuellerKommentar = $permit->interner_kommentar ?? '';
+        if ($grund && ! \str_contains($aktuellerKommentar, $grund)) {
+            $neuerKommentar = $aktuellerKommentar !== '' ? $aktuellerKommentar . ' | ' . $grund : $grund;
         } else {
             $neuerKommentar = $aktuellerKommentar;
         }
@@ -324,9 +327,11 @@ final readonly class PermitService
             vehicle: $permit->vehicle,
             validity: $permit->validity,
             status: new Status('bezahlt', $permit->isSuspended(), $permit->getSuspensionReason()),
-            erstellt: $permit->getCreatedAt(),
+            erstellt: $permit->getCreatedAt(), // WICHTIG: Erstellungsdatum bleibt absolut unangetastet!
             interner_kommentar: $neuerKommentar,
             agreements: $permit->agreements,
+            state: null,
+            bezahlt_am: $dtBezahltAm, // Mapped sauber in die neue JSON/SQL Spalte
         );
 
         return $this->storage->save($updated);
