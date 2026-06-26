@@ -2,6 +2,12 @@
 
 
 
+## [0.50.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.50.0...v0.50.1) (2026-06-26)
+
+### ⚙️ Refactoring
+
+* **dashboard:** dashboard sorted ([d22bb6b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d22bb6b58c4d3e58cf44d4a565025d7b969d36b0))
+
 ## [0.50.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.49.14...v0.50.0) (2026-06-24)
 
 ### 🚀 Features
