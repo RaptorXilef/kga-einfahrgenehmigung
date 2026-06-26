@@ -197,19 +197,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 (<?php echo \count($permitGroups['active'] ?? []); ?>)
                             </button>
                         <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-finance">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp"
-                                     class="c-icon"
-                                     alt=""> Finanzen
-                                <?php $openCount = \count($permitGroups['unpaid'] ?? []);
-                            if ($openCount > 0) {
-                                echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
-                            }
-                            ?>
-                            </button>
-                        <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-future">
@@ -228,20 +215,33 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                             </button>
                         <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-stats">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp"
-                                     class="c-icon"
-                                     alt="">Statistiken
-                            </button>
-                        <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-ranking">
                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp"
                                      class="c-icon"
                                      alt="">Ranking
+                            </button>
+                        <?php } ?>
+                        <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-finance">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-card.webp"
+                                     class="c-icon"
+                                     alt=""> Finanzen
+                                <?php $openCount = \count($permitGroups['unpaid'] ?? []);
+                            if ($openCount > 0) {
+                                echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
+                            }
+                            ?>
+                            </button>
+                        <?php } ?>
+                        <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-stats">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp"
+                                     class="c-icon"
+                                     alt="">Statistiken
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
@@ -258,20 +258,20 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                      alt="">Daten & Export
                             </button>
                         <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-vouchers">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
-                                     class="c-icon"
-                                     alt="">Gutscheincodes
-                            </button>
-                        <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-tools">
                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp"
                                      class="c-icon"
                                      alt="">Werkzeuge
+                            </button>
+                        <?php } ?>
+                        <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-vouchers">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                                     class="c-icon"
+                                     alt="">Gutscheincodes
                             </button>
                         <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
@@ -299,13 +299,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
-                        <div id="tab-finance"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
                     <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
                         <div id="tab-future"
                              class="c-tabs__content">
@@ -320,17 +313,24 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
-                        <div id="tab-stats"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
                     <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
                         <div id="tab-ranking"
                              class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
+                        <div id="tab-finance"
+                             class="c-tabs__content">
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
+                        <div id="tab-stats"
+                             class="c-tabs__content">
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
                         </div>
                     <?php } ?>
 
@@ -348,17 +348,17 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
-                        <div id="tab-vouchers"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
                     <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
                         <div id="tab-tools"
                              class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_generator_tools.phtml'; ?>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
+                        <div id="tab-vouchers"
+                             class="c-tabs__content">
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
                         </div>
                     <?php } ?>
 

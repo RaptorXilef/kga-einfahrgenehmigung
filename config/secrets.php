@@ -14,7 +14,10 @@ declare(strict_types=1);
 
 return [
     // --- SICHERHEITS-SALTS ---
-    'geheimnis'   => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // Sichert die Hash-Tokens der E-Mail-Validierung
+    'geheimnis' => 'DEIN_SUPER_GEHEIMES_PASSWORT_HIER', // Sichert die Hash-Tokens der E-Mail-Validierung
+
+    // Nicht erlaubte Zeichen: ? ; / @ : [] { } ( ) ! % & $ § " ' ´ ` ~ * # \ ü ä ö ß + ~
+    // Am besten ein PW aus Buchstaben und Zahlen :-)
     'cron_secret' => 'geheimes_passwort_123',             // Authentifizierungstoken für Web-Cron-Aufrufe
 
     // --- GOOGLE ANALYTICS 4 (SERVER-SIDE) ---
