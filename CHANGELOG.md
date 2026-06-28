@@ -2,6 +2,21 @@
 
 
 
+## [0.51.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.1...v0.51.2) (2026-06-28)
+
+### 🐛 Bug Fixes
+
+* **storage:** resolve PDO HY093 exception during permit creation and persistence ([7e7329e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e7329e3113db2355ef5a1a1d378ef4549a1c679))
+
+### ⚡ Performance
+
+* **mail:** implement 10-tier priority queue and split batch limits for web and cli processing ([d8c5533](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d8c5533686fc77e5c8d50775324ed1bfd3768b82))
+
+### ⚙️ Refactoring
+
+* **core:** implement dynamic SQL generation and background session heartbeat ([e6d4c09](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e6d4c09bb0979753c56bac3ace197333a133e2f9))
+* **mail:** externalize hardcoded mail queue processing limits to JSON configuration ([98b0489](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/98b04899dd1b9d3facc7b1c38d033b9e04bc045d))
+
 ## [0.51.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.0...v0.51.1) (2026-06-28)
 
 ### 🐛 Bug Fixes
