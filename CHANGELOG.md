@@ -2,6 +2,12 @@
 
 
 
+## [0.51.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.0...v0.51.1) (2026-06-28)
+
+### 🐛 Bug Fixes
+
+* **core:** resolve PHP 8+ parameter deprecation in UpdateMigrationService ([fa8c6ca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fa8c6ca7145f8eacd54c301bef03167c7fca8db7))
+
 ## [0.51.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.50.1...v0.51.0) (2026-06-28)
 
 ### 🚀 Features
