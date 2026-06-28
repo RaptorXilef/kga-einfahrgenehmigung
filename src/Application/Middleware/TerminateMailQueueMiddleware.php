@@ -16,8 +16,9 @@ use App\Infrastructure\Mail\MailQueueService;
  */
 final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
 {
-    public function __construct(private MailServiceInterface $mailService)
-    {
+    public function __construct(
+        private MailServiceInterface $mailService,
+    ) {
     }
 
     public function process(ServerRequest $request, callable $next): mixed
@@ -28,10 +29,12 @@ final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
         // 2. Danach (Terminate) die Warteschlange abarbeiten
         try {
             if ($this->mailService instanceof MailQueueService) {
-                $this->mailService->processQueue(10);
+                // Nur noch max. 3 Mails am Ende eines Web-Aufrufs versenden,
+                // um Ladezeiten für den Endnutzer extrem gering zu halten!
+                $this->mailService->processQueue(3);
             }
         } catch (\Throwable) {
-            // Silently fail: Hintergrund-Prozesse dürfen die Nutzer-Response nicht crashen
+            // Still fail, Nutzer soll seinen Response bekommen
         }
 
         return $response;

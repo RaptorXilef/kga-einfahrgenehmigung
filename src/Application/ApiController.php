@@ -48,7 +48,7 @@ final readonly class ApiController
             ->add($this->securityHeaders) // TODO Überarbeitung prüfen
             ->add($this->maintenanceGuard) // TODO Überarbeitung prüfen
             ->add(new CorsMiddleware())
-            ->add(new HttpMethodMiddleware(['POST']))
+            ->add(new HttpMethodMiddleware(['POST', 'GET']))
             ->add(new ApiCsrfMiddleware($this->sessionManager));
         if ($rateLimit) {
             $pipeline->add(new ApiRateLimitMiddleware($this->rateLimiter));
