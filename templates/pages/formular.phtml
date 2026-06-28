@@ -825,6 +825,16 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         .search); // TODO wenn in eigener JS Datei das "window." entfernen
     if (urlParams.has('voucher') && !isVoucherActive) toggleVoucher();
 
+
+    // Unsichtbarer Heartbeat: Hält die PHP-Session und den CSRF-Token am Leben,
+    // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 10 Minuten)
+    setInterval(() => {
+        fetch(window.location.href, {
+                method: 'HEAD'
+            })
+            .catch(() => console.debug('Session Ping fehlgeschlagen'));
+    }, 10 * 60 * 1000);
+
     </script>
 </body>
 

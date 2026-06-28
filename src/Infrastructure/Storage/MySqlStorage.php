@@ -37,39 +37,27 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
-        // FIX: 'reminder_sent' in die Spalten, die VALUES und das ON DUPLICATE KEY UPDATE aufgenommen!
-        $sql = 'INSERT INTO `permits` (
-                    code, template_key, name, email, kennzeichen, parzelle,
-                    typ, firma, zweck, preis, von, bis, status, is_suspended,
-                    suspension_reason, erstellt, interner_kommentar, agreements,
-                    bezahlt_am, reminder_sent
-                ) VALUES (
-                    :code, :template_key, :name, :email, :kennzeichen, :parzelle,
-                    :typ, :firma, :zweck, :preis, :von, :bis, :status, :is_suspended,
-                    :suspension_reason, :erstellt, :interner_kommentar, :agreements,
-                    :bezahlt_am, :reminder_sent
-                ) ON DUPLICATE KEY UPDATE
-                    template_key = VALUES(template_key),
-                    name = VALUES(name),
-                    email = VALUES(email),
-                    kennzeichen = VALUES(kennzeichen),
-                    parzelle = VALUES(parzelle),
-                    typ = VALUES(typ),
-                    firma = VALUES(firma),
-                    zweck = VALUES(zweck),
-                    preis = VALUES(preis),
-                    von = VALUES(von),
-                    bis = VALUES(bis),
-                    status = VALUES(status),
-                    is_suspended = VALUES(is_suspended),
-                    suspension_reason = VALUES(suspension_reason),
-                    interner_kommentar = VALUES(interner_kommentar),
-                    agreements = VALUES(agreements),
-                    bezahlt_am = VALUES(bezahlt_am),
-                    reminder_sent = VALUES(reminder_sent);';
-        // 'erstellt' wird beim Update weggelassen, da sich das Erstelldatum nicht ändern soll!
+        // 1. Array mit allen Daten holen (z. B. ['code' => 'XYZ', 'preis' => 5.0, ...])
+        $data = $this->flattenEntity($permit);
 
-        return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));
+        // 2. Alle Schlüsselnamen extrahieren
+        $columns = \array_keys($data);
+
+        // 3. SQL-Teile vollautomatisch generieren!
+        // Aus ['code', 'preis'] wird: "`code`, `preis`"
+        $colString = \implode(', ', \array_map(fn ($c) => "`$c`", $columns));
+
+        // Aus ['code', 'preis'] wird: ":code, :preis"
+        $valString = \implode(', ', \array_map(fn ($c) => ":$c", $columns));
+
+        // Aus ['code', 'preis'] wird: "`code` = VALUES(`code`), `preis` = VALUES(`preis`)"
+        $updString = \implode(', ', \array_map(fn ($c) => "`$c` = VALUES(`$c`)", $columns));
+
+        // 4. Den fertigen SQL-String zusammensetzen
+        $sql = "INSERT INTO `permits` ($colString) VALUES ($valString) ON DUPLICATE KEY UPDATE $updString";
+
+        // 5. Ausführen (PDO ordnet die :platzhalter automatisch dem $data-Array zu)
+        return $this->pdo->prepare($sql)->execute($data);
     }
 
     /**
