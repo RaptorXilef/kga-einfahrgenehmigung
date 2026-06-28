@@ -81,5 +81,8 @@ final readonly class CronScheduler
 
         // 3. Auto-Backups prüfen und ggf. rotieren
         $this->backupService->checkAutoBackup();
+
+        // 4. Zahlungserinnerungen für überfällige Permits versenden
+        $this->permitService->sendPaymentReminders();
     }
 }

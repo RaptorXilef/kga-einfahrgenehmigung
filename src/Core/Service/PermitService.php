@@ -19,6 +19,7 @@ use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 use App\Core\Entity\VerificationRequest;
+use App\Core\Event\PaymentReminderEvent;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
@@ -666,5 +667,64 @@ final readonly class PermitService
 
         // 7. Aus produktiver Datenbank löschen
         $this->storage->delete($permit->code);
+    }
+
+    /**
+     * Sucht nach unbezahlten Genehmigungen, bei denen der letzte Zahlungstag erreicht wurde,
+     * setzt den reminder_sent Flag und versendet die E-Mails.
+     *
+     * @return int Anzahl der verschickten Erinnerungen
+     */
+    public function sendPaymentReminders(): int
+    {
+        $now       = $this->clock->now();
+        $sentCount = 0;
+
+        $allPermits = $this->storage->getAll();
+
+        foreach ($allPermits as $permit) {
+            // Nur offene Permits betrachten, die weder gesperrt sind, noch bereits eine Erinnerung bekamen
+            if ($permit->getStatus() !== 'offen' || $permit->isSuspended() || $permit->status->reminder_sent) {
+                continue;
+            }
+
+            // Wir holen den berechneten letzten Zahlungstag und setzen ihn auf 00:00:00 Uhr
+            $dueDateStart = $this->calculatePaymentDueDate($permit)->setTime(0, 0, 0);
+
+            // Wenn "heute" der letzte Zahlungstag (oder ein Tag danach) ist: Erinnerung senden
+            if ($now >= $dueDateStart) {
+
+                // 1. Status aktualisieren, BEVOR die Mail gesendet wird (Schützt vor Dauerschleifen bei Mail-Fehlern)
+                $updatedStatus = new Status(
+                    $permit->status->current,
+                    $permit->status->is_suspended,
+                    $permit->status->suspension_reason,
+                    true, // reminder_sent auf true
+                );
+
+                $updatedPermit = new Permit(
+                    $permit->code,
+                    $permit->template_key,
+                    $permit->owner,
+                    $permit->vehicle,
+                    $permit->validity,
+                    $updatedStatus,
+                    $permit->getCreatedAt(),
+                    $permit->interner_kommentar,
+                    $permit->agreements,
+                    $permit->state,
+                    $permit->bezahlt_am,
+                );
+
+                $this->storage->save($updatedPermit);
+
+                // 2. Event zum E-Mail-Versand auslösen
+                $this->eventDispatcher->dispatch(new PaymentReminderEvent($updatedPermit));
+
+                ++$sentCount;
+            }
+        }
+
+        return $sentCount;
     }
 }
