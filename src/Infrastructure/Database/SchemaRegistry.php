@@ -65,10 +65,12 @@ final class SchemaRegistry
                 `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
                 `agreements` JSON DEFAULT NULL, -- NEU: Zustimmungen (DSGVO, AGB, etc.)
                 `bezahlt_am` DATETIME DEFAULT NULL,
+                `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`code`),
                 INDEX `idx_kennzeichen` (`kennzeichen`),
                 INDEX `idx_parzelle` (`parzelle`),
-                INDEX `idx_email` (`email`)
+                INDEX `idx_email` (`email`),
+                INDEX `idx_email` (`reminder_sent`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
             'permits_archive' => 'CREATE TABLE IF NOT EXISTS `permits_archive` (
@@ -90,10 +92,12 @@ final class SchemaRegistry
                 `is_anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- NEU: DSGVO-Flag
                 `agreements` JSON DEFAULT NULL, -- NEU: Zustimmungen im Archiv speichern
                 `bezahlt_am` DATETIME DEFAULT NULL,
+                `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`code`),
                 INDEX `idx_kennzeichen` (`kennzeichen`),
                 INDEX `idx_anonymized` (`is_anonymized`), -- NEU: Index für schnelle Cronjob-Suche
-                INDEX `idx_email` (`email`)
+                INDEX `idx_email` (`email`),
+                INDEX `idx_email` (`reminder_sent`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
             'permits_cancelled' => "CREATE TABLE IF NOT EXISTS `permits_cancelled` (
@@ -115,6 +119,7 @@ final class SchemaRegistry
                 `is_anonymized` TINYINT(1) NOT NULL DEFAULT 1,
                 `agreements` JSON DEFAULT NULL,
                 `bezahlt_am` DATETIME DEFAULT NULL,
+                `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`code`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 

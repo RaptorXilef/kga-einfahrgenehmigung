@@ -6,6 +6,7 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Listener\DeleteGroupImageListener;
 use App\Application\Listener\SendMagicLinkMailListener;
+use App\Application\Listener\SendPaymentReminderMailListener;
 use App\Application\Listener\SendPermitCancelledMailListener;
 use App\Application\Listener\SendPermitMailListener;
 use App\Application\Listener\SendVerificationMailListener;
@@ -15,6 +16,7 @@ use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Event\GroupDeletedEvent;
 use App\Core\Event\MagicLinkRequestedEvent;
+use App\Core\Event\PaymentReminderEvent;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
@@ -69,6 +71,15 @@ final class EventServiceProvider
             );
         });
 
+        $container->bind(SendPaymentReminderMailListener::class, function () use ($container) {
+            return new SendPaymentReminderMailListener(
+                $container->get(BankQrGenerator::class),
+                $container->get(ConfigInterface::class),
+                $container->get(MailServiceInterface::class),
+                $container->get(PermitService::class),
+            );
+        });
+
         $container->bind(DeleteGroupImageListener::class, function () use ($container) {
             return new DeleteGroupImageListener(
                 $container->get(ConfigInterface::class),
@@ -92,6 +103,10 @@ final class EventServiceProvider
 
         $dispatcher->addListener(MagicLinkRequestedEvent::class, function ($event) use ($container): void {
             $container->get(SendMagicLinkMailListener::class)->handle($event);
+        });
+
+        $dispatcher->addListener(PaymentReminderEvent::class, function ($event) use ($container): void {
+            $container->get(SendPaymentReminderMailListener::class)->handle($event);
         });
 
         $dispatcher->addListener(GroupDeletedEvent::class, function ($event) use ($container): void {
