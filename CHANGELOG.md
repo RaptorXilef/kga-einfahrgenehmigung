@@ -2,6 +2,12 @@
 
 
 
+## [0.51.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.2...v0.51.3) (2026-06-28)
+
+### ⚙️ Refactoring
+
+* **core:** deploy DynamicSqlTrait across all MySQL repositories and purge concrete DI bindings ([8038b9b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8038b9b01526951dc192631620558739d10812f8))
+
 ## [0.51.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.1...v0.51.2) (2026-06-28)
 
 ### 🐛 Bug Fixes
