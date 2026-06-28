@@ -2,6 +2,29 @@
 
 
 
+## [0.51.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.50.1...v0.51.0) (2026-06-28)
+
+### 🚀 Features
+
+* **core:** implement permit cancellation logic, anonymization and archiving ([c9352cd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c9352cd37dc6b93f49229eb713cd3fb616c24838))
+* **core:** introduce dedicated storage and dashboard tab for cancelled permits ([28d2da4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/28d2da4fc0d7dbe5fde0696c2ea42374c8cb04f5))
+* **core:** prepare domain, database and mailing infrastructure for payment reminders ([c9ac252](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c9ac252c561b79f7b8e0836df8d9b1d590bc89a8))
+* **cron:** dispatch automated payment reminders via pseudo-cron scheduler ([a133045](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a13304593bc837438b83725a059adf01778a7a06))
+* **frontend:** implement user-facing permit cancellation in history tab ([5113cca](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5113cca461c75a912988230353c9874f627d1f53))
+* **payment:** implement dynamic due date calculation for permits ([d14ed8b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d14ed8bb301187126c1253867369a931145d2426))
+
+### 🐛 Bug Fixes
+
+* **schema:** apply safe array access to prevent migration crashes and optimize reminder index ([da25088](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/da25088e8d096a4807a60d01b1d97443709b7ab6))
+
+### ⚙️ Refactoring
+
+* **storage:** migrate configuration to JSON and centralize schema definitions ([340f0a3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/340f0a32b7fd6d9dbae420bea57529ba18a4feac))
+
+### 📚 Dokumentation
+
+* **config:** update system manual and enhance JSON metadata descriptions ([60e6067](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/60e60678b4a959ac0275e2b0f5ac4d31e4530125))
+
 ## [0.50.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.50.0...v0.50.1) (2026-06-26)
 
 ### ⚙️ Refactoring
