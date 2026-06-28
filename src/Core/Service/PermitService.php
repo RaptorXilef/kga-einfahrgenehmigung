@@ -18,6 +18,7 @@ use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 use App\Core\Entity\VerificationRequest;
+use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Utils\DateRangeHelper;
@@ -608,5 +609,62 @@ final readonly class PermitService
         };
 
         return \max(0.0, $newPrice);
+    }
+
+    /**
+     * Storniert eine Genehmigung durch den User, verschiebt sie anonymisiert ins Archiv und löscht sie.
+     *
+     * @throws \DomainException
+     */
+    public function cancelPermit(string $code, string $email): void
+    {
+        // 1. Config Check (Erlaubt die globale Einstellung Stornierungen?)
+        if (! $this->config->get('allow_user_cancellation', true)) {
+            throw new \DomainException('Stornierungen sind derzeit deaktiviert.');
+        }
+
+        $permit = $this->storage->findByHash($code);
+        if (! $permit instanceof Permit) {
+            throw new \DomainException('Genehmigung nicht gefunden.');
+        }
+
+        // 2. Sicherheits-Check: Gehört das Permit zur E-Mail der Session?
+        if (\strtolower($permit->getOwnerEmail()) !== \strtolower(\trim($email))) {
+            throw new \DomainException('Keine Berechtigung für diese Genehmigung.');
+        }
+
+        // 3. Domain-Regeln: Nur unbezahlte und zukünftige Permits dürfen storniert werden
+        if ($permit->isPaid()) {
+            throw new \DomainException('Bereits bezahlte Genehmigungen können nicht automatisch storniert werden.');
+        }
+
+        $now = $this->clock->now();
+        if (! $permit->isFuture($now)) {
+            throw new \DomainException('Nur Genehmigungen, deren Gültigkeit in der Zukunft liegt, können storniert werden.');
+        }
+
+        // 4. E-Mail Event triggern (MUSS VOR der Anonymisierung passieren, damit die E-Mail noch bekannt ist)
+        $this->eventDispatcher->dispatch(new PermitCancelledEvent($permit));
+
+        // 5. DSGVO-konforme Anonymisierung durchführen und Status auf 'storniert' setzen
+        $anonymizedPermit = new Permit(
+            code: $permit->code,
+            template_key: $permit->template_key,
+            owner: new Owner('[ANONYMISIERT]', new EmailAddress(''), new PlotNumber('0000')),
+            vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('[ANONYMISIERT]'), '[ANONYMISIERT]'),
+            validity: $permit->validity,
+            status: new Status('storniert', false, 'Durch Pächter storniert'),
+            erstellt: $permit->getCreatedAt(),
+            interner_kommentar: $permit->interner_kommentar,
+            agreements: $permit->agreements,
+            state: null,
+            bezahlt_am: null,
+        );
+
+        // 6. Ins Archiv verschieben
+        $this->archiveRepository->archivePermits((int) $now->format('Y'), [$anonymizedPermit]);
+
+        // 7. Aus produktiver Datenbank löschen
+        $this->storage->delete($permit->code);
     }
 }

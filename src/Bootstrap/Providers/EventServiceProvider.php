@@ -6,6 +6,7 @@ namespace App\Bootstrap\Providers;
 
 use App\Application\Listener\DeleteGroupImageListener;
 use App\Application\Listener\SendMagicLinkMailListener;
+use App\Application\Listener\SendPermitCancelledMailListener;
 use App\Application\Listener\SendPermitMailListener;
 use App\Application\Listener\SendVerificationMailListener;
 use App\Bootstrap\Container;
@@ -14,6 +15,7 @@ use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Event\GroupDeletedEvent;
 use App\Core\Event\MagicLinkRequestedEvent;
+use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Service\BankQrGenerator;
@@ -46,6 +48,13 @@ final class EventServiceProvider
             );
         });
 
+        $container->bind(SendPermitCancelledMailListener::class, function () use ($container) {
+            return new SendPermitCancelledMailListener(
+                $container->get(ConfigInterface::class),
+                $container->get(MailServiceInterface::class),
+            );
+        });
+
         $container->bind(SendVerificationMailListener::class, function () use ($container) {
             return new SendVerificationMailListener(
                 $container->get(ConfigInterface::class),
@@ -71,6 +80,10 @@ final class EventServiceProvider
 
         $dispatcher->addListener(PermitCreatedEvent::class, function ($event) use ($container): void {
             $container->get(SendPermitMailListener::class)->handle($event);
+        });
+
+        $dispatcher->addListener(PermitCancelledEvent::class, function ($event) use ($container): void {
+            $container->get(SendPermitCancelledMailListener::class)->handle($event);
         });
 
         $dispatcher->addListener(VerificationRequestedEvent::class, function ($event) use ($container): void {
