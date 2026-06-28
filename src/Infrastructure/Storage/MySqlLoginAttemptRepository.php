@@ -15,6 +15,8 @@ use App\Core\Entity\LoginAttempt;
  */
 final readonly class MySqlLoginAttemptRepository implements LoginAttemptRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -27,6 +29,7 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
         $stmt  = $this->pdo->prepare("SELECT attempts, last_attempt FROM `{$table}` WHERE ip_address = ?");
         $stmt->execute([$ip]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
         if ($row) {
             return new LoginAttempt($ip, (int) $row['attempts'], new \DateTimeImmutable($row['last_attempt']));
         }
@@ -37,9 +40,14 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
     public function save(LoginAttempt $attempt): void
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
-        $sql   = "INSERT INTO `{$table}` (ip_address, attempts, last_attempt) VALUES (?, ?, ?)
-                ON DUPLICATE KEY UPDATE attempts = VALUES(attempts), last_attempt = VALUES(last_attempt)";
-        $this->pdo->prepare($sql)->execute([$attempt->ipAddress, $attempt->attempts, $attempt->lastAttempt->format('Y-m-d H:i:s')]);
+        $data  = [
+            'ip_address'   => $attempt->ipAddress,
+            'attempts'     => $attempt->attempts,
+            'last_attempt' => $attempt->lastAttempt->format('Y-m-d H:i:s'),
+        ];
+
+        $sql = $this->buildInsertUpdateSql($table, $data);
+        $this->pdo->prepare($sql)->execute($data);
     }
 
     public function deleteByIp(string $ip): void
@@ -60,9 +68,21 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
         $this->pdo->beginTransaction();
 
         try {
-            $stmt = $this->pdo->prepare("REPLACE INTO `{$table}` (ip_address, attempts, last_attempt) VALUES (?, ?, ?)");
+            $sql  = null;
+            $stmt = null;
+
             foreach ($data as $ip => $item) {
-                $stmt->execute([$ip, (int) ($item['attempts'] ?? 0), $item['last_attempt'] ?? 'now']);
+                $mapped = [
+                    'ip_address'   => $ip,
+                    'attempts'     => (int) ($item['attempts'] ?? 0),
+                    'last_attempt' => $item['last_attempt'] ?? 'now',
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($mapped);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

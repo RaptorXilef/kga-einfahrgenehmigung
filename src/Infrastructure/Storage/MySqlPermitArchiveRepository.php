@@ -14,6 +14,7 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
  */
 final readonly class MySqlPermitArchiveRepository implements PermitArchiveRepositoryInterface
 {
+    use DynamicSqlTrait;
     use StorageMapperTrait;
 
     public function __construct(
@@ -36,22 +37,17 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
         if (empty($permitsToArchive)) {
             return;
         }
+
         $table = $this->config->get('storage_config')['permits_archive']['table'] ?? 'permits_archive';
-        $sql   = "REPLACE INTO `{$table}` (
-                    code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preis, von, bis, status,
-                    erstellt, interner_kommentar, is_anonymized, agreements, bezahlt_am
-                ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                )";
-        $stmt = $this->pdo->prepare($sql);
+
         foreach ($permitsToArchive as $permit) {
             $item = $this->flattenEntity($permit);
-            $stmt->execute([
-                $item['code'], $item['template_key'], $item['name'], $item['email'], $item['kennzeichen'],
-                $item['parzelle'], $item['typ'], $item['firma'], $item['zweck'], $item['preis'],
-                $item['von'], $item['bis'], $item['status'], $item['erstellt'], $item['interner_kommentar'],
-                $item['is_anonymized'] ?? 0, $item['agreements'] ?? '{}', $item['bezahlt_am'],
-            ]);
+
+            // Magie: Das SQL generiert sich selbst aus den Schlüsseln von $item
+            $sql = $this->buildReplaceSql($table, $item);
+
+            // PDO bindet das Array automatisch an die :platzhalter!
+            $this->pdo->prepare($sql)->execute($item);
         }
     }
 

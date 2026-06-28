@@ -11,6 +11,7 @@ use App\Core\Entity\Permit;
 final readonly class MySqlCancelledPermitRepository implements CancelledPermitRepositoryInterface
 {
     use StorageMapperTrait;
+    use DynamicSqlTrait;
 
     public function __construct(private \PDO $pdo, private ConfigInterface $config)
     {
@@ -19,16 +20,13 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
     public function saveCancelled(Permit $permit): void
     {
         $table = $this->config->get('storage_config')['permits_cancelled']['table'];
-        $sql   = "REPLACE INTO `{$table}` (code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preis, von, bis, status, erstellt, interner_kommentar, is_anonymized, agreements, bezahlt_am) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt  = $this->pdo->prepare($sql);
-        $item  = $this->flattenEntity($permit);
 
-        $stmt->execute([
-            $item['code'], $item['template_key'], $item['name'], $item['email'], $item['kennzeichen'],
-            $item['parzelle'], $item['typ'], $item['firma'], $item['zweck'], $item['preis'],
-            $item['von'], $item['bis'], $item['status'], $item['erstellt'], $item['interner_kommentar'],
-            1, $item['agreements'] ?? '{}', $item['bezahlt_am'],
-        ]);
+        $item                  = $this->flattenEntity($permit);
+        $item['is_anonymized'] = 1;
+        $item['agreements'] ??= '{}';
+
+        $sql = $this->buildReplaceSql($table, $item);
+        $this->pdo->prepare($sql)->execute($item);
     }
 
     public function isCodeCancelled(string $code): bool

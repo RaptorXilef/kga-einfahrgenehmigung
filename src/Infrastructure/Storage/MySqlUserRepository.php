@@ -15,6 +15,8 @@ use App\Core\Entity\User;
  */
 final readonly class MySqlUserRepository implements UserRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -45,15 +47,29 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
     public function saveAll(array $users, bool $forceSql = false): void
     {
         // $forceSql wird hier ignoriert, da wir ohnehin in MySQL speichern.
-        $cfg = $this->config->get('storage_config')['users'];
+        $table = $this->config->get('storage_config')['users']['table'];
 
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (id, username, `group`, pass) VALUES (?, ?, ?, ?)");
+            $this->pdo->exec("DELETE FROM `{$table}`");
+
+            $sql  = null;
+            $stmt = null;
+
             foreach ($users as $id => $user) {
-                $stmt->execute([$id, $user->username, $user->groupId, $user->passwordHash]);
+                $data = [
+                    'id'       => $id,
+                    'username' => $user->username,
+                    'group'    => $user->groupId,
+                    'pass'     => $user->passwordHash,
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $data);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($data);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

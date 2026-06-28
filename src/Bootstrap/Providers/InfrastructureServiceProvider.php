@@ -27,13 +27,10 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Service\AuthService;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Mail\MailQueueService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\MigrationService;
-use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileCronStateRepository;
@@ -78,7 +75,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(\PDO::class),
         ));
 
-        $container->bind(ClockInterface::class, fn () => new SystemClock());
+        // Wir mappen das ClockInterface auf den FQCN, den das Autowiring auflösen kann
+        $container->bind(ClockInterface::class, fn () => $container->get(SystemClock::class));
 
         // --- 1.2 Repositories (Datenzugriff) ---
         $container->bind(GroupRepositoryInterface::class, function () use ($container) {
@@ -156,16 +154,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(AuthSessionInterface::class, fn () => clone $container->get(
             SessionManager::class,
         ));
-        $container->bind(AuthSessionInterface::class, fn () => $container->get(
-            SessionManager::class,
-        ));
-
-        $container->bind(CronStateRepositoryInterface::class, fn () => new FileCronStateRepository(
-            $container->get(ConfigInterface::class),
+        $container->bind(CronStateRepositoryInterface::class, fn () => $container->get(
+            FileCronStateRepository::class,
         ));
 
         // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
-        $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
+        // Mail Decorator Pattern bleibt bestehen, um Rekursion bei MailQueueService zu verhindern
+        $container->bind('mail.smtp', fn () => new SmtpMailService(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
@@ -173,46 +168,25 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             'mail.smtp',
         ));
 
-        $container->bind(MailServiceInterface::class, fn (): MailQueueService => new MailQueueService(
+        $container->bind(MailServiceInterface::class, fn () => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
             $container->get('mail.smtp'),
         ));
 
-        $container->bind(PaymentProviderInterface::class, fn (): PayPalService => new PayPalService(
-            $container->get(ConfigInterface::class),
+        // Alle restlichen Services löst der Container via Autowiring vollautomatisch auf!
+        $container->bind(PaymentProviderInterface::class, fn () => $container->get(
+            PayPalService::class,
         ));
 
         // --- 1.4 Sicherheit & System-Bootstrapping ---
-        $container->bind(RateLimiterInterface::class, fn () => new RateLimiter(
-            $container->get(ClockInterface::class),
-            $container->get(LoginAttemptRepositoryInterface::class),
+        $container->bind(RateLimiterInterface::class, fn () => $container->get(
+            RateLimiter::class,
         ));
-
-        $container->bind(LockManagerInterface::class, fn () => new FileLockManager(
-            $container->get(ConfigInterface::class),
-        ));
-
-        $container->bind(StorageBootstrapper::class, fn (): StorageBootstrapper => new StorageBootstrapper(
-            $container->get(\PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(GroupRepositoryInterface::class),
-            $container->get(UserRepositoryInterface::class),
+        $container->bind(LockManagerInterface::class, fn () => $container->get(
+            FileLockManager::class,
         ));
 
         // --- 1.5 System-Maintenance & Wartung ---
-        $container->bind(BackupService::class, fn (): BackupService => new BackupService(
-            $container->get(\PDO::class),
-            $container->get(ClockInterface::class),
-            $container->get(ConfigInterface::class),
-        ));
-
-        $container->bind(MigrationService::class, fn (): MigrationService => new MigrationService(
-            $container->get(\PDO::class),
-            $container->get(AuthService::class),
-            $container->get(BackupService::class),
-            $container->get(ConfigInterface::class),
-        ));
-
         $container->bind(BackupServiceInterface::class, fn () => $container->get(
             BackupService::class,
         ));

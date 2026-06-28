@@ -15,6 +15,8 @@ use App\Core\Entity\VerificationRequest;
  */
 final readonly class MySqlVerificationRepository implements VerificationRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -73,14 +75,27 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
 
     private function saveSql(string $targetKey, array $requests): void
     {
-        $cfg = $this->config->get('storage_config')[$targetKey];
+        $table = $this->config->get('storage_config')[$targetKey]['table'];
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, expires, data) VALUES (?, ?, ?)");
+            $this->pdo->exec("DELETE FROM `{$table}`");
+
+            $sql  = null;
+            $stmt = null;
+
             foreach ($requests as $token => $req) {
-                $stmt->execute([$token, $req->expiresAt->format('Y-m-d H:i:s'), \json_encode($req->data, \JSON_UNESCAPED_UNICODE)]);
+                $data = [
+                    'token'   => $token,
+                    'expires' => $req->expiresAt->format('Y-m-d H:i:s'),
+                    'data'    => \json_encode($req->data, \JSON_UNESCAPED_UNICODE),
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $data);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($data);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

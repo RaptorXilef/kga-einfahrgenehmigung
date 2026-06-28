@@ -15,6 +15,8 @@ use App\Core\Entity\MailJob;
  */
 final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -24,14 +26,16 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     public function enqueue(MailJob $job): void
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
-        $stmt  = $this->pdo->prepare("INSERT INTO `{$table}` (recipient, subject, template, data, created_at) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([
-            $job->recipient,
-            $job->subject,
-            $job->template,
-            \json_encode($job->data, \JSON_UNESCAPED_UNICODE),
-            $job->createdAt->format('Y-m-d H:i:s'),
-        ]);
+        $data  = [
+            'recipient'  => $job->recipient,
+            'subject'    => $job->subject,
+            'template'   => $job->template,
+            'data'       => \json_encode($job->data, \JSON_UNESCAPED_UNICODE),
+            'created_at' => $job->createdAt->format('Y-m-d H:i:s'),
+        ];
+
+        $sql = $this->buildReplaceSql($table, $data);
+        $this->pdo->prepare($sql)->execute($data);
     }
 
     public function processBatch(int $limit, callable $processor): int
@@ -88,18 +92,26 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
         $this->pdo->beginTransaction();
 
         try {
-            $stmt = $this->pdo->prepare("REPLACE INTO `{$table}` (id,recipient,subject,template,data,attempts,created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $sql  = null;
+            $stmt = null;
+
             foreach ($data as $id => $item) {
                 $payload = $item['data'] ?? [];
-                $stmt->execute([
-                    $id,
-                    $item['recipient'] ?? '',
-                    $item['subject'] ?? '',
-                    $item['template'] ?? '',
-                    \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
-                    (int) ($item['attempts'] ?? 0),
-                    $item['created_at'] ?? '',
-                ]);
+                $mapped  = [
+                    'id'         => $id,
+                    'recipient'  => $item['recipient'] ?? '',
+                    'subject'    => $item['subject'] ?? '',
+                    'template'   => $item['template'] ?? '',
+                    'data'       => \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
+                    'attempts'   => (int) ($item['attempts'] ?? 0),
+                    'created_at' => $item['created_at'] ?? '',
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($mapped);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

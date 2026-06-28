@@ -15,6 +15,8 @@ use App\Core\Entity\MagicLink;
  */
 final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -40,14 +42,28 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
      */
     public function saveAll(array $links, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['magic_links'];
+        $table = $this->config->get('storage_config')['magic_links']['table'];
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (token, email, code, expires) VALUES (?, ?, ?, ?)");
+            $this->pdo->exec("DELETE FROM `{$table}`");
+
+            $sql  = null;
+            $stmt = null;
+
             foreach ($links as $token => $link) {
-                $stmt->execute([$token, $link->email, $link->code, $link->expires->format('Y-m-d H:i:s')]);
+                $data = [
+                    'token'   => $token,
+                    'email'   => $link->email,
+                    'code'    => $link->code,
+                    'expires' => $link->expires->format('Y-m-d H:i:s'),
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $data);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($data);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

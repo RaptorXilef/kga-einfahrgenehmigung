@@ -15,6 +15,8 @@ use App\Core\Entity\Voucher;
  */
 final readonly class MySqlVoucherRepository implements VoucherRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -54,15 +56,17 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
 
     public function saveAll(array $vouchers, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['vouchers'];
+        $table = $this->config->get('storage_config')['vouchers']['table'];
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $sql  = "INSERT INTO `{$cfg['table']}` (code, reason, template_key, type, value, multi_use, max_uses, uses_count, expires_at, date_mode, created_by, created_at, status, data) VALUES (:code, :reason, :template_key, :type, :value, :multi_use, :max_uses, :uses_count, :expires_at, :date_mode, :created_by, :created_at, :status, :data)";
-            $stmt = $this->pdo->prepare($sql);
+            $this->pdo->exec("DELETE FROM `{$table}`");
+
+            $sql  = null;
+            $stmt = null;
+
             foreach ($vouchers as $v) {
-                $stmt->execute([
+                $data = [
                     'code'         => $v->code,
                     'reason'       => $v->reason,
                     'template_key' => $v->templateKey,
@@ -77,7 +81,13 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
                     'created_at'   => $v->createdAt->format('Y-m-d H:i:s'),
                     'status'       => $v->status,
                     'data'         => \json_encode($v->data, \JSON_UNESCAPED_UNICODE),
-                ]);
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $data);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($data);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {
@@ -96,14 +106,17 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
 
     public function appendToArchive(array $archiveEntry): void
     {
-        $arcCfg = $this->config->get('storage_config')['vouchers_archive'];
-        $sql    = "INSERT INTO `{$arcCfg['table']}` (code, redeemed_at, user_name, user_plot) VALUES (:code, :redeemed_at, :user_name, :user_plot)";
-        $this->pdo->prepare($sql)->execute([
+        $table = $this->config->get('storage_config')['vouchers_archive']['table'];
+
+        $data = [
             'code'        => $archiveEntry['code'],
             'redeemed_at' => $archiveEntry['redeemed_at'],
             'user_name'   => $archiveEntry['user_name'],
             'user_plot'   => $archiveEntry['user_plot'],
-        ]);
+        ];
+
+        $sql = $this->buildReplaceSql($table, $data);
+        $this->pdo->prepare($sql)->execute($data);
     }
 
     public function import(array $data): void
@@ -140,9 +153,23 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
         $this->pdo->beginTransaction();
 
         try {
-            $stmt = $this->pdo->prepare("REPLACE INTO `$table` (id,code,redeemed_at,user_name,user_plot) VALUES (?, ?, ?, ?, ?)");
+            $sql  = null;
+            $stmt = null;
+
             foreach ($data as $id => $item) {
-                $stmt->execute([$id, $item['code'] ?? '', $item['redeemed_at'] ?? '', $item['user_name'] ?? '', $item['user_plot'] ?? '']);
+                $mapped = [
+                    'id'          => $id,
+                    'code'        => $item['code'] ?? '',
+                    'redeemed_at' => $item['redeemed_at'] ?? '',
+                    'user_name'   => $item['user_name'] ?? '',
+                    'user_plot'   => $item['user_plot'] ?? '',
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($mapped);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {

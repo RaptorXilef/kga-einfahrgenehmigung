@@ -15,6 +15,8 @@ use App\Core\Entity\Group;
  */
 final readonly class MySqlGroupRepository implements GroupRepositoryInterface
 {
+    use DynamicSqlTrait;
+
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
@@ -47,20 +49,28 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
      */
     public function saveAll(array $groups, bool $forceSql = false): void
     {
-        $cfg = $this->config->get('storage_config')['groups'];
+        $table = $this->config->get('storage_config')['groups']['table'];
 
         $this->pdo->beginTransaction();
 
         try {
-            $this->pdo->exec("DELETE FROM `{$cfg['table']}`");
-            $stmt = $this->pdo->prepare("INSERT INTO `{$cfg['table']}` (id, name, permissions) VALUES (?, ?, ?)");
+            $this->pdo->exec("DELETE FROM `{$table}`");
+
+            $sql  = null;
+            $stmt = null;
 
             foreach ($groups as $id => $group) {
-                $stmt->execute([
-                    $id,
-                    $group->name,
-                    \json_encode($group->permissions, \JSON_UNESCAPED_UNICODE),
-                ]);
+                $data = [
+                    'id'          => $id,
+                    'name'        => $group->name,
+                    'permissions' => \json_encode($group->permissions, \JSON_UNESCAPED_UNICODE),
+                ];
+
+                if ($sql === null) {
+                    $sql  = $this->buildReplaceSql($table, $data);
+                    $stmt = $this->pdo->prepare($sql);
+                }
+                $stmt->execute($data);
             }
             $this->pdo->commit();
         } catch (\Exception $e) {
