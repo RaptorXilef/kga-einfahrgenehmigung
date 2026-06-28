@@ -14,6 +14,7 @@ use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\CronStateRepositoryInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
@@ -37,6 +38,7 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileCronStateRepository;
 use App\Infrastructure\Storage\FileLockManager;
+use App\Infrastructure\Storage\JsonCancelledPermitRepository;
 use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
@@ -45,6 +47,7 @@ use App\Infrastructure\Storage\JsonPermitArchiveRepository;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
+use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
@@ -100,6 +103,14 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             return ($config->get('storage_config')['permits_archive']['type'] ?? 'json') === 'mysql'
                 ? new MySqlPermitArchiveRepository($container->get(\PDO::class), $config)
                 : new JsonPermitArchiveRepository($config);
+        });
+
+        $container->bind(CancelledPermitRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['cancelled_permits']['type'] ?? 'json') === 'mysql'
+                ? new MySqlCancelledPermitRepository($container->get(\PDO::class), $config)
+                : new JsonCancelledPermitRepository($config);
         });
 
         $container->bind(VerificationRepositoryInterface::class, function () use ($container) {

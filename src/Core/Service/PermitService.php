@@ -6,6 +6,7 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
@@ -35,6 +36,7 @@ use App\Infrastructure\Storage\JsonHelper;
 final readonly class PermitService
 {
     public function __construct(
+        private CancelledPermitRepositoryInterface $cancelledRepository,
         private ClockInterface $clock,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
@@ -584,16 +586,14 @@ final readonly class PermitService
         if ($this->storage->findByHash($fullIdentifier) instanceof Permit) {
             return false;
         }
+        if ($this->archiveRepository->isCodeInArchive($fullIdentifier)) {
+            return false;
+        }
+        if ($this->cancelledRepository->isCodeCancelled($fullIdentifier)) {
+            return false;
+        }
 
-        return ! $this->archiveRepository->isCodeInArchive($fullIdentifier);
-    }
-
-    public function getCoveredQuarters(Permit $permit): array
-    {
-        $startQ = (int) \ceil((int) $permit->getValidFrom()->format('n') / 3);
-        $endQ   = (int) \ceil((int) $permit->getValidUntil()->format('n') / 3);
-
-        return \range($startQ, $endQ);
+        return true;
     }
 
     public function calculateDiscountedPrice(float $originalPrice, \App\Core\Entity\Voucher $voucher): float
@@ -662,7 +662,7 @@ final readonly class PermitService
         );
 
         // 6. Ins Archiv verschieben
-        $this->archiveRepository->archivePermits((int) $now->format('Y'), [$anonymizedPermit]);
+        $this->cancelledRepository->saveCancelled($anonymizedPermit);
 
         // 7. Aus produktiver Datenbank löschen
         $this->storage->delete($permit->code);

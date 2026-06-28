@@ -59,7 +59,8 @@ final class PermissionRegistry
                             'suspend' => ['label' => 'Sperren', 'key' => 'dashboard.active.suspend'],
                         ],
                     ],
-                    'finance' => [
+                    'cancelled' => ['label' => 'Tab: Stornierte Genehmigungen', 'key' => 'dashboard.cancelled.view'],
+                    'finance'   => [
                         'label'    => 'Tab: Finanzen',
                         'key'      => 'dashboard.finance.view',
                         'children' => [

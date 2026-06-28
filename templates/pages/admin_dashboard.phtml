@@ -223,6 +223,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                      alt="">Ranking
                             </button>
                         <?php } ?>
+                        <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-cancelled">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
+                                     class="c-icon"
+                                     alt="">Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
+                            </button>
+                        <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-finance">
@@ -317,6 +325,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <div id="tab-ranking"
                              class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                        </div>
+                    <?php } ?>
+
+                    <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
+                        <div id="tab-cancelled"
+                             class="c-tabs__content">
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_cancelled.phtml'; ?>
                         </div>
                     <?php } ?>
 

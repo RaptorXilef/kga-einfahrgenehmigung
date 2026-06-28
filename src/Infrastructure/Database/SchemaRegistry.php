@@ -96,6 +96,28 @@ final class SchemaRegistry
                 INDEX `idx_email` (`email`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
+            'cancelled_permits' => "CREATE TABLE IF NOT EXISTS `cancelled_permits` (
+                `code` VARCHAR(50) NOT NULL,
+                `template_key` VARCHAR(50) NOT NULL,
+                `name` VARCHAR(255) NOT NULL,
+                `email` VARCHAR(255) DEFAULT NULL,
+                `kennzeichen` VARCHAR(20) DEFAULT NULL,
+                `parzelle` VARCHAR(10) NOT NULL,
+                `typ` VARCHAR(20) NOT NULL,
+                `firma` VARCHAR(255) DEFAULT NULL,
+                `zweck` VARCHAR(255) NOT NULL,
+                `preis` DECIMAL(10,2) NOT NULL,
+                `von` DATE NOT NULL,
+                `bis` DATE NOT NULL,
+                `status` VARCHAR(20) NOT NULL DEFAULT 'storniert',
+                `erstellt` DATETIME NOT NULL,
+                `interner_kommentar` TEXT DEFAULT NULL,
+                `is_anonymized` TINYINT(1) NOT NULL DEFAULT 1,
+                `agreements` JSON DEFAULT NULL,
+                `bezahlt_am` DATETIME DEFAULT NULL,
+                PRIMARY KEY (`code`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
+
             'mail_logs' => 'CREATE TABLE IF NOT EXISTS `mail_logs` (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,
                 `timestamp` DATETIME NOT NULL,

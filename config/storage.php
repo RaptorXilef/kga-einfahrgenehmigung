@@ -52,6 +52,12 @@ return [
             'table' => 'permits_archive', // In SQL eine (1) Tabelle für alle alten Jahre
             'file'  => 'permits_archive.json', // Pattern für die Dateinamen
         ],
+        // Stornierte Genehmigungen
+        'cancelled_permits' => [
+            'type'  => 'json',
+            'table' => 'cancelled_permits',
+            'file'  => 'cancelled_permits.json',
+        ],
         // Benutzerkonten für den Admin-Bereich
         'users' => [
             'type'  => 'json',

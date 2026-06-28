@@ -12,6 +12,7 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -32,6 +33,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
     public function __construct(
         private AuthService $auth,
         private BackupServiceInterface $backupService,
+        private CancelledPermitRepositoryInterface $cancelledRepository,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private MailLogInterface $mailLog,
@@ -75,11 +77,14 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
         }
 
+        $cancelledPermits = $this->cancelledRepository->loadAll();
+
         $this->renderer->render('admin_dashboard', [
             'allowedLimits'     => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits'        => $allPermits,
             'auth'              => $this->auth,
             'backups'           => $this->backupService->listBackups(),
+            'cancelledPermits'  => $cancelledPermits,
             'currentPage'       => $dto->page,
             'filterEnd'         => $dto->end,
             'filterStart'       => $dto->start,

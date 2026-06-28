@@ -1,0 +1,75 @@
+<?php
+$cancelledPermits ??= [];
+?>
+<?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
+<div class="c-tab-content-container">
+    <section class="c-card" style="border-top-color: var(--danger-color);">
+        <header class="c-card__header u-flex u-justify-between u-align-center">
+            <div>
+                <h3 class="u-margin-none">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp" class="c-icon" alt=""> Stornierte Anträge
+                </h3>
+                <p class="u-text-muted u-text-small">Übersicht aller durch Pächter zurückgezogenen Anträge (DSGVO-konform anonymisiert).</p>
+            </div>
+            <span class="c-badge" style="background: var(--danger-color);">
+                STORNIERT: <?php echo \count($cancelledPermits); ?>
+            </span>
+        </header>
+
+        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+            <table class="c-table js-sort-table" style="table-layout: fixed; width: 100%; min-width: 950px;">
+                <thead>
+                    <tr style="background: rgba(0,0,0,0.02);">
+                        <th class="js-sort-header" style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
+                        <th class="js-sort-header" style="width: 150px; text-align: center;">Fahrzeug</th>
+                        <th class="js-sort-header" style="width: 180px; text-align: center;">Zeitraum</th>
+                        <th class="js-sort-header" style="width: 140px; text-align: right; padding-right: 20px;">Stornierungsdatum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($cancelledPermits)) { ?>
+                        <tr>
+                            <td colspan="4" class="u-text-center u-padding-around-l u-text-muted">
+                                Keine stornierten Genehmigungen vorhanden.
+                            </td>
+                        </tr>
+                    <?php } else { ?>
+                        <?php foreach ($cancelledPermits as $permit) { ?>
+                            <tr class="u-hover-fade" style="opacity: 0.8;">
+                                <td style="vertical-align: middle;">
+                                    <div class="u-flex u-flex-column">
+                                        <span style="font-weight: 700; color: var(--text-main);">[ANONYMISIERT]</span>
+                                        <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
+                                            <?php echo $permit->code; ?>
+                                        </code>
+                                    </div>
+                                </td>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <div style="line-height: 1;">
+                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" style="width: 24px; height: 24px; filter: grayscale(1); opacity:0.5;">
+                                    </div>
+                                    <div style="margin-top: 4px;">
+                                        <code style="font-size: 0.8rem; font-weight: 800; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">[ANONYM]</code>
+                                    </div>
+                                </td>
+                                <td class="u-text-center" style="vertical-align: middle;">
+                                    <div style="line-height: 1.2;">
+                                        <small class="u-text-muted">
+                                            <?php echo $permit->getValidFrom()->format('d.m.Y'); ?> -<br>
+                                            <?php echo $permit->getValidUntil()->format('d.m.Y'); ?>
+                                        </small>
+                                    </div>
+                                </td>
+                                <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
+                                    <strong style="color: var(--danger-color);"><?php echo $permit->getCreatedAt()->format('d.m.Y'); ?></strong><br>
+                                    <small class="u-text-muted"><?php echo $permit->getCreatedAt()->format('H:i'); ?> Uhr</small>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+<?php } ?>
