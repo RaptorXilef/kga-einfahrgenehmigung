@@ -451,16 +451,43 @@ final readonly class PermitService
         return isset($all[$token]) ? $all[$token]->data : null;
     }
 
+    /**
+     * Berechnet das dynamische Zahlungsziel einer Genehmigung.
+     *
+     * @param  Permit             $permit Die zu prüfende Genehmigung
+     * @return \DateTimeImmutable Das berechnete Fälligkeitsdatum
+     */
+    public function calculatePaymentDueDate(Permit $permit): \DateTimeImmutable
+    {
+        $dueDays            = (int) $this->config->get('payment_due_days', 14);
+        $daysBeforeValidity = (int) $this->config->get('payment_due_days_before_validity', 2);
+
+        // Fallback: Mindestens X Tage ab Erstellung Zeit zum Bezahlen
+        $fallbackDueDate = $permit->getCreatedAt()->modify("+{$dueDays} days")->setTime(23, 59, 59);
+
+        // Dynamisch: X Tage vor Gültigkeitsbeginn
+        $dynamicDueDate = $permit->getValidFrom()->modify("-{$daysBeforeValidity} days")->setTime(23, 59, 59);
+
+        // Ist der dynamische Zeitpunkt kleiner (früher) als der Fallback, gilt der Fallback
+        return $dynamicDueDate > $fallbackDueDate ? $dynamicDueDate : $fallbackDueDate;
+    }
+
+    /**
+     * Ermittelt die aktuelle Mahnstufe einer Genehmigung.
+     *
+     * @param  Permit $permit Die zu prüfende Genehmigung
+     * @return int    0 = Im Zeitrahmen/Bezahlt, 1 = Mahnfrist, 2 = Überfällig
+     */
     public function getOverdueLevel(Permit $permit): int
     {
         if ($permit->getStatus() === 'bezahlt') {
             return 0;
         }
 
-        $now                 = $this->clock->now();
-        $dueDays             = (int) $this->config->get('payment_due_days', 14);
+        $now          = $this->clock->now();
+        $userDeadline = $this->calculatePaymentDueDate($permit);
+
         $notifyDays          = (int) $this->config->get('payment_due_days_notify', 2);
-        $userDeadline        = $permit->getCreatedAt()->modify("+{$dueDays} days");
         $staffAlertThreshold = $userDeadline->modify("+{$notifyDays} days");
 
         if ($now > $staffAlertThreshold) {

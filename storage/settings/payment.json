@@ -6,6 +6,7 @@
     "kontoinhaber": "KGA e.V.",
     "usage_pattern": "EFG-{{nachname}}-{{vorname}}-{{code}}",
     "require_payment_for_validity": true,
+    "payment_due_days_before_validity": 1,
     "payment_due_days": 14,
     "payment_due_days_notify": 2,
     "paypal": {

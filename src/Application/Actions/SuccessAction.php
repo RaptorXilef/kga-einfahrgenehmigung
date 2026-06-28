@@ -12,6 +12,7 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\BankQrGenerator;
+use App\Core\Service\PermitService;
 
 /**
  * Action für die Erfolgs- und Bestätigungsseite nach Abschluss eines Antrags.
@@ -25,6 +26,7 @@ final readonly class SuccessAction implements ViewActionInterface
     public function __construct(
         private BankQrGenerator $bankQrGenerator,
         private ConfigInterface $config,
+        private PermitService $permitService,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
     ) {
@@ -40,10 +42,12 @@ final readonly class SuccessAction implements ViewActionInterface
         $dto    = SuccessRequest::fromArray($request->get);
         $code   = $dto->code;
         $method = $dto->method;
+
         $permit = $this->storage->findByHash($code);
         if (! $permit) {
             return new RedirectResponse('index.php');
         }
+
         $epcData = '';
         $usage   = '';
         if ($method === 'wire' && $permit->getStatus() !== 'bezahlt') {
@@ -54,9 +58,12 @@ final readonly class SuccessAction implements ViewActionInterface
             $usage     = "EFG-{$nachname}-{$vorname}-{$shortCode}";
             $epcData   = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
         }
+
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
-        $dueDays        = (int) $this->config->get('payment_due_days', 14);
-        $dueDate        = $permit->getCreatedAt()->modify("+$dueDays days")->format('d.m.Y');
+
+        // Dynamisches Datum laden und formatieren
+        $dueDate = $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y');
+
         $this->renderer->render('checkout/success', [
             'dueDate'        => $dueDate,
             'epcData'        => \urlencode($epcData),

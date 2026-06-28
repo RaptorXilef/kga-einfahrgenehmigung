@@ -10,6 +10,7 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
+use App\Core\Service\PermitService;
 
 /**
  * Lauscht auf PermitCreatedEvent und versendet die System-E-Mails.
@@ -23,6 +24,7 @@ final readonly class SendPermitMailListener
         private ConfigInterface $config,
         private HolidayService $holidayService,
         private MailServiceInterface $mailService,
+        private PermitService $permitService,
     ) {
     }
 
@@ -44,10 +46,10 @@ final readonly class SendPermitMailListener
         $holidayNotice = HolidayHtmlPresenter::formatHolidayNotice(
             $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
         );
+
         $mailConfig = $this->config->getMailSettings();
 
         // --- 1. MAIL AN VORSTAND ---
-        // [x] Sortiert
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             $this->mailService->sendTemplate(
                 recipient: $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
@@ -89,7 +91,6 @@ final readonly class SendPermitMailListener
 
             $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
-            // [ ] teil-sortiert
             $this->mailService->sendTemplate(
                 $permit->getOwnerEmail(),
                 "Zahlung erforderlich: {$permit->code}",
@@ -97,7 +98,7 @@ final readonly class SendPermitMailListener
                 [
                     'baseUrl'        => $this->config->getBaseUrl(),
                     'betrag'         => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-                    'dueDate'        => (new \DateTimeImmutable())->modify('+14 days')->format('d.m.Y'),
+                    'dueDate'        => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
                     'epcData'        => \urlencode($epcQrData),
                     'fullIdentifier' => $permit->code,
                     'iban'           => $this->config->get('iban'),
@@ -110,7 +111,6 @@ final readonly class SendPermitMailListener
         }
 
         // --- 3. DAS A4 DOKUMENT ---
-        // [ ] teil-sortiert
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
             'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permit->code,

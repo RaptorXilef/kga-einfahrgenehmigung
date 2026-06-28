@@ -18,6 +18,7 @@ use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
+use App\Core\Service\PermitService;
 use App\Infrastructure\Event\EventDispatcher;
 
 /**
@@ -41,6 +42,7 @@ final class EventServiceProvider
                 $container->get(ConfigInterface::class),
                 $container->get(HolidayService::class),
                 $container->get(MailServiceInterface::class),
+                $container->get(PermitService::class),
             );
         });
 
