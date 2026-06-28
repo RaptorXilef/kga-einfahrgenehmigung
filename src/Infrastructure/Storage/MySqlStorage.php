@@ -37,16 +37,17 @@ final readonly class MySqlStorage implements StorageInterface
      */
     public function save(Permit $permit): bool
     {
+        // FIX: 'reminder_sent' in die Spalten, die VALUES und das ON DUPLICATE KEY UPDATE aufgenommen!
         $sql = 'INSERT INTO `permits` (
                     code, template_key, name, email, kennzeichen, parzelle,
                     typ, firma, zweck, preis, von, bis, status, is_suspended,
                     suspension_reason, erstellt, interner_kommentar, agreements,
-                    bezahlt_am
+                    bezahlt_am, reminder_sent
                 ) VALUES (
                     :code, :template_key, :name, :email, :kennzeichen, :parzelle,
                     :typ, :firma, :zweck, :preis, :von, :bis, :status, :is_suspended,
                     :suspension_reason, :erstellt, :interner_kommentar, :agreements,
-                    :bezahlt_am
+                    :bezahlt_am, :reminder_sent
                 ) ON DUPLICATE KEY UPDATE
                     template_key = VALUES(template_key),
                     name = VALUES(name),
@@ -64,7 +65,8 @@ final readonly class MySqlStorage implements StorageInterface
                     suspension_reason = VALUES(suspension_reason),
                     interner_kommentar = VALUES(interner_kommentar),
                     agreements = VALUES(agreements),
-                    bezahlt_am = VALUES(bezahlt_am);';
+                    bezahlt_am = VALUES(bezahlt_am),
+                    reminder_sent = VALUES(reminder_sent);';
         // 'erstellt' wird beim Update weggelassen, da sich das Erstelldatum nicht ändern soll!
 
         return $this->pdo->prepare($sql)->execute($this->flattenEntity($permit));
@@ -152,11 +154,9 @@ final readonly class MySqlStorage implements StorageInterface
             return null;
         }
 
-        // Wir nutzen SQL REPLACE, um Leerzeichen und Bindestriche in der DB beim Vergleich zu ignorieren
-        $stmt = $this->pdo->prepare("
-            SELECT * FROM `permits`
-            WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?
-        ");
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM `permits` WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?",
+        );
         $stmt->execute([$searchPlate]);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
