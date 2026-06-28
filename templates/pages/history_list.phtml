@@ -25,7 +25,7 @@
  * @var \App\Core\Service\PermitService       $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
  */
 $now = new \DateTimeImmutable('today');
-\usort($permits, fn($a, $b) => $b->erstellt <=> $a->erstellt);
+\usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -95,7 +95,7 @@ $now = new \DateTimeImmutable('today');
 
         <?php if (! empty($message)) {
             $alertClass = ($isSuccess ?? false) ? 'c-alert--success' : 'c-alert--danger';
-        ?>
+            ?>
             <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
                 <div class="u-flex u-align-center u-gap-s">
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/<?php echo ($isSuccess ?? false) ? 'status-success' : 'status-invalid'; ?>.webp"
@@ -176,7 +176,7 @@ $now = new \DateTimeImmutable('today');
                                 $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                            ?>
+                                ?>
                                 <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                         style="vertical-align: middle;">
@@ -240,8 +240,39 @@ $now = new \DateTimeImmutable('today');
                                     <td class="u-text-right"
                                         style="vertical-align: middle; padding-right: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
+
+                                            <?php
+                                                // NEU: Stornierungsbutton - nur zeigen, wenn in Config erlaubt, unbezahlt, in der Zukunft und nicht ohnehin gesperrt
+                                                $allowCancel = (bool) $config->get('allow_user_cancellation', true);
+                                if ($allowCancel && $isFuture && ! $isPaid && ! $permit->isSuspended()) {
+                                    ?>
+                                                <form method="POST"
+                                                      action="history.php"
+                                                      style="margin: 0;"
+                                                      onsubmit="return confirm('Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet. Sie müssen in diesem Fall die Finanzabteilung des Vorstands für eine Rücküberweisung kontaktieren.');">
+                                                    <input type="hidden"
+                                                           name="csrf_token"
+                                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                    <input type="hidden"
+                                                           name="action"
+                                                           value="cancel_permit">
+                                                    <input type="hidden"
+                                                           name="code"
+                                                           value="<?php echo $permit->code; ?>">
+                                                    <button type="submit"
+                                                            class="c-button c-button--danger"
+                                                            style="width: auto; padding: 0 12px; height: 36px; font-size: 0.8rem; gap: 6px;"
+                                                            title="Antrag stornieren">
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
+                                                             class="c-icon"
+                                                             alt=""> <!--Stornieren-->
+                                                    </button>
+                                                </form>
+                                            <?php } ?>
+
                                             <a href="check.php?code=<?php echo $permit->code; ?>"
-                                               target="_blank" class="c-button c-button--secondary"
+                                               target="_blank"
+                                               class="c-button c-button--secondary"
                                                style="width: 36px; height: 36px;"
                                                title="Status / Prüfseite öffnen">
                                                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
@@ -270,8 +301,8 @@ $now = new \DateTimeImmutable('today');
                  style="background: #fcfdfe;">
                 <?php
                 $lastYear = (int) \date('Y') - 1;
-                if ($currentArchiveYear !== $lastYear) {
-                ?>
+if ($currentArchiveYear !== $lastYear) {
+    ?>
                     <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary" style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
                         📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
                     </a>

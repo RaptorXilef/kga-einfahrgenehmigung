@@ -53,6 +53,8 @@ final readonly class HistoryController
         $actionKey = 'render';
         if (isset($request->post['action']) && $request->post['action'] === 'logout') {
             $actionKey = 'logout';
+        } elseif (isset($request->post['action']) && $request->post['action'] === 'cancel_permit') {
+            $actionKey = 'cancel_permit';
         } elseif (isset($request->post['request_link'])) {
             $actionKey = 'request_link';
         } elseif (isset($request->post['submit_code'])) {

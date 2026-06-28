@@ -22,12 +22,13 @@ final readonly class HistoryActionFactory
     public function create(string $actionKey): ViewActionInterface
     {
         $class = match ($actionKey) {
-            'logout'       => HistoryLogoutAction::class,
-            'request_link' => HistoryRequestLinkAction::class,
-            'submit_code'  => HistorySubmitCodeAction::class,
-            'verify_token' => HistoryVerifyTokenAction::class,
-            'print'        => HistoryPrintAction::class,
-            default        => HistoryRenderAction::class,
+            'cancel_permit' => HistoryCancelPermitAction::class,
+            'logout'        => HistoryLogoutAction::class,
+            'print'         => HistoryPrintAction::class,
+            'request_link'  => HistoryRequestLinkAction::class,
+            'submit_code'   => HistorySubmitCodeAction::class,
+            'verify_token'  => HistoryVerifyTokenAction::class,
+            default         => HistoryRenderAction::class,
         };
 
         return $this->container->get($class);
