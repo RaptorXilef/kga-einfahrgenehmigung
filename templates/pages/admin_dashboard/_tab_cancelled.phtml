@@ -1,4 +1,9 @@
 <?php
+/**
+ * @var \App\Core\Service\AuthService $auth
+ * @var array                         $settings
+ * @var \App\Core\Entity\Permit[]     $cancelledPermits
+ */
 $cancelledPermits ??= [];
 ?>
 <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
