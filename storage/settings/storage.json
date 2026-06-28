@@ -1,0 +1,84 @@
+{
+    "_meta": "Einstellungen für System-Ordner, Backups und Speichermethoden",
+    "storage_path_prefix": "storage/",
+    "use_pseudo_cron": true,
+    "archive_grace_days": 0,
+    "backup_settings": {
+        "enabled": true,
+        "interval_hours": 24,
+        "max_backups": 15,
+        "sub_folder": "backups"
+    },
+    "storage_config": {
+        "permits": {
+            "type": "json",
+            "table": "permits",
+            "file": "permits.json"
+        },
+        "permits_archive": {
+            "type": "json",
+            "table": "permits_archive",
+            "file": "permits_archive.json"
+        },
+        "cancelled_permits": {
+            "type": "json",
+            "table": "cancelled_permits",
+            "file": "cancelled_permits.json"
+        },
+        "users": {
+            "type": "json",
+            "table": "users",
+            "file": "users.json"
+        },
+        "groups": {
+            "type": "json",
+            "table": "groups",
+            "file": "groups.json"
+        },
+        "vouchers": {
+            "type": "json",
+            "table": "vouchers",
+            "file": "vouchers.json"
+        },
+        "vouchers_archive": {
+            "type": "json",
+            "table": "vouchers_archive",
+            "file": "vouchers_archive.json"
+        },
+        "mail_log": {
+            "type": "json",
+            "table": "mail_logs",
+            "file": "mail_log.json"
+        },
+        "mail_queue": {
+            "type": "json",
+            "table": "mail_queue",
+            "file": "mail_queue.json"
+        },
+        "magic_links": {
+            "type": "json",
+            "table": "magic_links",
+            "file": "magic_links.json"
+        },
+        "pending_verification": {
+            "type": "json",
+            "table": "pending_verifications",
+            "file": "pending_verification.json"
+        },
+        "verified_pending": {
+            "type": "json",
+            "table": "verified_pending",
+            "file": "verified_pending.json"
+        },
+        "login_attempts": {
+            "type": "json",
+            "table": "login_attempts",
+            "file": "login_attempts.json"
+        },
+        "update_migrations": {
+            "type": "json",
+            "table": "update_migrations",
+            "file": "update_migrations.json"
+        }
+    }
+}

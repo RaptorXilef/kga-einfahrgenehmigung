@@ -111,8 +111,35 @@ Hier stehen Ihre SMTP-Zugangsdaten (E-Mail, Passwort, Server-Adresse), damit das
 Die Bankverbindung für die Rechnungen.
 
 * **`iban`**, **`bic`**, **`kontoinhaber`**: Ändern Sie dies zwingend in die Daten Ihres Vereins! Diese Daten werden in der E-Mail und als Giro-QR-Code angezeigt.
-* **`payment_due_days`**: Wie viele Tage der Pächter Zeit hat, das Geld zu überweisen, bevor der Status auf "Überfällig" springt (Standard: `14`).
+* **`payment_due_days`**: Wie viele Tage der Pächter Zeit hat, das Geld zu überweisen (Standard: `14`).
+* **`payment_due_days_before_validity`**: Wie viele Tage VOR Beginn der Genehmigung die Zahlung allerspätestens fällig ist (Standard: `2`). Das System wählt immer die strengere Frist aus.
 
 ### `settings.json` (System-Grenzen)
 
 Aktuell wird hier nur geregelt, wie viele Einträge im Dashboard pro Seite angezeigt werden (z. B. `25`).
+
+---
+
+## 💾 System, Speicher & Datenbank
+
+### `storage.json` (Ordner, Backups & Speichermethoden)
+
+Diese Datei steuert das Herzstück der Datenverwaltung.
+
+* **Wartung & Automatisierung**:
+  * **`use_pseudo_cron`**: Bei `true` erledigt das System im Hintergrund Aufräumarbeiten (wie das Anonymisieren alter Genehmigungen oder Erstellen von Backups), sobald der Vorstand im Admin-Bereich klickt.
+  * **`archive_grace_days`**: Zusatztage, die abgewartet werden, bevor eine abgelaufene Genehmigung endgültig in das Archiv verschoben wird (Standard: `0`).
+* **Backups (`backup_settings`)**:
+  * **`interval_hours`**: Zeitfenster in Stunden zwischen den automatischen Voll-Backups (Standard: `24`).
+  * **`max_backups`**: Wie viele Sicherungen maximal auf dem Server behalten werden, bevor die jeweils älteste gelöscht wird (Standard: `15`).
+* **Speichermethoden / Engine-Mapping (`storage_config`)**:
+  * Das System kann jeden Datenbereich einzeln entweder als Datei (`"type": "json"`) oder in einer echten Datenbank (`"type": "mysql"`) speichern.
+  * *Tipp:* Wenn Sie das System auf MySQL umstellen möchten, ändern Sie einfach das Wort `"json"` in `"mysql"`. Sie können die bestehenden Daten danach bequem über den Tab "Migration" im Dashboard synchronisieren!
+
+### `config/storage.php` (Datenbank-Zugang)
+
+⚠️ **WICHTIG:** Dies ist die einzige Einstellungsdatei, die absichtlich eine `.php` Datei geblieben ist und *nicht* im Settings-Ordner liegt!
+*Warum?* Hier stehen Ihre sensiblen **MySQL-Datenbank-Passwörter**. PHP-Dateien werden vom Server niemals als Klartext im Browser angezeigt - das schützt Ihre Passwörter vor unbefugtem Zugriff.
+
+* **`enabled`**: Setzen Sie dies auf `true`, wenn Sie eine MySQL-Datenbank nutzen möchten.
+* **`host`, `dbname`, `user`, `pass`**: Tragen Sie hier die Zugangsdaten Ihres Webhosters ein.
