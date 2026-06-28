@@ -18,7 +18,7 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
 
     public function saveCancelled(Permit $permit): void
     {
-        $table = $this->config->get('storage_config')['cancelled_permits']['table'];
+        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
         $sql   = "REPLACE INTO `{$table}` (code, template_key, name, email, kennzeichen, parzelle, typ, firma, zweck, preis, von, bis, status, erstellt, interner_kommentar, is_anonymized, agreements, bezahlt_am) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt  = $this->pdo->prepare($sql);
         $item  = $this->flattenEntity($permit);
@@ -33,7 +33,7 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
 
     public function isCodeCancelled(string $code): bool
     {
-        $table = $this->config->get('storage_config')['cancelled_permits']['table'];
+        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
         $stmt  = $this->pdo->prepare("SELECT code FROM `{$table}` WHERE code = ?");
         $stmt->execute([$code]);
 
@@ -42,7 +42,7 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
 
     public function loadAll(): array
     {
-        $table = $this->config->get('storage_config')['cancelled_permits']['table'];
+        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
         $stmt  = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY erstellt DESC");
 
         return \array_map($this->mapToEntity(...), $stmt->fetchAll(\PDO::FETCH_ASSOC));

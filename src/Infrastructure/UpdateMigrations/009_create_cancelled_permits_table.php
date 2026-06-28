@@ -11,14 +11,14 @@ use App\Infrastructure\Database\SchemaRegistry;
  */
 return function (?\PDO $pdo, ConfigInterface $config): void {
     if ($pdo instanceof \PDO) {
-        // Tabellenname aus der Config laden (Fallback: cancelled_permits)
-        $table = $config->get('storage_config')['cancelled_permits']['table'] ?? 'cancelled_permits';
+        // Tabellenname aus der Config laden (Fallback: permits_cancelled)
+        $table = $config->get('storage_config')['permits_cancelled']['table'] ?? 'permits_cancelled';
 
         // Das zentrale SQL-Schema laden
-        $baseSql = $config->get('db_schema')['cancelled_permits'] ?? SchemaRegistry::getSchemas()['cancelled_permits'];
+        $baseSql = $config->get('db_schema')['permits_cancelled'] ?? SchemaRegistry::getSchemas()['permits_cancelled'];
 
         // Den Standard-Tabellennamen durch den konfigurierten Namen ersetzen
-        $sql = \str_replace('`cancelled_permits`', "`{$table}`", $baseSql);
+        $sql = \str_replace('`permits_cancelled`', "`{$table}`", $baseSql);
 
         try {
             $pdo->exec($sql);

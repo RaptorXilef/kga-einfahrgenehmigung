@@ -127,19 +127,39 @@ Aktuell wird hier nur geregelt, wie viele Einträge im Dashboard pro Seite angez
 Diese Datei steuert das Herzstück der Datenverwaltung.
 
 * **Wartung & Automatisierung**:
-  * **`use_pseudo_cron`**: Bei `true` erledigt das System im Hintergrund Aufräumarbeiten (wie das Anonymisieren alter Genehmigungen oder Erstellen von Backups), sobald der Vorstand im Admin-Bereich klickt.
-  * **`archive_grace_days`**: Zusatztage, die abgewartet werden, bevor eine abgelaufene Genehmigung endgültig in das Archiv verschoben wird (Standard: `0`).
+  * **`use_pseudo_cron`**: Bei `true` erledigt das System im Hintergrund Aufräumarbeiten (wie das Anonymisieren alter Genehmigungen), sobald der Vorstand im Admin-Bereich klickt.
+  * **`archive_grace_days`**: Zusatztage, die abgewartet werden, bevor eine abgelaufene Genehmigung ins Archiv wandert (Standard: `0`).
 * **Backups (`backup_settings`)**:
-  * **`interval_hours`**: Zeitfenster in Stunden zwischen den automatischen Voll-Backups (Standard: `24`).
-  * **`max_backups`**: Wie viele Sicherungen maximal auf dem Server behalten werden, bevor die jeweils älteste gelöscht wird (Standard: `15`).
+  * **`interval_hours`**: Zeitfenster in Stunden zwischen automatischen Backups (Standard: `24`).
+  * **`max_backups`**: Wie viele Sicherungen maximal auf dem Server behalten werden (Standard: `15`).
 * **Speichermethoden / Engine-Mapping (`storage_config`)**:
-  * Das System kann jeden Datenbereich einzeln entweder als Datei (`"type": "json"`) oder in einer echten Datenbank (`"type": "mysql"`) speichern.
-  * *Tipp:* Wenn Sie das System auf MySQL umstellen möchten, ändern Sie einfach das Wort `"json"` in `"mysql"`. Sie können die bestehenden Daten danach bequem über den Tab "Migration" im Dashboard synchronisieren!
+  * Das System kann jeden Bereich als JSON oder in einer MySQL-Datenbank speichern.
+  * *Tipp:* Wenn Sie auf MySQL umstellen möchten, ändern Sie einfach das Wort `"json"` in `"mysql"`. Sie können die bestehenden Daten danach bequem über den Tab "Migration" im Dashboard synchronisieren!
+
+---
+
+## 🔒 Kern-System & Sicherheit (PHP-Dateien)
+
+Im Ordner `config/` (also eine Ebene höher) liegen die echten `.php`-Dateien. Diese sind für tiefgreifende Systemeinstellungen und Passwörter gedacht, da `.php`-Dateien vom Webserver streng geschützt werden und nicht versehentlich ausgelesen werden können.
 
 ### `config/storage.php` (Datenbank-Zugang)
 
-⚠️ **WICHTIG:** Dies ist die einzige Einstellungsdatei, die absichtlich eine `.php` Datei geblieben ist und *nicht* im Settings-Ordner liegt!
-*Warum?* Hier stehen Ihre sensiblen **MySQL-Datenbank-Passwörter**. PHP-Dateien werden vom Server niemals als Klartext im Browser angezeigt - das schützt Ihre Passwörter vor unbefugtem Zugriff.
-
 * **`enabled`**: Setzen Sie dies auf `true`, wenn Sie eine MySQL-Datenbank nutzen möchten.
-* **`host`, `dbname`, `user`, `pass`**: Tragen Sie hier die Zugangsdaten Ihres Webhosters ein.
+* **`host`, `dbname`, `user`, `pass`**: Tragen Sie hier die sensiblen Zugangsdaten Ihres Webhosters ein.
+
+### `config/config.php` (Wartung & Umgebung)
+
+* **`maintenance_mode`**: Sperrt das Formular für Pächter (z. B. bei großen System-Updates).
+* **`maintenance_mode_admin`**: Sperrt zusätzlich das Admin-Dashboard.
+* **`test_mode`**: Bei `true` wird der PayPal-Sandbox-Modus aktiviert und alle System-E-Mails werden ausschließlich an die definierte `test`-Mailadresse in der `email.json` geschickt. Ideal, um Einstellungen gefahrlos auszuprobieren!
+* **`admin_dev_mode`**: *Nur für lokale Entwicklung.* Hebelt das Admin-Login-System aus.
+
+### `config/dev_admin.php` (Notfall-Zugang)
+
+Hier können Sie ein "Superadministrator-Konto" (Fallback) definieren. Falls Sie sich versehentlich im Admin-Bereich aus allen Gruppen aussperren oder alle Benutzer gelöscht haben, können Sie sich mit diesen Zugangsdaten immer noch einloggen, da sie direkt im Code verankert sind.
+
+### `config/secrets.php` (Kryptografie & APIs)
+
+* **`geheimnis`**: Das geheime "Salz", mit dem die Einweg-Sicherheitstokens (für die Check-Links) verschlüsselt werden. Einmal setzen und nie wieder ändern!
+* **`cron_secret`**: Ein geheimes Passwort, wenn Sie die Backups statt über Pseudo-Cron über einen echten Web-Cronjob des Servers (`cron.php?token=XYZ`) anstoßen wollen.
+* **`ga4_server_side`**: Falls Sie Google Analytics (Server-Side) nutzen, tragen Sie hier Ihre "Measurement ID" und Ihr "API Secret" ein.

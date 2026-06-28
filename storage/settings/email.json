@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "SMTP-Zugangsdaten und Konfiguration für ausgehende System-E-Mails.",
     "mail": {
         "host": "smtp.dein-provider.de",
         "port": 465,

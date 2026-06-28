@@ -96,7 +96,7 @@ final class SchemaRegistry
                 INDEX `idx_email` (`email`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
-            'cancelled_permits' => "CREATE TABLE IF NOT EXISTS `cancelled_permits` (
+            'permits_cancelled' => "CREATE TABLE IF NOT EXISTS `permits_cancelled` (
                 `code` VARCHAR(50) NOT NULL,
                 `template_key` VARCHAR(50) NOT NULL,
                 `name` VARCHAR(255) NOT NULL,

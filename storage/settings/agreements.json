@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Zustimmungserklärungen (Checkboxen), die der Pächter vor dem Absenden akzeptieren muss.",
     "agreements": {
         "datenschutz": {
             "label": "Ich willige in die Datenverarbeitung gemäß [Datenschutzerklärung] ein.",

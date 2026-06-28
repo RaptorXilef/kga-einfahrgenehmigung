@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Reguläre Öffnungszeiten der Schranke, Winterruhe und Feiertags-Sperrlogik.",
     "default_opening_hours": {
         "mon": [["07:00", "13:00"], ["15:00", "20:00"]],
         "tue": [["07:00", "13:00"], ["15:00", "20:00"]],

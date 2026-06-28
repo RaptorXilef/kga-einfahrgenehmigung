@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Bankdaten, PayPal-Konfiguration und Berechnungsregeln für Zahlungsfristen.",
     "bank_transfer_allowed": true,
     "iban": "DE12 3456 7890 1234 5678 90",
     "bic": "GENODES1M00",

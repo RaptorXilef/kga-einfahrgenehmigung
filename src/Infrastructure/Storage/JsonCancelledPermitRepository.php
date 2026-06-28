@@ -19,7 +19,7 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
 
     public function saveCancelled(Permit $permit): void
     {
-        $path                = $this->config->getStoragePath($this->config->get('storage_config')['cancelled_permits']['file']);
+        $path                = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
         $data                = \file_exists($path) ? JsonHelper::read($path) : [];
         $data[$permit->code] = $this->flattenEntity($permit);
         $this->writeJsonSafely($path, $data);
@@ -27,7 +27,7 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
 
     public function isCodeCancelled(string $code): bool
     {
-        $path = $this->config->getStoragePath($this->config->get('storage_config')['cancelled_permits']['file']);
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
         if (\file_exists($path)) {
             $data = JsonHelper::read($path);
 
@@ -39,7 +39,7 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
 
     public function loadAll(): array
     {
-        $path = $this->config->getStoragePath($this->config->get('storage_config')['cancelled_permits']['file']);
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
         if (! \file_exists($path)) {
             return [];
         }

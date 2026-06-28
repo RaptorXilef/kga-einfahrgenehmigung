@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Auswahlmöglichkeiten für den Grund der Einfahrt im Antragsformular.",
     "purposes": {
         "bau": "Baumaßnahmen (genehmigt)",
         "abriss": "Abriss",

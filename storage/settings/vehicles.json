@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Definition der auswählbaren Fahrzeugtypen und ihrer speziellen Formular-Regeln.",
     "vehicle_types": {
         "pkw": {
             "label": "Privat PKW",

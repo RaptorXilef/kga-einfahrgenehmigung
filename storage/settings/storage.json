@@ -20,10 +20,10 @@
             "table": "permits_archive",
             "file": "permits_archive.json"
         },
-        "cancelled_permits": {
+        "permits_cancelled": {
             "type": "json",
-            "table": "cancelled_permits",
-            "file": "cancelled_permits.json"
+            "table": "permits_cancelled",
+            "file": "permits_cancelled.json"
         },
         "users": {
             "type": "json",

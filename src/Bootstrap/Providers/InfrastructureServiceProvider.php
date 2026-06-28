@@ -108,7 +108,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(CancelledPermitRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
-            return ($config->get('storage_config')['cancelled_permits']['type'] ?? 'json') === 'mysql'
+            return ($config->get('storage_config')['permits_cancelled']['type'] ?? 'json') === 'mysql'
                 ? new MySqlCancelledPermitRepository($container->get(\PDO::class), $config)
                 : new JsonCancelledPermitRepository($config);
         });

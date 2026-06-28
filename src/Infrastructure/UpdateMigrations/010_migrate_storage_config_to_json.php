@@ -40,14 +40,14 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
             );
 
             // Sicherheitshalber sicherstellen, dass die in Phase 4 erstellte Tabelle dabei ist
-            if (! isset($jsonData['storage_config']['cancelled_permits'])) {
+            if (! isset($jsonData['storage_config']['permits_cancelled'])) {
                 // Den Typ von 'permits' erben, falls vorhanden (Fallback: json)
                 $inheritedType = $jsonData['storage_config']['permits']['type'] ?? 'json';
 
-                $jsonData['storage_config']['cancelled_permits'] = [
+                $jsonData['storage_config']['permits_cancelled'] = [
                     'type'  => $inheritedType,
-                    'table' => 'cancelled_permits',
-                    'file'  => 'cancelled_permits.json',
+                    'table' => 'permits_cancelled',
+                    'file'  => 'permits_cancelled.json',
                 ];
             }
 

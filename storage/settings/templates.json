@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Konfiguration der Genehmigungs-Vorlagen (Preise je Typ, Dauer, Sichtbarkeit).",
     "permit_templates": {
         "std.7": {
             "type": "standard",

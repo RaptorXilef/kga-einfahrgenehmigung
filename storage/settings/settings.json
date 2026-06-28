@@ -1,5 +1,5 @@
 {
-    "_meta": "AUTO-GENERATED JSON CONFIG FROM LEGACY PHP FILE",
+    "_meta": "Allgemeine System-Limits (z. B. Limitierung der Datensätze im Dashboard).",
     "pagination": {
         "default_limit": 25,
         "allowed_limits": [10, 25, 50, 100, 250]
