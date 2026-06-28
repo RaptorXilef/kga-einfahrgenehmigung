@@ -19,7 +19,7 @@ final readonly class UpdateMigrationService
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private ?\PDO $pdo = null,
+        private ?\PDO $pdo, // <-- FIX: "= null" entfernt
         private ClockInterface $clock,
         private ConfigInterface $config,
     ) {
@@ -156,6 +156,7 @@ final readonly class UpdateMigrationService
     {
         $cfg    = $this->config->get('storage_config')['update_migrations'];
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+
         if ($useSql && $this->pdo instanceof \PDO) {
             $this->pdo->beginTransaction();
 
