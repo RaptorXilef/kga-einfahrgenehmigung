@@ -41,9 +41,11 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
         }
 
         if (\method_exists($this->mailService, 'processQueue')) {
-            // Turbo-Modus für den Cronjob: 50 Mails auf einmal.
-            // Normaler Backend-Trigger (via Dashboard): 10 Mails.
-            $limit = $isCron ? 50 : 10;
+            // Limits dynamisch aus der Konfiguration laden
+            $cronLimit  = (int) $this->config->get('mail_queue_limit_cron', 50);
+            $adminLimit = (int) $this->config->get('mail_queue_limit_admin', 10);
+
+            $limit = $isCron ? $cronLimit : $adminLimit;
 
             $sent = $this->mailService->processQueue($limit);
 

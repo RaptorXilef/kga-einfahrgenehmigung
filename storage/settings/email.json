@@ -15,6 +15,9 @@
     },
     "mail_log_max_entries": 5000,
     "mail_log_display_limit": 250,
+    "mail_queue_limit_web": 3,
+    "mail_queue_limit_admin": 10,
+    "mail_queue_limit_cron": 50,
     "magic_link_duration": 15,
     "hours_pending_verify": 24,
     "hours_pending_finalize": 48

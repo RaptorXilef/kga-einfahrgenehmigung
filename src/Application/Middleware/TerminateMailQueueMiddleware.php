@@ -6,6 +6,7 @@ namespace App\Application\Middleware;
 
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\MiddlewareInterface;
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Infrastructure\Mail\MailQueueService;
 
@@ -18,6 +19,7 @@ final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private MailServiceInterface $mailService,
+        private ConfigInterface $config, // <-- NEU
     ) {
     }
 
@@ -29,9 +31,9 @@ final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
         // 2. Danach (Terminate) die Warteschlange abarbeiten
         try {
             if ($this->mailService instanceof MailQueueService) {
-                // Nur noch max. 3 Mails am Ende eines Web-Aufrufs versenden,
-                // um Ladezeiten für den Endnutzer extrem gering zu halten!
-                $this->mailService->processQueue(3);
+                // Dynamisches Limit laden (Fallback auf 3, falls in der Config gelöscht)
+                $limit = (int) $this->config->get('mail_queue_limit_web', 3);
+                $this->mailService->processQueue($limit);
             }
         } catch (\Throwable) {
             // Still fail, Nutzer soll seinen Response bekommen
