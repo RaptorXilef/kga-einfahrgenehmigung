@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Entity\PermitStatus;
+
 /**
  * Page: Checkout Success
  *
@@ -69,7 +71,7 @@
                     <code style="font-size: 1.3rem; color: var(--text-dark); font-weight: 800;"><?php echo $permit->code; ?></code>
                 </div>
 
-                <?php if ($method === 'wire' && $permit->getStatus() !== 'bezahlt') { ?>
+                <?php if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) { ?>
                     <div
                          style="text-align: left; background: #fafafa; border: 1px dashed var(--border-color); border-radius: 8px; padding: 20px; margin-top: 20px;">
                         <h3 class="u-margin-top-none"

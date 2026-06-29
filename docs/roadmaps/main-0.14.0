@@ -1,6 +1,0 @@
-### Der Plan für v0.14.0
-
-1. **Config-Erweiterung:** Definition der Vorlagen (Dauer, Typ, Name) und Steuerung, was im Frontend sichtbar ist.
-2. **Voucher-Upgrade:** Ein Gutschein muss ab jetzt "wissen", welche Vorlage er freischaltet (z.B. ein Gutschein für 1 Jahr).
-3. **Admin-UI:** Umbau des "Werkzeuge"-Tabs, um Startdatum und Vorlage wählen zu können.
-4. **Dauereinfahrgenehmigung-Logik:** Eine neue Eigenschaft in der `Permit`-Entität, die das Design (Farbe, Titel, Quartalsanzeige) steuert.

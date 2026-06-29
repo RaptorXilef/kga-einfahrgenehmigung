@@ -17,10 +17,10 @@ namespace App\Core\Entity;
 final readonly class Status
 {
     public function __construct(
-        public string $current = 'offen',          // technischer Status (offen, bezahlt, storniert)
-        public bool $is_suspended = false,         // Manuelle Sperre durch Admin
-        public ?string $suspension_reason = null,  // Begründung der Sperre
-        public bool $reminder_sent = false,        // Zahlungserinnerung senden
+        public PermitStatus $current = PermitStatus::Offen, // technischer Status (offen, bezahlt, storniert)
+        public bool $is_suspended = false,                  // Manuelle Sperre durch Admin
+        public ?string $suspension_reason = null,           // Begründung der Sperre
+        public bool $reminder_sent = false,                 // Zahlungserinnerung senden
     ) {
     }
 }

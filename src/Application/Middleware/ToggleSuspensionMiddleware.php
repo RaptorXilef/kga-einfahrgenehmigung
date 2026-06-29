@@ -11,6 +11,7 @@ use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Entity\PermitStatus;
 use App\Core\Service\AuthService;
 
 /**
@@ -42,7 +43,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $isUnpaid = \strtolower(\trim($permit->getStatus())) !== 'bezahlt';
+        $isUnpaid = $permit->getStatus() !== PermitStatus::Bezahlt;
         $hasRight = false;
 
         if ($isUnpaid && $this->auth->hasPermission('dashboard.finance.suspend')) {

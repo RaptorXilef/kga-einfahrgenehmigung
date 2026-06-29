@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
+use App\Core\Entity\PermitStatus;
 use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
@@ -89,6 +90,8 @@ trait StorageMapperTrait
             $agreements = JsonHelper::decode($agreements);
         }
 
+        $statusEnum = PermitStatus::tryFrom((string) ($item['status'] ?? 'offen')) ?? PermitStatus::Offen;
+
         // 3. Entität hydrieren
         return new Permit(
             code: (string) ($item['code'] ?? ''),
@@ -110,7 +113,7 @@ trait StorageMapperTrait
                 (string) ($item['zweck'] ?? 'Privat'),
             ),
             status: new Status(
-                (string) ($item['status'] ?? 'offen'),
+                $statusEnum,
                 $is_suspended,
                 $suspReason,
                 (bool) ($item['reminder_sent'] ?? false),
@@ -152,7 +155,7 @@ trait StorageMapperTrait
             'parzelle'           => $permit->owner->parzelle->value,
             'preis'              => $permit->getPrice(),
             'reminder_sent'      => (int) $permit->status->reminder_sent,
-            'status'             => $permit->getStatus(),
+            'status'             => $permit->getStatus()->value,
             'suspension_reason'  => $permit->getSuspensionReason(),
             'template_key'       => $permit->template_key,
             'typ'                => $permit->vehicle->typ,

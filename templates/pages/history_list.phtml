@@ -1,5 +1,7 @@
 <?php
 
+use App\Core\Entity\PermitStatus;
+
 /**
  * Page: Tenant History
  *
@@ -152,8 +154,8 @@ $now = new \DateTimeImmutable('today');
                                 }
 
                                 // 2. Finanz-Berechnungen
-                                $isPaid      = \strtolower($permit->getStatus()) === 'bezahlt';
-                                $statusText  = \strtoupper($permit->getStatus());
+                                $isPaid      = $permit->getStatus() === PermitStatus::Bezahlt;
+                                $statusText  = \strtoupper($permit->getStatus()->value);
                                 $statusClass = 'warning'; // default Orange
 
                                 if ($isPaid) {

@@ -11,6 +11,7 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Entity\PermitStatus;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\PermitService;
 
@@ -50,7 +51,7 @@ final readonly class SuccessAction implements ViewActionInterface
 
         $epcData = '';
         $usage   = '';
-        if ($method === 'wire' && $permit->getStatus() !== 'bezahlt') {
+        if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
             $shortCode = \substr($permit->code, -6);
             $nameParts = \explode(' ', $permit->getOwnerName());
             $vorname   = $nameParts[0] ?? 'Unbekannt';

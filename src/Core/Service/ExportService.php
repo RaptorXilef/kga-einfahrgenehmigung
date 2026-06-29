@@ -44,7 +44,7 @@ final readonly class ExportService
                 $permit->getCompany() ?? '',
                 $permit->getPurpose(),
                 \number_format($permit->getPrice(), 2, ',', ''),
-                \strtoupper($permit->getStatus()),
+                \strtoupper($permit->getStatus()->value),
                 $permit->getCreatedAt()->format('d.m.Y H:i'),
             ];
 

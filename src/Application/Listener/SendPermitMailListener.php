@@ -7,6 +7,7 @@ namespace App\Application\Listener;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Core\Entity\PermitStatus;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\HolidayService;
@@ -83,7 +84,7 @@ final readonly class SendPermitMailListener
         }
 
         // --- 2. ZAHLUNGSAUFFORDERUNG ---
-        if ($permit->getStatus() !== 'bezahlt') {
+        if ($permit->getStatus() !== PermitStatus::Bezahlt) {
             $nameParts = \explode(' ', $permit->getOwnerName());
             $vorname   = $nameParts[0] ?? 'Unbekannt';
             $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';

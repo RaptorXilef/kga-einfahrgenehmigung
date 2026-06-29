@@ -9,6 +9,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
+use App\Core\Entity\PermitStatus;
 use App\Core\Service\PermitService;
 
 /**
@@ -34,7 +35,7 @@ final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
         try {
             $permit = $this->permitService->finaliseRequest(
                 $dto->identifier,
-                'offen',
+                PermitStatus::Offen,
                 'Zahlung per Überweisung gewählt',
             );
 

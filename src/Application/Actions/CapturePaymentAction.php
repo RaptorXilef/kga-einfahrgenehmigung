@@ -10,6 +10,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
+use App\Core\Entity\PermitStatus;
 use App\Core\Service\PermitService;
 
 /**
@@ -44,7 +45,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
             // Zahlung ausführen
             if ($this->paymentProvider->captureOrder($dto->orderId, (float) $tempRequest['preis'])) {
                 // Bei Erfolg: Den Service anweisen, die Genehmigung zu finalisieren
-                $this->permitService->finaliseRequest($dto->token, 'bezahlt', 'Bezahlt via PayPal');
+                $this->permitService->finaliseRequest($dto->token, PermitStatus::Bezahlt, 'Bezahlt via PayPal');
 
                 return JsonResponse::success(['message' => 'Zahlung verarbeitet und Antrag finalisiert']);
             }

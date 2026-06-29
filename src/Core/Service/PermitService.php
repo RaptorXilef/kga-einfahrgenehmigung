@@ -15,6 +15,7 @@ use App\Contracts\Utils\ClockInterface;
 use App\Core\DTO\PermitFormData;
 use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
+use App\Core\Entity\PermitStatus;
 use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
@@ -101,7 +102,7 @@ final readonly class PermitService
         if (! $priceRelevantChanged) {
             $merged           = \array_merge($oldData, $newData);
             $merged['preis']  = $oldData['preis'] ?? 0;
-            $merged['status'] = 'offen';
+            $merged['status'] = PermitStatus::Offen->value;
 
             $allVerified         = $this->verificationRepository->loadVerified();
             $expires             = $allVerified[$token]->expiresAt ?? $this->clock->now()->modify('+48 hours');
@@ -170,7 +171,7 @@ final readonly class PermitService
 
                 if ($finalPrice <= 0.0) {
                     $data['preis']  = 0.0;
-                    $data['status'] = 'bezahlt';
+                    $data['status'] = PermitStatus::Bezahlt->value;
 
                     $allVerified         = $this->verificationRepository->loadVerified();
                     $allVerified[$token] = new VerificationRequest($token, $expires, $data);
@@ -178,7 +179,7 @@ final readonly class PermitService
 
                     return ['finalised' => $this->finaliseRequest(
                         $token,
-                        'bezahlt',
+                        PermitStatus::Bezahlt,
                         'Gutschein (Voll-Rabatt): ' . $voucherCode,
                     )];
                 }
@@ -198,7 +199,7 @@ final readonly class PermitService
         return $data;
     }
 
-    public function finaliseRequest(string $token, string $status = 'offen', ?string $kommentar = null): Permit
+    public function finaliseRequest(string $token, PermitStatus $status = PermitStatus::Offen, ?string $kommentar = null): Permit
     {
         return $this->lockManager->executeWithLock('checkout', function () use ($token, $status, $kommentar) {
             $allVerified = $this->verificationRepository->loadVerified();
@@ -208,7 +209,7 @@ final readonly class PermitService
             }
 
             $data                       = $allVerified[$token]->data;
-            $data['status']             = $status;
+            $data['status']             = $status->value;
             $data['interner_kommentar'] = $kommentar;
 
             $dto    = PermitFormData::fromArray($data);
@@ -281,7 +282,7 @@ final readonly class PermitService
                 $data->firma ? \strip_tags((string) $data->firma) : null,
             ),
             validity: new Validity($startDate, $endDate, $preis, $zweck),
-            status: new Status((string) $data->status),
+            status: new Status($data->status),
             erstellt: $this->clock->now(),
             interner_kommentar: $data->internerKommentar,
             agreements: $data->agreements,
@@ -330,7 +331,7 @@ final readonly class PermitService
             owner: $permit->owner,
             vehicle: $permit->vehicle,
             validity: $permit->validity,
-            status: new Status('bezahlt', $permit->isSuspended(), $permit->getSuspensionReason()),
+            status: new Status(PermitStatus::Bezahlt, $permit->isSuspended(), $permit->getSuspensionReason(), $permit->status->reminder_sent),
             erstellt: $permit->getCreatedAt(), // WICHTIG: Erstellungsdatum bleibt absolut unangetastet!
             interner_kommentar: $neuerKommentar,
             agreements: $permit->agreements,
@@ -429,7 +430,7 @@ final readonly class PermitService
             'name'         => $permit->getOwnerName(),
             'parzelle'     => $permit->getPlotNumber(),
             'preis'        => $permit->getPrice(),
-            'status'       => $permit->getStatus(),
+            'status'       => $permit->getStatus()->value,
             'template_key' => $permit->template_key,
             'von'          => $permit->getValidFrom()->format('d.m.Y'),
             'zweck'        => $permit->getPurpose(),
@@ -484,7 +485,7 @@ final readonly class PermitService
      */
     public function getOverdueLevel(Permit $permit): int
     {
-        if ($permit->getStatus() === 'bezahlt') {
+        if ($permit->getStatus() === PermitStatus::Bezahlt) {
             return 0;
         }
 
@@ -513,7 +514,7 @@ final readonly class PermitService
 
         foreach ($allPermits as $permit) {
             if ($permit->getValidUntil() < $cutoffDate) {
-                if (\in_array($permit->getStatus(), ['bezahlt', 'storniert'], true)) {
+                if (\in_array($permit->getStatus(), [PermitStatus::Bezahlt, PermitStatus::Storniert], true)) {
                     $toArchive[]     = $permit;
                     $codesToDelete[] = $permit->code;
                 }
@@ -654,7 +655,7 @@ final readonly class PermitService
             owner: new Owner('[ANONYMISIERT]', new EmailAddress(''), new PlotNumber('0000')),
             vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('[ANONYMISIERT]'), '[ANONYMISIERT]'),
             validity: $permit->validity,
-            status: new Status('storniert', false, 'Durch Pächter storniert'),
+            status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert', false),
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $permit->interner_kommentar,
             agreements: $permit->agreements,
@@ -684,7 +685,7 @@ final readonly class PermitService
 
         foreach ($allPermits as $permit) {
             // Nur offene Permits betrachten, die weder gesperrt sind, noch bereits eine Erinnerung bekamen
-            if ($permit->getStatus() !== 'offen' || $permit->isSuspended() || $permit->status->reminder_sent) {
+            if ($permit->getStatus() !== PermitStatus::Offen || $permit->isSuspended() || $permit->status->reminder_sent) {
                 continue;
             }
 

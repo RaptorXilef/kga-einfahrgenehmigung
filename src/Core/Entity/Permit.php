@@ -49,7 +49,7 @@ final readonly class Permit
         }
 
         // Zahlungsstatus prüfen, falls gefordert
-        if ($requirePayment && \strtolower($this->status->current) !== 'bezahlt') {
+        if ($requirePayment && $this->status->current === PermitStatus::Bezahlt) {
             return false;
         }
 
@@ -76,7 +76,7 @@ final readonly class Permit
     // TODO DOCBLOCK
     public function isPaid(): bool
     {
-        return \strtolower(\trim($this->status->current)) === 'bezahlt';
+        return $this->status->current === PermitStatus::Bezahlt;
     }
 
     // TODO DOCBLOCK
@@ -86,7 +86,7 @@ final readonly class Permit
     }
 
     // TODO DOCBLOCK
-    public function getStatus(): string
+    public function getStatus(): PermitStatus
     {
         return $this->status->current;
     }
