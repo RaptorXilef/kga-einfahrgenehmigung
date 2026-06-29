@@ -1,4 +1,6 @@
-# Security Policy
+# Security Policy 🛡️
+
+Sicherheit hat bei diesem Projekt oberste Priorität. Das System verfügt "by Design" über integrierte Rate-Limiter, strikte CSRF-Prüfungen, Content-Security-Policies (CSP) und durchgängige Typsicherheit, um gängige Angriffsvektoren im Vorfeld zu neutralisieren.
 
 ## Unterstützte Versionen
 
@@ -11,7 +13,7 @@ Aktuell wird nur die Hauptversion (Main Branch) aktiv mit Sicherheits-Updates ve
 
 ## Eine Sicherheitslücke melden
 
-Bitte sende Sicherheitslücken **nicht** als GitHub Issue.
-Schreibe stattdessen eine E-Mail an: **[31962607+RaptorXilef@users.noreply.github.com](31962607+RaptorXilef@users.noreply.github.com)**.
+Bitte sende entdeckte Sicherheitslücken **auf keinen Fall** als öffentliches GitHub Issue.
+Schreibe stattdessen eine vertrauliche E-Mail an: **[31962607+RaptorXilef@users.noreply.github.com](31962607+RaptorXilef@users.noreply.github.com)**
 
-Wir bemühen uns, innerhalb von 72 Stunden zu antworten und innerhalb von 7 Tagen eine Lösung bereitzustellen.
+Wir bemühen uns, den Eingang innerhalb von 72 Stunden zu bestätigen und innerhalb von 7 Tagen einen Hotfix zur Verfügung zu stellen.
