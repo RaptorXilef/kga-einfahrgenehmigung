@@ -23,11 +23,16 @@ final readonly class ApiCsrfMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        $providedToken = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
-        $sessionToken  = $this->sessionManager->getCsrfToken();
+        // CSRF-Prüfung nur bei schreibenden HTTP-Methoden durchführen
+        $method = $request->getMethod() ?? 'GET';
 
-        if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
-            return JsonResponse::unauthorized('Fehler: Ungültiges Sicherheits-Token (CSRF).');
+        if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            $providedToken = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
+            $sessionToken  = $this->sessionManager->getCsrfToken();
+
+            if ($sessionToken === '' || ! \hash_equals($sessionToken, $providedToken)) {
+                return JsonResponse::unauthorized('Fehler: Ungültiges Sicherheits-Token (CSRF).');
+            }
         }
 
         return $next($request);
