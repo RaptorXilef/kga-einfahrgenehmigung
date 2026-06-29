@@ -2,6 +2,16 @@
 
 
 
+## [0.51.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.3...v0.51.4) (2026-06-29)
+
+### 🐛 Bug Fixes
+
+* **api:** bypass CSRF validation for GET requests to unblock external cron jobs ([27c32f8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/27c32f85b25a64c43174568c5fe4d836e1b0eb80))
+
+### 📚 Dokumentation
+
+* **repo:** overhaul project documentation, architecture guidelines, & define proprietary licensing ([955633a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/955633a386b23f71f95d87eb912887f88c3bca58))
+
 ## [0.51.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.2...v0.51.3) (2026-06-28)
 
 ### ⚙️ Refactoring
