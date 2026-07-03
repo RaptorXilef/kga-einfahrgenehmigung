@@ -111,11 +111,12 @@
     // Unsichtbarer Heartbeat: Hält die PHP-Session und den CSRF-Token am Leben,
     // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 10 Minuten)
     setInterval(() => {
-        fetch(window.location.href, {
-                method: 'HEAD'
+        fetch(window.location.pathname + '?ping=' + Date.now(), {
+                method: 'HEAD',
+                cache: 'no-store'
             })
             .catch(() => console.debug('Session Ping fehlgeschlagen'));
-    }, 10 * 60 * 1000);
+    }, 5 * 60 * 1000);
 
     </script>
 </body>

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
-use App\Application\DTO\SimpleIdentifierRequest;
-use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -42,18 +40,38 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
      */
     public function execute(ServerRequest $request): mixed
     {
-        try {
-            $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
-        } catch (ValidationException $e) {
-            $this->sessionManager->addFlash('error', $e->getMessage());
+        $codes      = $request->post['codes'] ?? [];
+        $singleCode = $request->post['code'] ?? '';
+
+        if ($singleCode !== '') {
+            $codes[] = $singleCode;
+        }
+
+        if (empty($codes)) {
+            $this->sessionManager->addFlash('error', 'Fehler: Keine Genehmigungen ausgewählt.');
 
             return new RedirectResponse('admin.php');
         }
 
-        if ($this->permitService->manualActivate($dto->identifier)) {
-            $this->sessionManager->addFlash('success', "Zahlung für {$dto->identifier} bestätigt.");
+        $successCount = 0;
+        $errorCount   = 0;
+
+        foreach ($codes as $code) {
+            if ($this->permitService->manualActivate($code)) {
+                ++$successCount;
+            } else {
+                ++$errorCount;
+            }
+        }
+
+        if ($successCount === 1 && $errorCount === 0) {
+            $this->sessionManager->addFlash('success', "Zahlung für Vorgang '{$codes[0]}' bestätigt.");
+        } elseif ($successCount > 1 && $errorCount === 0) {
+            $this->sessionManager->addFlash('success', "Zahlung für {$successCount} Genehmigungen erfolgreich bestätigt.");
+        } elseif ($successCount > 0 && $errorCount > 0) {
+            $this->sessionManager->addFlash('warning', "{$successCount} Zahlungen bestätigt, {$errorCount} fehlerhaft (evtl. bereits bezahlt).");
         } else {
-            $this->sessionManager->addFlash('error', 'Fehler: Genehmigung nicht gefunden oder bereits bezahlt.');
+            $this->sessionManager->addFlash('error', 'Fehler: Keine der gewählten Genehmigungen konnte aktualisiert werden.');
         }
 
         return new RedirectResponse('admin.php');

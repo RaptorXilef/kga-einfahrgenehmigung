@@ -11,7 +11,7 @@
  *
  * @var \App\Core\Service\AuthService                   $auth
  * @var \App\Contracts\Storage\GroupRepositoryInterface $groupRepository
- * @var \App\Infrastructure\Storage\ImageStorageService           $imageStorage
+ * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  * @var array                                           $settings
  */
 $groupId    = $auth->getGroup();
@@ -211,8 +211,9 @@ const sessionHandler = (function() {
 
     function stayLoggedIn() {
         // Ping an den Server via HEAD (lädt keine Daten herunter, weckt aber PHP auf)
-        fetch(window.KGA_CONFIG.baseUrl + 'admin.php?ping=1', {
-                method: 'HEAD'
+        fetch(window.KGA_CONFIG.baseUrl + 'admin.php?ping=' + Date.now(), {
+                method: 'HEAD',
+                cache: 'no-store'
             })
             .then(() => {
                 idleSeconds = 0;

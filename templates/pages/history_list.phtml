@@ -399,8 +399,9 @@ if ($currentArchiveYear !== $lastYear) {
 
         function stayLoggedIn() {
             // Ping an history.php, um die PHP-Session serverseitig zu verlängern
-            fetch(window.KGA_CONFIG.baseUrl + 'history.php?ping=1', {
-                    method: 'HEAD'
+            fetch(window.KGA_CONFIG.baseUrl + 'history.php?ping=' + Date.now(), {
+                    method: 'HEAD',
+                    cache: 'no-store'
                 })
                 .then(() => {
                     idleSeconds = 0;

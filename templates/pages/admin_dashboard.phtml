@@ -133,8 +133,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <?php } ?>
 
             <?php if ($auth->hasPermission('dashboard.info_alert.view')) { ?>
-                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-            <?php } ?>
+                <div class="c-tab-content-container u-margin-auto">
+                    <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+                </div>
+                <?php } ?>
 
             <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
                 <h1 class="u-margin-none">Dashboard & Statistiken</h1>
