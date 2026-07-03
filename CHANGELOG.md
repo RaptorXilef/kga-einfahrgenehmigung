@@ -2,6 +2,16 @@
 
 
 
+## [0.52.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.5...v0.52.0) (2026-07-03)
+
+### 🚀 Features
+
+* **finance:** add bulk payment approval and fix UI/UX issues ([984db8f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/984db8f3a196942d3a0a34a983ec69ea27c4aeb4))
+
+### ⚙️ Refactoring
+
+* **routing:** implement automated action routing via PHP Attributes and Universal Factory ([d30a7a3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d30a7a3659b54dea2842a51555c4c8e0b50b26ce))
+
 ## [0.51.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.4...v0.51.5) (2026-07-03)
 
 ### 🐛 Bug Fixes
