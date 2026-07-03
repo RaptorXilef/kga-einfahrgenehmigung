@@ -2,6 +2,13 @@
 
 
 
+## [0.54.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.54.0...v0.54.1) (2026-07-03)
+
+### 🐛 Bug Fixes
+
+* **audit:** add logging for session extension and plot owner logouts ([5d73aec](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5d73aecfd6ff91aad0032a897ea3c521976f7a19))
+* **audit:** allow logging of public user actions and remove restrictive admin-only condition ([a1933fe](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a1933feba917b8c2e1476c809cd42ed4f7b692cc))
+
 ## [0.54.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.53.0...v0.54.0) (2026-07-03)
 
 ### 🚀 Features
