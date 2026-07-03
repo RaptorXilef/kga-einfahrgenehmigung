@@ -188,6 +188,18 @@ final class SchemaRegistry
                 `executed_at` DATETIME NOT NULL,
                 UNIQUE KEY `idx_version` (`version`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
+
+            'audit_logs' => 'CREATE TABLE IF NOT EXISTS `audit_logs` (
+                `id` VARCHAR(50) PRIMARY KEY,
+                `user_id` VARCHAR(50) NOT NULL,
+                `username` VARCHAR(100) NOT NULL,
+                `action` VARCHAR(50) NOT NULL,
+                `details` TEXT,
+                `ip_address` VARCHAR(45),
+                `created_at` DATETIME NOT NULL,
+                INDEX `idx_action` (`action`),
+                INDEX `idx_created_at` (`created_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
         ];
     }
 }

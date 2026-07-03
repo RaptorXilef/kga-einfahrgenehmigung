@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
-
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -16,6 +15,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 
@@ -28,6 +28,7 @@ use App\Core\Service\HolidayService;
 final readonly class AdminPrintAction implements ViewActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
@@ -50,6 +51,8 @@ final readonly class AdminPrintAction implements ViewActionInterface
         if (! $permit instanceof Permit) {
             return null;
         }
+
+        $this->auditLogger->log('PERMIT_PRINT', "Druckvorschau für Genehmigung '{$code}' aufgerufen.");
 
         $this->renderer->render('admin_print_view', [
             'auth'            => $this->auth,

@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -22,6 +23,7 @@ use App\Infrastructure\Maintenance\MigrationService;
 final readonly class SystemMigrateDataAction implements ActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private MigrationService $migrationService,
         private SessionManager $sessionManager,
     ) {
@@ -43,6 +45,7 @@ final readonly class SystemMigrateDataAction implements ActionInterface
         }
 
         $msg = $this->migrationService->execute($dto->target, $dto->direction);
+        $this->auditLogger->log('SYSTEM_MIGRATION', "Datenmigration ausgeführt. Ziel: {$dto->target}, Richtung: {$dto->direction}.");
         $this->sessionManager->addFlash('success', $msg);
 
         return new RedirectResponse('admin.php');

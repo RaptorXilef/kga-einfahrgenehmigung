@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -23,6 +24,7 @@ use App\Infrastructure\Maintenance\MigrationService;
 final readonly class SystemRestoreDataAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private MigrationService $migrationService,
         private SessionManager $sessionManager,
     ) {
@@ -50,6 +52,8 @@ final readonly class SystemRestoreDataAction implements ActionInterface, Require
         }
 
         $msg = $this->migrationService->restore($dto->timestamp, $dto->target, $dto->engine);
+        $this->auditLogger->log('SYSTEM_BACKUP_RESTORE', "Daten aus Backup wiederhergestellt. Ziel: {$dto->target}, Timestamp: {$dto->timestamp}");
+
         $this->sessionManager->addFlash('success', $msg);
 
         return new RedirectResponse('admin.php');

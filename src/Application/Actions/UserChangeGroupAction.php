@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * Action zum Ändern der Berechtigungsgruppe eines Benutzers.
@@ -24,8 +25,9 @@ use App\Core\Entity\User;
 final readonly class UserChangeGroupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
+        private UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -51,8 +53,12 @@ final readonly class UserChangeGroupAction implements ActionInterface, RequiresP
 
         if (isset($users[$dto->userId])) {
             $u                   = $users[$dto->userId];
+            $oldGroup            = $u->groupId;
             $users[$dto->userId] = new User($u->id, $u->username, $dto->group, $u->passwordHash);
             $this->userRepository->saveAll($users);
+
+            // LOG SCHREIBEN
+            $this->auditLogger->log('USER_CHANGE_GROUP', "Rechte-Gruppe von Benutzer '{$u->username}' von '{$oldGroup}' auf '{$dto->group}' geändert.");
 
             $this->sessionManager->addFlash('success', "Gruppe für '{$u->username}' geändert.");
 

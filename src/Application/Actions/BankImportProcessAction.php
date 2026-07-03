@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
-
 use App\Application\DTO\BankImportProcessRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
-use App\Core\Service\BankImportService;
+use App\Core\Service\AuditLoggerService;
+use App\Core\Service\BankImportService; // <--- NEU
 
 #[ActionRoute('bank_import_process')]
 final readonly class BankImportProcessAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger, // <--- NEU
         private BankImportService $importService,
         private SessionManager $sessionManager,
     ) {
@@ -34,13 +35,16 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
             $dto = BankImportProcessRequest::fromArray($request->post);
             $res = $this->importService->processCsv($dto->tempFile, $dto->idColumn, $dto->amountColumn, $dto->dateColumn);
 
-            // Temporäre Datei aufräumen
             if (\file_exists($dto->tempFile)) {
                 @\unlink($dto->tempFile);
             }
 
             if (($res['success'] ?? false) === true) {
                 $msg = "Bank-Abgleich beendet: <strong>{$res['erfolgreich']}</strong> Permits freigeschaltet, {$res['uebersprungen']} übersprungen, {$res['fehlerhaft']} fehlerhaft.";
+
+                // LOG SCHREIBEN
+                $this->auditLogger->log('BANK_IMPORT', "CSV-Import abgeschlossen: {$res['erfolgreich']} erfolgreich, {$res['uebersprungen']} übersprungen, {$res['fehlerhaft']} fehlerhaft.");
+
                 $this->sessionManager->addFlash('success', $msg);
             } else {
                 $this->sessionManager->addFlash('error', 'Fehler bei der CSV-Verarbeitung.');

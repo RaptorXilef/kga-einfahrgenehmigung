@@ -10,6 +10,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\System\SystemInfoService;
 
@@ -22,9 +23,10 @@ use App\Infrastructure\System\SystemInfoService;
 final readonly class SystemForceUpdateCheckAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private GitHubUpdaterService $updater,
-        private SystemInfoService $sysInfo,
         private SessionManager $sessionManager,
+        private SystemInfoService $sysInfo,
     ) {
     }
 
@@ -38,6 +40,8 @@ final readonly class SystemForceUpdateCheckAction implements ViewActionInterface
         try {
             $currentVersion = $this->sysInfo->getCurrentVersion();
             $updateData     = $this->updater->checkForUpdate($currentVersion, true);
+
+            $this->auditLogger->log('SYSTEM_UPDATE_CHECK', 'Manuelle Prüfung auf System-Updates ausgelöst.');
 
             if ($updateData !== null) {
                 $this->sessionManager->addFlash('success', "Erfolg: Eine neue Version ({$updateData['version']}) ist verfügbar! Wechseln Sie zum Dashboard, um das Update zu starten.");

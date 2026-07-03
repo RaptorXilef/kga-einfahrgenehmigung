@@ -9,6 +9,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
 
@@ -21,6 +22,7 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
 final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private UpdateMigrationService $migrationService,
     ) {
@@ -40,6 +42,8 @@ final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, 
             $msg = empty($executedScripts)
                 ? 'Update abgeschlossen. System ist auf dem neuesten Stand.'
                 : 'Update abgeschlossen. Datenbank aktualisiert: ' . \implode(', ', $executedScripts);
+
+            $this->auditLogger->log('SYSTEM_UPDATE_FINALIZE', 'Update-Prozess finalisiert. ' . $msg);
 
             return JsonResponse::success(['message' => $msg, 'executed' => $executedScripts]);
         } catch (\Throwable $e) {

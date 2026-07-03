@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
 
 /**
@@ -23,6 +24,7 @@ use App\Core\Service\PermitService;
 final readonly class PermitToggleSuspensionAction implements ActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private PermitService $permitService,
         private SessionManager $sessionManager,
     ) {
@@ -44,7 +46,12 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
         }
 
         if ($this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason)) {
-            $msg = 'Genehmigung wurde ' . ($dto->isSuspended ? 'gesperrt.' : 'freigegeben.');
+            $actionStr = $dto->isSuspended ? 'gesperrt' : 'freigegeben';
+            $msg       = 'Genehmigung wurde ' . $actionStr . '.';
+
+            // LOG SCHREIBEN
+            $this->auditLogger->log('PERMIT_SUSPENSION', "Genehmigung '{$dto->code}' wurde {$actionStr}. Grund: {$dto->reason}");
+
             $this->sessionManager->addFlash('success', $msg);
 
             return new RedirectResponse('admin.php');

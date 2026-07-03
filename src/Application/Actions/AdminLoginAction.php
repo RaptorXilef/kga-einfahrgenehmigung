@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
-
 use App\Application\DTO\AdminLoginRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -15,6 +14,7 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 
 /**
@@ -26,9 +26,10 @@ use App\Core\Service\AuthService;
 final readonly class AdminLoginAction implements ActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
-        private SessionManager $sessionManager, // <--- NEU
+        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -46,6 +47,10 @@ final readonly class AdminLoginAction implements ActionInterface
 
         try {
             if ($this->auth->login($dto->username, $dto->password, $request->getIp())) {
+
+                // LOG SCHREIBEN
+                $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
+
                 if ($dto->redirectCode !== '') {
                     return new RedirectResponse('check.php?code=' . \urlencode($dto->redirectCode));
                 }

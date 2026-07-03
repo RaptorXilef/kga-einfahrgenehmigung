@@ -11,6 +11,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * TODO DOCBLOCK
@@ -22,6 +23,7 @@ use App\Contracts\Storage\BackupServiceInterface;
 final readonly class SystemCreateBackupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private BackupServiceInterface $backupService,
         private SessionManager $sessionManager,
     ) {
@@ -36,11 +38,11 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
     {
         try {
             $folder = $this->backupService->createBackup('manual_trigger');
+            $this->auditLogger->log('SYSTEM_BACKUP_CREATE', 'Ein manuelles Voll-Backup wurde erstellt (Ordner: ' . \basename($folder) . ').');
             $this->sessionManager->addFlash('success', "Erfolg: Vollständiges Backup erstellt in Ordner '" . \basename($folder) . "'.");
 
             return new RedirectResponse('admin.php');
         } catch (\Throwable $e) {
-            \error_log('Manual Backup Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Fehler beim Backup: ' . $e->getMessage());
 
             return new RedirectResponse('admin.php');

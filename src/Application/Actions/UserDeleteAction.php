@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Service\AuditLoggerService; // <--- NEU
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 
@@ -26,6 +27,7 @@ use App\Core\Service\UserService;
 final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger, // <--- NEU
         private AuthService $auth,
         private ConfigInterface $config,
         private SessionManager $sessionManager,
@@ -65,6 +67,9 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
                 if (\file_exists($avatarPath)) {
                     @\unlink($avatarPath);
                 }
+
+                // LOG SCHREIBEN
+                $this->auditLogger->log('USER_DELETE', "Benutzerkonto '{$name}' (ID: {$dto->identifier}) unwiderruflich gelöscht.");
 
                 $this->sessionManager->addFlash('success', "Benutzer '$name' wurde entfernt.");
 

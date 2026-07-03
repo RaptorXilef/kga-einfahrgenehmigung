@@ -10,6 +10,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
@@ -22,8 +23,9 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
 final readonly class SystemRunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private UpdateMigrationService $migrationService,
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
+        private UpdateMigrationService $migrationService,
     ) {
     }
 
@@ -40,6 +42,7 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
             if (empty($executed)) {
                 $this->sessionManager->addFlash('info', 'Hinweis: Es gab keine neuen Datenbank-Skripte auszuführen.');
             } else {
+                $this->auditLogger->log('SYSTEM_DB_MIGRATION', 'Datenbank-Migrationsskripte ausgeführt: ' . \implode(', ', $executed));
                 $this->sessionManager->addFlash('success', 'Erfolg: Folgende Datenbank-Skripte wurden ausgeführt: ' . \implode(', ', $executed));
             }
 

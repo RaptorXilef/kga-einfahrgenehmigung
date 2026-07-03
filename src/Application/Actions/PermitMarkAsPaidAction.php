@@ -10,6 +10,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
 
 /**
@@ -21,6 +22,7 @@ use App\Core\Service\PermitService;
 final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private PermitService $permitService,
         private SessionManager $sessionManager,
     ) {
@@ -65,10 +67,13 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
         }
 
         if ($successCount === 1 && $errorCount === 0) {
+            $this->auditLogger->log('PERMIT_PAID', "Zahlung für Vorgang '{$codes[0]}' bestätigt.");
             $this->sessionManager->addFlash('success', "Zahlung für Vorgang '{$codes[0]}' bestätigt.");
         } elseif ($successCount > 1 && $errorCount === 0) {
+            $this->auditLogger->log('PERMIT_PAID', "Zahlung für {$successCount} Genehmigungen im Bulk-Verfahren bestätigt.");
             $this->sessionManager->addFlash('success', "Zahlung für {$successCount} Genehmigungen erfolgreich bestätigt.");
         } elseif ($successCount > 0 && $errorCount > 0) {
+            $this->auditLogger->log('PERMIT_PAID', "Teilweiser Erfolg: {$successCount} Zahlungen bestätigt, {$errorCount} fehlerhaft.");
             $this->sessionManager->addFlash('warning', "{$successCount} Zahlungen bestätigt, {$errorCount} fehlerhaft (evtl. bereits bezahlt).");
         } else {
             $this->sessionManager->addFlash('error', 'Fehler: Keine der gewählten Genehmigungen konnte aktualisiert werden.');

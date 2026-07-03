@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\ImageStorageService;
 
@@ -26,6 +27,7 @@ use App\Infrastructure\Storage\ImageStorageService;
 final readonly class GroupSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
         private ImageStorageService $imageStorage,
@@ -78,10 +80,16 @@ final readonly class GroupSaveAction implements ActionInterface, RequiresPermiss
             if ($this->auth->getGroup() === $groupId) {
                 $this->auth->refreshSessionPermissions($groupId);
             }
+            // LOG SCHREIBEN
+            $this->auditLogger->log('GROUP_UPDATE', "Rechte-Matrix für Gruppe '{$dto->groupName}' (ID: {$groupId}) aktualisiert.");
+
             $this->sessionManager->addFlash('success', "Rechte für Gruppe '{$dto->groupName}' erfolgreich aktualisiert.");
 
             return new RedirectResponse('users.php');
         }
+
+        // LOG SCHREIBEN
+        $this->auditLogger->log('GROUP_CREATE', "Neue Rechte-Gruppe '{$dto->groupName}' (ID: {$groupId}) erstellt.");
 
         $this->sessionManager->addFlash('success', "Neue Gruppe '{$dto->groupName}' wurde erstellt.");
 

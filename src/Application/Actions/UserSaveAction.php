@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 use App\Infrastructure\Storage\ImageStorageService;
@@ -27,10 +28,11 @@ use App\Infrastructure\Storage\ImageStorageService;
 final readonly class UserSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
+        private ImageStorageService $imageStorage,
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
-        private ImageStorageService $imageStorage,
         private UserService $userService,
     ) {
     }
@@ -67,6 +69,9 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             if ($dto->avatar !== null) {
                 $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
             }
+
+            // LOG SCHREIBEN
+            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (Gruppe: {$dto->group}) erstellt.");
 
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 

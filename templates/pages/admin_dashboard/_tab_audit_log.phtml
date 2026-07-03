@@ -1,0 +1,152 @@
+<?php
+/**
+ * Partial: Dashboard Tab - Audit Log (Nutzerprotokoll)
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ *
+ * @var \App\Core\Service\AuthService                   $auth
+ * @var array                                           $settings
+ * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
+ */
+$auditLogs ??= [];
+$auditTotal ??= 0;
+$auditPage ??= 1;
+$auditFilter ??= '';
+$auditLimit      = 50;
+$auditTotalPages = \max(1, (int) \ceil($auditTotal / $auditLimit));
+
+$filterOptions = [
+    ''                     => 'Alle Aktionen',
+    'LOGIN'                => 'Erfolgreiche Logins',
+    'LOGOUT'               => 'Abmeldungen',
+    'PERMIT_CREATE'        => 'Genehmigung erstellt',
+    'PERMIT_PAID'          => 'Zahlung bestätigt',
+    'PERMIT_SUSPENSION'    => 'Sperre / Freigabe',
+    'PERMIT_PRINT'         => 'Genehmigung gedruckt',
+    'BANK_IMPORT'          => 'Autom. Bankabgleich',
+    'VOUCHER_CREATE'       => 'Gutschein erstellt',
+    'VOUCHER_TOGGLE'       => 'Gutschein umgeschaltet',
+    'VOUCHER_DELETE'       => 'Gutschein gelöscht',
+    'USER_CREATE'          => 'Benutzer angelegt',
+    'USER_RENAME'          => 'Benutzer umbenannt',
+    'USER_CHANGE_GROUP'    => 'Rechte geändert',
+    'USER_DELETE'          => 'Benutzer gelöscht',
+    'GROUP_UPDATE'         => 'Rollenmatrix bearbeitet',
+    'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
+    'DATA_EXPORT'          => 'Daten exportiert',
+];
+
+if ($auth->hasPermission('dashboard.audit_log.view')) {
+    ?>
+<div class="c-tab-content-container">
+    <section class="c-card">
+        <header class="c-card__header u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
+            <div>
+                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""> Administrator-Aktivitäten</h3>
+                <p class="u-text-muted u-text-small u-margin-none">Protokolliert sicherheitsrelevante Änderungen durch eingeloggte Nutzer.</p>
+            </div>
+
+            <form method="GET" action="admin.php" class="u-flex u-align-center u-gap-s" style="margin: 0;">
+                <input type="hidden" name="action" value="render_dashboard">
+                <span class="u-text-small u-font-bold u-text-muted">FILTER:</span>
+                <select name="audit_filter" class="c-form-select" style="width: auto; min-width: 200px; height: 34px; padding: 0 10px; font-size: 0.85rem;" onchange="this.form.submit()">
+                    <?php foreach ($filterOptions as $val => $label) { ?>
+                        <option value="<?php echo $val; ?>" <?php echo $auditFilter === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                    <?php } ?>
+                </select>
+                <?php if ($auditFilter !== '') { ?>
+                    <a href="admin.php" class="c-button c-button--secondary" style="width: 34px; height: 34px;" title="Filter löschen">✕</a>
+                <?php } ?>
+            </form>
+        </header>
+
+        <div class="c-card__body u-padding-none" style="overflow-x: auto;">
+            <table class="c-table" style="table-layout: fixed; width: 100%; min-width: 950px;">
+                <thead>
+                    <tr style="background: rgba(0,0,0,0.02);">
+                        <th style="width: 140px; text-align: left;">Zeitpunkt</th>
+                        <th style="width: 180px; text-align: left;">Aktion</th>
+                        <th style="text-align: left;">System-Details</th>
+                        <th style="width: 200px; text-align: left; padding-right: 20px;">Ausführender Benutzer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($auditLogs)) { ?>
+                        <tr>
+                            <td colspan="4" class="u-text-center u-padding-around-l u-text-muted">Keine Protokolleinträge für diesen Filter gefunden.</td>
+                        </tr>
+                    <?php } else { ?>
+                        <?php foreach ($auditLogs as $log) {
+                            $avatar = $imageStorage->getImageUrl('user_images', $log->userId, 'icon-user-default.webp');
+                            ?>
+                        <tr class="u-hover-fade">
+                            <td style="vertical-align: middle;">
+                                <div style="line-height: 1.2;">
+                                    <span style="font-size: 0.85rem; color: var(--text-main); font-weight: 600;"><?php echo $log->createdAt->format('d.m.Y'); ?></span><br>
+                                    <small class="u-text-muted"><?php echo $log->createdAt->format('H:i:s'); ?> Uhr</small>
+                                </div>
+                            </td>
+                            <td style="vertical-align: middle;">
+                                <code style="font-size: 0.7rem; font-weight: 800; background: var(--primary-soft); color: var(--primary-color); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(52, 152, 219, 0.2);">
+                                    <?php echo \htmlspecialchars($log->action); ?>
+                                </code>
+                            </td>
+                            <td style="vertical-align: middle; padding-right: 15px;">
+                                <span style="font-size: 0.85rem; color: var(--text-dark); line-height: 1.4; display: block;">
+                                    <?php echo \htmlspecialchars($log->details); ?>
+                                </span>
+                            </td>
+                            <td style="vertical-align: middle; padding-right: 20px;">
+                                <div class="u-flex u-align-center u-gap-s">
+                                    <img src="<?php echo $avatar; ?>" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
+                                    <div style="line-height: 1.1;">
+                                        <strong style="font-size: 0.85rem; color: var(--text-main);"><?php echo \htmlspecialchars($log->username); ?></strong><br>
+                                        <small class="u-text-muted" style="font-family: monospace; font-size: 0.65rem;" title="IP-Adresse: <?php echo \htmlspecialchars($log->ipAddress); ?>"><?php echo \htmlspecialchars($log->userId); ?></small>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                    <?php } ?>
+                </tbody>
+            </table>
+
+            <?php if ($auditTotalPages > 1) {
+                $queryParams = $_GET;
+                unset($queryParams['audit_page']);
+                $baseUrlStr = '?' . \http_build_query($queryParams) . '&audit_page=';
+                ?>
+            <div class="u-flex u-justify-between u-align-center u-padding-around-m" style="background: var(--bg-light); border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <span class="u-text-muted" style="font-size: 0.85rem;"> Zeige <?php echo (($auditPage - 1) * $auditLimit) + 1; ?> bis <?php echo \min($auditPage * $auditLimit, $auditTotal); ?> von <strong><?php echo $auditTotal; ?></strong> Aktivitäten</span>
+                </div>
+                <div class="u-flex u-gap-xs u-align-center">
+                    <?php if ($auditPage > 1) { ?>
+                        <a href="<?php echo $baseUrlStr . ($auditPage - 1); ?>" class="c-button c-button--secondary" style="padding: 6px 10px; font-size: 0.85rem;"> &larr; Zurück </a>
+                    <?php } ?>
+
+                    <span class="u-text-muted" style="font-size: 0.85rem; padding: 0 10px;">Seite <strong><?php echo $auditPage; ?></strong> von <?php echo $auditTotalPages; ?></span>
+
+                    <?php if ($auditPage < $auditTotalPages) { ?>
+                        <a href="<?php echo $baseUrlStr . ($auditPage + 1); ?>" class="c-button c-button--secondary" style="padding: 6px 10px; font-size: 0.85rem;"> Vor &rarr; </a>
+                    <?php } ?>
+                </div>
+            </div>
+            <?php } ?>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Tab automatisch aktivieren, wenn Paginierung oder Filter im Audit-Log genutzt wird
+    document.addEventListener('DOMContentLoaded', () => {
+        // FIX: window.URLSearchParams verhindert falsche Linter-Warnungen
+        const urlParams = new window.URLSearchParams(window.location.search); // TODO .window von window.URLSearchParams entfernen, wenn in JS-Datei
+        if (urlParams.has('audit_page') || urlParams.has('audit_filter')) {
+            const auditBtn = document.querySelector('[data-tab-target="tab-audit-log"]');
+            if (auditBtn && window.adminHandlerInstance) {
+                window.adminHandlerInstance.switchTab('tab-audit-log', auditBtn);
+            }
+        }
+    });
+</script>
+<?php } ?>

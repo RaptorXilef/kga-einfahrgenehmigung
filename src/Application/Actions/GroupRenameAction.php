@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Entity\Group;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * TODO DOCBLOCK
@@ -26,6 +27,7 @@ final readonly class GroupRenameAction implements ActionInterface, RequiresPermi
     public function __construct(
         private GroupRepositoryInterface $groupRepository,
         private SessionManager $sessionManager,
+        private AuditLoggerService $auditLogger,
     ) {
     }
 
@@ -55,8 +57,11 @@ final readonly class GroupRenameAction implements ActionInterface, RequiresPermi
         }
 
         $g                     = $groups[$dto->groupId];
+        $oldName               = $g->name;
         $groups[$dto->groupId] = new Group($g->id, $dto->newGroupName, $g->permissions);
         $this->groupRepository->saveAll($groups);
+
+        $this->auditLogger->log('GROUP_RENAME', "Gruppe '{$oldName}' wurde umbenannt in '{$dto->newGroupName}'.");
 
         $this->sessionManager->addFlash('success', "Gruppe wurde in '{$dto->newGroupName}' umbenannt.");
 

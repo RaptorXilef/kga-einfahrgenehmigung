@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\VoucherService;
 
 /**
@@ -24,6 +25,7 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherToggleAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
         private VoucherService $voucherService,
     ) {
@@ -50,6 +52,12 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
         }
 
         $this->voucherService->toggleStatus($dto->code, $dto->targetStatus);
+
+        $actionStr = $dto->targetStatus === 'aktiv' ? 'reaktiviert' : 'deaktiviert (gesperrt)';
+
+        // LOG SCHREIBEN
+        $this->auditLogger->log('VOUCHER_TOGGLE', "Gutscheincode '{$dto->code}' wurde {$actionStr}.");
+
         $msg = 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
         $this->sessionManager->addFlash('success', $msg);
 

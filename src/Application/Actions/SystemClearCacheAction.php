@@ -10,6 +10,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -21,6 +22,7 @@ use App\Infrastructure\Maintenance\MigrationService;
 final readonly class SystemClearCacheAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private MigrationService $migrationService,
         private SessionManager $sessionManager,
     ) {
@@ -34,6 +36,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         $msg = $this->migrationService->clearCache();
+        $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache wurde manuell geleert.');
         $this->sessionManager->addFlash('success', $msg);
 
         return new RedirectResponse('admin.php');

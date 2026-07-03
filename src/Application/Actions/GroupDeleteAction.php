@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\GroupService;
 
 /**
@@ -23,6 +24,7 @@ use App\Core\Service\GroupService;
 final readonly class GroupDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private GroupService $groupService,
         private SessionManager $sessionManager,
     ) {
@@ -50,6 +52,7 @@ final readonly class GroupDeleteAction implements ActionInterface, RequiresPermi
 
         try {
             $this->groupService->deleteGroup($dto->identifier);
+            $this->auditLogger->log('GROUP_DELETE', "Rechte-Gruppe (ID: {$dto->identifier}) wurde gelöscht.");
             $this->sessionManager->addFlash('success', 'Gruppe gelöscht.');
 
             return new RedirectResponse('users.php');

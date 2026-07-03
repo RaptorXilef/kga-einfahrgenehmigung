@@ -13,6 +13,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 
@@ -25,6 +26,7 @@ use App\Core\Service\UserService;
 final readonly class ProfileUpdateUsernameAction implements ActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
@@ -50,10 +52,13 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
 
             if (isset($users[$userId])) {
                 $u              = $users[$userId];
+                $oldName        = $u->username;
                 $users[$userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
 
                 $this->sessionManager->updateAdminUsername($dto->newUsername);
+
+                $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
 
                 $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
 

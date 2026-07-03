@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\VoucherService;
 
 /**
@@ -23,6 +24,7 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
         private VoucherService $voucherService,
     ) {
@@ -44,6 +46,7 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
         }
 
         if ($this->voucherService->deleteVoucher($dto->identifier)) {
+            $this->auditLogger->log('VOUCHER_DELETE', "Gutscheincode '{$dto->identifier}' endgültig gelöscht.");
             $this->sessionManager->addFlash('success', "Gutschein '{$dto->identifier}' gelöscht.");
         } else {
             $this->sessionManager->addFlash('error', "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.");

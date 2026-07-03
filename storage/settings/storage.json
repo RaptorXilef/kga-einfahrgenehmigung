@@ -79,6 +79,11 @@
             "type": "json",
             "table": "update_migrations",
             "file": "update_migrations.json"
+        },
+        "audit_logs": {
+            "type": "json",
+            "table": "audit_logs",
+            "file": "audit_logs.json"
         }
     }
 }

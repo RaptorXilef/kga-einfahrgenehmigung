@@ -13,6 +13,7 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\CronStateRepositoryInterface;
@@ -35,6 +36,7 @@ use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileCronStateRepository;
 use App\Infrastructure\Storage\FileLockManager;
+use App\Infrastructure\Storage\JsonAuditLogRepository;
 use App\Infrastructure\Storage\JsonCancelledPermitRepository;
 use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
@@ -44,6 +46,7 @@ use App\Infrastructure\Storage\JsonPermitArchiveRepository;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
+use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
@@ -157,6 +160,14 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(CronStateRepositoryInterface::class, fn () => $container->get(
             FileCronStateRepository::class,
         ));
+
+        $container->bind(AuditLogRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['audit_logs']['type'] ?? 'json') === 'mysql'
+                ? new MySqlAuditLogRepository($container->get(\PDO::class), $config)
+                : new JsonAuditLogRepository($config);
+        });
 
         // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
         // Mail Decorator Pattern bleibt bestehen, um Rekursion bei MailQueueService zu verhindern

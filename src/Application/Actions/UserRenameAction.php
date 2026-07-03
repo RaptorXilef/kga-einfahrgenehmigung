@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\UserService;
 
 /**
@@ -25,8 +26,9 @@ use App\Core\Service\UserService;
 final readonly class UserRenameAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
+        private UserRepositoryInterface $userRepository,
         private UserService $userService,
     ) {
     }
@@ -55,9 +57,11 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
 
             if (isset($users[$dto->userId])) {
                 $u                   = $users[$dto->userId];
+                $oldName             = $u->username;
                 $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
 
+                $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
                 $this->sessionManager->addFlash('success', 'Login-Name aktualisiert.');
 
                 return new RedirectResponse('users.php');

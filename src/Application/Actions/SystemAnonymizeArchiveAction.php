@@ -11,6 +11,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
@@ -21,6 +22,7 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 final readonly class SystemAnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private SessionManager $sessionManager,
     ) {
@@ -39,6 +41,7 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface, Re
             if ($count === 0) {
                 $this->sessionManager->addFlash('info', 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.');
             } else {
+                $this->auditLogger->log('SYSTEM_ANONYMIZE', "DSGVO-Bereinigung durchgeführt. {$count} alte Archiv-Einträge wurden anonymisiert.");
                 $this->sessionManager->addFlash('success', "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.");
             }
 

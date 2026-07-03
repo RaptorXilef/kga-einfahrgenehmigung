@@ -14,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * TODO DOCBLOCK
@@ -24,6 +25,7 @@ use App\Core\Entity\User;
 final readonly class UserResetPasswordAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -54,6 +56,7 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
             $users[$dto->userId] = new User($u->id, $u->username, $u->groupId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
             $this->userRepository->saveAll($users);
 
+            $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$u->username}' (ID: {$u->id}) manuell zurückgesetzt.");
             $this->sessionManager->addFlash('success', 'Passwort wurde zurückgesetzt.');
 
             return new RedirectResponse('users.php');

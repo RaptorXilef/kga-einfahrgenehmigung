@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
 
@@ -23,6 +24,7 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private SessionManager $sessionManager,
         private VoucherService $voucherService,
@@ -58,6 +60,10 @@ final readonly class VoucherCreateAction implements ActionInterface
                 $dto->expiresAt,
                 $dto->dateMode,
             );
+
+            // LOG SCHREIBEN
+            $this->auditLogger->log('VOUCHER_CREATE', "Gutscheincode '{$code}' erstellt. Grund/Notiz: {$dto->reason}");
+
             $this->sessionManager->addFlash('success', "Gutschein erstellt: <strong>$code</strong>");
 
             return new RedirectResponse('admin.php');

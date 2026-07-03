@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\MigrationService;
 
 /**
@@ -23,6 +24,7 @@ use App\Infrastructure\Maintenance\MigrationService;
 final readonly class SystemTruncateTargetAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private MigrationService $migrationService,
         private SessionManager $sessionManager,
     ) {
@@ -50,6 +52,7 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
         }
 
         $msg = $this->migrationService->truncateTarget($dto->target, $dto->engine);
+        $this->auditLogger->log('SYSTEM_TRUNCATE', "Sicherheitslöschung (TRUNCATE) durchgeführt. Ziel: {$dto->target}, Engine: {$dto->engine}.");
         $this->sessionManager->addFlash('success', $msg);
 
         return new RedirectResponse('admin.php');

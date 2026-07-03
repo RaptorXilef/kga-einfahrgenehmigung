@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Storage\ImageStorageService;
 
 /**
@@ -23,6 +24,7 @@ use App\Infrastructure\Storage\ImageStorageService;
 final readonly class GroupUploadImageAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private ImageStorageService $imageStorage,
         private SessionManager $sessionManager,
     ) {
@@ -49,6 +51,7 @@ final readonly class GroupUploadImageAction implements ActionInterface, Requires
         }
 
         if ($this->imageStorage->uploadImage('group_images', $dto->identifier, $dto->file)) {
+            $this->auditLogger->log('GROUP_ICON_UPLOAD', "Neues Icon für Gruppe '{$dto->identifier}' hochgeladen.");
             $this->sessionManager->addFlash('success', 'Gruppen-Icon aktualisiert.');
         } else {
             $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten des Bildes.');

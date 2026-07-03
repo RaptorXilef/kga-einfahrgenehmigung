@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Storage\ImageStorageService;
 
 /**
@@ -23,6 +24,7 @@ use App\Infrastructure\Storage\ImageStorageService;
 final readonly class UserUploadAvatarAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private ImageStorageService $imageStorage,
         private SessionManager $sessionManager,
     ) {
@@ -47,6 +49,7 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
         }
 
         if ($this->imageStorage->uploadImage('user_images', $dto->identifier, $dto->file)) {
+            $this->auditLogger->log('USER_AVATAR_UPLOAD', "Neues Profilbild für Benutzer (ID: {$dto->identifier}) hochgeladen.");
             $this->sessionManager->addFlash('success', 'Profilbild aktualisiert.');
         } else {
             $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten.');

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
-
 use App\Application\DTO\ExportRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
@@ -13,6 +12,7 @@ use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\ExportService;
 use App\Core\Service\PermitFilterService;
 
@@ -25,6 +25,7 @@ use App\Core\Service\PermitFilterService;
 final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private ExportService $exportService,
         private PermitFilterService $filterService,
         private SessionManager $sessionManager,
@@ -48,6 +49,8 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
 
         $filtered = $this->filterService->getFilteredPermits($start, $end, $type, $query);
         $filename = $this->exportService->generateFilename($dto->format, $start, $end);
+
+        $this->auditLogger->log('DATA_EXPORT', "Daten-Export ausgeführt. Format: {$dto->format}, Einträge: " . \count($filtered));
 
         if ($dto->format === 'json') {
             return new FileDownloadResponse($this->exportService->generateJson($filtered), $filename, 'application/json');

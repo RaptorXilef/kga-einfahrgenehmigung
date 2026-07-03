@@ -64,9 +64,9 @@ final class PermissionRegistry
                         'label'    => 'Tab: Finanzen',
                         'key'      => 'dashboard.finance.view',
                         'children' => [
-                            'details'   => ['label' => 'Details', 'key' => 'dashboard.finance.details'],
-                            'mark_paid' => ['label' => 'Zahlung bestätigen', 'key' => 'dashboard.finance.mark_paid'],
-                            'suspend'   => ['label' => 'Sperren', 'key' => 'dashboard.finance.suspend'],
+                            'details' => ['label' => 'Details', 'key' => 'dashboard.finance.details'],
+                            /* 'mark_paid' => ['label' => 'Zahlung bestätigen', 'key' => 'dashboard.finance.mark_paid'], */
+                            'suspend' => ['label' => 'Sperren', 'key' => 'dashboard.finance.suspend'],
                         ],
                     ],
                     'future' => [
@@ -145,7 +145,8 @@ final class PermissionRegistry
                             ],
                         ],
                     ],
-                    'logs' => ['label' => 'Tab: Mail-Logs', 'key' => 'dashboard.logs.view'],
+                    'logs'      => ['label' => 'Tab: Mail-Logs', 'key' => 'dashboard.logs.view'],
+                    'audit_log' => ['label' => 'Tab: Nutzerprotokoll (Audit)', 'key' => 'dashboard.audit_log.view'],
                 ],
             ],
             'templates' => [

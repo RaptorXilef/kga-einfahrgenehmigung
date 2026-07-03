@@ -1,0 +1,77 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Storage;
+
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\AuditLogRepositoryInterface;
+use App\Core\Entity\AuditLog;
+
+final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterface
+{
+    use DynamicSqlTrait;
+
+    public function __construct(
+        private \PDO $pdo,
+        private ConfigInterface $config,
+    ) {
+    }
+
+    public function save(AuditLog $log): void
+    {
+        $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
+
+        $data = [
+            'id'         => $log->id,
+            'user_id'    => $log->userId,
+            'username'   => $log->username,
+            'action'     => $log->action,
+            'details'    => $log->details,
+            'ip_address' => $log->ipAddress,
+            'created_at' => $log->createdAt->format('Y-m-d H:i:s'),
+        ];
+
+        $sql = $this->buildInsertUpdateSql($table, $data);
+        $this->pdo->prepare($sql)->execute($data);
+    }
+
+    public function getPaginated(int $page, int $limit, string $actionFilter = ''): array
+    {
+        $table  = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
+        $where  = '';
+        $params = [];
+
+        if ($actionFilter !== '') {
+            $where    = 'WHERE action = ?';
+            $params[] = $actionFilter;
+        }
+
+        $offset = ($page - 1) * $limit;
+
+        // Total Count holen
+        $stmtCount = $this->pdo->prepare("SELECT COUNT(*) FROM `{$table}` $where");
+        $stmtCount->execute($params);
+        $total = (int) $stmtCount->fetchColumn();
+
+        // Items holen
+        $sql  = "SELECT * FROM `{$table}` $where ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        $items = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+            $items[] = new AuditLog(
+                $r['id'],
+                $r['user_id'],
+                $r['username'],
+                $r['action'],
+                $r['details'],
+                $r['ip_address'],
+                new \DateTimeImmutable($r['created_at']),
+            );
+        }
+
+        return ['items' => $items, 'total' => $total];
+    }
+}

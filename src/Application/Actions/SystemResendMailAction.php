@@ -13,6 +13,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * Action für den manuellen Neuversand von E-Mails aus den System-Logs.
@@ -23,6 +24,7 @@ use App\Contracts\Mail\MailServiceInterface;
 final readonly class SystemResendMailAction implements ActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
         private SessionManager $sessionManager,
@@ -62,6 +64,7 @@ final readonly class SystemResendMailAction implements ActionInterface
                 $log->data,
             );
 
+            $this->auditLogger->log('SYSTEM_MAIL_RESEND', "E-Mail '{$log->subject}' an {$log->recipient} manuell erneut versendet.");
             $this->sessionManager->addFlash('success', "E-Mail an {$log->recipient} wurde erfolgreich erneut versendet.");
 
             return new RedirectResponse('admin.php');

@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Infrastructure\Maintenance\GitHubUpdaterService;
 
 /**
@@ -22,6 +23,7 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
 final readonly class SystemPerformUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private GitHubUpdaterService $updater,
     ) {
     }
@@ -45,6 +47,7 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface, R
 
         try {
             $this->updater->performUpdate($dto->zipUrl);
+            $this->auditLogger->log('SYSTEM_UPDATE_PERFORM', 'System-Dateien aus ZIP-Archiv aktualisiert.');
 
             return JsonResponse::success(['message' => 'Update erfolgreich installiert!']);
         } catch (\Throwable $e) {

@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
 
 /**
@@ -23,6 +24,7 @@ use App\Core\Service\PermitService;
 final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private PermitService $permitService,
         private SessionManager $sessionManager,
     ) {
@@ -52,6 +54,10 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 
         try {
             $this->permitService->createPermit($dto->formData, $dto->sendEmail);
+
+            // LOG SCHREIBEN
+            $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->formData->name} (Parzelle {$dto->formData->parzelle})");
+
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
             return new RedirectResponse('admin.php');

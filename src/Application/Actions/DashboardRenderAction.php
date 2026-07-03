@@ -12,6 +12,7 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
+use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -23,6 +24,7 @@ use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Rendert das zentrale Admin-Dashboard.
@@ -33,11 +35,13 @@ use App\Core\Service\VoucherService;
 final readonly class DashboardRenderAction implements ViewActionInterface
 {
     public function __construct(
+        private AuditLogRepositoryInterface $auditLogRepository,
         private AuthService $auth,
         private BackupServiceInterface $backupService,
         private CancelledPermitRepositoryInterface $cancelledRepository,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
+        private ImageStorageService $imageStorage,
         private MailLogInterface $mailLog,
         private PermitFilterService $filterService,
         private PermitService $permitService,
@@ -81,9 +85,18 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
 
+        // --- Audit Log Daten abrufen ---
+        $auditPage   = \max(1, (int) ($request->get['audit_page'] ?? 1));
+        $auditFilter = (string) ($request->get['audit_filter'] ?? '');
+        $auditData   = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
+
         $this->renderer->render('admin_dashboard', [
             'allowedLimits'     => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits'        => $allPermits,
+            'auditFilter'       => $auditFilter,
+            'auditLogs'         => $auditData['items'],
+            'auditPage'         => $auditPage,
+            'auditTotal'        => $auditData['total'],
             'auth'              => $this->auth,
             'backups'           => $this->backupService->listBackups(),
             'cancelledPermits'  => $cancelledPermits,
@@ -92,6 +105,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'filterStart'       => $dto->start,
             'filterType'        => $dto->type,
             'groupRepository'   => $this->groupRepository,
+            'imageStorage'      => $this->imageStorage,
             'itemsPerPage'      => $dto->limit,
             'mailLogs'          => $this->mailLog->loadLogs(),
             'overdueLevels'     => $overdueLevels,

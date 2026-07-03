@@ -136,7 +136,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <div class="c-tab-content-container u-margin-auto">
                     <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
                 </div>
-                <?php } ?>
+            <?php } ?>
 
             <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
                 <h1 class="u-margin-none">Dashboard & Statistiken</h1>
@@ -251,6 +251,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                      alt="">Mail Log
                             </button>
                         <?php } ?>
+                        <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
+                            <button class="c-tabs__btn"
+                                    data-tab-target="tab-audit-log">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                                     class="c-icon"
+                                     alt="">Nutzerprotokoll
+                            </button>
+                        <?php } ?>
                         <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-migration">
@@ -342,6 +350,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <div id="tab-logs"
                              class="c-tabs__content">
                             <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
+                        </div>
+                    <?php } ?>
+
+                    <!-- Audit Log Content -->
+                    <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
+                        <div id="tab-audit-log"
+                             class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'c-tabs__content--active' : ''; ?>">
+                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_audit_log.phtml'; ?>
                         </div>
                     <?php } ?>
 

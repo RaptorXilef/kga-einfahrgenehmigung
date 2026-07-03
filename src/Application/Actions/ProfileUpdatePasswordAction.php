@@ -13,6 +13,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 
@@ -29,6 +30,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
         private UserService $userService,
+        private AuditLoggerService $auditLogger,
     ) {
     }
 
@@ -55,6 +57,8 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
 
                 $this->userRepository->saveAll($users);
                 $this->sessionManager->setAuthSession($userId, $u->groupId, $u->username, $newHash);
+
+                $this->auditLogger->log('PROFILE_PASSWORD_CHANGE', 'Eigenes Kennwort wurde geändert.');
 
                 $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
 
