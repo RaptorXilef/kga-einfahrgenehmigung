@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\UserSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -22,6 +23,7 @@ use App\Infrastructure\Storage\ImageStorageService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('save_user')]
 final readonly class UserSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

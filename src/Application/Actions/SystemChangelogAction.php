@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\RequiresPermissionInterface;
@@ -16,6 +17,7 @@ use App\Infrastructure\System\SystemInfoService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('changelog')]
 final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -32,7 +34,10 @@ final readonly class SystemChangelogAction implements ViewActionInterface, Requi
 
     public function execute(ServerRequest $request): mixed
     {
-        $this->renderer->render('changelog', ['auth' => $this->auth, 'markdownContent' => $this->sysInfo->getChangelog()]);
+        $this->renderer->render('changelog', [
+            'auth'            => $this->auth,
+            'markdownContent' => $this->sysInfo->getChangelog(),
+        ]);
 
         return null;
     }

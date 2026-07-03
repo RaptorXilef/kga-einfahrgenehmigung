@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -18,6 +19,7 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('delete_voucher')]
 final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

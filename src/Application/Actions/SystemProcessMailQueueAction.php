@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\ViewActionInterface;
@@ -16,6 +17,7 @@ use App\Contracts\Mail\MailServiceInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('process_mail_queue')]
 final readonly class SystemProcessMailQueueAction implements ViewActionInterface
 {
     public function __construct(

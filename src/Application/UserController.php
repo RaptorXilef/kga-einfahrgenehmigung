@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\UserActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -14,12 +13,12 @@ use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Response\RedirectResponse;
+use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Front Controller zur Administration von Benutzern, Gruppen und Profilen.
@@ -34,10 +33,9 @@ final readonly class UserController
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
         private AuthService $auth,
-        private ImageStorageService $imageStorage, // TODO Prüfen ob noch gebraucht
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
-        private UserActionFactory $factory,
+        private UniversalActionFactory $factory,
         private SecurityHeadersMiddleware $securityHeaders,
         private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {

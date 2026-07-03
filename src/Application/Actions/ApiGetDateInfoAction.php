@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
+
 use App\Application\DTO\ApiDateInfoRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
@@ -17,6 +19,7 @@ use App\Core\Service\HolidayService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('get_date_info')]
 final readonly class ApiGetDateInfoAction implements ViewActionInterface
 {
     public function __construct(

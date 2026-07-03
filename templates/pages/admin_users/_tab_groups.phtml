@@ -16,6 +16,7 @@
  * @var array                                           $settings
  * @var array                                           $structure
  * @var string                                          $appRoot
+ * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
 if ($auth->hasPermission('system.permissions.groups.manage')) {
     $structure ??= $config->get('structure', []);

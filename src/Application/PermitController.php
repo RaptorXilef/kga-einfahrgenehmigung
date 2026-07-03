@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\PermitActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -12,6 +11,7 @@ use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ResponseInterface;
 
@@ -24,7 +24,7 @@ final readonly class PermitController
 {
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
-        private PermitActionFactory $actionFactory,
+        private UniversalActionFactory $actionFactory,
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private SecurityHeadersMiddleware $securityHeaders,
@@ -49,12 +49,12 @@ final readonly class PermitController
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
-        // ROUTING LOGIK
-        $actionKey = 'render';
+        // Mache Keys global eindeutig für den Universal-Router
+        $actionKey = 'permit_render';
         if ($request->getMethod() === 'POST') {
-            $actionKey = 'submit';
+            $actionKey = 'permit_submit';
         } elseif (isset($request->get['edit'], $request->get['token'])) {
-            $actionKey = 'edit';
+            $actionKey = 'permit_edit';
         }
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {

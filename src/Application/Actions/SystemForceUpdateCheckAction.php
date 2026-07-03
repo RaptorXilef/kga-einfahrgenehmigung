@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -17,6 +18,7 @@ use App\Infrastructure\System\SystemInfoService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('force_update_check')]
 final readonly class SystemForceUpdateCheckAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -18,6 +19,7 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('mark_as_paid')]
 final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

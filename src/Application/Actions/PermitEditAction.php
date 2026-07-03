@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -17,6 +18,7 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('permit_edit')]
 final readonly class PermitEditAction implements ViewActionInterface
 {
     public function __construct(

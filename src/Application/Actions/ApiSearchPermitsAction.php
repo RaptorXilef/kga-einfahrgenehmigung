@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
+
 use App\Application\DTO\ApiSearchPermitsRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
@@ -16,6 +18,7 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('search_permits')]
 final readonly class ApiSearchPermitsAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

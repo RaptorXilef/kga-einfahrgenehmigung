@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\HistoryRequestLinkRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -21,6 +22,7 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('history_request_link')]
 final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(

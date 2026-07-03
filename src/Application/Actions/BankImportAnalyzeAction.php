@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
+
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -14,6 +16,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\BankImportService;
 
+#[ActionRoute('bank_import_analyze')]
 final readonly class BankImportAnalyzeAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

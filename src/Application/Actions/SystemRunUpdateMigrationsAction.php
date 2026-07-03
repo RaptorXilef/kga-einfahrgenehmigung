@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -17,6 +18,7 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('run_update_migrations')]
 final readonly class SystemRunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

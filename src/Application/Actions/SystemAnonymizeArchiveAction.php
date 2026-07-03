@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
@@ -16,6 +17,7 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('anonymize_archive')]
 final readonly class SystemAnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

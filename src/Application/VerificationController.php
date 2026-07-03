@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\VerificationActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -13,6 +12,7 @@ use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -29,7 +29,7 @@ final readonly class VerificationController
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
-        private VerificationActionFactory $factory,
+        private UniversalActionFactory $factory,
         private SecurityHeadersMiddleware $securityHeaders,
         private MaintenanceGuardMiddleware $maintenanceGuard,
     ) {
@@ -49,8 +49,8 @@ final readonly class VerificationController
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
-        // ROUTING LOGIK
-        $actionKey = (isset($request->get['token']) || isset($request->post['submit_code'])) ? 'submit' : 'render';
+        // Mache Keys global eindeutig für den Universal-Router
+        $actionKey = (isset($request->get['token']) || isset($request->post['submit_code'])) ? 'verify_submit' : 'verify_render';
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
             return $this->factory->create($actionKey)->execute($req);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
+
 use App\Application\DTO\BankImportProcessRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -12,6 +14,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\BankImportService;
 
+#[ActionRoute('bank_import_process')]
 final readonly class BankImportProcessAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

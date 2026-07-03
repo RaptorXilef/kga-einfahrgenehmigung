@@ -9,12 +9,13 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                                          $settings
- * @var array                                          $groups
- * @var array                                          $users
- * @var \App\Core\Service\AuthService                  $auth
- * @var string                                         $appRoot
- * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
+ * @var array                                           $settings
+ * @var array                                           $groups
+ * @var array                                           $users
+ * @var \App\Core\Service\AuthService                   $auth
+ * @var string                                          $appRoot
+ * @var \App\Contracts\Storage\UserRepositoryInterface  $userRepository
+ * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
 if ($auth->hasPermission('system.permissions.users.manage')) {
     ?>

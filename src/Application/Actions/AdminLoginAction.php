@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
+
 use App\Application\DTO\AdminLoginRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -20,6 +22,7 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('admin_login')]
 final readonly class AdminLoginAction implements ActionInterface
 {
     public function __construct(

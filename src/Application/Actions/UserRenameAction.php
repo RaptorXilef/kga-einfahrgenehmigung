@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\UserRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -20,6 +21,7 @@ use App\Core\Service\UserService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('rename_user')]
 final readonly class UserRenameAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\HistoryActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -13,6 +12,7 @@ use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\RateLimitMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -26,7 +26,7 @@ final readonly class HistoryController
 {
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
-        private HistoryActionFactory $actionFactory,
+        private UniversalActionFactory $actionFactory,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
@@ -50,20 +50,20 @@ final readonly class HistoryController
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
-        // ROUTING LOGIK
-        $actionKey = 'render';
+        // Mache Keys global eindeutig für den Universal-Router
+        $actionKey = 'history_render';
         if (isset($request->post['action']) && $request->post['action'] === 'logout') {
-            $actionKey = 'logout';
+            $actionKey = 'history_logout';
         } elseif (isset($request->post['action']) && $request->post['action'] === 'cancel_permit') {
-            $actionKey = 'cancel_permit';
+            $actionKey = 'history_cancel_permit';
         } elseif (isset($request->post['request_link'])) {
-            $actionKey = 'request_link';
+            $actionKey = 'history_request_link';
         } elseif (isset($request->post['submit_code'])) {
-            $actionKey = 'submit_code';
+            $actionKey = 'history_submit_code';
         } elseif (isset($request->get['token'])) {
-            $actionKey = 'verify_token';
+            $actionKey = 'history_verify_token';
         } elseif (isset($request->get['action'], $request->get['code']) && $request->get['action'] === 'print') {
-            $actionKey = 'print';
+            $actionKey = 'history_print';
         }
 
         // 2. Request durchschicken

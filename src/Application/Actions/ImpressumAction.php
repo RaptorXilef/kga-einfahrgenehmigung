@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -15,6 +16,7 @@ use App\Infrastructure\Storage\JsonHelper;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('impressum')]
 final readonly class ImpressumAction implements ViewActionInterface
 {
     public function __construct(

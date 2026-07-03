@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\DashboardFilterRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -15,6 +16,7 @@ use App\Contracts\Application\ActionInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('filter_dashboard')]
 final readonly class DashboardFilterAction implements ActionInterface
 {
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\ApiPerformUpdateRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -17,6 +18,7 @@ use App\Infrastructure\Maintenance\GitHubUpdaterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('perform_update')]
 final readonly class SystemPerformUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

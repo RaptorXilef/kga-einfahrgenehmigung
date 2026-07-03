@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\GroupRenameRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -19,6 +20,7 @@ use App\Core\Entity\Group;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('rename_group')]
 final readonly class GroupRenameAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

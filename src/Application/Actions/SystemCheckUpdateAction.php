@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\ApiCheckUpdateRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
@@ -17,6 +18,7 @@ use App\Infrastructure\System\SystemInfoService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('check_update')]
 final readonly class SystemCheckUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\ApiActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\ApiPermissionMiddleware;
@@ -16,6 +15,7 @@ use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Response\JsonResponse;
+use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
@@ -30,7 +30,7 @@ use App\Core\Service\AuthService;
 final readonly class ApiController
 {
     public function __construct(
-        private ApiActionFactory $factory,
+        private UniversalActionFactory $factory,
         private AuthService $auth,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
@@ -50,6 +50,7 @@ final readonly class ApiController
             ->add(new CorsMiddleware())
             ->add(new HttpMethodMiddleware(['POST', 'GET']))
             ->add(new ApiCsrfMiddleware($this->sessionManager));
+
         if ($rateLimit) {
             $pipeline->add(new ApiRateLimitMiddleware($this->rateLimiter));
         }

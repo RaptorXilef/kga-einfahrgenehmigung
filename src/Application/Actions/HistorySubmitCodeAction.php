@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\HistorySubmitCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -18,6 +19,7 @@ use App\Core\Service\MagicLinkService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('history_submit_code')]
 final readonly class HistorySubmitCodeAction implements ViewActionInterface
 {
     public function __construct(

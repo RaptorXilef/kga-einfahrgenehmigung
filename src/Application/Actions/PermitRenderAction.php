@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\ViewRenderRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
@@ -18,6 +19,7 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('permit_render')]
 final readonly class PermitRenderAction implements ViewActionInterface
 {
     public function __construct(
@@ -34,10 +36,16 @@ final readonly class PermitRenderAction implements ViewActionInterface
     {
         $dto = ViewRenderRequest::fromArray($request->get);
 
-        // Fallback für den Initial-Antrag: Wenn sent=1, aber keine Flash-Message existiert
-        if ($dto->isSuccess && empty($_SESSION['flashes']['success'])) {
-            $this->sessionManager->addFlash('success', 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
-                'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.');
+        // Wir holen uns die Flash-Messages manuell, um zu sehen, ob ein spezieller Text vorliegt
+        $flashes        = $this->sessionManager->getFlashes();
+        $successMessage = '';
+
+        if ($dto->isSuccess) {
+            if (! empty($flashes['success'])) {
+                $successMessage = $flashes['success'][0];
+            } else {
+                $successMessage = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
+            }
         }
 
         $this->renderer->render('formular', [
@@ -45,6 +53,8 @@ final readonly class PermitRenderAction implements ViewActionInterface
             'formData'          => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),
             'success'           => $dto->isSuccess,
+            'message'           => $successMessage, // <--- FIX: Die Variable für den Countdown zurückgeben!
+            'flashes'           => $flashes, // Flashes manuell an die View übergeben, da wir sie oben schon "geleert" haben
         ]);
 
         return null;
@@ -79,7 +89,6 @@ final readonly class PermitRenderAction implements ViewActionInterface
                 } else {
                     $finalLink = \rtrim($baseUrl, '/') . '/' . \ltrim($agree['link'], '/');
                 }
-
                 $linkHtml = '<a href="' . \htmlspecialchars($finalLink) .
                     '" target="_blank" style="color: var(--primary-color); text-decoration: underline; font-weight: 500;">$1</a>';
                 $renderedLabel = \preg_replace('/\[(.*?)\]/', $linkHtml, $cleanLabel);

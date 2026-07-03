@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
@@ -16,6 +17,7 @@ use App\Infrastructure\Maintenance\UpdateMigrationService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('finalize_update')]
 final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\SuccessRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
@@ -22,6 +23,7 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('success')]
 final readonly class SuccessAction implements ViewActionInterface
 {
     public function __construct(

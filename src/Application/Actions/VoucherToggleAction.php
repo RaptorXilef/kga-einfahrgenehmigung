@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\VoucherToggleRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -18,6 +19,8 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('activate_voucher')]
+#[ActionRoute('deactivate_voucher')]
 final readonly class VoucherToggleAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

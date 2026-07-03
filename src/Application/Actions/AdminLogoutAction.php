@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
+
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Contracts\Application\ActionInterface;
@@ -14,6 +16,7 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('admin_logout')]
 final readonly class AdminLogoutAction implements ActionInterface
 {
     public function __construct(

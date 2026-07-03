@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\DTO\DashboardViewRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
@@ -28,6 +29,7 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('render_dashboard')]
 final readonly class DashboardRenderAction implements ViewActionInterface
 {
     public function __construct(

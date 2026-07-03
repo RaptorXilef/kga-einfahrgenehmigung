@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\ActionRoute;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -17,6 +18,7 @@ use App\Infrastructure\Storage\ImageStorageService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
+#[ActionRoute('render_profile')]
 final readonly class ProfileRenderAction implements ViewActionInterface
 {
     public function __construct(

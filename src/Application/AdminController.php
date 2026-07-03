@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\AdminActionFactory;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
@@ -18,6 +17,7 @@ use App\Application\Middleware\SystemMaintenanceMiddleware;
 use App\Application\Middleware\ToggleSuspensionMiddleware;
 use App\Application\Middleware\VoucherIssuanceMiddleware;
 use App\Application\Response\RedirectResponse;
+use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
@@ -38,7 +38,7 @@ final readonly class AdminController
      * Initiiert den Controller mit allen Abhängigkeiten (Dependency Injection).
      */
     public function __construct(
-        private AdminActionFactory $actionFactory,
+        private UniversalActionFactory $actionFactory,
         private AdminAuthGuardMiddleware $authGuard,
         private AnalyticsMiddleware $analyticsMiddleware,
         private AuthService $auth,
@@ -72,6 +72,14 @@ final readonly class AdminController
             $actionKey = 'bank_import_analyze';
         }
 
+        // Mache Keys global eindeutig für den Universal-Router
+        if ($actionKey === 'login') {
+            $actionKey = 'admin_login';
+        }
+        if ($actionKey === 'logout') {
+            $actionKey = 'admin_logout';
+        }
+
         // Action VOR der Pipeline instanziieren
         $action = $this->actionFactory->create($actionKey);
 
@@ -86,7 +94,7 @@ final readonly class AdminController
             ->add(new CsrfMiddleware($this->sessionManager, 'admin.php'));
 
         // Die Login-Logik umgeht natürlich den Guard, alles andere muss durch den Türsteher
-        if ($actionKey !== 'login' && $actionKey !== 'logout') {
+        if ($actionKey !== 'admin_login' && $actionKey !== 'admin_logout') {
             $pipeline->add($this->authGuard);
         }
 
