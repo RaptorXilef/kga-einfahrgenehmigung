@@ -2,6 +2,17 @@
 
 
 
+## [0.51.5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.4...v0.51.5) (2026-07-03)
+
+### 🐛 Bug Fixes
+
+* **api,core:** bypass API CSRF for GET requests and resolve Enum type safety issues ([e6a64fb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e6a64fbb236a5d9007866ad1debd8e7765766658))
+
+### ⚙️ Refactoring
+
+* **core, ui:** complete migration to Post-Redirect-Get PRG pattern, enforce strict type safety ([5b3e4ad](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5b3e4ad1418c4479274c5393825f125fec6b2e12))
+* **core, ui:** complete PRG migration, enforce strict type safety, and patch dynamic SQL bugs ([cdf2cd5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cdf2cd5df1c3fd0a725885c77f58421a24b31c58))
+
 ## [0.51.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.51.3...v0.51.4) (2026-06-29)
 
 ### 🐛 Bug Fixes
