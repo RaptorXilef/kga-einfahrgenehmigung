@@ -2,6 +2,12 @@
 
 
 
+## [0.54.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.53.0...v0.54.0) (2026-07-03)
+
+### 🚀 Features
+
+* **security:** implement comprehensive Audit Log for administrative actions ([57b834e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/57b834e6bf5cc350517b103262fe6fda3975c2e8))
+
 ## [0.53.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.52.0...v0.53.0) (2026-07-03)
 
 ### 🚀 Features
