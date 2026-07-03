@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
@@ -23,6 +24,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private AuthService $auth,
+        private SessionManager $sessionManager,
         private StorageInterface $storage,
     ) {
     }
@@ -53,7 +55,9 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
         }
 
         if (! $hasRight) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung zum Sperren.'));
+            $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Sperren.');
+
+            return new RedirectResponse('admin.php');
         }
 
         return $next($request);

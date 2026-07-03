@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\BankImportProcessRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\BankImportService;
@@ -15,6 +16,7 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
 {
     public function __construct(
         private BankImportService $importService,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -35,14 +37,18 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
             }
 
             if (($res['success'] ?? false) === true) {
-                $msg = "Bank-Abgleich beendet: <strong>{$res['erfolgreich']}</strong> Permits freigeschaltet, {$res['uebersprungen']} übersprungen (bereits bezahlt oder kein Match), {$res['fehlerhaft']} fehlerhaft/zu geringer Betrag.";
-
-                return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
+                $msg = "Bank-Abgleich beendet: <strong>{$res['erfolgreich']}</strong> Permits freigeschaltet, {$res['uebersprungen']} übersprungen, {$res['fehlerhaft']} fehlerhaft.";
+                $this->sessionManager->addFlash('success', $msg);
+            } else {
+                $this->sessionManager->addFlash('error', 'Fehler bei der CSV-Verarbeitung.');
             }
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler bei der CSV-Verarbeitung.'));
+            return new RedirectResponse('admin.php');
+
         } catch (\Exception $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
     }
 }

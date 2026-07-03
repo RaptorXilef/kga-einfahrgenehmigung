@@ -39,12 +39,12 @@ final readonly class HistoryRenderAction implements ViewActionInterface
     {
         $dto            = ViewRenderRequest::fromArray($request->get);
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
-        $message        = $dto->message;
-        $isSuccess      = $dto->isSuccess;
-        $step           = $dto->step;
 
         if ($emailInSession === '') {
-            $this->renderer->render('history_login', ['isSuccess' => $isSuccess, 'message' => $message, 'step' => $step]);
+            $this->renderer->render('history_login', [
+                'isSuccess' => $dto->isSuccess,
+                'step'      => $dto->step,
+            ]);
 
             return null;
         }
@@ -77,8 +77,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         $this->renderer->render('history_list', [
             'currentArchiveYear' => $loadedYear,
             'email'              => $emailInSession,
-            'isSuccess'          => $isSuccess,
-            'message'            => $message,
+            'isSuccess'          => $dto->isSuccess,
             'overdueLevels'      => $overdueLevels,
             'permits'            => $permits,
         ]);

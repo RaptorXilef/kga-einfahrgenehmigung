@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\PermitService;
@@ -21,6 +22,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
 {
     public function __construct(
         private PermitService $permitService,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -41,10 +43,17 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
-        }
-        $msg = $this->permitService->manualActivate($dto->identifier) ? "Zahlung für {$dto->identifier} bestätigt." : 'Fehler: Genehmigung nicht gefunden oder bereits bezahlt.';
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
+            return new RedirectResponse('admin.php');
+        }
+
+        if ($this->permitService->manualActivate($dto->identifier)) {
+            $this->sessionManager->addFlash('success', "Zahlung für {$dto->identifier} bestätigt.");
+        } else {
+            $this->sessionManager->addFlash('error', 'Fehler: Genehmigung nicht gefunden oder bereits bezahlt.');
+        }
+
+        return new RedirectResponse('admin.php');
     }
 }

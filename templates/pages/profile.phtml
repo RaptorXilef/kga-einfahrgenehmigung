@@ -12,15 +12,15 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string                                         $userId   Die aktive Benutzer-ID des angemeldeten Benutzers aus der Session.
- * @var string                                         $username Der aktuelle Anzeigename.
- * @var string                                         $group    Der Klartext-Name der eigenen Berechtigungsgruppe.
- * @var string                                         $message  Erfolgs- oder Fehlermeldung nach der Profildetail-Aktualisierung.
- * @var \App\Core\Service\AuthService                  $auth
- * @var array                                          $settings
- * @var string                                         $appRoot
- * @var \App\Infrastructure\Config\Config              $config
- * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
+ * @var string                                          $userId   Die aktive Benutzer-ID des angemeldeten Benutzers aus der Session.
+ * @var string                                          $username Der aktuelle Anzeigename.
+ * @var string                                          $group    Der Klartext-Name der eigenen Berechtigungsgruppe.
+ * @var \App\Core\Service\AuthService                   $auth
+ * @var array                                           $settings
+ * @var string                                          $appRoot
+ * @var \App\Infrastructure\Config\Config               $config
+ * @var \App\Contracts\Storage\UserRepositoryInterface  $userRepository
+ * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
 
 // $userId wird nun vom Controller übergeben
@@ -58,11 +58,7 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                 <a href="admin.php" class="c-tabs__btn">← Zum Dashboard</a>
             </header>
 
-            <?php if ($message) { ?>
-                <div class="c-alert <?php echo \str_contains($message, 'Fehler') ? 'c-alert--danger' : 'c-alert--success'; ?> u-margin-bottom-l">
-                    <?php echo \htmlspecialchars($message); ?>
-                </div>
-            <?php } ?>
+            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
             <div class="u-grid u-gap-l"
                  style="grid-template-columns: 250px 1fr;">

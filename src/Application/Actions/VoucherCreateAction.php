@@ -8,6 +8,7 @@ use App\Application\DTO\VoucherCreateRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
@@ -21,6 +22,7 @@ final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,
+        private SessionManager $sessionManager,
         private VoucherService $voucherService,
     ) {
     }
@@ -35,7 +37,9 @@ final readonly class VoucherCreateAction implements ActionInterface
         try {
             $dto = VoucherCreateRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
 
         try {
@@ -52,10 +56,13 @@ final readonly class VoucherCreateAction implements ActionInterface
                 $dto->expiresAt,
                 $dto->dateMode,
             );
+            $this->sessionManager->addFlash('success', "Gutschein erstellt: <strong>$code</strong>");
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode("Gutschein erstellt: <strong>$code</strong>"));
+            return new RedirectResponse('admin.php');
         } catch (\Exception $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: ' . $e->getMessage()));
+            $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
     }
 }

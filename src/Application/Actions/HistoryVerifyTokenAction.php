@@ -35,8 +35,9 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
             $dto = SimpleTokenRequest::fromArray($request->get);
         } catch (ValidationException $e) {
             $this->rateLimiter->recordFailedAttempt($ip);
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history.php?sent=1&msg=' . \urlencode($e->getMessage()));
+            return new RedirectResponse('history.php?sent=1');
         }
 
         $verifiedEmail = $this->magicLinkService->verifyAny($dto->token);
@@ -50,9 +51,8 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
         }
 
         $this->rateLimiter->recordFailedAttempt($ip);
+        $this->sessionManager->addFlash('error', 'Der Link ist ungültig oder abgelaufen.');
 
-        return new RedirectResponse('history.php?sent=1&msg=' . \urlencode(
-            'Der Link ist ungültig oder abgelaufen.',
-        ));
+        return new RedirectResponse('history.php?sent=1');
     }
 }

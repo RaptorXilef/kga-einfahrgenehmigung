@@ -92,7 +92,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'groupRepository'   => $this->groupRepository,
             'itemsPerPage'      => $dto->limit,
             'mailLogs'          => $this->mailLog->loadLogs(),
-            'message'           => $dto->message,
             'overdueLevels'     => $overdueLevels,
             'periodStats'       => $this->reportingService->calculateDetailedStats($filtered),
             'permitGroups'      => $permitGroups,

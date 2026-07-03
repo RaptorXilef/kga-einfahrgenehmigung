@@ -44,7 +44,7 @@ final readonly class VerificationController
         $pipeline
             ->add($this->securityHeaders)
             ->add($this->maintenanceGuard)
-            ->add(new RateLimitMiddleware($this->rateLimiter, 'verify.php?error=1'))
+            ->add(new RateLimitMiddleware($this->rateLimiter, $this->sessionManager, 'verify.php?error=1'))
             ->add(new CsrfMiddleware($this->sessionManager, 'verify.php?error=1'))
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);

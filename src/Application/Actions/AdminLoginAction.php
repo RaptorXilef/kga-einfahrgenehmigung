@@ -8,6 +8,7 @@ use App\Application\DTO\AdminLoginRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
@@ -24,6 +25,7 @@ final readonly class AdminLoginAction implements ActionInterface
     public function __construct(
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
+        private SessionManager $sessionManager, // <--- NEU
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -62,10 +64,13 @@ final readonly class AdminLoginAction implements ActionInterface
      */
     private function renderForm(string $message): void
     {
+        if ($message !== '') {
+            $this->sessionManager->addFlash('error', $message);
+        }
+
         $this->renderer->render('admin_login', [
             'auth'            => $this->auth,
             'groupRepository' => $this->groupRepository,
-            'message'         => $message,
             'userRepository'  => $this->userRepository,
         ]);
     }

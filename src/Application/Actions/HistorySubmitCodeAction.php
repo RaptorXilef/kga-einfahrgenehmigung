@@ -32,9 +32,13 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
         try {
             $dto = HistorySubmitCodeRequest::fromRequest($request);
         } catch (ValidationException $e) {
-            return new RedirectResponse('history.php?sent=1&msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('history.php?sent=1');
         }
+
         $verifiedEmail = $this->magicLinkService->verifyAny($dto->loginCode);
+
         if ($verifiedEmail) {
             $this->rateLimiter->clearAttempts($dto->ip);
             $this->sessionManager->regenerate();
@@ -42,10 +46,10 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
 
             return new RedirectResponse('history.php');
         }
-        $this->rateLimiter->recordFailedAttempt($dto->ip);
 
-        return new RedirectResponse('history.php?sent=1&msg=' . \urlencode(
-            'Der Code ist ungültig oder abgelaufen.',
-        ));
+        $this->rateLimiter->recordFailedAttempt($dto->ip);
+        $this->sessionManager->addFlash('error', 'Der Code ist ungültig oder abgelaufen.');
+
+        return new RedirectResponse('history.php?sent=1');
     }
 }

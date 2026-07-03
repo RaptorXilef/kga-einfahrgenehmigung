@@ -21,7 +21,6 @@ use App\Core\Entity\PermitStatus;
  * @var string                                $email             Die verifizierte E-Mail-Adresse aus der Session.
  * @var array                                 $settings          Layout-Optionen (Farben, URLs).
  * @var int                                   $currentArchiveYear Das aktuell geladene Archivjahr (0 = nur Live-Daten).
- * @var string                                $message           Optionale Infomeldung.
  * @var bool                                  $isSuccess         Status-Flag.
  * @var \App\Contracts\Config\ConfigInterface $config         Globale Konfiguration.
  * @var \App\Core\Service\PermitService       $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
@@ -95,18 +94,7 @@ $now = new \DateTimeImmutable('today');
             </div>
         </header>
 
-        <?php if (! empty($message)) {
-            $alertClass = ($isSuccess ?? false) ? 'c-alert--success' : 'c-alert--danger';
-            ?>
-            <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
-                <div class="u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/<?php echo ($isSuccess ?? false) ? 'status-success' : 'status-invalid'; ?>.webp"
-                         class="c-icon"
-                         alt="">
-                    <span><?php echo \htmlspecialchars($message); ?></span>
-                </div>
-            </div>
-        <?php } ?>
+        <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
         <section class="c-card"
                  style="border-top: 5px solid var(--primary-color);">

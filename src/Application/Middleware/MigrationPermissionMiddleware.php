@@ -6,6 +6,7 @@ namespace App\Application\Middleware;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Core\Service\AuthService;
 
@@ -18,6 +19,7 @@ final readonly class MigrationPermissionMiddleware implements MiddlewareInterfac
 {
     public function __construct(
         private AuthService $auth,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -26,7 +28,9 @@ final readonly class MigrationPermissionMiddleware implements MiddlewareInterfac
         $target = $request->post['target'] ?? '';
         $dir    = $request->post['direction'] ?? '';
         if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$dir}")) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung für diese Migrations-Aktion.'));
+            $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung für diese Migrations-Aktion.');
+
+            return new RedirectResponse('admin.php');
         }
 
         return $next($request);

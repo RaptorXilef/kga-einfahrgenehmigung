@@ -6,6 +6,7 @@ namespace App\Application\Middleware;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Security\RateLimiterInterface;
 
@@ -18,6 +19,7 @@ final readonly class RateLimitMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private RateLimiterInterface $rateLimiter,
+        private SessionManager $sessionManager,
         private string $fallbackUrl,
     ) {
     }
@@ -27,12 +29,11 @@ final readonly class RateLimitMiddleware implements MiddlewareInterface
         $ip = $request->getIp();
 
         if ($this->rateLimiter->isBlocked($ip)) {
-            $msg = 'Zu viele Versuche. Die IP-Adresse wurde für 15 Minuten gesperrt.';
-
+            $this->sessionManager->addFlash('error', 'Zu viele Versuche. Die IP-Adresse wurde für 15 Minuten gesperrt.');
             // Hängt die Parameter sauber an die URL an
             $separator = \str_contains($this->fallbackUrl, '?') ? '&' : '?';
 
-            return new RedirectResponse($this->fallbackUrl . $separator . 'sent=0&msg=' . \urlencode($msg));
+            return new RedirectResponse($this->fallbackUrl . $separator . 'sent=0');
         }
 
         return $next($request);

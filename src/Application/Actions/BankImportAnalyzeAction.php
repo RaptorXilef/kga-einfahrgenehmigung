@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
@@ -18,6 +19,7 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
     public function __construct(
         private AuthService $auth,
         private BankImportService $importService,
+        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private GroupRepositoryInterface $groupRepository,
     ) {
@@ -32,19 +34,24 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
     {
         $file = $request->files['bank_csv'] ?? null;
         if (! $file || (isset($file['error']) && $file['error'] !== 0)) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler beim Datei-Upload.'));
+            $this->sessionManager->addFlash('error', 'Fehler beim Datei-Upload.');
+
+            return new RedirectResponse('admin.php');
         }
 
         // Datei an einen sicheren temporären Ort verschieben
         $tempPath = \sys_get_temp_dir() . '/kga_bank_' . \uniqid() . '.csv';
         if (! \move_uploaded_file($file['tmp_name'], $tempPath)) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Datei konnte nicht verarbeitet werden.'));
+            $this->sessionManager->addFlash('error', 'Datei konnte nicht verarbeitet werden.');
+
+            return new RedirectResponse('admin.php');
         }
 
         $headers = $this->importService->extractHeaders($tempPath);
 
         // Erste echte Datenzeile für die Live-Vorschau auslesen
         $firstRowData = [];
+
         if (! empty($headers) && $handle = \fopen($tempPath, 'r')) {
             $firstLine = \fgets($handle);
             \rewind($handle);
@@ -66,6 +73,7 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         $guessedId     = 4;
         $guessedAmount = 14;
         $guessedDate   = 1;
+
         foreach ($headers as $index => $header) {
             $h = \strtolower(\trim($header));
             if (\str_contains($h, 'zweck') || \str_contains($h, 'remittance')) {
@@ -79,11 +87,12 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             }
         }
 
+        $this->sessionManager->addFlash('success', 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.');
+
         // Dashboard rendern und Wizard öffnen - jetzt inkl. bank_row_preview
         $this->renderer->render('admin_dashboard', [
             'auth'            => $this->auth,
             'groupRepository' => $this->groupRepository,
-            'message'         => 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.',
 
             // Für den Bank Import Wizard
             'bank_headers'     => $headers,

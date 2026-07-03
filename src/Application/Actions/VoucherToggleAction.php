@@ -8,6 +8,7 @@ use App\Application\DTO\VoucherToggleRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\VoucherService;
@@ -20,6 +21,7 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherToggleAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private SessionManager $sessionManager,
         private VoucherService $voucherService,
     ) {
     }
@@ -39,11 +41,15 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
         try {
             $dto = VoucherToggleRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
+
         $this->voucherService->toggleStatus($dto->code, $dto->targetStatus);
         $msg = 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
+        $this->sessionManager->addFlash('success', $msg);
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
+        return new RedirectResponse('admin.php');
     }
 }

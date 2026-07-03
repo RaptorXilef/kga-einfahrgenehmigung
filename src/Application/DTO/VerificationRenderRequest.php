@@ -13,12 +13,11 @@ final readonly class VerificationRenderRequest
 {
     public function __construct(
         public bool $isError,
-        public string $message,
     ) {
     }
 
     public static function fromArray(array $get): self
     {
-        return new self(isset($get['error']), \trim((string) ($get['msg'] ?? '')));
+        return new self(isset($get['error']));
     }
 }

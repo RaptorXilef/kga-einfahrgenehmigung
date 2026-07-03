@@ -8,6 +8,7 @@ use App\Application\DTO\HistoryRequestLinkRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -27,6 +28,7 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         private MagicLinkService $magicLinkService,
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -35,14 +37,18 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         try {
             $dto = HistoryRequestLinkRequest::fromRequest($request);
         } catch (ValidationException $e) {
-            return new RedirectResponse('history.php?sent=0&msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('history.php');
         }
+
         $permits = $this->permitService->getHistoryByEmail($dto->email);
         if ($permits === []) {
             $this->rateLimiter->recordFailedAttempt($dto->ip);
         } else {
             $this->rateLimiter->clearAttempts($dto->ip);
             $data = $this->magicLinkService->createToken($dto->email);
+
             $this->eventDispatcher->dispatch(new MagicLinkRequestedEvent(
                 $dto->email,
                 $data['token'],
@@ -50,8 +56,8 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
             ));
         }
 
-        return new RedirectResponse('history.php?sent=1&msg=' . \urlencode(
-            'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.',
-        ));
+        $this->sessionManager->addFlash('success', 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.');
+
+        return new RedirectResponse('history.php?sent=1');
     }
 }

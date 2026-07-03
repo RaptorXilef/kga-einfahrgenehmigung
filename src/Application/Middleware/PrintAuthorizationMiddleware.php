@@ -6,6 +6,7 @@ namespace App\Application\Middleware;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
@@ -20,6 +21,7 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private AuthService $auth,
+        private SessionManager $sessionManager,
         private StorageInterface $storage,
     ) {
     }
@@ -52,7 +54,9 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
         }
 
         if (! $hasRight) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.'));
+            $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.');
+
+            return new RedirectResponse('admin.php');
         }
 
         return $next($request);

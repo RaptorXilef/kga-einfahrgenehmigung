@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\DTO\ViewRenderRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -31,13 +30,10 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto = ViewRenderRequest::fromArray($request->get);
-
         $this->renderer->render('admin_users', [
             'auth'            => $this->auth,
             'groupRepository' => $this->groupRepository,
             'groups'          => $this->groupRepository->loadAll(),
-            'message'         => $dto->message,
             'permissions'     => $this->config->get('permissions', []),
             'structure'       => $this->config->get('structure', []),
             'userRepository'  => $this->userRepository,

@@ -34,20 +34,17 @@ final readonly class PermitRenderAction implements ViewActionInterface
     {
         $dto = ViewRenderRequest::fromArray($request->get);
 
-        $message = $dto->message;
-        $success = $dto->isSuccess;
-
-        if ($success && $message === '') {
-            $message = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
-                'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
+        // Fallback für den Initial-Antrag: Wenn sent=1, aber keine Flash-Message existiert
+        if ($dto->isSuccess && empty($_SESSION['flashes']['success'])) {
+            $this->sessionManager->addFlash('success', 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. ' .
+                'Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.');
         }
 
         $this->renderer->render('formular', [
             'agreements'        => $this->getParsedAgreements(),
             'formData'          => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),
-            'message'           => $message,
-            'success'           => $success,
+            'success'           => $dto->isSuccess,
         ]);
 
         return null;

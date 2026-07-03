@@ -38,6 +38,8 @@ final readonly class DashboardFilterAction implements ActionInterface
             'type'  => $dto->type,
         ]);
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode('Filter angewendet.'));
+        $this->sessionManager->addFlash('success', 'Filter angewendet.');
+
+        return new RedirectResponse('admin.php');
     }
 }

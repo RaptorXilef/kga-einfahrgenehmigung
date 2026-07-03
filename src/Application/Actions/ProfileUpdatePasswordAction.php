@@ -24,7 +24,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {
     public function __construct(
         private AuthService $auth,
-        private SessionManager $sessionManager, // HINZUGEFÜGT
+        private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
         private UserService $userService,
     ) {
@@ -35,26 +35,37 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         try {
             $dto = ProfileUpdatePasswordRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('profile.php');
         }
+
         $userId = $this->auth->getUserId();
 
         try {
             $this->userService->verifyOldPassword($userId, $dto->oldPassword);
             $users = $this->userRepository->loadAll();
+
             if (isset($users[$userId])) {
                 $u              = $users[$userId];
                 $newHash        = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
                 $users[$userId] = new User($u->id, $u->username, $u->groupId, $newHash);
+
                 $this->userRepository->saveAll($users);
                 $this->sessionManager->setAuthSession($userId, $u->groupId, $u->username, $newHash);
 
-                return new RedirectResponse('profile.php?msg=' . \urlencode('Erfolg: Ihr Passwort wurde geändert.'));
+                $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
+
+                return new RedirectResponse('profile.php');
             }
 
-            return new RedirectResponse('profile.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
+            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+
+            return new RedirectResponse('profile.php');
         } catch (\DomainException $e) {
-            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('profile.php');
         }
     }
 }

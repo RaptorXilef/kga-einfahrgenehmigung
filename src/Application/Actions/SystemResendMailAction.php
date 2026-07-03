@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
@@ -22,6 +23,7 @@ final readonly class SystemResendMailAction implements ActionInterface
     public function __construct(
         private MailLogInterface $mailLog,
         private MailServiceInterface $mailService,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -33,21 +35,38 @@ final readonly class SystemResendMailAction implements ActionInterface
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'timestamp');
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
+
         $logs = $this->mailLog->loadLogs();
+
         foreach ($logs as $log) {
             if ($log->timestamp->format('Y-m-d H:i:s') !== $dto->identifier) {
                 continue;
             }
-            if (empty($log->data)) {
-                return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).'));
-            }
-            $this->mailService->sendTemplate($log->recipient, $log->subject, $log->template, $log->data);
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode("E-Mail an {$log->recipient} wurde erfolgreich erneut versendet."));
+            if (empty($log->data)) {
+                $this->sessionManager->addFlash('error', 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).');
+
+                return new RedirectResponse('admin.php');
+            }
+
+            $this->mailService->sendTemplate(
+                $log->recipient,
+                $log->subject,
+                $log->template,
+                $log->data,
+            );
+
+            $this->sessionManager->addFlash('success', "E-Mail an {$log->recipient} wurde erfolgreich erneut versendet.");
+
+            return new RedirectResponse('admin.php');
         }
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Log-Eintrag nicht gefunden.'));
+        $this->sessionManager->addFlash('error', 'Fehler: Log-Eintrag nicht gefunden.');
+
+        return new RedirectResponse('admin.php');
     }
 }

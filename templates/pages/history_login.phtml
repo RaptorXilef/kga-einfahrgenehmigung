@@ -14,7 +14,6 @@
  *
  * @var string                            $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var string                            $message   Status- oder Fehlermeldung (z.B. Code abgelaufen).
  * @var bool                              $isSuccess Flag für grüne Erfolgsmeldungen (z.B. Code erfolgreich versendet).
  * @var int                               $step      Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
  * @var array                             $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
@@ -58,26 +57,8 @@
             </header>
 
             <div class="c-card__body u-padding-around-l">
-                <?php if ($message) {
-                    // Nutzt die vom Controller gesetzte $isSuccess Logik für die Farbe
-                    $alertClass = ($isSuccess ?? false) ? 'c-alert--success' : 'c-alert--info';
-                    ?>
-                    <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
-                        <!-- u-justify-center hinzugefügt, um Inhalt horizontal zu zentrieren -->
-                        <div class="u-flex u-align-center u-justify-center u-gap-s">
-                            <?php if ($isSuccess) { ?>
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
-                                     class="c-icon"
-                                     alt="">
-                            <?php } else { ?>
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-information.webp"
-                                     class="c-icon"
-                                     alt="">
-                            <?php } ?>
-                            <span><?php echo \htmlspecialchars($message); ?></span>
-                        </div>
-                    </div>
-                <?php } ?>
+
+                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
                 <?php if ($step === 1) { ?>
                     <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->

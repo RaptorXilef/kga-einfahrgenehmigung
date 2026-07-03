@@ -45,9 +45,10 @@ final readonly class HistoryController
         $pipeline
             ->add($this->securityHeaders)
             ->add($this->maintenanceGuard)
-            ->add(new RateLimitMiddleware($this->rateLimiter, 'history.php'))
+            ->add(new RateLimitMiddleware($this->rateLimiter, $this->sessionManager, 'history.php'))
             ->add(new CsrfMiddleware($this->sessionManager, 'history.php'))
-            ->add($this->analyticsMiddleware)->add($this->mailQueueMiddleware);
+            ->add($this->analyticsMiddleware)
+            ->add($this->mailQueueMiddleware);
 
         // ROUTING LOGIK
         $actionKey = 'render';

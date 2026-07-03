@@ -53,9 +53,8 @@
                 <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
             </header>
             <div class="c-card__body u-padding-around-l">
-                <?php if (isset($error)) { ?>
-                    <div class="c-alert c-alert--danger u-margin-bottom-l"><?php echo \htmlspecialchars($error); ?></div>
-                <?php } ?>
+
+                <?php require __DIR__ . '/../../components/_alerts.phtml'; ?>
 
                 <form action="check.php"
                       method="GET"

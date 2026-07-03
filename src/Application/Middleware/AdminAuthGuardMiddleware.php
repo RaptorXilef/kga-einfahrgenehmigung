@@ -34,13 +34,11 @@ final readonly class AdminAuthGuardMiddleware implements MiddlewareInterface
             }
         } catch (\RuntimeException) {
             // Bugfix 0.49.11: Fehlermeldungen (z.B. CSRF) aus der URL abgreifen und anzeigen!
-            $msg = \trim((string) ($request->get['msg'] ?? ''));
 
             // Zeigt die Login-Seite an und stoppt die Pipeline!
             $this->renderer->render('admin_login', [
                 'auth'            => $this->auth,
                 'groupRepository' => $this->groupRepository,
-                'message'         => $msg,
                 'userRepository'  => $this->userRepository,
             ]);
 

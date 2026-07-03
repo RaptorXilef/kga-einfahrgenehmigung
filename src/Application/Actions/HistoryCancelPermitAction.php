@@ -25,7 +25,9 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
         try {
             $dto = HistoryCancelPermitRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('history.php?error=1&msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('history.php');
         }
 
         $email = (string) $this->sessionManager->getHistoryEmail();
@@ -35,10 +37,13 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
 
         try {
             $this->permitService->cancelPermit($dto->code, $email);
+            $this->sessionManager->addFlash('success', 'Genehmigung wurde erfolgreich storniert.');
 
-            return new RedirectResponse('history.php?sent=1&msg=' . \urlencode('Genehmigung wurde erfolgreich storniert.'));
+            return new RedirectResponse('history.php');
         } catch (\DomainException $e) {
-            return new RedirectResponse('history.php?error=1&msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('history.php');
         }
     }
 }

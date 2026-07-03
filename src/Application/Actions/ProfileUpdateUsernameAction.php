@@ -35,25 +35,36 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         try {
             $dto = ProfileUpdateUsernameRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('profile.php');
         }
+
         $userId = $this->auth->getUserId();
 
         try {
             $this->userService->ensureUsernameIsUnique($dto->newUsername, $userId);
             $users = $this->userRepository->loadAll();
+
             if (isset($users[$userId])) {
                 $u              = $users[$userId];
                 $users[$userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
+
                 $this->sessionManager->updateAdminUsername($dto->newUsername);
 
-                return new RedirectResponse('profile.php?msg=' . \urlencode('Erfolg: Ihr Anzeigename wurde aktualisiert.'));
+                $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
+
+                return new RedirectResponse('profile.php');
             }
 
-            return new RedirectResponse('profile.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
+            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+
+            return new RedirectResponse('profile.php');
         } catch (\DomainException $e) {
-            return new RedirectResponse('profile.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('profile.php');
         }
     }
 }

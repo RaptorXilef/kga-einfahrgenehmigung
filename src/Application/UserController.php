@@ -10,15 +10,16 @@ use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
-use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
+use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Front Controller zur Administration von Benutzern, Gruppen und Profilen.
@@ -33,6 +34,7 @@ final readonly class UserController
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
         private AuthService $auth,
+        private ImageStorageService $imageStorage, // TODO Prüfen ob noch gebraucht
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
         private UserActionFactory $factory,
@@ -47,8 +49,17 @@ final readonly class UserController
         $pipeline = new MiddlewarePipeline();
         $pipeline
             ->add($this->securityHeaders)
-            ->add($this->maintenanceGuard)
-            ->add(new PermissionMiddleware($this->auth, 'system.permissions.view', 'admin.php'))
+            ->add($this->maintenanceGuard);
+
+        // Inline Permission Check statt Middleware
+        if (! $this->auth->hasPermission('system.permissions.view')) {
+            $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
+            (new RedirectResponse('admin.php'))->send();
+
+            return;
+        }
+
+        $pipeline
             ->add(new CsrfMiddleware($this->sessionManager, 'users.php'))
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
@@ -58,11 +69,12 @@ final readonly class UserController
 
         // Dynamisches Routing der Rechte für User- & Group-Actions
         if ($action instanceof RequiresPermissionInterface) {
-            $pipeline->add(new PermissionMiddleware(
-                $this->auth,
-                $action->getRequiredPermission(),
-                'users.php?msg=' . \urlencode('Fehler: Keine Berechtigung.'),
-            ));
+            if (! $this->auth->hasPermission($action->getRequiredPermission())) {
+                $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
+                (new RedirectResponse('users.php'))->send();
+
+                return;
+            }
         }
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($action): mixed {

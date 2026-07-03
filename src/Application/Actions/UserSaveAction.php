@@ -8,6 +8,7 @@ use App\Application\DTO\UserSaveRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -25,6 +26,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
 {
     public function __construct(
         private AuthService $auth,
+        private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
         private ImageStorageService $imageStorage,
         private UserService $userService,
@@ -44,24 +46,33 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         try {
             $dto = UserSaveRequest::fromArray($request->post, $request->files);
         } catch (ValidationException $e) {
-            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users.php');
         }
 
         try {
             $this->userService->ensureUsernameIsUnique($dto->username);
             $users = $this->userRepository->loadAll();
+
             do {
                 $newId = $this->auth->generateId('usr_');
             } while (isset($users[$newId]));
+
             $users[$newId] = new User($newId, $dto->username, $dto->group, \password_hash($dto->password, \PASSWORD_DEFAULT));
             $this->userRepository->saveAll($users);
+
             if ($dto->avatar !== null) {
                 $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
             }
 
-            return new RedirectResponse('users.php?msg=' . \urlencode("Benutzer '{$dto->username}' erfolgreich erstellt."));
+            $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
+
+            return new RedirectResponse('users.php');
         } catch (\DomainException $e) {
-            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users.php');
         }
     }
 }

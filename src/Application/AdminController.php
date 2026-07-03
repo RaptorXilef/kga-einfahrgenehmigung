@@ -12,7 +12,6 @@ use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\MigrationPermissionMiddleware;
-use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\PrintAuthorizationMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\SystemMaintenanceMiddleware;
@@ -93,29 +92,35 @@ final readonly class AdminController
 
         // Dynamisches Routing! Die Action entscheidet selbst, welche Rechte sie braucht.
         if ($action instanceof RequiresPermissionInterface) {
-            $pipeline->add(new PermissionMiddleware(
-                $this->auth,
-                $action->getRequiredPermission(),
-                'admin.php?msg=' . \urlencode('Fehler: Keine Berechtigung.'),
-            ));
+            if (! $this->auth->hasPermission($action->getRequiredPermission())) {
+                $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
+                (new RedirectResponse('admin.php'))->send();
+
+                return;
+            }
         }
 
         // Komplexe Spezial-Middlewares
         if ($actionKey === 'migrate_data') {
-            $pipeline->add(new MigrationPermissionMiddleware($this->auth));
+            $pipeline->add(new MigrationPermissionMiddleware($this->auth, $this->sessionManager));
         }
         if ($actionKey === 'resend_mail') {
-            $pipeline->add(new PermissionMiddleware($this->auth, 'dashboard.logs.view', 'admin.php'));
-            $pipeline->add(new PermissionMiddleware($this->auth, 'dashboard.generator-tools.direct_issue.execute', 'admin.php'));
+            // Vereinfachter Permission Check für Middlewares ohne URL-Parameter
+            if (! $this->auth->hasPermission('dashboard.logs.view') || ! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
+                $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
+                (new RedirectResponse('admin.php'))->send();
+
+                return;
+            }
         }
         if ($actionKey === 'admin_print') {
-            $pipeline->add(new PrintAuthorizationMiddleware($this->auth, $this->storage));
+            $pipeline->add(new PrintAuthorizationMiddleware($this->auth, $this->sessionManager, $this->storage));
         }
         if ($actionKey === 'suspend_permit' || $actionKey === 'unsuspend_permit') {
-            $pipeline->add(new ToggleSuspensionMiddleware($this->auth, $this->storage));
+            $pipeline->add(new ToggleSuspensionMiddleware($this->auth, $this->sessionManager, $this->storage));
         }
         if ($actionKey === 'create_voucher') {
-            $pipeline->add(new VoucherIssuanceMiddleware($this->auth));
+            $pipeline->add(new VoucherIssuanceMiddleware($this->auth, $this->sessionManager));
         }
 
         $response = $pipeline->process($request, function (ServerRequest $req) use ($action): mixed {

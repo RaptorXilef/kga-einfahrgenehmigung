@@ -8,6 +8,7 @@ use App\Application\DTO\PermitCreateManualRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\PermitService;
@@ -21,6 +22,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 {
     public function __construct(
         private PermitService $permitService,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -41,15 +43,20 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
         try {
             $dto = PermitCreateManualRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
 
         try {
             $this->permitService->createPermit($dto->formData, $dto->sendEmail);
+            $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Manuelle Genehmigung wurde erfolgreich erstellt.'));
+            return new RedirectResponse('admin.php');
         } catch (\Exception $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: ' . $e->getMessage()));
+            $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
     }
 }

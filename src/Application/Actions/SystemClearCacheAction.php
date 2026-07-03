@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Maintenance\MigrationService;
@@ -19,6 +20,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 {
     public function __construct(
         private MigrationService $migrationService,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -30,7 +32,8 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         $msg = $this->migrationService->clearCache();
+        $this->sessionManager->addFlash('success', $msg);
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
+        return new RedirectResponse('admin.php');
     }
 }

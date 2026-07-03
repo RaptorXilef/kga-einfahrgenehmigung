@@ -8,6 +8,7 @@ use App\Application\DTO\PermitToggleSuspensionRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Core\Service\PermitService;
 
@@ -20,6 +21,7 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
 {
     public function __construct(
         private PermitService $permitService,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -33,14 +35,20 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
         try {
             $dto = PermitToggleSuspensionRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('admin.php');
         }
+
         if ($this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason)) {
             $msg = 'Genehmigung wurde ' . ($dto->isSuspended ? 'gesperrt.' : 'freigegeben.');
+            $this->sessionManager->addFlash('success', $msg);
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
+            return new RedirectResponse('admin.php');
         }
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler: Genehmigung nicht gefunden.'));
+        $this->sessionManager->addFlash('error', 'Fehler: Genehmigung nicht gefunden.');
+
+        return new RedirectResponse('admin.php');
     }
 }

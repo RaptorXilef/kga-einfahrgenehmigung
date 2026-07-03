@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleUploadImageRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Infrastructure\Storage\ImageStorageService;
@@ -21,6 +22,7 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
 {
     public function __construct(
         private ImageStorageService $imageStorage,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -37,10 +39,17 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
         try {
             $dto = SimpleUploadImageRequest::fromRequest($request->post, 'user_id', $request->files);
         } catch (ValidationException $e) {
-            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
-        }
-        $msg = $this->imageStorage->uploadImage('user_images', $dto->identifier, $dto->file) ? 'Profilbild aktualisiert.' : 'Fehler beim Verarbeiten.';
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
-        return new RedirectResponse('users.php?msg=' . \urlencode($msg));
+            return new RedirectResponse('users.php');
+        }
+
+        if ($this->imageStorage->uploadImage('user_images', $dto->identifier, $dto->file)) {
+            $this->sessionManager->addFlash('success', 'Profilbild aktualisiert.');
+        } else {
+            $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten.');
+        }
+
+        return new RedirectResponse('users.php');
     }
 }

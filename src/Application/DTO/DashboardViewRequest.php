@@ -18,7 +18,6 @@ final readonly class DashboardViewRequest
         public string $query,
         public int $limit,
         public int $page,
-        public string $message,
         public bool $resetFilters,
     ) {
     }
@@ -39,9 +38,8 @@ final readonly class DashboardViewRequest
         $requestedLimit = (int) ($actualFilters['limit'] ?? $get['limit'] ?? $defaultLimit);
         $limit          = \in_array($requestedLimit, $allowedLimits, true) ? $requestedLimit : $defaultLimit;
 
-        $page    = \max(1, (int) ($get['page'] ?? 1));
-        $message = \trim((string) ($get['msg'] ?? ''));
+        $page = \max(1, (int) ($get['page'] ?? 1));
 
-        return new self($start, $end, $type, $query, $limit, $page, $message, $reset);
+        return new self($start, $end, $type, $query, $limit, $page, $reset);
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\DTO\ViewRenderRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;
+use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -22,6 +22,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     public function __construct(
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
+        private ImageStorageService $imageStorage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -29,9 +30,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto    = ViewRenderRequest::fromArray($request->get);
         $userId = $this->auth->getUserId();
-
         $users  = $this->userRepository->loadAll();
         $groups = $this->groupRepository->loadAll();
 
@@ -43,7 +42,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
             'auth'            => $this->auth,
             'group'           => $group ? $group->name : $userGroupId,
             'groupRepository' => $this->groupRepository,
-            'message'         => $dto->message,
+            'imageStorage'    => $this->imageStorage,
             'userId'          => $userId,
             'username'        => $user ? $user->username : 'Unbekannt',
             'userRepository'  => $this->userRepository,

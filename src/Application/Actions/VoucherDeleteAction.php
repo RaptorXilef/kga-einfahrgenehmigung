@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Core\Service\VoucherService;
@@ -20,6 +21,7 @@ use App\Core\Service\VoucherService;
 final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private SessionManager $sessionManager,
         private VoucherService $voucherService,
     ) {
     }
@@ -34,10 +36,17 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
         } catch (ValidationException $e) {
-            return new RedirectResponse('admin.php?msg=' . \urlencode($e->getMessage()));
-        }
-        $msg = $this->voucherService->deleteVoucher($dto->identifier) ? "Gutschein '{$dto->identifier}' gelöscht." : "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.";
+            $this->sessionManager->addFlash('error', $e->getMessage());
 
-        return new RedirectResponse('admin.php?msg=' . \urlencode($msg));
+            return new RedirectResponse('admin.php');
+        }
+
+        if ($this->voucherService->deleteVoucher($dto->identifier)) {
+            $this->sessionManager->addFlash('success', "Gutschein '{$dto->identifier}' gelöscht.");
+        } else {
+            $this->sessionManager->addFlash('error', "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.");
+        }
+
+        return new RedirectResponse('admin.php');
     }
 }

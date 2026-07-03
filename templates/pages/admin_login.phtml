@@ -13,7 +13,6 @@
  * @var \App\Infrastructure\Config\Config $config
  * @var array                             $settings Enthält Basis-Konfigurationen (z.B. vereins_name, base_url).
  * @var string                            $appRoot
- * @var string                            $message  Optionale Fehlermeldung bei falschen Login-Daten.
  */
 ?>
 
@@ -62,16 +61,7 @@
 
             <div class="c-card__body u-padding-around-l">
 
-                <?php if (! empty($message)) { ?>
-                    <div class="c-alert c-alert--danger u-margin-bottom-l">
-                        <div class="u-flex u-align-center u-justify-center u-gap-s">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp"
-                                 class="c-icon"
-                                 alt="">
-                            <span><?php echo \htmlspecialchars($message); ?></span>
-                        </div>
-                    </div>
-                <?php } ?>
+                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
                 <form method="POST"
                       class="c-form">

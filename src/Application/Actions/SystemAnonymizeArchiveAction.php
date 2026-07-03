@@ -6,6 +6,7 @@ namespace App\Application\Actions;
 
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
@@ -19,6 +20,7 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface, Re
 {
     public function __construct(
         private PermitArchiveRepositoryInterface $archiveRepository,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -31,15 +33,19 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface, Re
     {
         try {
             $count = $this->archiveRepository->anonymizeOldRecords(10);
+
             if ($count === 0) {
-                return new RedirectResponse('admin.php?msg=' . \urlencode('Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.'));
+                $this->sessionManager->addFlash('info', 'Hinweis: Es wurden keine Archiv-Einträge gefunden, die älter als 10 Jahre sind.');
+            } else {
+                $this->sessionManager->addFlash('success', "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.");
             }
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode("Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert."));
+            return new RedirectResponse('admin.php');
         } catch (\Throwable $e) {
             \error_log('DSGVO Anonymize Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->sessionManager->addFlash('error', 'Fehler bei der Anonymisierung: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php?msg=' . \urlencode('Fehler bei der Anonymisierung: ' . $e->getMessage()));
+            return new RedirectResponse('admin.php');
         }
     }
 }

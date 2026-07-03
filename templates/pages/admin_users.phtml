@@ -14,7 +14,6 @@
  *
  * @var array                             $users       Vollständige Liste aller registrierten Benutzerkonten im System.
  * @var array                             $groups      Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
- * @var string                            $message     Operations-Meldung nach Datenmanipulationen.
  * @var array                             $settings
  * @var string                            $appRoot
  * @var \App\Infrastructure\Config\Config $config
@@ -39,11 +38,8 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
         <?php include $appRoot . '/templates/components/_admin_header_nav.phtml'; ?>
 
         <main class="c-tab-content-container u-padding-y-l">
-            <?php if ($message) { ?>
-                <div class="c-alert <?php echo \str_contains($message, 'Fehler') ? 'c-alert--danger' : 'c-alert--success'; ?> u-margin-bottom-l">
-                    <?php echo \htmlspecialchars($message); ?>
-                </div>
-            <?php } ?>
+
+            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
             <div class="c-tabs">
                 <div class="c-tabs__nav u-margin-bottom-l">

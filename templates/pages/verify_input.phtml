@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string                            $message  Status- oder Fehlermeldung.
  * @var bool                              $isError  Gibt an, ob die Nachricht ein Fehlerzustand ist (steuert CSS-Alert-Klassen).
  * @var array                             $settings Globale Einstellungen (z.B. base_url für Icons, vereins_name).
  * @var string                            $appRoot
@@ -57,24 +56,8 @@
             </header>
 
             <div class="c-card__body u-padding-around-l">
-                <?php if ($message) {
-                    $alertClass = $isError ? 'c-alert--danger' : 'c-alert--info';
-                    ?>
-                    <div class="c-alert <?php echo $alertClass; ?> u-margin-bottom-l">
-                        <div class="u-flex u-align-center u-justify-center u-gap-s">
-                            <?php if ($isError) { ?>
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp"
-                                     class="c-icon"
-                                     alt="">
-                            <?php } else { ?>
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-information.webp"
-                                     class="c-icon"
-                                     alt=""><!-- ℹ️ -->
-                            <?php } ?>
-                            <span><?php echo \htmlspecialchars($message); ?></span>
-                        </div>
-                    </div>
-                <?php } ?>
+
+                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
                 <form method="POST"
                       action="verify.php"

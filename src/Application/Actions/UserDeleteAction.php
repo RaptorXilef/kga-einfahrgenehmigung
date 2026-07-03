@@ -8,6 +8,7 @@ use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Config\ConfigInterface;
@@ -25,6 +26,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
+        private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
         private UserService $userService,
     ) {
@@ -43,27 +45,37 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         try {
             $dto = SimpleIdentifierRequest::fromArray($request->post, 'user_id');
         } catch (ValidationException $e) {
-            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users.php');
         }
 
         try {
             $this->userService->ensureNoSelfExclusion($dto->identifier, $this->auth->getUserId());
             $users = $this->userRepository->loadAll();
+
             if (isset($users[$dto->identifier])) {
                 $name = $users[$dto->identifier]->username;
                 unset($users[$dto->identifier]);
                 $this->userRepository->saveAll($users);
+
                 $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $dto->identifier . '.webp';
                 if (\file_exists($avatarPath)) {
                     @\unlink($avatarPath);
                 }
 
-                return new RedirectResponse('users.php?msg=' . \urlencode("Benutzer '$name' wurde entfernt."));
+                $this->sessionManager->addFlash('success', "Benutzer '$name' wurde entfernt.");
+
+                return new RedirectResponse('users.php');
             }
 
-            return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
+            $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+
+            return new RedirectResponse('users.php');
         } catch (\DomainException $e) {
-            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users.php');
         }
     }
 }

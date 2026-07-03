@@ -12,7 +12,6 @@ namespace App\Application\DTO;
 final readonly class ViewRenderRequest
 {
     private function __construct(
-        public string $message,
         public bool $isSuccess,
         public int $step,
         public int $loadArchive,
@@ -22,7 +21,6 @@ final readonly class ViewRenderRequest
     public static function fromArray(array $get): self
     {
         return new self(
-            \trim((string) ($get['msg'] ?? '')),
             isset($get['sent']),
             ($get['sent'] ?? '0') === '1' ? 2 : 1,
             (int) ($get['load_archive'] ?? 0),

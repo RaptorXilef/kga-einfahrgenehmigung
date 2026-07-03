@@ -30,25 +30,31 @@ final readonly class PermitSubmitAction implements ViewActionInterface
         try {
             $dto = PermitSubmitRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('index.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('index.php');
         }
+
         $this->sessionManager->setFormData($dto->toDomainDto());
 
         try {
             $verifiedEmail = $this->sessionManager->getVerifiedEmail();
             $editToken     = $this->sessionManager->getEditToken();
+
             if ($verifiedEmail !== null && $editToken !== null) {
                 $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
                 $this->sessionManager->clearFormData();
                 $this->sessionManager->clearEditState();
+
                 if ($result === 'redirect_checkout') {
                     return new RedirectResponse('checkout.php?token=' . $editToken);
                 }
 
-                return new RedirectResponse('index.php?sent=1&msg=' . \urlencode(
-                    'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.',
-                ));
+                $this->sessionManager->addFlash('success', 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.');
+
+                return new RedirectResponse('index.php?sent=1');
             }
+
             $this->permitService->createPendingVerification($dto->toDomainDto());
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
@@ -56,8 +62,9 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             return new RedirectResponse('index.php?sent=1');
         } catch (\Exception $exception) {
             \error_log('Permit Creation Error: ' . $exception->getMessage());
+            $this->sessionManager->addFlash('error', 'Ein Fehler ist aufgetreten.');
 
-            return new RedirectResponse('index.php?msg=' . \urlencode('Ein Fehler ist aufgetreten.'));
+            return new RedirectResponse('index.php');
         }
     }
 }

@@ -8,6 +8,7 @@ use App\Application\DTO\UserChangeGroupRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -22,6 +23,7 @@ final readonly class UserChangeGroupAction implements ActionInterface, RequiresP
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
+        private SessionManager $sessionManager,
     ) {
     }
 
@@ -38,17 +40,25 @@ final readonly class UserChangeGroupAction implements ActionInterface, RequiresP
         try {
             $dto = UserChangeGroupRequest::fromArray($request->post);
         } catch (ValidationException $e) {
-            return new RedirectResponse('users.php?msg=' . \urlencode($e->getMessage()));
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users.php');
         }
+
         $users = $this->userRepository->loadAll();
+
         if (isset($users[$dto->userId])) {
             $u                   = $users[$dto->userId];
             $users[$dto->userId] = new User($u->id, $u->username, $dto->group, $u->passwordHash);
             $this->userRepository->saveAll($users);
 
-            return new RedirectResponse('users.php?msg=' . \urlencode("Gruppe für '{$u->username}' geändert."));
+            $this->sessionManager->addFlash('success', "Gruppe für '{$u->username}' geändert.");
+
+            return new RedirectResponse('users.php');
         }
 
-        return new RedirectResponse('users.php?msg=' . \urlencode('Fehler: Benutzer nicht gefunden.'));
+        $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+
+        return new RedirectResponse('users.php');
     }
 }

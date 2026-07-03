@@ -231,4 +231,24 @@ final class SessionManager implements AuthSessionInterface
     {
         $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
     }
+
+    /**
+     * Speichert eine Flash-Message in der Session.
+     * $type ist z.B. 'success', 'error', 'warning', 'info'
+     */
+    public function addFlash(string $type, string $message): void
+    {
+        $_SESSION['flashes'][$type][] = $message;
+    }
+
+    /**
+     * Liest alle Flash-Messages aus und löscht sie danach sofort.
+     */
+    public function getFlashes(): array
+    {
+        $flashes = $_SESSION['flashes'] ?? [];
+        unset($_SESSION['flashes']);
+
+        return $flashes;
+    }
 }

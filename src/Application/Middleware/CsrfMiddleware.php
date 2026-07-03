@@ -25,14 +25,15 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
     public function process(ServerRequest $request, callable $next): mixed
     {
         // CSRF greift nur bei POST-Requests!
-        if ($request->getMethod() === 'POST') {
-            $provided = $request->post['csrf_token'] ?? '';
+        $method = $request->getMethod() ?? 'GET';
+        if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            $provided = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
             $stored   = $this->sessionManager->getCsrfToken();
-            if ($stored === '' || ! \hash_equals($stored, $provided)) {
-                $msg = 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.';
-                $url = $this->fallbackUrl . (\str_contains($this->fallbackUrl, '?') ? '&' : '?') . 'msg=' . \urlencode($msg);
 
-                return new RedirectResponse($url);
+            if ($stored === '' || ! \hash_equals($stored, $provided)) {
+                $this->sessionManager->addFlash('error', 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.');
+
+                return new RedirectResponse($this->fallbackUrl);
             }
         }
 

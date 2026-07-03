@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
+use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
@@ -31,6 +32,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
+        private SessionManager $sessionManager, // <--- NEU
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -45,7 +47,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
         } catch (ValidationException $e) {
-            $this->renderer->render('check/search', ['error' => null]);
+            $this->renderer->render('check/search');
 
             return null;
         }
@@ -62,7 +64,8 @@ final readonly class CheckPermitAction implements ViewActionInterface
         }
 
         if (! $permit instanceof Permit) {
-            $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
+            $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
+            $this->renderer->render('check/search');
 
             return null;
         }
@@ -109,12 +112,10 @@ final readonly class CheckPermitAction implements ViewActionInterface
             // Config auslesen
             $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
 
-            // [x] sortiert
             // Pfade angepasst auf Unterordner check/
             $this->renderer->render($showAdminView ? 'check/admin' : 'check/public', \array_merge(
                 $adminData,
                 [
-                    'permit'          => $permit,
                     'allowedToday'    => $nextAllowedSlotText,
                     'auth'            => $this->auth,
                     'groupRepository' => $this->groupRepository,
@@ -130,6 +131,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
                             $permit->getValidUntil(),
                         ),
                     ),
+                    'permit'         => $permit,
                     'showAdminView'  => $showAdminView,
                     'userRepository' => $this->userRepository,
                 ],
@@ -138,7 +140,8 @@ final readonly class CheckPermitAction implements ViewActionInterface
             return null;
         }
 
-        $this->renderer->render('check/search', ['error' => "Code '{$code}' nicht gefunden."]);
+        $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
+        $this->renderer->render('check/search');
 
         return null;
     }

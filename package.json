@@ -6,8 +6,13 @@
   "author": "Felix Maywald <RaptorXilef>",
   "license": "Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.",
   "engines": {
-    "node": ">=25.3.0",
+    "node": ">=26.4.0",
     "npm": ">=11.11.0"
+  },
+  "allowScripts": {
+    "sharp": true,
+    "chromedriver": true,
+    "@parcel/watcher": true
   },
   "scripts": {
     "// --- PHASE 0: SETUP & LIFECYCLE ---": "",

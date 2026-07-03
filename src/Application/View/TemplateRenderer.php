@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\View;
 
+use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Infrastructure\Storage\ImageStorageService;
 
@@ -19,6 +20,7 @@ final readonly class TemplateRenderer
     public function __construct(
         private ConfigInterface $config,
         private ImageStorageService $imageStorage,
+        private SessionManager $sessionManager, // <--- NEU
     ) {
     }
 
@@ -34,6 +36,10 @@ final readonly class TemplateRenderer
             'settings'     => $this->getGlobalSettings(),
             'imageStorage' => $this->imageStorage,
         ];
+
+        // Lade alle Flashes automatisch in die View-Daten!
+        $data['flashes'] = $this->sessionManager->getFlashes();
+
         \extract($systemVars);
 
         // 2. Nutzerdaten bereitstellen (EXTR_SKIP verhindert das Überschreiben der Systemvariablen!)
