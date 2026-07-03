@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\MagicLinkService;
 
 /**
@@ -23,6 +24,7 @@ use App\Core\Service\MagicLinkService;
 final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private MagicLinkService $magicLinkService,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
@@ -48,6 +50,8 @@ final readonly class HistoryVerifyTokenAction implements ViewActionInterface
             $this->rateLimiter->clearAttempts($ip);
             $this->sessionManager->regenerate();
             $this->sessionManager->setHistoryEmail($verifiedEmail);
+
+            $this->auditLogger->log('USER_HISTORY_LOGIN', "Pächter (Email: {$verifiedEmail}) hat sich via Magic-Link im Genehmigungsverlauf eingeloggt.");
 
             return new RedirectResponse('history.php');
         }

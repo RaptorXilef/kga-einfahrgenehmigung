@@ -16,8 +16,8 @@ $auditTotalPages = \max(1, (int) \ceil($auditTotal / $auditLimit));
 
 $filterOptions = [
     ''                     => 'Alle Aktionen',
-    'LOGIN'                => 'Erfolgreiche Logins',
-    'LOGOUT'               => 'Abmeldungen',
+    'LOGIN'                => 'Erfolgreiche Logins (Admin)',
+    'LOGOUT'               => 'Abmeldungen (Admin)',
     'PERMIT_CREATE'        => 'Genehmigung erstellt',
     'PERMIT_PAID'          => 'Zahlung bestätigt',
     'PERMIT_SUSPENSION'    => 'Sperre / Freigabe',
@@ -30,9 +30,13 @@ $filterOptions = [
     'USER_RENAME'          => 'Benutzer umbenannt',
     'USER_CHANGE_GROUP'    => 'Rechte geändert',
     'USER_DELETE'          => 'Benutzer gelöscht',
+    'GROUP_CREATE'         => 'Rollenmatrix erstellt', // <-- Neu hinzugefügt für Konsistenz
     'GROUP_UPDATE'         => 'Rollenmatrix bearbeitet',
+    'GROUP_DELETE'         => 'Rollenmatrix gelöscht',
     'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
     'DATA_EXPORT'          => 'Daten exportiert',
+    'USER_HISTORY_LOGIN'   => 'Pächter-Logins (Verlauf)',
+    'USER_PERMIT_CANCEL'   => 'Pächter-Stornos',
 ];
 
 if ($auth->hasPermission('dashboard.audit_log.view')) {

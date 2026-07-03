@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
@@ -30,6 +31,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
+        private GroupRepositoryInterface $groupRepository, // <-- NEU: Für Gruppen-Namen
         private ImageStorageService $imageStorage,
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
@@ -70,8 +72,12 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
                 $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
             }
 
+            // Gruppen-Namen ermitteln
+            $groups    = $this->groupRepository->loadAll();
+            $groupName = isset($groups[$dto->group]) ? $groups[$dto->group]->name : $dto->group;
+
             // LOG SCHREIBEN
-            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (Gruppe: {$dto->group}) erstellt.");
+            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (ID: {$newId}, Gruppe: {$groupName}) erstellt.");
 
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 
