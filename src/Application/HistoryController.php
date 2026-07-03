@@ -26,12 +26,12 @@ final readonly class HistoryController
 {
     public function __construct(
         private AnalyticsMiddleware $analyticsMiddleware,
-        private UniversalActionFactory $actionFactory,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
         private RateLimiterInterface $rateLimiter,
+        private SecurityHeadersMiddleware $securityHeaders,
         private SessionManager $sessionManager,
         private TerminateMailQueueMiddleware $mailQueueMiddleware,
-        private SecurityHeadersMiddleware $securityHeaders,
-        private MaintenanceGuardMiddleware $maintenanceGuard,
+        private UniversalActionFactory $actionFactory,
     ) {
     }
 
@@ -56,6 +56,8 @@ final readonly class HistoryController
             $actionKey = 'history_logout';
         } elseif (isset($request->post['action']) && $request->post['action'] === 'cancel_permit') {
             $actionKey = 'history_cancel_permit';
+        } elseif (isset($request->post['action']) && $request->post['action'] === 'extend_session') {
+            $actionKey = 'extend_session';
         } elseif (isset($request->post['request_link'])) {
             $actionKey = 'history_request_link';
         } elseif (isset($request->post['submit_code'])) {

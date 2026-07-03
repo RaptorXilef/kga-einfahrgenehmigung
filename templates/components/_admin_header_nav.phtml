@@ -211,9 +211,13 @@ const sessionHandler = (function() {
 
     function stayLoggedIn() {
         // Ping an den Server via HEAD (lädt keine Daten herunter, weckt aber PHP auf)
-        fetch(window.KGA_CONFIG.baseUrl + 'admin.php?ping=' + Date.now(), {
-                method: 'HEAD',
-                cache: 'no-store'
+        const fd = new window.FormData(); // TODO window. entfernen, wenn in JS-Datei
+        fd.append('action', 'extend_session');
+        fd.append('csrf_token', window.KGA_CONFIG.csrfToken);
+
+        fetch(window.KGA_CONFIG.baseUrl + 'admin.php', {
+                method: 'POST',
+                body: fd
             })
             .then(() => {
                 idleSeconds = 0;

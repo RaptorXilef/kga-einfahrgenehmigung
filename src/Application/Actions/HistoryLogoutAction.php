@@ -9,6 +9,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ViewActionInterface;
+use App\Core\Service\AuditLoggerService;
 
 /**
  * TODO DOCBLOCK
@@ -19,6 +20,7 @@ use App\Contracts\Application\ViewActionInterface;
 final readonly class HistoryLogoutAction implements ViewActionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
     ) {
     }
@@ -28,6 +30,11 @@ final readonly class HistoryLogoutAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
+        $email = (string) $this->sessionManager->getHistoryEmail();
+        if ($email !== '') {
+            $this->auditLogger->log('USER_HISTORY_LOGOUT', "Pächter (Email: {$email}) hat sich abgemeldet.");
+        }
+
         $this->sessionManager->clearHistoryEmail();
 
         return new RedirectResponse('history.php');

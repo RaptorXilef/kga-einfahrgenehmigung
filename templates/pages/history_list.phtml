@@ -399,9 +399,13 @@ if ($currentArchiveYear !== $lastYear) {
 
         function stayLoggedIn() {
             // Ping an history.php, um die PHP-Session serverseitig zu verlängern
-            fetch(window.KGA_CONFIG.baseUrl + 'history.php?ping=' + Date.now(), {
-                    method: 'HEAD',
-                    cache: 'no-store'
+            const fd = new window.FormData(); // TODO window. entfernen, wenn in JS-Datei
+            fd.append('action', 'extend_session');
+            fd.append('csrf_token', window.KGA_CONFIG.csrfToken);
+
+            fetch(window.KGA_CONFIG.baseUrl + 'history.php', {
+                    method: 'POST',
+                    body: fd
                 })
                 .then(() => {
                     idleSeconds = 0;
