@@ -20,8 +20,8 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
     public function saveCancelled(Permit $permit): void
     {
         $table = $this->config->get('storage_config')['permits_cancelled']['table'];
+        $item  = $this->flattenEntity($permit);
 
-        $item                  = $this->flattenEntity($permit);
         $item['is_anonymized'] = 1;
         $item['agreements'] ??= '{}';
 

@@ -33,12 +33,12 @@ final class SchemaRegistry
                 `template_key` VARCHAR(50),
                 `type` VARCHAR(20),
                 `value` DECIMAL(10,2),
-                `multi_use` TINYINT(1), -- VORHER: multiUse
-                `max_uses` INT, -- VORHER: maxUses
+                `multi_use` TINYINT(1),
+                `max_uses` INT,
                 `uses_count` INT DEFAULT 0,
-                `expires_at` DATETIME NULL, -- VORHER: expiresAt
-                `date_mode` VARCHAR(20), -- VORHER: dateMode
-                `created_by` VARCHAR(50), -- VORHER: createdBy
+                `expires_at` DATETIME NULL,
+                `date_mode` VARCHAR(20),
+                `created_by` VARCHAR(50),
                 `created_at` DATETIME,
                 `status` VARCHAR(20) DEFAULT \'aktiv\',
                 `data` JSON,
@@ -47,7 +47,7 @@ final class SchemaRegistry
 
             'permits' => 'CREATE TABLE IF NOT EXISTS `permits` (
                 `code` VARCHAR(50) NOT NULL,
-                `template_key` VARCHAR(50) NOT NULL,  -- VORHER: templateKey
+                `template_key` VARCHAR(50) NOT NULL,
                 `name` VARCHAR(255) NOT NULL,
                 `email` VARCHAR(255) DEFAULT NULL,
                 `kennzeichen` VARCHAR(20) DEFAULT NULL,
@@ -55,15 +55,15 @@ final class SchemaRegistry
                 `typ` VARCHAR(20) NOT NULL,
                 `firma` VARCHAR(255) DEFAULT NULL,
                 `zweck` VARCHAR(255) NOT NULL,
-                `preis` DECIMAL(10,2) NOT NULL, -- VORHER: preisSnapshot
+                `preis` DECIMAL(10,2) NOT NULL,
                 `von` DATE NOT NULL,
                 `bis` DATE NOT NULL,
                 `status` VARCHAR(20) NOT NULL DEFAULT \'offen\',
-                `is_suspended` TINYINT(1) NOT NULL DEFAULT 0, -- VORHER: isSuspended
-                `suspension_reason` TEXT DEFAULT NULL, -- VORHER: suspensionReason
+                `is_suspended` TINYINT(1) NOT NULL DEFAULT 0,
+                `suspension_reason` TEXT DEFAULT NULL,
                 `erstellt` DATETIME NOT NULL,
-                `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
-                `agreements` JSON DEFAULT NULL, -- NEU: Zustimmungen (DSGVO, AGB, etc.)
+                `interner_kommentar` TEXT DEFAULT NULL,
+                `agreements` JSON DEFAULT NULL, -- Zustimmungen (DSGVO, AGB, etc.)
                 `bezahlt_am` DATETIME DEFAULT NULL,
                 `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`code`),
@@ -83,20 +83,22 @@ final class SchemaRegistry
                 `typ` VARCHAR(20) NOT NULL,
                 `firma` VARCHAR(255) DEFAULT NULL,
                 `zweck` VARCHAR(255) NOT NULL,
-                `preis` DECIMAL(10,2) NOT NULL, -- VORHER: preisSnapshot
+                `preis` DECIMAL(10,2) NOT NULL,
                 `von` DATE NOT NULL,
                 `bis` DATE NOT NULL,
                 `status` VARCHAR(20) NOT NULL DEFAULT \'offen\',
                 `erstellt` DATETIME NOT NULL,
-                `interner_kommentar` TEXT DEFAULT NULL, -- VORHER: internerKommentar
-                `is_anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- NEU: DSGVO-Flag
-                `agreements` JSON DEFAULT NULL, -- NEU: Zustimmungen im Archiv speichern
+                `interner_kommentar` TEXT DEFAULT NULL,
+                `is_anonymized` TINYINT(1) NOT NULL DEFAULT 0, -- DSGVO-Flag
+                `is_suspended` TINYINT(1) NOT NULL DEFAULT 0,
+                `suspension_reason` TEXT DEFAULT NULL,
+                `agreements` JSON DEFAULT NULL, -- Zustimmungen im Archiv speichern
                 `bezahlt_am` DATETIME DEFAULT NULL,
                 `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
                 PRIMARY KEY (`code`),
                 INDEX `idx_kennzeichen` (`kennzeichen`),
-                INDEX `idx_anonymized` (`is_anonymized`), -- NEU: Index für schnelle Cronjob-Suche
-                INDEX `idx_email` (`email`),
+                INDEX `idx_anonymized` (`is_anonymized`),
+                INDEX `idx_email` (`email`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
             'permits_cancelled' => "CREATE TABLE IF NOT EXISTS `permits_cancelled` (
@@ -116,6 +118,8 @@ final class SchemaRegistry
                 `erstellt` DATETIME NOT NULL,
                 `interner_kommentar` TEXT DEFAULT NULL,
                 `is_anonymized` TINYINT(1) NOT NULL DEFAULT 1,
+                `is_suspended` TINYINT(1) NOT NULL DEFAULT 0,
+                `suspension_reason` TEXT DEFAULT NULL,
                 `agreements` JSON DEFAULT NULL,
                 `bezahlt_am` DATETIME DEFAULT NULL,
                 `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
@@ -123,7 +127,7 @@ final class SchemaRegistry
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 
             'mail_logs' => 'CREATE TABLE IF NOT EXISTS `mail_logs` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `id` VARCHAR(50) PRIMARY KEY,
                 `timestamp` DATETIME NOT NULL,
                 `recipient` VARCHAR(255) NOT NULL,
                 `subject` VARCHAR(255) NOT NULL,
@@ -134,7 +138,7 @@ final class SchemaRegistry
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
             'mail_queue' => 'CREATE TABLE IF NOT EXISTS `mail_queue` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `id` VARCHAR(50) PRIMARY KEY,
                 `recipient` VARCHAR(255) NOT NULL,
                 `subject` VARCHAR(255) NOT NULL,
                 `template` VARCHAR(100) NOT NULL,

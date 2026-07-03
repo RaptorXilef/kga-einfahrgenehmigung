@@ -27,6 +27,7 @@ final readonly class BankImportService
         // Dynamische Erkennung des Trennzeichens (Komma oder Semikolon)
         $firstLine = \fgets($handle);
         \rewind($handle);
+
         $delimiter = ';';
         if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
             $delimiter = ',';
@@ -54,6 +55,7 @@ final readonly class BankImportService
 
         $firstLine = \fgets($handle);
         \rewind($handle);
+
         $delimiter = ';';
         if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
             $delimiter = ',';
@@ -89,6 +91,7 @@ final readonly class BankImportService
             if (! \preg_match('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
                 continue; // Keine eindeutige ID gefunden, Zeile ist nicht relevant
             }
+
             $permitId = $matches[1];
 
             // Deutsches Zahlenformat (z.B. 1.250,50) zu Float (1250.50) umwandeln
@@ -103,11 +106,14 @@ final readonly class BankImportService
             $aggregierteZahlungen[$permitId] += $ueberwiesenerBetrag;
             $letztesDatumPerPermit[$permitId] = $datumRaw;
         }
+
         \fclose($handle);
 
         // Schleife 2: System-Abgleich der summierten Beträge
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
-            $permit = $this->storage->findByHash($permitId);
+            // FIX: $permitId strikt als String übergeben!
+            $permit = $this->storage->findByHash((string) $permitId);
+
             if (! $permit instanceof Permit) {
                 ++$uebersprungen;
 
@@ -128,9 +134,11 @@ final readonly class BankImportService
 
                 // Datum flexibel parsen (dd.mm.yy oder dd.mm.yyyy)
                 $dateObj = \DateTimeImmutable::createFromFormat('d.m.y', \trim($datumRaw));
+
                 if ($dateObj === false) {
                     $dateObj = \DateTimeImmutable::createFromFormat('d.m.Y', \trim($datumRaw));
                 }
+
                 $formatierterTag = $dateObj !== false ? $dateObj->format('d.m.Y') : \trim($datumRaw);
 
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';

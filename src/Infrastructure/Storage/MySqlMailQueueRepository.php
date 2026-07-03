@@ -27,10 +27,12 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
         $data  = [
+            'id'         => $job->id,
             'recipient'  => $job->recipient,
             'subject'    => $job->subject,
             'template'   => $job->template,
             'data'       => \json_encode($job->data, \JSON_UNESCAPED_UNICODE),
+            'attempts'   => $job->attempts,
             'created_at' => $job->createdAt->format('Y-m-d H:i:s'),
         ];
 
@@ -59,28 +61,39 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
             created_at ASC
         ";
 
-        // 1. Zeilen blockieren (Locking durch Attempts-Erhöhung)
-        $this->pdo->exec("UPDATE `{$table}` SET attempts = attempts + 100 WHERE attempts < 3 ORDER BY {$orderBy} LIMIT {$limit}");
+        // MySQL App-Level Lock: Verhindert, dass Cronjob und Web-Request gleichzeitig abarbeiten!
+        $lockAcquired = $this->pdo->query("SELECT GET_LOCK('kga_mail_queue', 2)")->fetchColumn();
 
-        // 2. Die blockierten Zeilen abrufen
-        $items = $this->pdo->query("SELECT * FROM `{$table}` WHERE attempts >= 100 ORDER BY {$orderBy}")->fetchAll(\PDO::FETCH_ASSOC);
+        if (! $lockAcquired) {
+            return 0; // Ein anderer Prozess bearbeitet die Queue bereits
+        }
 
-        foreach ($items as $item) {
-            try {
-                $processor($item['recipient'], $item['subject'], $item['template'], JsonHelper::decode((string) $item['data']));
-                // Nach Erfolg löschen
-                $this->pdo->prepare("DELETE FROM `{$table}` WHERE id = ?")->execute([$item['id']]);
-                ++$sentCount;
-            } catch (\Throwable $t) {
-                \error_log("MailQueue Error [ID {$item['id']}]: " . $t->getMessage());
-                // Entsperren und Fehler zählen
-                $origAttempts = $item['attempts'] - 100 + 1;
-                if ($origAttempts >= 3) {
+        try {
+            // 1. Zeilen blockieren (Locking durch Attempts-Erhöhung)
+            $this->pdo->exec("UPDATE `{$table}` SET attempts = attempts + 100 WHERE attempts < 3 ORDER BY {$orderBy} LIMIT {$limit}");
+
+            // 2. Die blockierten Zeilen abrufen
+            $items = $this->pdo->query("SELECT * FROM `{$table}` WHERE attempts >= 100 ORDER BY {$orderBy}")->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($items as $item) {
+                try {
+                    $processor($item['recipient'], $item['subject'], $item['template'], JsonHelper::decode((string) $item['data']));
+                    // Nach Erfolg löschen
                     $this->pdo->prepare("DELETE FROM `{$table}` WHERE id = ?")->execute([$item['id']]);
-                } else {
-                    $this->pdo->prepare("UPDATE `{$table}` SET attempts = ? WHERE id = ?")->execute([$origAttempts, $item['id']]);
+                    ++$sentCount;
+                } catch (\Throwable $t) {
+                    \error_log("MailQueue Error [ID {$item['id']}]: " . $t->getMessage());
+                    // Entsperren und Fehler zählen
+                    $origAttempts = $item['attempts'] - 100 + 1;
+                    if ($origAttempts >= 3) {
+                        $this->pdo->prepare("DELETE FROM `{$table}` WHERE id = ?")->execute([$item['id']]);
+                    } else {
+                        $this->pdo->prepare("UPDATE `{$table}` SET attempts = ? WHERE id = ?")->execute([$origAttempts, $item['id']]);
+                    }
                 }
             }
+        } finally {
+            $this->pdo->query("SELECT RELEASE_LOCK('kga_mail_queue')");
         }
 
         return $sentCount;
