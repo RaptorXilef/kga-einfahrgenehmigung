@@ -89,4 +89,24 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
         }
         $this->archivePermits(0, $objects);
     }
+
+    public function getArchivedPermits(int $minYear): array
+    {
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
+        if (! \file_exists($path)) {
+            return [];
+        }
+
+        $rawArc  = JsonHelper::read($path);
+        $results = [];
+
+        foreach ($rawArc as $aData) {
+            $pYear = (int) \substr((string) ($aData['erstellt'] ?? $aData['von'] ?? '2000'), 0, 4);
+            if ($pYear >= $minYear) {
+                $results[] = $this->mapToEntity($aData);
+            }
+        }
+
+        return $results;
+    }
 }

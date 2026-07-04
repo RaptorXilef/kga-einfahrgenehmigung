@@ -42,55 +42,73 @@ $currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        value="1">
 
                 <?php if ($auth->hasPermission('dashboard.control_bar.future')) { ?>
-                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp" class="c-icon" alt="">
+                    <span class="u-text-muted u-font-bold"
+                          style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp"
+                         class="c-icon"
+                         alt="">
                         ZEITRAUM:
-                    </span>
+                </span>
                     <input type="date"
                            id="filter_start"
                            name="start"
                            value="<?php echo \htmlspecialchars($currentStart); ?>"
                            class="c-control-bar-input">
-                    <span class="u-text-muted" style="font-size: 0.75rem; font-weight: 800;">BIS</span>
+                    <span class="u-text-muted"
+                          style="font-size: 0.75rem; font-weight: 800;">
+                        BIS
+                    </span>
                     <input type="date"
                            id="filter_end"
                            name="end"
                            value="<?php echo \htmlspecialchars($currentEnd); ?>"
                            class="c-control-bar-input">
-                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">TYP:</span>
+
+                    <span class="u-text-muted u-font-bold"
+                          style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
+                        TYP:
+                    </span>
                     <select name="type"
                             class="c-control-bar-input"
                             style="width: auto !important; cursor: pointer;"
                             onchange="this.form.submit()">
                         <option value="all"
                                 <?php echo $currentType === 'all' ? 'selected' : ''; ?>>
-                                Alle Genehmigungen
-                            </option>
+                            Alle Genehmigungen
+                        </option>
                         <option value="standard"
                                 <?php echo $currentType === 'standard' ? 'selected' : ''; ?>>
-                                Nur Standard
-                            </option>
+                            Nur Standard
+                        </option>
                         <option value="permanent"
                                 <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>>
-                                Nur Dauerkarten
-                            </option>
+                            Nur Dauerkarten
+                        </option>
                     </select>
-                    <span class="u-text-muted u-font-bold" style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">PRO SEITE:</span>
+
+                    <span class="u-text-muted u-font-bold"
+                          style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
+                        PRO SEITE:
+                    </span>
                     <select name="limit"
                             class="c-control-bar-input"
                             style="width: auto !important; cursor: pointer;"
                             onchange="this.form.submit()">
                         <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
                             <option value="<?php echo $l; ?>"
-                                    <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
+                                    <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?>
+                            </option>
                         <?php } ?>
                     </select>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
                     <div style="position: relative; min-width: 150px; max-width: 230px; margin-left: auto;">
                         <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt="">
-                        </span>
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                             class="c-icon"
+                             alt="">
+                    </span>
                         <!-- name="q" und value aus PHP für Server-Side Search -->
                         <input type="text"
                                id="adminSearch"
@@ -102,8 +120,11 @@ $currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                                style="padding-left: 42px; border-radius: 30px; height: 38px; border: 1px solid var(--border-color);">
                     </div>
                 <?php } ?>
+
                 <?php if (! empty($sessionFilters)) { ?>
-                    <a href="?reset_filters=1" class="c-tabs__btn" style="text-decoration:none; padding: 6px 12px; font-size:0.8rem; border:1px solid var(--border-color);">
+                    <a href="?reset_filters=1"
+                       class="c-tabs__btn"
+                       style="text-decoration:none; padding: 6px 12px; font-size:0.8rem; border:1px solid var(--border-color);">
                         ✕ Filter aufheben
                     </a>
                 <?php } ?>
@@ -116,20 +137,20 @@ $currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const filterStart=document.getElementById('filter_start');
-        const filterEnd=document.getElementById('filter_end');
+        const filterStart = document.getElementById('filter_start');
+        const filterEnd = document.getElementById('filter_end');
 
         if (filterStart && filterEnd) {
             filterStart.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterStart.value > filterEnd.value) {
-                    filterEnd.value=filterStart.value;
+                    filterEnd.value = filterStart.value;
                 }
                 document.getElementById('dashboardFilterForm').submit();
             });
 
             filterEnd.addEventListener('change', () => {
                 if (filterStart.value && filterEnd.value && filterEnd.value < filterStart.value) {
-                    filterStart.value=filterEnd.value;
+                    filterStart.value = filterEnd.value;
                 }
                 document.getElementById('dashboardFilterForm').submit();
             });

@@ -156,10 +156,14 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
                                  style="background: #fff; padding: 4px; border-radius: 6px; border: 1px solid var(--border-color); display: inline-flex;">
                                 <button id="chartToggleMonth"
                                         class="c-button c-button--primary"
-                                        style="padding: 4px 12px; font-size: 0.8rem;">Monatlich</button>
+                                        style="padding: 4px 12px; font-size: 0.8rem;">
+                                    Monatlich
+                                </button>
                                 <button id="chartToggleYear"
                                         class="c-button c-button--secondary"
-                                        style="padding: 4px 12px; font-size: 0.8rem;">Jährlich</button>
+                                        style="padding: 4px 12px; font-size: 0.8rem;">
+                                    Jährlich
+                                </button>
                             </div>
                         </div>
 
@@ -182,45 +186,59 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
 
             <?php foreach ($yearlyStats as $year => $data) { ?>
                 <details class="u-margin-bottom-s">
-                    <summary
-                             style="background: #fff; padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 1.1rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp" class="c-icon" alt="">Geschäftsjahr <strong><?php echo $year; ?></strong></span>
+                    <summary style="background: var(--bg-light); padding: 15px 20px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
+                        <span style="font-size: 1.1rem;">
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp"
+                                 class="c-icon"
+                                 alt="">
+                            Geschäftsjahr <strong><?php echo $year; ?></strong>
+                        </span>
                         <div style="display: flex; gap: 15px; align-items: center;">
                             <span style="font-size: 0.9rem; color: var(--success-color); font-weight: 700;">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
-                            <span class="c-badge" style="background: #f1f5f9; color: #475569; font-weight: 800;"><?php echo $data['count']; ?> Genehmigungen</span>
+                            <span class="c-badge"
+                                  style="background: #f1f5f9; color: #475569; font-weight: 800;">
+                                <?php echo $data['count']; ?> Anträge
+                            </span>
                         </div>
                     </summary>
-
+                    <!-- [Kacheln für das Jahr bleiben unverändert...] -->
                     <div class="u-grid u-gap-m u-padding-around-m"
-                         style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: #f8fafc; border-radius: 0 0 12px 12px; border: 1px solid var(--border-color); border-top: none;">
+                         style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; margin-top: -5px;">
                         <div class="c-card u-margin-none"
                              style="border-top: 3px solid var(--success-color);">
                             <div class="c-card__body u-text-center u-padding-around-s">
                                 <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">BEREITS BEZAHLT</small>
+                                       style="text-transform: uppercase; font-size: 0.65rem;">
+                                    BEREITS BEZAHLT
+                                </small>
                                 <div class="u-font-bold"
                                      style="font-size: 1.2rem; color: var(--success-color);"><?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
                             </div>
                         </div>
                         <div class="c-card u-margin-none"
-                             style="border-top: 3px solid #f39c12;">
+                             style="border-top: 3px solid var(--danger-color);">
                             <div class="c-card__body u-text-center u-padding-around-s">
                                 <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">Noch offen</small>
+                                       style="text-transform: uppercase; font-size: 0.65rem;">
+                                    Noch offen
+                                </small>
                                 <div class="u-font-bold"
-                                     style="font-size: 1.2rem; color: #f39c12;"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
+                                     style="font-size: 1.2rem; color: var(--danger-color);"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
                             </div>
                         </div>
                         <div class="c-card u-margin-none"
                              style="border-top: 3px solid var(--primary-color);">
                             <div class="c-card__body u-text-center u-padding-around-s">
                                 <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">GENEHMIGUNGEN</small>
+                                       style="text-transform: uppercase; font-size: 0.65rem;">
+                                    GENEHMIGUNGEN
+                                </small>
                                 <div class="u-font-bold"
-                                     style="font-size: 1.1rem; margin-bottom: 2px;"><?php echo $data['count']; ?></div>
+                                     style="font-size: 1.1rem; margin-bottom: 2px;">
+                                    <?php echo $data['count']; ?>
+                                </div>
 
-                                <div
-                                     style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
                                     <?php
                         $vConfig = $config->get('vehicle_types', []);
                 $typeItems       = [];
@@ -247,17 +265,39 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
                             </div>
                         </div>
                         <div class="c-card u-margin-none"
-                             style="border-top: 3px solid #1e293b;">
+                             style="border-top: 3px solid var(--text-main);">
                             <div class="c-card__body u-text-center u-padding-around-s">
                                 <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">Jahres-Soll</small>
+                                       style="text-transform: uppercase; font-size: 0.65rem;">
+                                    Jahres-Umsatz (Soll)
+                                </small>
                                 <div class="u-font-bold"
-                                     style="font-size: 1.2rem;"><?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
+                                     style="font-size: 1.2rem;">
+                                    <?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €
+                                </div>
                             </div>
                         </div>
                     </div>
                 </details>
             <?php } ?>
+
+            <!-- Button zum Nachladen von alten Jahren! -->
+            <div class="u-text-center u-margin-top-l">
+                <?php
+                $queryParams              = $_GET;
+            $queryParams['archive_depth'] = $minArchiveYear - 1;
+            $loadUrl                      = '?' . \http_build_query($queryParams);
+            ?>
+                <a href="<?php echo $loadUrl; ?>"
+                   class="c-button c-button--secondary"
+                   style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_inbox-tray.webp"
+                    class="c-icon"
+                    alt="">
+                &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+                </a>
+            </div>
+
         <?php } ?>
 
     </div>

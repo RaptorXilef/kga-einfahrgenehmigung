@@ -74,4 +74,13 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
         }
         $this->archivePermits(0, $objects);
     }
+
+    public function getArchivedPermits(int $minYear): array
+    {
+        $table = $this->config->get('storage_config')['permits_archive']['table'];
+        $stmt  = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE YEAR(erstellt) >= ? OR YEAR(von) >= ?");
+        $stmt->execute([$minYear, $minYear]);
+
+        return \array_map($this->mapToEntity(...), $stmt->fetchAll(\PDO::FETCH_ASSOC));
+    }
 }

@@ -17,12 +17,15 @@
 $now       = new \DateTimeImmutable('today');
 $allActive = $permitGroups['active'] ?? [];
 
+// Sortierung - Am kürzesten gültig zuerst! (bis ASC)
+\usort($allActive, fn ($a, $b) => $a->getValidUntil() <=> $b->getValidUntil());
+
 // Paginierungs-Logik
 $limit      = $itemsPerPage ?? 25;
 $page       = $currentPage ?? 1;
 $totalCount = \count($allActive);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
-$page       = \min($page, $totalPages); // Verhindert, dass man auf Seite 99 geht, wenn es nur 2 gibt
+$page       = \min($page, $totalPages);
 $offset     = ($page - 1) * $limit;
 
 $activePermits = \array_slice($allActive, $offset, $limit);
@@ -38,12 +41,11 @@ if ($auth->hasPermission('dashboard.active.view')) {
                              class="c-icon"
                              alt=""> Aktive Genehmigungen
                     </h3>
-                    <p class="u-text-muted u-text-small">Alle aktuell gültigen Einfahrtsberechtigungen im System.</p>
+                    <p class="u-text-muted u-text-small u-margin-none">
+                        Alle aktuell gültigen Einfahrtsberechtigungen im System.
+                    </p>
                 </div>
-                <span class="c-badge"
-                      style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
-                    LIVE: <?php echo \count($allActive); ?>
-                </span>
+                <span class="c-badge" style="background: var(--success-color);"> LIVE: <?php echo \count($allActive); ?></span>
             </header>
 
             <div class="c-card__body u-padding-none"
@@ -52,7 +54,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                 <table class="c-table js-sort-table"
                        style="table-layout: fixed; width: 100%; min-width: 1000px;">
                     <thead>
-                        <tr style="background: #f8fafc;">
+                        <tr style="background: rgba(0,0,0,0.02);">
                             <th class="js-sort-header"
                                 style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
                             <th class="js-sort-header"
@@ -93,16 +95,16 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                         style="vertical-align: middle;">
                                         <div class="u-flex u-flex-column">
-                                            <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
+                                            <span style="font-weight: 700; color: var(--text-main);">
                                                 <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
                                             </span>
                                             <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
-                                                <?php echo $permit->code; ?>
-                                            </code>
+                                        <?php echo $permit->code; ?>
+                                    </code>
                                             <div>
-                                                <span style="font-size: 0.7rem; background: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;">
-                                                    PARZELLE <?php echo $permit->getPlotNumber(); ?>
-                                                </span>
+                                                <span style="font-size: 0.7rem; background: var(--primary-soft); color: var(--primary-color); padding: 1px 6px; border-radius: 4px; font-weight: 800;">
+                                            PARZELLE <?php echo $permit->getPlotNumber(); ?>
+                                        </span>
                                             </div>
                                         </div>
                                     </td>
@@ -117,10 +119,9 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div style="margin-top: 4px;">
-                                            <code
-                                    style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
-                                                <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                            </code>
+                                            <code style="font-size: 0.8rem; font-weight: 800; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">
+                                        <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
+                                    </code>
                                         </div>
                                     </td>
 
@@ -129,15 +130,15 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                         <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>"
                                             style="vertical-align: middle;">
                                             <?php if ($permit->getOwnerEmail()) { ?>
-                                                <div class="u-flex u-align-center u-gap-xs"><img
-                                                         src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                                                <div class="u-flex u-align-center u-gap-xs">
+                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
                                                          class="c-icon"
                                                          style="width: 14px; opacity: 0.6;">
                                                     <small>
                                                         <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>"
                                                            class="u-text-link">
-                                                            <?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>
-                                                        </a>
+                                                    <?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>
+                                                </a>
                                                     </small>
                                                 </div>
                                             <?php } else { ?>
@@ -151,19 +152,19 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                         class="u-text-center"
                                         style="vertical-align: middle;">
                                         <div style="line-height: 1.3;">
-                                            <strong style="color: #1e293b; font-size: 0.95rem;">
+                                            <strong style="color: var(--text-main); font-size: 0.95rem;">
                                                 <?php echo $permit->getValidFrom()->format('d.m.Y'); ?>
                                             </strong><br>
-                                            <small class="u-text-muted">bis
-                                                <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
+                                            <small class="u-text-muted">
+                                                bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?>
+                                            </small>
                                             <div style="margin-top: 6px;">
-                                                <span
-                                                      style="color: <?php echo ($remaining <= 1) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;">
-                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-hourglass-not-done.webp"
-                                                         class="c-icon"
-                                                         alt=""></a>
-                                                    <?php echo $remainingText; ?>
-                                                </span>
+                                                <span style="color: <?php echo ($remaining <= 1) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;">
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-hourglass-not-done.webp"
+                                                 class="c-icon"
+                                                 alt="">
+                                            <?php echo $remainingText; ?>
+                                        </span>
                                             </div>
                                         </div>
                                     </td>
@@ -190,17 +191,21 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
                                                    title="Druckvorschau">
-                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
-                                        class="c-icon" alt="Drucken"></a>
-                                            <?php } ?>
-                                            <?php if ($auth->hasPermission('dashboard.active.details')) { ?>
+                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                                                        class="c-icon"
+                                                        alt="Drucken">
+                                                </a>
+                                                    <?php } ?>
+                                                    <?php if ($auth->hasPermission('dashboard.active.details')) { ?>
                                                 <a href="check.php?code=<?php echo $permit->code; ?>"
                                                    target="_blank"
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
                                                    title="Details">
-                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
-                                        class="c-icon" alt="Details"></a>
+                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                 class="c-icon"
+                                                 alt="Details">
+                                        </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('dashboard.active.suspend')) { ?>
@@ -219,7 +224,10 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                         <button type="submit"
                                                                 class="c-button c-button--success"
                                                                 style="width: 36px; height: 36px;"
-                                                                title="Wieder freigeben">🔓
+                                                                title="Wieder freigeben">
+                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
+                                                             class="c-icon"
+                                                             alt="">
                                                         </button>
                                                     </form>
                                                 <?php } else { ?>
@@ -230,7 +238,8 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                             title="Sperren">
                                                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
                                                              class="c-icon"
-                                                             alt=""></button>
+                                                             alt="">
+                                                    </button>
 
                                                     <!-- DAS FEHLENDE FORMULAR FÜR DIE SPERRE -->
                                                     <form id="form_suspend_<?php echo $permit->code; ?>"
@@ -298,9 +307,10 @@ if ($auth->hasPermission('dashboard.active.view')) {
                     <div class="u-flex u-justify-between u-align-center u-padding-around-m"
                          style="background: var(--bg-light); border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
                         <div>
-                            <span class="u-text-muted" style="font-size: 0.85rem;">
-                        Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
-                    </span>
+                            <span class="u-text-muted"
+                                  style="font-size: 0.85rem;">
+                                Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
+                            </span>
                         </div>
                         <div class="u-flex u-gap-xs u-align-center">
                             <?php if ($page > 1) { ?>

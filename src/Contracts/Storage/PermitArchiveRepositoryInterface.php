@@ -37,4 +37,10 @@ interface PermitArchiveRepositoryInterface
      * @return int Die Anzahl der erfolgreich anonymisierten Datensätze.
      */
     public function anonymizeOldRecords(int $yearsThreshold = 10): int;
+
+    /**
+     * Lädt archivierte Genehmigungen ab einem bestimmten Jahr (Lazy-Loading)
+     * @return \App\Core\Entity\Permit[]
+     */
+    public function getArchivedPermits(int $minYear): array;
 }

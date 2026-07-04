@@ -19,6 +19,14 @@ $dueDaysCfg = (int) $config->get('payment_due_days', 14);
 $now        = new \DateTimeImmutable('today');
 $allUnpaid  = $permitGroups['unpaid'] ?? [];
 
+// Sortierung - Am längsten überfällig / am wenigsten Zeit zuerst
+\usort($allUnpaid, function ($a, $b) use ($dueDaysCfg) {
+    $deadlineA = $a->getCreatedAt()->modify("+$dueDaysCfg days");
+    $deadlineB = $b->getCreatedAt()->modify("+$dueDaysCfg days");
+
+    return $deadlineA <=> $deadlineB; // Älteste Deadline zuerst
+});
+
 // Paginierungs-Logik
 $limit      = $itemsPerPage ?? 25;
 $page       = $currentPage ?? 1;
@@ -134,7 +142,12 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                            onchange="updateBulkPayButton()"
                                                            style="transform: scale(1.3); cursor: pointer;">
                                                 <?php } else { ?>
-                                                    <span title="Gesperrt" style="opacity: 0.5;">🚫</span>
+                                                    <span title="Gesperrt"
+                                                          style="opacity: 0.5;">
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_prohibited.webp"
+                                                             class="c-icon"
+                                                             alt="">
+                                                    </span>
                                                 <?php } ?>
                                             </td>
                                         <?php } ?>
@@ -142,8 +155,12 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                         <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                             style="vertical-align: middle;">
                                             <div class="u-flex u-flex-column">
-                                                <span style="font-weight: 700; color: var(--text-main);"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></span>
-                                                <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;"><?php echo $permit->code; ?></code>
+                                                <span style="font-weight: 700; color: var(--text-main);">
+                                                    <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
+                                                </span>
+                                                <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
+                                                    <?php echo $permit->code; ?>
+                                                </code>
                                                 <div>
                                                     <span style="font-size: 0.7rem; background: var(--primary-soft); color: var(--primary-color); padding: 1px 6px; border-radius: 4px; font-weight: 800;">
                                                 PARZELLE <?php echo $permit->getPlotNumber(); ?>
@@ -152,7 +169,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                             </div>
                                         </td>
 
-                                    <!-- 2. Fahrzeug & Kennzeichen darunter -->
+                                        <!-- 2. Fahrzeug & Kennzeichen darunter -->
                                         <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
                                             style="text-align: center; vertical-align: middle;">
                                             <div style="line-height: 1;">
@@ -185,12 +202,17 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                             </td>
                                         <?php } ?>
 
-                                    <!-- 4. Mahnstatus & Zähler -->
+                                        <!-- 4. Mahnstatus & Zähler -->
                                         <td data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>"
                                             class="u-text-center"
                                             style="vertical-align: middle;">
                                             <?php if ($overdueLevel === 2) { ?>
-                                                <span class="c-badge c-badge--danger">🚨 <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG</span>
+                                                <span class="c-badge c-badge--danger">
+                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_police-car-light.webp"
+                                                         class="c-icon"
+                                                         alt="">
+                                                    <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
+                                                </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
                                                 <span class="c-badge c-badge--warning">MAHNFRIST ABGELAUFEN</span>
                                             <?php } else { ?>
@@ -221,12 +243,18 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                             </td>
                                         <?php } ?>
 
-                                    <!-- 6. Aktionen (Inkl. Auge) -->
+                                        <!-- 6. Aktionen (Inkl. Auge) -->
                                         <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                             <div class="u-flex u-gap-xs u-justify-end">
                                                 <?php if ($auth->hasPermission('dashboard.finance.details')) { ?>
-                                                    <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 34px; height: 34px;" title="Details">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
+                                                    <a href="check.php?code=<?php echo $permit->code; ?>"
+                                                       target="_blank"
+                                                       class="c-button c-button--secondary"
+                                                       style="width: 34px; height: 34px;"
+                                                       title="Details">
+                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                     class="c-icon"
+                                                     alt="">
                                             </a>
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
@@ -235,7 +263,11 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                                 onclick="document.getElementById('form_unsuspend_<?php echo $permit->code; ?>').submit()"
                                                                 class="c-button c-button--success"
                                                                 style="width: 34px; height: 34px;"
-                                                                title="Wieder freigeben">🔓 </button>
+                                                                title="Wieder freigeben">
+                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
+                                                                 class="c-icon"
+                                                                 alt="">
+                                                        </button>
                                                     <?php } else { ?>
                                                         <button type="button"
                                                                 class="c-button c-button--danger js-suspend-btn"
@@ -253,7 +285,10 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                             class="c-button c-button--success"
                                                             style="width: 34px; height: 34px;"
                                                             title="Einzeln als Bezahlt markieren"
-                                                            onclick="if(confirm('Zahlung für <?php echo $permit->code; ?> bestätigen?')) document.getElementById('single_pay_<?php echo $permit->code; ?>').submit();">✔
+                                                            onclick="if(confirm('Zahlung für <?php echo $permit->code; ?> bestätigen?')) document.getElementById('single_pay_<?php echo $permit->code; ?>').submit();">
+                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-check-mark.webp"
+                                                             class="c-icon"
+                                                             alt="">
                                                     </button>
                                                 <?php } ?>
                                             </div>
@@ -356,32 +391,56 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                     <div class="u-flex u-justify-between u-align-center u-padding-around-m"
                          style="background: var(--bg-light); border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
                         <div>
-                            <span class="u-text-muted" style="font-size: 0.85rem;"> Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong></span>
+                            <span class="u-text-muted"
+                                  style="font-size: 0.85rem;">
+                                Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
+                            </span>
                         </div>
                         <div class="u-flex u-gap-xs u-align-center">
                             <?php if ($page > 1) { ?>
-                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary" style="padding: 6px 10px; font-size: 0.85rem;"> &larr; </a>
+                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>"
+                                   class="c-button c-button--secondary"
+                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                    &larr;
+                                </a>
                             <?php } else { ?>
                                 <button class="c-button c-button--secondary"
                                         style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
-                                        disabled>&larr;</button>
+                                        disabled>
+                                    &larr;
+                                </button>
                             <?php } ?>
                             <?php foreach ($pagesToShow as $pageNum) {
                                 if ($pageNum === '...') { ?>
-                                    <span class="u-text-muted" style="padding: 4px 8px;">&hellip;</span>
+                                    <span class="u-text-muted"
+                                          style="padding: 4px 8px;">
+                                        &hellip;
+                                    </span>
                                 <?php } elseif ($pageNum === $page) { ?>
                                     <button class="c-button c-button--primary"
-                                            style="padding: 6px 12px; font-size: 0.85rem; pointer-events: none;"><?php echo $pageNum; ?></button>
+                                            style="padding: 6px 12px; font-size: 0.85rem; pointer-events: none;">
+                                        <?php echo $pageNum; ?>
+                                    </button>
                                 <?php } else { ?>
-                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary" style="padding: 6px 12px; font-size: 0.85rem;"><?php echo $pageNum; ?></a>
+                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>"
+                                       class="c-button c-button--secondary"
+                                       style="padding: 6px 12px; font-size: 0.85rem;">
+                                        <?php echo $pageNum; ?>
+                                    </a>
                             <?php }
                                 } ?>
                             <?php if ($page < $totalPages) { ?>
-                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary" style="padding: 6px 10px; font-size: 0.85rem;"> &rarr; </a>
+                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>"
+                                   class="c-button c-button--secondary"
+                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                    &rarr;
+                                </a>
                             <?php } else { ?>
                                 <button class="c-button c-button--secondary"
                                         style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
-                                        disabled>&rarr;</button>
+                                        disabled>
+                                    &rarr;
+                                </button>
                             <?php } ?>
                         </div>
                     </div>
