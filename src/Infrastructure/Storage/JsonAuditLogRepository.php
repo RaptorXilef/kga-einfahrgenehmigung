@@ -71,4 +71,10 @@ final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterfa
 
         return ['items' => $items, 'total' => $total];
     }
+
+    public function import(array $data): void
+    {
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['audit_logs']['file'] ?? 'audit_logs.json');
+        \file_put_contents($path, \json_encode(\array_values($data), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
+    }
 }

@@ -49,4 +49,25 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
 
         return $permits;
     }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $key => $item) {
+            if (! isset($item['code'])) {
+                $item['code'] = $key;
+            }
+            $objects[] = $this->mapToEntity($item);
+        }
+
+        $path       = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
+        $mappedData = [];
+        foreach ($objects as $permit) {
+            $item                  = $this->flattenEntity($permit);
+            $item['is_anonymized'] = 1;
+            $item['agreements'] ??= '{}';
+            $mappedData[$permit->code] = $item;
+        }
+        $this->writeJsonSafely($path, $mappedData);
+    }
 }

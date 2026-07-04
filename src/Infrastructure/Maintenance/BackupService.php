@@ -54,9 +54,12 @@ final readonly class BackupService implements BackupServiceInterface
         if (! isset($storageConfig[$target])) {
             $keysToBackup = [
                 'permits',
+                'permits_archive',
+                'permits_cancelled',
                 'users',
                 'groups',
                 'vouchers',
+                'vouchers_archive',
                 'pending_verification',
                 'verified_pending',
                 'magic_links',

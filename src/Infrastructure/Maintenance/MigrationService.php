@@ -7,6 +7,8 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Mail\SmtpMailService;
+use App\Infrastructure\Storage\JsonAuditLogRepository;
+use App\Infrastructure\Storage\JsonCancelledPermitRepository;
 use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
@@ -17,6 +19,8 @@ use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
+use App\Infrastructure\Storage\MySqlAuditLogRepository;
+use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
@@ -83,13 +87,15 @@ final readonly class MigrationService
                     'mail_log',
                     'mail_queue',
                     'pending_verification',
-                    'permits_archive',
                     'permits',
+                    'permits_archive',
+                    'permits_cancelled',
                     'update_migrations',
                     'users',
                     'verified_pending',
-                    'vouchers_archive',
                     'vouchers',
+                    'vouchers_archive',
+                    'audit_logs',
                 ];
 
                 $count = 0;
@@ -468,6 +474,7 @@ final readonly class MigrationService
         }
 
         match ($key) {
+            'audit_logs'           => (new MySqlAuditLogRepository($this->pdo, $this->config))->import($data),
             'groups'               => (new MySqlGroupRepository($this->pdo, $this->config))->import($data),
             'users'                => (new MySqlUserRepository($this->pdo, $this->config))->import($data),
             'login_attempts'       => (new MySqlLoginAttemptRepository($this->pdo, $this->config))->import($data),
@@ -477,6 +484,7 @@ final readonly class MigrationService
             'pending_verification' => (new MySqlVerificationRepository($this->pdo, $this->config))->savePending($data, true),
             'permits'              => (new MySqlStorage($this->pdo))->import($data),
             'permits_archive'      => (new MySqlPermitArchiveRepository($this->pdo, $this->config))->import($data),
+            'permits_cancelled'    => (new MySqlCancelledPermitRepository($this->pdo, $this->config))->import($data),
             'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, true),
             'verified_pending'     => (new MySqlVerificationRepository($this->pdo, $this->config))->saveVerified($data, true),
             'vouchers'             => (new MySqlVoucherRepository($this->pdo, $this->config))->saveAll($data, true),
@@ -495,6 +503,7 @@ final readonly class MigrationService
     private function saveToJson(string $key, array $data): void
     {
         match ($key) {
+            'audit_logs'           => (new JsonAuditLogRepository($this->config))->import($data),
             'groups'               => (new JsonGroupRepository($this->config))->import($data),
             'users'                => (new JsonUserRepository($this->config))->import($data),
             'login_attempts'       => (new JsonLoginAttemptRepository($this->config))->import($data),
@@ -504,6 +513,7 @@ final readonly class MigrationService
             'pending_verification' => (new JsonVerificationRepository($this->config))->savePending($data, false),
             'permits'              => (new JsonStorage($this->config->getStoragePath($this->config->get('storage_config')['permits']['file'] ?? 'permits.json')))->import($data),
             'permits_archive'      => (new JsonPermitArchiveRepository($this->config))->import($data),
+            'permits_cancelled'    => (new JsonCancelledPermitRepository($this->config))->import($data),
             'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, false),
             'verified_pending'     => (new JsonVerificationRepository($this->config))->saveVerified($data, false),
             'vouchers'             => (new JsonVoucherRepository($this->config))->saveAll($data, false),
@@ -522,6 +532,7 @@ final readonly class MigrationService
     private function getIdFieldForKey(string $key): string
     {
         return match ($key) {
+            'audit_logs'           => 'id',
             'groups'               => 'id',
             'mail_log'             => 'id',
             'mail_queue'           => 'id',
@@ -532,6 +543,7 @@ final readonly class MigrationService
             'pending_verification' => 'token',
             'verified_pending'     => 'token',
             'permits_archive'      => 'code',
+            'permits_cancelled'    => 'code',
             'permits'              => 'code',
             default                => 'code'
         };
