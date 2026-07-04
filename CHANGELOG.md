@@ -2,6 +2,13 @@
 
 
 
+## [0.54.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.54.1...v0.54.2) (2026-07-04)
+
+### 🐛 Bug Fixes
+
+* **config:** implement auto-heal for missing storage configurations and add audit_logs to backups ([9a644dc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9a644dcdddf92dd9161e1a279086cfd04b1b8167))
+* **maintenance:** patch missing tables in backup loop and migration UI ([21b1c8e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/21b1c8ea31251ed7afe6595321ba1237705eabbc))
+
 ## [0.54.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.54.0...v0.54.1) (2026-07-03)
 
 ### 🐛 Bug Fixes
