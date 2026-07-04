@@ -43,7 +43,20 @@ final readonly class Config implements ConfigInterface
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->settings[$key] ?? $default;
+        $val = $this->settings[$key] ?? $default;
+
+        // TODO Auto-Heal auch für andere Speichereinstellungen ergänzen
+        // Auto-Heal: Ergänzt fehlende storage_config Einträge (z.B. nach Updates),
+        // damit das System nicht abstürzt, wenn die JSON-Datei nicht aktuell ist.
+        if ($key === 'storage_config' && \is_array($val) && ! isset($val['audit_logs'])) {
+            $val['audit_logs'] = [
+                'type'  => $val['permits']['type'] ?? 'json', // Nimmt klugerweise das Format der Permits
+                'table' => 'audit_logs',
+                'file'  => 'audit_logs.json',
+            ];
+        }
+
+        return $val;
     }
 
     /**
@@ -128,6 +141,6 @@ final readonly class Config implements ConfigInterface
     public function getStoragePath(string $fileName): string
     {
         return \rtrim((string) $this->get('root_path'), '/\\') . '/' .
-            \ltrim((string) $this->get('storage_path_prefix'), '/\\') . $fileName;
+               \ltrim((string) $this->get('storage_path_prefix'), '/\\') . $fileName;
     }
 }

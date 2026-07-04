@@ -64,6 +64,7 @@ final readonly class BackupService implements BackupServiceInterface
                 'mail_queue',
                 'login_attempts',
                 'update_migrations',
+                'audit_logs',
             ];
 
             foreach ($keysToBackup as $key) {
