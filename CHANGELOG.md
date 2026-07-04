@@ -2,6 +2,12 @@
 
 
 
+## [0.55.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.0...v0.55.1) (2026-07-04)
+
+### 🐛 Bug Fixes
+
+* **templates:** add missing PHPDoc annotations for template variables ([78bfd60](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/78bfd6079173ac726f3a841f85232b402cc29cfc))
+
 ## [0.55.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.54.2...v0.55.0) (2026-07-04)
 
 ### 🚀 Features
