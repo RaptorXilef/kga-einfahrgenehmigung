@@ -2,6 +2,12 @@
 
 
 
+## [0.55.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.1...v0.55.2) (2026-07-04)
+
+### 🐛 Bug Fixes
+
+* **dashboard:** resolve execution order bug preventing archives from appearing in tabs ([2bee4e0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2bee4e01923a3a1e96c2ff965f106127c8160a22))
+
 ## [0.55.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.0...v0.55.1) (2026-07-04)
 
 ### 🐛 Bug Fixes
