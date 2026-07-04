@@ -70,39 +70,21 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $this->sessionManager->clearAdminFilters();
         }
 
-        $allPermits = $this->storage->getAll();
+        // 1. Aktive Daten holen
+        $allActivePermits = $this->storage->getAll();
+        $filteredActive   = $this->filterService->getFilteredPermits($dto->start, $dto->end, $dto->type, $dto->query);
 
-        $filtered = $this->filterService->getFilteredPermits($dto->start, $dto->end, $dto->type, $dto->query);
-
-        $vouchers          = $this->voucherRepository->loadAll();
-        $voucherValidities = [];
-        foreach ($vouchers as $code => $v) {
-            $voucherValidities[$code] = $this->voucherService->isValid($v);
-        }
-
-        $permitGroups  = $this->reportingService->groupPermits($filtered);
-        $overdueLevels = [];
-        foreach ($permitGroups['unpaid'] ?? [] as $permit) {
-            $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
-        }
-
-        $cancelledPermits = $this->cancelledRepository->loadAll();
-
-        // --- Audit Log Daten abrufen ---
-        $auditPage   = \max(1, (int) ($request->get['audit_page'] ?? 1));
-        $auditFilter = (string) ($request->get['audit_filter'] ?? '');
-        $auditData   = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
-
-        // ---- SAUBERES LAZY LOADING FÜR DAS ARCHIV ----
+        // 2. Archiv laden (Lazy-Loading)
         $filterStartYear = (int) \date('Y', \strtotime($dto->start));
         $requestedDepth  = (int) ($request->get['archive_depth'] ?? $filterStartYear);
         $minArchiveYear  = \min($filterStartYear, $requestedDepth);
 
-        $allHistoricalAndActive      = $allPermits;
-        $filteredHistoricalAndActive = $filtered;
-
-        // Die saubere Interface-Methode aufrufen:
         $archivedPermits = $this->archiveRepository->getArchivedPermits($minArchiveYear);
+
+        // 3. Datenbestände kombinieren
+        $allHistoricalAndActive      = $allActivePermits;
+        $filteredHistoricalAndActive = $filteredActive;
+        $queryLower                  = \strtolower(\trim($dto->query)); // Für die Text-Suche
 
         foreach ($archivedPermits as $p) {
             $allHistoricalAndActive[] = $p;
@@ -110,15 +92,39 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $pDate = $p->getCreatedAt()->format('Y-m-d');
             if ($pDate >= $dto->start && $pDate <= $dto->end) {
                 if ($dto->type === 'all' || (($this->config->get('permit_templates')[$p->template_key]['type'] ?? 'standard') === $dto->type)) {
-                    $filteredHistoricalAndActive[] = $p;
+                    // Berücksichtige auch das Suchfeld für Archiv-Einträge!
+                    if ($queryLower === '' || $p->matchesSearch($queryLower)) {
+                        $filteredHistoricalAndActive[] = $p;
+                    }
                 }
             }
         }
-        // ----------------------------------------------
 
+        // 4. Tab-Gruppierungen ERST JETZT aus den kombinierten Daten erstellen!
+        $permitGroups = $this->reportingService->groupPermits($filteredHistoricalAndActive);
+
+        $overdueLevels = [];
+        foreach ($permitGroups['unpaid'] ?? [] as $permit) {
+            $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
+        }
+
+        // 5. Restliche Daten laden
+        $vouchers          = $this->voucherRepository->loadAll();
+        $voucherValidities = [];
+        foreach ($vouchers as $code => $v) {
+            $voucherValidities[$code] = $this->voucherService->isValid($v);
+        }
+
+        $cancelledPermits = $this->cancelledRepository->loadAll();
+
+        $auditPage   = \max(1, (int) ($request->get['audit_page'] ?? 1));
+        $auditFilter = (string) ($request->get['audit_filter'] ?? '');
+        $auditData   = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
+
+        // 6. View rendern
         $this->renderer->render('admin_dashboard', [
             'allowedLimits'     => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
-            'allPermits'        => $allPermits,
+            'allPermits'        => $allHistoricalAndActive, // An Template übergeben
             'auditFilter'       => $auditFilter,
             'auditLogs'         => $auditData['items'],
             'auditPage'         => $auditPage,
@@ -138,7 +144,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'minArchiveYear'    => $minArchiveYear,
             'overdueLevels'     => $overdueLevels,
             'periodStats'       => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
-            'permitGroups'      => $permitGroups,
+            'permitGroups'      => $permitGroups, // <--- Beinhaltet jetzt die archivierten!
             'structure'         => $this->config->get('structure', []),
             'userRepository'    => $this->userRepository,
             'voucherArchive'    => $this->voucherRepository->loadArchive(),
