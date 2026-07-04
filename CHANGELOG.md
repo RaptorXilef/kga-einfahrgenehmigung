@@ -2,6 +2,12 @@
 
 
 
+## [0.55.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.54.2...v0.55.0) (2026-07-04)
+
+### 🚀 Features
+
+* **dashboard:** integrate lazy-loaded archive stats and implement semantic sorting ([5dd9baa](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5dd9baa776ea6b0da51e14e4500d5b28fcf269f6))
+
 ## [0.54.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.54.1...v0.54.2) (2026-07-04)
 
 ### 🐛 Bug Fixes
