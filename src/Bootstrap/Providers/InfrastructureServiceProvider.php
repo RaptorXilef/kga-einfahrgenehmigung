@@ -77,15 +77,32 @@ use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 
 /**
- * Registriert alle Hardware-, Netzwerk- und Dateisystem-nahen Komponenten.
+ * Der InfrastructureServiceProvider.
+ *
+ * Registriert alle Hardware-, Netzwerk- und Dateisystem-nahen Komponenten
+ * im Dependency Injection Container der Anwendung. Diese Schicht stellt
+ * sicher, dass die Core-Logik ausschließlich mit Interfaces (Contracts)
+ * kommuniziert, ohne die tatsächlichen Implementierungsdetails (z.B.
+ * MySQL, JSON, PayPal, SMTP) zu kennen.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final class InfrastructureServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Bindet alle Infrastruktur-Dienste an ihre entsprechenden Interfaces im DI-Container.
+     *
+     * @param Container $container Der Dependency Injection Container der Applikation.
+     */
     public function register(Container $container): void
     {
-        // --- 1.1 Datenbank & Basis-Storage ---
+        /*
+         |--------------------------------------------------------------------------
+         | 1. CORE SYSTEM & DATABASE
+         |--------------------------------------------------------------------------
+         | Grundlegende Datenbankverbindungen und persistente Systemspeicher.
+         */
+
         $container->bind(\PDO::class, fn (): ?\PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
@@ -95,32 +112,23 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(\PDO::class),
         ));
 
-        // Wir mappen das ClockInterface auf den FQCN, den das Autowiring auflösen kann
+        // Mapping des System-Clocks für testbare Zeitstempel
         $container->bind(ClockInterface::class, fn () => $container->get(SystemClock::class));
 
-        // --- 1.2 Repositories (Datenzugriff) ---
-        $container->bind(GroupRepositoryInterface::class, function () use ($container) {
+        /*
+         |--------------------------------------------------------------------------
+         | 2. DATA REPOSITORIES (FACTORY PATTERN)
+         |--------------------------------------------------------------------------
+         | Entscheidet zur Laufzeit anhand der Konfiguration (storage_config),
+         | ob die Daten im JSON-Flatfile oder in einer MySQL-Tabelle landen.
+         */
+
+        $container->bind(AuditLogRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
-            return ($config->get('storage_config')['groups']['type'] ?? 'json') === 'mysql'
-                ? new MySqlGroupRepository($container->get(\PDO::class), $config)
-                : new JsonGroupRepository($config);
-        });
-
-        $container->bind(UserRepositoryInterface::class, function () use ($container) {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['users']['type'] ?? 'json') === 'mysql'
-                ? new MySqlUserRepository($container->get(\PDO::class), $config)
-                : new JsonUserRepository($config);
-        });
-
-        $container->bind(PermitArchiveRepositoryInterface::class, function () use ($container) {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['permits_archive']['type'] ?? 'json') === 'mysql'
-                ? new MySqlPermitArchiveRepository($container->get(\PDO::class), $config)
-                : new JsonPermitArchiveRepository($config);
+            return ($config->get('storage_config')['audit_logs']['type'] ?? 'json') === 'mysql'
+                ? new MySqlAuditLogRepository($container->get(\PDO::class), $config)
+                : new JsonAuditLogRepository($config);
         });
 
         $container->bind(CancelledPermitRepositoryInterface::class, function () use ($container) {
@@ -131,20 +139,20 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 : new JsonCancelledPermitRepository($config);
         });
 
-        $container->bind(VerificationRepositoryInterface::class, function () use ($container) {
+        $container->bind(GroupRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
-            return ($config->get('storage_config')['pending_verification']['type'] ?? 'json') === 'mysql'
-                ? new MySqlVerificationRepository($container->get(\PDO::class), $config)
-                : new JsonVerificationRepository($config);
+            return ($config->get('storage_config')['groups']['type'] ?? 'json') === 'mysql'
+                ? new MySqlGroupRepository($container->get(\PDO::class), $config)
+                : new JsonGroupRepository($config);
         });
 
-        $container->bind(VoucherRepositoryInterface::class, function () use ($container) {
+        $container->bind(LoginAttemptRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
-            return ($config->get('storage_config')['vouchers']['type'] ?? 'json') === 'mysql'
-                ? new MySqlVoucherRepository($container->get(\PDO::class), $config)
-                : new JsonVoucherRepository($config);
+            return ($config->get('storage_config')['login_attempts']['type'] ?? 'json') === 'mysql'
+                ? new MySqlLoginAttemptRepository($container->get(\PDO::class), $config)
+                : new JsonLoginAttemptRepository($config);
         });
 
         $container->bind(MagicLinkRepositoryInterface::class, function () use ($container) {
@@ -163,98 +171,129 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 : new JsonMailQueueRepository($config);
         });
 
-        $container->bind(LoginAttemptRepositoryInterface::class, function () use ($container) {
+        $container->bind(PermitArchiveRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
-            return ($config->get('storage_config')['login_attempts']['type'] ?? 'json') === 'mysql'
-                ? new MySqlLoginAttemptRepository($container->get(\PDO::class), $config)
-                : new JsonLoginAttemptRepository($config);
+            return ($config->get('storage_config')['permits_archive']['type'] ?? 'json') === 'mysql'
+                ? new MySqlPermitArchiveRepository($container->get(\PDO::class), $config)
+                : new JsonPermitArchiveRepository($config);
         });
 
-        $container->bind(AuthSessionInterface::class, fn () => clone $container->get(
-            SessionManager::class,
-        ));
-        $container->bind(CronStateRepositoryInterface::class, fn () => $container->get(
-            FileCronStateRepository::class,
-        ));
-
-        $container->bind(AuditLogRepositoryInterface::class, function () use ($container) {
+        $container->bind(UserRepositoryInterface::class, function () use ($container) {
             $config = $container->get(ConfigInterface::class);
 
-            return ($config->get('storage_config')['audit_logs']['type'] ?? 'json') === 'mysql'
-                ? new MySqlAuditLogRepository($container->get(\PDO::class), $config)
-                : new JsonAuditLogRepository($config);
+            return ($config->get('storage_config')['users']['type'] ?? 'json') === 'mysql'
+                ? new MySqlUserRepository($container->get(\PDO::class), $config)
+                : new JsonUserRepository($config);
         });
 
-        // --- 1.3 Netzwerk & Drittanbieter (Mail, PayPal) ---
-        // Mail Decorator Pattern bleibt bestehen, um Rekursion bei MailQueueService zu verhindern
+        $container->bind(VerificationRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['pending_verification']['type'] ?? 'json') === 'mysql'
+                ? new MySqlVerificationRepository($container->get(\PDO::class), $config)
+                : new JsonVerificationRepository($config);
+        });
+
+        $container->bind(VoucherRepositoryInterface::class, function () use ($container) {
+            $config = $container->get(ConfigInterface::class);
+
+            return ($config->get('storage_config')['vouchers']['type'] ?? 'json') === 'mysql'
+                ? new MySqlVoucherRepository($container->get(\PDO::class), $config)
+                : new JsonVoucherRepository($config);
+        });
+
+        /*
+         |--------------------------------------------------------------------------
+         | 3. NETWORK & THIRD-PARTY SERVICES
+         |--------------------------------------------------------------------------
+         | Externe APIs, Payment-Provider und E-Mail Versand.
+         */
+
+        $container->bind(PaymentProviderInterface::class, fn () => $container->get(
+            PayPalService::class,
+        ));
+
+        // Mail Decorator Pattern: Trennt asynchrone Warteschlange (Queue) vom echten Versand (SMTP)
         $container->bind('mail.smtp', fn () => new SmtpMailService(
             $container->get(\PDO::class),
             $container->get(ConfigInterface::class),
         ));
-        $container->bind(MailLogInterface::class, fn () => $container->get(
-            'mail.smtp',
-        ));
+
+        $container->bind(MailLogInterface::class, fn () => $container->get('mail.smtp'));
 
         $container->bind(MailServiceInterface::class, fn () => new MailQueueService(
             $container->get(MailQueueRepositoryInterface::class),
             $container->get('mail.smtp'),
         ));
 
-        // Alle restlichen Services löst der Container via Autowiring vollautomatisch auf!
-        $container->bind(PaymentProviderInterface::class, fn () => $container->get(
-            PayPalService::class,
+        /*
+         |--------------------------------------------------------------------------
+         | 4. SECURITY & SESSION MANAGEMENT
+         |--------------------------------------------------------------------------
+         | Schutzmechanismen gegen Brute-Force, Dateizugriff und Auth-Handling.
+         */
+
+        $container->bind(AuthSessionInterface::class, fn () => clone $container->get(
+            SessionManager::class,
         ));
 
-        // --- 1.4 Sicherheit & System-Bootstrapping ---
-        $container->bind(RateLimiterInterface::class, fn () => $container->get(
-            RateLimiter::class,
-        ));
         $container->bind(LockManagerInterface::class, fn () => $container->get(
             FileLockManager::class,
         ));
 
-        // --- 1.5 System-Maintenance & Wartung ---
+        $container->bind(RateLimiterInterface::class, fn () => $container->get(
+            RateLimiter::class,
+        ));
+
+        /*
+         |--------------------------------------------------------------------------
+         | 5. SYSTEM, MAINTENANCE & UTILS
+         |--------------------------------------------------------------------------
+         | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
+         */
+
         $container->bind(BackupServiceInterface::class, fn () => $container->get(
             BackupService::class,
+        ));
+
+        $container->bind(CronStateRepositoryInterface::class, fn () => $container->get(
+            FileCronStateRepository::class,
+        ));
+
+        $container->bind(ErrorLoggerInterface::class, fn () => $container->get(
+            ErrorLogger::class,
         ));
 
         $container->bind(ImageStorageInterface::class, fn () => $container->get(
             ImageStorageService::class,
         ));
 
-        $container->bind(SystemUpdaterInterface::class, fn () => $container->get(
-            GitHubUpdaterService::class,
+        $container->bind(JsonHelperInterface::class, fn () => new JsonHelper());
+
+        $container->bind(StorageBootstrapperInterface::class, fn () => $container->get(
+            StorageBootstrapper::class,
         ));
 
         $container->bind(SystemInfoInterface::class, fn () => $container->get(
             SystemInfoService::class,
         ));
 
-        $container->bind(JsonHelperInterface::class, fn () => new JsonHelper());
-
-        $container->bind(ErrorLoggerInterface::class, fn () => $container->get(
-            ErrorLogger::class,
-        ));
-
-        $container->bind(StorageBootstrapperInterface::class, fn () => $container->get(
-            StorageBootstrapper::class,
-        ));
-
-        $container->bind(MigrationServiceInterface::class, fn () => $container->get(
-            MigrationService::class,
+        $container->bind(SystemUpdaterInterface::class, fn () => $container->get(
+            GitHubUpdaterService::class,
         ));
 
         $container->bind(UpdateMigrationServiceInterface::class, fn () => $container->get(
             UpdateMigrationService::class,
         ));
 
+        // Haupt-Migrations-Dienst
         $container->bind(MigrationServiceInterface::class, fn () => new MigrationService(
             $container->get(\PDO::class),
             $container->get(AuthService::class),
             $container->get(BackupServiceInterface::class),
             $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class), // <-- NEU HIER
+            $container->get(JsonHelperInterface::class),
         ));
     }
 }

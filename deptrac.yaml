@@ -19,15 +19,18 @@ deptrac:
         - type: directory
           value: src/Contracts/.*
 
-    - name: Core # Anwendungsspezifische Logik (Services, Events, DTOs)
+    - name: Core # Anwendungsspezifische Logik (Services, Events, DTOs, Utils, Security)
       collectors:
         - type: directory
-          value: src/Core/.*
-      exclude_collectors:
+          value: src/Core/Service/.*
         - type: directory
-          value: src/Core/Entity/.*
+          value: src/Core/Event/.*
         - type: directory
-          value: src/Core/ValueObject/.*
+          value: src/Core/DTO/.*
+        - type: directory
+          value: src/Core/Utils/.*
+        - type: directory
+          value: src/Core/Security/.*
 
     - name: Infrastructure # Externe Implementierungen (MySQL-Repository, Mailer, API-Clients)
       collectors:
