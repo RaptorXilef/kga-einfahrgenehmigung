@@ -19,8 +19,11 @@ declare(strict_types=1);
 
 use App\Application\Exception\GlobalExceptionHandler;
 use App\Bootstrap\Container;
+use App\Core\Security\PermissionRegistry;
 use App\Infrastructure\Config\Config;
+use App\Infrastructure\Database\SchemaRegistry;
 use App\Infrastructure\Logging\ErrorLogger;
+use App\Infrastructure\Storage\JsonHelper;
 
 // Session global starten, da fast alle Seiten sie benötigen
 if (\session_status() === \PHP_SESSION_NONE) {
@@ -85,8 +88,8 @@ if (! \is_dir($customLogDir)) {
 $settings = [];
 
 // A. Die feste Registry laden (Ehemalige sql_schema & permissions)
-$settings['db_schema'] = \App\Infrastructure\Database\SchemaRegistry::getSchemas();
-$settings['structure'] = \App\Core\Security\PermissionRegistry::getStructure();
+$settings['db_schema'] = SchemaRegistry::getSchemas();
+$settings['structure'] = PermissionRegistry::getStructure();
 $settings['admin_ui']  = ['permissions_desc_on_top' => true];
 
 $flatPerms = [];
@@ -131,7 +134,7 @@ $userManagedCollections = [
 
 if (\is_dir($settingsDir)) {
     foreach (\glob($settingsDir . '/*.json') as $jsonFile) {
-        $data = \App\Infrastructure\Storage\JsonHelper::read($jsonFile);
+        $data = (new JsonHelper())->read($jsonFile);
         if (\is_array($data)) {
             unset($data['_meta']); // Kommentare/Meta rausschmeißen
 
