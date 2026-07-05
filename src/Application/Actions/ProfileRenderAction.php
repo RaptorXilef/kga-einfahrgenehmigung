@@ -10,8 +10,8 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -24,7 +24,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     public function __construct(
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
-        private ImageStorageService $imageStorage,
+        private ImageStorageInterface $imageStorage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {

@@ -11,8 +11,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Contracts\System\SystemUpdaterInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Infrastructure\Maintenance\GitHubUpdaterService;
 
 /**
  * Action zum Entpacken und Anwenden eines System-Updates (Phase 1).
@@ -24,7 +24,7 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface, R
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private GitHubUpdaterService $updater,
+        private SystemUpdaterInterface $updater,
     ) {
     }
 

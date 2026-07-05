@@ -11,8 +11,8 @@ use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -26,7 +26,7 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
         private AuthService $auth,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
-        private ImageStorageService $imageStorage,
+        private ImageStorageInterface $imageStorage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {

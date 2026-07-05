@@ -1,5 +1,5 @@
 # Path: deptrac.yaml
-# @description Erzwingt die architektonische Integrität der KGA App.
+# @description Erzwingt die architektonische Integrität des universellen OOP/DTO Blueprints.
 
 deptrac:
   paths:
@@ -7,73 +7,76 @@ deptrac:
   cache_file: .cache/deptrac/.deptrac.cache
 
   layers:
-    - name: Domain # (Entities, Value Objects) Keine externen Abhängigkeiten!
+    - name: Domain # Reines Datenmodell (Entities, ValueObjects)
       collectors:
         - type: directory
           value: src/Core/Entity/.*
+        - type: directory
+          value: src/Core/ValueObject/.*
 
-    - name: Contracts # (Interfaces) Die Schnittstellen-Verträge
+    - name: Contracts # Schnittstellen/Interfaces (z.B. UserRepositoryInterface)
       collectors:
         - type: directory
           value: src/Contracts/.*
 
-    - name: Core # (Domain Services, Maintenance) Orchestrieren Geschäftslogik
+    - name: Core # Anwendungsspezifische Logik (Services, Events, DTOs)
       collectors:
         - type: directory
-          value: src/Core/Service/.*
+          value: src/Core/.*
+      exclude_collectors:
+        - type: directory
+          value: src/Core/Entity/.*
+        - type: directory
+          value: src/Core/ValueObject/.*
 
-    - name: Infrastructure # (Repositories, PDO, File I/O) Dumme Daten-Lieferanten
+    - name: Infrastructure # Externe Implementierungen (MySQL-Repository, Mailer, API-Clients)
       collectors:
         - type: directory
           value: src/Infrastructure/.*
 
-    - name: View # (Presenter, Renderer) Formatieren Daten für die Ausgabe
-      collectors:
-        - type: directory
-          value: src/Application/View/.*
-
-    - name: Application # (Controller) Nehmen HTTP-Requests an
+    - name: Application # Einstiegspunkt (Controller/Actions, HTTP, CLI, Middlewares)
       collectors:
         - type: directory
           value: src/Application/.*
-          # View aus dem Application Layer ausschließen, da es ein eigener Layer ist
-      exclude_collectors:
+
+    - name: Bootstrap # DI-Container, Configuration, App-Initialisierung
+      collectors:
         - type: directory
-          value: src/Application/View/.*
+          value: src/Bootstrap/.*
 
   ruleset:
-    # 1. Domain-Schicht ist isoliert und kennt NIEMANDEN.
+    # 1. Domain ist unabhängig von allem.
     Domain: ~
 
-    # 2. Verträge definieren die Domäne und nutzen ihre Objekte.
+    # 2. Contracts kennen nur die Domain (für Typisierungen).
     Contracts:
       - Domain
 
-    # 3. Der Core (Logik) orchestriert die Domäne über Verträge. Er weiß nichts von der Infrastruktur!
+    # 3. Core nutzt Contracts und Domain. Hier leben deine DTOs und Services.
     Core:
       - Contracts
       - Domain
 
-    # 4. Die Infrastruktur liefert Daten und darf Verträge implementieren.
-    # (Darf auch Core nutzen, z.B. wenn ein Repo den Auth-Service für Log-Tags braucht).
+    # 4. INFRASTRUKTUR: Kennt KEINEN Core mehr!
+    # Sie implementiert nur die Contracts und nutzt Domain-Objekte.
     Infrastructure:
       - Contracts
       - Domain
-      - Core
 
-    # 5. View formatiert Logik für die Ausgabe (Darf Config und Domain-Daten lesen).
-    View:
-      - Contracts
-      - Domain
-      - Core
-
-    # 6. Controller orchestrieren den gesamten Ablauf.
+    # 5. Application nimmt Input an, baut DTOs und schickt sie in den Core.
     Application:
       - Contracts
       - Core
       - Domain
+      - Bootstrap
+
+    # 6. Bootstrap darf alles kennen, um die Abhängigkeiten via DI-Container aufzulösen.
+    Bootstrap:
+      - Application
+      - Contracts
+      - Core
+      - Domain
       - Infrastructure
-      - View
 
   # Wir brauchen KEINE Ausnahmen mehr! Das System ist zu 100% sauber entkoppelt.
   # skip_violations: ~

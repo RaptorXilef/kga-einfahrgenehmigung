@@ -20,12 +20,12 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Rendert das zentrale Admin-Dashboard.
@@ -42,7 +42,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private CancelledPermitRepositoryInterface $cancelledRepository,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
-        private ImageStorageService $imageStorage,
+        private ImageStorageInterface $imageStorage,
         private MailLogInterface $mailLog,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitFilterService $filterService,

@@ -9,9 +9,9 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
  * Action zum Ausführen von DB-Migrationen nach einem Update (Phase 2).
@@ -24,7 +24,7 @@ final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, 
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private UpdateMigrationService $migrationService,
+        private UpdateMigrationServiceInterface $migrationService,
     ) {
     }
 

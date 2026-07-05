@@ -13,10 +13,10 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Core\Entity\Group;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -30,7 +30,7 @@ final readonly class GroupSaveAction implements ActionInterface, RequiresPermiss
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository,
-        private ImageStorageService $imageStorage,
+        private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
     ) {
     }

@@ -11,8 +11,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
+use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Infrastructure\Maintenance\MigrationService;
 
 /**
  * Action für Daten-Migrationen (Sync/Backup) zwischen Storage-Engines.
@@ -24,7 +24,7 @@ final readonly class SystemMigrateDataAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private MigrationService $migrationService,
+        private MigrationServiceInterface $migrationService,
         private SessionManager $sessionManager,
     ) {
     }

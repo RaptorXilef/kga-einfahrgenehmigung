@@ -1,6 +1,6 @@
 # Contributor License Agreement (CLA)
 
-*English version below | Deutsche Version unten*
+English version below | Deutsche Version unten
 
 ---
 

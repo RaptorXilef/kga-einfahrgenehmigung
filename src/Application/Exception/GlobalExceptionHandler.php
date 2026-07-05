@@ -5,7 +5,7 @@ namespace App\Application\Exception;
 
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Logging\ErrorLogger;
+use App\Contracts\System\ErrorLoggerInterface;
 
 /**
  * Zentraler Exception Handler für die Anwendung.
@@ -19,7 +19,7 @@ final readonly class GlobalExceptionHandler
 {
     public function __construct(
         private ConfigInterface $config,
-        private ErrorLogger $logger,
+        private ErrorLoggerInterface $logger,
     ) {
         // Preload ins Memory, falls Exception während eines Datei-Updates auftritt
         \class_exists(JsonResponse::class);

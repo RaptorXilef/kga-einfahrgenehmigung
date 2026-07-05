@@ -103,7 +103,15 @@
         "**/.debug/**": true
     },
     "intelephense.diagnostics.undefinedTypes": true,
-    "intelephense.diagnostics.exclude": ["**/.cache/**", "**/temp/**"],
+    "intelephense.diagnostics.exclude": {
+        "undefinedTypes": ["**/.cache/**", "**/temp/**"],
+        "undefinedFunctions": ["**/.cache/**", "**/temp/**"],
+        "undefinedConstants": ["**/.cache/**", "**/temp/**"],
+        "undefinedProperties": ["**/.cache/**", "**/temp/**"],
+        "undefinedMethods": ["**/.cache/**", "**/temp/**"],
+        "unusedSymbols": ["**/.cache/**", "**/temp/**"]
+    },
+    "intelephense.environment.exclude": ["**/.cache/**", "**/temp/**"],
     "intelephense.files.exclude": [
         "**/.cache/**",
         "**/.build/**",

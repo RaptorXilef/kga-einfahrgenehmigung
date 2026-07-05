@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -14,7 +15,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class UpdateMigrationService
+final readonly class UpdateMigrationService implements UpdateMigrationServiceInterface
 {
     use SafeJsonWriterTrait;
 
@@ -22,6 +23,7 @@ final readonly class UpdateMigrationService
         private ?\PDO $pdo, // <-- FIX: "= null" entfernt
         private ClockInterface $clock,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -114,7 +116,7 @@ final readonly class UpdateMigrationService
             return [];
         }
 
-        $data = JsonHelper::read($path);
+        $data = $this->jsonHelper->read($path);
 
         return \array_column($data, 'version');
     }
@@ -142,7 +144,7 @@ final readonly class UpdateMigrationService
         // JSON Speicherung
         $path = $this->config->getStoragePath($cfg['file']);
         // Prüfen, ob Datei existiert, bevor wir den strengen JsonHelper nutzen!
-        $data = \file_exists($path) ? JsonHelper::read($path) : [];
+        $data = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         $data[] = [
             'id'          => \uniqid('mig_', true),

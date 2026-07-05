@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\ImageStorageInterface;
 
 /**
  * Verantwortlich für das Speichern, Skalieren und Laden von Bildern.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class ImageStorageService
+final readonly class ImageStorageService implements ImageStorageInterface
 {
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+    ) {
     }
 
     public function uploadImage(string $folder, string $id, array $file): bool

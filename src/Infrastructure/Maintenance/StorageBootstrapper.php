@@ -7,6 +7,7 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\StorageBootstrapperInterface;
 use App\Core\Entity\Group;
 use App\Core\Entity\User;
 
@@ -17,7 +18,7 @@ use App\Core\Entity\User;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class StorageBootstrapper
+final readonly class StorageBootstrapper implements StorageBootstrapperInterface
 {
     public function __construct(
         private ?\PDO $pdo,

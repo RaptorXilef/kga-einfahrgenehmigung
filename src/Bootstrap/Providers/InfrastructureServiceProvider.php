@@ -10,6 +10,8 @@ use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Maintenance\MigrationServiceInterface;
+use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
@@ -27,18 +29,32 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\System\ErrorLoggerInterface;
+use App\Contracts\System\ImageStorageInterface;
+use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\System\StorageBootstrapperInterface;
+use App\Contracts\System\SystemInfoInterface;
+use App\Contracts\System\SystemUpdaterInterface;
 use App\Contracts\Utils\ClockInterface;
+use App\Core\Service\AuthService;
 use App\Infrastructure\Database\PdoFactory;
+use App\Infrastructure\Logging\ErrorLogger;
 use App\Infrastructure\Mail\MailQueueService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
+use App\Infrastructure\Maintenance\GitHubUpdaterService;
+use App\Infrastructure\Maintenance\MigrationService;
+use App\Infrastructure\Maintenance\StorageBootstrapper;
+use App\Infrastructure\Maintenance\UpdateMigrationService;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileCronStateRepository;
 use App\Infrastructure\Storage\FileLockManager;
+use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonAuditLogRepository;
 use App\Infrastructure\Storage\JsonCancelledPermitRepository;
 use App\Infrastructure\Storage\JsonGroupRepository;
+use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
 use App\Infrastructure\Storage\JsonMailQueueRepository;
@@ -57,6 +73,7 @@ use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
+use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 
 /**
@@ -200,6 +217,44 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // --- 1.5 System-Maintenance & Wartung ---
         $container->bind(BackupServiceInterface::class, fn () => $container->get(
             BackupService::class,
+        ));
+
+        $container->bind(ImageStorageInterface::class, fn () => $container->get(
+            ImageStorageService::class,
+        ));
+
+        $container->bind(SystemUpdaterInterface::class, fn () => $container->get(
+            GitHubUpdaterService::class,
+        ));
+
+        $container->bind(SystemInfoInterface::class, fn () => $container->get(
+            SystemInfoService::class,
+        ));
+
+        $container->bind(JsonHelperInterface::class, fn () => new JsonHelper());
+
+        $container->bind(ErrorLoggerInterface::class, fn () => $container->get(
+            ErrorLogger::class,
+        ));
+
+        $container->bind(StorageBootstrapperInterface::class, fn () => $container->get(
+            StorageBootstrapper::class,
+        ));
+
+        $container->bind(MigrationServiceInterface::class, fn () => $container->get(
+            MigrationService::class,
+        ));
+
+        $container->bind(UpdateMigrationServiceInterface::class, fn () => $container->get(
+            UpdateMigrationService::class,
+        ));
+
+        $container->bind(MigrationServiceInterface::class, fn () => new MigrationService(
+            $container->get(\PDO::class),
+            $container->get(AuthService::class),
+            $container->get(BackupServiceInterface::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class), // <-- NEU HIER
         ));
     }
 }

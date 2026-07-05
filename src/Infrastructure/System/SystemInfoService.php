@@ -5,17 +5,19 @@ declare(strict_types=1);
 namespace App\Infrastructure\System;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Storage\JsonHelper;
+use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\System\SystemInfoInterface;
 
 /**
  * TODO DOCBLOCK
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class SystemInfoService
+final readonly class SystemInfoService implements SystemInfoInterface
 {
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -34,7 +36,7 @@ final readonly class SystemInfoService
         $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/package.json';
         if (\file_exists($path)) {
             try {
-                $data = JsonHelper::read($path);
+                $data = $this->jsonHelper->read($path);
                 if (isset($data['version'])) {
                     return 'v' . $data['version'];
                 }

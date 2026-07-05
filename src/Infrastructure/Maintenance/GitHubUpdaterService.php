@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\System\SystemUpdaterInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -17,7 +18,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class GitHubUpdaterService
+final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 {
     use SafeJsonWriterTrait;
 
@@ -65,6 +66,7 @@ final readonly class GitHubUpdaterService
     public function __construct(
         private ClockInterface $clock,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -97,7 +99,7 @@ final readonly class GitHubUpdaterService
         // 1. Aus Cache lesen, wenn nicht erzwungen und jünger als 24 Stunden
         if (! $force && \file_exists($cacheFile)) {
             if (($now - \filemtime($cacheFile)) < 86400) { // 86400 Sekunden = 24h
-                $cachedResponse = JsonHelper::read($cacheFile);
+                $cachedResponse = $this->jsonHelper->read($cacheFile);
                 if (! empty($cachedResponse)) {
                     return $this->compareAndFormatRelease($cachedResponse, $currentVersion);
                 }
@@ -248,7 +250,7 @@ final readonly class GitHubUpdaterService
         $manifestPath = $sourceFolder . '/update_manifest.json';
         if (\file_exists($manifestPath)) {
             try {
-                $manifestData = JsonHelper::read($manifestPath);
+                $manifestData = $this->jsonHelper->read($manifestPath);
                 $whitelist    = $manifestData['whitelist'] ?? $whitelist;
                 $blacklist    = $manifestData['blacklist'] ?? $blacklist;
                 $coreConfigs  = $manifestData['core_configs'] ?? $coreConfigs;

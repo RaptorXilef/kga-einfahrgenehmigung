@@ -10,8 +10,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Infrastructure\Maintenance\MigrationService;
 
 /**
  * Action zum Leeren des Anwendungs-Caches.
@@ -23,7 +23,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private MigrationService $migrationService,
+        private MigrationServiceInterface $migrationService,
         private SessionManager $sessionManager,
     ) {
     }

@@ -6,7 +6,7 @@ namespace App\Application\View;
 
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Storage\ImageStorageService;
+use App\Contracts\System\ImageStorageInterface;
 
 /**
  * TODO DOCBLOCK
@@ -19,8 +19,8 @@ final readonly class TemplateRenderer
 {
     public function __construct(
         private ConfigInterface $config,
-        private ImageStorageService $imageStorage,
-        private SessionManager $sessionManager, // <--- NEU
+        private ImageStorageInterface $imageStorage,
+        private SessionManager $sessionManager,
     ) {
     }
 

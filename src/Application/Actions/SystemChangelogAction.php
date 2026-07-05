@@ -9,8 +9,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Contracts\System\SystemInfoInterface;
 use App\Core\Service\AuthService;
-use App\Infrastructure\System\SystemInfoService;
 
 /**
  * TODO DOCBLOCK
@@ -23,7 +23,7 @@ final readonly class SystemChangelogAction implements ViewActionInterface, Requi
     public function __construct(
         private AuthService $auth,
         private TemplateRenderer $renderer,
-        private SystemInfoService $sysInfo,
+        private SystemInfoInterface $sysInfo,
     ) {
     }
 

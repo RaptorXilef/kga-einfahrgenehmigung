@@ -8,7 +8,6 @@ use App\Application\Http\ServerRequest;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Infrastructure\Mail\MailQueueService;
 
 /**
  * Führt Aufgaben aus, NACHDEM die eigentliche Action beendet wurde (Terminate Phase).
@@ -19,7 +18,7 @@ final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private MailServiceInterface $mailService,
-        private ConfigInterface $config, // <-- NEU
+        private ConfigInterface $config,
     ) {
     }
 
@@ -30,7 +29,8 @@ final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
 
         // 2. Danach (Terminate) die Warteschlange abarbeiten
         try {
-            if ($this->mailService instanceof MailQueueService) {
+            // FIX: Prüft dynamisch, ob die Schnittstelle die Funktion anbietet, statt auf einen Klassentyp zu prüfen!
+            if (\method_exists($this->mailService, 'processQueue')) {
                 // Dynamisches Limit laden (Fallback auf 3, falls in der Config gelöscht)
                 $limit = (int) $this->config->get('mail_queue_limit_web', 3);
                 $this->mailService->processQueue($limit);

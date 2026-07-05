@@ -61,9 +61,19 @@
         "nobuhito.printcode",
 
         // THEME/VSCODE
-        "lakshits11.monokai-pirokai",
+        // "lakshits11.monokai-pirokai",
         "st-pham.php-refactor-tool",
-        "vira.vsc-vira-theme"
+        "vira.vsc-vira-theme",
+
+        // Unsortiert
+        "devsense.composer-php-vscode",
+        "repreng.csv",
+        "jmkrivocapich.drawfolderstructure",
+        "kisstkondoros.vscode-gutter-preview",
+        "glenn2223.live-sass",
+        "yzhang.markdown-all-in-one",
+        "mehedidracula.php-namespace-resolver",
+        "redhat.vscode-xml"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": ["htmlhint.vscode-htmlhint", "mikebovenlander.formate"]

@@ -10,8 +10,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Infrastructure\Maintenance\UpdateMigrationService;
 
 /**
  * TODO DOCBLOCK
@@ -25,7 +25,7 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
-        private UpdateMigrationService $migrationService,
+        private UpdateMigrationServiceInterface $migrationService,
     ) {
     }
 

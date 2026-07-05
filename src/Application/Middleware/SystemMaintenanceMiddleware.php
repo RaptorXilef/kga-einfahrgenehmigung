@@ -7,8 +7,8 @@ namespace App\Application\Middleware;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\System\StorageBootstrapperInterface;
 use App\Core\Service\Maintenance\CronScheduler;
-use App\Infrastructure\Maintenance\StorageBootstrapper;
 
 /**
  * TODO
@@ -18,7 +18,7 @@ use App\Infrastructure\Maintenance\StorageBootstrapper;
 final readonly class SystemMaintenanceMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private StorageBootstrapper $bootstrapper,
+        private StorageBootstrapperInterface $bootstrapper,
         private CronScheduler $cronScheduler,
         private BackupServiceInterface $backupService,
     ) {

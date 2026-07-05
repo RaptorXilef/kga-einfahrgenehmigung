@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Logging;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\ErrorLoggerInterface;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -14,7 +15,7 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class ErrorLogger
+final readonly class ErrorLogger implements ErrorLoggerInterface
 {
     use SafeJsonWriterTrait;
 

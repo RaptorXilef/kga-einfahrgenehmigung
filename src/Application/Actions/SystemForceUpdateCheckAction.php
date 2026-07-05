@@ -10,9 +10,9 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
+use App\Contracts\System\SystemInfoInterface;
+use App\Contracts\System\SystemUpdaterInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Infrastructure\Maintenance\GitHubUpdaterService;
-use App\Infrastructure\System\SystemInfoService;
 
 /**
  * TODO DOCBLOCK
@@ -24,9 +24,9 @@ final readonly class SystemForceUpdateCheckAction implements ViewActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private GitHubUpdaterService $updater,
+        private SystemUpdaterInterface $updater,
         private SessionManager $sessionManager,
-        private SystemInfoService $sysInfo,
+        private SystemInfoInterface $sysInfo,
     ) {
     }
 

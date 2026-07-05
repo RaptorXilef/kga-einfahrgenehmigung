@@ -12,8 +12,8 @@ use App\Application\View\TemplateRenderer;
 use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Service\PermitService;
-use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * TODO DOCBLOCK
@@ -25,6 +25,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
         private PermitService $permitService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
@@ -60,7 +61,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             $archivePath = $this->config->getStoragePath($yearFile);
 
             if (\file_exists($archivePath)) {
-                $archiveData = JsonHelper::read($archivePath);
+                $archiveData = $this->jsonHelper->read($archivePath);
                 foreach ($archiveData as $item) {
                     if (\strtolower((string) $item['email']) === \strtolower($emailInSession)) {
                         $permits[] = $this->storage->mapToEntity($item);

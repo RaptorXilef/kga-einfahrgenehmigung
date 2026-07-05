@@ -10,8 +10,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Application\ViewActionInterface;
-use App\Infrastructure\Maintenance\GitHubUpdaterService;
-use App\Infrastructure\System\SystemInfoService;
+use App\Contracts\System\SystemInfoInterface;
+use App\Contracts\System\SystemUpdaterInterface;
 
 /**
  * Action für die asynchrone Prüfung auf GitHub-Updates.
@@ -22,8 +22,8 @@ use App\Infrastructure\System\SystemInfoService;
 final readonly class SystemCheckUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private GitHubUpdaterService $updater,
-        private SystemInfoService $sysInfo,
+        private SystemUpdaterInterface $updater,
+        private SystemInfoInterface $sysInfo,
     ) {
     }
 

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Maintenance\MigrationServiceInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Storage\JsonAuditLogRepository;
 use App\Infrastructure\Storage\JsonCancelledPermitRepository;
 use App\Infrastructure\Storage\JsonGroupRepository;
-use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
 use App\Infrastructure\Storage\JsonMailQueueRepository;
@@ -42,7 +43,7 @@ use App\Infrastructure\Utils\SystemClock;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final readonly class MigrationService
+final readonly class MigrationService implements MigrationServiceInterface
 {
     use SafeJsonWriterTrait;
 
@@ -51,6 +52,7 @@ final readonly class MigrationService
         private AuthService $authService,
         private BackupService $backupService,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -386,7 +388,7 @@ final readonly class MigrationService
 
         $path = $this->config->getStoragePath($cfg['file']);
 
-        return JsonHelper::read($path);
+        return $this->jsonHelper->read($path);
     }
 
     /**
@@ -431,12 +433,12 @@ final readonly class MigrationService
             // und keine hässlichen "{\"name\":\"Test\"}" Strings.
 
             if (isset($r['data']) && \is_string($r['data'])) {
-                $decoded   = JsonHelper::decode($r['data']);
+                $decoded   = $this->jsonHelper->decode($r['data']);
                 $r['data'] = $decoded !== null ? $decoded : [];
             }
 
             if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                $decoded          = JsonHelper::decode($r['permissions']);
+                $decoded          = $this->jsonHelper->decode($r['permissions']);
                 $r['permissions'] = $decoded !== null ? $decoded : [];
             }
 
@@ -485,7 +487,7 @@ final readonly class MigrationService
             'permits'              => (new MySqlStorage($this->pdo))->import($data),
             'permits_archive'      => (new MySqlPermitArchiveRepository($this->pdo, $this->config))->import($data),
             'permits_cancelled'    => (new MySqlCancelledPermitRepository($this->pdo, $this->config))->import($data),
-            'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, true),
+            'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config, $this->jsonHelper))->import($data, true),
             'verified_pending'     => (new MySqlVerificationRepository($this->pdo, $this->config))->saveVerified($data, true),
             'vouchers'             => (new MySqlVoucherRepository($this->pdo, $this->config))->saveAll($data, true),
             'vouchers_archive'     => (new MySqlVoucherRepository($this->pdo, $this->config))->importArchive($data),
@@ -514,7 +516,7 @@ final readonly class MigrationService
             'permits'              => (new JsonStorage($this->config->getStoragePath($this->config->get('storage_config')['permits']['file'] ?? 'permits.json')))->import($data),
             'permits_archive'      => (new JsonPermitArchiveRepository($this->config))->import($data),
             'permits_cancelled'    => (new JsonCancelledPermitRepository($this->config))->import($data),
-            'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config))->import($data, false),
+            'update_migrations'    => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config, $this->jsonHelper))->import($data, false),
             'verified_pending'     => (new JsonVerificationRepository($this->config))->saveVerified($data, false),
             'vouchers'             => (new JsonVoucherRepository($this->config))->saveAll($data, false),
             'vouchers_archive'     => (new JsonVoucherRepository($this->config))->importArchive($data),

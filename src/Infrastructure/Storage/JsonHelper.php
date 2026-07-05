@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
+use App\Contracts\System\JsonHelperInterface;
+
 /**
  * Hilfsklasse für sichere und erweiterte JSON-Operationen.
  * Unterstützt nativ das JSONC-Format (JSON mit ein- und mehrzeiligen Kommentaren).
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final class JsonHelper
+final class JsonHelper implements JsonHelperInterface
 {
     /**
      * Dekodiert einen JSON- oder JSONC-String in ein assoziatives PHP-Array.
@@ -19,7 +21,7 @@ final class JsonHelper
      * @param  string $json Der rohe JSON-String.
      * @return array  Assoziatives Daten-Array.
      */
-    public static function decode(string $json): array
+    public function decode(string $json): array
     {
         if (\trim($json) === '') {
             return [];
@@ -55,7 +57,7 @@ final class JsonHelper
      * @param  string $path Vollständiger Dateipfad.
      * @return array  Assoziatives Daten-Array.
      */
-    public static function read(string $path): array
+    public function read(string $path): array
     {
         if (! \file_exists($path) || \is_dir($path)) {
             return [];
@@ -67,6 +69,6 @@ final class JsonHelper
             throw new \RuntimeException("Kritischer Fehler: Datei konnte nicht gelesen werden: {$path}");
         }
 
-        return self::decode($content);
+        return $this->decode($content);
     }
 }

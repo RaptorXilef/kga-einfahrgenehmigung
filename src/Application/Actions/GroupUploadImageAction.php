@@ -12,8 +12,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuditLoggerService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * TODO DOCBLOCK
@@ -25,7 +25,7 @@ final readonly class GroupUploadImageAction implements ActionInterface, Requires
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private ImageStorageService $imageStorage,
+        private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
     ) {
     }

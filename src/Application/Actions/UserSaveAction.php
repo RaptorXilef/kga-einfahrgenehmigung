@@ -14,11 +14,11 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\ImageStorageInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
-use App\Infrastructure\Storage\ImageStorageService;
 
 /**
  * Action zum Erstellen eines neuen Benutzers.
@@ -32,7 +32,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private GroupRepositoryInterface $groupRepository, // <-- NEU: Für Gruppen-Namen
-        private ImageStorageService $imageStorage,
+        private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
         private UserService $userService,
