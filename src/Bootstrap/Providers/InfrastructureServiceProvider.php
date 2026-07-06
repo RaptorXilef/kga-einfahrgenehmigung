@@ -36,7 +36,6 @@ use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\System\SystemUpdaterInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Core\Service\AuthService;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Logging\ErrorLogger;
 use App\Infrastructure\Mail\MailQueueService;
@@ -292,7 +291,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         // Haupt-Migrations-Dienst
         $container->bind(MigrationServiceInterface::class, fn () => new MigrationService(
             $container->get(\PDO::class),
-            $container->get(AuthService::class),
             $container->get(BackupServiceInterface::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),

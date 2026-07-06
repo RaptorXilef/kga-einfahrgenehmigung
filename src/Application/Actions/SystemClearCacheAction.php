@@ -12,6 +12,7 @@ use App\Contracts\Application\ActionInterface;
 use App\Contracts\Application\RequiresPermissionInterface;
 use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
+use App\Core\Service\AuthService;
 
 /**
  * Action zum Leeren des Anwendungs-Caches.
@@ -23,6 +24,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
+        private AuthService $auth,
         private MigrationServiceInterface $migrationService,
         private SessionManager $sessionManager,
     ) {
@@ -36,6 +38,10 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         $msg = $this->migrationService->clearCache();
+
+        // Session-Rechte neu kompilieren (für den aktuellen Admin)
+        $this->auth->refreshSessionPermissions($this->auth->getGroup());
+
         $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache wurde manuell geleert.');
         $this->sessionManager->addFlash('success', $msg);
 

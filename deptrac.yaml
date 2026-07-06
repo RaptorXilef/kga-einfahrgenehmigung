@@ -47,31 +47,45 @@ deptrac:
         - type: directory
           value: src/Bootstrap/.*
 
-  ruleset:
-    # 1. Domain ist unabhängig von allem.
-    Domain: ~
+    - name: Vendor # Alles was nicht zu uns gehört (PHP-Core, Composer-Pakete)
+      collectors:
+        - type: bool
+          must:
+            - type: classNameRegex
+              value: .*
+          must_not:
+            - type: directory
+              value: src/.*
 
-    # 2. Contracts kennen nur die Domain (für Typisierungen).
+  ruleset:
+    # 1. Domain ist unabhängig von allem (darf nur native PHP-Klassen/Vendor nutzen)
+    Domain:
+      - Vendor
+
+    # 2. Contracts kennen nur die Domain (für Typisierungen) und Vendor
     Contracts:
       - Domain
+      - Vendor
 
     # 3. Core nutzt Contracts und Domain. Hier leben deine DTOs und Services.
     Core:
       - Contracts
       - Domain
+      - Vendor
 
     # 4. INFRASTRUKTUR: Kennt KEINEN Core mehr!
     # Sie implementiert nur die Contracts und nutzt Domain-Objekte.
     Infrastructure:
       - Contracts
       - Domain
+      - Vendor
 
     # 5. Application nimmt Input an, baut DTOs und schickt sie in den Core.
     Application:
       - Contracts
       - Core
       - Domain
-      - Bootstrap
+      - Vendor # Application darf keine Bootstrap-Kenntnis haben!
 
     # 6. Bootstrap darf alles kennen, um die Abhängigkeiten via DI-Container aufzulösen.
     Bootstrap:
@@ -80,6 +94,7 @@ deptrac:
       - Core
       - Domain
       - Infrastructure
+      - Vendor
 
   # Wir brauchen KEINE Ausnahmen mehr! Das System ist zu 100% sauber entkoppelt.
   # skip_violations: ~

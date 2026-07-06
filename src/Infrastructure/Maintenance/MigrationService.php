@@ -7,7 +7,6 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
-use App\Core\Service\AuthService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Storage\JsonAuditLogRepository;
 use App\Infrastructure\Storage\JsonCancelledPermitRepository;
@@ -49,7 +48,6 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     public function __construct(
         private ?\PDO $pdo,
-        private AuthService $authService,
         private BackupService $backupService,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
@@ -193,9 +191,6 @@ final readonly class MigrationService implements MigrationServiceInterface
         if (\file_exists($deptracCache)) {
             \unlink($deptracCache);
         }
-
-        // 2. Session-Rechte neu kompilieren (für den aktuellen Admin)
-        $this->authService->refreshSessionPermissions($this->authService->getGroup());
 
         return 'Erfolg: Der System-Cache wurde geleert und die Berechtigungen neu kompiliert.';
     }
