@@ -52,7 +52,7 @@ deptrac:
         - type: bool
           must:
             - type: classNameRegex
-              value: .*
+              value: /.*/
           must_not:
             - type: directory
               value: src/.*
