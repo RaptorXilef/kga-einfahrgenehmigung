@@ -19,10 +19,10 @@ declare(strict_types=1);
 
 use App\Application\Exception\GlobalExceptionHandler;
 use App\Bootstrap\Container;
+use App\Contracts\System\ErrorLoggerInterface;
 use App\Core\Security\PermissionRegistry;
 use App\Infrastructure\Config\Config;
 use App\Infrastructure\Database\SchemaRegistry;
-use App\Infrastructure\Logging\ErrorLogger;
 use App\Infrastructure\Storage\JsonHelper;
 
 // Session global starten, da fast alle Seiten sie benötigen
@@ -212,16 +212,12 @@ if (empty($_SESSION['csrf_token'])) {
 
 // --- EXCEPTIONS / FEHLERMELDUNGEN ---
 $configInstance = new Config($settings);
-$errorLogger    = new ErrorLogger($configInstance);
 
-$exceptionHandler = new GlobalExceptionHandler($configInstance, $errorLogger);
+// INITIALISIERE DEN CONTAINER ZUERST!
+$container = new Container($configInstance);
 
-// Aktiviert das globale Error-Handling ab sofort!
+// Aktiviere den Exception Handler aus dem Container!
+$exceptionHandler = new GlobalExceptionHandler($configInstance, $container->get(ErrorLoggerInterface::class));
 $exceptionHandler->register();
-// --- ENDE EXCEPTIONS ---
 
-// Wir geben direkt die Container-Instanz zurück
-/**
- * @return Container Gibt die fertig konfigurierte Dependency-Injection-Container-Instanz zurück.
- */
-return new Container($configInstance);
+return $container;

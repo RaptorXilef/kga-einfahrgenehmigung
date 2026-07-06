@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Permit;
 
 final readonly class JsonCancelledPermitRepository implements CancelledPermitRepositoryInterface
@@ -13,14 +14,16 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
     use SafeJsonWriterTrait;
     use StorageMapperTrait;
 
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
+    ) {
     }
 
     public function saveCancelled(Permit $permit): void
     {
         $path                = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
-        $data                = \file_exists($path) ? JsonHelper::read($path) : [];
+        $data                = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         $data[$permit->code] = $this->flattenEntity($permit);
         $this->writeJsonSafely($path, $data);
     }
@@ -29,7 +32,7 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
         if (\file_exists($path)) {
-            $data = JsonHelper::read($path);
+            $data = $this->jsonHelper->read($path);
 
             return isset($data[$code]);
         }
@@ -43,7 +46,7 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
         if (! \file_exists($path)) {
             return [];
         }
-        $data    = JsonHelper::read($path);
+        $data    = $this->jsonHelper->read($path);
         $permits = \array_map($this->mapToEntity(...), $data);
         \usort($permits, fn ($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
 

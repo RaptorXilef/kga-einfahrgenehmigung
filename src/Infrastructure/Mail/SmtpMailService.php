@@ -7,8 +7,8 @@ namespace App\Infrastructure\Mail;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailLogEntry;
-use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonTransactionTrait;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
@@ -29,6 +29,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     public function __construct(
         private ?\PDO $pdo,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -157,7 +158,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                     $r['subject'],
                     $r['template'],
                     $r['status'],
-                    \is_string($r['data']) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []),
+                    \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
                 );
             }
 
@@ -166,7 +167,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
 
         $path = $this->config->getStoragePath($cfg['file']);
         if (\file_exists($path)) {
-            $data = JsonHelper::read($path);
+            $data = $this->jsonHelper->read($path);
             foreach ($data as $r) {
                 $logs[] = new MailLogEntry(
                     (string) ($r['id'] ?? \uniqid()),
@@ -194,7 +195,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                 $r['subject'] ?? '',
                 $r['template'] ?? '',
                 $r['status'] ?? '',
-                \is_string($r['data'] ?? []) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []),
+                \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
             );
         }
         $this->saveLogs($objects, $forceSql);

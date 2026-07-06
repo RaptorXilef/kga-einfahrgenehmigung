@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MagicLink;
 
 /**
@@ -19,6 +20,7 @@ final readonly class JsonMagicLinkRepository implements MagicLinkRepositoryInter
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -26,7 +28,7 @@ final readonly class JsonMagicLinkRepository implements MagicLinkRepositoryInter
     {
         $cfg  = $this->config->get('storage_config')['magic_links'];
         $path = $this->config->getStoragePath($cfg['file']);
-        $raw  = \file_exists($path) ? JsonHelper::read($path) : [];
+        $raw  = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         $links = [];
         foreach ($raw as $token => $l) {

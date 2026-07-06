@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 
 /**
  * TODO
@@ -20,6 +21,7 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 

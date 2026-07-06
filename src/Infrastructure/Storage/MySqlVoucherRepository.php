@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Voucher;
 
 /**
@@ -20,6 +21,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -29,7 +31,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
         $stmt     = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         $vouchers = [];
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $data    = \is_string($r['data']) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []);
+            $data    = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
             $expires = $r['expires_at'] ? new \DateTimeImmutable($r['expires_at']) : null;
             $created = $r['created_at'] ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 
@@ -123,7 +125,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
     {
         $objects = [];
         foreach ($data as $code => $r) {
-            $payload = \is_string($r['data'] ?? []) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []);
+            $payload = \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
             $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
             $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 

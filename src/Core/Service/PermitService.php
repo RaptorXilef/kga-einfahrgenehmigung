@@ -11,6 +11,7 @@ use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Core\DTO\PermitFormData;
 use App\Core\Entity\Owner;
@@ -28,7 +29,6 @@ use App\Core\Utils\DateRangeHelper;
 use App\Core\ValueObject\EmailAddress;
 use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PlotNumber;
-use App\Infrastructure\Storage\JsonHelper;
 
 /**
  * TODO DOCBLOCK
@@ -42,6 +42,7 @@ final readonly class PermitService
         private ClockInterface $clock,
         private ConfigInterface $config,
         private EventDispatcherInterface $eventDispatcher,
+        private JsonHelperInterface $jsonHelper,
         private LockManagerInterface $lockManager,
         private PermitArchiveRepositoryInterface $archiveRepository,
         private StorageInterface $storage,
@@ -373,7 +374,7 @@ final readonly class PermitService
             $archivePath = $this->config->getStoragePath($arcCfg['file'] ?? 'permits_archive.json');
 
             if (\file_exists($archivePath)) {
-                $rawArchive = JsonHelper::read($archivePath);
+                $rawArchive = $this->jsonHelper->read($archivePath);
                 foreach ($rawArchive as $item) {
                     $archived[] = $this->storage->mapToEntity($item);
                 }

@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
 
 /**
@@ -20,6 +21,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -77,7 +79,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
 
             foreach ($items as $item) {
                 try {
-                    $processor($item['recipient'], $item['subject'], $item['template'], JsonHelper::decode((string) $item['data']));
+                    $processor($item['recipient'], $item['subject'], $item['template'], $this->jsonHelper->decode((string) $item['data']));
                     // Nach Erfolg löschen
                     $this->pdo->prepare("DELETE FROM `{$table}` WHERE id = ?")->execute([$item['id']]);
                     ++$sentCount;

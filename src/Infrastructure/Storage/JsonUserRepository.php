@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\User;
 
 /**
@@ -19,6 +20,7 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -32,7 +34,7 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
             return $users;
         }
 
-        $data = JsonHelper::read($path);
+        $data = $this->jsonHelper->read($path);
         foreach ($data as $id => $row) {
             $users[$id] = new User(
                 $id,

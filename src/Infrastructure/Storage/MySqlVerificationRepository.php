@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\VerificationRequest;
 
 /**
@@ -20,6 +21,7 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -52,7 +54,7 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
         foreach ($data as $token => $row) {
             $exp             = $row['expires'] ?? 'now';
             $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
-            $payload         = \is_string($row['data'] ?? []) ? JsonHelper::decode($row['data']) : ($row['data'] ?? []);
+            $payload         = \is_string($row['data'] ?? []) ? $this->jsonHelper->decode($row['data']) : ($row['data'] ?? []);
             $objects[$token] = new VerificationRequest((string) $token, $dt, $payload);
         }
         $this->saveSql('pending_verification', $objects); // Import geht primär auf pending (für Migration)
@@ -64,7 +66,7 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
         $data = [];
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $payload           = \is_string($r['data']) ? JsonHelper::decode($r['data']) : [];
+            $payload           = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
             $exp               = $r['expires'];
             $dt                = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
             $data[$r['token']] = new VerificationRequest($r['token'], $dt, $payload);

@@ -7,6 +7,7 @@ namespace App\Application\View;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ImageStorageInterface;
+use App\Contracts\System\JsonHelperInterface;
 
 /**
  * TODO DOCBLOCK
@@ -20,6 +21,7 @@ final readonly class TemplateRenderer
     public function __construct(
         private ConfigInterface $config,
         private ImageStorageInterface $imageStorage,
+        private JsonHelperInterface $jsonHelper,
         private SessionManager $sessionManager,
     ) {
     }
@@ -33,8 +35,9 @@ final readonly class TemplateRenderer
         $systemVars = [
             'appRoot'      => $appRoot,
             'config'       => $this->config,
-            'settings'     => $this->getGlobalSettings(),
             'imageStorage' => $this->imageStorage,
+            'jsonHelper'   => $this->jsonHelper,
+            'settings'     => $this->getGlobalSettings(),
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!
@@ -55,16 +58,16 @@ final readonly class TemplateRenderer
 
         return [
             'base_url'           => $this->config->getBaseUrl(),
+            'bic'                => $this->config->get('bic'),
+            'iban'               => $this->config->get('iban'),
             'jahresFarbe'        => $this->config->get('jahresFarbe'),
+            'kontoinhaber'       => $this->config->get('kontoinhaber'),
             'opening_hours'      => $this->config->get('default_opening_hours'),
             'public_templates'   => \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true),
             'purposes'           => $this->config->get('purposes'),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
             'vehicle_types'      => $this->config->get('vehicle_types'),
             'vereins_name'       => $this->config->get('vereins_name'),
-            'iban'               => $this->config->get('iban'),
-            'kontoinhaber'       => $this->config->get('kontoinhaber'),
-            'bic'                => $this->config->get('bic'),
         ];
     }
 }

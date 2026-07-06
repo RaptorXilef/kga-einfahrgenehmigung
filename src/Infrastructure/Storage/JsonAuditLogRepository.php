@@ -6,14 +6,17 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\AuditLog;
 
 final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterface
 {
     use JsonTransactionTrait;
 
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
+    ) {
     }
 
     public function save(AuditLog $log): void
@@ -46,7 +49,7 @@ final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterfa
             return ['items' => [], 'total' => 0];
         }
 
-        $data = JsonHelper::read($path);
+        $data = $this->jsonHelper->read($path);
 
         if ($actionFilter !== '') {
             $data = \array_filter($data, fn ($item) => ($item['action'] ?? '') === $actionFilter);

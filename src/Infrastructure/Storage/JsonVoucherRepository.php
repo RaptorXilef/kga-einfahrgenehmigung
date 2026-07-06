@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Voucher;
 
 /**
@@ -17,15 +18,17 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
 {
     use SafeJsonWriterTrait;
 
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
+    ) {
     }
 
     public function loadAll(): array
     {
         $cfg  = $this->config->get('storage_config')['vouchers'];
         $path = $this->config->getStoragePath($cfg['file']);
-        $raw  = \file_exists($path) ? JsonHelper::read($path) : [];
+        $raw  = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         $vouchers = [];
         foreach ($raw as $code => $r) {
@@ -80,14 +83,14 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
         $cfg  = $this->config->get('storage_config')['vouchers_archive'];
         $path = $this->config->getStoragePath($cfg['file']);
 
-        return \file_exists($path) ? JsonHelper::read($path) : [];
+        return \file_exists($path) ? $this->jsonHelper->read($path) : [];
     }
 
     public function appendToArchive(array $archiveEntry): void
     {
         $arcCfg      = $this->config->get('storage_config')['vouchers_archive'];
         $archivePath = $this->config->getStoragePath($arcCfg['file']);
-        $archive     = \file_exists($archivePath) ? JsonHelper::read($archivePath) : [];
+        $archive     = \file_exists($archivePath) ? $this->jsonHelper->read($archivePath) : [];
         $archive[]   = $archiveEntry;
         $this->writeJsonSafely($archivePath, $archive);
     }
@@ -96,7 +99,7 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
     {
         $objects = [];
         foreach ($data as $code => $r) {
-            $payload = \is_string($r['data'] ?? []) ? JsonHelper::decode($r['data']) : ($r['data'] ?? []);
+            $payload = \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
             $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
             $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 

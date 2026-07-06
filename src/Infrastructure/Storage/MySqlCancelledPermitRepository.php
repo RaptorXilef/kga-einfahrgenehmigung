@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Permit;
 
 final readonly class MySqlCancelledPermitRepository implements CancelledPermitRepositoryInterface
@@ -13,8 +14,11 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
     use StorageMapperTrait;
     use DynamicSqlTrait;
 
-    public function __construct(private \PDO $pdo, private ConfigInterface $config)
-    {
+    public function __construct(
+        private \PDO $pdo,
+        private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
+    ) {
     }
 
     public function saveCancelled(Permit $permit): void

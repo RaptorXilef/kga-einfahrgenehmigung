@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 
 /**
  * TODO
@@ -19,6 +20,7 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -26,7 +28,7 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
         if (\file_exists($path)) {
-            $archiveData = JsonHelper::read($path);
+            $archiveData = $this->jsonHelper->read($path);
 
             return isset($archiveData[$code]);
         }
@@ -40,7 +42,7 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
             return;
         }
         $path     = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
-        $existing = \file_exists($path) ? JsonHelper::read($path) : [];
+        $existing = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         foreach ($permitsToArchive as $permit) {
             $existing[$permit->code] = $this->flattenEntity($permit);
         }
@@ -56,7 +58,7 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
 
         $cutoffDate      = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years", APP_REQUEST_TIME));
         $anonymizedCount = 0;
-        $existing        = JsonHelper::read($path);
+        $existing        = $this->jsonHelper->read($path);
         $changed         = false;
 
         foreach ($existing as $code => &$item) {
@@ -97,7 +99,7 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
             return [];
         }
 
-        $rawArc  = JsonHelper::read($path);
+        $rawArc  = $this->jsonHelper->read($path);
         $results = [];
 
         foreach ($rawArc as $aData) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Permit;
 
 /**
@@ -29,6 +30,7 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function __construct(
         private string $filePath,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -231,7 +233,7 @@ final readonly class JsonStorage implements StorageInterface
             return [];
         }
 
-        return JsonHelper::read($this->filePath);
+        return $this->jsonHelper->read($this->filePath);
     }
 
     public function import(array $data): void

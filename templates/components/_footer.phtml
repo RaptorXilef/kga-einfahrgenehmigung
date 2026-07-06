@@ -1,7 +1,5 @@
 <?php
 
-use App\Infrastructure\Storage\JsonHelper;
-
 /**
  * Component: Global Dynamic Footer
  *
@@ -11,7 +9,8 @@ use App\Infrastructure\Storage\JsonHelper;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
+ * @var string|null                               $appRoot (optional, wird berechnet falls nicht vorhanden)
+ * @var \App\Contracts\System\JsonHelperInterface $jsonHelper
  */
 
 // 1. App-Root Fallback (falls die Variable mal nicht übergeben wird)
@@ -21,9 +20,9 @@ $root = $appRoot ?? \dirname(__DIR__, 2);
 $version         = 'v0.0.0';
 $packageJsonPath = $root . '/package.json';
 
-if (\file_exists($packageJsonPath)) {
+if (\file_exists($packageJsonPath) && isset($jsonHelper)) {
     try {
-        $pkgData = JsonHelper::read($packageJsonPath);
+        $pkgData = $jsonHelper->read($packageJsonPath);
         if (\is_array($pkgData) && isset($pkgData['version'])) {
             $version = 'v' . $pkgData['version'];
         }

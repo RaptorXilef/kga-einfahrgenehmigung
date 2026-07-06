@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Storage;
 
 use App\Contracts\Storage\StorageInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Permit;
 
 /**
@@ -21,8 +22,10 @@ final readonly class MySqlStorage implements StorageInterface
 {
     use StorageMapperTrait;
 
-    public function __construct(private \PDO $pdo)
-    {
+    public function __construct(
+        private \PDO $pdo,
+        private JsonHelperInterface $jsonHelper,
+    ) {
     }
 
     // --- Public Write ---

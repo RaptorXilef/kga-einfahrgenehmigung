@@ -1,7 +1,5 @@
 <?php
 
-use App\Infrastructure\Storage\JsonHelper;
-
 /**
  * Page: Main Admin Dashboard Wrapper
  *
@@ -29,6 +27,7 @@ use App\Infrastructure\Storage\JsonHelper;
  * @var array                                              $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
  * @var \App\Core\Service\PermitService                    $permitService     Zentraler Genehmigungs-Dienst.
  * @var \App\Infrastructure\Maintenance\MigrationService   $migrationService  Migrations- & Backup-Manager.
+ * @var \App\Contracts\System\JsonHelperInterface          $jsonHelper        Hilfsklasse für JSON-Operationen.
  */
 $now            = new \DateTimeImmutable();
 $currentVersion = 'v0.0.0';
@@ -38,7 +37,7 @@ if ($auth->hasPermission('system.update.view')) {
     $packageJsonPath = $appRoot . '/package.json';
     if (\file_exists($packageJsonPath)) {
         try {
-            $pkgData = JsonHelper::read($packageJsonPath);
+            $pkgData = $jsonHelper->read($packageJsonPath);
             if (\is_array($pkgData) && isset($pkgData['version'])) {
                 $currentVersion = 'v' . $pkgData['version'];
             }

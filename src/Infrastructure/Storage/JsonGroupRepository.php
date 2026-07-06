@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Group;
 
 /**
@@ -19,6 +20,7 @@ final readonly class JsonGroupRepository implements GroupRepositoryInterface
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -32,7 +34,7 @@ final readonly class JsonGroupRepository implements GroupRepositoryInterface
             return $groups;
         }
 
-        $data = JsonHelper::read($path);
+        $data = $this->jsonHelper->read($path);
         foreach ($data as $id => $row) {
             $groups[$id] = new Group(
                 $id,

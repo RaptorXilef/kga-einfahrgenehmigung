@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
 
 /**
@@ -20,13 +21,14 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
     public function enqueue(MailJob $job): void
     {
         $path  = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
-        $queue = \file_exists($path) ? JsonHelper::read($path) : [];
+        $queue = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         $queue[] = [
             'id'         => $job->id,

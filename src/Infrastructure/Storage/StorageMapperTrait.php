@@ -21,6 +21,8 @@ use App\Core\ValueObject\PlotNumber;
  * in flache, speicherbare Array-Strukturen zu transformieren und umgekehrt (Hydrierung).
  * Dient als Data Mapper für alle Storage-Engines.
  *
+ * @property \App\Contracts\System\JsonHelperInterface $jsonHelper
+ *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 trait StorageMapperTrait
@@ -87,7 +89,7 @@ trait StorageMapperTrait
 
         $agreements = $item['agreements'] ?? [];
         if (\is_string($agreements)) {
-            $agreements = JsonHelper::decode($agreements);
+            $agreements = $this->jsonHelper->decode($agreements);
         }
 
         $statusEnum = PermitStatus::tryFrom((string) ($item['status'] ?? 'offen')) ?? PermitStatus::Offen;

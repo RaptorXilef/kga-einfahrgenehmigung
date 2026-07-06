@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\VerificationRequest;
 
 /**
@@ -19,6 +20,7 @@ final readonly class JsonVerificationRepository implements VerificationRepositor
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -64,7 +66,7 @@ final readonly class JsonVerificationRepository implements VerificationRepositor
     {
         $cfg  = $this->config->get('storage_config')[$targetKey];
         $path = $this->config->getStoragePath($cfg['file']);
-        $raw  = \file_exists($path) ? JsonHelper::read($path) : [];
+        $raw  = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         $data = [];
         foreach ($raw as $token => $row) {

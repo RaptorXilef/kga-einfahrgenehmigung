@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Infrastructure\Storage\JsonHelper;
+use App\Contracts\System\JsonHelperInterface;
 
 /**
  * Service zur Prüfung von Feiertagen, Ruhetagen und erlaubten Einfahrtszeiten.
@@ -19,8 +19,10 @@ use App\Infrastructure\Storage\JsonHelper;
  */
 final readonly class HolidayService
 {
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
+    ) {
     }
 
     // --- Public Real-Time Traffic Gatekeepers ---
@@ -269,7 +271,7 @@ final readonly class HolidayService
                 $intervals[] = [
                     'from'  => $currentIntervalStart->format('d.m.Y'),
                     'to'    => (clone $current)->modify('-1 day')->format('d.m.Y'),
-                    'hours' => JsonHelper::decode($lastHours),
+                    'hours' => $this->jsonHelper->decode($lastHours),
                 ];
                 $currentIntervalStart = clone $current; // Start für die neue Saison merken
             }
@@ -283,7 +285,7 @@ final readonly class HolidayService
             $intervals[] = [
                 'from'  => $currentIntervalStart->format('d.m.Y'),
                 'to'    => $endDate->format('d.m.Y'),
-                'hours' => JsonHelper::decode($lastHours),
+                'hours' => $this->jsonHelper->decode($lastHours),
             ];
         }
 

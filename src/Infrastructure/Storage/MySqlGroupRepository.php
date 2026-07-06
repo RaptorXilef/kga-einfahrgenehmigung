@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Group;
 
 /**
@@ -20,6 +21,7 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
     public function __construct(
         private \PDO $pdo,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -31,7 +33,7 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
             $perms = \is_string($row['permissions'])
-                ? JsonHelper::decode($row['permissions'])
+                ? $this->jsonHelper->decode($row['permissions'])
                 : $row['permissions'];
 
             $groups[$row['id']] = new Group(

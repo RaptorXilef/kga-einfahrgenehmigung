@@ -6,6 +6,7 @@ namespace App\Infrastructure\Storage;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\LoginAttempt;
 
 /**
@@ -19,6 +20,7 @@ final readonly class JsonLoginAttemptRepository implements LoginAttemptRepositor
 
     public function __construct(
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -28,7 +30,7 @@ final readonly class JsonLoginAttemptRepository implements LoginAttemptRepositor
         if (! \file_exists($path)) {
             return null;
         }
-        $data = JsonHelper::read($path);
+        $data = $this->jsonHelper->read($path);
         if (isset($data[$ip])) {
             return new LoginAttempt($ip, (int) $data[$ip]['attempts'], new \DateTimeImmutable($data[$ip]['last_attempt']));
         }

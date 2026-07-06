@@ -33,7 +33,7 @@ trait JsonTransactionTrait
             $stat = \fstat($fp);
             $size = $stat['size'] ?? 0;
             $raw  = $size > 0 ? \fread($fp, $size) : '';
-            $data = $raw === '' ? [] : JsonHelper::decode((string) $raw);
+            $data = $raw === '' ? [] : $this->jsonHelper->decode((string) $raw);
 
             // Führe die Business-Logik aus (Array wird per Referenz übergeben und modifiziert)
             $returnValue = $operation($data);

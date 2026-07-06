@@ -6,8 +6,8 @@ namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
+use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
 /**
@@ -24,6 +24,7 @@ final readonly class BackupService implements BackupServiceInterface
         private ?\PDO $pdo,
         private ClockInterface $clock,
         private ConfigInterface $config,
+        private JsonHelperInterface $jsonHelper,
     ) {
     }
 
@@ -79,7 +80,7 @@ final readonly class BackupService implements BackupServiceInterface
                 if (isset($storageConfig[$key]['file'])) {
                     $path = $this->config->getStoragePath($storageConfig[$key]['file']);
                     if (\file_exists($path) && ! \is_dir($path)) {
-                        $data = JsonHelper::read($path);
+                        $data = $this->jsonHelper->read($path);
                         $this->writeJsonSafely($backupPath . "/{$key}_file.json", $data, $jsonFlags);
                     }
                 }
@@ -168,7 +169,7 @@ final readonly class BackupService implements BackupServiceInterface
             return null;
         }
 
-        return JsonHelper::read($backupFile);
+        return $this->jsonHelper->read($backupFile);
     }
 
     /**
@@ -295,7 +296,7 @@ final readonly class BackupService implements BackupServiceInterface
         }
         $path = $this->config->getStoragePath($cfg['file']);
 
-        return JsonHelper::read($path);
+        return $this->jsonHelper->read($path);
     }
 
     /**
@@ -337,10 +338,10 @@ final readonly class BackupService implements BackupServiceInterface
             };
             foreach ($rows as $r) {
                 if (isset($r['data']) && \is_string($r['data'])) {
-                    $decoded = JsonHelper::decode($r['data']);
+                    $decoded = $this->jsonHelper->decode($r['data']);
                 }
                 if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                    $decoded = JsonHelper::decode($r['permissions']);
+                    $decoded = $this->jsonHelper->decode($r['permissions']);
                 }
                 $res[$r[$idField]] = $r;
             }
