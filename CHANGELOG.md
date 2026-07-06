@@ -2,6 +2,18 @@
 
 
 
+## [0.55.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.2...v0.55.3) (2026-07-06)
+
+### 🐛 Bug Fixes
+
+* **bootstrap:** resolve fatal error on static call to non-static JsonHelper ([e5a8ecc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e5a8ecc3c33c9fb4976e8d484de704400243903c))
+
+### ⚙️ Refactoring
+
+* **architecture:** enforce clean architecture by decoupling application from infrastructure ([d6fd8b7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d6fd8b7b41d656cbb2f8640077c3e483bfedcab7))
+* **bootstrap:** sort infrastructure provider and update architecture ruleset ([659d3ab](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/659d3ab4e15eb9db5e40ebd6df0e55674f7c3a6b))
+* **storage:** enforce dependency injection for JsonHelper across all repositories ([dd2ef41](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dd2ef411d782b83cb78e9c3537c363f2b288adb1))
+
 ## [0.55.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.1...v0.55.2) (2026-07-04)
 
 ### 🐛 Bug Fixes
