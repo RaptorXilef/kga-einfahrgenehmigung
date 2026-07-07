@@ -98,7 +98,7 @@ final readonly class UserController
         $pipeline
             ->add($this->securityHeaders)
             ->add($this->maintenanceGuard)
-            ->add(new RequireLoginMiddleware($this->auth, 'admin.php'))
+            ->add(RequireLoginMiddleware::withRedirect($this->auth, 'admin.php'))
             ->add(new CsrfMiddleware($this->sessionManager, 'profile.php'))
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);

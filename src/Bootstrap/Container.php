@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Bootstrap;
 
-use App\Bootstrap\Providers\ControllerServiceProvider;
-use App\Bootstrap\Providers\CoreServiceProvider;
 use App\Bootstrap\Providers\EventServiceProvider;
 use App\Bootstrap\Providers\InfrastructureServiceProvider;
 use App\Contracts\Config\ConfigInterface;
@@ -64,9 +62,7 @@ class Container implements ContainerInterface
         // Provider registrieren
         $providers = [
             new InfrastructureServiceProvider(),
-            new CoreServiceProvider(),
             new EventServiceProvider(),
-            new ControllerServiceProvider(),
         ];
 
         foreach ($providers as $provider) {

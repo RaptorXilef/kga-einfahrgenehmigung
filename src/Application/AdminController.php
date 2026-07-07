@@ -9,13 +9,13 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
-use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
 use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\MigrationPermissionMiddleware;
 use App\Application\Middleware\PrintAuthorizationMiddleware;
+use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\SystemMaintenanceMiddleware;
 use App\Application\Middleware\ToggleSuspensionMiddleware;
@@ -38,15 +38,15 @@ final readonly class AdminController
      * Initiiert den Controller mit allen Abhängigkeiten (Dependency Injection).
      */
     public function __construct(
-        private UniversalActionFactory $actionFactory,
-        private AdminAuthGuardMiddleware $authGuard,
         private AnalyticsMiddleware $analyticsMiddleware,
         private AuthService $auth,
+        private MaintenanceGuardMiddleware $maintenanceGuard,
+        private RequireLoginMiddleware $authGuard,
+        private SecurityHeadersMiddleware $securityHeaders,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
         private SystemMaintenanceMiddleware $maintenanceMiddleware,
-        private SecurityHeadersMiddleware $securityHeaders,
-        private MaintenanceGuardMiddleware $maintenanceGuard,
+        private UniversalActionFactory $actionFactory,
     ) {
     }
 

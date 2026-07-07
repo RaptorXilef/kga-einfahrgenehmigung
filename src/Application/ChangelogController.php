@@ -40,7 +40,7 @@ final readonly class ChangelogController
         $pipeline
             ->add($this->securityHeaders)
             ->add($this->maintenanceGuard)
-            ->add(new RequireLoginMiddleware($this->auth, 'index.php'));
+            ->add(RequireLoginMiddleware::withRedirect($this->auth, 'index.php'));
         if ($this->action instanceof RequiresPermissionInterface) {
             $pipeline->add(new PermissionMiddleware(
                 $this->auth,
