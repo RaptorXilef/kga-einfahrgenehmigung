@@ -2,6 +2,19 @@
 
 
 
+## [0.55.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.3...v0.55.4) (2026-07-07)
+
+### ⚙️ Refactoring
+
+* **architecture:** enforce dependency inversion and ... ([3e5d805](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3e5d805b340482b9e529cbbb0c0048159da18a8f))
+* **architecture:** fix layer violations and optimize deptrac ruleset ([53327a0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/53327a0ee03f5c5e66aadb73e45bf398d2d7123a))
+* **core:** remove dead code and unify authentication middleware ([b08a040](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b08a040d83d218e8bc766072ac5a1c74d802c8f5))
+* **view:** remove legacy TemplateRenderer and enforce single source of truth ([706dca7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/706dca73375a22f0559e37286f4198b6315b9c24))
+
+### 🏗️ Build System
+
+* **architecture:** fix invalid regex pattern in deptrac ruleset ([d23b395](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d23b395b248ffbdc5e915a0056ddd6e7d01c715d))
+
 ## [0.55.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.2...v0.55.3) (2026-07-06)
 
 ### 🐛 Bug Fixes
