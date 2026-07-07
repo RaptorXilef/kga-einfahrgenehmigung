@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
 /**

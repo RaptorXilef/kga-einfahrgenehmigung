@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Contracts\MiddlewareInterface;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Entity\PermitStatus;

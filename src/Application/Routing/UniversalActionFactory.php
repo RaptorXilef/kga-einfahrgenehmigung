@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Routing;
 
-use App\Bootstrap\Container;
-use App\Contracts\Application\ActionInterface;
-use App\Contracts\Application\ViewActionInterface;
+use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\ViewActionInterface;
+use App\Contracts\DependencyInjection\ContainerInterface;
 
 final readonly class UniversalActionFactory
 {
     public function __construct(
-        private Container $container,
         private ActionRegistry $registry,
+        private ContainerInterface $container,
     ) {
     }
 

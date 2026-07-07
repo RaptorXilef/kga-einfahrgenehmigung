@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ExportRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\EmptyResponse;
 use App\Application\Response\FileDownloadResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\ExportService;
 use App\Core\Service\PermitFilterService;

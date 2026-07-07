@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Response;
 
-use App\Contracts\Application\ResponseInterface;
+use App\Application\Contracts\ResponseInterface;
 
 /**
  * Repräsentiert eine HTTP-Weiterleitung.

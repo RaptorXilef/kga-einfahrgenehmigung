@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
-
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ApiSearchPermitsRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
-use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Application\ViewActionInterface;
 use App\Core\Service\PermitService;
 
 /**

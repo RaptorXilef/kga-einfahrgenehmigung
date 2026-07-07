@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts\Application;
+namespace App\Application\Contracts;
 
 use App\Application\Http\ServerRequest;
 
@@ -18,5 +18,5 @@ interface ActionInterface
      *
      * @return mixed Statusmeldung oder Ergebnis der Ausführung.
      */
-    public function execute(\App\Application\Http\ServerRequest $request): mixed;
+    public function execute(ServerRequest $request): mixed;
 }

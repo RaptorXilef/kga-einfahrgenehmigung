@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\HistoryRequestLinkRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Event\MagicLinkRequestedEvent;

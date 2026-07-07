@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemCronAction;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\CronAuthMiddleware;
 use App\Application\Middleware\MaintenanceGuardMiddleware;
 use App\Application\Middleware\MiddlewarePipeline;
 use App\Application\Middleware\SecurityHeadersMiddleware;
-use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Config\ConfigInterface;
 
 /**

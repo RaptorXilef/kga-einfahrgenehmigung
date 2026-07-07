@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\VerificationSubmitRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\PermitService;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\ApiCsrfMiddleware;
 use App\Application\Middleware\ApiPermissionMiddleware;
@@ -17,8 +19,6 @@ use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Response\JsonResponse;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Service\AuthService;
 

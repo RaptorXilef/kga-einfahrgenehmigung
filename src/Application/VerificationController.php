@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\CsrfMiddleware;
@@ -14,7 +15,6 @@ use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\ResponseInterface;
 use App\Contracts\Security\RateLimiterInterface;
 
 /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts\Application;
+namespace App\Application\Contracts;
 
 /**
  * TODO DOCBLOCK

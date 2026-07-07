@@ -10,7 +10,7 @@ use App\Application\Listener\SendPaymentReminderMailListener;
 use App\Application\Listener\SendPermitCancelledMailListener;
 use App\Application\Listener\SendPermitMailListener;
 use App\Application\Listener\SendVerificationMailListener;
-use App\Bootstrap\Container;
+use App\Contracts\DependencyInjection\ContainerInterface;
 use App\Contracts\Event\EventDispatcherInterface;
 use App\Core\Event\GroupDeletedEvent;
 use App\Core\Event\MagicLinkRequestedEvent;
@@ -27,7 +27,7 @@ use App\Infrastructure\Event\EventDispatcher;
  */
 final class EventServiceProvider
 {
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         // Wir binden nur das Interface
         $container->bind(EventDispatcherInterface::class, fn () => new EventDispatcher());

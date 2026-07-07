@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
-use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
+use App\Contracts\DependencyInjection\ContainerInterface;
 
 /**
  * Registriert nur noch Controller/Actions, die NICHT automatisch via
@@ -15,7 +15,7 @@ use App\Contracts\Bootstrap\ServiceProviderInterface;
  */
 final class ControllerServiceProvider implements ServiceProviderInterface
 {
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         // Da fast alle Controller und Actions sauberes Type-Hinting nutzen,
         // erledigt der Container den Rest magisch von selbst!

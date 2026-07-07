@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuthService;

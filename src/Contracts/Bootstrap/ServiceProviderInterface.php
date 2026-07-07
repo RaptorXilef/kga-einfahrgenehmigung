@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts\Bootstrap;
 
-use App\Bootstrap\Container;
+use App\Contracts\DependencyInjection\ContainerInterface;
 
 /**
  * Interface für alle Service Provider im Dependency Injection Container.
@@ -16,7 +16,7 @@ interface ServiceProviderInterface
     /**
      * Registriert Services, Repositories oder Controller im Container.
      *
-     * @param Container $container Die Instanz des DI-Containers.
+     * @param ContainerInterface $container Die Instanz des DI-Containers.
      */
-    public function register(Container $container): void;
+    public function register(ContainerInterface $container): void;
 }

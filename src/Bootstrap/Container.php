@@ -9,6 +9,7 @@ use App\Bootstrap\Providers\CoreServiceProvider;
 use App\Bootstrap\Providers\EventServiceProvider;
 use App\Bootstrap\Providers\InfrastructureServiceProvider;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\DependencyInjection\ContainerInterface;
 use App\Infrastructure\Config\Config;
 
 /**
@@ -27,7 +28,7 @@ use App\Infrastructure\Config\Config;
  *
  * @author    Felix Maywald (@RaptorXilef)
  */
-class Container
+class Container implements ContainerInterface
 {
     /**
      * @var array<string, \Closure>
@@ -53,6 +54,8 @@ class Container
         // Basis-Instanzen hart registrieren
         $this->instances[self::class]      = $this; // Verhindert, dass der Container geklont wird!
         $this->instances[Container::class] = $this;
+
+        $this->instances[ContainerInterface::class] = $this; // Interface binden
 
         // Konfiguration (Wird direkt als Instanz übergeben, da sie schon existiert)
         $this->instances[Config::class]          = $this->config;

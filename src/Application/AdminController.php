@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application;
 
+use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AdminAuthGuardMiddleware;
 use App\Application\Middleware\AnalyticsMiddleware;
@@ -19,10 +23,6 @@ use App\Application\Middleware\VoucherIssuanceMiddleware;
 use App\Application\Response\RedirectResponse;
 use App\Application\Routing\UniversalActionFactory;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\ActionInterface;
-use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Application\ResponseInterface;
-use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Service\AuthService;
 

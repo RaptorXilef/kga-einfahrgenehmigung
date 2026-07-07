@@ -14,7 +14,7 @@ deptrac:
         - type: directory
           value: src/Core/ValueObject/.*
 
-    - name: Contracts # Schnittstellen/Interfaces (z.B. UserRepositoryInterface)
+    - name: Contracts # Globale Schnittstellen (z.B. UserRepositoryInterface)
       collectors:
         - type: directory
           value: src/Contracts/.*

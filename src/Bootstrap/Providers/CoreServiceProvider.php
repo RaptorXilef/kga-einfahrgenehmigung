@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Bootstrap\Providers;
 
-use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
+use App\Contracts\DependencyInjection\ContainerInterface;
 
 /**
  * Da der Container Autowiring unterstützt, müssen reine Domänen-Services
@@ -15,7 +15,7 @@ use App\Contracts\Bootstrap\ServiceProviderInterface;
  */
 final class CoreServiceProvider implements ServiceProviderInterface
 {
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         // Alle Services (PermitService, AuthService, ExportService etc.)
         // werden vom Container on-the-fly via Reflection instanziiert.

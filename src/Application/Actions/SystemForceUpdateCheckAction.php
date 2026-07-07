@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Actions;
 
 use App\Application\Attribute\ActionRoute;
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Application\ViewActionInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\System\SystemUpdaterInterface;
 use App\Core\Service\AuditLoggerService;

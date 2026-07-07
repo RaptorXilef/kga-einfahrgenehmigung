@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemChangelogAction;
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
 use App\Application\Middleware\MaintenanceGuardMiddleware;
@@ -13,8 +15,6 @@ use App\Application\Middleware\PermissionMiddleware;
 use App\Application\Middleware\RequireLoginMiddleware;
 use App\Application\Middleware\SecurityHeadersMiddleware;
 use App\Application\Middleware\TerminateMailQueueMiddleware;
-use App\Contracts\Application\RequiresPermissionInterface;
-use App\Contracts\Application\ResponseInterface;
 use App\Core\Service\AuthService;
 
 /**

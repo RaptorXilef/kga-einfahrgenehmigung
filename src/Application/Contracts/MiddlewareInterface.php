@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts\Application;
+namespace App\Application\Contracts;
 
 use App\Application\Http\ServerRequest;
 
@@ -18,5 +18,5 @@ interface MiddlewareInterface
      *
      * @param callable $next Die nächste Middleware oder die finale Action.
      */
-    public function process(\App\Application\Http\ServerRequest $request, callable $next): mixed;
+    public function process(ServerRequest $request, callable $next): mixed;
 }

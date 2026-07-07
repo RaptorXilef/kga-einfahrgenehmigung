@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
-use App\Contracts\Application\MiddlewareInterface;
 use App\Contracts\Config\ConfigInterface;
 
 /**

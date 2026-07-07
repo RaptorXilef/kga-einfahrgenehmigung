@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Application\MiddlewareInterface;
 
 /**
  * TODO DOCBLOCK

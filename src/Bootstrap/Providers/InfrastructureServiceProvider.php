@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Bootstrap\Providers;
 
 use App\Application\Session\SessionManager;
-use App\Bootstrap\Container;
 use App\Contracts\Bootstrap\ServiceProviderInterface;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\DependencyInjection\ContainerInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Maintenance\MigrationServiceInterface;
@@ -91,9 +91,9 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
     /**
      * Bindet alle Infrastruktur-Dienste an ihre entsprechenden Interfaces im DI-Container.
      *
-     * @param Container $container Der Dependency Injection Container der Applikation.
+     * @param ContainerInterface $container Der Dependency Injection Container der Applikation.
      */
-    public function register(Container $container): void
+    public function register(ContainerInterface $container): void
     {
         /*
          |--------------------------------------------------------------------------
