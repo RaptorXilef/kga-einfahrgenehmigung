@@ -11,6 +11,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Core\Exception\PermitCollisionException;
 use App\Core\Service\PermitService;
 
 /**
@@ -62,9 +63,22 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->clearEditState();
 
             return new RedirectResponse('index.php?sent=1');
-        } catch (\Exception $exception) {
+        } catch (PermitCollisionException $exception) { // <-- NEU: Zuerst die Kollision fangen
+            // 1. Detaillierter Log für dich als Admin im Hintergrund
+            \error_log('Permit Collision: ' . $exception->getMessage());
+
+            // 2. Datenschutzkonforme, vage UI-Meldung für den User
+            $this->sessionManager->addFlash(
+                'error',
+                'Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder ' .
+                    'Genehmigung vor. Falls Sie den Status prüfen möchten, nutzen Sie bitte den Genehmigungs-"Verlauf".',
+            );
+
+            return new RedirectResponse('index.php');
+
+        } catch (\Exception $exception) { // <-- Bestehender Catch-All für echte Abstürze
             \error_log('Permit Creation Error: ' . $exception->getMessage());
-            $this->sessionManager->addFlash('error', 'Ein Fehler ist aufgetreten.');
+            $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten.');
 
             return new RedirectResponse('index.php');
         }

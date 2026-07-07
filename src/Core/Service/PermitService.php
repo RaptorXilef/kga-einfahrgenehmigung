@@ -25,6 +25,7 @@ use App\Core\Event\PaymentReminderEvent;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
+use App\Core\Exception\PermitCollisionException;
 use App\Core\Utils\DateRangeHelper;
 use App\Core\ValueObject\EmailAddress;
 use App\Core\ValueObject\LicensePlate;
@@ -536,10 +537,10 @@ final readonly class PermitService
 
         foreach ($this->storage->getAll() as $permit) {
             if ($permit->hasCollision($parzelleFormatted, $start, $end)) {
-                throw new \RuntimeException(
+                throw new PermitCollisionException(
                     "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
-                        $permit->getValidFrom()->format('d.m.Y') . ' bis ' .
-                        $permit->getValidUntil()->format('d.m.Y') . '.',
+                    $permit->getValidFrom()->format('d.m.Y') . ' bis ' .
+                    $permit->getValidUntil()->format('d.m.Y') . '.',
                 );
             }
         }
@@ -555,9 +556,9 @@ final readonly class PermitService
                 $pPlot === $parzelleFormatted
                 && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)
             ) {
-                throw new \RuntimeException(
+                throw new PermitCollisionException(
                     "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
-                        'Bitte warten Sie 24h oder wählen Sie andere Daten.',
+                    'Bitte wählen Sie andere Daten.',
                 );
             }
         }

@@ -41,7 +41,8 @@ final readonly class TemplateRenderer
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!
-        $data['flashes'] = $this->sessionManager->getFlashes();
+        // Nutzt vorhandene Flashes oder holt sie aus der Session
+        $data['flashes'] ??= $this->sessionManager->getFlashes();
 
         \extract($systemVars);
 
