@@ -5,32 +5,56 @@ declare(strict_types=1);
 namespace App\Core\ValueObject;
 
 /**
- * TODO DOCBLOCK
+ * Value Object representing a vehicle license plate (Kennzeichen).
  *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Enforces standardized formatting and immutability.
  */
 final readonly class LicensePlate
 {
+    /**
+     * @var string The formatted license plate string.
+     */
     public string $value;
 
+    /**
+     * @param  string                    $plate The raw license plate input.
+     * @throws \InvalidArgumentException If the plate is empty after trimming.
+     */
     public function __construct(string $plate)
     {
-        $this->value = $this->format($plate);
+        $formatted = $this->format($plate);
+
+        if ($formatted === '') {
+            throw new \InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
+        }
+
+        $this->value = $formatted;
     }
 
+    /**
+     * Returns the formatted license plate.
+     */
     public function __toString(): string
     {
         return $this->value;
     }
 
+    /**
+     * Returns an alphanumeric-only representation of the plate.
+     * Useful for database searches and normalization.
+     */
     public function getCleanForSearch(): string
     {
         return \preg_replace('/[^A-Z0-9]/', '', \strtoupper($this->value)) ?? '';
     }
 
+    /**
+     * Formats the license plate into a standardized German format if possible.
+     */
     private function format(string $plate): string
     {
         $original = \trim(\strtoupper($plate));
+
         if ($original === '') {
             return '';
         }
