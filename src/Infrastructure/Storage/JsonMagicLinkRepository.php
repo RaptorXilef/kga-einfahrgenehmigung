@@ -8,10 +8,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MagicLink;
+use App\Core\ValueObject\EmailAddress;
 
 /**
- * TODO DOCBLOCK
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class JsonMagicLinkRepository implements MagicLinkRepositoryInterface
@@ -26,15 +25,20 @@ final readonly class JsonMagicLinkRepository implements MagicLinkRepositoryInter
 
     public function loadAll(): array
     {
-        $cfg  = $this->config->get('storage_config')['magic_links'];
-        $path = $this->config->getStoragePath($cfg['file']);
-        $raw  = \file_exists($path) ? $this->jsonHelper->read($path) : [];
-
+        $cfg   = $this->config->get('storage_config')['magic_links'];
+        $path  = $this->config->getStoragePath($cfg['file']);
+        $raw   = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         $links = [];
+
         foreach ($raw as $token => $l) {
             $exp           = $l['expires'] ?? 'now';
             $dt            = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
-            $links[$token] = new MagicLink((string) $token, $l['email'] ?? '', $l['code'] ?? '', $dt);
+            $links[$token] = new MagicLink(
+                (string) $token,
+                new EmailAddress($l['email'] ?? 'invalid@example.com'),
+                $l['code'] ?? '',
+                $dt,
+            );
         }
 
         return $links;
@@ -48,17 +52,19 @@ final readonly class JsonMagicLinkRepository implements MagicLinkRepositoryInter
         if ($forceSql) {
             return;
         }
+
         $cfg  = $this->config->get('storage_config')['magic_links'];
         $path = $this->config->getStoragePath($cfg['file']);
-
         $data = [];
+
         foreach ($links as $token => $link) {
             $data[$token] = [
-                'email'   => $link->email,
+                'email'   => $link->email->value,
                 'code'    => $link->code,
                 'expires' => $link->expires->format('Y-m-d H:i:s'),
             ];
         }
+
         $this->writeJsonSafely($path, $data, \JSON_PRETTY_PRINT);
     }
 
@@ -66,9 +72,15 @@ final readonly class JsonMagicLinkRepository implements MagicLinkRepositoryInter
     {
         $objects = [];
         foreach ($data as $token => $row) {
-            $exp             = $row['expires'] ?? 'now';
-            $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
-            $objects[$token] = new MagicLink((string) $token, $row['email'] ?? '', $row['code'] ?? '', $dt);
+            $exp = $row['expires'] ?? 'now';
+            $dt  = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+
+            $objects[$token] = new MagicLink(
+                (string) $token,
+                new EmailAddress($row['email'] ?? 'invalid@example.com'),
+                $row['code'] ?? '',
+                $dt,
+            );
         }
         $this->saveAll($objects);
     }

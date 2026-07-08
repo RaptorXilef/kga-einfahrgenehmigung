@@ -7,10 +7,9 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Core\Entity\LoginAttempt;
+use App\Core\ValueObject\IpAddress;
 
 /**
- * TODO
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MySqlLoginAttemptRepository implements LoginAttemptRepositoryInterface
@@ -28,10 +27,15 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
         $table = $this->config->get('storage_config')['login_attempts']['table'];
         $stmt  = $this->pdo->prepare("SELECT attempts, last_attempt FROM `{$table}` WHERE ip_address = ?");
         $stmt->execute([$ip]);
+
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         if ($row) {
-            return new LoginAttempt($ip, (int) $row['attempts'], new \DateTimeImmutable($row['last_attempt']));
+            return new LoginAttempt(
+                new IpAddress($ip === 'unknown' || $ip === '' ? '0.0.0.0' : $ip),
+                (int) $row['attempts'],
+                new \DateTimeImmutable($row['last_attempt']),
+            );
         }
 
         return null;
@@ -41,7 +45,7 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
         $data  = [
-            'ip_address'   => $attempt->ipAddress,
+            'ip_address'   => $attempt->ipAddress->value,
             'attempts'     => $attempt->attempts,
             'last_attempt' => $attempt->lastAttempt->format('Y-m-d H:i:s'),
         ];
@@ -82,8 +86,10 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
                     $sql  = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($mapped);
             }
+
             $this->pdo->commit();
         } catch (\Exception $e) {
             $this->pdo->rollBack();

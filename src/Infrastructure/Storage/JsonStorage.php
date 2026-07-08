@@ -47,7 +47,7 @@ final readonly class JsonStorage implements StorageInterface
     public function save(Permit $permit): bool
     {
         $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($permit): bool {
-            $data[$permit->code] = $this->flattenEntity($permit);
+            $data[$permit->code->value] = $this->flattenEntity($permit);
 
             return true;
         });

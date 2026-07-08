@@ -7,10 +7,9 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Core\Entity\MagicLink;
+use App\Core\ValueObject\EmailAddress;
 
 /**
- * TODO DOCBLOCK
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInterface
@@ -27,11 +26,18 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
     {
         $cfg   = $this->config->get('storage_config')['magic_links'];
         $links = [];
-        $stmt  = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
+
+        $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
+
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
             $exp                = $r['expires'];
             $dt                 = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
-            $links[$r['token']] = new MagicLink($r['token'], $r['email'], $r['code'], $dt);
+            $links[$r['token']] = new MagicLink(
+                $r['token'],
+                new EmailAddress($r['email']),
+                $r['code'],
+                $dt,
+            );
         }
 
         return $links;
@@ -47,14 +53,13 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
 
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
-
             $sql  = null;
             $stmt = null;
 
             foreach ($links as $token => $link) {
                 $data = [
                     'token'   => $token,
-                    'email'   => $link->email,
+                    'email'   => $link->email->value,
                     'code'    => $link->code,
                     'expires' => $link->expires->format('Y-m-d H:i:s'),
                 ];
@@ -63,8 +68,10 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
                     $sql  = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($data);
             }
+
             $this->pdo->commit();
         } catch (\Exception $e) {
             $this->pdo->rollBack();
@@ -77,9 +84,15 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
     {
         $objects = [];
         foreach ($data as $token => $row) {
-            $exp             = $row['expires'] ?? 'now';
-            $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
-            $objects[$token] = new MagicLink((string) $token, $row['email'] ?? '', $row['code'] ?? '', $dt);
+            $exp = $row['expires'] ?? 'now';
+            $dt  = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+
+            $objects[$token] = new MagicLink(
+                (string) $token,
+                new EmailAddress($row['email'] ?? 'invalid@example.com'),
+                $row['code'] ?? '',
+                $dt,
+            );
         }
         $this->saveAll($objects, true);
     }

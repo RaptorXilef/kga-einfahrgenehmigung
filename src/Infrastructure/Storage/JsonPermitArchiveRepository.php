@@ -9,8 +9,6 @@ use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 
 /**
- * TODO
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class JsonPermitArchiveRepository implements PermitArchiveRepositoryInterface
@@ -41,11 +39,14 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
         if (empty($permitsToArchive)) {
             return;
         }
+
         $path     = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
         $existing = \file_exists($path) ? $this->jsonHelper->read($path) : [];
+
         foreach ($permitsToArchive as $permit) {
-            $existing[$permit->code] = $this->flattenEntity($permit);
+            $existing[$permit->code->value] = $this->flattenEntity($permit);
         }
+
         $this->writeJsonSafely($path, $existing);
     }
 

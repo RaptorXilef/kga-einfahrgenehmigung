@@ -7,6 +7,7 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Core\Entity\AuditLog;
+use App\Core\ValueObject\IpAddress;
 
 final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterface
 {
@@ -28,7 +29,7 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
             'username'   => $log->username,
             'action'     => $log->action,
             'details'    => $log->details,
-            'ip_address' => $log->ipAddress,
+            'ip_address' => $log->ipAddress->value,
             'created_at' => $log->createdAt->format('Y-m-d H:i:s'),
         ];
 
@@ -67,7 +68,7 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
                 $r['username'],
                 $r['action'],
                 $r['details'],
-                $r['ip_address'],
+                new IpAddress(! empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? $r['ip_address'] : '0.0.0.0'),
                 new \DateTimeImmutable($r['created_at']),
             );
         }
@@ -83,6 +84,7 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
         try {
             $sql  = null;
             $stmt = null;
+
             foreach ($data as $id => $item) {
                 $mapped = [
                     'id'         => $id,
@@ -90,15 +92,18 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
                     'username'   => $item['username'] ?? '',
                     'action'     => $item['action'] ?? '',
                     'details'    => $item['details'] ?? '',
-                    'ip_address' => $item['ip_address'] ?? '',
+                    'ip_address' => $item['ip_address'] ?? '0.0.0.0',
                     'created_at' => $item['created_at'] ?? '',
                 ];
+
                 if ($sql === null) {
                     $sql  = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($mapped);
             }
+
             $this->pdo->commit();
         } catch (\Exception $e) {
             $this->pdo->rollBack();

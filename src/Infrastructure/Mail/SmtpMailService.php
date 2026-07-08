@@ -9,6 +9,7 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailLogEntry;
+use App\Core\ValueObject\TemplateKey;
 use App\Infrastructure\Storage\JsonTransactionTrait;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 
@@ -51,8 +52,13 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
         if (\in_array(\trim($recipient), ['', '0'], true)) {
-            // $data am Ende hinzugefügt
-            $this->logEmail('System', $subject, $template, 'Übersprungen: Kein Empfänger angegeben', $data);
+            $this->logEmail(
+                'System',
+                $subject,
+                clone new TemplateKey($template),
+                'Übersprungen: Kein Empfänger angegeben',
+                $data,
+            );
 
             return true;
         }
@@ -66,16 +72,14 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
         if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
-            // $data am Ende hinzugefügt
-            $this->logEmail($recipient, $subject, $template, 'Testmodus (kein Versand)', $data);
+            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', $data);
 
             return true;
         }
 
         // 3. Versand und Logging
         $status = $this->dispatch($recipient, $subject, $body, $mailConfig);
-        // $data am Ende hinzugefügt
-        $this->logEmail($recipient, $subject, $template, $status, $data);
+        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $status, $data);
 
         return $status;
     }
@@ -104,7 +108,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                         $log->timestamp->format('Y-m-d H:i:s'),
                         $log->recipient,
                         $log->subject,
-                        $log->template,
+                        $log->template->value,
                         $log->status,
                         \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
                     ]);
@@ -115,6 +119,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
 
                 throw $e;
             }
+
             if ($forceSql) {
                 return;
             } // Beenden, falls MySQL via Migration erzwungen wurde
@@ -123,17 +128,19 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         if (! $forceSql) {
             $path       = $this->config->getStoragePath($cfg['file']);
             $dataToSave = [];
+
             foreach ($logs as $log) {
                 $dataToSave[$log->id] = [
                     'id'        => $log->id,
                     'timestamp' => $log->timestamp->format('Y-m-d H:i:s'),
                     'recipient' => $log->recipient,
                     'subject'   => $log->subject,
-                    'template'  => $log->template,
+                    'template'  => $log->template->value,
                     'status'    => $log->status,
                     'data'      => $log->data,
                 ];
             }
+
             $this->writeJsonSafely($path, \array_values($dataToSave));
         }
     }
@@ -156,7 +163,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                     new \DateTimeImmutable($r['timestamp']),
                     $r['recipient'],
                     $r['subject'],
-                    $r['template'],
+                    new TemplateKey($r['template'] ?: 'std_7'),
                     $r['status'],
                     \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
                 );
@@ -174,7 +181,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                     new \DateTimeImmutable($r['timestamp']),
                     $r['recipient'],
                     $r['subject'],
-                    $r['template'],
+                    new TemplateKey($r['template'] ?: 'std_7'),
                     $r['status'],
                     $r['data'] ?? [],
                 );
@@ -193,7 +200,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                 new \DateTimeImmutable($r['timestamp'] ?? 'now'),
                 $r['recipient'] ?? '',
                 $r['subject'] ?? '',
-                $r['template'] ?? '',
+                new TemplateKey($r['template'] ?: 'std_7'),
                 $r['status'] ?? '',
                 \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
             );
@@ -272,6 +279,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
 
         // 2. EHLO senden mit sicherem, server-kontrolliertem Hostnamen
         \fwrite($socket, 'EHLO ' . $smtpEhloHost . "\r\n");
+
         if (! $this->checkResponse($socket, '250')) {
             return 'EHLO abgelehnt';
         }
@@ -279,8 +287,10 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // 3. Login starten
         \fwrite($socket, "AUTH LOGIN\r\n");
         $this->getServerResponse($socket); // 334 erwartet
+
         \fwrite($socket, \base64_encode((string) $user) . "\r\n");
         $this->getServerResponse($socket);
+
         \fwrite($socket, \base64_encode($pass) . "\r\n");
         if (! $this->checkResponse($socket, '235')) {
             return 'SMTP Login fehlgeschlagen (Daten prüfen)';
@@ -289,6 +299,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // 4. Absender & Empfänger
         \fwrite($socket, "MAIL FROM: <$from>\r\n");
         $this->getServerResponse($socket);
+
         \fwrite($socket, "RCPT TO: <$recipient>\r\n");
         if (! $this->checkResponse($socket, '250')) {
             return "Empfänger $recipient wurde vom Server abgelehnt";
@@ -353,20 +364,9 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     /**
      * Schreibt einen Eintrag in das E-Mail-Versandprotokoll und begrenzt die Historie (Capping).
      * Unterstützt MySQL-Einträge inklusive Tabellen-Bereinigung via Subquery oder historisierende JSON-Dateien.
-     *
-     * @param string               $recipient Empfänger.
-     * @param string               $subject   Betreff.
-     * @param string               $template  Genutztes Template.
-     * @param bool|string          $status    Das Ergebnis der dispatch-Methode.
-     * @param array<string, mixed> $data      Mitgesendete Rohdaten-Payload.
      */
-    private function logEmail(
-        string $recipient,
-        string $subject,
-        string $template,
-        bool|string $status,
-        array $data = [],
-    ): void {
+    private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, array $data = []): void
+    {
         $statusStr  = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 

@@ -22,9 +22,9 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
 
     public function saveCancelled(Permit $permit): void
     {
-        $path                = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
-        $data                = \file_exists($path) ? $this->jsonHelper->read($path) : [];
-        $data[$permit->code] = $this->flattenEntity($permit);
+        $path                       = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
+        $data                       = \file_exists($path) ? $this->jsonHelper->read($path) : [];
+        $data[$permit->code->value] = $this->flattenEntity($permit);
         $this->writeJsonSafely($path, $data);
     }
 
@@ -69,7 +69,7 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
             $item                  = $this->flattenEntity($permit);
             $item['is_anonymized'] = 1;
             $item['agreements'] ??= '{}';
-            $mappedData[$permit->code] = $item;
+            $mappedData[$permit->code->value] = $item;
         }
         $this->writeJsonSafely($path, $mappedData);
     }

@@ -8,10 +8,10 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Voucher;
+use App\Core\ValueObject\TemplateKey;
+use App\Core\ValueObject\VoucherCode;
 
 /**
- * TODO DOCBLOCK
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
@@ -26,19 +26,19 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
 
     public function loadAll(): array
     {
-        $cfg  = $this->config->get('storage_config')['vouchers'];
-        $path = $this->config->getStoragePath($cfg['file']);
-        $raw  = \file_exists($path) ? $this->jsonHelper->read($path) : [];
-
+        $cfg      = $this->config->get('storage_config')['vouchers'];
+        $path     = $this->config->getStoragePath($cfg['file']);
+        $raw      = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         $vouchers = [];
+
         foreach ($raw as $code => $r) {
             $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
             $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 
             $vouchers[$code] = new Voucher(
-                (string) $code,
+                new VoucherCode((string) $code),
                 $r['reason'] ?? '',
-                $r['template_key'] ?? 'std_7',
+                new TemplateKey($r['template_key'] ?? 'std_7'),
                 $r['type'] ?? 'free',
                 (float) ($r['value'] ?? 0),
                 (bool) ($r['multi_use'] ?? false),
@@ -61,19 +61,29 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
         if ($forceSql) {
             return;
         }
-        $cfg = $this->config->get('storage_config')['vouchers'];
 
+        $cfg        = $this->config->get('storage_config')['vouchers'];
         $dataToSave = [];
+
         foreach ($vouchers as $code => $v) {
             $dataToSave[$code] = [
-                'code'       => $v->code, 'reason' => $v->reason, 'template_key' => $v->templateKey,
-                'type'       => $v->type, 'value' => $v->value, 'multi_use' => $v->multiUse,
-                'max_uses'   => $v->maxUses, 'uses_count' => $v->usesCount,
-                'expires_at' => $v->expiresAt?->format('Y-m-d H:i:s'), 'date_mode' => $v->dateMode,
-                'created_by' => $v->createdBy, 'created_at' => $v->createdAt->format('Y-m-d H:i:s'),
-                'status'     => $v->status, 'data' => $v->data,
+                'code'         => $v->code->value,
+                'reason'       => $v->reason,
+                'template_key' => $v->templateKey->value,
+                'type'         => $v->type,
+                'value'        => $v->value,
+                'multi_use'    => $v->multiUse,
+                'max_uses'     => $v->maxUses,
+                'uses_count'   => $v->usesCount,
+                'expires_at'   => $v->expiresAt?->format('Y-m-d H:i:s'),
+                'date_mode'    => $v->dateMode,
+                'created_by'   => $v->createdBy,
+                'created_at'   => $v->createdAt->format('Y-m-d H:i:s'),
+                'status'       => $v->status,
+                'data'         => $v->data,
             ];
         }
+
         $path = $this->config->getStoragePath($cfg['file']);
         $this->writeJsonSafely($path, $dataToSave);
     }
@@ -104,9 +114,9 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
             $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 
             $objects[$code] = new Voucher(
-                (string) $code,
+                new VoucherCode((string) $code),
                 $r['reason'] ?? '',
-                $r['template_key'] ?? 'std_7',
+                new TemplateKey($r['template_key'] ?? 'std_7'),
                 $r['type'] ?? 'free',
                 (float) ($r['value'] ?? 0),
                 (bool) ($r['multi_use'] ?? false),

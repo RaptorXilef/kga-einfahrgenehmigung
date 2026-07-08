@@ -8,10 +8,10 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Voucher;
+use App\Core\ValueObject\TemplateKey;
+use App\Core\ValueObject\VoucherCode;
 
 /**
- * TODO DOCBLOCK
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MySqlVoucherRepository implements VoucherRepositoryInterface
@@ -30,15 +30,16 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
         $cfg      = $this->config->get('storage_config')['vouchers'];
         $stmt     = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         $vouchers = [];
+
         foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
             $data    = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
             $expires = $r['expires_at'] ? new \DateTimeImmutable($r['expires_at']) : null;
             $created = $r['created_at'] ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 
             $vouchers[$r['code']] = new Voucher(
-                $r['code'],
+                new VoucherCode($r['code']),
                 $r['reason'],
-                $r['template_key'],
+                new TemplateKey($r['template_key']),
                 $r['type'],
                 (float) $r['value'],
                 (bool) $r['multi_use'],
@@ -63,15 +64,14 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
 
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
-
             $sql  = null;
             $stmt = null;
 
             foreach ($vouchers as $v) {
                 $data = [
-                    'code'         => $v->code,
+                    'code'         => $v->code->value,
                     'reason'       => $v->reason,
-                    'template_key' => $v->templateKey,
+                    'template_key' => $v->templateKey->value,
                     'type'         => $v->type,
                     'value'        => $v->value,
                     'multi_use'    => (int) $v->multiUse,
@@ -89,8 +89,10 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
                     $sql  = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($data);
             }
+
             $this->pdo->commit();
         } catch (\Exception $e) {
             $this->pdo->rollBack();
@@ -109,8 +111,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
     public function appendToArchive(array $archiveEntry): void
     {
         $table = $this->config->get('storage_config')['vouchers_archive']['table'];
-
-        $data = [
+        $data  = [
             'code'        => $archiveEntry['code'],
             'redeemed_at' => $archiveEntry['redeemed_at'],
             'user_name'   => $archiveEntry['user_name'],
@@ -130,9 +131,9 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
             $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
 
             $objects[$code] = new Voucher(
-                (string) $code,
+                new VoucherCode((string) $code),
                 $r['reason'] ?? '',
-                $r['template_key'] ?? 'std_7',
+                new TemplateKey($r['template_key'] ?? 'std_7'),
                 $r['type'] ?? 'free',
                 (float) ($r['value'] ?? 0),
                 (bool) ($r['multi_use'] ?? false),
@@ -171,8 +172,10 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
                     $sql  = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($mapped);
             }
+
             $this->pdo->commit();
         } catch (\Exception $e) {
             $this->pdo->rollBack();

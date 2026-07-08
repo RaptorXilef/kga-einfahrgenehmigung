@@ -10,8 +10,6 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
 
 /**
- * TODO
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class JsonMailQueueRepository implements MailQueueRepositoryInterface
@@ -34,7 +32,7 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
             'id'         => $job->id,
             'recipient'  => $job->recipient,
             'subject'    => $job->subject,
-            'template'   => $job->template,
+            'template'   => $job->template->value,
             'data'       => $job->data,
             'attempts'   => $job->attempts,
             'created_at' => $job->createdAt->format('Y-m-d H:i:s'),

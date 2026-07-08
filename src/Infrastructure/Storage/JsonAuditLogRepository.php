@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\AuditLog;
+use App\Core\ValueObject\IpAddress;
 
 final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterface
 {
@@ -28,13 +29,14 @@ final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterfa
             if (\count($data) >= 5000) {
                 \array_shift($data);
             }
+
             $data[] = [
                 'id'         => $log->id,
                 'user_id'    => $log->userId,
                 'username'   => $log->username,
                 'action'     => $log->action,
                 'details'    => $log->details,
-                'ip_address' => $log->ipAddress,
+                'ip_address' => $log->ipAddress->value,
                 'created_at' => $log->createdAt->format('Y-m-d H:i:s'),
             ];
 
@@ -45,6 +47,7 @@ final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterfa
     public function getPaginated(int $page, int $limit, string $actionFilter = ''): array
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['audit_logs']['file'] ?? 'audit_logs.json');
+
         if (! \file_exists($path)) {
             return ['items' => [], 'total' => 0];
         }
@@ -68,7 +71,7 @@ final readonly class JsonAuditLogRepository implements AuditLogRepositoryInterfa
             $r['username'],
             $r['action'],
             $r['details'],
-            $r['ip_address'],
+            new IpAddress(! empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? $r['ip_address'] : '0.0.0.0'),
             new \DateTimeImmutable($r['created_at']),
         ), $sliced);
 

@@ -10,8 +10,6 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
 
 /**
- * TODO
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInterface
@@ -28,11 +26,12 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     public function enqueue(MailJob $job): void
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
-        $data  = [
+
+        $data = [
             'id'         => $job->id,
             'recipient'  => $job->recipient,
             'subject'    => $job->subject,
-            'template'   => $job->template,
+            'template'   => $job->template->value,
             'data'       => \json_encode($job->data, \JSON_UNESCAPED_UNICODE),
             'attempts'   => $job->attempts,
             'created_at' => $job->createdAt->format('Y-m-d H:i:s'),
@@ -126,8 +125,10 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
                     $sql  = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($mapped);
             }
+
             $this->pdo->commit();
         } catch (\Exception $e) {
             $this->pdo->rollBack();
