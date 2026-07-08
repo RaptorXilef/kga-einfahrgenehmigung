@@ -33,11 +33,18 @@ final readonly class PermitSubmitAction implements ViewActionInterface
         try {
             $dto = PermitSubmitRequest::fromArray($request->post);
         } catch (ValidationException|\InvalidArgumentException $e) {
+            // FIX: UX-Rettung! Bevor wir abbrechen, speichern wir die bereits eingetippten Daten
+            // in der Session zwischen, damit das Formular nicht leer ist.
+            $postData = $request->post;
+            unset($postData['csrf_token']); // Sicherheits-Token nicht mitspeichern
+            $this->sessionManager->setFormData($postData);
+
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('index.php');
         }
 
+        // Wenn die Validierung klappt, speichern wir das formal saubere DTO
         $this->sessionManager->setFormData($dto->toDomainDto());
 
         try {
@@ -66,7 +73,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 
             return new RedirectResponse('index.php?sent=1');
 
-        } catch (PermitCollisionException $exception) { // <-- NEU: Zuerst die Kollision fangen
+        } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen
             // 1. Detaillierter Log für dich als Admin im Hintergrund
             \error_log('Permit Collision: ' . $exception->getMessage());
 
