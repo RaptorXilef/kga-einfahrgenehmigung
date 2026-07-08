@@ -51,8 +51,8 @@ use App\Core\Entity\Voucher;
                                 $activeVouchers = \array_filter($vouchers ?? [], function (Voucher $v): bool {
                                     return $v->status === 'aktiv' && ! $v->isDepleted();
                                 });
-                if (empty($activeVouchers)) { ?>
-                                    ?>
+                if (empty($activeVouchers)) {
+                    ?>
                                     <tr>
                                         <td colspan="3"
                                             class="u-text-center u-padding-around-l u-text-muted">
@@ -61,11 +61,14 @@ use App\Core\Entity\Voucher;
                                     </tr>
                                 <?php } else { ?>
                                     <?php foreach ($vouchers as $v) {
-                                        $url           = $config->getBaseUrl() . 'index.php?voucher=' . $v->code;
-                                        $isValid       = $voucherValidities[$v->code] ?? false;
+                                        // FIX: Explizit ->value nutzen für Array-Zugriffe und Ausgaben
+                                        $vCodeStr      = $v->code->value;
+                                        $url           = $config->getBaseUrl() . 'index.php?voucher=' . $vCodeStr;
+                                        $isValid       = $voucherValidities[$vCodeStr] ?? false;
                                         $isDeactivated = $v->isDeactivated();
                                         $isExpired     = $v->isExpired(new \DateTimeImmutable());
                                         $discountText  = 'Kostenlos';
+
                                         if ($v->type === 'percent') {
                                             $discountText = $v->value . '% Rabatt';
                                         } elseif ($v->type === 'fixed') {
@@ -79,15 +82,15 @@ use App\Core\Entity\Voucher;
                                                             class="c-button c-button--secondary"
                                                             style="padding: 4px 8px; font-size: 0.75rem;"
                                                             title="QR-Code anzeigen"
-                                                            onclick="showVoucherQr('<?php echo \htmlspecialchars($v->code); ?>', '<?php echo \htmlspecialchars($url); ?>')">
+                                                            onclick="showVoucherQr('<?php echo \htmlspecialchars($vCodeStr); ?>', '<?php echo \htmlspecialchars($url); ?>')">
                                                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
                                                              class="c-icon"
                                                              alt=""
                                                              style="width: 14px;"> QR
                                                     </button>
                                                     <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;">
-                                                        <?php echo $v->code; ?>
-                                                    </code>
+                                                    <?php echo $vCodeStr; ?>
+                                                </code>
                                                 </div>
                                             </td>
                                             <td>
@@ -102,29 +105,33 @@ use App\Core\Entity\Voucher;
                                                      style="font-size: 0.8rem;">
                                                     <span class="c-badge"
                                                           style="background: <?php echo $v->type === 'free' ? 'var(--success-color)' : 'var(--primary-color)'; ?>; color: white;">
-                <?php echo $discountText; ?>
-            </span>
+                                                    <?php echo $discountText; ?>
+                                                </span>
                                                     <?php if ($v->multiUse) { ?>
                                                         <span class="c-badge"
                                                               style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                    🔄 Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
-                </span>
+                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                                                                 class="c-icon"
+                                                                 alt="">
+                                                            &nbsp;
+                                                            Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
+                                                            </span>
                                                     <?php } else { ?>
                                                         <span class="c-badge"
                                                               style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                    Einweg
-                </span>
+                                                            Einweg
+                                                        </span>
                                                     <?php } ?>
                                                     <?php if ($v->dateMode === 'flexible') { ?>
                                                         <span class="c-badge"
                                                               style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                    Flexible Datenwahl
-                </span>
+                                                            Flexible Datenwahl
+                                                        </span>
                                                     <?php } else { ?>
                                                         <span class="c-badge"
                                                               style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                    Gefixte Daten
-                </span>
+                                                            Gefixte Daten
+                                                        </span>
                                                     <?php } ?>
                                                 </div>
 
@@ -146,7 +153,7 @@ use App\Core\Entity\Voucher;
                                                         <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp"
                                                              class="c-icon"
                                                              alt="">
-            </span>
+                                                </span>
                                                 </div>
                                             </td>
                                             <td class="u-text-right">
@@ -159,7 +166,7 @@ use App\Core\Entity\Voucher;
                                                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                             <input type="hidden"
                                                                    name="code"
-                                                                   value="<?php echo $v->code; ?>">
+                                                                   value="<?php echo $vCodeStr; ?>">
                                                             <?php if ($isDeactivated) { ?>
                                                                 <input type="hidden"
                                                                        name="action"
@@ -196,7 +203,7 @@ use App\Core\Entity\Voucher;
                                                                    value="delete_voucher">
                                                             <input type="hidden"
                                                                    name="code"
-                                                                   value="<?php echo $v->code; ?>">
+                                                                   value="<?php echo $vCodeStr; ?>">
                                                             <button type="submit"
                                                                     class="c-button c-button--small"
                                                                     style="background: transparent; border-color: var(--danger-color);"
@@ -237,10 +244,8 @@ use App\Core\Entity\Voucher;
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php
-                                $archive = $voucherArchive ?? [];
-                if (empty($archive)) {
-                    ?>
+                                <?php $archive = $voucherArchive ?? [];
+                if (empty($archive)) { ?>
                                     <tr>
                                         <td colspan="3"
                                             class="u-text-center u-padding-around-l u-text-muted">Noch keine Einlösungen
@@ -270,6 +275,7 @@ use App\Core\Entity\Voucher;
                     </div>
                 </section>
             <?php } ?>
+
         </div>
     </div>
 
@@ -281,7 +287,7 @@ use App\Core\Entity\Voucher;
             <code id="qrModalCode" style="display:inline-block; margin-bottom: 20px; padding: 4px 10px; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; font-size: 1rem;"></code>
 
             <div
-                 style="min-height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 25px; padding: 10px;">
+                 style="min-height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px;">
                 <img id="qrModalImg"
                      src=""
                      alt="QR Code"
@@ -291,7 +297,7 @@ use App\Core\Entity\Voucher;
             </div>
 
             <button type="button"
-                    class="c-button c-button--primary u-width-100"
+                    class="c-button c-button--primary u-width-100 u-margin-top-m"
                     onclick="closeVoucherQr()"
                     style="padding: 12px;">Schließen</button>
         </div>
@@ -403,6 +409,7 @@ use App\Core\Entity\Voucher;
         toast.className = 'c-toast';
         toast.innerHTML =
             `<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" style="width:16px"> ${message}`;
+
         document.body.appendChild(toast);
 
         setTimeout(() => {

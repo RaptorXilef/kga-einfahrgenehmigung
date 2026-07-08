@@ -84,8 +84,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         // 3. Datenbestände kombinieren
         $allHistoricalAndActive      = $allActivePermits;
         $filteredHistoricalAndActive = $filteredActive;
-        $queryLower                  = \strtolower(\trim($dto->query)); // Für die Text-Suche
 
+        $queryLower = \strtolower(\trim($dto->query));
         foreach ($archivedPermits as $p) {
             $allHistoricalAndActive[] = $p;
             $pDate                    = $p->getCreatedAt()->format('Y-m-d');
@@ -113,7 +113,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $vouchers          = $this->voucherRepository->loadAll();
         $voucherValidities = [];
         foreach ($vouchers as $code => $v) {
-            $voucherValidities[$code] = $this->voucherService->isValid($v);
+            // FIX: Verwende $v->code->value als Schlüssel, da es ein Value Object ist!
+            $voucherValidities[$v->code->value] = $this->voucherService->isValid($v);
         }
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
@@ -125,7 +126,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         // 6. View rendern
         $this->renderer->render('admin_dashboard', [
             'allowedLimits'     => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
-            'allPermits'        => $allHistoricalAndActive, // An Template übergeben
+            'allPermits'        => $allHistoricalAndActive,
             'auditFilter'       => $auditFilter,
             'auditLogs'         => $auditData['items'],
             'auditPage'         => $auditPage,
@@ -145,7 +146,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'minArchiveYear'    => $minArchiveYear,
             'overdueLevels'     => $overdueLevels,
             'periodStats'       => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
-            'permitGroups'      => $permitGroups, // <--- Beinhaltet jetzt die archivierten!
+            'permitGroups'      => $permitGroups,
             'structure'         => $this->config->get('structure', []),
             'userRepository'    => $this->userRepository,
             'voucherArchive'    => $this->voucherRepository->loadArchive(),
