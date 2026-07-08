@@ -34,7 +34,7 @@ use App\Core\ValueObject\PlotNumber;
 use App\Core\ValueObject\Price;
 
 /**
- * TODO DOCBLOCK
+ * Service orchestrating permit generation, validation, and lifecycle.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -60,9 +60,10 @@ final readonly class PermitService
         $plotVO = new PlotNumber($data['parzelle'] ?? '');
 
         // 2. Maximalen Wert aus der Config prüfen (Fallback: 9999)
+        // Zugriff erfolgt jetzt direkt über ->value, da das VO intern einen int hält.
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
-        if ($plotVO->toInt() > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->toInt()} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
+        if ($plotVO->value > $maxPlot) {
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
         }
 
         $this->validateNoCollisions(
@@ -246,8 +247,8 @@ final readonly class PermitService
     {
         // Obergrenze der Parzelle bei direkter/manueller Ausstellung prüfen
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
-        if ($data->parzelle->toInt() > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->toInt()} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
+        if ($data->parzelle->value > $maxPlot) {
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->value} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
         }
 
         $tKeyStr   = $data->templateKey->value;
@@ -280,10 +281,11 @@ final readonly class PermitService
             $useLongCode = (bool) $this->config->get('use_long_permit_code', false);
 
             if ($useLongCode) {
+                // Wir nutzen getFormatted() um das 0036 Layout im generierten Code beizubehalten!
                 $fullIdentifier = \sprintf(
                     '%s-%s-%s-%s',
                     $this->config->get('prefix', 'ML'),
-                    \str_pad($data->parzelle->value, 4, '0', \STR_PAD_LEFT),
+                    $data->parzelle->getFormatted(),
                     $platePart,
                     $randomId,
                 );
@@ -559,14 +561,14 @@ final readonly class PermitService
         return \count($toArchive);
     }
 
-    private function validateNoCollisions(string $parzelle, \DateTimeImmutable $start, \DateTimeImmutable $end): void
+    private function validateNoCollisions(int $parzelleId, \DateTimeImmutable $start, \DateTimeImmutable $end): void
     {
-        $parzelleFormatted = \str_pad($parzelle, 4, '0', \STR_PAD_LEFT);
-
         foreach ($this->storage->getAll() as $permit) {
-            if ($permit->hasCollision($parzelleFormatted, $start, $end)) {
+            if ($permit->hasCollision($parzelleId, $start, $end)) {
+                $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
+
                 throw new PermitCollisionException(
-                    "Kollision: Für Parzelle {$parzelle} existiert bereits eine Genehmigung vom " .
+                    "Kollision: Für Parzelle {$plotFormatted} existiert bereits eine Genehmigung vom " .
                     $permit->getValidFrom()->format('d.m.Y') . ' bis ' .
                     $permit->getValidUntil()->format('d.m.Y') . '.',
                 );
@@ -576,16 +578,15 @@ final readonly class PermitService
         $allPending = $this->verificationRepository->loadPending();
         foreach ($allPending as $pendingReq) {
             $pendingData = $pendingReq->data;
-            $pPlot       = \str_pad((string) ($pendingData['parzelle'] ?? ''), 4, '0', \STR_PAD_LEFT);
+            $pPlot       = (int) ($pendingData['parzelle'] ?? 0);
             $pStart      = new \DateTimeImmutable((string) ($pendingData['datum_von'] ?? 'now'));
             $pEnd        = new \DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
 
-            if (
-                $pPlot === $parzelleFormatted
-                && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)
-            ) {
+            if ($pPlot === $parzelleId && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)) {
+                $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
+
                 throw new PermitCollisionException(
-                    "Hinweis: Für Parzelle {$parzelle} läuft bereits eine Anfrage für diesen Zeitraum. " .
+                    "Hinweis: Für Parzelle {$plotFormatted} läuft bereits eine Anfrage für diesen Zeitraum. " .
                     'Bitte wählen Sie andere Daten.',
                 );
             }
@@ -683,7 +684,7 @@ final readonly class PermitService
         $anonymizedPermit = new Permit(
             code: $permit->code,
             template_key: $permit->template_key,
-            owner: new Owner('[ANONYMISIERT]', null, new PlotNumber('0000')),
+            owner: new Owner('[ANONYMISIERT]', null, new PlotNumber(0)),
             vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('XXX-XX 9999'), '[ANONYMISIERT]'),
             validity: clone $permit->validity,
             status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert', false),

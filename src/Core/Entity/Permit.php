@@ -110,7 +110,8 @@ final readonly class Permit
     // TODO DOCBLOCK
     public function getPlotNumber(): string
     {
-        return $this->owner->parzelle->value;
+        // UI bekommt weiterhin "0036"
+        return $this->owner->parzelle->getFormatted();
     }
 
     // --- Vehicle Delegation ---
@@ -181,12 +182,13 @@ final readonly class Permit
 
         $emailStr = $this->owner->email ? $this->owner->email->value : '';
 
+        // Suche nutzt das formatierte "0036" Format, damit Suchen nach "0036" klappen.
         $searchString = \strtolower(
             $this->code->value . ' ' .
             $this->owner->name . ' ' .
             $emailStr . ' ' .
             $this->vehicle->kennzeichen->value . ' ' .
-            $this->owner->parzelle->value . ' ' .
+            $this->owner->parzelle->getFormatted() . ' ' .
             $this->validity->zweck,
         );
 
@@ -196,14 +198,15 @@ final readonly class Permit
     /**
      * TODO DOCBLOCK
      * Prüft, ob diese Genehmigung mit einer bestimmten Parzelle und einem Zeitraum kollidiert.
+     *
+     * Wir vergleichen jetzt saubere INTs!
      */
-    public function hasCollision(string $parzelleFormatted, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
+    public function hasCollision(int $parzelleId, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
     {
-        if ($this->owner->parzelle->value !== $parzelleFormatted) {
+        if ($this->owner->parzelle->value !== $parzelleId) {
             return false;
         }
 
-        // Mathematischer Überschneidungs-Check (StartA <= EndB && EndA >= StartB)
         return $this->validity->von <= $end && $this->validity->bis >= $start;
     }
 }

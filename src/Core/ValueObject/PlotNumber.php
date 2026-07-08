@@ -7,14 +7,14 @@ namespace App\Core\ValueObject;
 /**
  * Value Object representing a garden plot number (Parzellennummer).
  *
- * Enforces strict numeric values, > 0, and consistent zero-padding.
+ * Enforces strict integer types internally.
  */
 final readonly class PlotNumber
 {
     /**
-     * @var string The normalized, 4-digit plot number string.
+     * @var int The pure numeric plot number.
      */
-    public string $value;
+    public int $value;
 
     /**
      * @param  int|string                $value The raw plot number input.
@@ -22,37 +22,37 @@ final readonly class PlotNumber
      */
     public function __construct(int|string $value)
     {
-        $valStr = \trim((string) $value);
+        if (\is_string($value)) {
+            $value = \trim($value);
+            if ($value === '') {
+                throw new \InvalidArgumentException('Die Parzellennummer darf nicht leer sein.');
+            }
 
-        if ($valStr === '') {
-            throw new \InvalidArgumentException('Die Parzellennummer darf nicht leer sein.');
+            if (! \ctype_digit($value)) {
+                throw new \InvalidArgumentException('Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.');
+            }
         }
 
-        if (! \ctype_digit($valStr)) {
-            throw new \InvalidArgumentException('Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.');
+        $intVal = (int) $value;
+
+        // Erlaubt > 0 für normale Parzellen und 0 für DSGVO-Anonymisierung
+        if ($intVal < 0) {
+            throw new \InvalidArgumentException('Fehler: Die Parzellennummer darf nicht negativ sein.');
         }
 
-        $intVal = (int) $valStr;
-
-        if ($intVal <= 0) {
-            throw new \InvalidArgumentException('Fehler: Die Parzellennummer muss größer als 0 sein.');
-        }
-
-        // Wir speichern den Wert als 4-stelligen String,
-        // um 100% abwärtskompatibel mit der bestehenden Datenbank zu bleiben.
-        $this->value = \str_pad((string) $intVal, 4, '0', \STR_PAD_LEFT);
+        $this->value = $intVal;
     }
 
     /**
-     * Returns the plot number as a strict integer (useful for range comparisons).
+     * Gibt die Parzellennummer für UI-Zwecke mit Nullen aufgefüllt zurück (z.B. 0036).
      */
-    public function toInt(): int
+    public function getFormatted(): string
     {
-        return (int) $this->value;
+        return \str_pad((string) $this->value, 4, '0', \STR_PAD_LEFT);
     }
 
     public function __toString(): string
     {
-        return $this->value;
+        return $this->getFormatted();
     }
 }

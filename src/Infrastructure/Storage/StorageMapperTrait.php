@@ -54,9 +54,11 @@ trait StorageMapperTrait
         $emailStr = \trim((string) ($item['email'] ?? ''));
         $emailObj = ($emailStr !== '' && $emailStr !== '0') ? new EmailAddress($emailStr) : null;
 
-        $pzStr = \trim((string) ($item['parzelle'] ?? '0'));
-        if ($pzStr === '') {
-            $pzStr = '0000';
+        $pzInt = (int) ($item['parzelle'] ?? 0); // Liest jetzt den int aus der DB/JSON
+
+        $kzStr = \trim((string) ($item['kennzeichen'] ?? ''));
+        if ($kzStr === '') {
+            $kzStr = 'XXX-XX 9999'; // Legacy Fallback
         }
 
         $kzStr = \trim((string) ($item['kennzeichen'] ?? ''));
@@ -121,7 +123,7 @@ trait StorageMapperTrait
             owner: new Owner(
                 $name,
                 $emailObj,
-                clone new PlotNumber($pzStr),
+                clone new PlotNumber($pzInt), // VO bekommt einen int
             ),
             vehicle: new Vehicle(
                 (string) ($item['typ'] ?? 'pkw'),
@@ -174,7 +176,7 @@ trait StorageMapperTrait
             'is_suspended'       => (int) $permit->isSuspended(),
             'kennzeichen'        => $permit->vehicle->kennzeichen->value,
             'name'               => $permit->getOwnerName(),
-            'parzelle'           => $permit->owner->parzelle->value,
+            'parzelle'           => $permit->owner->parzelle->value, // Schreibt den reinen INT in die DB!
             'preis'              => $permit->validity->preis->value,
             'reminder_sent'      => (int) $permit->status->reminder_sent,
             'status'             => $permit->getStatus()->value,
