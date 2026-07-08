@@ -63,7 +63,7 @@ final readonly class PermitService
         // Zugriff erfolgt jetzt direkt über ->value, da das VO intern einen int hält.
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
         if ($plotVO->value > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
         }
 
         $this->validateNoCollisions(
@@ -248,7 +248,7 @@ final readonly class PermitService
         // Obergrenze der Parzelle bei direkter/manueller Ausstellung prüfen
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
         if ($data->parzelle->value > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->value} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
         }
 
         $tKeyStr   = $data->templateKey->value;

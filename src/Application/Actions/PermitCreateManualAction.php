@@ -46,7 +46,8 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
     {
         try {
             $dto = PermitCreateManualRequest::fromArray($request->post);
-        } catch (ValidationException $e) {
+        } catch (ValidationException|\InvalidArgumentException $e) {
+            // Erlaubt das Durchreichen von Value Object Fehlern bei der DTO Erstellung
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('admin.php');
@@ -56,9 +57,14 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
             $this->permitService->createPermit($dto->formData, $dto->sendEmail);
 
             // LOG SCHREIBEN
-            $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->formData->name} (Parzelle {$dto->formData->parzelle})");
+            $this->auditLogger->log('PERMIT_CREATE', "Manuelle Genehmigung erstellt für: {$dto->formData->name} (Parzelle {$dto->formData->parzelle->getFormatted()})");
 
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
+
+            return new RedirectResponse('admin.php');
+        } catch (\InvalidArgumentException $e) {
+            // Erlaubt das Durchreichen von Value Object Fehlern bei der Entity Erstellung
+            $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
             return new RedirectResponse('admin.php');
         } catch (\Exception $e) {

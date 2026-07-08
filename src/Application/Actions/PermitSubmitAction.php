@@ -32,7 +32,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
     {
         try {
             $dto = PermitSubmitRequest::fromArray($request->post);
-        } catch (ValidationException $e) {
+        } catch (ValidationException|\InvalidArgumentException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('index.php');
@@ -46,6 +46,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 
             if ($verifiedEmail !== null && $editToken !== null) {
                 $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
+
                 $this->sessionManager->clearFormData();
                 $this->sessionManager->clearEditState();
 
@@ -59,10 +60,12 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             }
 
             $this->permitService->createPendingVerification($dto->toDomainDto());
+
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
 
             return new RedirectResponse('index.php?sent=1');
+
         } catch (PermitCollisionException $exception) { // <-- NEU: Zuerst die Kollision fangen
             // 1. Detaillierter Log für dich als Admin im Hintergrund
             \error_log('Permit Collision: ' . $exception->getMessage());
@@ -71,11 +74,15 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->addFlash(
                 'error',
                 'Überschneidung: Für diese Parzelle liegt in dem gewählten Zeitraum bereits eine Anfrage oder ' .
-                    'Genehmigung vor. Falls Sie den Status prüfen möchten, nutzen Sie bitte den Genehmigungs-"Verlauf".',
+                'Genehmigung vor. Falls Sie den Status prüfen möchten, nutzen Sie bitte den Genehmigungs-"Verlauf".',
             );
 
             return new RedirectResponse('index.php');
+        } catch (\InvalidArgumentException $exception) {
+            // FIX: Validerungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
+            $this->sessionManager->addFlash('error', $exception->getMessage());
 
+            return new RedirectResponse('index.php');
         } catch (\Exception $exception) { // <-- Bestehender Catch-All für echte Abstürze
             \error_log('Permit Creation Error: ' . $exception->getMessage());
             $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten.');
