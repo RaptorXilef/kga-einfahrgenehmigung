@@ -65,9 +65,9 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
         foreach ($existing as $code => &$item) {
             if (isset($item['erstellt']) && $item['erstellt'] <= $cutoffDate && empty($item['is_anonymized'])) {
                 $item['name']          = '[ANONYMISIERT]';
-                $item['email']         = '[ANONYMISIERT]';
-                $item['kennzeichen']   = '[ANONYMISIERT]';
-                $item['parzelle']      = '0000';
+                $item['email']         = ''; // Empty maps to null VO
+                $item['kennzeichen']   = 'XXX-XX 9999'; // Formal correct VO format
+                $item['parzelle']      = 0; // Pure int
                 $item['is_anonymized'] = 1;
                 $changed               = true;
                 ++$anonymizedCount;

@@ -88,10 +88,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         foreach ($archivedPermits as $p) {
             $allHistoricalAndActive[] = $p;
+            $pDate                    = $p->getCreatedAt()->format('Y-m-d');
 
-            $pDate = $p->getCreatedAt()->format('Y-m-d');
             if ($pDate >= $dto->start && $pDate <= $dto->end) {
-                if ($dto->type === 'all' || (($this->config->get('permit_templates')[$p->template_key]['type'] ?? 'standard') === $dto->type)) {
+                if ($dto->type === 'all' || (($this->config->get('permit_templates')[$p->template_key->value]['type'] ?? 'standard') === $dto->type)) {
                     // Berücksichtige auch das Suchfeld für Archiv-Einträge!
                     if ($queryLower === '' || $p->matchesSearch($queryLower)) {
                         $filteredHistoricalAndActive[] = $p;
@@ -105,7 +105,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $overdueLevels = [];
         foreach ($permitGroups['unpaid'] ?? [] as $permit) {
-            $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
+            // Array keys require strict primitive strings, VO __toString does not auto-cast here.
+            $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 
         // 5. Restliche Daten laden

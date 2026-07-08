@@ -52,18 +52,18 @@ trait StorageMapperTrait
         }
 
         $emailStr = \trim((string) ($item['email'] ?? ''));
+        // Self-Healing: Alte anonymisierte E-Mails zu 'leer/null' umwandeln
+        if ($emailStr === '[ANONYMISIERT]' || $emailStr === 'ANONYMISIERT') {
+            $emailStr = '';
+        }
         $emailObj = ($emailStr !== '' && $emailStr !== '0') ? new EmailAddress($emailStr) : null;
 
         $pzInt = (int) ($item['parzelle'] ?? 0); // Liest jetzt den int aus der DB/JSON
 
         $kzStr = \trim((string) ($item['kennzeichen'] ?? ''));
-        if ($kzStr === '') {
-            $kzStr = 'XXX-XX 9999'; // Legacy Fallback
-        }
-
-        $kzStr = \trim((string) ($item['kennzeichen'] ?? ''));
-        if ($kzStr === '') {
-            $kzStr = 'XXX-XX 9999'; // Legacy Fallback
+        // Self-Healing: Alte anonymisierte oder komplett leere Kennzeichen umwandeln
+        if ($kzStr === '' || $kzStr === '[ANONYMISIERT]' || $kzStr === 'ANONYMISIERT') {
+            $kzStr = 'XXX-XX 9999'; // Legacy Fallback & Anonymization Fallback
         }
 
         $codeStr = \trim((string) ($item['code'] ?? ''));

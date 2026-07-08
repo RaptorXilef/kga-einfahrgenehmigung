@@ -58,7 +58,7 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
         $table      = $this->config->get('storage_config')['permits_archive']['table'];
         $cutoffDate = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years", APP_REQUEST_TIME));
 
-        $sql  = "UPDATE `{$table}` SET name = '[ANONYMISIERT]', email = '[ANONYMISIERT]', kennzeichen = '[ANONYMISIERT]', parzelle = '0000', is_anonymized = 1 WHERE erstellt <= ? AND is_anonymized = 0";
+        $sql  = "UPDATE `{$table}` SET name = '[ANONYMISIERT]', email = '', kennzeichen = 'XXX-XX 9999', parzelle = 0, is_anonymized = 1 WHERE erstellt <= ? AND is_anonymized = 0";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$cutoffDate]);
 

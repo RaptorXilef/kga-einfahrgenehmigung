@@ -74,7 +74,8 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 
         $overdueLevels = [];
         foreach ($permits as $permit) {
-            $overdueLevels[$permit->code] = $this->permitService->getOverdueLevel($permit);
+            // Use extracted primitive value for array keys
+            $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 
         $this->renderer->render('history_list', [

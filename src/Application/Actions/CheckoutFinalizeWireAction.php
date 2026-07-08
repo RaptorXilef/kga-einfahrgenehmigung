@@ -41,7 +41,8 @@ final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
                 'Zahlung per Überweisung gewählt',
             );
 
-            return JsonResponse::success(['code' => $permit->code]);
+            // Explicitly extract the string value, otherwise json_encode transforms the VO into an object
+            return JsonResponse::success(['code' => $permit->code->value]);
         } catch (\Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
