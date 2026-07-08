@@ -93,6 +93,16 @@
         </div>
     </div>
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+    <script>
+        // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
+    // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
+    setInterval(() => {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+            method: 'POST',
+            credentials: 'include'
+        }).catch(() => console.debug('Session Ping fehlgeschlagen'));
+    }, 3 * 60 * 1000); // Alle 3 Minuten
+    </script>
 </body>
 
 </html>

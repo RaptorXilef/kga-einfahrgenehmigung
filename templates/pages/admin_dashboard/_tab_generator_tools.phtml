@@ -804,16 +804,14 @@ $formData ??= [];
     <?php $openMode = ($formData['action'] ?? '') === 'create_voucher' ? 'voucher' : 'manual'; ?>
     setGeneratorMode('<?php echo $openMode; ?>');
 
-    // Unsichtbarer Heartbeat: Hält die PHP-Session und den CSRF-Token am Leben,
-    // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 5 Minuten)
+    // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
+    // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.location.pathname + '?ping=' + Date.now(), {
-                method: 'HEAD',
-                cache: 'no-store',
-                credentials: 'same-origin' // FIX: Sendet den Session-Cookie mit!
-            })
-            .catch(() => console.debug('Session Ping fehlgeschlagen'));
-    }, 5 * 60 * 1000);
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+            method: 'POST',
+            credentials: 'include'
+        }).catch(() => console.debug('Session Ping fehlgeschlagen'));
+    }, 3 * 60 * 1000); // Alle 3 Minuten
 
     </script>
 <?php } ?>

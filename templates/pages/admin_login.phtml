@@ -145,14 +145,14 @@ unset($_SESSION['form_data']);
         }
     }
 
-    // Heartbeat
+    // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
+    // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.location.pathname + '?ping=' + Date.now(), {
-            method: 'HEAD',
-            cache: 'no-store',
-            credentials: 'same-origin'
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+            method: 'POST',
+            credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));
-    }, 5 * 60 * 1000);
+    }, 3 * 60 * 1000); // Alle 3 Minuten
 
     </script>
 </body>
