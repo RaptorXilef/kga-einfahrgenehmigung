@@ -113,7 +113,8 @@
     setInterval(() => {
         fetch(window.location.pathname + '?ping=' + Date.now(), {
                 method: 'HEAD',
-                cache: 'no-store'
+                cache: 'no-store',
+                credentials: 'same-origin' // FIX: Sendet den Session-Cookie mit!
             })
             .catch(() => console.debug('Session Ping fehlgeschlagen'));
     }, 5 * 60 * 1000);

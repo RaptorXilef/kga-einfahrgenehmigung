@@ -26,12 +26,23 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
     {
         // CSRF greift nur bei POST-Requests!
         $method = $request->getMethod() ?? 'GET';
+
         if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $provided = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
             $stored   = $this->sessionManager->getCsrfToken();
 
             if ($stored === '' || ! \hash_equals($stored, $provided)) {
-                $this->sessionManager->addFlash('error', 'Fehler: Ungültiges Sicherheits-Token (CSRF). Bitte laden Sie die Seite neu.');
+
+                // UX-Rettung: Wir speichern die eingegebenen Formulardaten zwischen,
+                // bevor wir die Anfrage ablehnen.
+                $postData = $request->post;
+                unset($postData['csrf_token'], $postData['action']); // Interne Felder entfernen
+
+                if (! empty($postData)) {
+                    $this->sessionManager->setFormData($postData);
+                }
+
+                $this->sessionManager->addFlash('error', 'Ihre Sitzung ist abgelaufen. Zu Ihrer Sicherheit wurde die Seite neu geladen. Ihre Eingaben wurden wiederhergestellt - bitte senden Sie das Formular erneut ab.');
 
                 return new RedirectResponse($this->fallbackUrl);
             }

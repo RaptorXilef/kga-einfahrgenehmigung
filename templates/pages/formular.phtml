@@ -823,11 +823,12 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
 
     // Unsichtbarer Heartbeat: Hält die PHP-Session und den CSRF-Token am Leben,
-    // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 10 Minuten)
+    // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 5 Minuten)
     setInterval(() => {
         fetch(window.location.pathname + '?ping=' + Date.now(), {
                 method: 'HEAD',
-                cache: 'no-store'
+                cache: 'no-store',
+                credentials: 'same-origin' // FIX: Sendet den Session-Cookie mit!
             })
             .catch(() => console.debug('Session Ping fehlgeschlagen'));
     }, 5 * 60 * 1000);
