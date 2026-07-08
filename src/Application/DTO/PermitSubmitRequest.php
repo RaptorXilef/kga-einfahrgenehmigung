@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
+use App\Core\ValueObject\LicensePlate;
 
 /**
  * DTO für das öffentliche Antragsformular.
@@ -37,9 +38,10 @@ final readonly class PermitSubmitRequest
             return \is_string($value) ? \trim(\strip_tags($value)) : $value;
         }, $post);
 
-        $name     = $sanitized['name'] ?? '';
-        $email    = $sanitized['email'] ?? '';
-        $parzelle = $sanitized['parzelle'] ?? '';
+        $name        = $sanitized['name'] ?? '';
+        $email       = $sanitized['email'] ?? '';
+        $parzelle    = $sanitized['parzelle'] ?? '';
+        $kennzeichen = $sanitized['kennzeichen'] ?? '';
 
         // 2. Strenge Validierung
         if ($name === '') {
@@ -52,13 +54,20 @@ final readonly class PermitSubmitRequest
             throw ValidationException::withMessage('Bitte geben Sie eine Parzelle an.');
         }
 
+        // FIX: Wir jagen das Kennzeichen sofort durch das Value Object!
+        // Schlägt die Prüfung (Länge oder Doppel-Kennzeichen) fehl,
+        // wird die Exception sofort geworfen und als rote Box angezeigt.
+        if ($kennzeichen !== '') {
+            new LicensePlate($kennzeichen);
+        }
+
         return new self(
             agreements: $sanitized['agreements'] ?? [],
             datumBis: $sanitized['datum_bis'] ?? '',
             datumVon: $sanitized['datum_von'] ?? '',
             email: $email,
             firma: $sanitized['firma'] ?? '',
-            kennzeichen: $sanitized['kennzeichen'] ?? '',
+            kennzeichen: $kennzeichen,
             name: $name,
             parzelle: $parzelle,
             templateKey: $sanitized['template_key'] ?? '',
