@@ -106,6 +106,20 @@ final readonly class PermitService
 
     public function updateVerifiedRequest(string $token, string $sessionEmail, array $newData): string
     {
+        // FIX: Hard-Check der Parzellen-Limits und Kollisionen auch beim BEARBEITEN des Antrags!
+        $plotVO  = new PlotNumber($newData['parzelle'] ?? '');
+        $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+
+        if ($plotVO->value > $maxPlot) {
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
+        }
+
+        $this->validateNoCollisions(
+            $plotVO->value,
+            new \DateTimeImmutable((string) ($newData['datum_von'] ?? 'now')),
+            new \DateTimeImmutable((string) ($newData['datum_bis'] ?? 'now')),
+        );
+
         $oldData = $this->getVerifiedRequest($token);
 
         if ($oldData === null || \strtolower($newData['email']) !== \strtolower(\trim($sessionEmail))) {

@@ -6,6 +6,7 @@ namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
 use App\Core\ValueObject\LicensePlate;
+use App\Core\ValueObject\PlotNumber;
 
 /**
  * DTO für das öffentliche Antragsformular.
@@ -54,9 +55,10 @@ final readonly class PermitSubmitRequest
             throw ValidationException::withMessage('Bitte geben Sie eine Parzelle an.');
         }
 
-        // FIX: Wir jagen das Kennzeichen sofort durch das Value Object!
-        // Schlägt die Prüfung (Länge oder Doppel-Kennzeichen) fehl,
-        // wird die Exception sofort geworfen und als rote Box angezeigt.
+        // FIX: Wir jagen Parzelle und Kennzeichen sofort durch die Value Objects!
+        // Schlägt die Format-Prüfung (Buchstaben in der Parzelle etc.) fehl, knallt es hier.
+        new PlotNumber($parzelle);
+
         if ($kennzeichen !== '') {
             new LicensePlate($kennzeichen);
         }
