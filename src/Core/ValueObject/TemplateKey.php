@@ -15,18 +15,22 @@ final readonly class TemplateKey
     public string $value;
 
     /**
-     * @param  string                    $value The raw template key (e.g. 'std_7').
+     * @param  string                    $value The raw template key (e.g. 'std_7' or legacy 'std.7').
      * @throws \InvalidArgumentException If empty or contains invalid characters.
      */
     public function __construct(string $value)
     {
+        // 1. Trimmen
         $value = \trim($value);
+
+        // 2. Self-Healing für alte Datenbank-Einträge / Tippfehler (std.7 -> std_7)
+        $value = \str_replace('.', '_', $value);
 
         if ($value === '') {
             throw new \InvalidArgumentException('Der Template-Key darf nicht leer sein.');
         }
 
-        // Template Keys sollten idealerweise alphanumerisch mit Unterstrichen/Bindestrichen sein
+        // 3. Strikte Validierung: alphanumerisch + Unterstrich + Bindestrich
         if (! \preg_match('/^[a-zA-Z0-9_-]+$/', $value)) {
             throw new \InvalidArgumentException("Ungültiges Format für Template-Key: {$value}");
         }

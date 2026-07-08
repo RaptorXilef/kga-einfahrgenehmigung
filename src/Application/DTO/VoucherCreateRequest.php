@@ -30,7 +30,8 @@ final readonly class VoucherCreateRequest
     // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
-        $templateKey = (string) ($post['template_key'] ?? 'std.7');
+        // Fix: Fallback von 'std.7' auf korrekten Key 'std_7' korrigiert
+        $templateKey = (string) ($post['template_key'] ?? 'std_7');
         $reason      = \trim((string) ($post['reason'] ?? 'Gutschein'));
         $type        = (string) ($post['voucher_discount_type'] ?? 'free');
         $value       = (float) ($post['voucher_discount_value'] ?? 0.0);
