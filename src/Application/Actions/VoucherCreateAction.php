@@ -41,9 +41,14 @@ final readonly class VoucherCreateAction implements ActionInterface
         try {
             $dto = VoucherCreateRequest::fromArray($request->post);
         } catch (ValidationException $e) {
+            // UX-Rettung für die Gutschein-Erstellung
+            $postData = $request->post;
+            unset($postData['csrf_token']);
+            $this->sessionManager->setFormData($postData);
+
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php?focus=tab-tools');
         }
 
         try {
@@ -66,11 +71,16 @@ final readonly class VoucherCreateAction implements ActionInterface
 
             $this->sessionManager->addFlash('success', "Gutschein erstellt: <strong>$code</strong>");
 
-            return new RedirectResponse('admin.php');
+            // Wenn erfolgreich, direkt zum Gutschein-Reiter springen
+            return new RedirectResponse('admin.php?focus=tab-vouchers');
+
         } catch (\Exception $e) {
+            $postData = $request->post;
+            unset($postData['csrf_token']);
+            $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php?focus=tab-tools');
         }
     }
 }

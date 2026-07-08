@@ -24,9 +24,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     ];
 }
 
-// NEU: Wir laden die Gründe sicher aus der Config
 $reasons = $config->get('internal_reasons', [
-    'Manuelle Ausstellung', // Fallback, falls die Config mal fehlen sollte
+    'Manuelle Ausstellung',
 ]);
 
 $allowedTemplates = [];
@@ -37,6 +36,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 }
 
 $hasAnyTemplate = ! empty($allowedTemplates);
+// FIX: Gerettete POST-Daten sicher bereitstellen
+$formData ??= [];
 ?>
 
 <style>
@@ -151,7 +152,10 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                         id="u_template_key"
                                         class="c-form-select">
                                     <?php foreach ($allowedTemplates as $key => $tpl) { ?>
-                                        <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
+                                        <option value="<?php echo $key; ?>"
+                                                <?php echo ($formData['template_key'] ?? '') === $key ? 'selected' : ''; ?>>
+                                            <?php echo \htmlspecialchars($tpl['label']); ?>
+                                        </option>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -164,14 +168,15 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                            name="datum_von"
                                            id="u_datum_von"
                                            class="c-form-input"
-                                           value="<?php echo \date('Y-m-d'); ?>">
+                                           value="<?php echo \htmlspecialchars($formData['datum_von'] ?? \date('Y-m-d')); ?>">
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Ende (Bis)</label>
                                     <input type="date"
                                            name="datum_bis"
                                            id="u_datum_bis"
-                                           class="c-form-input">
+                                           class="c-form-input"
+                                           value="<?php echo \htmlspecialchars($formData['datum_bis'] ?? ''); ?>">
                                 </div>
                             </div>
                             <div id="dynamic-date-info"
@@ -196,7 +201,8 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                            name="name"
                                            id="u_name"
                                            class="c-form-input"
-                                           placeholder="Vorname Nachname">
+                                           placeholder="Vorname Nachname"
+                                           value="<?php echo \htmlspecialchars($formData['name'] ?? ''); ?>">
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Parzelle</label>
@@ -204,7 +210,8 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                            name="parzelle"
                                            id="u_parzelle"
                                            class="c-form-input"
-                                           placeholder="z.B. 0001">
+                                           placeholder="z.B. 0001"
+                                           value="<?php echo \htmlspecialchars($formData['parzelle'] ?? ''); ?>">
                                 </div>
                             </div>
                             <div class="c-form-group u-margin-top-m">
@@ -214,7 +221,8 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                        name="email"
                                        id="u_email"
                                        class="c-form-input"
-                                       placeholder="beispiel@mail.de (Optional) (leer lassen falls nicht vorhanden)">
+                                       placeholder="beispiel@mail.de"
+                                       value="<?php echo \htmlspecialchars($formData['email'] ?? ''); ?>">
                             </div>
                         </div>
 
@@ -233,9 +241,11 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                             // NUR aktive Fahrzeug-Typen im Generator anzeigen
                                             if (! ($vData['active'] ?? true)) {
                                                 continue;
-                                            }
-                                            ?>
-                                            <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($vData['label']); ?></option>
+                                            } ?>
+                                            <option value="<?php echo $val; ?>"
+                                                    <?php echo ($formData['typ'] ?? '') === $val ? 'selected' : ''; ?>>
+                                                <?php echo \htmlspecialchars($vData['label']); ?>
+                                            </option>
                                         <?php } ?>
                                     </select>
                                 </div>
@@ -247,8 +257,9 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                            class="c-form-input"
                                            maxlength="15"
                                            pattern="[A-Za-z0-9\-\s]+"
-                                           title="Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt."
-                                           placeholder="B-XX 1234">
+                                           title="Bitte geben Sie nur ein gültiges Kennzeichen ein."
+                                           placeholder="B-XX 1234"
+                                           value="<?php echo \htmlspecialchars($formData['kennzeichen'] ?? ''); ?>">
                                 </div>
                             </div>
                             <div class="c-form-group u-margin-top-m u-hidden"
@@ -258,21 +269,21 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                        name="firma"
                                        id="u_firma"
                                        class="c-form-input"
-                                       placeholder="Name der Firma">
+                                       placeholder="Name der Firma"
+                                       value="<?php echo \htmlspecialchars($formData['firma'] ?? ''); ?>">
                             </div>
                             <div class="c-form-group u-margin-top-m">
                                 <label class="c-form-label">Zweck
-                                    <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""><!-- ✏️ --> Manuell</span></label>
-                                <!-- Vorauswahl -->
+                                    <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell</span></label>
                                 <select name="zweck"
                                         id="u_zweck_select"
                                         class="c-form-select">
                                     <option value="">-- Wählen --</option>
                                     <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
-                                        <option value="<?php echo $val; ?>"><?php echo $label; ?></option>
+                                        <option value="<?php echo $val; ?>"
+                                                <?php echo ($formData['zweck'] ?? '') === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
                                     <?php } ?>
                                 </select>
-                                <!-- Manuelle Eingabe (Standard versteckt) -->
                                 <input type="text"
                                        id="u_zweck_manual"
                                        class="c-form-input"
@@ -295,7 +306,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                         <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp"
                                                  class="c-icon"
                                                  style="width:24px"
-                                                 alt=""><!-- 📝 --></div>
+                                                 alt=""></div>
                                         <div class="u-text-container">
                                             <strong>Sofort ausstellen</strong>
                                             <small>Barzahlung / Manuell</small>
@@ -361,13 +372,15 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                                name="voucher_custom_code"
                                                class="c-form-input"
                                                placeholder="Z.B. VORSTAND2026"
-                                               style="text-transform: uppercase; font-weight: bold;">
+                                               style="text-transform: uppercase; font-weight: bold;"
+                                               value="<?php echo \htmlspecialchars($formData['voucher_custom_code'] ?? ''); ?>">
                                     </div>
                                     <div class="c-form-group">
                                         <label class="c-form-label">Gültig bis <small>(Zeitpunkt)</small></label>
                                         <input type="datetime-local"
                                                name="voucher_expires_at"
-                                               class="c-form-input">
+                                               class="c-form-input"
+                                               value="<?php echo \htmlspecialchars($formData['voucher_expires_at'] ?? ''); ?>">
                                     </div>
                                 </div>
 
@@ -380,14 +393,15 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                             <input type="radio"
                                                    name="voucher_date_mode"
                                                    value="fixed"
-                                                   checked>
+                                                   <?php echo ($formData['voucher_date_mode'] ?? 'fixed') === 'fixed' ? 'checked' : ''; ?>>
                                             <span><strong>Fest</strong> (Datum aus Schritt 1)</span>
                                         </label>
                                         <label class="u-flex u-align-center u-gap-xs u-cursor-pointer"
                                                style="font-size: 0.85rem;">
                                             <input type="radio"
                                                    name="voucher_date_mode"
-                                                   value="flexible">
+                                                   value="flexible"
+                                                   <?php echo ($formData['voucher_date_mode'] ?? '') === 'flexible' ? 'checked' : ''; ?>>
                                             <span><strong>Offen</strong> (Pächter wählt selbst)</span>
                                         </label>
                                     </div>
@@ -401,9 +415,12 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                                 id="v_type"
                                                 class="c-form-select"
                                                 onchange="updateVoucherUI()">
-                                            <option value="free">Kostenlos (Gratis)</option>
-                                            <option value="percent">Prozent-Abzug (Günstiger)</option>
-                                            <option value="fixed">Festpreis (Pauschale)</option>
+                                            <option value="free"
+                                                    <?php echo ($formData['voucher_discount_type'] ?? 'free') === 'free' ? 'selected' : ''; ?>>Kostenlos (Gratis)</option>
+                                            <option value="percent"
+                                                    <?php echo ($formData['voucher_discount_type'] ?? '') === 'percent' ? 'selected' : ''; ?>>Prozent-Abzug (Günstiger)</option>
+                                            <option value="fixed"
+                                                    <?php echo ($formData['voucher_discount_type'] ?? '') === 'fixed' ? 'selected' : ''; ?>>Festpreis (Pauschale)</option>
                                         </select>
                                     </div>
                                     <div class="c-form-group"
@@ -415,7 +432,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                                step="0.01"
                                                name="voucher_discount_value"
                                                class="c-form-input"
-                                               value="0.00">
+                                               value="<?php echo \htmlspecialchars($formData['voucher_discount_value'] ?? '0.00'); ?>">
                                         <small id="v_value_hint"
                                                class="u-text-muted"
                                                style="font-size: 0.7rem;"></small>
@@ -428,13 +445,14 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                         <input type="checkbox"
                                                name="voucher_multi_use"
                                                id="v_multi"
-                                               onchange="updateVoucherUI()"> Mehrfach einlösbar?
+                                               onchange="updateVoucherUI()"
+                                               <?php echo isset($formData['voucher_multi_use']) ? 'checked' : ''; ?>> Mehrfach einlösbar?
                                         <div id="v_max_wrapper"
                                              style="display:none; margin-left: 10px;">
                                             <input type="number"
                                                    name="voucher_max_uses"
                                                    class="c-form-input"
-                                                   value="10"
+                                                   value="<?php echo \htmlspecialchars($formData['voucher_max_uses'] ?? '10'); ?>"
                                                    min="1"
                                                    style="width: 80px; height: 32px;">
                                         </div>
@@ -452,7 +470,8 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                            id="u_reason"
                                            class="c-form-input"
                                            list="reason_presets"
-                                           placeholder="Z.B. Barzahlung erhalten oder Vorstands-Beschluss">
+                                           placeholder="Z.B. Barzahlung erhalten oder Vorstands-Beschluss"
+                                           value="<?php echo \htmlspecialchars($formData['reason'] ?? ''); ?>">
                                     <datalist id="reason_presets">
                                         <?php foreach ($reasons as $r) {
                                             echo "<option value='" . \htmlspecialchars($r) . "'>";
@@ -474,7 +493,7 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                     <div class="c-action-card__icon"><img
                                              src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
                                              class="c-icon"
-                                             alt=""><!-- 🎟️ --></div>
+                                             alt=""></div>
                                     <div class="c-action-card__content">
                                         <span class="c-action-card__title">Gutscheincode jetzt erstellen</span>
                                         <span class="c-action-card__desc">Code wird in der Übersicht gespeichert.</span>
@@ -490,10 +509,10 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                     <div class="c-action-card__icon"><img
                                              src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
                                              class="c-icon"
-                                             alt=""><!-- ✅ --></div>
+                                             alt=""></div>
                                     <div class="c-action-card__content">
                                         <span class="c-action-card__title">Genehmigung jetzt ausstellen</span>
-                                        <span class="c-action-card__desc">Sofort gültig, E-Mail wird (wenn vorhanden) versendet.</span>
+                                        <span class="c-action-card__desc">Sofort gültig, E-Mail wird versendet.</span>
                                     </div>
                                 </div>
                             <?php } ?>
@@ -780,6 +799,10 @@ $hasAnyTemplate = ! empty($allowedTemplates);
     // Initialisierung beim Laden
     handleDateChange('init');
     toggleFirmaField();
+
+    // UX-Rescue: Wenn es einen Fehler gab, den richtigen Reiter sofort wieder aufklappen!
+    <?php $openMode = ($formData['action'] ?? '') === 'create_voucher' ? 'voucher' : 'manual'; ?>
+    setGeneratorMode('<?php echo $openMode; ?>');
 
     // Unsichtbarer Heartbeat: Hält die PHP-Session und den CSRF-Token am Leben,
     // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 5 Minuten)

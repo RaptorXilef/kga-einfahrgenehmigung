@@ -47,10 +47,14 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
         try {
             $dto = PermitCreateManualRequest::fromArray($request->post);
         } catch (ValidationException|\InvalidArgumentException $e) {
-            // Erlaubt das Durchreichen von Value Object Fehlern bei der DTO Erstellung
+            // UX-Rettung: Eingegebene Formulardaten vor dem Redirect in der Session sichern
+            $postData = $request->post;
+            unset($postData['csrf_token']);
+            $this->sessionManager->setFormData($postData);
+
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php?focus=tab-tools');
         }
 
         try {
@@ -61,16 +65,23 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
-            return new RedirectResponse('admin.php');
+            // Wenn erfolgreich, schicken wir den User auf den Aktive-Reiter
+            return new RedirectResponse('admin.php?focus=tab-active');
+
         } catch (\InvalidArgumentException $e) {
-            // Erlaubt das Durchreichen von Value Object Fehlern bei der Entity Erstellung
+            $postData = $request->post;
+            unset($postData['csrf_token']);
+            $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php');
-        } catch (\Throwable $e) { // FIX: Throwable statt Exception
-            $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
+            return new RedirectResponse('admin.php?focus=tab-tools');
+        } catch (\Throwable $e) {
+            $postData = $request->post;
+            unset($postData['csrf_token']);
+            $this->sessionManager->setFormData($postData);
+            $this->sessionManager->addFlash('error', 'Kritischer Fehler: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php?focus=tab-tools');
         }
     }
 }

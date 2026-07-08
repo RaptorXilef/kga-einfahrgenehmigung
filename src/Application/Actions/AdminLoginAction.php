@@ -40,6 +40,7 @@ final readonly class AdminLoginAction implements ActionInterface
         try {
             $dto = AdminLoginRequest::fromArray($request->post);
         } catch (ValidationException $e) {
+            $this->rescueFormData($request); // UX: Daten retten
             $this->renderForm($e->getMessage());
 
             return null;
@@ -57,14 +58,29 @@ final readonly class AdminLoginAction implements ActionInterface
 
                 return new RedirectResponse('admin.php');
             }
+
+            $this->rescueFormData($request); // UX: Daten retten, wenn Passwort falsch war
             $this->renderForm('Benutzername oder Passwort ist falsch.');
 
             return null;
         } catch (\RuntimeException $e) {
+            $this->rescueFormData($request); // UX: Daten retten bei Rate-Limit-Fehlern
             $this->renderForm($e->getMessage());
 
             return null;
         }
+    }
+
+    /**
+     * Sichert die Formulardaten in der direkten PHP-Session für die Ausgabe im Formular.
+     */
+    private function rescueFormData(ServerRequest $request): void
+    {
+        // Wir nutzen hier direkt $_SESSION, da das Admin-Login-Formular diese
+        // Variable so erwartet, wie in der vorherigen Template-Anpassung definiert.
+        $postData = $request->post;
+        unset($postData['csrf_token'], $postData['action'], $postData['code']);
+        $_SESSION['form_data'] = $postData;
     }
 
     /**

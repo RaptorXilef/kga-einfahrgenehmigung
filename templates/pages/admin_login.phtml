@@ -14,6 +14,10 @@
  * @var array                             $settings Enthält Basis-Konfigurationen (z.B. vereins_name, base_url).
  * @var string                            $appRoot
  */
+
+// Gerettete Formulardaten holen und sofort aus der Session löschen (Flash-Prinzip)
+$formData = $_SESSION['form_data'] ?? [];
+unset($_SESSION['form_data']);
 ?>
 
 <!DOCTYPE html>
@@ -54,7 +58,8 @@
                      style="width: 48px; height: 48px; opacity: 0.9;"
                      alt="">
                 <h2 class="u-margin-none u-margin-top-s">Vorstands-Login</h2>
-                <p class="u-text-muted u-margin-top-s">Bitte loggen Sie sich ein, um den Verwaltungsbereich von
+                <p class="u-text-muted u-margin-top-s">
+                    Bitte loggen Sie sich ein, um den Verwaltungsbereich von
                     <?php echo \htmlspecialchars($settings['vereins_name']); ?>
                     zu betreten.</p>
             </header>
@@ -74,17 +79,31 @@
                                name="user"
                                class="c-form-input"
                                placeholder="z.B. vorstand"
+                               value="<?php echo \htmlspecialchars($formData['user'] ?? ''); ?>"
                                required
                                autofocus>
                     </div>
 
                     <div class="c-form-group u-margin-top-m">
                         <label class="c-form-label">Passwort</label>
-                        <input type="password"
-                               name="pass"
-                               class="c-form-input"
-                               placeholder="••••••••"
-                               required>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="password"
+                                   name="pass"
+                                   id="login_pass"
+                                   class="c-form-input"
+                                   placeholder="••••••••"
+                                   value="<?php echo \htmlspecialchars($formData['pass'] ?? ''); ?>"
+                                   required
+                                   style="padding-right: 40px; width: 100%;">
+                            <button type="button"
+                                    tabindex="-1"
+                                    onclick="togglePassword(event)"
+                                    style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0; outline: none; opacity: 0.5;">
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view-pw.webp"
+                                     class="c-icon"
+                                     alt="">
+                            </button>
+                        </div>
                     </div>
 
                     <input type="hidden"
@@ -98,25 +117,41 @@
                     <button type="submit"
                             class="c-button--primary u-width-100 u-margin-top-l"
                             style="padding: 14px; font-size: 1.05rem;">
-                        Sicher einloggen 🔒
+                        Sicher einloggen
+                        &nbsp;
+                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-shield.webp"
+                             class="c-icon"
+                             alt="Einloggen">
                     </button>
                 </form>
             </div>
 
         </div>
     </div>
+
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 
     <script>
-    // Unsichtbarer Heartbeat: Hält die PHP-Session und den CSRF-Token am Leben,
-    // während der Pächter sich Zeit beim Ausfüllen lässt. (Alle 10 Minuten)
+    // Auge-Icon Toggle-Funktion
+    function togglePassword(event) {
+        const input = document.getElementById('login_pass');
+        const btn = event.currentTarget;
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.style.opacity = '1';
+        } else {
+            input.type = 'password';
+            btn.style.opacity = '0.5';
+        }
+    }
+
+    // Heartbeat
     setInterval(() => {
         fetch(window.location.pathname + '?ping=' + Date.now(), {
-                method: 'HEAD',
-                cache: 'no-store',
-                credentials: 'same-origin' // FIX: Sendet den Session-Cookie mit!
-            })
-            .catch(() => console.debug('Session Ping fehlgeschlagen'));
+            method: 'HEAD',
+            cache: 'no-store',
+            credentials: 'same-origin'
+        }).catch(() => console.debug('Session Ping fehlgeschlagen'));
     }, 5 * 60 * 1000);
 
     </script>

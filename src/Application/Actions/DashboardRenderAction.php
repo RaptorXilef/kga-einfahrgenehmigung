@@ -114,7 +114,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $voucherValidities = [];
         foreach ($vouchers as $code => $v) {
             // FIX: Verwende $v->code->value als Schlüssel, da es ein Value Object ist!
-            $voucherValidities[$v->code->value] = $this->voucherService->isValid($v);
+            $voucherValidities[$code] = $this->voucherService->isValid($v);
         }
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
@@ -122,6 +122,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $auditPage   = \max(1, (int) ($request->get['audit_page'] ?? 1));
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
         $auditData   = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
+
+        // Formulardaten (bei Fehlern) laden und Session leeren
+        $formData = $this->sessionManager->getFormData() ?? [];
+        $this->sessionManager->clearFormData();
 
         // 6. View rendern
         $this->renderer->render('admin_dashboard', [
@@ -139,6 +143,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'filterQuery'       => $dto->query,
             'filterStart'       => $dto->start,
             'filterType'        => $dto->type,
+            'formData'          => $formData, // An Template übergeben
             'groupRepository'   => $this->groupRepository,
             'imageStorage'      => $this->imageStorage,
             'itemsPerPage'      => $dto->limit,
