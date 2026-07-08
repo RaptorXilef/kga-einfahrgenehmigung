@@ -66,9 +66,10 @@ final readonly class BankImportService
 
         $aggregierteZahlungen  = [];
         $letztesDatumPerPermit = [];
-        $fehlerhaft            = 0;
-        $uebersprungen         = 0;
-        $erfolgreich           = 0;
+
+        $fehlerhaft    = 0;
+        $uebersprungen = 0;
+        $erfolgreich   = 0;
 
         // Schleife 1: Sammeln und Addieren (Teilzahlungs-Sonderfall abdecken)
         // PHP 8.4+ Fix: Explizite Angabe von Enclosure (") und Escape (\)
@@ -143,7 +144,8 @@ final readonly class BankImportService
 
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';
 
-                if ($this->permitService->manualActivate($permit->code, $grund, $formatierterTag)) {
+                // Wichtig: ->value nutzen, da permitCode ein ValueObject ist
+                if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
                     ++$erfolgreich;
                 } else {
                     ++$fehlerhaft;

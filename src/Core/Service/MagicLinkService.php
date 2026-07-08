@@ -8,6 +8,7 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Core\Entity\MagicLink;
+use App\Core\ValueObject\EmailAddress;
 
 /**
  * Service für das passwortlose Benutzer-Login-Verfahren (Magic-Links / Login-Codes).
@@ -53,7 +54,7 @@ final readonly class MagicLinkService
 
         $links[$token] = new MagicLink(
             $token,
-            $email,
+            new EmailAddress($email),
             $code,
             $this->clock->now()->modify("+{$duration} minutes"),
         );
@@ -95,11 +96,12 @@ final readonly class MagicLinkService
             $strToken         = (string) $token;
             $isLongTokenMatch = \strlen($strToken) === \strlen($trimmed)
                 && \hash_equals(\strtolower($strToken), \strtolower($trimmed));
+
             $isShortCodeMatch = \strlen($magicLink->code) === \strlen($trimmed)
                 && \hash_equals(\strtoupper($magicLink->code), \strtoupper($trimmed));
 
             if ($isLongTokenMatch || $isShortCodeMatch) {
-                $foundEmail = $magicLink->email;
+                $foundEmail = $magicLink->email->value;
                 unset($links[$token]); // Einmal-Nutzung
 
                 break; // Schleife abbrechen, wir haben einen Treffer

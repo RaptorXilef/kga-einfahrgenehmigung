@@ -7,6 +7,8 @@ namespace App\Core\Service;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Core\Entity\Voucher;
+use App\Core\ValueObject\TemplateKey;
+use App\Core\ValueObject\VoucherCode;
 
 /**
  * Service zur Verwaltung von Gutscheincodes und Rabatten.
@@ -90,9 +92,9 @@ final readonly class VoucherService
         }
 
         $voucher = new Voucher(
-            $newGeneratedCode,
+            new VoucherCode($newGeneratedCode),
             $reason,
-            $template_key,
+            new TemplateKey($template_key),
             $type,
             $value,
             $multi_use,
@@ -132,6 +134,7 @@ final readonly class VoucherService
     public function useVoucher(string $code, array $userData = []): ?Voucher
     {
         $vouchers = $this->repository->loadAll();
+
         if (! isset($vouchers[$code])) {
             return null;
         }
@@ -143,7 +146,7 @@ final readonly class VoucherService
         $this->repository->appendToArchive([
             'code'        => $code,
             'reason'      => $redeemed->reason,
-            'template'    => $redeemed->templateKey,
+            'template'    => $redeemed->templateKey->value,
             'redeemed_at' => $this->clock->nowAsString(),
             'user_name'   => $userData['name'] ?? 'Unbekannt',
             'user_plot'   => $userData['parzelle'] ?? '?',
@@ -176,6 +179,7 @@ final readonly class VoucherService
     public function toggleStatus(string $code, string $status): bool
     {
         $vouchers = $this->repository->loadAll();
+
         if (! isset($vouchers[$code])) {
             return false;
         }
@@ -193,6 +197,7 @@ final readonly class VoucherService
     public function deleteVoucher(string $code): bool
     {
         $vouchers = $this->repository->loadAll();
+
         if (! isset($vouchers[$code])) {
             return false;
         }

@@ -21,15 +21,17 @@ use App\Core\Entity\Status;
 use App\Core\Entity\Validity;
 use App\Core\Entity\Vehicle;
 use App\Core\Entity\VerificationRequest;
+use App\Core\Entity\Voucher;
 use App\Core\Event\PaymentReminderEvent;
 use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Utils\DateRangeHelper;
-use App\Core\ValueObject\EmailAddress;
 use App\Core\ValueObject\LicensePlate;
+use App\Core\ValueObject\PermitCode;
 use App\Core\ValueObject\PlotNumber;
+use App\Core\ValueObject\Price;
 
 /**
  * TODO DOCBLOCK
@@ -60,16 +62,19 @@ final readonly class PermitService
             new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
 
-        $tKey          = $data['template_key'] ?? 'std_7';
-        $templates     = (array) $this->config->get('permit_templates', []);
-        $template      = $templates[$tKey] ?? $templates['std_7'];
-        $vehicleTypes  = (array) $this->config->get('vehicle_types', []);
-        $defaultType   = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
-        $typ           = $data['typ'] ?? $defaultType;
+        $tKey      = $data['template_key'] ?? 'std_7';
+        $templates = (array) $this->config->get('permit_templates', []);
+        $template  = $templates[$tKey] ?? $templates['std_7'];
+
+        $vehicleTypes = (array) $this->config->get('vehicle_types', []);
+        $defaultType  = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
+        $typ          = $data['typ'] ?? $defaultType;
+
         $data['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
 
-        $token                      = \bin2hex(\random_bytes(32));
-        $shortCode                  = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
+        $token     = \bin2hex(\random_bytes(32));
+        $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
+
         $data['verification_token'] = $token;
         $data['verification_code']  = $shortCode;
 
@@ -80,8 +85,8 @@ final readonly class PermitService
 
         $allPending         = $this->verificationRepository->loadPending();
         $allPending[$token] = $req;
-        $this->verificationRepository->savePending($allPending);
 
+        $this->verificationRepository->savePending($allPending);
         $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode));
 
         return $token;
@@ -133,7 +138,7 @@ final readonly class PermitService
         $matchedToken = null;
 
         foreach ($allPending as $t => $req) {
-            $strToken = (string) $t; // Linter-Fix: Expliziter Cast
+            $strToken = (string) $t;
             if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
                 $matchedToken = $strToken;
 
@@ -144,7 +149,7 @@ final readonly class PermitService
         if ($matchedToken === null) {
             $allVerified = $this->verificationRepository->loadVerified();
             foreach ($allVerified as $t => $req) {
-                $strToken = (string) $t; // Linter-Fix: Expliziter Cast
+                $strToken = (string) $t;
                 if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
                     return $req->data;
                 }
@@ -153,7 +158,7 @@ final readonly class PermitService
             return null;
         }
 
-        $token = $matchedToken; // Ist jetzt garantiert ein String
+        $token = $matchedToken;
         $req   = $allPending[$token];
         $data  = $req->data;
 
@@ -164,12 +169,14 @@ final readonly class PermitService
         $expires             = $this->clock->now()->modify("+{$hours} hours");
         $data['verified_at'] = $this->clock->nowAsString();
 
-        $voucherCode = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
-        if ($voucherCode !== '') {
-            $voucher = $this->voucherService->useVoucher($voucherCode, $data);
+        $voucherCodeStr = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
+        if ($voucherCodeStr !== '') {
+            $voucher = $this->voucherService->useVoucher($voucherCodeStr, $data);
 
             if ($voucher !== null) {
-                $finalPrice = $this->calculateDiscountedPrice((float) $data['preis'], $voucher);
+                $originalPriceVO   = new Price((float) $data['preis']);
+                $discountedPriceVO = $this->calculateDiscountedPrice($originalPriceVO, $voucher);
+                $finalPrice        = $discountedPriceVO->value;
 
                 if ($finalPrice <= 0.0) {
                     $data['preis']  = 0.0;
@@ -179,15 +186,17 @@ final readonly class PermitService
                     $allVerified[$token] = new VerificationRequest($token, $expires, $data);
                     $this->verificationRepository->saveVerified($allVerified);
 
-                    return ['finalised' => $this->finaliseRequest(
-                        $token,
-                        PermitStatus::Bezahlt,
-                        'Gutschein (Voll-Rabatt): ' . $voucherCode,
-                    )];
+                    return [
+                        'finalised' => $this->finaliseRequest(
+                            $token,
+                            PermitStatus::Bezahlt,
+                            'Gutschein (Voll-Rabatt): ' . $voucherCodeStr,
+                        ),
+                    ];
                 }
 
                 $data['preis']           = $finalPrice;
-                $data['voucher_applied'] = $voucherCode;
+                $data['voucher_applied'] = $voucherCodeStr;
                 $data['voucher_details'] = ['type' => $voucher->type, 'value' => $voucher->value];
             }
         }
@@ -226,39 +235,40 @@ final readonly class PermitService
 
     public function createPermit(PermitFormData $data, bool $sendMails = true): Permit
     {
-        $this->validateEmail($data->email);
-        $tKey      = $data->templateKey;
+        $tKeyStr   = $data->templateKey->value;
         $templates = (array) $this->config->get('permit_templates', []);
-        $template  = (array) ($templates[$tKey] ?? $templates['std_7']);
-        $startDate = new \DateTimeImmutable((string) $data->datumVon);
+        $template  = (array) ($templates[$tKeyStr] ?? $templates['std_7']);
+
+        $startDate = new \DateTimeImmutable($data->datumVon);
 
         if ($template['days'] === 'custom') {
-            $endDate = new \DateTimeImmutable((string) $data->datumBis);
+            $endDate = new \DateTimeImmutable($data->datumBis);
         } else {
             $daysToAdd = \max(0, (int) $template['days'] - 1);
             $endDate   = $startDate->modify('+' . $daysToAdd . ' days');
         }
 
-        $vehicleTypes = $this->config->get('vehicle_types', []);
-        $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
-        $typ          = (string) $data->typ;
-        $preis        = $data->manualPrice > 0.0
-            ? $data->manualPrice
+        $typ   = $data->typ;
+        $preis = $data->manualPrice->value > 0.0
+            ? $data->manualPrice->value
             : (float) ($template['prices'][$typ] ?? 0.0);
 
+        $preisVO = new Price($preis);
+
         do {
-            $randomId        = $this->generateV4Suffix();
-            $plateVO         = new LicensePlate((string) $data->kennzeichen);
-            $displayPlate    = $plateVO->value;
+            $randomId = $this->generateV4Suffix();
+
+            $displayPlate    = $data->kennzeichen->value;
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
             $platePart       = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
-            $useLongCode     = (bool) $this->config->get('use_long_permit_code', false);
+
+            $useLongCode = (bool) $this->config->get('use_long_permit_code', false);
 
             if ($useLongCode) {
                 $fullIdentifier = \sprintf(
                     '%s-%s-%s-%s',
                     $this->config->get('prefix', 'ML'),
-                    \str_pad((string) $data->parzelle, 4, '0', \STR_PAD_LEFT),
+                    \str_pad($data->parzelle->value, 4, '0', \STR_PAD_LEFT),
                     $platePart,
                     $randomId,
                 );
@@ -268,22 +278,22 @@ final readonly class PermitService
         } while (! $this->isCodeGloballyUnique($fullIdentifier));
 
         $purposes = (array) $this->config->get('purposes', []);
-        $zweck    = (string) ($purposes[(string) $data->zweck] ?? 'Privat');
+        $zweck    = (string) ($purposes[$data->zweck] ?? 'Privat');
 
         $permit = new Permit(
-            code: $fullIdentifier,
-            template_key: $tKey,
+            code: new PermitCode($fullIdentifier),
+            template_key: clone $data->templateKey,
             owner: new Owner(
-                \strip_tags((string) $data->name),
-                new EmailAddress((string) $data->email),
-                new PlotNumber((string) $data->parzelle),
+                \strip_tags($data->name),
+                $data->email,
+                clone $data->parzelle,
             ),
             vehicle: new Vehicle(
                 $typ,
-                $plateVO,
-                $data->firma ? \strip_tags((string) $data->firma) : null,
+                clone $data->kennzeichen,
+                $data->firma ? \strip_tags($data->firma) : null,
             ),
-            validity: new Validity($startDate, $endDate, $preis, $zweck),
+            validity: new Validity($startDate, $endDate, $preisVO, $zweck),
             status: new Status($data->status),
             erstellt: $this->clock->now(),
             interner_kommentar: $data->internerKommentar,
@@ -304,6 +314,7 @@ final readonly class PermitService
     public function manualActivate(string $code, ?string $grund = null, ?string $buchungsdatum = null): bool
     {
         $permit = $this->storage->findByHash($code);
+
         if (! $permit instanceof Permit) {
             return false;
         }
@@ -347,6 +358,7 @@ final readonly class PermitService
     public function toggleSuspension(string $code, bool $status, ?string $reason = null): bool
     {
         $permit = $this->storage->findByHash($code);
+
         if (! $permit instanceof Permit) {
             return false;
         }
@@ -382,22 +394,21 @@ final readonly class PermitService
             }
         }
 
-        $combined   = \array_merge($allActive, $archived);
-        $filtered   = [];
-        $queryLower = \strtolower($query);
-        $now        = $this->clock->now();
-
+        $combined        = \array_merge($allActive, $archived);
+        $filtered        = [];
+        $queryLower      = \strtolower($query);
+        $now             = $this->clock->now();
         $permitTemplates = $this->config->get('permit_templates', []);
 
         foreach ($combined as $permit) {
             if ($templateType !== 'all') {
-                $tplType = $permitTemplates[$permit->template_key]['type'] ?? 'standard';
+                $tplType = $permitTemplates[$permit->template_key->value]['type'] ?? 'standard';
                 if ($tplType !== $templateType) {
                     continue;
                 }
             }
 
-            $isArchived = $this->archiveRepository->isCodeInArchive($permit->code);
+            $isArchived = $this->archiveRepository->isCodeInArchive($permit->code->value);
             $isExpired  = $permit->isExpired($now);
 
             if ($tab === 'active' && ($isArchived || $isExpired)) {
@@ -409,6 +420,7 @@ final readonly class PermitService
             if ($tab === 'archive' && ! $isArchived) {
                 continue;
             }
+
             if (! $permit->matchesSearch($queryLower)) {
                 continue;
             }
@@ -424,16 +436,16 @@ final readonly class PermitService
 
         $formattedItems = \array_map(fn ($permit): array => [
             'bis'          => $permit->getValidUntil()->format('d.m.Y'),
-            'code'         => $permit->code,
+            'code'         => $permit->code->value,
             'email'        => $permit->getOwnerEmail(),
             'erstellt'     => $permit->getCreatedAt()->format('d.m.Y H:i'),
-            'is_archived'  => $this->archiveRepository->isCodeInArchive($permit->code),
+            'is_archived'  => $this->archiveRepository->isCodeInArchive($permit->code->value),
             'kennzeichen'  => $permit->getLicensePlate(),
             'name'         => $permit->getOwnerName(),
             'parzelle'     => $permit->getPlotNumber(),
             'preis'        => $permit->getPrice(),
             'status'       => $permit->getStatus()->value,
-            'template_key' => $permit->template_key,
+            'template_key' => $permit->template_key->value,
             'von'          => $permit->getValidFrom()->format('d.m.Y'),
             'zweck'        => $permit->getPurpose(),
         ], $items);
@@ -500,6 +512,7 @@ final readonly class PermitService
         if ($now > $staffAlertThreshold) {
             return 2;
         }
+
         if ($now > $userDeadline) {
             return 1;
         }
@@ -518,7 +531,7 @@ final readonly class PermitService
             if ($permit->getValidUntil() < $cutoffDate) {
                 if (\in_array($permit->getStatus(), [PermitStatus::Bezahlt, PermitStatus::Storniert], true)) {
                     $toArchive[]     = $permit;
-                    $codesToDelete[] = $permit->code;
+                    $codesToDelete[] = $permit->code->value;
                 }
             }
         }
@@ -600,19 +613,20 @@ final readonly class PermitService
         return true;
     }
 
-    public function calculateDiscountedPrice(float $originalPrice, \App\Core\Entity\Voucher $voucher): float
+    public function calculateDiscountedPrice(Price $originalPrice, Voucher $voucher): Price
     {
         $type  = $voucher->type;
         $value = $voucher->value;
+        $orig  = $originalPrice->value;
 
         $newPrice = match ($type) {
             'fixed'   => $value,
             'free'    => 0.0,
-            'percent' => $originalPrice * (1 - ($value / 100)),
-            default   => $originalPrice,
+            'percent' => $orig * (1 - ($value / 100)),
+            default   => $orig,
         };
 
-        return \max(0.0, $newPrice);
+        return new Price(\max(0.0, $newPrice));
     }
 
     /**
@@ -654,9 +668,9 @@ final readonly class PermitService
         $anonymizedPermit = new Permit(
             code: $permit->code,
             template_key: $permit->template_key,
-            owner: new Owner('[ANONYMISIERT]', new EmailAddress(''), new PlotNumber('0000')),
-            vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('[ANONYMISIERT]'), '[ANONYMISIERT]'),
-            validity: $permit->validity,
+            owner: new Owner('[ANONYMISIERT]', null, new PlotNumber('0000')),
+            vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('XXX-XX 9999'), '[ANONYMISIERT]'),
+            validity: clone $permit->validity,
             status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert', false),
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $permit->interner_kommentar,
@@ -669,7 +683,7 @@ final readonly class PermitService
         $this->cancelledRepository->saveCancelled($anonymizedPermit);
 
         // 7. Aus produktiver Datenbank löschen
-        $this->storage->delete($permit->code);
+        $this->storage->delete($permit->code->value);
     }
 
     /**
@@ -680,9 +694,8 @@ final readonly class PermitService
      */
     public function sendPaymentReminders(): int
     {
-        $now       = $this->clock->now();
-        $sentCount = 0;
-
+        $now        = $this->clock->now();
+        $sentCount  = 0;
         $allPermits = $this->storage->getAll();
 
         foreach ($allPermits as $permit) {
