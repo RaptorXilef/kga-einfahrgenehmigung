@@ -8,8 +8,7 @@ namespace App\Core\ValueObject;
  * TODO Auf deutsch schreiben
  * Value Object representing a vehicle license plate (Kennzeichen).
  *
- * Enforces standardized formatting, strict character validation,
- * and prevents multiple license plates (fraud prevention).
+ * Enforces standardized formatting and strict structural validation.
  */
 final readonly class LicensePlate
 {
@@ -30,28 +29,23 @@ final readonly class LicensePlate
             throw new \InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
         }
 
-        // 1. Zeichen-Validierung (Erlaubt Buchstaben, Zahlen, Leerzeichen, Bindestriche, Umlaute für deutsche Kennzeichen)
+        // 1. Basis-Zeichen-Validierung (Buchstaben, Zahlen, Leerzeichen, Bindestriche, Umlaute)
         if (! \preg_match('/^[A-ZÄÖÜ0-9\-\s]+$/u', $plate)) {
             throw new \InvalidArgumentException('Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt.');
         }
 
-        // Nur alphanumerische Zeichen für die Betrugsprüfung filtern
+        // Nur alphanumerische Zeichen für den Bauplan filtern
         $cleanAlphanumeric = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
 
-        // 2. Betrugsschutz A: Die physikalische Maximallänge
-        $len = \function_exists('mb_strlen') ? \mb_strlen($cleanAlphanumeric, 'UTF-8') : \strlen($cleanAlphanumeric);
-        if ($len > 9) {
-            throw new \InvalidArgumentException('Eingabe abgelehnt: Das Kennzeichen ist zu lang. Es ist strikt nur ein Fahrzeug / Kennzeichen erlaubt.');
-        }
-
-        // 3. Betrugsschutz B: Die L-N-L-N Muster-Erkennung
-        // Erkennt zwei aneinandergereihte Kennzeichen wie "B-A 1 B-B 2" (Buchstaben -> Zahlen -> Buchstaben -> Zahlen)
-        if (\preg_match('/[A-ZÄÖÜ]+[0-9]+[A-ZÄÖÜ]+[0-9]+/u', $cleanAlphanumeric)
-            || \preg_match('/[0-9]+[A-ZÄÖÜ]+[0-9]+[A-ZÄÖÜ]+/u', $cleanAlphanumeric)) {
-            throw new \InvalidArgumentException('Eingabe abgelehnt: Die Struktur deutet auf mehrere Kennzeichen hin. Es ist nur ein Fahrzeug erlaubt.');
+        // 2. Der Bauplan (Strikte Struktur-Prüfung für deutsche Kennzeichen)
+        // Regel: 1 bis 5 Buchstaben, gefolgt von 1 bis 4 Zahlen, optional 'E' oder 'H' am Ende.
+        // Diese eine Regel blockiert automatisch: 5-stellige Zahlen, Doppel-Kennzeichen und reine Text-Eingaben!
+        if (! \preg_match('/^[A-ZÄÖÜ]{1,5}[0-9]{1,4}[EH]?$/u', $cleanAlphanumeric)) {
+            throw new \InvalidArgumentException('Das Kennzeichen ist ungültig. Ein reguläres Kennzeichen hat maximal 4 Ziffern und folgt dem Format "B-AB 1234".');
         }
 
         $formatted = $this->format($plate);
+
         if ($formatted === '') {
             throw new \InvalidArgumentException('Das Kennzeichen konnte nicht formatiert werden.');
         }
@@ -81,31 +75,32 @@ final readonly class LicensePlate
      */
     private function format(string $plate): string
     {
-        // 1. Wenn schon ein Bindestrich existiert, nur das Leerzeichen vor der Zahl sicherstellen
+        // 1. Wenn der Nutzer die Bindestriche selbst setzt, vertrauen wir seiner Formatierung
         if (\str_contains($plate, '-')) {
-            return (string) \preg_replace('/([A-ZÄÖÜ])(\d)/u', '$1 $2', $plate);
+            $plate = \preg_replace('/-+/', '-', $plate); // Doppelte Minus bereinigen
+            $plate = \preg_replace('/\s+/', ' ', $plate); // Doppelte Leerzeichen bereinigen
+
+            // Stellt sicher, dass zwischen dem letzten Buchstaben und der ersten Ziffer ein Leerzeichen ist
+            return (string) \preg_replace('/([A-ZÄÖÜ])(\d)/u', '$1 $2', \trim($plate));
         }
 
         // 2. Komplettreinigung für die Automatik
         $val = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
 
         // 3. Sonderfall: 4 Buchstaben am Anfang (z.B. BBDW123E -> BB-DW 123E)
-        // Automatische Formatierung für typische deutsche Kennzeichen (inkl. Umlaute für Städte wie WÜ, MÜ, TÖL)
-        if (\preg_match('/^([A-ZÄÖÜ]{2})([A-ZÄÖÜ]{2})(\d{1,4}[E|H]?)$/u', $val, $matches)) {
-            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
-        }
-
-        // 4. Berlin-Priorität (B-XX 1234E)
-        if (\preg_match('/^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[E|H]?)$/u', $val, $matches)) {
+        // Automatische Formatierung (Fallback, wenn vom Nutzer kein Minus eingegeben wurde)
+        // 4 oder 5 Buchstaben (z.B. SHA-AA)
+        if (\preg_match('/^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
         // 5. Standard: 1-3 Buchstaben + 1-2 Buchstaben + Zahlen (+E/H)
-        if (\preg_match('/^([A-ZÄÖÜ]{1,3})([A-ZÄÖÜ]{1,2})(\d{1,4}[E|H]?)$/u', $val, $matches)) {
+        // 2 oder 3 Buchstaben (z.B. B-AB, WÜ-A)
+        if (\preg_match('/^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
         // 6. Fallback
-        return (string) \preg_replace('/^([A-ZÄÖÜ]{1,3})(\d{1,4}[E|H]?)$/u', '$1 $2', $val);
+        return (string) \preg_replace('/^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/u', '$1 $2', $val);
     }
 }

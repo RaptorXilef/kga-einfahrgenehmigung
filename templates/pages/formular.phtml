@@ -402,7 +402,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label"
-                                           id="label_kennzeichen">Amtl. Kennzeichen</label>
+                                           id="label_kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
                                     <input type="text"
                                            name="kennzeichen"
                                            id="kennzeichen"
@@ -609,11 +609,11 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         };
         if (vCfg.show_company) {
             firmaWrapper.classList.remove('u-hidden');
-            labelKennzeichen.innerText = "Amtl. Kennzeichen (Optional)";
+            labelKennzeichen.innerText = "Amtl. Kennzeichen (B-ML 9876) (Optional)";
             inputKennzeichen.required = false;
         } else {
             firmaWrapper.classList.add('u-hidden');
-            labelKennzeichen.innerText = "Amtl. Kennzeichen";
+            labelKennzeichen.innerText = "Amtl. Kennzeichen (B-ML 9876)";
             inputKennzeichen.required = true;
             const firmInput = document.getElementById('u_firma');
             if (firmInput) firmInput.value = '';
