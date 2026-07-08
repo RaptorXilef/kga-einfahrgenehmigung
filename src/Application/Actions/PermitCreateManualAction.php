@@ -67,7 +67,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
             return new RedirectResponse('admin.php');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) { // FIX: Throwable statt Exception
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
             return new RedirectResponse('admin.php');

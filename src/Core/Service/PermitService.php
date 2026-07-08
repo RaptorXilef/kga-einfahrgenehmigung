@@ -74,7 +74,9 @@ final readonly class PermitService
 
         $tKey      = $data['template_key'] ?? 'std_7';
         $templates = (array) $this->config->get('permit_templates', []);
-        $template  = $templates[$tKey] ?? $templates['std_7'];
+
+        // FIX: Doppeltes Fallback, um TypeErrors zu verhindern, falls selbst std_7 in der Config fehlt
+        $template = $templates[$tKey] ?? $templates['std_7'] ?? ['prices' => []];
 
         $vehicleTypes = (array) $this->config->get('vehicle_types', []);
         $defaultType  = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
@@ -253,7 +255,9 @@ final readonly class PermitService
 
         $tKeyStr   = $data->templateKey->value;
         $templates = (array) $this->config->get('permit_templates', []);
-        $template  = (array) ($templates[$tKeyStr] ?? $templates['std_7']);
+
+        // FIX: Verhindert TypeError
+        $template = (array) ($templates[$tKeyStr] ?? $templates['std_7'] ?? ['days' => 1, 'prices' => []]);
 
         $startDate = new \DateTimeImmutable($data->datumVon);
 

@@ -56,10 +56,10 @@ final readonly class GlobalExceptionHandler
         // 2. Prüfen, ob wir im Dev-Modus sind (dann wollen wir die echten Fehler sehen!)
         $isDev = (bool) $this->config->get('admin_dev_mode', false);
 
-        // 3. Unterscheiden: War es ein API-Request oder ein normaler Seitenaufruf?
-        $isApi = \str_contains($_SERVER['REQUEST_METHOD'] ?? '', 'POST')
-            || \str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/api/')
-            || (isset($_SERVER['HTTP_ACCEPT']) && \str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
+        // FIX: Nur ECHTE API-Calls (JSON Accept/Content-Type oder /api/ Route) als JSON beantworten, keine normalen HTML-Formulare!
+        $isApi = \str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/api/')
+              || (isset($_SERVER['HTTP_ACCEPT']) && \str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'))
+              || (isset($_SERVER['CONTENT_TYPE']) && \str_contains($_SERVER['CONTENT_TYPE'], 'application/json'));
 
         if ($isApi) {
             $msg = $isDev ? $exception->getMessage() : 'Ein interner Serverfehler ist aufgetreten.';
@@ -82,6 +82,7 @@ final readonly class GlobalExceptionHandler
         if (! \headers_sent()) {
             @\http_response_code(500);
         }
+
         $vereinsName  = \htmlspecialchars((string) $this->config->get('vereins_name', 'KGA'));
         $errorTitle   = 'Ups! Etwas ist schiefgelaufen';
         $errorMessage = 'Das System hat einen unerwarteten Fehler festgestellt. Keine Sorge, die Administratoren wurden automatisch benachrichtigt um das Problem zu beheben.';
@@ -105,12 +106,12 @@ final readonly class GlobalExceptionHandler
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Systemfehler - <?php echo $vereinsName; ?></title>
     <style>
-        body { background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-        .error-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 600px; width: 100%; border-top: 5px solid #ef4444; text-align: center; }
-        h1 { color: #ef4444; margin-top: 0; }
-        p { line-height: 1.6; color: #475569; }
-        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
-        .btn:hover { background: #2563eb; }
+        body { background:#f8fafc; font-family:sans-serif; display:flex; justify-content:center; padding:40px 20px; }
+        .error-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 600px; width: 100%; border-top: 5px solid #e74c3c; }
+        h1 { color:#c0392b; margin-top:0; }
+        p { line-height: 1.6; color:#34495e; }
+        .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background:#3498db; color:white; text-decoration:none; border-radius:6px; font-weight:bold; }
+        .btn:hover { background:#2980b9; }
     </style>
 </head>
 <body>
@@ -121,7 +122,7 @@ final readonly class GlobalExceptionHandler
     </div>
 </body>
 </html>
-<?php
-                exit;
+        <?php
+        exit;
     }
 }

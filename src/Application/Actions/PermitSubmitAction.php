@@ -79,13 +79,13 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 
             return new RedirectResponse('index.php');
         } catch (\InvalidArgumentException $exception) {
-            // FIX: Validerungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
+            // Validerungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
             $this->sessionManager->addFlash('error', $exception->getMessage());
 
             return new RedirectResponse('index.php');
-        } catch (\Exception $exception) { // <-- Bestehender Catch-All für echte Abstürze
-            \error_log('Permit Creation Error: ' . $exception->getMessage());
-            $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten.');
+        } catch (\Throwable $exception) { // FIX: Throwable fängt auch TypeErrors und ParseErrors!
+            \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
+            $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
 
             return new RedirectResponse('index.php');
         }
