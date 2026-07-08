@@ -8,6 +8,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Core\Entity\LoginAttempt;
+use App\Core\ValueObject\IpAddress;
 
 /**
  * Implementierung des Rate-Limiters zum Schutz vor Brute-Force Logins.
@@ -70,7 +71,15 @@ final readonly class RateLimiter implements RateLimiterInterface
         $attempt  = $this->repository->findByIp($ip);
         $attempts = $attempt ? $attempt->attempts + 1 : 1;
 
-        $this->repository->save(new LoginAttempt($ip, $attempts, $this->clock->now()));
+        // Vorbereitung: Wenn die IP unbekannt ist (z.B. bei CLI Scripts), nutzen wir 0.0.0.0
+        $safeIp = $ip === 'unknown' || $ip === '' ? '0.0.0.0' : $ip;
+
+        // FIX: Die Entity verlangt zwingend ein IpAddress Value Object statt eines primitiven Strings
+        $this->repository->save(new LoginAttempt(
+            new IpAddress($safeIp),
+            $attempts,
+            $this->clock->now(),
+        ));
     }
 
     /**

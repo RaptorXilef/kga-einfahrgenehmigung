@@ -60,7 +60,7 @@ final readonly class SystemResendMailAction implements ActionInterface
             $this->mailService->sendTemplate(
                 $log->recipient,
                 $log->subject,
-                $log->template,
+                $log->template->value,
                 $log->data,
             );
 

@@ -14,6 +14,7 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
 use App\Core\Service\VoucherService;
+use App\Core\ValueObject\Price;
 
 /**
  * Action für die dynamische Preisberechnung via API.
@@ -41,8 +42,9 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 
             $dto = ApiTemplatePriceRequest::fromArray($request->input, $defaultType);
 
-            $templates     = $this->config->get('permit_templates', []);
-            $template      = $templates[$dto->key] ?? $templates['std_7'];
+            $templates = $this->config->get('permit_templates', []);
+            $template  = $templates[$dto->key] ?? $templates['std_7'];
+
             $originalPrice = (float) ($template['prices'][$dto->typ] ?? 0.0);
 
             $finalPrice   = $originalPrice;
@@ -54,7 +56,11 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 
                 if ($v && $this->voucherService->isValid($v)) {
                     $this->rateLimiter->clearAttempts($request->getIp());
-                    $finalPrice   = $this->permitService->calculateDiscountedPrice($originalPrice, $v);
+
+                    // FIX: Den primitiven float-Wert in ein Price VO verpacken
+                    $discountedPriceVO = $this->permitService->calculateDiscountedPrice(new Price($originalPrice), $v);
+                    $finalPrice        = $discountedPriceVO->value; // Und den neuen float-Wert für die Ausgabe extrahieren
+
                     $discountText = match ($v->type) {
                         'fixed'   => 'Sonderpreis aktiviert',
                         'free'    => '100% Rabatt (Kostenlos)',
@@ -76,10 +82,12 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 'price'        => $finalPrice,
             ]);
         } catch (\Throwable $e) {
-            return JsonResponse::sendPayload(
-                ['error' => $e->getMessage(), 'formatted' => 'Fehler', 'price' => 0.0, 'success' => false],
-                400,
-            );
+            return JsonResponse::sendPayload([
+                'error'     => $e->getMessage(),
+                'formatted' => 'Fehler',
+                'price'     => 0.0,
+                'success'   => false,
+            ], 400);
         }
     }
 }
