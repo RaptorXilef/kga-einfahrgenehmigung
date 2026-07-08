@@ -40,7 +40,7 @@ final readonly class VoucherCreateAction implements ActionInterface
     {
         try {
             $dto = VoucherCreateRequest::fromArray($request->post);
-        } catch (ValidationException $e) {
+        } catch (ValidationException|\InvalidArgumentException $e) {
             // UX-Rettung für die Gutschein-Erstellung
             $postData = $request->post;
             unset($postData['csrf_token']);
@@ -74,7 +74,7 @@ final readonly class VoucherCreateAction implements ActionInterface
             // Wenn erfolgreich, direkt zum Gutschein-Reiter springen
             return new RedirectResponse('admin.php?focus=tab-vouchers');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);

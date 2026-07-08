@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application\DTO;
 
 use App\Application\Exception\ValidationException;
+use App\Core\ValueObject\LicensePlate;
+use App\Core\ValueObject\PlotNumber;
 
 /**
  * DTO für das Erstellen von Gutscheinen.
@@ -45,13 +47,25 @@ final readonly class VoucherCreateRequest
             throw ValidationException::withMessage('Fehler: Der Rabattwert darf nicht negativ sein.');
         }
 
+        $parzelleRaw    = \trim(\strip_tags((string) ($post['parzelle'] ?? '')));
+        $kennzeichenRaw = \trim(\strip_tags((string) ($post['kennzeichen'] ?? '')));
+
+        // FIX: Prefill-Daten vor dem Speichern strikt durch die Value Objects prüfen!
+        // Da Prefill optional ist, prüfen wir nur, wenn auch wirklich etwas eingegeben wurde.
+        if ($parzelleRaw !== '') {
+            new PlotNumber($parzelleRaw);
+        }
+        if ($kennzeichenRaw !== '') {
+            new LicensePlate($kennzeichenRaw);
+        }
+
         $prefillData = [
             'datum_bis'   => $dateMode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
             'datum_von'   => $dateMode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
             'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
-            'kennzeichen' => \trim(\strip_tags((string) ($post['kennzeichen'] ?? ''))),
+            'kennzeichen' => $kennzeichenRaw,
             'name'        => \trim(\strip_tags((string) ($post['name'] ?? ''))),
-            'parzelle'    => \trim(\strip_tags((string) ($post['parzelle'] ?? ''))),
+            'parzelle'    => $parzelleRaw,
             'typ'         => (string) ($post['typ'] ?? ''),
             'zweck'       => \strip_tags((string) ($post['zweck'] ?? '')),
         ];
