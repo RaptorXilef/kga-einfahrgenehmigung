@@ -11,6 +11,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
@@ -26,6 +27,7 @@ final readonly class VoucherCreateAction implements ActionInterface
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
+        private ConfigInterface $config,
         private SessionManager $sessionManager,
         private VoucherService $voucherService,
     ) {
@@ -39,7 +41,9 @@ final readonly class VoucherCreateAction implements ActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto = VoucherCreateRequest::fromArray($request->post);
+            // FIX: Wir lesen das Parzellen-Limit aus der Config und geben es an das DTO weiter
+            $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+            $dto     = VoucherCreateRequest::fromArray($request->post, $maxPlot);
         } catch (ValidationException|\InvalidArgumentException $e) {
             // UX-Rettung für die Gutschein-Erstellung
             $postData = $request->post;

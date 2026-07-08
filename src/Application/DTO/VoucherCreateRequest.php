@@ -30,7 +30,7 @@ final readonly class VoucherCreateRequest
     }
 
     // TODO DOCBLOCK
-    public static function fromArray(array $post): self
+    public static function fromArray(array $post, int $maxPlot = 9999): self
     {
         // Fix: Fallback von 'std.7' auf korrekten Key 'std_7' korrigiert
         $templateKey = (string) ($post['template_key'] ?? 'std_7');
@@ -50,11 +50,16 @@ final readonly class VoucherCreateRequest
         $parzelleRaw    = \trim(\strip_tags((string) ($post['parzelle'] ?? '')));
         $kennzeichenRaw = \trim(\strip_tags((string) ($post['kennzeichen'] ?? '')));
 
-        // FIX: Prefill-Daten vor dem Speichern strikt durch die Value Objects prüfen!
-        // Da Prefill optional ist, prüfen wir nur, wenn auch wirklich etwas eingegeben wurde.
+        // FIX: Parzelle prüfen und zusätzlich gegen die Config-Grenze (max_plot_number) abgleichen
         if ($parzelleRaw !== '') {
-            new PlotNumber($parzelleRaw);
+            $plot = new PlotNumber($parzelleRaw);
+            if ($plot->value > $maxPlot) {
+                throw new \InvalidArgumentException(
+                    "Die eingegebene Parzelle {$plot->value} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.",
+                );
+            }
         }
+
         if ($kennzeichenRaw !== '') {
             new LicensePlate($kennzeichenRaw);
         }
