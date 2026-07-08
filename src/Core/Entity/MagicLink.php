@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\EmailAddress;
+
 /**
- * TODO DOCBLOCK
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MagicLink
 {
     public function __construct(
         public string $token,
-        public string $email,
+        public EmailAddress $email,
         public string $code,
         public \DateTimeImmutable $expires,
     ) {

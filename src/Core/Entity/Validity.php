@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\Price;
+
 /**
  * Werteobjekt für den zeitlichen Rahmen und die finanziellen Konditionen.
  *
@@ -18,7 +20,7 @@ final readonly class Validity
     public function __construct(
         public \DateTimeImmutable $von,
         public \DateTimeImmutable $bis,
-        public float $preis, // Der Preis zum Zeitpunkt der Buchung / Wichtig für die Finanzstatistik
+        public Price $preis,                // Der Preis zum Zeitpunkt der Buchung / Wichtig für die Finanzstatistik
         public string $zweck,
     ) {
     }

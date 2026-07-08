@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\TemplateKey;
+use App\Core\ValueObject\VoucherCode;
+
 /**
  * TODO DOCBLOCK
  *
@@ -12,9 +15,9 @@ namespace App\Core\Entity;
 final readonly class Voucher
 {
     public function __construct(
-        public string $code,
+        public VoucherCode $code,
         public string $reason,
-        public string $templateKey,
+        public TemplateKey $templateKey,
         public string $type,
         public float $value,
         public bool $multiUse,
@@ -49,9 +52,11 @@ final readonly class Voucher
         if ($this->isDeactivated()) {
             return false;
         }
+
         if ($this->isExpired($now)) {
             return false;
         }
+
         if ($this->isDepleted()) {
             return false;
         }

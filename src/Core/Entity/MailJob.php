@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\TemplateKey;
+
 /**
- * TODO
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MailJob
@@ -15,7 +15,7 @@ final readonly class MailJob
         public string $id,
         public string $recipient,
         public string $subject,
-        public string $template,
+        public TemplateKey $template,
         public array $data,
         public int $attempts,
         public \DateTimeImmutable $createdAt,

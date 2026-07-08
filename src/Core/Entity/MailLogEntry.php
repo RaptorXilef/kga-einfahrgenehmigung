@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\TemplateKey;
+
 /**
- * TODO DOCBLOCK
- *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MailLogEntry
@@ -16,7 +16,7 @@ final readonly class MailLogEntry
         public \DateTimeImmutable $timestamp,
         public string $recipient,
         public string $subject,
-        public string $template,
+        public TemplateKey $template,
         public string $status,
         public array $data,
     ) {

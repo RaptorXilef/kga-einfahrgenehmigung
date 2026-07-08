@@ -5,9 +5,16 @@ declare(strict_types=1);
 namespace App\Core\DTO;
 
 use App\Core\Entity\PermitStatus;
+use App\Core\ValueObject\EmailAddress;
+use App\Core\ValueObject\LicensePlate;
+use App\Core\ValueObject\PlotNumber;
+use App\Core\ValueObject\Price;
+use App\Core\ValueObject\TemplateKey;
+use App\Core\ValueObject\VoucherCode;
 
 /**
- * TODO DOCBLOCK
+ * Data Transfer Object bridging the gap between Application boundary and Core domain.
+ * Applies Value Objects immediately upon mapping to ensure strict state inside the Core.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -15,20 +22,20 @@ final readonly class PermitFormData
 {
     public function __construct(
         public string $name,
-        public string $email,
-        public string $parzelle,
+        public ?EmailAddress $email,
+        public PlotNumber $parzelle,
         public string $typ,
-        public string $kennzeichen,
+        public LicensePlate $kennzeichen,
         public ?string $firma,
         public string $zweck,
-        public string $templateKey,
+        public TemplateKey $templateKey,
         public string $datumVon,
         public string $datumBis,
-        public float $manualPrice = 0.0,
+        public Price $manualPrice,
         public PermitStatus $status = PermitStatus::Offen,
         public ?string $internerKommentar = null,
         public array $agreements = [],
-        public string $voucher = '',
+        public ?VoucherCode $voucher = null,
     ) {
     }
 
@@ -37,22 +44,25 @@ final readonly class PermitFormData
         $statusStr  = $data['status'] ?? 'offen';
         $statusEnum = $statusStr instanceof PermitStatus ? $statusStr : (PermitStatus::tryFrom($statusStr) ?? PermitStatus::Offen);
 
+        $emailInput   = \trim($data['email'] ?? '');
+        $voucherInput = \trim($data['voucher'] ?? '');
+
         return new self(
             $data['name'] ?? '',
-            $data['email'] ?? '',
-            $data['parzelle'] ?? '',
+            $emailInput !== '' ? new EmailAddress($emailInput) : null,
+            new PlotNumber($data['parzelle'] ?? ''),
             $data['typ'] ?? 'pkw',
-            $data['kennzeichen'] ?? '',
+            new LicensePlate($data['kennzeichen'] ?? ''),
             $data['firma'] ?? null,
             $data['zweck'] ?? 'Privat',
-            $data['template_key'] ?? 'std_7',
+            new TemplateKey($data['template_key'] ?? 'std_7'),
             $data['datum_von'] ?? 'now',
             $data['datum_bis'] ?? 'now',
-            (float) ($data['manual_price'] ?? ($data['preis'] ?? 0.0)),
+            new Price((float) ($data['manual_price'] ?? ($data['preis'] ?? 0.0))),
             $statusEnum,
             $data['interner_kommentar'] ?? null,
             $data['agreements'] ?? [],
-            $data['voucher'] ?? '',
+            $voucherInput !== '' ? new VoucherCode($voucherInput) : null,
         );
     }
 }

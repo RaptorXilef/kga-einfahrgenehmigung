@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\PermitCode;
+use App\Core\ValueObject\TemplateKey;
+
 /**
  * Haupt-Aggregatwurzel (Entity) für eine Einfahr-/Ausnahme-Genehmigung.
  *
@@ -18,17 +21,17 @@ namespace App\Core\Entity;
 final readonly class Permit
 {
     public function __construct(
-        public string $code,        // ML-26-0020-X8Y1
-        public string $template_key, // Welches Template wurde genutzt?
+        public PermitCode $code,                                             // ML-26-0020-X8Y1
+        public TemplateKey $template_key,                                    // Welches Template wurde genutzt?
         public Owner $owner,
         public Vehicle $vehicle,
         public Validity $validity,
         public Status $status,
         public \DateTimeImmutable $erstellt = new \DateTimeImmutable(),
-        public ?string $interner_kommentar = null, // Für manuelle Buchung
+        public ?string $interner_kommentar = null,                          // Für manuelle Buchung
         public array $agreements = [],
-        public ?Status $state = null, // Kompatibilitäts-Dummy falls genutzt
-        public ?\DateTimeImmutable $bezahlt_am = null, // Separates Bezahldatum
+        public ?Status $state = null,                                       // Kompatibilitäts-Dummy falls genutzt
+        public ?\DateTimeImmutable $bezahlt_am = null,                      // Separates Bezahldatum
     ) {
     }
 
@@ -101,7 +104,7 @@ final readonly class Permit
     // TODO DOCBLOCK
     public function getOwnerEmail(): string
     {
-        return $this->owner->email->value;
+        return $this->owner->email ? $this->owner->email->value : '';
     }
 
     // TODO DOCBLOCK
@@ -133,7 +136,7 @@ final readonly class Permit
     // TODO DOCBLOCK
     public function getPrice(): float
     {
-        return $this->validity->preis;
+        return $this->validity->preis->value;
     }
 
     // TODO DOCBLOCK
@@ -176,11 +179,12 @@ final readonly class Permit
             return true;
         }
 
-        // Da wir IN der Entität sind, dürfen wir die Eigenschaften direkt lesen.
+        $emailStr = $this->owner->email ? $this->owner->email->value : '';
+
         $searchString = \strtolower(
-            $this->code . ' ' .
+            $this->code->value . ' ' .
             $this->owner->name . ' ' .
-            $this->owner->email->value . ' ' .
+            $emailStr . ' ' .
             $this->vehicle->kennzeichen->value . ' ' .
             $this->owner->parzelle->value . ' ' .
             $this->validity->zweck,

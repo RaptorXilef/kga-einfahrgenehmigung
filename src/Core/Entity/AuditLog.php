@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\IpAddress;
+
 final readonly class AuditLog
 {
     public function __construct(
@@ -12,7 +14,7 @@ final readonly class AuditLog
         public string $username,
         public string $action,
         public string $details,
-        public string $ipAddress,
+        public IpAddress $ipAddress,
         public \DateTimeImmutable $createdAt,
     ) {
     }
