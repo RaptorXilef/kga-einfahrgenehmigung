@@ -408,6 +408,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                            id="kennzeichen"
                                            class="c-form-input"
                                            required
+                                           maxlength="15"
+                                           pattern="[A-Za-z0-9\-\s]+"
+                                           title="Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt."
                                            placeholder="B-HD 123"
                                            value="<?php echo \htmlspecialchars((string) ($formData['kennzeichen'] ?? $prefill['data']['kennzeichen'] ?? '')); ?>"
                                            <?php echo $isLocked('kennzeichen'); ?>>

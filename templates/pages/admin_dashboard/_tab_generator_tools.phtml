@@ -245,6 +245,9 @@ $hasAnyTemplate = ! empty($allowedTemplates);
                                            name="kennzeichen"
                                            id="u_kennzeichen"
                                            class="c-form-input"
+                                           maxlength="15"
+                                           pattern="[A-Za-z0-9\-\s]+"
+                                           title="Sonderzeichen wie Schrägstriche sind nicht erlaubt."
                                            placeholder="B-XX 1234">
                                 </div>
                             </div>

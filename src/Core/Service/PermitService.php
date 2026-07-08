@@ -56,8 +56,17 @@ final readonly class PermitService
 
     public function createPendingVerification(array $data): string
     {
+        // 1. PlotNumber strikt instanziieren
+        $plotVO = new PlotNumber($data['parzelle'] ?? '');
+
+        // 2. Maximalen Wert aus der Config prüfen (Fallback: 9999)
+        $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+        if ($plotVO->toInt() > $maxPlot) {
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->toInt()} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
+        }
+
         $this->validateNoCollisions(
-            (string) ($data['parzelle'] ?? ''),
+            $plotVO->value,
             new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now')),
             new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
@@ -235,6 +244,12 @@ final readonly class PermitService
 
     public function createPermit(PermitFormData $data, bool $sendMails = true): Permit
     {
+        // Obergrenze der Parzelle bei direkter/manueller Ausstellung prüfen
+        $maxPlot = (int) $this->config->get('max_plot_number', 9999);
+        if ($data->parzelle->toInt() > $maxPlot) {
+            throw new \InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->toInt()} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.");
+        }
+
         $tKeyStr   = $data->templateKey->value;
         $templates = (array) $this->config->get('permit_templates', []);
         $template  = (array) ($templates[$tKeyStr] ?? $templates['std_7']);
