@@ -175,7 +175,8 @@ final readonly class CheckPermitAction implements ViewActionInterface
             return false;
         }
 
-        $expected = \hash_hmac('sha256', $permit->code, $geheimnis);
+        // FIX: $permit->code ist ein Value Object. hash_hmac braucht string!
+        $expected = \hash_hmac('sha256', $permit->code->value, $geheimnis);
 
         return \hash_equals($expected, $token);
     }

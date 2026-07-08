@@ -28,25 +28,29 @@ final readonly class SendPaymentReminderMailListener
             return;
         }
 
+        // FIX: Wert entkapseln für substr
+        $permitCodeStr = $permit->code->value;
         // Bank-QR-Code nochmal generieren, um das Bezahlen direkt aus der Reminder-Mail zu erleichtern
-        $shortCode = \substr($permit->code, -6);
+        $shortCode = \substr($permitCodeStr, -6);
+
         $nameParts = \explode(' ', $permit->getOwnerName());
         $vorname   = $nameParts[0] ?? 'Unbekannt';
         $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
-        $usage     = "EFG-{$nachname}-{$vorname}-{$shortCode}";
+
+        $usage = "EFG-{$nachname}-{$vorname}-{$shortCode}";
 
         $epcQrData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
 
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
-            "Zahlungserinnerung: Ausnahmegenehmigung {$permit->code}",
+            "Zahlungserinnerung: Ausnahmegenehmigung {$permitCodeStr}",
             'payment_reminder',
             [
                 'baseUrl'        => $this->config->getBaseUrl(),
                 'betrag'         => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
                 'dueDate'        => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
                 'epcData'        => \urlencode($epcQrData),
-                'fullIdentifier' => $permit->code,
+                'fullIdentifier' => $permitCodeStr,
                 'iban'           => $this->config->get('iban'),
                 'kontoinhaber'   => $this->config->get('kontoinhaber'),
                 'name'           => $permit->getOwnerName(),

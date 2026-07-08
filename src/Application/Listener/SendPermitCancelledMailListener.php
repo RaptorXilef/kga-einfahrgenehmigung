@@ -24,13 +24,15 @@ final readonly class SendPermitCancelledMailListener
             return;
         }
 
+        $permitCodeStr = $permit->code->value; // FIX
+
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
-            "Stornierungsbestätigung: {$permit->code}",
+            "Stornierungsbestätigung: {$permitCodeStr}",
             'permit_cancelled',
             [
                 'baseUrl'        => $this->config->getBaseUrl(),
-                'fullIdentifier' => $permit->code,
+                'fullIdentifier' => $permitCodeStr,
                 'name'           => $permit->getOwnerName(),
                 'vereinsName'    => $this->config->get('vereins_name'),
             ],

@@ -37,9 +37,13 @@ final readonly class SendPermitMailListener
         $permit    = $event->permit;
         $shortCode = $event->shortCode;
 
-        $zeitraum  = "{$permit->getValidFrom()->format('d.m.Y')} bis {$permit->getValidUntil()->format('d.m.Y')}";
+        // FIX: Wert explizit entkapseln für native PHP String-Funktionen
+        $permitCodeStr = $permit->code->value;
+
+        $zeitraum = "{$permit->getValidFrom()->format('d.m.Y')} bis {$permit->getValidUntil()->format('d.m.Y')}";
+
         $geheimnis = (string) $this->config->get('geheimnis', '');
-        $token     = \hash_hmac('sha256', $permit->code, $geheimnis);
+        $token     = \hash_hmac('sha256', $permitCodeStr, $geheimnis);
 
         $opening = HolidayHtmlPresenter::formatOpeningHours(
             $this->holidayService->getOpeningHoursDataForDateRange($permit->getValidFrom(), $permit->getValidUntil()),
@@ -54,14 +58,14 @@ final readonly class SendPermitMailListener
         if (($mailConfig['send_board_notification'] ?? true) === true) {
             $this->mailService->sendTemplate(
                 recipient: $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
-                subject: "[{$permit->code}] - {$zeitraum} - {$permit->getOwnerName()}",
+                subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
                 template: 'board_notification',
                 data: [
-                    'adminLink'      => $this->config->getBaseUrl() . "check.php?code={$permit->code}&token={$token}",
+                    'adminLink'      => $this->config->getBaseUrl() . "check.php?code={$permitCodeStr}&token={$token}",
                     'bis_formatted'  => $permit->getValidUntil()->format('d.m.Y'),
                     'email'          => $permit->getOwnerEmail() ?: 'Keine angegeben',
                     'firma'          => $permit->getCompany() ?? '',
-                    'fullIdentifier' => $permit->code,
+                    'fullIdentifier' => $permitCodeStr,
                     'kennzeichen'    => $permit->getLicensePlate(),
                     'name'           => $permit->getOwnerName(),
                     'parzelle'       => $permit->getPlotNumber(),
@@ -94,14 +98,14 @@ final readonly class SendPermitMailListener
 
             $this->mailService->sendTemplate(
                 $permit->getOwnerEmail(),
-                "Zahlung erforderlich: {$permit->code}",
+                "Zahlung erforderlich: {$permitCodeStr}",
                 'payment_request',
                 [
                     'baseUrl'        => $this->config->getBaseUrl(),
                     'betrag'         => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
                     'dueDate'        => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
                     'epcData'        => \urlencode($epcQrData),
-                    'fullIdentifier' => $permit->code,
+                    'fullIdentifier' => $permitCodeStr,
                     'iban'           => $this->config->get('iban'),
                     'kontoinhaber'   => $this->config->get('kontoinhaber'),
                     'name'           => $permit->getOwnerName(),
@@ -114,21 +118,21 @@ final readonly class SendPermitMailListener
         // --- 3. DAS A4 DOKUMENT ---
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),
-            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permit->code,
+            'Ausnahmegenehmigung: ' . $this->config->get('vereins_name') . ': ' . $permitCodeStr,
             'permit_a4_document',
             [
                 'bis_formatted'     => $permit->getValidUntil()->format('d.m.Y'),
-                'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permit->code),
+                'checkUrl'          => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permitCodeStr),
                 'erstellt'          => $permit->getCreatedAt()->format('d.m.Y H:i'),
                 'firma'             => $permit->getCompany() ?? '',
-                'fullIdentifier'    => $permit->code,
+                'fullIdentifier'    => $permitCodeStr,
                 'holidayNotice'     => $holidayNotice,
                 'jahresFarbe'       => $this->config->get('jahresFarbe'),
                 'kennzeichen'       => $permit->getLicensePlate(),
                 'opening_html'      => $opening,
                 'parzelle'          => $permit->getPlotNumber(),
                 'settings'          => ['base_url' => $this->config->getBaseUrl()],
-                'template_key'      => $permit->template_key,
+                'template_key'      => $permit->template_key->value, // FIX: Auch Template-Key explizit auslesen
                 'terminkalenderUrl' => $this->config->get('terminkalender_url'),
                 'vereinsName'       => $this->config->get('vereins_name'),
                 'von_formatted'     => $permit->getValidFrom()->format('d.m.Y'),
