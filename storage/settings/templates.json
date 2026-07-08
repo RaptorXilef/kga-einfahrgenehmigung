@@ -1,7 +1,7 @@
 {
     "_meta": "Konfiguration der Genehmigungs-Vorlagen (Preise je Typ, Dauer, Sichtbarkeit).",
     "permit_templates": {
-        "std.7": {
+        "std_7": {
             "type": "standard",
             "label": "Ausnahmegenehmigung 7 Tage",
             "days": 7,
@@ -12,7 +12,7 @@
             },
             "public": true
         },
-        "std.14": {
+        "std_14": {
             "type": "standard",
             "label": "Ausnahmegenehmigung 14 Tage",
             "days": 14,
@@ -23,7 +23,7 @@
             },
             "public": false
         },
-        "std.30": {
+        "std_30": {
             "type": "standard",
             "label": "Ausnahmegenehmigung 1 Monat",
             "days": 30,
@@ -34,7 +34,7 @@
             },
             "public": false
         },
-        "perm.3": {
+        "perm_3": {
             "type": "permanent",
             "label": "Dauereinfahrgenehmigung (1 Quartal)",
             "days": 90,
@@ -45,7 +45,7 @@
             },
             "public": false
         },
-        "perm.6": {
+        "perm_6": {
             "type": "permanent",
             "label": "Dauereinfahrgenehmigung (2 Quartale)",
             "days": 180,
@@ -56,7 +56,7 @@
             },
             "public": false
         },
-        "perm.9": {
+        "perm_9": {
             "type": "permanent",
             "label": "Dauereinfahrgenehmigung (Gesamtjahr)",
             "days": 270,
@@ -67,7 +67,7 @@
             },
             "public": false
         },
-        "perm.12": {
+        "perm_12": {
             "type": "permanent",
             "label": "Dauereinfahrgenehmigung (Gesamtjahr)",
             "days": 365,
@@ -78,7 +78,7 @@
             },
             "public": false
         },
-        "custom.std": {
+        "custom_std": {
             "type": "standard",
             "label": "Spezialzeitraum (Standard)",
             "days": "custom",
@@ -89,7 +89,7 @@
             },
             "public": false
         },
-        "custom.perm": {
+        "custom_perm": {
             "type": "permanent",
             "label": "Spezialzeitraum (Dauereinfahrt)",
             "days": "custom",
@@ -100,7 +100,7 @@
             },
             "public": false
         },
-        "std.klause": {
+        "std_klause": {
             "type": "standard",
             "label": "Ausnahmegenehmigung Klause",
             "days": "custom",
