@@ -126,8 +126,8 @@ final readonly class BankImportService
                 $formatierterTag = $this->parseDate($datumRaw);
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format((float) $gesamtsumme, 2, ',', '.') . ' €)';
 
-                // Permit in deinem Dump erwartet `$permit->code` als String, das passt.
-                if ($this->permitService->manualActivate($permit->code, $grund, $formatierterTag)) {
+                // FIX: Hier auf ->value zugreifen, da PermitCode jetzt ein Objekt ist!
+                if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
                     ++$erfolgreich;
                 } else {
                     ++$fehlerhaft;
