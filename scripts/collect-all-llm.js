@@ -22,6 +22,8 @@ const ALWAYS_IGNORE_DIRS = [
     '.build',
 ];
 
+const ALWAYS_IGNORE_PATHS = ['public/assets', 'public/dev'];
+
 const ALWAYS_IGNORE_FILES = [
     '.lock',
     '-lock.json',
@@ -53,6 +55,7 @@ const __dirname = path.dirname(__filename);
 const basePath = path.resolve(__dirname, '..');
 
 let globalIncludeRootFiles = false;
+let globalKeepDocBlocks = false; // Toggle für DocBlocks
 
 // Version aus package.json lesen
 let version = 'unknown';
@@ -107,109 +110,181 @@ const configs = {
 
 // --- 3. Token-Optimierungs-Logik ---
 
-/**
- * Optimiert den Code-Inhalt basierend auf dem Dateityp
- * @param {string} content - Der rohe Code
- * @param {string} fileExtension - Die Dateiendung (z.B. '.php')
- */
 function optimizeTokens(content, fileExtension) {
     const ext = fileExtension.toLowerCase();
     const isPhpOrPhtml = ext === '.php' || ext === '.phtml';
     const isJsOrScss = ext === '.js' || ext === '.scss';
 
-    // 1. Schritt: Alle Kommentare restlos entfernen
-    if (isJsOrScss || isPhpOrPhtml) {
-        // Multi-line Kommentare /* ... */ entfernen
-        content = content.replace(/\/\*[\s\S]*?\*\//g, '');
+    // =========================================================================
+    // 1. SCHUTZMECHANISMEN (Strings & sensible Blöcke in den Tresor)
+    // =========================================================================
+    const stringMap = new Map();
+    let stringId = 0;
 
-        // Single-line Kommentare // ... entfernen
-        content = content.replace(/(^|[^:])\/\/.*$/gm, (_match, prefix) => {
-            return prefix; // Behalte das Zeichen vor dem //
-        });
+    // Zieht alle Strings (", ', `) ab und ersetzt sie durch einen Platzhalter.
+    let optimizedContent = content.replace(/(["'`])(?:\\.|(?!\1)[^\\])*\1/g, (match) => {
+        const id = `___STR_PLACEHOLDER_${stringId++}___`;
+        stringMap.set(id, match);
+        return id;
+    });
 
-        // Speziell für PHP/PHTML: # Kommentare und SQL-Kommentare entfernen
-        if (isPhpOrPhtml) {
-            // (?!\[) stellt sicher, dass PHP 8 Attribute wie #[ActionRoute] NICHT gelöscht werden
-            content = content.replace(/(^|[^"'])#(?!\[).*$/gm, (_match, prefix) => {
-                return prefix;
-            });
-            // SQL "-- " Kommentare entfernen, damit Zeilen sicher kombiniert werden können
-            content = content.replace(/--\s.*$/gm, '');
-        }
+    const blockMap = new Map();
+    let blockId = 0;
+
+    // Schützt <script>, <style>, <pre> und <textarea> vor der Zeilenzerstörung
+    if (isPhpOrPhtml) {
+        optimizedContent = optimizedContent.replace(
+            /<(script|style|pre|textarea)[\s\S]*?>[\s\S]*?<\/\1>/gi,
+            (match) => {
+                const id = `___BLOCK_PLACEHOLDER_${blockId++}___`;
+                blockMap.set(id, match);
+                return id;
+            }
+        );
     }
 
-    // Extra-Schritt für PHP/PHTML/JS/SCSS: Operatoren sauber mit exakt einem Leerzeichen umschließen
-    // WICHTIG: Längste Operatoren (wie === und !==) müssen zuerst stehen, damit sie nicht zerrissen werden!
-    content = content.replace(/\s*(===|!==|<=|>=|=>|==|!=|\+=|-=|=)\s*/g, ' $1 ');
+    // =========================================================================
+    // 2. KOMMENTARE ENTFERNEN & OPERATOR-PADDING
+    // =========================================================================
+    const operatorRegex = /(?<!<\?)\s*(===|!==|<=|>=|=>|==|!=|\+=|-=|=)\s*/g;
 
-    // 2. Schritt: Whitespace & Zeilenumbrüche minimieren
+    // Verhindert global, dass URLs (http://) in SCSS/JS als Kommentar gewertet werden
+    const singleLineCommentRegex = /(?<!https?:|ftp:|file:|\\)\/\/.*$/gim;
 
-    // PHTML OPTIMIERUNG
+    if (isJsOrScss) {
+        // SCSS / JS Logic (läuft global über die Datei)
+        // Wenn aktiviert, behalte DocBlocks (/** ... */) die ein '@' enthalten
+        if (globalKeepDocBlocks) {
+            optimizedContent = optimizedContent.replace(/\/\*\*[\s\S]*?\*\//g, (match) => {
+                // Nur wenn ein Annotation-Tag existiert ab in den schützenden Tresor
+                if (match.includes('@')) {
+                    const id = `___BLOCK_PLACEHOLDER_${blockId++}___`;
+                    // Zeilenumbrüche (\n) hinzufügen, damit es gut lesbar bleibt
+                    blockMap.set(id, `\n${match}\n`);
+                    return id;
+                }
+                // Ansonsten lassen wir es stehen, damit der nächste Schritt es löscht
+                return match;
+            });
+        }
+
+        // Multi-line Kommentare /* ... */ (löscht alles was nicht im Tresor ist)
+        optimizedContent = optimizedContent.replace(/\/\*[\s\S]*?\*\//g, '');
+        optimizedContent = optimizedContent.replace(singleLineCommentRegex, '');
+        optimizedContent = optimizedContent.replace(operatorRegex, ' $1 ');
+    } else if (isPhpOrPhtml) {
+        // HTML & SQL Kommentare (laufen sicher global über die Datei)
+        optimizedContent = optimizedContent.replace(/<!--[\s\S]*?-->/g, '');
+        optimizedContent = optimizedContent.replace(/(?<!!)--\s.*$/gm, '');
+
+        // FIX: PHP Kommentare STRIKT auf <?php ... ?> Blöcke begrenzen!
+        // HTML bleibt von // und /* unangetastet.
+        optimizedContent = optimizedContent.replace(
+            /(<\?[pP][hH][pP]|<\?=)([\s\S]*?)(\?>|$)/g,
+            (_match, openTag, phpCode, closeTag) => {
+                // DocBlocks
+                if (globalKeepDocBlocks) {
+                    phpCode = phpCode.replace(/\/\*\*[\s\S]*?\*\//g, (match) => {
+                        if (match.includes('@')) {
+                            const id = `___BLOCK_PLACEHOLDER_${blockId++}___`;
+                            blockMap.set(id, `\n${match}\n`);
+                            return id;
+                        }
+                        return match;
+                    });
+                }
+
+                // PHP /* */
+                phpCode = phpCode.replace(/\/\*[\s\S]*?\*\//g, '');
+
+                // PHP //
+                phpCode = phpCode.replace(singleLineCommentRegex, '');
+
+                // PHP #
+                if (ext === '.php') {
+                    phpCode = phpCode.replace(/(^|[^"'])#(?!\[).*$/gm, (_m, prefix) => prefix);
+                }
+
+                // PHP Operatoren
+                phpCode = phpCode.replace(operatorRegex, ' $1 ');
+
+                return openTag + phpCode + closeTag;
+            }
+        );
+    }
+
+    // =========================================================================
+    // 3. ZEILEN & WHITESPACE MINIMIEREN
+    // =========================================================================
+    const lines = optimizedContent.split(/\r?\n/);
+    const optimizedLines = [];
+
     if (ext === '.phtml') {
-        const lines = content.split(/\r?\n/);
-        const optimizedLines = [];
-
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line.length === 0) continue;
 
             if (optimizedLines.length > 0) {
                 const lastLine = optimizedLines[optimizedLines.length - 1];
-                // Zusammenhängen wenn: Aktuelle Zeile ist kein neues Tag ('<')
-                // ODER vorherige Zeile wurde nicht sauber mit '>' (HTML) oder '?>' (PHP) beendet
                 if (
                     !line.startsWith('<') ||
                     (!lastLine.endsWith('>') && !lastLine.endsWith('?>'))
                 ) {
-                    optimizedLines[optimizedLines.length - 1] += ' ' + line;
+                    // Nutzt jetzt ein sauberes Template-Literal für den Space
+                    optimizedLines[optimizedLines.length - 1] += ` ${line}`;
                     continue;
                 }
             }
             optimizedLines.push(line);
         }
-        return optimizedLines.join('\n');
-    }
+    } else {
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.length === 0) continue;
 
-    // Für JS, PHP und SCSS gehen wir zeilenweise vor, um die Struktur präzise zu stauchen
-    const lines = content.split(/\r?\n/);
-    const optimizedLines = [];
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (line.length === 0) continue;
-
-        // Sicherheitsmaßnahme für PHP-Tags und Deklarationen
-        if (ext === '.php' && (/^<\?php/i.test(line) || /^declare\s*\(/i.test(line))) {
-            optimizedLines.push(line);
-            continue;
-        }
-
-        // Zeilen zusammenhängen, wenn die vorherige Zeile kein kritischer Stopper war
-        if (
-            optimizedLines.length > 0 &&
-            !(ext === '.php' && /^<\?php/i.test(optimizedLines[optimizedLines.length - 1]))
-        ) {
-            const lastLine = optimizedLines[optimizedLines.length - 1];
-
-            // Ein kleines Leerzeichen spendieren, falls Wortgrenzen aufeinandertreffen
-            // Erweitert: '\]' im ersten Regex erlaubt nahtloses Anschließen von PHP-Attributen
-            // Erweitert: '$' im zweiten Regex berücksichtigt PHP-Variablen
-            if (/[a-zA-Z0-9_\]]$/.test(lastLine) && /^[a-zA-Z0-9_$]/.test(line)) {
-                optimizedLines[optimizedLines.length - 1] += ` ${line}`;
-            } else {
-                optimizedLines[optimizedLines.length - 1] += line;
+            if (ext === '.php' && (/^<\?php/i.test(line) || /^declare\s*\(/i.test(line))) {
+                optimizedLines.push(line);
+                continue;
             }
-        } else {
-            optimizedLines.push(line);
+
+            if (
+                optimizedLines.length > 0 &&
+                !(ext === '.php' && /^<\?php/i.test(optimizedLines[optimizedLines.length - 1]))
+            ) {
+                const lastLine = optimizedLines[optimizedLines.length - 1];
+
+                // \) und % am Ende sowie \- am Anfang für CSS-Funktionen (url, rgba) und Prozentwerte
+                if (/[a-zA-Z0-9_\])%]$/.test(lastLine) && /^[a-zA-Z0-9_$-]/.test(line)) {
+                    optimizedLines[optimizedLines.length - 1] += ` ${line}`;
+                } else {
+                    optimizedLines[optimizedLines.length - 1] += line;
+                }
+            } else {
+                optimizedLines.push(line);
+            }
         }
     }
 
-    return optimizedLines.join('\n');
+    let joinedResult = optimizedLines.join('\n');
+
+    // =========================================================================
+    // 4. TRESOR WIEDERHERSTELLEN (Blöcke & Strings)
+    // =========================================================================
+    blockMap.forEach((originalBlock, placeholderKey) => {
+        joinedResult = joinedResult.split(placeholderKey).join(originalBlock);
+    });
+
+    stringMap.forEach((originalString, placeholderKey) => {
+        joinedResult = joinedResult.split(placeholderKey).join(originalString);
+    });
+
+    return joinedResult;
 }
 
-/**
- * Durchsucht rekursiv Verzeichnisse
- */
+// =============================================================================
+// FILE SYSTEM & CLI LOGIC
+// =============================================================================
+
 function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = []) {
     const files = fs.readdirSync(dir);
 
@@ -219,10 +294,15 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
         const stat = fs.statSync(fullPath);
 
         if (stat.isDirectory()) {
+            const normalizedRelPath = relPath.replace(/\\/g, '/').toLowerCase();
+
             const isExcluded =
                 ALWAYS_IGNORE_DIRS.some(
                     (d) => file.toLowerCase().includes(d.toLowerCase()) || file.startsWith('.')
-                ) || exclDirs.some((d) => relPath.toLowerCase().includes(d.toLowerCase()));
+                ) ||
+                ALWAYS_IGNORE_PATHS.some((p) => normalizedRelPath.includes(p.toLowerCase())) ||
+                exclDirs.some((d) => normalizedRelPath.includes(d.toLowerCase()));
+
             if (!isExcluded) {
                 getFiles(fullPath, filter, exclDirs, exclFiles, includeRoot, currentFiles);
             }
@@ -243,24 +323,22 @@ function getFiles(dir, filter, exclDirs, exclFiles, includeRoot, currentFiles = 
     return currentFiles;
 }
 
-// Generiert einen sauberen Zeitstempel-Ordnernamen (YYYY-MM-DD_hh-mm-ss)
 function getTimestampString() {
     const d = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 
-/**
- * Funktion für den neuen Menüpunkt 6 (Gleiche Ordnerstruktur spiegeln)
- */
 function startStructureMirror() {
     const timestampDirName = getTimestampString();
-    const targetDir = path.join(debugFolder, `${timestampDirName}_minimized`);
+
+    const docSuffix = globalKeepDocBlocks ? '_docblock' : '';
+    const targetDirName = `${timestampDirName}_minimized${docSuffix}`;
+    const targetDir = path.join(debugFolder, targetDirName);
 
     console.log(`\n${c.cyan}🚀 Starte Erstellung der gespiegelten Token-Struktur...`);
-    console.log(`${c.yellow}Target: .debug/${version}/${timestampDirName}_minimized/${c.reset}`);
+    console.log(`${c.yellow}Target: .debug/${version}/${targetDirName}/${c.reset}`);
 
-    // Alle relevanten Dateitypen einsammeln
     const foundFiles = getFiles(basePath, /\.(js|php|phtml|scss)$/, [], [], globalIncludeRootFiles);
 
     if (foundFiles.length === 0) {
@@ -272,26 +350,25 @@ function startStructureMirror() {
     for (const file of foundFiles) {
         try {
             const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
-
-            // Komplette Bereinigung aller Alt-Kommentare inkl. alter Path-Kommentare
             let optimizedContent = optimizeTokens(rawContent, file.ext);
 
-            // Setze IMMER den neuen, korrekten Pfad-Kommentar an die Spitze
-            const commentPrefix = `// Path: ${file.relPath}\n`;
-            if (file.ext.toLowerCase() === '.php' && /^<\?php/i.test(optimizedContent)) {
+            let commentPrefix = `// Path: ${file.relPath}\n`;
+            if (file.ext.toLowerCase() === '.phtml') {
+                commentPrefix = `<!-- Path: ${file.relPath} -->\n`;
+            }
+
+            if (file.ext.toLowerCase() === '.php' && /^\s*<\?php/i.test(optimizedContent)) {
                 optimizedContent = optimizedContent.replace(
-                    /^<\?php/i,
-                    `<?php\n${commentPrefix.trim()}`
+                    /^\s*<\?php/i,
+                    (match) => `${match}\n${commentPrefix.trim()}`
                 );
             } else {
                 optimizedContent = commentPrefix + optimizedContent;
             }
 
-            // Zielpfad innerhalb des neuen Zeitstempel-Ordners berechnen
             const fileOutputDir = path.join(targetDir, path.dirname(file.relPath));
             const fileOutputPath = path.join(targetDir, file.relPath);
 
-            // Verzeichnisstruktur bei Bedarf replizieren
             if (!fs.existsSync(fileOutputDir)) fs.mkdirSync(fileOutputDir, { recursive: true });
 
             fs.writeFileSync(fileOutputPath, optimizedContent, 'utf-8');
@@ -303,14 +380,16 @@ function startStructureMirror() {
     }
 
     console.log(
-        `${c.green}✅ Erfolg: Struktur gespiegelt! ${c.bright}${count} Dateien${c.reset} exportiert nach ${c.yellow}.debug/${version}/${timestampDirName}_minimized/${c.reset}`
+        `${c.green}✅ Erfolg: Struktur gespiegelt! ${c.bright}${count} Dateien${c.reset} exportiert nach ${c.yellow}.debug/${version}/${targetDirName}/${c.reset}`
     );
 }
 
 function startFileCollection(configKey, silent = false) {
     const conf = configs[configKey];
     const timestamp = getTimestampString();
-    const outputName = `${conf.name}_${timestamp}_minimized${conf.ext}`;
+
+    const docSuffix = globalKeepDocBlocks ? '_docblock' : '';
+    const outputName = `${conf.name}_${timestamp}_minimized${docSuffix}${conf.ext}`;
     const outputPath = path.join(debugFolder, outputName);
 
     if (!fs.existsSync(debugFolder)) fs.mkdirSync(debugFolder, { recursive: true });
@@ -337,8 +416,6 @@ function startFileCollection(configKey, silent = false) {
     for (const file of foundFiles) {
         try {
             const rawContent = fs.readFileSync(file.fullPath, 'utf-8');
-
-            // Optimierung ohne jegliche Alt-Kommentare
             const optimizedContent = optimizeTokens(rawContent, file.ext);
 
             combinedContent += `// ========== START FILE: [${file.relPath}] ==========\n`;
@@ -372,6 +449,10 @@ function showHelp() {
         },
         { Argument: '--all', Beschreibung: 'Führt Punkt 1-4 automatisch aus' },
         { Argument: '--root', Beschreibung: 'Bezieht Dateien im Root-Verzeichnis mit ein' },
+        {
+            Argument: '--docblocks',
+            Beschreibung: 'Behält DocBlocks mit @-Tags bei (hängt _docblock an den Dateinamen)',
+        },
         { Argument: '--help', Beschreibung: 'Zeigt diese Hilfe an' },
     ]);
     console.log(`${c.gray}Info: Im CI-Modus (mit Argumenten) läuft das Skript stumm.${c.reset}\n`);
@@ -386,6 +467,7 @@ if (args.length > 0) {
         process.exit(0);
     }
     if (args.includes('--root')) globalIncludeRootFiles = true;
+    if (args.includes('--docblocks')) globalKeepDocBlocks = true;
 
     if (args.includes('--all')) {
         for (const k of ['JS', 'PHP', 'PHTML', 'SCSS']) {
@@ -408,6 +490,10 @@ if (args.length > 0) {
             ? `${c.green}${c.bright}AN${c.reset}`
             : `${c.red}${c.bright}AUS${c.reset}`;
 
+        const docBlockStatus = globalKeepDocBlocks
+            ? `${c.green}${c.bright}AN${c.reset}`
+            : `${c.red}${c.bright}AUS${c.reset}`;
+
         console.clear();
         console.log(`${c.cyan}===============================================`);
         console.log(`${c.cyan}    ${c.bright}DATEI-ZUSAMMENFASSUNG (TOKEN OPTIMIERT)${c.reset}`);
@@ -426,6 +512,9 @@ if (args.length > 0) {
         );
         console.log(`${c.gray}-----------------------------------------------${c.reset}`);
         console.log(`${c.bright} T)${c.reset} Toggle Root-Files: [${rootStatus}]`);
+        console.log(
+            `${c.bright} D)${c.reset} Toggle DocBlocks (@param, etc.): [${docBlockStatus}]`
+        );
         console.log(`${c.bright} A)${c.reset} ${c.yellow}ALLE nacheinander (1-4)${c.reset}`);
         console.log(`${c.bright} H)${c.reset} Hilfe / CI Info`);
         console.log(`${c.bright} Q)${c.reset} Beenden`);
@@ -442,6 +531,11 @@ if (args.length > 0) {
             }
             if (choice === 'T') {
                 globalIncludeRootFiles = !globalIncludeRootFiles;
+                showMenu();
+                return;
+            }
+            if (choice === 'D') {
+                globalKeepDocBlocks = !globalKeepDocBlocks;
                 showMenu();
                 return;
             }

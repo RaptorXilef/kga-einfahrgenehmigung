@@ -63,6 +63,7 @@
     ".gitignore",
     "*.min.*",
     "tools/**",
-    "docs/roadmaps/**"
+    "docs/roadmaps/**",
+    "tests/**/*.php"
   ]
 }

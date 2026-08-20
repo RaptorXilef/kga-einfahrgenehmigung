@@ -10,20 +10,14 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Application\View\TemplateRenderer;
-use App\Contracts\Storage\GroupRepositoryInterface;
-use App\Core\Service\AuthService;
 use App\Core\Service\BankImportService;
 
 #[ActionRoute('bank_import_analyze')]
 final readonly class BankImportAnalyzeAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuthService $auth,
         private BankImportService $importService,
         private SessionManager $sessionManager,
-        private TemplateRenderer $renderer,
-        private GroupRepositoryInterface $groupRepository,
     ) {
     }
 
@@ -35,49 +29,34 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
     public function execute(ServerRequest $request): mixed
     {
         $file = $request->files['bank_csv'] ?? null;
-        if (! $file || (isset($file['error']) && $file['error'] !== 0)) {
+        if (!$file || (isset($file['error']) && $file['error'] !== 0)) {
             $this->sessionManager->addFlash('error', 'Fehler beim Datei-Upload.');
 
             return new RedirectResponse('admin.php');
         }
 
-        // Datei an einen sicheren temporären Ort verschieben
-        $tempPath = \sys_get_temp_dir() . '/kga_bank_' . \uniqid() . '.csv';
-        if (! \move_uploaded_file($file['tmp_name'], $tempPath)) {
+        $tempPath = \sys_get_temp_dir() . '/kga_bank_' . \uniqid('', true) . '.csv';
+        if (!\move_uploaded_file($file['tmp_name'], $tempPath)) {
             $this->sessionManager->addFlash('error', 'Datei konnte nicht verarbeitet werden.');
 
             return new RedirectResponse('admin.php');
         }
 
-        $headers = $this->importService->extractHeaders($tempPath);
+        $analysis = $this->importService->analyzeCsv($tempPath);
+        $headers = $analysis['headers'];
 
-        // Erste echte Datenzeile für die Live-Vorschau auslesen
-        $firstRowData = [];
+        if (empty($headers)) {
+            $this->sessionManager->addFlash('error', 'Die CSV-Datei ist leer oder konnte nicht gelesen werden.');
 
-        if (! empty($headers) && $handle = \fopen($tempPath, 'r')) {
-            $firstLine = \fgets($handle);
-            \rewind($handle);
-            $delimiter = ';';
-            if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
-                $delimiter = ',';
-            }
-            // Header überspringen
-            \fgetcsv($handle, 0, $delimiter, '"', '\\');
-            // Erste Datenzeile lesen
-            $row = \fgetcsv($handle, 0, $delimiter, '"', '\\');
-            if ($row !== false) {
-                $firstRowData = $row;
-            }
-            \fclose($handle);
+            return new RedirectResponse('admin.php');
         }
 
-        // Intelligente Vorauswahl treffen basierend auf typischen Bank-Begriffen
-        $guessedId     = 4;
+        $guessedId = 4;
         $guessedAmount = 14;
-        $guessedDate   = 1;
+        $guessedDate = 1;
 
         foreach ($headers as $index => $header) {
-            $h = \strtolower(\trim($header));
+            $h = \strtolower(\trim((string) $header));
             if (\str_contains($h, 'zweck') || \str_contains($h, 'remittance')) {
                 $guessedId = $index;
             }
@@ -89,41 +68,21 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             }
         }
 
-        $this->sessionManager->addFlash('success', 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.');
-
-        // Dashboard rendern und Wizard öffnen - jetzt inkl. bank_row_preview
-        $this->renderer->render('admin_dashboard', [
-            'auth'            => $this->auth,
-            'groupRepository' => $this->groupRepository,
-
-            // Für den Bank Import Wizard
-            'bank_headers'     => $headers,
-            'bank_row_preview' => $firstRowData, // Beispieldaten mitgeben
-            'bank_temp_file'   => $tempPath,
-            'guess_id'         => $guessedId,
-            'guess_amount'     => $guessedAmount,
-            'guess_date'       => $guessedDate,
-
-            // Fallback-Dummys, damit die restlichen Tabs nicht abstürzen
-            'filterStart'       => \date('Y-01-01'),
-            'filterEnd'         => \date('Y-12-31'),
-            'filterType'        => 'all',
-            'currentPage'       => 1,
-            'itemsPerPage'      => 25,
-            'allowedLimits'     => [10, 25, 50, 100],
-            'allPermits'        => [],
-            'permitGroups'      => ['active' => [], 'future' => [], 'expired' => [], 'unpaid' => []],
-            'yearlyStats'       => [],
-            'mailLogs'          => [],
-            'vouchers'          => [],
-            'voucherArchive'    => [],
-            'voucherValidities' => [],
-            'overdueLevels'     => [],
-            'periodStats'       => ['count' => 0, 'types' => [], 'revenue_paid' => 0, 'revenue_unpaid' => 0],
-            'backups'           => [],
-            'structure'         => [],
+        // Korrektur: Anstatt das Dashboard isoliert und fehlerhaft zu rendern,
+        // übergeben wir den Status via Session an das ohnehin fehlerfrei ladende Dashboard.
+        $this->sessionManager->setFormData([
+            'bank_wizard' => [
+                'headers' => $headers,
+                'previewRow' => $analysis['previewRow'],
+                'tempFile' => $tempPath,
+                'guessId' => $guessedId,
+                'guessAmount' => $guessedAmount,
+                'guessDate' => $guessedDate,
+            ],
         ]);
 
-        return null;
+        $this->sessionManager->addFlash('success', 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.');
+
+        return new RedirectResponse('admin.php');
     }
 }

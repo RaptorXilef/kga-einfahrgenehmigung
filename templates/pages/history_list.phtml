@@ -15,15 +15,15 @@ use App\Core\Entity\PermitStatus;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string                                $appRoot
- * @var \DateTimeImmutable                    $now
- * @var array<int, \App\Core\Entity\Permit>   $permits           Gefilterte und sortierte Genehmigungen des Nutzers.
- * @var string                                $email             Die verifizierte E-Mail-Adresse aus der Session.
- * @var array                                 $settings          Layout-Optionen (Farben, URLs).
- * @var int                                   $currentArchiveYear Das aktuell geladene Archivjahr (0 = nur Live-Daten).
- * @var bool                                  $isSuccess         Status-Flag.
+ * @var string $appRoot
+ * @var \DateTimeImmutable $now
+ * @var array<int, \App\Core\Entity\Permit> $permits           Gefilterte und sortierte Genehmigungen des Nutzers.
+ * @var string $email             Die verifizierte E-Mail-Adresse aus der Session.
+ * @var array $settings          Layout-Optionen (Farben, URLs).
+ * @var int $currentArchiveYear Das aktuell geladene Archivjahr (0 = nur Live-Daten).
+ * @var bool $isSuccess         Status-Flag.
  * @var \App\Contracts\Config\ConfigInterface $config         Globale Konfiguration.
- * @var \App\Core\Service\PermitService       $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
+ * @var \App\Core\Service\PermitService $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
  */
 $now = new \DateTimeImmutable('today');
 \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
@@ -126,24 +126,24 @@ $now = new \DateTimeImmutable('today');
                             <?php foreach ($permits as $permit) {
                                 // 1. Zeit-Berechnungen
                                 $isExpired = $permit->getValidUntil() < $now;
-                                $isFuture  = $permit->getValidFrom() > $now;
+                                $isFuture = $permit->getValidFrom() > $now;
 
-                                $diff      = $now->diff($permit->getValidUntil());
+                                $diff = $now->diff($permit->getValidUntil());
                                 $remaining = (int) $diff->format('%r%a');
 
                                 $countdownText = '';
                                 if ($isExpired) {
                                     $countdownText = 'ABGELAUFEN';
                                 } elseif ($isFuture) {
-                                    $daysToStart   = (int) $now->diff($permit->getValidFrom())->format('%r%a');
+                                    $daysToStart = (int) $now->diff($permit->getValidFrom())->format('%r%a');
                                     $countdownText = "Startet in $daysToStart Tagen";
                                 } else {
                                     $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
                                 }
 
                                 // 2. Finanz-Berechnungen
-                                $isPaid      = $permit->getStatus() === PermitStatus::Bezahlt;
-                                $statusText  = \strtoupper($permit->getStatus()->value);
+                                $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
+                                $statusText = \strtoupper($permit->getStatus()->value);
                                 $statusClass = 'warning'; // default Orange
 
                                 if ($isPaid) {
@@ -153,7 +153,7 @@ $now = new \DateTimeImmutable('today');
                                     $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
                                     if ($overdueLevel === 2) {
                                         $statusClass = 'danger'; // Rot
-                                        $statusText  = 'ZAHLUNG ÜBERFÄLLIG';
+                                        $statusText = 'ZAHLUNG ÜBERFÄLLIG';
                                     } elseif ($overdueLevel === 1) {
                                         $statusText = 'MAHNFRIST';
                                     } else {
@@ -162,10 +162,10 @@ $now = new \DateTimeImmutable('today');
                                 }
 
                                 // 3. Fahrzeug Icon
-                                $vKey     = $permit->getVehicleType();
-                                $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
+                                $vKey = $permit->getVehicleType();
+                                $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
-                                $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+                                $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
@@ -212,7 +212,7 @@ $now = new \DateTimeImmutable('today');
                                                         <?php echo $countdownText; ?>
                                                     </span>
                                                 <?php } else { ?>
-                                                    <span style="color: <?php echo ($remaining <= 1 && ! $isFuture) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1 && ! $isFuture) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;">
+                                                    <span style="color: <?php echo ($remaining <= 1 && !$isFuture) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1 && !$isFuture) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;">
                                                         ⏳ <?php echo $countdownText; ?>
                                                     </span>
                                                 <?php } ?>
@@ -234,7 +234,7 @@ $now = new \DateTimeImmutable('today');
                                             <?php
                                                 // NEU: Stornierungsbutton - nur zeigen, wenn in Config erlaubt, unbezahlt, in der Zukunft und nicht ohnehin gesperrt
                                                 $allowCancel = (bool) $config->get('allow_user_cancellation', true);
-                                if ($allowCancel && $isFuture && ! $isPaid && ! $permit->isSuspended()) {
+                                if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) {
                                     ?>
                                                 <form method="POST"
                                                       action="history.php"
@@ -448,7 +448,7 @@ if ($currentArchiveYear !== $lastYear) {
     })();
 
     </script>
-    <script src="<?php echo $settings['base_url']; ?>assets/js/table-sorter.min.js"></script>
+    <script src="<?php echo $settings['base_url']; ?>assets/js/table-sorter.js"></script>
 </body>
 
 </html>

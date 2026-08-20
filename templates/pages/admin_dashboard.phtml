@@ -11,25 +11,25 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Contracts\Config\ConfigInterface              $config            Anwendungs-Konfiguration.
- * @var string                                             $appRoot           Absoluter Pfad zum Installationsverzeichnis.
- * @var array                                              $structure         Verschachtelter Berechtigungsbaum.
- * @var array<string, mixed>                               $periodStats       Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
- * @var array<string, array<string, mixed>>                $yearlyStats       Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
+ * @var \App\Contracts\Config\ConfigInterface $config            Anwendungs-Konfiguration.
+ * @var string $appRoot           Absoluter Pfad zum Installationsverzeichnis.
+ * @var array $structure         Verschachtelter Berechtigungsbaum.
+ * @var array<string, mixed> $periodStats       Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
+ * @var array<string, array<string, mixed>> $yearlyStats       Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
  * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups      Genehmigungen gruppiert nach Status.
- * @var array                                              $settings          Globale UI- und Mapping-Einstellungen.
- * @var \App\Core\Service\AuthService                      $auth              Service für die Rechteprüfung im Template.
- * @var string                                             $filterStart       Aktives Filter-Startdatum (Y-m-d).
- * @var string                                             $filterEnd         Aktives Filter-Enddatum (Y-m-d).
- * @var string                                             $filterType        Aktiver Filter-Fahrzeugtyp.
- * @var array                                              $vouchers          Liste aller aktiven Gutscheine im System.
- * @var \App\Core\Service\VoucherService                   $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
- * @var array                                              $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
- * @var \App\Core\Service\PermitService                    $permitService     Zentraler Genehmigungs-Dienst.
- * @var \App\Infrastructure\Maintenance\MigrationService   $migrationService  Migrations- & Backup-Manager.
- * @var \App\Contracts\System\JsonHelperInterface          $jsonHelper        Hilfsklasse für JSON-Operationen.
+ * @var array $settings          Globale UI- und Mapping-Einstellungen.
+ * @var \App\Core\Service\AuthService $auth              Service für die Rechteprüfung im Template.
+ * @var string $filterStart       Aktives Filter-Startdatum (Y-m-d).
+ * @var string $filterEnd         Aktives Filter-Enddatum (Y-m-d).
+ * @var string $filterType        Aktiver Filter-Fahrzeugtyp.
+ * @var array $vouchers          Liste aller aktiven Gutscheine im System.
+ * @var \App\Core\Service\VoucherService $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
+ * @var array $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
+ * @var \App\Core\Service\PermitService $permitService     Zentraler Genehmigungs-Dienst.
+ * @var \App\Infrastructure\Maintenance\MigrationService $migrationService  Migrations- & Backup-Manager.
+ * @var \App\Contracts\System\JsonHelperInterface $jsonHelper        Hilfsklasse für JSON-Operationen.
  */
-$now            = new \DateTimeImmutable();
+$now = new \DateTimeImmutable();
 $currentVersion = 'v0.0.0';
 
 if ($auth->hasPermission('system.update.view')) {
@@ -51,8 +51,8 @@ if ($auth->hasPermission('system.update.view')) {
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
     $tplMetadata[$key] = [
-        'days'   => $tpl['days'],
-        'type'   => $tpl['type'],
+        'days' => $tpl['days'],
+        'type' => $tpl['type'],
         'prices' => $tpl['prices'],
     ];
 }
@@ -76,8 +76,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         <?php } ?>
         csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
     };
-
-    </script>
 
     </script>
 </head>
@@ -460,8 +458,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php } ?>
 
     <script type="module"
-            src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.min.js?v=<?php echo \time(); ?>"></script>
-    <script src="<?php echo $config->getBaseUrl(); ?>assets/js/table-sorter.min.js"></script>
+            src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.js?v=<?php echo \time(); ?>"></script>
+    <script src="<?php echo $config->getBaseUrl(); ?>assets/js/table-sorter.js"></script>
 </body>
 
 </html>

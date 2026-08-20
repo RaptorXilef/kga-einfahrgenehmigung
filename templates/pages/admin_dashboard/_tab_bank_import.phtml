@@ -1,26 +1,30 @@
 <?php
 
 declare(strict_types=1);
-/** @var array $bank_headers */
-/** @var array $bank_row_preview */
-/** @var string $bank_temp_file */
-$headersExist    = ! empty($bank_headers) && \is_array($bank_headers);
-$rowPreviewExist = ! empty($bank_row_preview) && \is_array($bank_row_preview);
-$guess_id ??= 4;
-$guess_amount ??= 14;
-$guess_date ??= 1;
+
+/** @var array<string, mixed> $formData */
+$bankWizard = $formData['bank_wizard'] ?? null;
+$bank_headers = $bankWizard['headers'] ?? [];
+$bank_row_preview = $bankWizard['previewRow'] ?? [];
+$bank_temp_file = $bankWizard['tempFile'] ?? '';
+
+$headersExist = !empty($bank_headers) && \is_array($bank_headers);
+$rowPreviewExist = !empty($bank_row_preview) && \is_array($bank_row_preview);
+$guess_id = (int) ($bankWizard['guessId'] ?? 4);
+$guess_amount = (int) ($bankWizard['guessAmount'] ?? 14);
+$guess_date = (int) ($bankWizard['guessDate'] ?? 1);
 ?>
 <div class="c-tab-content-container">
     <section class="c-card"
              style="border-top-color: var(--success-color);">
         <header class="c-card__header u-text-center u-padding-y-l">
             <h3 class="u-margin-none">🏦 Automatischer Bank-Kontoauszugs-Abgleich</h3>
-            <p class="u-text-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene permits automatisch auf "bezahlt"
+            <p class="u-text-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene Permits automatisch auf "bezahlt"
                 zu setzen.</p>
         </header>
         <div class="c-card__body u-padding-around-l">
 
-            <?php if (! $headersExist) { ?>
+            <?php if (!$headersExist) { ?>
                 <form method="POST"
                       action="admin.php"
                       enctype="multipart/form-data"
@@ -63,7 +67,6 @@ $guess_date ??= 1;
 
                     <div class="u-grid u-gap-m"
                          style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-
                         <div class="c-form-group">
                             <label class="c-form-label">Permit-ID / Verwendungszweck</label>
                             <select name="col_id"
@@ -78,7 +81,7 @@ $guess_date ??= 1;
                             </select>
                             <div
                                  style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
-                                👁️ <!--Vorschau:--> <strong id="preview_id"
+                                👁️ <strong id="preview_id"
                                         style="color: var(--primary-color);">---</strong>
                             </div>
                         </div>
@@ -97,7 +100,7 @@ $guess_date ??= 1;
                             </select>
                             <div
                                  style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
-                                👁️ <!--Vorschau:--> <strong id="preview_amount"
+                                👁️ <strong id="preview_amount"
                                         style="color: #059669;">---</strong>
                             </div>
                         </div>
@@ -116,11 +119,10 @@ $guess_date ??= 1;
                             </select>
                             <div
                                  style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
-                                👁️ <!--Vorschau:--> <strong id="preview_date"
+                                👁️ <strong id="preview_date"
                                         style="color: #6366f1;">---</strong>
                             </div>
                         </div>
-
                     </div>
 
                     <div class="u-margin-top-xl u-flex u-gap-m u-justify-between u-align-center"
@@ -166,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Dynamische Live-Vorschau der selektierten Spaltenwerte
     <?php if ($rowPreviewExist) { ?>
-        const rowData = <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE); ?>;
+        const rowData = <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>;
 
         function updatePreview(selectElement) {
             const selectedIndex = parseInt(selectElement.value);

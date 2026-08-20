@@ -12,13 +12,14 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
-use App\Core\Service\BankImportService; // <--- NEU
+use App\Core\Service\BankImportService;
+use Throwable;
 
 #[ActionRoute('bank_import_process')]
 final readonly class BankImportProcessAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
-        private AuditLoggerService $auditLogger, // <--- NEU
+        private AuditLoggerService $auditLogger,
         private BankImportService $importService,
         private SessionManager $sessionManager,
     ) {
@@ -42,17 +43,16 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
             if (($res['success'] ?? false) === true) {
                 $msg = "Bank-Abgleich beendet: <strong>{$res['erfolgreich']}</strong> Permits freigeschaltet, {$res['uebersprungen']} übersprungen, {$res['fehlerhaft']} fehlerhaft.";
 
-                // LOG SCHREIBEN
                 $this->auditLogger->log('BANK_IMPORT', "CSV-Import abgeschlossen: {$res['erfolgreich']} erfolgreich, {$res['uebersprungen']} übersprungen, {$res['fehlerhaft']} fehlerhaft.");
 
                 $this->sessionManager->addFlash('success', $msg);
             } else {
-                $this->sessionManager->addFlash('error', 'Fehler bei der CSV-Verarbeitung.');
+                $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
             }
 
             return new RedirectResponse('admin.php');
 
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('admin.php');

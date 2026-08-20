@@ -1,46 +1,144 @@
-import { execSync } from 'node:child_process';
-import fs from 'node:fs';
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
+import { minify } from 'terser';
+
+/**
+ * Asynchrone Hilfsfunktion: Findet alle JS-Dateien rekursiv in einem Verzeichnis
+ * @param {string} dir Das zu durchsuchende Verzeichnis
+ * @param {string[]} fileList Array, in dem die Pfade gesammelt werden
+ * @returns {Promise<string[]>}
+ */
+async function walkDir(dir, fileList = []) {
+    if (!existsSync(dir)) return fileList;
+
+    const files = await fs.readdir(dir);
+    for (const file of files) {
+        const filePath = path.join(dir, file);
+        const stat = await fs.stat(filePath);
+
+        if (stat.isDirectory()) {
+            await walkDir(filePath, fileList);
+        } else if (filePath.endsWith('.js') && !filePath.endsWith('.min.js')) {
+            fileList.push(filePath);
+        }
+    }
+    return fileList;
+}
 
 const config = [
-    { src: 'src/assets/js', dest: 'public/assets/js' },
-    // Hier man weitere Ordner hinzufügen, wie früher in PS1
-    // { src: 'src/js/admin', dest: 'public/assets/js/admin' }
+    // Unsere neuen ES6-Module (Inklusive aller Unterordner wie core/, ui/ etc.)
+    {
+        srcBase: 'src/assets/js/admin',
+        destBase: 'public/assets/js/admin',
+        isModule: true,
+    },
+    // Der Frontend-Modul-Ordner
+    {
+        srcBase: 'src/assets/js/frontend',
+        destBase: 'public/assets/js/frontend',
+        isModule: true,
+    },
+    // Der übergreifende Shared-Ordner
+    {
+        srcBase: 'src/assets/js/shared',
+        destBase: 'public/assets/js/shared',
+        isModule: true,
+    },
+    {
+        srcBase: 'src/assets/js',
+        destBase: 'public/assets/js',
+        isModule: false,
+        // Schließt alle drei Modul-Ordner aus der globalen Verarbeitung aus
+        excludeDirs: ['src/assets/js/admin', 'src/assets/js/frontend', 'src/assets/js/shared'],
+    },
 ];
 
-console.log('🚀 Starte Legacy-JS-Minifizierung...');
+/**
+ * Der eigentliche Minification-Worker
+ */
+async function processFile(file, entry) {
+    const relativePath = path.relative(entry.srcBase, file);
+    const outputFilePath = path.join(entry.destBase, relativePath);
+    const outputDir = path.dirname(outputFilePath);
 
-for (const entry of config) {
-    if (!fs.existsSync(entry.dest)) {
-        fs.mkdirSync(entry.dest, { recursive: true });
-    }
+    // Ziel-Ordner asynchron anlegen
+    await fs.mkdir(outputDir, { recursive: true });
 
-    if (!fs.existsSync(entry.src)) {
-        console.warn(`⚠️ Warnung: Quellverzeichnis ${entry.src} nicht gefunden. Überspringe...`);
-        continue;
-    }
+    const mapName = `${path.basename(outputFilePath)}.map`;
 
-    const files = fs
-        .readdirSync(entry.src)
-        .filter((f) => f.endsWith('.js') && !f.endsWith('.min.js'));
+    try {
+        // 1. Datei asynchron einlesen
+        const code = await fs.readFile(file, 'utf8');
 
-    for (const file of files) {
-        const input = path.join(entry.src, file);
-        const baseName = path.parse(file).name;
-        const output = path.join(entry.dest, `${baseName}.min.js`);
-        const mapName = `${baseName}.min.js.map`;
+        // 2. Im RAM über Terser API minifizieren (Macht npx & execSync obsolet!)
+        const result = await minify(code, {
+            module: entry.isModule,
+            compress: true,
+            mangle: true,
+            sourceMap: {
+                filename: mapName,
+                url: mapName,
+            },
+        });
 
-        console.log(`  - Minifiziere: ${file}`);
-
-        try {
-            // Terser Aufruf mit Source-Maps
-            execSync(
-                `npx terser "${input}" --compress --mangle --source-map "filename='${mapName}',url='${mapName}'" --output "${output}"`
-            );
-        } catch (error) {
-            console.error(`  ❌ Fehler bei ${file}:`, error.message);
+        // 3. Datei und Source-Map asynchron schreiben
+        await fs.writeFile(outputFilePath, result.code);
+        if (result.map) {
+            await fs.writeFile(`${outputFilePath}.map`, result.map);
         }
+
+        console.log(`  ✅ Minifiziert: ${relativePath}`);
+    } catch (error) {
+        console.error(`  ❌ Fehler bei ${file}:`, error);
     }
 }
 
-console.log('✅ Minifizierung abgeschlossen.');
+async function runBuilder() {
+    console.log('🚀 Starte JS-Minifizierung (Nativ, Asynchron & Parallel)...');
+    console.time('⏱️ Build-Dauer');
+
+    // NEU: Den alten public-Ordner VOR dem Build restlos löschen!
+    const targetDir = 'public/assets/js';
+    if (existsSync(targetDir)) {
+        console.log(`🧹 Leere Zielverzeichnis: ${targetDir} ...`);
+        await fs.rm(targetDir, { recursive: true, force: true });
+    }
+
+    const tasks = []; // Hier sammeln wir alle Verarbeitungs-Aufträge
+
+    for (const entry of config) {
+        if (!existsSync(entry.srcBase)) {
+            console.warn(`⚠️ Warnung: Quellverzeichnis ${entry.srcBase} nicht gefunden.`);
+            continue;
+        }
+
+        const allFiles = await walkDir(entry.srcBase);
+
+        for (const file of allFiles) {
+            let isExcluded = false;
+            if (entry.excludeDirs) {
+                for (const exDir of entry.excludeDirs) {
+                    // FIX: path.sep zwingt das Script, nur Verzeichnisse und keine gleichnamigen Dateien auszulassen
+                    const excludePath = path.normalize(exDir) + path.sep;
+                    if (file.startsWith(excludePath)) {
+                        isExcluded = true;
+                        break;
+                    }
+                }
+            }
+            if (isExcluded) continue;
+            // Wir fügen den Vorgang als unerfülltes Promise in unsere Task-Liste ein
+            tasks.push(processFile(file, entry));
+        }
+    }
+
+    // MAGIE: Wir führen alle gesammelten Tasks GLEICHZEITIG aus!
+    await Promise.all(tasks);
+
+    console.log(`🎉 Erfolgreich ${tasks.length} Dateien verarbeitet.`);
+    console.timeEnd('⏱️ Build-Dauer');
+}
+
+// Start!
+runBuilder();

@@ -6,6 +6,7 @@ namespace App\Core\Service;
 
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use DateTimeImmutable;
 
 final readonly class BankImportService
 {
@@ -16,156 +17,202 @@ final readonly class BankImportService
     }
 
     /**
-     * Analysiert die erste Zeile der CSV, um Spalten-Header zurückzugeben.
+     * Analysiert die hochgeladene CSV, normalisiert Zeilenumbrüche und extrahiert Header & erste Datenzeile.
+     *
+     * @return array{headers: array<int, string>, previewRow: array<int, string>}
      */
-    public function extractHeaders(string $filePath): array
+    public function analyzeCsv(string $filePath): array
     {
-        if (! \file_exists($filePath) || ! $handle = \fopen($filePath, 'r')) {
-            return [];
+        if (!\file_exists($filePath)) {
+            return ['headers' => [], 'previewRow' => []];
         }
 
-        // Dynamische Erkennung des Trennzeichens (Komma oder Semikolon)
-        $firstLine = \fgets($handle);
-        \rewind($handle);
+        $this->normalizeLineEndings($filePath);
 
-        $delimiter = ';';
-        if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
-            $delimiter = ',';
+        $handle = \fopen($filePath, 'r');
+        if ($handle === false) {
+            return ['headers' => [], 'previewRow' => []];
         }
+
+        $delimiter = $this->detectDelimiter($handle);
 
         // PHP 8.4+ Fix: Explizite Angabe von Enclosure (") und Escape (\)
-        $headers = \fgetcsv($handle, 0, $delimiter, '"', '\\');
+        $headers = \fgetcsv($handle, 0, $delimiter, '"', '\\') ?: [];
+        $previewRow = \fgetcsv($handle, 0, $delimiter, '"', '\\') ?: [];
+
         \fclose($handle);
 
-        return $headers !== false ? $headers : [];
+        return [
+            'headers' => $this->convertToUtf8($headers),
+            'previewRow' => $this->convertToUtf8($previewRow),
+        ];
     }
 
     /**
-     * Verarbeitet die CSV-Datei, addiert Teilzahlungen auf und löscht die CSV anschließend.
+     * Verarbeitet die Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
+     *
+     * @return array<string, mixed> Resultat der Verarbeitung.
      */
-    public function processCsv(
-        string $filePath,
-        int $idCol,
-        int $amountCol,
-        int $dateCol,
-    ): array {
-        if (! \file_exists($filePath) || ! $handle = \fopen($filePath, 'r')) {
-            return ['success' => false, 'message' => 'Datei konnte nicht geöffnet werden.'];
+    public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
+    {
+        if (!\file_exists($filePath)) {
+            return ['success' => false, 'message' => 'Datei konnte nicht gefunden werden.'];
         }
 
-        $firstLine = \fgets($handle);
-        \rewind($handle);
+        $this->normalizeLineEndings($filePath);
 
-        $delimiter = ';';
-        if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
-            $delimiter = ',';
+        $handle = \fopen($filePath, 'r');
+        if ($handle === false) {
+            return ['success' => false, 'message' => 'Datei konnte nicht gelesen werden.'];
         }
 
-        // Header überspringen (PHP 8.4+ Fix)
-        \fgetcsv($handle, 0, $delimiter, '"', '\\');
+        $delimiter = $this->detectDelimiter($handle);
+        \fgetcsv($handle, 0, $delimiter, '"', '\\'); // Header überspringen
 
-        $aggregierteZahlungen  = [];
+        $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
-
-        $fehlerhaft    = 0;
+        $fehlerhaft = 0;
         $uebersprungen = 0;
-        $erfolgreich   = 0;
+        $erfolgreich = 0;
 
-        // Schleife 1: Sammeln und Addieren (Teilzahlungs-Sonderfall abdecken)
-        // PHP 8.4+ Fix: Explizite Angabe von Enclosure (") und Escape (\)
         while (($row = \fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
-            // Leere Zeilen abfangen
             if (empty($row) || (\count($row) === 1 && $row[0] === null)) {
                 continue;
             }
 
-            if (! isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
+            if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
                 ++$fehlerhaft;
-
                 continue;
             }
 
             $verwendungszweck = (string) $row[$idCol];
-            $betragRaw        = (string) $row[$amountCol];
-            $datumRaw         = (string) $row[$dateCol];
+            $betragRaw = (string) $row[$amountCol];
+            $datumRaw = (string) $row[$dateCol];
 
-            if (! \preg_match('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
-                continue; // Keine eindeutige ID gefunden, Zeile ist nicht relevant
+            if (!\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
+                continue; // Keine eindeutige ID gefunden
             }
 
-            $permitId = $matches[1];
-
-            // Deutsches Zahlenformat (z.B. 1.250,50) zu Float (1250.50) umwandeln
-            $cleanAmount         = \str_replace('.', '', $betragRaw);
-            $cleanAmount         = \str_replace(',', '.', $cleanAmount);
+            $cleanAmount = \str_replace('.', '', $betragRaw);
+            $cleanAmount = \str_replace(',', '.', $cleanAmount);
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
-            if (! isset($aggregierteZahlungen[$permitId])) {
-                $aggregierteZahlungen[$permitId] = 0.0;
+            foreach ($matches[1] as $permitId) {
+                $permitIdStr = (string) $permitId;
+                if (!isset($aggregierteZahlungen[$permitIdStr])) {
+                    $aggregierteZahlungen[$permitIdStr] = 0.0;
+                }
+                $aggregierteZahlungen[$permitIdStr] += $ueberwiesenerBetrag;
+                $letztesDatumPerPermit[$permitIdStr] = $datumRaw;
             }
-            // Beträge addieren
-            $aggregierteZahlungen[$permitId] += $ueberwiesenerBetrag;
-            $letztesDatumPerPermit[$permitId] = $datumRaw;
         }
-
         \fclose($handle);
 
-        // Schleife 2: System-Abgleich der summierten Beträge
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
-            // FIX: $permitId strikt als String übergeben!
             $permit = $this->storage->findByHash((string) $permitId);
 
-            if (! $permit instanceof Permit) {
+            if (!$permit instanceof Permit) {
                 ++$uebersprungen;
-
                 continue;
             }
 
             if ($permit->isPaid()) {
                 ++$uebersprungen;
-
                 continue;
             }
 
-            $sollBetrag = $permit->getPrice();
+            if (\round((float) $gesamtsumme, 2) >= \round($permit->getPrice(), 2)) {
+                $datumRaw = (string) $letztesDatumPerPermit[$permitId];
+                $formatierterTag = $this->parseDate($datumRaw);
+                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format((float) $gesamtsumme, 2, ',', '.') . ' €)';
 
-            // Auf Cent genau runden, um Float-Rundungsfehler zu vermeiden
-            if (\round($gesamtsumme, 2) >= \round($sollBetrag, 2)) {
-                $datumRaw = $letztesDatumPerPermit[$permitId];
-
-                // Datum flexibel parsen (dd.mm.yy oder dd.mm.yyyy)
-                $dateObj = \DateTimeImmutable::createFromFormat('d.m.y', \trim($datumRaw));
-
-                if ($dateObj === false) {
-                    $dateObj = \DateTimeImmutable::createFromFormat('d.m.Y', \trim($datumRaw));
-                }
-
-                $formatierterTag = $dateObj !== false ? $dateObj->format('d.m.Y') : \trim($datumRaw);
-
-                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';
-
-                // Wichtig: ->value nutzen, da permitCode ein ValueObject ist
-                if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
+                // Permit in deinem Dump erwartet `$permit->code` als String, das passt.
+                if ($this->permitService->manualActivate($permit->code, $grund, $formatierterTag)) {
                     ++$erfolgreich;
                 } else {
                     ++$fehlerhaft;
                 }
             } else {
-                // Gesamtsumme reicht nicht aus (z.B. weil nur ein Teilbetrag gezahlt wurde)
                 ++$fehlerhaft;
             }
         }
 
-        // DATENSCHUTZ: Datei nach der Verarbeitung physisch vom Server löschen!
         if (\file_exists($filePath)) {
             @\unlink($filePath);
         }
 
         return [
-            'success'       => true,
-            'erfolgreich'   => $erfolgreich,
+            'success' => true,
+            'erfolgreich' => $erfolgreich,
             'uebersprungen' => $uebersprungen,
-            'fehlerhaft'    => $fehlerhaft,
+            'fehlerhaft' => $fehlerhaft,
         ];
+    }
+
+    /**
+     * Normalisiert alte Mac- (\r) und Windows- (\r\n) Zeilenumbrüche zu \n.
+     * Das ist die modernste und performanteste Methode für kleine CSV-Dateien und
+     * umgeht die veraltete `ini_set('auto_detect_line_endings')` Funktion.
+     */
+    private function normalizeLineEndings(string $filePath): void
+    {
+        $content = \file_get_contents($filePath);
+        if (\is_string($content)) {
+            $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
+            \file_put_contents($filePath, $normalized);
+        }
+    }
+
+    /**
+     * Erkennt anhand der ersten Zeile dynamisch das Trennzeichen.
+     *
+     * @param resource $handle
+     */
+    private function detectDelimiter($handle): string
+    {
+        $firstLine = \fgets($handle);
+        \rewind($handle);
+
+        if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
+            return ',';
+        }
+
+        return ';';
+    }
+
+    /**
+     * Bereinigt und konvertiert ein Array von Strings streng nach UTF-8.
+     *
+     * @param array<int, mixed> $row
+     * @return array<int, string>
+     */
+    private function convertToUtf8(array $row): array
+    {
+        $converted = [];
+        foreach ($row as $value) {
+            if (!\is_string($value) || $value === '') {
+                $converted[] = (string) $value;
+                continue;
+            }
+            $encoding = \mb_detect_encoding($value, 'UTF-8, ISO-8859-1, Windows-1252', true);
+            $converted[] = $encoding ? \mb_convert_encoding($value, 'UTF-8', $encoding) : \mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
+        }
+
+        return $converted;
+    }
+
+    /**
+     * Parst ein Bank-Datum flexibel.
+     */
+    private function parseDate(string $rawDate): string
+    {
+        $trimmed = \trim($rawDate);
+        $dateObj = DateTimeImmutable::createFromFormat('d.m.y', $trimmed);
+
+        if ($dateObj === false) {
+            $dateObj = DateTimeImmutable::createFromFormat('d.m.Y', $trimmed);
+        }
+
+        return $dateObj !== false ? $dateObj->format('d.m.Y') : $trimmed;
     }
 }

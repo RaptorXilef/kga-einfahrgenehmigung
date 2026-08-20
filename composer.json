@@ -21,14 +21,15 @@
     "ext-pdo_mysql": "*",
     "ext-gd": "*",
     "ext-hash": "*",
-    "ext-openssl": "*"
+    "ext-openssl": "*",
+    "symfony/html-sanitizer": "^7.4"
   },
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^1.2",
     "deptrac/deptrac": "^4.6",
     "friendsofphp/php-cs-fixer": "^3.95",
     "kubawerlos/php-cs-fixer-custom-fixers": "^3.37",
-    "pestphp/pest": "^4.6",
+    "pestphp/pest": "^4.7",
     "phpcompatibility/php-compatibility": "^10.0@alpha",
     "phpcsstandards/phpcsextra": "^1.5",
     "phpcsstandards/phpcsutils": "^1.2",
@@ -40,7 +41,9 @@
     "rector/rector": "^2.4",
     "slevomat/coding-standard": "^8.28",
     "squizlabs/php_codesniffer": "^4.0",
-    "phpmd/phpmd": "^3.0"
+    "phpmd/phpmd": "^3.0",
+    "spaze/phpstan-disallowed-calls": "^4.14",
+    "pestphp/pest-plugin-mutate": "^4.0"
   },
   "autoload": {
     "psr-4": {
@@ -54,7 +57,7 @@
   },
   "config": {
     "platform": {
-      "php": "8.5.0"
+      "php": "8.3.0"
     },
     "vendor-dir": "vendor/",
     "optimize-autoloader": true,
@@ -85,23 +88,43 @@
     "chk:style": "php-cs-fixer fix --dry-run --diff --no-interaction",
     "chk:md": "phpmd analyze src --format text --ruleset phpmd.xml.dist",
     "chk:cpd": "php -d display_errors=0 tools/phpcpd.phar src/ --min-lines=5 --min-tokens=70",
-    "chk:arch": "deptrac analyse --config-file=deptrac.yaml",
     "chk:modern": "rector process --dry-run",
+    "chk:arch": "deptrac analyse --config-file=deptrac.yaml",
+    "chk:arch:uncovered": "deptrac analyse --config-file=deptrac.yaml --report-uncovered",
+
+    "//chk:style:s": "phpcs tests/Unit/Core/Service/ -s",
+
+    "// --- Frontend Checks ---": "Frontend",
+    "chk:js": "npx eslint src/assets/js/",
+    "chk:css": "npx stylelint \"src/assets/scss/**/*.scss\"",
+
+    "// --- PHASE 1.1: PHPStan ANALYSIS PRO SCHICHT (CHECKING) ---": "Read-Only Qualitätsprüfungen",
+    "chk:stan:core": "phpstan analyse src/Core --level max --memory-limit=2G",
+    "chk:stan:application": "phpstan analyse src/Application --level max --memory-limit=2G",
+    "chk:stan:contracts": "phpstan analyse src/Contracts --level max --memory-limit=2G",
+    "chk:stan:bootstrap": "phpstan analyse src/Bootstrap --level max --memory-limit=2G",
+    "chk:stan:infrastructure": "phpstan analyse src/Infrastructure --level max --memory-limit=2G",
+    "chk:stan:public": "phpstan analyse public --level max --memory-limit=2G",
 
     "// --- PHASE 2: TESTING ---": "Automatisierte Tests",
     "test": "pest --parallel",
     "test:full": "pest --parallel --display-deprecations",
     "test:coverage": "XDEBUG_MODE=coverage pest --coverage --coverage-html .build/reports/phpunit-html",
-    "test:mutation": "php -d xdebug.mode=coverage tools/infection.phar --threads=4 --min-msi=30 --coverage=.cache/phpunit",
+    "test:mutation": "php -d xdebug.mode=coverage vendor/bin/pest --mutate",
+    "//test:mutation": "php -d xdebug.mode=coverage tools/infection.phar --threads=4 --min-msi=30 --coverage=.cache/phpunit",
     "//test:phpunit": "phpunit",
     "//test:unit": "phpunit --testsuite Unit",
     "//test:feature": "phpunit --testsuite Feature",
     "//test:legacy-coverage": "XDEBUG_MODE=coverage phpunit --coverage-html .build/reports/phpunit-html",
 
     "// --- PHASE 3: FIXING & FORMATTING ---": "Aktive Code-Manipulation",
-    "fix:cs": "phpcbf",
-    "fix:style": "php-cs-fixer fix --allow-risky=yes",
     "fix:modern": "rector process",
+    "fix:style": "php-cs-fixer fix --allow-risky=yes",
+    "fix:cs": "phpcbf",
+
+    "// --- Frontend Fixes ---": "Frontend",
+    "fix:js": "npx eslint src/assets/js/ --fix",
+    "fix:css": "npx stylelint \"src/assets/scss/**/*.scss\" --fix",
 
     "// --- PHASE 4: CI / AUTOMATION ---": "Spezifische Reports für Pipelines",
     "mkdir:reports": "@php -r \"is_dir('.build/reports') || mkdir('.build/reports', 0777, true);\"",
@@ -127,6 +150,7 @@
     "// --- MASTER COMMANDS ---": "Zusammengefasste Workflows",
     "chk": ["@qa"],
     "fix": ["@fmt", "@fix:cs"],
+    "fix:2": ["@fmt", "@fix:cs", "@fmt", "@fix:cs"],
     "fmt": ["@fix:modern", "@fix:style"],
     "qa": [
       "@chk:style",
