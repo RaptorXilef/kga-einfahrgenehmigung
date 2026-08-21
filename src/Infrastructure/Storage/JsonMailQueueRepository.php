@@ -10,9 +10,6 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
 use Throwable;
 
-/**
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class JsonMailQueueRepository implements MailQueueRepositoryInterface
 {
     use JsonTransactionTrait;
@@ -27,8 +24,8 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
     public function enqueue(MailJob $job): void
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
-        $queue = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
+        $queue = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         $queue[] = [
             'id' => $job->id,
             'recipient' => $job->recipient,
@@ -51,22 +48,24 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
 
         $sentCount = 0;
 
-        $this->executeJsonTransaction($path, function (array &$queue) use ($limit, $processor, &$sentCount): bool {
-            if ($queue === []) {
+        $this->executeJsonTransaction($path, function (array &$queue) use ($limit, $processor, &$sentCount) {
+            if (empty($queue)) {
                 return false;
             }
 
             // #Email #Priorität #Query #Warteschlange
             // PRIORISIERUNG: 0 = Höchste, 9 = Niedrigste
-            \usort($queue, function (array $a, array $b): int {
-                $getPrio = fn ($template): int => match ($template) {
-                    'magic_link', 'verify_email' => 0,
-                    'permit_a4_document' => 1,
-                    'payment_request' => 2,
-                    'permit_cancelled' => 3,
-                    'board_notification' => 5,
-                    'payment_reminder' => 9,
-                    default => 7,
+            \usort($queue, function ($a, $b) {
+                $getPrio = function ($template) {
+                    return match ($template) {
+                        'magic_link', 'verify_email' => 0,
+                        'permit_a4_document' => 1,
+                        'payment_request' => 2,
+                        'permit_cancelled' => 3,
+                        'board_notification' => 5,
+                        'payment_reminder' => 9,
+                        default => 7,
+                    };
                 };
 
                 $aPrio = $getPrio($a['template']);
@@ -87,10 +86,15 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
                 try {
                     $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
                     ++$sentCount;
-                } catch (Throwable) {
+                } catch (Throwable $t) {
+                    // Neues dediziertes Logging für abgelehnte E-Mails (JSON Variante)
+                    $logMsg = '[' . \date('d-M-Y H:i:s e') . "] MailQueue Error [ID {$item['id']}]: " . $t->getMessage() . "\n";
+                    $logPath = $this->config->getStoragePath('logs/mail_queue_errors.log');
+                    @\file_put_contents($logPath, $logMsg, \FILE_APPEND | \LOCK_EX);
+
                     $item['attempts'] = ($item['attempts'] ?? 0) + 1;
                     if ($item['attempts'] < 3) {
-                        $queue[] = $item; // Wieder ans Ende der Schlange hängen
+                        $queue[] = $item; // Re-queue
                     }
                 }
             }

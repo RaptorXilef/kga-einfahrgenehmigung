@@ -75,12 +75,17 @@ final readonly class BankImportService
         $uebersprungen = 0;
         $erfolgreich = 0;
 
+        $rowNumber = 1;
+
         while (($row = \fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
-            if (\count($row) === 1 && $row[0] === null) {
+            ++$rowNumber;
+
+            if (empty($row) || (\count($row) === 1 && $row[0] === null)) {
                 continue;
             }
 
             if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
+                \error_log("BankImport [Zeile {$rowNumber}] Fehler: Benötigte Spalten (ID, Betrag oder Datum) fehlen in dieser Zeile.");
                 ++$fehlerhaft;
                 continue;
             }
@@ -90,7 +95,7 @@ final readonly class BankImportService
             $datumRaw = (string) $row[$dateCol];
 
             if (!\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
-                continue; // Keine eindeutige ID gefunden
+                continue; // Keine eindeutige ID gefunden, wird ignoriert
             }
 
             $cleanAmount = \str_replace('.', '', $betragRaw);
@@ -98,7 +103,7 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
             foreach ($matches[1] as $permitId) {
-                $permitIdStr = $permitId;
+                $permitIdStr = (string) $permitId;
                 if (!isset($aggregierteZahlungen[$permitIdStr])) {
                     $aggregierteZahlungen[$permitIdStr] = 0.0;
                 }
@@ -109,35 +114,44 @@ final readonly class BankImportService
         \fclose($handle);
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
-            $permit = $this->storage->findByHash($permitId);
+            $permit = $this->storage->findByHash((string) $permitId);
 
             if (!$permit instanceof Permit) {
+                \error_log("BankImport [Code {$permitId}] Übersprungen: Der Code wurde im Kontoauszug gefunden, existiert aber nicht im System.");
                 ++$uebersprungen;
                 continue;
             }
 
             if ($permit->isPaid()) {
+                \error_log("BankImport [Code {$permitId}] Übersprungen: Die Genehmigung ist im System bereits als bezahlt markiert.");
                 ++$uebersprungen;
                 continue;
             }
 
-            if (\round($gesamtsumme, 2) >= \round($permit->getPrice(), 2)) {
+            $sollBetrag = \round($permit->getPrice(), 2);
+            $istBetrag = \round((float) $gesamtsumme, 2);
+
+            if ($istBetrag >= $sollBetrag) {
                 $datumRaw = (string) $letztesDatumPerPermit[$permitId];
                 $formatierterTag = $this->parseDate($datumRaw);
-                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';
+                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format((float) $gesamtsumme, 2, ',', '.') . ' €)';
 
                 // FIX: Hier auf ->value zugreifen, da PermitCode jetzt ein Objekt ist!
                 if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
                     ++$erfolgreich;
                 } else {
+                    \error_log("BankImport [Code {$permitId}] Fehler: Die Genehmigung konnte nicht auf 'bezahlt' gesetzt werden (Speicherfehler).");
                     ++$fehlerhaft;
                 }
             } else {
+                \error_log("BankImport [Code {$permitId}] Fehler: Der überwiesene Betrag reicht nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
                 ++$fehlerhaft;
             }
         }
 
-        @\unlink($filePath);
+        if (\file_exists($filePath)) {
+            @\unlink($filePath);
+        }
 
         return [
             'success' => true,
@@ -155,12 +169,10 @@ final readonly class BankImportService
     private function normalizeLineEndings(string $filePath): void
     {
         $content = \file_get_contents($filePath);
-        if (!\is_string($content)) {
-            return;
+        if (\is_string($content)) {
+            $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
+            \file_put_contents($filePath, $normalized);
         }
-
-        $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
-        \file_put_contents($filePath, $normalized);
     }
 
     /**
@@ -184,7 +196,6 @@ final readonly class BankImportService
      * Bereinigt und konvertiert ein Array von Strings streng nach UTF-8.
      *
      * @param array<int, mixed> $row
-     *
      * @return array<int, string>
      */
     private function convertToUtf8(array $row): array

@@ -12,9 +12,6 @@ use Exception;
 use PDO;
 use Throwable;
 
-/**
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInterface
 {
     use DynamicSqlTrait;
@@ -81,12 +78,21 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
 
             foreach ($items as $item) {
                 try {
-                    $processor($item['recipient'], $item['subject'], $item['template'], $this->jsonHelper->decode((string) $item['data']));
+                    $processor(
+                        $item['recipient'],
+                        $item['subject'],
+                        $item['template'],
+                        $this->jsonHelper->decode((string) $item['data']),
+                    );
                     // Nach Erfolg löschen
                     $this->pdo->prepare("DELETE FROM `{$table}` WHERE id = ?")->execute([$item['id']]);
                     ++$sentCount;
                 } catch (Throwable $t) {
-                    \error_log("MailQueue Error [ID {$item['id']}]: " . $t->getMessage());
+                    // Neues dediziertes Logging für abgelehnte E-Mails
+                    $logMsg = '[' . \date('d-M-Y H:i:s e') . "] MailQueue Error [ID {$item['id']}]: " . $t->getMessage() . "\n";
+                    $logPath = $this->config->getStoragePath('logs/mail_queue_errors.log');
+                    @\file_put_contents($logPath, $logMsg, \FILE_APPEND | \LOCK_EX);
+
                     // Entsperren und Fehler zählen
                     $origAttempts = $item['attempts'] - 100 + 1;
                     if ($origAttempts >= 3) {
@@ -128,10 +134,8 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
                     $sql = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
-
                 $stmt->execute($mapped);
             }
-
             $this->pdo->commit();
         } catch (Exception $e) {
             $this->pdo->rollBack();
