@@ -19,6 +19,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
+use DateTimeImmutable;
 
 /**
  * Action zur Überprüfung von Genehmigungen und Kennzeichen.
@@ -34,16 +35,13 @@ final readonly class CheckPermitAction implements ViewActionInterface
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private HolidayService $holidayService,
-        private SessionManager $sessionManager, // <--- NEU
+        private SessionManager $sessionManager,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
     }
 
-    /**
-     * TODO DOCBLOCK
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
@@ -55,17 +53,17 @@ final readonly class CheckPermitAction implements ViewActionInterface
         }
 
         $code = $dto->code;
-        $now  = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         // 1. Suche in echten Permits (zuerst via Code/Hash)
         $permit = $this->storage->findByHash($code);
 
         // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             $permit = $this->storage->findByLicensePlate($code);
         }
 
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
             $this->renderer->render('check/search');
 
@@ -74,16 +72,16 @@ final readonly class CheckPermitAction implements ViewActionInterface
 
         // Standard-Daten für die Header-Navigation (falls eingeloggt)
         $adminData = [
-            'adminUser'  => $this->auth->getUsername(),
-            'adminId'    => $this->auth->getUserId(),
+            'adminUser' => $this->auth->getUsername(),
+            'adminId' => $this->auth->getUserId(),
             'adminGroup' => $this->auth->getGroup(),
         ];
 
         // --- Logik für den nächsten befahrbaren Slot ---
         $nextAllowedSlotText = 'Keine weitere Einfahrt möglich.';
-        $nextSlot            = $this->holidayService->getNextAvailableSlot($now);
+        $nextSlot = $this->holidayService->getNextAvailableSlot($now);
 
-        if ($nextSlot instanceof \DateTimeImmutable) {
+        if ($nextSlot instanceof DateTimeImmutable) {
             // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
             // Spezialfall: Letzter Tag / Ablaufprüfung
             if ($permit instanceof Permit && $nextSlot > $permit->getValidUntil()) {
@@ -91,7 +89,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
             } else {
                 // Normale Zeit-Formatierung
                 $datePart = $nextSlot->format('d.m.Y');
-                $today    = $now->format('d.m.Y');
+                $today = $now->format('d.m.Y');
                 $tomorrow = $now->modify('+1 day')->format('d.m.Y');
 
                 if ($datePart === $today) {
@@ -115,29 +113,29 @@ final readonly class CheckPermitAction implements ViewActionInterface
             $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
 
             // Pfade angepasst auf Unterordner check/
-            $this->renderer->render($showAdminView ? 'check/admin' : 'check/public', \array_merge(
-                $adminData,
-                [
-                    'allowedToday'    => $nextAllowedSlotText,
-                    'auth'            => $this->auth,
+            $this->renderer->render(
+                $showAdminView ? 'check/admin' : 'check/public',
+                \array_merge($adminData, [
+                    'allowedToday' => $nextAllowedSlotText,
+                    'auth' => $this->auth,
                     'groupRepository' => $this->groupRepository,
-                    'holidayNotice'   => \implode(', ', $this->holidayService->getHolidaysInRange(
+                    'holidayNotice' => \implode(', ', $this->holidayService->getHolidaysInRange(
                         $permit->getValidFrom(),
                         $permit->getValidUntil(),
                     )),
-                    'isDateValid'   => $permit->isValid($requirePayment),
+                    'isDateValid' => $permit->isValid($requirePayment),
                     'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                    'opening'       => HolidayHtmlPresenter::formatOpeningHours(
+                    'opening' => HolidayHtmlPresenter::formatOpeningHours(
                         $this->holidayService->getOpeningHoursDataForDateRange(
                             $permit->getValidFrom(),
                             $permit->getValidUntil(),
                         ),
                     ),
-                    'permit'         => $permit,
-                    'showAdminView'  => $showAdminView,
+                    'permit' => $permit,
+                    'showAdminView' => $showAdminView,
                     'userRepository' => $this->userRepository,
-                ],
-            ));
+                ]),
+            );
 
             return null;
         }
@@ -175,7 +173,6 @@ final readonly class CheckPermitAction implements ViewActionInterface
             return false;
         }
 
-        // FIX: $permit->code ist ein Value Object. hash_hmac braucht string!
         $expected = \hash_hmac('sha256', $permit->code->value, $geheimnis);
 
         return \hash_equals($expected, $token);

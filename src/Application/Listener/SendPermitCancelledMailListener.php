@@ -24,7 +24,7 @@ final readonly class SendPermitCancelledMailListener
             return;
         }
 
-        $permitCodeStr = $permit->code->value; // FIX
+        $permitCodeStr = $permit->code->value;
 
         $this->mailService->sendTemplate(
             $permit->getOwnerEmail(),

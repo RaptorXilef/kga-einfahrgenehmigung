@@ -32,6 +32,10 @@ use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PermitCode;
 use App\Core\ValueObject\PlotNumber;
 use App\Core\ValueObject\Price;
+use DateTimeImmutable;
+use DomainException;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Service orchestrating permit generation, validation, and lifecycle.
@@ -63,42 +67,40 @@ final readonly class PermitService
         // Zugriff erfolgt jetzt direkt über ->value, da das VO intern einen int hält.
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
         if ($plotVO->value > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
+            throw new InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
         }
 
         $this->validateNoCollisions(
             $plotVO->value,
-            new \DateTimeImmutable((string) ($data['datum_von'] ?? 'now')),
-            new \DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
+            new DateTimeImmutable((string) ($data['datum_von'] ?? 'now')),
+            new DateTimeImmutable((string) ($data['datum_bis'] ?? 'now')),
         );
 
-        $tKey      = $data['template_key'] ?? 'std_7';
+        $tKey = $data['template_key'] ?? 'std_7';
         $templates = (array) $this->config->get('permit_templates', []);
-
-        // FIX: Doppeltes Fallback, um TypeErrors zu verhindern, falls selbst std_7 in der Config fehlt
         $template = $templates[$tKey] ?? $templates['std_7'] ?? ['prices' => []];
 
         $vehicleTypes = (array) $this->config->get('vehicle_types', []);
-        $defaultType  = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
-        $typ          = $data['typ'] ?? $defaultType;
+        $defaultType = $vehicleTypes === [] ? 'pkw' : \array_key_first($vehicleTypes);
+        $typ = $data['typ'] ?? $defaultType;
 
         $data['preis'] = (float) ($template['prices'][$typ] ?? ($template['prices'][$defaultType] ?? 0.0));
 
-        $token     = \bin2hex(\random_bytes(32));
+        $token = \bin2hex(\random_bytes(32));
         $shortCode = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
         $data['verification_token'] = $token;
-        $data['verification_code']  = $shortCode;
+        $data['verification_code'] = $shortCode;
 
-        $hours   = (int) $this->config->get('hours_pending_verify', 24);
+        $hours = (int) $this->config->get('hours_pending_verify', 24);
         $expires = $this->clock->now()->modify("+{$hours} hours");
 
         $req = new VerificationRequest($token, $expires, $data);
 
-        $allPending         = $this->verificationRepository->loadPending();
+        $allPending = $this->verificationRepository->loadPending();
         $allPending[$token] = $req;
-
         $this->verificationRepository->savePending($allPending);
+
         $this->eventDispatcher->dispatch(new VerificationRequestedEvent($data, $token, $shortCode));
 
         return $token;
@@ -106,18 +108,17 @@ final readonly class PermitService
 
     public function updateVerifiedRequest(string $token, string $sessionEmail, array $newData): string
     {
-        // FIX: Hard-Check der Parzellen-Limits und Kollisionen auch beim BEARBEITEN des Antrags!
-        $plotVO  = new PlotNumber($newData['parzelle'] ?? '');
+        $plotVO = new PlotNumber($newData['parzelle'] ?? '');
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
 
         if ($plotVO->value > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
+            throw new InvalidArgumentException("Die eingegebene Parzelle {$plotVO->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
         }
 
         $this->validateNoCollisions(
             $plotVO->value,
-            new \DateTimeImmutable((string) ($newData['datum_von'] ?? 'now')),
-            new \DateTimeImmutable((string) ($newData['datum_bis'] ?? 'now')),
+            new DateTimeImmutable((string) ($newData['datum_von'] ?? 'now')),
+            new DateTimeImmutable((string) ($newData['datum_bis'] ?? 'now')),
         );
 
         $oldData = $this->getVerifiedRequest($token);
@@ -132,15 +133,15 @@ final readonly class PermitService
             || ($oldData['typ'] ?? '') !== $newData['typ']
             || ($oldData['voucher'] ?? '') !== $newData['voucher'];
 
-        if (! $priceRelevantChanged) {
-            $merged           = \array_merge($oldData, $newData);
-            $merged['preis']  = $oldData['preis'] ?? 0;
+        if (!$priceRelevantChanged) {
+            $merged = \array_merge($oldData, $newData);
+            $merged['preis'] = $oldData['preis'] ?? 0;
             $merged['status'] = PermitStatus::Offen->value;
 
-            $allVerified         = $this->verificationRepository->loadVerified();
-            $expires             = $allVerified[$token]->expiresAt ?? $this->clock->now()->modify('+48 hours');
-            $allVerified[$token] = new VerificationRequest($token, $expires, $merged);
+            $allVerified = $this->verificationRepository->loadVerified();
+            $expires = $allVerified[$token]->expiresAt ?? $this->clock->now()->modify('+48 hours');
 
+            $allVerified[$token] = new VerificationRequest($token, $expires, $merged);
             $this->verificationRepository->saveVerified($allVerified);
 
             return 'redirect_checkout';
@@ -159,15 +160,14 @@ final readonly class PermitService
 
     public function confirmEmail(string $input): ?array
     {
-        $allPending   = $this->verificationRepository->loadPending();
-        $input        = \strtoupper(\trim($input));
-        $matchedToken = null;
+        $allPending = $this->verificationRepository->loadPending();
+        $input = \strtoupper(\trim($input));
 
+        $matchedToken = null;
         foreach ($allPending as $t => $req) {
             $strToken = (string) $t;
             if (\strtoupper($strToken) === $input || \strtoupper((string) ($req->data['verification_code'] ?? '')) === $input) {
                 $matchedToken = $strToken;
-
                 break;
             }
         }
@@ -185,30 +185,30 @@ final readonly class PermitService
         }
 
         $token = $matchedToken;
-        $req   = $allPending[$token];
-        $data  = $req->data;
+        $req = $allPending[$token];
+        $data = $req->data;
 
         unset($allPending[$token]);
         $this->verificationRepository->savePending($allPending);
 
-        $hours               = (int) $this->config->get('hours_pending_finalize', 48);
-        $expires             = $this->clock->now()->modify("+{$hours} hours");
+        $hours = (int) $this->config->get('hours_pending_finalize', 48);
+        $expires = $this->clock->now()->modify("+{$hours} hours");
+
         $data['verified_at'] = $this->clock->nowAsString();
 
         $voucherCodeStr = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
         if ($voucherCodeStr !== '') {
             $voucher = $this->voucherService->useVoucher($voucherCodeStr, $data);
-
             if ($voucher !== null) {
-                $originalPriceVO   = new Price((float) $data['preis']);
+                $originalPriceVO = new Price((float) $data['preis']);
                 $discountedPriceVO = $this->calculateDiscountedPrice($originalPriceVO, $voucher);
-                $finalPrice        = $discountedPriceVO->value;
+                $finalPrice = $discountedPriceVO->value;
 
                 if ($finalPrice <= 0.0) {
-                    $data['preis']  = 0.0;
+                    $data['preis'] = 0.0;
                     $data['status'] = PermitStatus::Bezahlt->value;
 
-                    $allVerified         = $this->verificationRepository->loadVerified();
+                    $allVerified = $this->verificationRepository->loadVerified();
                     $allVerified[$token] = new VerificationRequest($token, $expires, $data);
                     $this->verificationRepository->saveVerified($allVerified);
 
@@ -221,13 +221,13 @@ final readonly class PermitService
                     ];
                 }
 
-                $data['preis']           = $finalPrice;
+                $data['preis'] = $finalPrice;
                 $data['voucher_applied'] = $voucherCodeStr;
                 $data['voucher_details'] = ['type' => $voucher->type, 'value' => $voucher->value];
             }
         }
 
-        $allVerified         = $this->verificationRepository->loadVerified();
+        $allVerified = $this->verificationRepository->loadVerified();
         $allVerified[$token] = new VerificationRequest($token, $expires, $data);
         $this->verificationRepository->saveVerified($allVerified);
 
@@ -241,15 +241,16 @@ final readonly class PermitService
         return $this->lockManager->executeWithLock('checkout', function () use ($token, $status, $kommentar) {
             $allVerified = $this->verificationRepository->loadVerified();
 
-            if (! isset($allVerified[$token])) {
-                throw new \RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
+            if (!isset($allVerified[$token])) {
+                throw new RuntimeException('Antragssitzung abgelaufen oder bereits abgeschlossen.');
             }
 
-            $data                       = $allVerified[$token]->data;
-            $data['status']             = $status->value;
+            $data = $allVerified[$token]->data;
+            $data['status'] = $status->value;
             $data['interner_kommentar'] = $kommentar;
 
-            $dto    = PermitFormData::fromArray($data);
+            $dto = PermitFormData::fromArray($data);
+
             $permit = $this->createPermit($dto, true);
 
             unset($allVerified[$token]);
@@ -264,25 +265,23 @@ final readonly class PermitService
         // Obergrenze der Parzelle bei direkter/manueller Ausstellung prüfen
         $maxPlot = (int) $this->config->get('max_plot_number', 9999);
         if ($data->parzelle->value > $maxPlot) {
-            throw new \InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->value} existiert nicht."); // Das Maximum in dieser Anlage ist {$maxPlot}.
+            throw new InvalidArgumentException("Die eingegebene Parzelle {$data->parzelle->value} existiert nicht.");
         }
 
-        $tKeyStr   = $data->templateKey->value;
+        $tKeyStr = $data->templateKey->value;
         $templates = (array) $this->config->get('permit_templates', []);
-
-        // FIX: Verhindert TypeError
         $template = (array) ($templates[$tKeyStr] ?? $templates['std_7'] ?? ['days' => 1, 'prices' => []]);
 
-        $startDate = new \DateTimeImmutable($data->datumVon);
-
+        $startDate = new DateTimeImmutable($data->datumVon);
         if ($template['days'] === 'custom') {
-            $endDate = new \DateTimeImmutable($data->datumBis);
+            $endDate = new DateTimeImmutable($data->datumBis);
         } else {
             $daysToAdd = \max(0, (int) $template['days'] - 1);
-            $endDate   = $startDate->modify('+' . $daysToAdd . ' days');
+            $endDate = $startDate->modify('+' . $daysToAdd . ' days');
         }
 
-        $typ   = $data->typ;
+        $typ = $data->typ;
+
         $preis = $data->manualPrice->value > 0.0
             ? $data->manualPrice->value
             : (float) ($template['prices'][$typ] ?? 0.0);
@@ -292,12 +291,11 @@ final readonly class PermitService
         do {
             $randomId = $this->generateV4Suffix();
 
-            $displayPlate    = $data->kennzeichen->value;
+            $displayPlate = $data->kennzeichen->value;
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
-            $platePart       = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
+            $platePart = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
 
             $useLongCode = (bool) $this->config->get('use_long_permit_code', false);
-
             if ($useLongCode) {
                 // Wir nutzen getFormatted() um das 0036 Layout im generierten Code beizubehalten!
                 $fullIdentifier = \sprintf(
@@ -310,10 +308,10 @@ final readonly class PermitService
             } else {
                 $fullIdentifier = $randomId;
             }
-        } while (! $this->isCodeGloballyUnique($fullIdentifier));
+        } while (!$this->isCodeGloballyUnique($fullIdentifier));
 
         $purposes = (array) $this->config->get('purposes', []);
-        $zweck    = (string) ($purposes[$data->zweck] ?? 'Privat');
+        $zweck = (string) ($purposes[$data->zweck] ?? 'Privat');
 
         $permit = new Permit(
             code: new PermitCode($fullIdentifier),
@@ -335,8 +333,8 @@ final readonly class PermitService
             agreements: $data->agreements,
         );
 
-        if (! $this->storage->save($permit)) {
-            throw new \RuntimeException('Speicherfehler.');
+        if (!$this->storage->save($permit)) {
+            throw new RuntimeException('Speicherfehler.');
         }
 
         if ($sendMails) {
@@ -349,17 +347,16 @@ final readonly class PermitService
     public function manualActivate(string $code, ?string $grund = null, ?string $buchungsdatum = null): bool
     {
         $permit = $this->storage->findByHash($code);
-
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             return false;
         }
 
         // Parse das übergebene Buchungsdatum flexibel in ein echtes DateTimeImmutable-Objekt
         $dtBezahltAm = null;
         if ($buchungsdatum) {
-            $dateObj = \DateTimeImmutable::createFromFormat('d.m.y', \trim($buchungsdatum));
+            $dateObj = DateTimeImmutable::createFromFormat('d.m.y', \trim($buchungsdatum));
             if ($dateObj === false) {
-                $dateObj = \DateTimeImmutable::createFromFormat('d.m.Y', \trim($buchungsdatum));
+                $dateObj = DateTimeImmutable::createFromFormat('d.m.Y', \trim($buchungsdatum));
             }
             $dtBezahltAm = $dateObj !== false ? $dateObj : $this->clock->now();
         } else {
@@ -367,7 +364,8 @@ final readonly class PermitService
         }
 
         $aktuellerKommentar = $permit->interner_kommentar ?? '';
-        if ($grund && ! \str_contains($aktuellerKommentar, $grund)) {
+
+        if ($grund && !\str_contains($aktuellerKommentar, $grund)) {
             $neuerKommentar = $aktuellerKommentar !== '' ? $aktuellerKommentar . ' | ' . $grund : $grund;
         } else {
             $neuerKommentar = $aktuellerKommentar;
@@ -379,8 +377,13 @@ final readonly class PermitService
             owner: $permit->owner,
             vehicle: $permit->vehicle,
             validity: $permit->validity,
-            status: new Status(PermitStatus::Bezahlt, $permit->isSuspended(), $permit->getSuspensionReason(), $permit->status->reminder_sent),
-            erstellt: $permit->getCreatedAt(), // WICHTIG: Erstellungsdatum bleibt absolut unangetastet!
+            status: new Status(
+                PermitStatus::Bezahlt,
+                $permit->isSuspended(),
+                $permit->getSuspensionReason(),
+                $permit->status->reminder_sent,
+            ),
+            erstellt: $permit->getCreatedAt(),
             interner_kommentar: $neuerKommentar,
             agreements: $permit->agreements,
             state: null,
@@ -393,8 +396,7 @@ final readonly class PermitService
     public function toggleSuspension(string $code, bool $status, ?string $reason = null): bool
     {
         $permit = $this->storage->findByHash($code);
-
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             return false;
         }
 
@@ -415,10 +417,10 @@ final readonly class PermitService
     public function searchAndPaginate(string $query, string $tab, string $templateType, int $page, int $limit): array
     {
         $allActive = $this->storage->getAll();
-        $archived  = [];
 
+        $archived = [];
         if (\in_array($tab, ['all', 'archive'], true)) {
-            $arcCfg      = $this->config->get('storage_config')['permits_archive'];
+            $arcCfg = $this->config->get('storage_config')['permits_archive'];
             $archivePath = $this->config->getStoragePath($arcCfg['file'] ?? 'permits_archive.json');
 
             if (\file_exists($archivePath)) {
@@ -429,10 +431,10 @@ final readonly class PermitService
             }
         }
 
-        $combined        = \array_merge($allActive, $archived);
-        $filtered        = [];
-        $queryLower      = \strtolower($query);
-        $now             = $this->clock->now();
+        $combined = \array_merge($allActive, $archived);
+        $filtered = [];
+        $queryLower = \strtolower($query);
+        $now = $this->clock->now();
         $permitTemplates = $this->config->get('permit_templates', []);
 
         foreach ($combined as $permit) {
@@ -444,19 +446,19 @@ final readonly class PermitService
             }
 
             $isArchived = $this->archiveRepository->isCodeInArchive($permit->code->value);
-            $isExpired  = $permit->isExpired($now);
+            $isExpired = $permit->isExpired($now);
 
             if ($tab === 'active' && ($isArchived || $isExpired)) {
                 continue;
             }
-            if ($tab === 'expired' && (! $isExpired || $isArchived)) {
+            if ($tab === 'expired' && (!$isExpired || $isArchived)) {
                 continue;
             }
-            if ($tab === 'archive' && ! $isArchived) {
+            if ($tab === 'archive' && !$isArchived) {
                 continue;
             }
 
-            if (! $permit->matchesSearch($queryLower)) {
+            if (!$permit->matchesSearch($queryLower)) {
                 continue;
             }
 
@@ -465,24 +467,24 @@ final readonly class PermitService
 
         \usort($filtered, fn ($a, $b): int => $b->getCreatedAt() <=> $a->getCreatedAt());
 
-        $total  = \count($filtered);
+        $total = \count($filtered);
         $offset = ($page - 1) * $limit;
-        $items  = \array_slice($filtered, $offset, $limit);
+        $items = \array_slice($filtered, $offset, $limit);
 
         $formattedItems = \array_map(fn ($permit): array => [
-            'bis'          => $permit->getValidUntil()->format('d.m.Y'),
-            'code'         => $permit->code->value,
-            'email'        => $permit->getOwnerEmail(),
-            'erstellt'     => $permit->getCreatedAt()->format('d.m.Y H:i'),
-            'is_archived'  => $this->archiveRepository->isCodeInArchive($permit->code->value),
-            'kennzeichen'  => $permit->getLicensePlate(),
-            'name'         => $permit->getOwnerName(),
-            'parzelle'     => $permit->getPlotNumber(),
-            'preis'        => $permit->getPrice(),
-            'status'       => $permit->getStatus()->value,
+            'bis' => $permit->getValidUntil()->format('d.m.Y'),
+            'code' => $permit->code->value,
+            'email' => $permit->getOwnerEmail(),
+            'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
+            'is_archived' => $this->archiveRepository->isCodeInArchive($permit->code->value),
+            'kennzeichen' => $permit->getLicensePlate(),
+            'name' => $permit->getOwnerName(),
+            'parzelle' => $permit->getPlotNumber(),
+            'preis' => $permit->getPrice(),
+            'status' => $permit->getStatus()->value,
             'template_key' => $permit->template_key->value,
-            'von'          => $permit->getValidFrom()->format('d.m.Y'),
-            'zweck'        => $permit->getPurpose(),
+            'von' => $permit->getValidFrom()->format('d.m.Y'),
+            'zweck' => $permit->getPurpose(),
         ], $items);
 
         return ['items' => $formattedItems, 'total' => $total];
@@ -508,12 +510,12 @@ final readonly class PermitService
     /**
      * Berechnet das dynamische Zahlungsziel einer Genehmigung.
      *
-     * @param  Permit             $permit Die zu prüfende Genehmigung
-     * @return \DateTimeImmutable Das berechnete Fälligkeitsdatum
+     * @param Permit $permit Die zu prüfende Genehmigung
+     * @return DateTimeImmutable Das berechnete Fälligkeitsdatum
      */
-    public function calculatePaymentDueDate(Permit $permit): \DateTimeImmutable
+    public function calculatePaymentDueDate(Permit $permit): DateTimeImmutable
     {
-        $dueDays            = (int) $this->config->get('payment_due_days', 14);
+        $dueDays = (int) $this->config->get('payment_due_days', 14);
         $daysBeforeValidity = (int) $this->config->get('payment_due_days_before_validity', 2);
 
         // Fallback: Mindestens X Tage ab Erstellung Zeit zum Bezahlen
@@ -529,8 +531,8 @@ final readonly class PermitService
     /**
      * Ermittelt die aktuelle Mahnstufe einer Genehmigung.
      *
-     * @param  Permit $permit Die zu prüfende Genehmigung
-     * @return int    0 = Im Zeitrahmen/Bezahlt, 1 = Mahnfrist, 2 = Überfällig
+     * @param Permit $permit Die zu prüfende Genehmigung
+     * @return int 0 = Im Zeitrahmen/Bezahlt, 1 = Mahnfrist, 2 = Überfällig
      */
     public function getOverdueLevel(Permit $permit): int
     {
@@ -538,10 +540,10 @@ final readonly class PermitService
             return 0;
         }
 
-        $now          = $this->clock->now();
+        $now = $this->clock->now();
         $userDeadline = $this->calculatePaymentDueDate($permit);
 
-        $notifyDays          = (int) $this->config->get('payment_due_days_notify', 2);
+        $notifyDays = (int) $this->config->get('payment_due_days_notify', 2);
         $staffAlertThreshold = $userDeadline->modify("+{$notifyDays} days");
 
         if ($now > $staffAlertThreshold) {
@@ -557,21 +559,22 @@ final readonly class PermitService
 
     public function autoArchiveExpiredPermits(int $graceDays = 0): int
     {
-        $allPermits    = $this->storage->getAll();
-        $toArchive     = [];
+        $allPermits = $this->storage->getAll();
+
+        $toArchive = [];
         $codesToDelete = [];
-        $cutoffDate    = $this->clock->now()->modify("-{$graceDays} days")->setTime(0, 0, 0);
+        $cutoffDate = $this->clock->now()->modify("-{$graceDays} days")->setTime(0, 0, 0);
 
         foreach ($allPermits as $permit) {
             if ($permit->getValidUntil() < $cutoffDate) {
                 if (\in_array($permit->getStatus(), [PermitStatus::Bezahlt, PermitStatus::Storniert], true)) {
-                    $toArchive[]     = $permit;
+                    $toArchive[] = $permit;
                     $codesToDelete[] = $permit->code->value;
                 }
             }
         }
 
-        if (! empty($toArchive)) {
+        if (!empty($toArchive)) {
             $this->archiveRepository->archivePermits(0, $toArchive);
             $this->storage->deleteMultiple($codesToDelete);
         }
@@ -579,7 +582,7 @@ final readonly class PermitService
         return \count($toArchive);
     }
 
-    private function validateNoCollisions(int $parzelleId, \DateTimeImmutable $start, \DateTimeImmutable $end): void
+    private function validateNoCollisions(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end): void
     {
         foreach ($this->storage->getAll() as $permit) {
             if ($permit->hasCollision($parzelleId, $start, $end)) {
@@ -596,9 +599,9 @@ final readonly class PermitService
         $allPending = $this->verificationRepository->loadPending();
         foreach ($allPending as $pendingReq) {
             $pendingData = $pendingReq->data;
-            $pPlot       = (int) ($pendingData['parzelle'] ?? 0);
-            $pStart      = new \DateTimeImmutable((string) ($pendingData['datum_von'] ?? 'now'));
-            $pEnd        = new \DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
+            $pPlot = (int) ($pendingData['parzelle'] ?? 0);
+            $pStart = new DateTimeImmutable((string) ($pendingData['datum_von'] ?? 'now'));
+            $pEnd = new DateTimeImmutable((string) ($pendingData['datum_bis'] ?? 'now'));
 
             if ($pPlot === $parzelleId && DateRangeHelper::overlaps($pStart, $pEnd, $start, $end)) {
                 $plotFormatted = \str_pad((string) $parzelleId, 4, '0', \STR_PAD_LEFT);
@@ -614,7 +617,7 @@ final readonly class PermitService
     private function generateV4Suffix(): string
     {
         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        $res   = '';
+        $res = '';
         for ($i = 0; $i < 8; ++$i) {
             $res .= $chars[\random_int(0, \strlen($chars) - 1)];
         }
@@ -627,8 +630,9 @@ final readonly class PermitService
         if (\trim($email) === '') {
             return;
         }
-        if (! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
-            throw new \RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
+
+        if (!\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+            throw new RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
     }
 
@@ -637,9 +641,11 @@ final readonly class PermitService
         if ($this->storage->findByHash($fullIdentifier) instanceof Permit) {
             return false;
         }
+
         if ($this->archiveRepository->isCodeInArchive($fullIdentifier)) {
             return false;
         }
+
         if ($this->cancelledRepository->isCodeCancelled($fullIdentifier)) {
             return false;
         }
@@ -649,15 +655,15 @@ final readonly class PermitService
 
     public function calculateDiscountedPrice(Price $originalPrice, Voucher $voucher): Price
     {
-        $type  = $voucher->type;
+        $type = $voucher->type;
         $value = $voucher->value;
-        $orig  = $originalPrice->value;
+        $orig = $originalPrice->value;
 
         $newPrice = match ($type) {
-            'fixed'   => $value,
-            'free'    => 0.0,
+            'fixed' => $value,
+            'free' => 0.0,
             'percent' => $orig * (1 - ($value / 100)),
-            default   => $orig,
+            default => $orig,
         };
 
         return new Price(\max(0.0, $newPrice));
@@ -666,33 +672,34 @@ final readonly class PermitService
     /**
      * Storniert eine Genehmigung durch den User, verschiebt sie anonymisiert ins Archiv und löscht sie.
      *
-     * @throws \DomainException
+     * @throws DomainException
      */
     public function cancelPermit(string $code, string $email): void
     {
-        // 1. Config Check (Erlaubt die globale Einstellung Stornierungen?)
-        if (! $this->config->get('allow_user_cancellation', true)) {
-            throw new \DomainException('Stornierungen sind derzeit deaktiviert.');
+        if (!$this->config->get('allow_user_cancellation', true)) {
+            throw new DomainException('Stornierungen sind derzeit deaktiviert.');
         }
 
         $permit = $this->storage->findByHash($code);
-        if (! $permit instanceof Permit) {
-            throw new \DomainException('Genehmigung nicht gefunden.');
+
+        if (!$permit instanceof Permit) {
+            throw new DomainException('Genehmigung nicht gefunden.');
         }
 
         // 2. Sicherheits-Check: Gehört das Permit zur E-Mail der Session?
         if (\strtolower($permit->getOwnerEmail()) !== \strtolower(\trim($email))) {
-            throw new \DomainException('Keine Berechtigung für diese Genehmigung.');
+            throw new DomainException('Keine Berechtigung für diese Genehmigung.');
         }
 
         // 3. Domain-Regeln: Nur unbezahlte und zukünftige Permits dürfen storniert werden
         if ($permit->isPaid()) {
-            throw new \DomainException('Bereits bezahlte Genehmigungen können nicht automatisch storniert werden.');
+            throw new DomainException('Bereits bezahlte Genehmigungen können nicht automatisch storniert werden.');
         }
 
         $now = $this->clock->now();
-        if (! $permit->isFuture($now)) {
-            throw new \DomainException('Nur Genehmigungen, deren Gültigkeit in der Zukunft liegt, können storniert werden.');
+
+        if (!$permit->isFuture($now)) {
+            throw new DomainException('Nur Genehmigungen, deren Gültigkeit in der Zukunft liegt, können storniert werden.');
         }
 
         // 4. E-Mail Event triggern (MUSS VOR der Anonymisierung passieren, damit die E-Mail noch bekannt ist)
@@ -728,8 +735,9 @@ final readonly class PermitService
      */
     public function sendPaymentReminders(): int
     {
-        $now        = $this->clock->now();
-        $sentCount  = 0;
+        $now = $this->clock->now();
+        $sentCount = 0;
+
         $allPermits = $this->storage->getAll();
 
         foreach ($allPermits as $permit) {
@@ -770,7 +778,6 @@ final readonly class PermitService
 
                 // 2. Event zum E-Mail-Versand auslösen
                 $this->eventDispatcher->dispatch(new PaymentReminderEvent($updatedPermit));
-
                 ++$sentCount;
             }
         }

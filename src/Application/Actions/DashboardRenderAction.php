@@ -60,7 +60,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         $paginationCfg = $this->config->get('pagination', []);
-        $dto           = DashboardViewRequest::fromRequest(
+        $dto = DashboardViewRequest::fromRequest(
             $request->get,
             $this->sessionManager->getAdminFilters(),
             $paginationCfg,
@@ -72,23 +72,23 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         // 1. Aktive Daten holen
         $allActivePermits = $this->storage->getAll();
-        $filteredActive   = $this->filterService->getFilteredPermits($dto->start, $dto->end, $dto->type, $dto->query);
+        $filteredActive = $this->filterService->getFilteredPermits($dto->start, $dto->end, $dto->type, $dto->query);
 
         // 2. Archiv laden (Lazy-Loading)
         $filterStartYear = (int) \date('Y', \strtotime($dto->start));
-        $requestedDepth  = (int) ($request->get['archive_depth'] ?? $filterStartYear);
-        $minArchiveYear  = \min($filterStartYear, $requestedDepth);
+        $requestedDepth = (int) ($request->get['archive_depth'] ?? $filterStartYear);
+        $minArchiveYear = \min($filterStartYear, $requestedDepth);
 
         $archivedPermits = $this->archiveRepository->getArchivedPermits($minArchiveYear);
 
         // 3. Datenbestände kombinieren
-        $allHistoricalAndActive      = $allActivePermits;
+        $allHistoricalAndActive = $allActivePermits;
         $filteredHistoricalAndActive = $filteredActive;
 
         $queryLower = \strtolower(\trim($dto->query));
         foreach ($archivedPermits as $p) {
             $allHistoricalAndActive[] = $p;
-            $pDate                    = $p->getCreatedAt()->format('Y-m-d');
+            $pDate = $p->getCreatedAt()->format('Y-m-d');
 
             if ($pDate >= $dto->start && $pDate <= $dto->end) {
                 if ($dto->type === 'all' || (($this->config->get('permit_templates')[$p->template_key->value]['type'] ?? 'standard') === $dto->type)) {
@@ -110,7 +110,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         }
 
         // 5. Restliche Daten laden
-        $vouchers          = $this->voucherRepository->loadAll();
+        $vouchers = $this->voucherRepository->loadAll();
         $voucherValidities = [];
         foreach ($vouchers as $code => $v) {
             // FIX: Verwende $v->code->value als Schlüssel, da es ein Value Object ist!
@@ -119,9 +119,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
 
-        $auditPage   = \max(1, (int) ($request->get['audit_page'] ?? 1));
+        $auditPage = \max(1, (int) ($request->get['audit_page'] ?? 1));
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
-        $auditData   = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
+        $auditData = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
 
         // Formulardaten (bei Fehlern) laden und Session leeren
         $formData = $this->sessionManager->getFormData() ?? [];
@@ -129,35 +129,35 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         // 6. View rendern
         $this->renderer->render('admin_dashboard', [
-            'allowedLimits'     => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
-            'allPermits'        => $allHistoricalAndActive,
-            'auditFilter'       => $auditFilter,
-            'auditLogs'         => $auditData['items'],
-            'auditPage'         => $auditPage,
-            'auditTotal'        => $auditData['total'],
-            'auth'              => $this->auth,
-            'backups'           => $this->backupService->listBackups(),
-            'cancelledPermits'  => $cancelledPermits,
-            'currentPage'       => $dto->page,
-            'filterEnd'         => $dto->end,
-            'filterQuery'       => $dto->query,
-            'filterStart'       => $dto->start,
-            'filterType'        => $dto->type,
-            'formData'          => $formData, // An Template übergeben
-            'groupRepository'   => $this->groupRepository,
-            'imageStorage'      => $this->imageStorage,
-            'itemsPerPage'      => $dto->limit,
-            'mailLogs'          => $this->mailLog->loadLogs(),
-            'minArchiveYear'    => $minArchiveYear,
-            'overdueLevels'     => $overdueLevels,
-            'periodStats'       => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
-            'permitGroups'      => $permitGroups,
-            'structure'         => $this->config->get('structure', []),
-            'userRepository'    => $this->userRepository,
-            'voucherArchive'    => $this->voucherRepository->loadArchive(),
-            'vouchers'          => $vouchers,
+            'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
+            'allPermits' => $allHistoricalAndActive,
+            'auditFilter' => $auditFilter,
+            'auditLogs' => $auditData['items'],
+            'auditPage' => $auditPage,
+            'auditTotal' => $auditData['total'],
+            'auth' => $this->auth,
+            'backups' => $this->backupService->listBackups(),
+            'cancelledPermits' => $cancelledPermits,
+            'currentPage' => $dto->page,
+            'filterEnd' => $dto->end,
+            'filterQuery' => $dto->query,
+            'filterStart' => $dto->start,
+            'filterType' => $dto->type,
+            'formData' => $formData, // An Template übergeben
+            'groupRepository' => $this->groupRepository,
+            'imageStorage' => $this->imageStorage,
+            'itemsPerPage' => $dto->limit,
+            'mailLogs' => $this->mailLog->loadLogs(),
+            'minArchiveYear' => $minArchiveYear,
+            'overdueLevels' => $overdueLevels,
+            'periodStats' => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
+            'permitGroups' => $permitGroups,
+            'structure' => $this->config->get('structure', []),
+            'userRepository' => $this->userRepository,
+            'voucherArchive' => $this->voucherRepository->loadArchive(),
+            'vouchers' => $vouchers,
             'voucherValidities' => $voucherValidities,
-            'yearlyStats'       => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
+            'yearlyStats' => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
         ]);
 
         return null;

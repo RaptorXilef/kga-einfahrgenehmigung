@@ -40,24 +40,26 @@ final readonly class HistoryRenderAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $dto            = ViewRenderRequest::fromArray($request->get);
+        $dto = ViewRenderRequest::fromArray($request->get);
+
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         if ($emailInSession === '') {
             $this->renderer->render('history_login', [
                 'isSuccess' => $dto->isSuccess,
-                'step'      => $dto->step,
+                'step' => $dto->step,
             ]);
 
             return null;
         }
 
-        $permits    = $this->permitService->getHistoryByEmail($emailInSession);
+        $permits = $this->permitService->getHistoryByEmail($emailInSession);
+
         $loadedYear = $dto->loadArchive;
 
         if ($loadedYear > 0) {
-            $arcCfg      = $this->config->get('storage_config')['permits_archive'];
-            $yearFile    = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern'] ?? $arcCfg['file']);
+            $arcCfg = $this->config->get('storage_config')['permits_archive'];
+            $yearFile = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern'] ?? $arcCfg['file']);
             $archivePath = $this->config->getStoragePath($yearFile);
 
             if (\file_exists($archivePath)) {
@@ -80,10 +82,10 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 
         $this->renderer->render('history_list', [
             'currentArchiveYear' => $loadedYear,
-            'email'              => $emailInSession,
-            'isSuccess'          => $dto->isSuccess,
-            'overdueLevels'      => $overdueLevels,
-            'permits'            => $permits,
+            'email' => $emailInSession,
+            'isSuccess' => $dto->isSuccess,
+            'overdueLevels' => $overdueLevels,
+            'permits' => $permits,
         ]);
 
         return null;

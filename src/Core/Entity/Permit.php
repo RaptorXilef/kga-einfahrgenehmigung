@@ -6,6 +6,7 @@ namespace App\Core\Entity;
 
 use App\Core\ValueObject\PermitCode;
 use App\Core\ValueObject\TemplateKey;
+use DateTimeImmutable;
 
 /**
  * Haupt-Aggregatwurzel (Entity) für eine Einfahr-/Ausnahme-Genehmigung.
@@ -27,11 +28,11 @@ final readonly class Permit
         public Vehicle $vehicle,
         public Validity $validity,
         public Status $status,
-        public \DateTimeImmutable $erstellt = new \DateTimeImmutable(),
+        public DateTimeImmutable $erstellt = new DateTimeImmutable(),
         public ?string $interner_kommentar = null,                          // Für manuelle Buchung
         public array $agreements = [],
         public ?Status $state = null,                                       // Kompatibilitäts-Dummy falls genutzt
-        public ?\DateTimeImmutable $bezahlt_am = null,                      // Separates Bezahldatum
+        public ?DateTimeImmutable $bezahlt_am = null,                       // Separates Bezahldatum
     ) {
     }
 
@@ -44,7 +45,7 @@ final readonly class Permit
      */
     public function isValid(bool $requirePayment = false): bool
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
         // 1. Check: Manuell gesperrt?
         if ($this->status->is_suspended) {
@@ -52,7 +53,7 @@ final readonly class Permit
         }
 
         // Zahlungsstatus prüfen, falls gefordert
-        if ($requirePayment && $this->status->current === PermitStatus::Bezahlt) {
+        if ($requirePayment && $this->status->current !== PermitStatus::Bezahlt) {
             return false;
         }
 
@@ -63,32 +64,26 @@ final readonly class Permit
         return $now >= $this->validity->von && $now <= $endOfPeriod;
     }
 
-    // TODO Reihenfolge der Methoden optimieren/sortieren und ggf. mit Kommentaren in Kategorien unterteilen.
-    // TODO DOCBLOCK
-    public function isExpired(\DateTimeImmutable $now): bool
+    public function isExpired(DateTimeImmutable $now): bool
     {
         return $this->validity->bis < $now;
     }
 
-    // TODO DOCBLOCK
-    public function isFuture(\DateTimeImmutable $now): bool
+    public function isFuture(DateTimeImmutable $now): bool
     {
         return $this->validity->von > $now;
     }
 
-    // TODO DOCBLOCK
     public function isPaid(): bool
     {
         return $this->status->current === PermitStatus::Bezahlt;
     }
 
-    // TODO DOCBLOCK
     public function isSuspended(): bool
     {
         return $this->status->is_suspended;
     }
 
-    // TODO DOCBLOCK
     public function getStatus(): PermitStatus
     {
         return $this->status->current;
@@ -101,71 +96,57 @@ final readonly class Permit
         return $this->owner->name;
     }
 
-    // TODO DOCBLOCK
     public function getOwnerEmail(): string
     {
         return $this->owner->email ? $this->owner->email->value : '';
     }
 
-    // TODO DOCBLOCK
     public function getPlotNumber(): string
     {
-        // UI bekommt weiterhin "0036"
         return $this->owner->parzelle->getFormatted();
     }
 
-    // --- Vehicle Delegation ---
-    // TODO DOCBLOCK
     public function getVehicleType(): string
     {
         return $this->vehicle->typ;
     }
 
-    // TODO DOCBLOCK
     public function getLicensePlate(): string
     {
         return $this->vehicle->kennzeichen->value;
     }
 
-    // TODO DOCBLOCK
     public function getCompany(): ?string
     {
         return $this->vehicle->firma;
     }
 
-    // --- Validity Delegation ---
-    // TODO DOCBLOCK
     public function getPrice(): float
     {
         return $this->validity->preis->value;
     }
 
-    // TODO DOCBLOCK
     public function getPurpose(): string
     {
         return $this->validity->zweck;
     }
 
-    // TODO DOCBLOCK
-    public function getValidFrom(): \DateTimeImmutable
+    public function getValidFrom(): DateTimeImmutable
     {
         return $this->validity->von;
     }
 
-    // TODO DOCBLOCK
-    public function getValidUntil(): \DateTimeImmutable
+    public function getValidUntil(): DateTimeImmutable
     {
         return $this->validity->bis;
     }
 
-    // TODO DOCBLOCK
     public function getSuspensionReason(): ?string
     {
         return $this->status->suspension_reason;
     }
 
-    // TODO DOCBLOCK
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->erstellt;
     }
@@ -185,11 +166,11 @@ final readonly class Permit
         // Suche nutzt das formatierte "0036" Format, damit Suchen nach "0036" klappen.
         $searchString = \strtolower(
             $this->code->value . ' ' .
-            $this->owner->name . ' ' .
-            $emailStr . ' ' .
-            $this->vehicle->kennzeichen->value . ' ' .
-            $this->owner->parzelle->getFormatted() . ' ' .
-            $this->validity->zweck,
+                $this->owner->name . ' ' .
+                $emailStr . ' ' .
+                $this->vehicle->kennzeichen->value . ' ' .
+                $this->owner->parzelle->getFormatted() . ' ' .
+                $this->validity->zweck,
         );
 
         return \str_contains($searchString, $queryLower);
@@ -201,7 +182,7 @@ final readonly class Permit
      *
      * Wir vergleichen jetzt saubere INTs!
      */
-    public function hasCollision(int $parzelleId, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
+    public function hasCollision(int $parzelleId, DateTimeImmutable $start, DateTimeImmutable $end): bool
     {
         if ($this->owner->parzelle->value !== $parzelleId) {
             return false;

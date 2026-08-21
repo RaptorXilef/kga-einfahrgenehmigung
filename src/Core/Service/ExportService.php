@@ -22,20 +22,21 @@ final readonly class ExportService
     public function generateCsv(array $filteredPermits): string
     {
         $output = \fopen('php://temp', 'r+');
-        if (! $output) {
+        if (!$output) {
             return '';
         }
 
-        // BOM für Excel
+        // BOM für Excel (UTF-8)
         \fwrite($output, \chr(0xEF) . \chr(0xBB) . \chr(0xBF));
+
         \fputcsv($output, ['Kennung', 'Name', 'E-Mail', 'Parzelle', 'Typ', 'Kennzeichen', 'Firma', 'Zweck', 'Einnahme (€)', 'Status', 'Erstellt am'], ';', '"', '\\');
 
         $vehicleTypes = $this->config->get('vehicle_types', []);
 
         foreach ($filteredPermits as $permit) {
             $typKey = $permit->getVehicleType();
-            $row    = [
-                $permit->code,
+            $row = [
+                $permit->code->value,
                 $permit->getOwnerName(),
                 $permit->getOwnerEmail(),
                 $permit->getPlotNumber(),

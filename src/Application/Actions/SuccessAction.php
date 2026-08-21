@@ -42,28 +42,25 @@ final readonly class SuccessAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $dto    = SuccessRequest::fromArray($request->get);
-        $code   = $dto->code;
+        $dto = SuccessRequest::fromArray($request->get);
+        $code = $dto->code;
         $method = $dto->method;
 
         $permit = $this->storage->findByHash($code);
-        if (! $permit) {
+        if (!$permit) {
             return new RedirectResponse('index.php');
         }
 
         $epcData = '';
-        $usage   = '';
+        $usage = '';
 
         if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) {
-            // FIX: Entkapseln, weil substr einen nativen String erfordert
-            $permitCodeStr = $permit->code->value;
-            $shortCode     = \substr($permitCodeStr, -6);
-
+            $shortCode = \substr($permit->code->value, -6);
             $nameParts = \explode(' ', $permit->getOwnerName());
-            $vorname   = $nameParts[0] ?? 'Unbekannt';
-            $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
+            $vorname = $nameParts[0] ?? 'Unbekannt';
+            $nachname = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
 
-            $usage   = "EFG-{$nachname}-{$vorname}-{$shortCode}";
+            $usage = "EFG-{$nachname}-{$vorname}-{$shortCode}";
             $epcData = $this->bankQrGenerator->generate($permit->getPrice(), $usage);
         }
 
@@ -73,12 +70,12 @@ final readonly class SuccessAction implements ViewActionInterface
         $dueDate = $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y');
 
         $this->renderer->render('checkout/success', [
-            'dueDate'        => $dueDate,
-            'epcData'        => \urlencode($epcData),
-            'method'         => $method,
-            'permit'         => $permit,
+            'dueDate' => $dueDate,
+            'epcData' => \urlencode($epcData),
+            'method' => $method,
+            'permit' => $permit,
             'requirePayment' => $requirePayment,
-            'usage'          => $usage,
+            'usage' => $usage,
         ]);
 
         return null;
