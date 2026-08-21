@@ -654,11 +654,13 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
             let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
 
             // RegEx erweitert um [EH]? am Ende
+            const patternBerlin = /^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
             const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
             const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
             const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
 
-            if (pattern32.test(clean)) e.target.value = clean.replace(pattern32, '$1-$2 $3');
+            if (patternBerlin.test(clean)) e.target.value = clean.replace(patternBerlin, '$1-$2 $3');
+            else if (pattern32.test(clean)) e.target.value = clean.replace(pattern32, '$1-$2 $3');
             else if (pattern12.test(clean)) e.target.value = clean.replace(pattern12, '$1-$2 $3');
             else if (fallback.test(clean)) e.target.value = clean.replace(fallback, '$1 $2');
             else e.target.value = val.replace(/\s+/g, ' ').trim();

@@ -88,7 +88,12 @@ final readonly class LicensePlate implements Stringable
 
         $val = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
 
-        // Versuch: Typisch deutsches Format erkennen (z.B. B-AB 1234)
+        // Prio 1: Berlin-Regel, um Konflikte bei z.B. BAB1234 (Bamberg vs. Berlin) zu lösen
+        if (\preg_match('/^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
+            return "{$matches[1]}-{$matches[2]} {$matches[3]}";
+        }
+
+        // Prio 2: Typisch deutsches Format erkennen
         if (\preg_match('/^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }

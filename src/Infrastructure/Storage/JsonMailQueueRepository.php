@@ -56,7 +56,7 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
             // #Email #Priorität #Query #Warteschlange
             // PRIORISIERUNG: 0 = Höchste, 9 = Niedrigste
             \usort($queue, function (array $a, array $b): int {
-                $getPrio = fn ($template) => match ($template) {
+                $getPrio = fn ($template): int => match ($template) {
                     'magic_link', 'verify_email' => 0,
                     'permit_a4_document' => 1,
                     'payment_request' => 2,

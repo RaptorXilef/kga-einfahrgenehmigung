@@ -114,20 +114,24 @@ export class PermitFormHandler {
             return;
         }
 
-        let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
+        const clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
 
+        const patternBerlin = /^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
         const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
         const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
         const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
 
-        if (pattern32.test(clean)) {
+        // Prio 1: Wenn es mit B startet, erzwinge Berlin-Formatierung, um Mehrdeutigkeit (Bamberg/Bautzen) zu vermeiden
+        if (patternBerlin.test(clean)) {
+            input.value = clean.replace(patternBerlin, '$1-$2 $3');
+        } else if (pattern32.test(clean)) {
             input.value = clean.replace(pattern32, '$1-$2 $3');
         } else if (pattern12.test(clean)) {
             input.value = clean.replace(pattern12, '$1-$2 $3');
         } else if (fallback.test(clean)) {
             input.value = clean.replace(fallback, '$1 $2');
         } else {
-            // Fallback für internationale Kennzeichen: Einfach doppelte Leerzeichen entfernen
+            // Fallback für internationale Kennzeichen
             input.value = val.replace(/\s+/g, ' ').trim();
         }
     }
