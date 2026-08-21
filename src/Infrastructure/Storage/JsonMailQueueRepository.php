@@ -48,24 +48,22 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
 
         $sentCount = 0;
 
-        $this->executeJsonTransaction($path, function (array &$queue) use ($limit, $processor, &$sentCount) {
-            if (empty($queue)) {
+        $this->executeJsonTransaction($path, function (array &$queue) use ($limit, $processor, &$sentCount): bool {
+            if ($queue === []) {
                 return false;
             }
 
             // #Email #Priorität #Query #Warteschlange
             // PRIORISIERUNG: 0 = Höchste, 9 = Niedrigste
-            \usort($queue, function ($a, $b) {
-                $getPrio = function ($template) {
-                    return match ($template) {
-                        'magic_link', 'verify_email' => 0,
-                        'permit_a4_document' => 1,
-                        'payment_request' => 2,
-                        'permit_cancelled' => 3,
-                        'board_notification' => 5,
-                        'payment_reminder' => 9,
-                        default => 7,
-                    };
+            \usort($queue, function (array $a, array $b): int {
+                $getPrio = fn ($template) => match ($template) {
+                    'magic_link', 'verify_email' => 0,
+                    'permit_a4_document' => 1,
+                    'payment_request' => 2,
+                    'permit_cancelled' => 3,
+                    'board_notification' => 5,
+                    'payment_reminder' => 9,
+                    default => 7,
                 };
 
                 $aPrio = $getPrio($a['template']);

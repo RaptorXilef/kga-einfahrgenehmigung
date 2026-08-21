@@ -51,7 +51,7 @@ final readonly class BankImportService
     /**
      * Verarbeitet die Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
      *
-     * @return array<string, mixed> Resultat der Verarbeitung.
+     * @return array<string, mixed> Resultat der Verarbeitung inkl. Arrays der betroffenen Codes.
      */
     public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
     {
@@ -77,23 +77,26 @@ final readonly class BankImportService
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
-        $fehlerhaft = 0;
-        $uebersprungen = 0;
-        $erfolgreich = 0;
+
+        // Wir sammeln jetzt detailliert die Codes anstatt nur hochzuzählen
+        $erfolgreichCodes = [];
+        $uebersprungenCodes = [];
+        $fehlerhaftCodes = [];
+        $unbekannteFehler = 0;
 
         $rowNumber = 1;
 
         while (($row = \fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
             ++$rowNumber;
 
-            if (empty($row) || (\count($row) === 1 && $row[0] === null)) {
+            if (\count($row) === 1 && $row[0] === null) {
                 continue;
             }
 
             if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
                 $colCount = \count($row);
                 \error_log("BankImport [Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
-                ++$fehlerhaft;
+                ++$unbekannteFehler;
                 continue;
             }
 
@@ -102,7 +105,6 @@ final readonly class BankImportService
             $datumRaw = (string) $row[$dateCol];
 
             if (!\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
-                // Extrem hilfreich: Druckt den rohen Zweck aus, um Pächter-Schreibfehler zu finden!
                 \error_log("BankImport [Zeile {$rowNumber}] Info: Kein 8-stelliger System-Code gefunden. Rohdaten Zweck: '{$verwendungszweck}'");
                 continue;
             }
@@ -115,7 +117,7 @@ final readonly class BankImportService
             \error_log("BankImport [Zeile {$rowNumber}] Info: Code(s) erkannt: [{$gefundeneCodes}]. Lese Betrag: {$ueberwiesenerBetrag} €");
 
             foreach ($matches[1] as $permitId) {
-                $permitIdStr = (string) $permitId;
+                $permitIdStr = $permitId;
                 if (!isset($aggregierteZahlungen[$permitIdStr])) {
                     $aggregierteZahlungen[$permitIdStr] = 0.0;
                 }
@@ -128,11 +130,11 @@ final readonly class BankImportService
         \error_log('BankImport: Dateidurchlauf beendet. Starte Datenbank-Abgleich...');
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
-            $permit = $this->storage->findByHash((string) $permitId);
+            $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
                 \error_log("BankImport [Code {$permitId}] Übersprungen: Code aus Kontoauszug existiert nicht in der Datenbank.");
-                ++$uebersprungen;
+                $uebersprungenCodes[] = $permitId;
                 continue;
             }
 
@@ -140,57 +142,68 @@ final readonly class BankImportService
 
             if ($permit->isPaid()) {
                 \error_log("BankImport [Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.");
-                ++$uebersprungen;
+                $uebersprungenCodes[] = $permitId;
                 continue;
             }
 
             $sollBetrag = \round($permit->getPrice(), 2);
-            $istBetrag = \round((float) $gesamtsumme, 2);
+            $istBetrag = \round($gesamtsumme, 2);
 
             if ($istBetrag >= $sollBetrag) {
                 $datumRaw = (string) $letztesDatumPerPermit[$permitId];
                 $formatierterTag = $this->parseDate($datumRaw);
-                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format((float) $gesamtsumme, 2, ',', '.') . ' €)';
+                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';
 
                 if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
                     \error_log("BankImport [Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht. Freigeschaltet!");
-                    ++$erfolgreich;
+                    $erfolgreichCodes[] = $permitId;
                 } else {
                     \error_log("BankImport [Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Speicherfehler).");
-                    ++$fehlerhaft;
+                    $fehlerhaftCodes[] = $permitId;
                 }
             } else {
                 \error_log("BankImport [Code {$permitId}] FEHLER (Teilzahlung): Der überwiesene Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
-                ++$fehlerhaft;
+                $fehlerhaftCodes[] = $permitId;
             }
         }
 
-        \error_log("BankImport: Abgleich komplett. Resultat -> Erfolgreich: {$erfolgreich} | Übersprungen: {$uebersprungen} | Fehlerhaft: {$fehlerhaft}");
+        // Duplikate entfernen, falls ein Code mehrfach aufgeschlagen ist
+        $erfolgreichCodes = \array_values(\array_unique($erfolgreichCodes));
+        $uebersprungenCodes = \array_values(\array_unique($uebersprungenCodes));
+        $fehlerhaftCodes = \array_values(\array_unique($fehlerhaftCodes));
 
-        if (\file_exists($filePath)) {
-            @\unlink($filePath);
-        }
+        $erfCount = \count($erfolgreichCodes);
+        $uebCount = \count($uebersprungenCodes);
+        $fehlCount = \count($fehlerhaftCodes) + $unbekannteFehler;
+
+        \error_log("BankImport: Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}");
+
+        @\unlink($filePath);
 
         return [
             'success' => true,
-            'erfolgreich' => $erfolgreich,
-            'uebersprungen' => $uebersprungen,
-            'fehlerhaft' => $fehlerhaft,
+            'erfolgreich_count' => $erfCount,
+            'uebersprungen_count' => $uebCount,
+            'fehlerhaft_count' => $fehlCount,
+            'erfolgreich_codes' => $erfolgreichCodes,
+            'uebersprungen_codes' => $uebersprungenCodes,
+            'fehlerhaft_codes' => $fehlerhaftCodes,
+            'unbekannte_fehler' => $unbekannteFehler,
         ];
     }
 
     /**
      * Normalisiert alte Mac- (\r) und Windows- (\r\n) Zeilenumbrüche zu \n.
-     * Das ist die modernste und performanteste Methode für kleine CSV-Dateien und
-     * umgeht die veraltete `ini_set('auto_detect_line_endings')` Funktion.
      */
     private function normalizeLineEndings(string $filePath): void
     {
         $content = \file_get_contents($filePath);
-        if (\is_string($content)) {
-            $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
-            \file_put_contents($filePath, $normalized);
+        if (!\is_string($content)) {
+            return;
         }
+
+        $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
+        \file_put_contents($filePath, $normalized);
     }
 
     /**
@@ -214,6 +227,7 @@ final readonly class BankImportService
      * Bereinigt und konvertiert ein Array von Strings streng nach UTF-8.
      *
      * @param array<int, mixed> $row
+     *
      * @return array<int, string>
      */
     private function convertToUtf8(array $row): array
