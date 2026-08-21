@@ -56,13 +56,19 @@ final readonly class BankImportService
     public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
     {
         if (!\file_exists($filePath)) {
+            \error_log("BankImport Fehler: Die Datei '{$filePath}' konnte nicht gefunden werden.");
+
             return ['success' => false, 'message' => 'Datei konnte nicht gefunden werden.'];
         }
+
+        \error_log('BankImport: Starte Verarbeitung der CSV-Datei...');
 
         $this->normalizeLineEndings($filePath);
 
         $handle = \fopen($filePath, 'r');
         if ($handle === false) {
+            \error_log("BankImport Fehler: Die Datei '{$filePath}' konnte nicht zum Lesen geöffnet werden.");
+
             return ['success' => false, 'message' => 'Datei konnte nicht gelesen werden.'];
         }
 
@@ -85,7 +91,8 @@ final readonly class BankImportService
             }
 
             if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
-                \error_log("BankImport [Zeile {$rowNumber}] Fehler: Benötigte Spalten (ID, Betrag oder Datum) fehlen in dieser Zeile.");
+                $colCount = \count($row);
+                \error_log("BankImport [Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
                 ++$fehlerhaft;
                 continue;
             }
@@ -95,12 +102,17 @@ final readonly class BankImportService
             $datumRaw = (string) $row[$dateCol];
 
             if (!\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
-                continue; // Keine eindeutige ID gefunden, wird ignoriert
+                // Extrem hilfreich: Druckt den rohen Zweck aus, um Pächter-Schreibfehler zu finden!
+                \error_log("BankImport [Zeile {$rowNumber}] Info: Kein 8-stelliger System-Code gefunden. Rohdaten Zweck: '{$verwendungszweck}'");
+                continue;
             }
 
             $cleanAmount = \str_replace('.', '', $betragRaw);
             $cleanAmount = \str_replace(',', '.', $cleanAmount);
             $ueberwiesenerBetrag = (float) $cleanAmount;
+
+            $gefundeneCodes = \implode(', ', $matches[1]);
+            \error_log("BankImport [Zeile {$rowNumber}] Info: Code(s) erkannt: [{$gefundeneCodes}]. Lese Betrag: {$ueberwiesenerBetrag} €");
 
             foreach ($matches[1] as $permitId) {
                 $permitIdStr = (string) $permitId;
@@ -113,17 +125,21 @@ final readonly class BankImportService
         }
         \fclose($handle);
 
+        \error_log('BankImport: Dateidurchlauf beendet. Starte Datenbank-Abgleich...');
+
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
             $permit = $this->storage->findByHash((string) $permitId);
 
             if (!$permit instanceof Permit) {
-                \error_log("BankImport [Code {$permitId}] Übersprungen: Der Code wurde im Kontoauszug gefunden, existiert aber nicht im System.");
+                \error_log("BankImport [Code {$permitId}] Übersprungen: Code aus Kontoauszug existiert nicht in der Datenbank.");
                 ++$uebersprungen;
                 continue;
             }
 
+            $ownerName = $permit->getOwnerName();
+
             if ($permit->isPaid()) {
-                \error_log("BankImport [Code {$permitId}] Übersprungen: Die Genehmigung ist im System bereits als bezahlt markiert.");
+                \error_log("BankImport [Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.");
                 ++$uebersprungen;
                 continue;
             }
@@ -136,18 +152,20 @@ final readonly class BankImportService
                 $formatierterTag = $this->parseDate($datumRaw);
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format((float) $gesamtsumme, 2, ',', '.') . ' €)';
 
-                // FIX: Hier auf ->value zugreifen, da PermitCode jetzt ein Objekt ist!
                 if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
+                    \error_log("BankImport [Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht. Freigeschaltet!");
                     ++$erfolgreich;
                 } else {
-                    \error_log("BankImport [Code {$permitId}] Fehler: Die Genehmigung konnte nicht auf 'bezahlt' gesetzt werden (Speicherfehler).");
+                    \error_log("BankImport [Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Speicherfehler).");
                     ++$fehlerhaft;
                 }
             } else {
-                \error_log("BankImport [Code {$permitId}] Fehler: Der überwiesene Betrag reicht nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
+                \error_log("BankImport [Code {$permitId}] FEHLER (Teilzahlung): Der überwiesene Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
                 ++$fehlerhaft;
             }
         }
+
+        \error_log("BankImport: Abgleich komplett. Resultat -> Erfolgreich: {$erfolgreich} | Übersprungen: {$uebersprungen} | Fehlerhaft: {$fehlerhaft}");
 
         if (\file_exists($filePath)) {
             @\unlink($filePath);
