@@ -1,6 +1,59 @@
 # Changelog
 
+## [0.56.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.4...v0.56.0) (2026-08-21)
 
+### 🚀 Features
+
+* **core:** Add comprehensive diagnostic logging to BankImportService ([c102e92](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c102e92acb43a7e3b40ab89867dea6f13a9a8fbd))
+* **core:** Prioritize Berlin license plate formatting in ambiguous scenarios ([d6feb1b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d6feb1b5c09959c2f4d61a395b397e2d53157e81))
+* **finance:** Add code-level details to bank import summary and audit logs ([618b3ef](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/618b3efe44e07db3dd50823c91cb86143b358171))
+* **finance:** Include detailed failure reasons in bank import flash message and audit log ([a16a0f5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a16a0f56e18c647cf8894eb7bc5843a6dfd740d5))
+* **infrastructure:** Enhance CSV import logging and segregate mail queue errors ([b2b9b50](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b2b9b50634866a58bf33af76052ecc755a37b387))
+
+### 🐛 Bug Fixes
+
+* **application:** enforce strict domain validation on voucher prefill data ([154d535](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/154d535e6c425b69e12653983b45e52bfc3424a1))
+* **application:** propagate Value Object validation errors to frontend UI ([63d7063](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/63d70634cc73aa98296e2f76756f7fa629c9b2b9))
+* **application:** resolve Intelephense P1006 type mismatch errors in edge controllers ([52334b9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/52334b971884df3aa8ccf5edd4fb08e9abdd8020))
+* **application:** resolve strict type errors in hash_hmac and substr functions ([3ebe198](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3ebe198a9bc86ddb1db8c6b0e3e431752016cec7))
+* **application:** validate license plates at the application boundary to enforce fail-fast ([a91aaa4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a91aaa4cd5ead40418d188072f2c5cf638ffb91e))
+* **core:** close validation bypass during permit request modification ([0e1fe73](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0e1fe7371b3320d5985cab18197422cda350ebc3))
+* **core:** Relax license plate validation to support international formats ([00b957f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/00b957f7301658f6e5e70ccf43749954c892a230))
+* **core:** Resolve Intelephense P1006 type mismatch in BankImportService ([a978598](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a9785982e6de55ecdcd7c6924261454ab91539fc))
+* **core:** Resolve strict type errors and object-as-array-key bugs across application ([ce5afe4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ce5afe49d47af55869311ea8883425d172abf000))
+* **domain:** enforce max_plot_number business logic boundary during voucher generation ([82204fe](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/82204fe2f6ab3604febf8f2ad45158063f502241))
+* **domain:** enhance VO validation for LicensePlate fraud and PlotNumber limits ([5722ce3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5722ce35dda1b589123a564a629f7302c38682fa))
+* **domain:** implement self-healing for legacy template keys ([f92fd89](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f92fd89691ab48cae9d2b4f1b4125588f90ee6bb))
+* **domain:** implement strict anatomical blueprint validation for LicensePlates ([87e0756](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/87e0756ec32c769f744cb77f88d22f012a5a8c54))
+* **error-handling:** resolve JSON spew on form submission and harden type safety ([1e72f87](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1e72f87e9bdf90705e69c13c9a2bac2638014e33))
+* **frontend:** Sync relaxed license plate validation to JS handlers ([106f48f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/106f48fab9cb2639e213c4fc8e34f6951f33b13f))
+* **infrastructure:** handle legacy anonymized data gracefully during hydration ([5904e21](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5904e218ce68a1355deef25f9583ebf24fe388a0))
+* **infrastructure:** Resolve UI breakage and MAC CSV compatibility in Bank Import ([b799a2c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b799a2c769b7903efc75d8084ab87b324816cf46))
+* **infrastructure:** satisfy strict TemplateKey requirement in MailQueueService ([00dddb5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/00dddb50a4d7a72c0e0622bb29fdf34445391e85))
+* **presentation:** preserve admin login credentials on authentication failure ([7978be1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7978be16d897fd504e4fd5c75e0ad0a2aaff5518))
+* **presentation:** preserve form input data when Value Object validation fails ([75fd76a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/75fd76ac7fcca2bf92526a490b79b187e98e2100))
+* **presentation:** resolve TypeError on VoucherCode array indexing in dashboard ([0586617](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0586617630a228d76593a69d9ad1aa9f8b093ecd))
+* **scripts:** prevent deletion of PHP 8 attributes in token optimizer ([29f6fd9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29f6fd97bdd628fbc7830c12458e29105d7c24d3))
+* **security:** resolve CSRF timeouts and retain form data on session expiry ([569928a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/569928a2c3195850bbe701749ee792d38b53c762))
+
+### ⚙️ Refactoring
+
+* **api:** implement dedicated lightweight session heartbeat endpoint ([212664d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/212664dffc3c01e6c55c4f9045c8c677eec4b558))
+* **config:** normalize template keys to underscores universally ([4da40a6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4da40a6bcc568291782ccb58e4ed2eacbc5f39b7))
+* **core:** integrate Value Objects into domain services ([c9a47ce](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c9a47cebc42ba475a6892cf82a15bf3afe6a9417))
+* **core:** migrate PlotNumber to pure integer with automated schema update ([e365518](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e365518b8ce2a8480982f998c663f7f3f0266ba7))
+* **core:** Modernize PHP syntax, enforce strict typing and align code style ([d689c32](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d689c323e28b5b2bc059afed52671fbec2ead61a))
+* **domain:** enforce strict DDD validation on existing Value Objects ([ad9c89d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ad9c89d49c1b51d836cdf3b4a34413f858879a7e))
+* **domain:** enforce Value Objects across all Domain Entities and Core DTOs ([b35f746](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b35f746b007f8822a608fcbeaaa2f66c2c91cebb))
+* **domain:** introduce new Value Objects to eliminate primitive obsession ([a6b2d81](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a6b2d816790b46e3a91f3418aaa669e3118fa547))
+* **infrastructure:** complete phase 5 by mapping Value Objects to storage layers ([53f5974](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/53f5974237913458f98025781008edff56e948fd))
+
+### 🏗️ Build System
+
+* **deps:** bump actions/checkout from 7.0.0 to 7.0.1 ([cce8558](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cce8558f36b80ab063adcaecb9fd5d8af73b9f53))
+* **deps:** bump actions/setup-node from 6.4.0 to 7.0.0 ([12f679b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/12f679bf49223c0bb770c200cd506ee1b6ba740b))
+* **deps:** bump softprops/action-gh-release from 3.0.1 to 3.0.2 ([98be978](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/98be978e4bd23c42409344e265f70bd96c1b2a3d))
+* migrate release-it pipeline to ES modules and update changelog generator dependencies ([fdb026f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fdb026f03618303cbd8cec07a1ea35327ef0c305))
 
 ## [0.55.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.3...v0.55.4) (2026-07-07)
 
