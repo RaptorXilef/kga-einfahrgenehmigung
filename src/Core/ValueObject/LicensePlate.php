@@ -23,7 +23,7 @@ final readonly class LicensePlate implements Stringable
     /**
      * @param string $plate The raw license plate input.
      *
-     * @throws InvalidArgumentException If the plate is empty after trimming.
+     * @throws InvalidArgumentException If the plate is empty or invalid.
      */
     public function __construct(string $plate)
     {
@@ -33,19 +33,17 @@ final readonly class LicensePlate implements Stringable
             throw new InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
         }
 
-        // 1. Basis-Zeichen-Validierung (Buchstaben, Zahlen, Leerzeichen, Bindestriche, Umlaute)
+        // Erlaube nur Buchstaben, Zahlen, Leerzeichen und Bindestriche (International)
         if (!\preg_match('/^[A-ZÄÖÜ0-9\-\s]+$/u', $plate)) {
             throw new InvalidArgumentException('Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt.');
         }
 
-        // Nur alphanumerische Zeichen für den Bauplan filtern
+        // Die reine Alphanumerische Zeichenkette (ohne Leerzeichen und Bindestriche)
         $cleanAlphanumeric = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
 
-        // 2. Der Bauplan (Strikte Struktur-Prüfung für deutsche Kennzeichen)
-        // Regel: 1 bis 5 Buchstaben, gefolgt von 1 bis 4 Zahlen, optional 'E' oder 'H' am Ende.
-        // Diese eine Regel blockiert automatisch: 5-stellige Zahlen, Doppel-Kennzeichen und reine Text-Eingaben!
-        if (!\preg_match('/^[A-ZÄÖÜ]{1,5}[0-9]{1,4}[EH]?$/u', $cleanAlphanumeric)) {
-            throw new InvalidArgumentException('Das Kennzeichen ist ungültig. Ein reguläres Kennzeichen hat maximal 4 Ziffern und folgt dem Format "B-AB 1234".');
+        // Prüfung auf realistische Längen (international)
+        if (\strlen($cleanAlphanumeric) < 2 || \strlen($cleanAlphanumeric) > 15) {
+            throw new InvalidArgumentException('Das Kennzeichen ist ungültig. Es muss zwischen 2 und 15 Zeichen lang sein.');
         }
 
         $formatted = $this->format($plate);
@@ -79,32 +77,29 @@ final readonly class LicensePlate implements Stringable
      */
     private function format(string $plate): string
     {
-        // 1. Wenn der Nutzer die Bindestriche selbst setzt, vertrauen wir seiner Formatierung
+        // Wenn der Nutzer explizit ein Minus oder Leerzeichen getippt hat,
+        // belassen wir das bei Nicht-Standard-Kennzeichen weitgehend so.
         if (\str_contains($plate, '-')) {
-            $plate = \preg_replace('/-+/', '-', $plate); // Doppelte Minus bereinigen
-            $plate = \preg_replace('/\s+/', ' ', $plate); // Doppelte Leerzeichen bereinigen
+            $plate = \preg_replace('/-+/', '-', $plate);
+            $plate = \preg_replace('/\s+/', ' ', $plate);
 
-            // Stellt sicher, dass zwischen dem letzten Buchstaben und der ersten Ziffer ein Leerzeichen ist
             return (string) \preg_replace('/([A-ZÄÖÜ])(\d)/u', '$1 $2', \trim($plate));
         }
 
-        // 2. Komplettreinigung für die Automatik
         $val = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $plate);
 
-        // 3. Sonderfall: 4 Buchstaben am Anfang (z.B. BBDW123E -> BB-DW 123E)
-        // Automatische Formatierung (Fallback, wenn vom Nutzer kein Minus eingegeben wurde)
-        // 4 oder 5 Buchstaben (z.B. SHA-AA)
+        // Versuch: Typisch deutsches Format erkennen (z.B. B-AB 1234)
         if (\preg_match('/^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
-
-        // 5. Standard: 1-3 Buchstaben + 1-2 Buchstaben + Zahlen (+E/H)
-        // 2 oder 3 Buchstaben (z.B. B-AB, WÜ-A)
         if (\preg_match('/^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/u', $val, $matches)) {
             return "{$matches[1]}-{$matches[2]} {$matches[3]}";
         }
 
-        // 6. Fallback
-        return (string) \preg_replace('/^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/u', '$1 $2', $val);
+        // Fallback für internationale Kennzeichen (z.B. SB 58 JVR).
+        // Überflüssige Leerzeichen werden entfernt, aber die Struktur wird nicht zerstört.
+        $originalCleaned = \preg_replace('/\s+/', ' ', $plate);
+
+        return \trim((string) $originalCleaned);
     }
 }
