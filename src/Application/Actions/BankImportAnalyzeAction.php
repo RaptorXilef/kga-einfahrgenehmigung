@@ -63,9 +63,11 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             if (\str_contains($h, 'betrag') || \str_contains($h, 'amount')) {
                 $guessedAmount = $index;
             }
-            if (\str_contains($h, 'buchungstag') || \str_contains($h, 'valuta') || \str_contains($h, 'date')) {
-                $guessedDate = $index;
+            if (!\str_contains($h, 'buchungstag') && !\str_contains($h, 'valuta') && !\str_contains($h, 'date')) {
+                continue;
             }
+
+            $guessedDate = $index;
         }
 
         // Korrektur: Anstatt das Dashboard isoliert und fehlerhaft zu rendern,

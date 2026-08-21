@@ -14,6 +14,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * Action zur manuellen Ausstellung einer Genehmigung (ohne Zahlungsfluss).
@@ -46,7 +48,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
     {
         try {
             $dto = PermitCreateManualRequest::fromArray($request->post);
-        } catch (ValidationException|\InvalidArgumentException $e) {
+        } catch (ValidationException|InvalidArgumentException $e) {
             // UX-Rettung: Eingegebene Formulardaten vor dem Redirect in der Session sichern
             $postData = $request->post;
             unset($postData['csrf_token']);
@@ -67,15 +69,14 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 
             // Wenn erfolgreich, schicken wir den User auf den Aktive-Reiter
             return new RedirectResponse('admin.php?focus=tab-active');
-
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
             return new RedirectResponse('admin.php?focus=tab-tools');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);

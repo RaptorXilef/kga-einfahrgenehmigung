@@ -19,7 +19,7 @@ interface MailQueueRepositoryInterface
     /**
      * Verarbeitet einen Stapel von ausstehenden E-Mails.
      *
-     * @param int      $limit     Maximale Anzahl an E-Mails pro Durchlauf.
+     * @param int $limit Maximale Anzahl an E-Mails pro Durchlauf.
      * @param callable $processor Callback-Funktion zur eigentlichen Verarbeitung.
      *
      * @return int Anzahl der erfolgreich versendeten E-Mails.

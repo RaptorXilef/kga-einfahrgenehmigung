@@ -24,7 +24,7 @@ final readonly class CronAuthMiddleware implements MiddlewareInterface
     public function process(ServerRequest $request, callable $next): mixed
     {
         $provided = $request->get['token'] ?? '';
-        $req      = (string) $this->config->get('cron_secret', '');
+        $req = (string) $this->config->get('cron_secret', '');
         if (\php_sapi_name() !== 'cli' && $provided !== $req) {
             return new EmptyResponse(403);
         }

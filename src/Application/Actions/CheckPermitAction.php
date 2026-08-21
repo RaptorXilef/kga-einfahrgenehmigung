@@ -46,7 +46,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
     {
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
-        } catch (ValidationException $e) {
+        } catch (ValidationException) {
             $this->renderer->render('check/search');
 
             return null;
@@ -84,7 +84,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         if ($nextSlot instanceof DateTimeImmutable) {
             // Prüfung: Ist der nächste Slot noch innerhalb der Genehmigungszeit?
             // Spezialfall: Letzter Tag / Ablaufprüfung
-            if ($permit instanceof Permit && $nextSlot > $permit->getValidUntil()) {
+            if ($nextSlot > $permit->getValidUntil()) {
                 $nextAllowedSlotText = 'Die Gültigkeit endet, bevor die Anlage wieder befahren werden darf.';
             } else {
                 // Normale Zeit-Formatierung
@@ -106,42 +106,34 @@ final readonly class CheckPermitAction implements ViewActionInterface
         }
 
         // Fall 2: Genehmigung gefunden
-        if ($permit instanceof Permit) {
-            $showAdminView = $this->determineViewPrivileges($permit, $dto->token);
+        $showAdminView = $this->determineViewPrivileges($permit, $dto->token);
 
-            // Config auslesen
-            $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
-
-            // Pfade angepasst auf Unterordner check/
-            $this->renderer->render(
-                $showAdminView ? 'check/admin' : 'check/public',
-                \array_merge($adminData, [
-                    'allowedToday' => $nextAllowedSlotText,
-                    'auth' => $this->auth,
-                    'groupRepository' => $this->groupRepository,
-                    'holidayNotice' => \implode(', ', $this->holidayService->getHolidaysInRange(
+        // Config auslesen
+        $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
+        // Pfade angepasst auf Unterordner check/
+        $this->renderer->render(
+            $showAdminView ? 'check/admin' : 'check/public',
+            \array_merge($adminData, [
+                'allowedToday' => $nextAllowedSlotText,
+                'auth' => $this->auth,
+                'groupRepository' => $this->groupRepository,
+                'holidayNotice' => \implode(', ', $this->holidayService->getHolidaysInRange(
+                    $permit->getValidFrom(),
+                    $permit->getValidUntil(),
+                )),
+                'isDateValid' => $permit->isValid($requirePayment),
+                'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
+                'opening' => HolidayHtmlPresenter::formatOpeningHours(
+                    $this->holidayService->getOpeningHoursDataForDateRange(
                         $permit->getValidFrom(),
                         $permit->getValidUntil(),
-                    )),
-                    'isDateValid' => $permit->isValid($requirePayment),
-                    'isTimeAllowed' => $this->holidayService->isTimeAllowedNow(),
-                    'opening' => HolidayHtmlPresenter::formatOpeningHours(
-                        $this->holidayService->getOpeningHoursDataForDateRange(
-                            $permit->getValidFrom(),
-                            $permit->getValidUntil(),
-                        ),
                     ),
-                    'permit' => $permit,
-                    'showAdminView' => $showAdminView,
-                    'userRepository' => $this->userRepository,
-                ]),
-            );
-
-            return null;
-        }
-
-        $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
-        $this->renderer->render('check/search');
+                ),
+                'permit' => $permit,
+                'showAdminView' => $showAdminView,
+                'userRepository' => $this->userRepository,
+            ]),
+        );
 
         return null;
     }

@@ -21,7 +21,7 @@ final readonly class BankQrGenerator
     /**
      * Erzeugt einen rohen EPC-QR-Code Payload (GiroCode) nach der SEPA-Dokumentation für Banking-Apps.
      *
-     * @param float  $amount    Der Überweisungsbetrag.
+     * @param float $amount Der Überweisungsbetrag.
      * @param string $reference Der strukturierte Verwendungszweck.
      *
      * @return string Zeilenumbruch-getrennter EPC-Payload.

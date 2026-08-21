@@ -29,16 +29,15 @@ final readonly class CsrfMiddleware implements MiddlewareInterface
 
         if (\in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $provided = $request->getHeader('X-CSRF-Token') ?: ($request->post['csrf_token'] ?? '');
-            $stored   = $this->sessionManager->getCsrfToken();
+            $stored = $this->sessionManager->getCsrfToken();
 
-            if ($stored === '' || ! \hash_equals($stored, $provided)) {
-
+            if ($stored === '' || !\hash_equals($stored, $provided)) {
                 // UX-Rettung: Wir speichern die eingegebenen Formulardaten zwischen,
                 // bevor wir die Anfrage ablehnen.
                 $postData = $request->post;
                 unset($postData['csrf_token'], $postData['action']); // Interne Felder entfernen
 
-                if (! empty($postData)) {
+                if ($postData !== []) {
                     $this->sessionManager->setFormData($postData);
                 }
 

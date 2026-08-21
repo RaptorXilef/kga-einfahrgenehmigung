@@ -8,6 +8,8 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Core\Entity\MailJob;
 use App\Core\ValueObject\TemplateKey;
+use DateTimeImmutable;
+use Exception;
 
 /**
  * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
@@ -24,20 +26,19 @@ final readonly class MailQueueService implements MailServiceInterface
     }
 
     // --- Queue Lifecycle Core ---
-
     /**
      * Schritt 1: Mail in die Warteschlange einreihen
      *
      * Reiht eine neue E-Mail in die Warteschlange ein.
      *
-     * @param string               $recipient Die E-Mail-Adresse des Empfängers.
-     * @param string               $subject   Der Betreff der E-Mail.
-     * @param string               $template  Der Schlüssel/Name des zu verwendenden E-Mail-Templates.
-     * @param array<string, mixed> $data      Die dynamischen Daten für das Template.
+     * @param string $recipient Die E-Mail-Adresse des Empfängers.
+     * @param string $subject Der Betreff der E-Mail.
+     * @param string $template Der Schlüssel/Name des zu verwendenden E-Mail-Templates.
+     * @param array<string, mixed> $data Die dynamischen Daten für das Template.
      *
-     * @return bool|string True bei erfolgreicher Einreihung.
+     * @return bool True bei erfolgreicher Einreihung.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool
     {
         // FIX: Den primitiven String in das erforderliche TemplateKey Value Object verpacken
         $job = new MailJob(
@@ -47,7 +48,7 @@ final readonly class MailQueueService implements MailServiceInterface
             new TemplateKey($template),
             $data,
             0,
-            new \DateTimeImmutable(),
+            new DateTimeImmutable(),
         );
 
         $this->repository->enqueue($job);
@@ -70,7 +71,7 @@ final readonly class MailQueueService implements MailServiceInterface
         return $this->repository->processBatch($limit, function (string $rec, string $sub, string $tpl, array $dat): void {
             $result = $this->realMailService->sendTemplate($rec, $sub, $tpl, $dat);
             if ($result !== true) {
-                throw new \Exception((string) $result);
+                throw new Exception((string) $result);
             }
         });
     }

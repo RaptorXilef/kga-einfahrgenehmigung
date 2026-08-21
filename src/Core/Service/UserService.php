@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Service;
 
 use App\Contracts\Storage\UserRepositoryInterface;
+use DomainException;
 
 /**
  * TODO DOCBLOCK
@@ -23,7 +24,7 @@ final readonly class UserService
         $users = $this->userRepository->loadAll();
         foreach ($users as $id => $userData) {
             if ($id !== $excludeUserId && \strtolower(\trim((string) $userData->username)) === \strtolower($username)) {
-                throw new \DomainException("Fehler: Ein Benutzer mit dem Namen '{$username}' existiert bereits.");
+                throw new DomainException("Fehler: Ein Benutzer mit dem Namen '{$username}' existiert bereits.");
             }
         }
     }
@@ -31,15 +32,15 @@ final readonly class UserService
     public function verifyOldPassword(string $userId, string $oldPassword): void
     {
         $users = $this->userRepository->loadAll();
-        if (! isset($users[$userId]) || ! \password_verify($oldPassword, (string) $users[$userId]->passwordHash)) {
-            throw new \DomainException('Fehler: Das aktuelle Passwort ist nicht korrekt.');
+        if (!isset($users[$userId]) || !\password_verify($oldPassword, (string) $users[$userId]->passwordHash)) {
+            throw new DomainException('Fehler: Das aktuelle Passwort ist nicht korrekt.');
         }
     }
 
     public function ensureNoSelfExclusion(string $targetUserId, string $currentUserId): void
     {
         if ($targetUserId === $currentUserId) {
-            throw new \DomainException('Fehler: Selbstausschluss nicht möglich.');
+            throw new DomainException('Fehler: Selbstausschluss nicht möglich.');
         }
     }
 }

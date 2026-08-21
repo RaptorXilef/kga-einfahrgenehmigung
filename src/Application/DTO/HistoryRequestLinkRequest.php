@@ -22,9 +22,9 @@ final readonly class HistoryRequestLinkRequest
 
     public static function fromRequest(ServerRequest $request): self
     {
-        $post  = $request->post;
+        $post = $request->post;
         $email = \trim((string) ($post['email'] ?? ''));
-        if ($email === '' || ! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+        if ($email === '' || !\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw ValidationException::withMessage('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
         }
         $ip = $request->getIp();

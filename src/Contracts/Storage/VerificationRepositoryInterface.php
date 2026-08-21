@@ -25,7 +25,7 @@ interface VerificationRepositoryInterface
      * Speichert Anträge, die noch auf E-Mail-Bestätigung warten.
      *
      * @param VerificationRequest[] $data
-     * @param bool                  $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
+     * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      */
     public function savePending(array $data, bool $forceSql = false): void;
 
@@ -40,7 +40,7 @@ interface VerificationRepositoryInterface
      * Speichert Anträge, die auf Zahlung warten.
      *
      * @param VerificationRequest[] $data
-     * @param bool                  $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
+     * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      */
     public function saveVerified(array $data, bool $forceSql = false): void;
 

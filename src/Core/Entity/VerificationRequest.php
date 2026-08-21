@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use DateTimeImmutable;
+
 /**
  * TODO DOCBLOCK
  *
@@ -13,12 +15,12 @@ final readonly class VerificationRequest
 {
     public function __construct(
         public string $token,
-        public \DateTimeImmutable $expiresAt,
+        public DateTimeImmutable $expiresAt,
         public array $data,
     ) {
     }
 
-    public function isExpired(\DateTimeImmutable $now): bool
+    public function isExpired(DateTimeImmutable $now): bool
     {
         return $this->expiresAt < $now;
     }

@@ -17,6 +17,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuditLoggerService; // <--- NEU
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
+use DomainException;
 
 /**
  * Action zum Löschen eines Benutzers.
@@ -79,7 +80,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('users.php');
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users.php');

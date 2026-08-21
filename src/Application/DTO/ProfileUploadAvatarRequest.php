@@ -21,7 +21,7 @@ final readonly class ProfileUploadAvatarRequest
     public static function fromFiles(array $files): self
     {
         $file = $files['avatar'] ?? null;
-        if (! $file || ! isset($file['error']) || $file['error'] !== 0) {
+        if (!$file || !isset($file['error']) || $file['error'] !== 0) {
             throw ValidationException::withMessage('Fehler: Es wurde keine gültige Bilddatei hochgeladen.');
         }
 

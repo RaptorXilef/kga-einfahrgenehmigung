@@ -25,7 +25,7 @@ final readonly class VoucherIssuanceMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        if (! $this->auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) {
+        if (!$this->auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung, Gutscheine zu erstellen.');
 
             return new RedirectResponse('admin.php');
@@ -33,7 +33,7 @@ final readonly class VoucherIssuanceMiddleware implements MiddlewareInterface
 
         $templateKey = (string) ($request->post['template_key'] ?? 'std_7');
 
-        if (! $this->auth->hasPermission("template.{$templateKey}")) {
+        if (!$this->auth->hasPermission("template.{$templateKey}")) {
             $this->sessionManager->addFlash('error', "Fehler: Sie haben keine Berechtigung für Typ '{$templateKey}'.");
 
             return new RedirectResponse('admin.php');

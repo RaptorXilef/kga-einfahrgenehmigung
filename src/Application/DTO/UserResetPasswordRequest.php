@@ -23,8 +23,8 @@ final readonly class UserResetPasswordRequest
     public static function fromArray(array $post): self
     {
         $userId = (string) ($post['user_id'] ?? '');
-        $pw1    = (string) ($post['password'] ?? '');
-        $pw2    = (string) ($post['password_repeat'] ?? '');
+        $pw1 = (string) ($post['password'] ?? '');
+        $pw2 = (string) ($post['password_repeat'] ?? '');
 
         if ($userId === '') {
             throw ValidationException::withMessage('Fehler: Keine Benutzer-ID übergeben.');

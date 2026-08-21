@@ -11,6 +11,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
+use DateTimeImmutable;
 
 /**
  * Guard für die Druck-Berechtigung basierend auf dem Status der Genehmigung.
@@ -34,13 +35,13 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
         }
 
         $permit = $this->storage->findByHash($code);
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             return $next($request);
         }
 
-        $now       = new \DateTimeImmutable('today');
+        $now = new DateTimeImmutable('today');
         $isExpired = $permit->getValidUntil() < $now;
-        $isFuture  = $permit->getValidFrom() > $now;
+        $isFuture = $permit->getValidFrom() > $now;
 
         $hasRight = false;
         if ($this->auth->hasPermission('check.admin.print')) {
@@ -49,11 +50,11 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
             $hasRight = true;
         } elseif ($isFuture && $this->auth->hasPermission('dashboard.future.print')) {
             $hasRight = true;
-        } elseif (! $isExpired && ! $isFuture && $this->auth->hasPermission('dashboard.active.print')) {
+        } elseif (!$isExpired && !$isFuture && $this->auth->hasPermission('dashboard.active.print')) {
             $hasRight = true;
         }
 
-        if (! $hasRight) {
+        if (!$hasRight) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.');
 
             return new RedirectResponse('admin.php');

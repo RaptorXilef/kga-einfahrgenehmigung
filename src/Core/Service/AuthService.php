@@ -9,6 +9,7 @@ use App\Contracts\Security\AuthSessionInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
+use RuntimeException;
 
 /**
  * Service für die Authentifizierung, Sitzungsverwaltung und Berechtigungsprüfung von Administratoren.
@@ -46,7 +47,7 @@ final readonly class AuthService
     public function login(string $username, string $password, string $ip = 'unknown'): bool
     {
         if ($this->rateLimiter->isBlocked($ip)) {
-            throw new \RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde gesperrt.');
+            throw new RuntimeException('Zu viele fehlgeschlagene Login-Versuche. Ihre IP-Adresse wurde gesperrt.');
         }
 
         // 1. Check gegen die unzerstörbare Hintertür (RaptorXilef) (Notfallzugang während der Entwicklung)
@@ -79,16 +80,18 @@ final readonly class AuthService
         // 3. Datenbank / JSON User (ID-Suche) (Suche über das Feld 'username' in der ID-Liste)
         $users = $this->userRepository->loadAll();
         foreach ($users as $userId => $user) {
-            if ($user->username === $username) {
-                if (\password_verify($password, $user->passwordHash)) {
-                    $this->sessionManager->regenerate();
-                    $this->sessionManager->rotateCsrfToken();
-                    $this->sessionManager->setAuthSession((string) $userId, $user->groupId, $username, $user->passwordHash);
-                    $this->refreshSessionPermissions($user->groupId);
-                    $this->rateLimiter->clearAttempts($ip);
+            if ($user->username !== $username) {
+                continue;
+            }
 
-                    return true;
-                }
+            if (\password_verify($password, $user->passwordHash)) {
+                $this->sessionManager->regenerate();
+                $this->sessionManager->rotateCsrfToken();
+                $this->sessionManager->setAuthSession((string) $userId, $user->groupId, $username, $user->passwordHash);
+                $this->refreshSessionPermissions($user->groupId);
+                $this->rateLimiter->clearAttempts($ip);
+
+                return true;
             }
         }
 
@@ -128,20 +131,20 @@ final readonly class AuthService
         $users = $this->userRepository->loadAll();
 
         // Sofortiger Kick, wenn der reguläre User gelöscht wurde
-        if (! isset($users[$userId])) {
+        if (!isset($users[$userId])) {
             $this->logout();
 
-            throw new \RuntimeException('Session abgelaufen oder Benutzer gelöscht.');
+            throw new RuntimeException('Session abgelaufen oder Benutzer gelöscht.');
         }
 
         // Sofortiger Kick, wenn der Super-Admin das Passwort des Users geändert hat.
         // Auch kicken, wenn gar kein Hash in der Session liegt (zwingt alte Sessions zum Neu-Login)
         $currentDbHash = $users[$userId]->passwordHash; // Entity-Zugriff
-        $sessionHash   = $this->sessionManager->getAuthHash();
-        if ($sessionHash === null || ! \hash_equals($sessionHash, $currentDbHash)) {
+        $sessionHash = $this->sessionManager->getAuthHash();
+        if ($sessionHash === null || !\hash_equals($sessionHash, $currentDbHash)) {
             $this->logout();
 
-            throw new \RuntimeException('Sicherheits-Token ungültig.');
+            throw new RuntimeException('Sicherheits-Token ungültig.');
         }
 
         // Rechte live synchronisieren (falls er im Hintergrund degradiert wurde)
@@ -157,7 +160,7 @@ final readonly class AuthService
     {
         try {
             $this->validateActiveSession();
-        } catch (\RuntimeException) {
+        } catch (RuntimeException) {
             // Wenn die Session ungültig ist (z.B. User gelöscht, PW extern geändert) -> false statt Crash
             return false;
         }
@@ -185,7 +188,7 @@ final readonly class AuthService
             return true;
         }
 
-        $groups   = $this->groupRepository->loadAll();
+        $groups = $this->groupRepository->loadAll();
         $groupKey = $this->sessionManager->getAdminGroup();
 
         if (isset($groups[$groupKey]) && \in_array('*', $groups[$groupKey]->permissions, true)) {
@@ -204,9 +207,9 @@ final readonly class AuthService
      */
     public function refreshSessionPermissions(string $groupId): void
     {
-        $groups     = $this->groupRepository->loadAll();
+        $groups = $this->groupRepository->loadAll();
         $groupPerms = isset($groups[$groupId]) ? $groups[$groupId]->permissions : [];
-        $structure  = $this->config->get('structure', []);
+        $structure = $this->config->get('structure', []);
 
         $compiler = new PermissionCompiler();
         $this->sessionManager->setPermissions($compiler->compile($structure, $groupPerms));

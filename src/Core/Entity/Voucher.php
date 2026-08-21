@@ -6,6 +6,7 @@ namespace App\Core\Entity;
 
 use App\Core\ValueObject\TemplateKey;
 use App\Core\ValueObject\VoucherCode;
+use DateTimeImmutable;
 
 /**
  * TODO DOCBLOCK
@@ -23,10 +24,10 @@ final readonly class Voucher
         public bool $multiUse,
         public int $maxUses,
         public int $usesCount,
-        public ?\DateTimeImmutable $expiresAt,
+        public ?DateTimeImmutable $expiresAt,
         public string $dateMode,
         public string $createdBy,
-        public \DateTimeImmutable $createdAt,
+        public DateTimeImmutable $createdAt,
         public string $status,
         public array $data,
     ) {
@@ -37,9 +38,9 @@ final readonly class Voucher
         return $this->status === 'deaktiviert';
     }
 
-    public function isExpired(\DateTimeImmutable $now): bool
+    public function isExpired(DateTimeImmutable $now): bool
     {
-        return $this->expiresAt !== null && $this->expiresAt < $now;
+        return $this->expiresAt instanceof DateTimeImmutable && $this->expiresAt < $now;
     }
 
     public function isDepleted(): bool
@@ -47,7 +48,7 @@ final readonly class Voucher
         return $this->multiUse && $this->maxUses > 0 && $this->usesCount >= $this->maxUses;
     }
 
-    public function isValid(\DateTimeImmutable $now): bool
+    public function isValid(DateTimeImmutable $now): bool
     {
         if ($this->isDeactivated()) {
             return false;
@@ -57,11 +58,7 @@ final readonly class Voucher
             return false;
         }
 
-        if ($this->isDepleted()) {
-            return false;
-        }
-
-        return true;
+        return !$this->isDepleted();
     }
 
     public function redeem(): self

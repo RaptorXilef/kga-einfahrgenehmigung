@@ -20,8 +20,10 @@ final readonly class DeleteGroupImageListener
             '/\\',
         ) . '/public/assets/img/group_images/' . $event->groupId . '.webp';
 
-        if (\file_exists($iconPath)) {
-            @\unlink($iconPath);
+        if (!\file_exists($iconPath)) {
+            return;
         }
+
+        @\unlink($iconPath);
     }
 }

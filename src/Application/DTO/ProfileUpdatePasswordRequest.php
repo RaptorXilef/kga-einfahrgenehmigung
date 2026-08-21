@@ -20,7 +20,8 @@ final readonly class ProfileUpdatePasswordRequest
     }
 
     /**
-     * @param  array<string, mixed> $post
+     * @param array<string, mixed> $post
+     *
      * @throws ValidationException
      */
     public static function fromArray(array $post): self

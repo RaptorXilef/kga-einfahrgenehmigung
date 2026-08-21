@@ -8,6 +8,7 @@ use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use Throwable;
 
 /**
  * Führt Aufgaben aus, NACHDEM die eigentliche Action beendet wurde (Terminate Phase).
@@ -35,7 +36,7 @@ final readonly class TerminateMailQueueMiddleware implements MiddlewareInterface
                 $limit = (int) $this->config->get('mail_queue_limit_web', 3);
                 $this->mailService->processQueue($limit);
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Still fail, Nutzer soll seinen Response bekommen
         }
 

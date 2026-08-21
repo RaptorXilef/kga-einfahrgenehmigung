@@ -31,7 +31,7 @@ final readonly class PermitToggleSuspensionRequest
         }
 
         $isSuspended = ($post['action'] ?? '') === 'suspend_permit';
-        $reason      = \trim(\strip_tags((string) ($post['reason'] ?? '')));
+        $reason = \trim(\strip_tags((string) ($post['reason'] ?? '')));
 
         return new self($code, $isSuspended, $reason);
     }

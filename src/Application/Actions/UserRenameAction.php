@@ -16,6 +16,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\UserService;
+use DomainException;
 
 /**
  * TODO DOCBLOCK
@@ -56,8 +57,8 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
             $users = $this->userRepository->loadAll();
 
             if (isset($users[$dto->userId])) {
-                $u                   = $users[$dto->userId];
-                $oldName             = $u->username;
+                $u = $users[$dto->userId];
+                $oldName = $u->username;
                 $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
 
@@ -70,7 +71,7 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('users.php');
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users.php');

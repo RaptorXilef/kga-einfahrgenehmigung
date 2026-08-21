@@ -6,7 +6,7 @@ namespace App\Core\Entity;
 
 enum PermitStatus: string
 {
-    case Offen     = 'offen';
-    case Bezahlt   = 'bezahlt';
+    case Offen = 'offen';
+    case Bezahlt = 'bezahlt';
     case Storniert = 'storniert';
 }

@@ -199,7 +199,7 @@ final readonly class PermitService
         $voucherCodeStr = \strtoupper(\trim((string) ($data['voucher'] ?? '')));
         if ($voucherCodeStr !== '') {
             $voucher = $this->voucherService->useVoucher($voucherCodeStr, $data);
-            if ($voucher !== null) {
+            if ($voucher instanceof Voucher) {
                 $originalPriceVO = new Price((float) $data['preis']);
                 $discountedPriceVO = $this->calculateDiscountedPrice($originalPriceVO, $voucher);
                 $finalPrice = $discountedPriceVO->value;
@@ -238,7 +238,7 @@ final readonly class PermitService
 
     public function finaliseRequest(string $token, PermitStatus $status = PermitStatus::Offen, ?string $kommentar = null): Permit
     {
-        return $this->lockManager->executeWithLock('checkout', function () use ($token, $status, $kommentar) {
+        return $this->lockManager->executeWithLock('checkout', function () use ($token, $status, $kommentar): Permit {
             $allVerified = $this->verificationRepository->loadVerified();
 
             if (!isset($allVerified[$token])) {
@@ -386,7 +386,6 @@ final readonly class PermitService
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $neuerKommentar,
             agreements: $permit->agreements,
-            state: null,
             bezahlt_am: $dtBezahltAm, // Mapped sauber in die neue JSON/SQL Spalte
         );
 
@@ -471,7 +470,7 @@ final readonly class PermitService
         $offset = ($page - 1) * $limit;
         $items = \array_slice($filtered, $offset, $limit);
 
-        $formattedItems = \array_map(fn ($permit): array => [
+        $formattedItems = \array_map(fn (Permit $permit): array => [
             'bis' => $permit->getValidUntil()->format('d.m.Y'),
             'code' => $permit->code->value,
             'email' => $permit->getOwnerEmail(),
@@ -511,6 +510,7 @@ final readonly class PermitService
      * Berechnet das dynamische Zahlungsziel einer Genehmigung.
      *
      * @param Permit $permit Die zu prüfende Genehmigung
+     *
      * @return DateTimeImmutable Das berechnete Fälligkeitsdatum
      */
     public function calculatePaymentDueDate(Permit $permit): DateTimeImmutable
@@ -532,6 +532,7 @@ final readonly class PermitService
      * Ermittelt die aktuelle Mahnstufe einer Genehmigung.
      *
      * @param Permit $permit Die zu prüfende Genehmigung
+     *
      * @return int 0 = Im Zeitrahmen/Bezahlt, 1 = Mahnfrist, 2 = Überfällig
      */
     public function getOverdueLevel(Permit $permit): int
@@ -566,15 +567,19 @@ final readonly class PermitService
         $cutoffDate = $this->clock->now()->modify("-{$graceDays} days")->setTime(0, 0, 0);
 
         foreach ($allPermits as $permit) {
-            if ($permit->getValidUntil() < $cutoffDate) {
-                if (\in_array($permit->getStatus(), [PermitStatus::Bezahlt, PermitStatus::Storniert], true)) {
-                    $toArchive[] = $permit;
-                    $codesToDelete[] = $permit->code->value;
-                }
+            if ($permit->getValidUntil() >= $cutoffDate) {
+                continue;
             }
+
+            if (!\in_array($permit->getStatus(), [PermitStatus::Bezahlt, PermitStatus::Storniert], true)) {
+                continue;
+            }
+
+            $toArchive[] = $permit;
+            $codesToDelete[] = $permit->code->value;
         }
 
-        if (!empty($toArchive)) {
+        if ($toArchive !== []) {
             $this->archiveRepository->archivePermits(0, $toArchive);
             $this->storage->deleteMultiple($codesToDelete);
         }
@@ -625,17 +630,6 @@ final readonly class PermitService
         return $res;
     }
 
-    private function validateEmail(string $email): void
-    {
-        if (\trim($email) === '') {
-            return;
-        }
-
-        if (!\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
-            throw new RuntimeException('Die eingegebene E-Mail-Adresse ist ungültig.');
-        }
-    }
-
     private function isCodeGloballyUnique(string $fullIdentifier): bool
     {
         if ($this->storage->findByHash($fullIdentifier) instanceof Permit) {
@@ -646,11 +640,7 @@ final readonly class PermitService
             return false;
         }
 
-        if ($this->cancelledRepository->isCodeCancelled($fullIdentifier)) {
-            return false;
-        }
-
-        return true;
+        return !$this->cancelledRepository->isCodeCancelled($fullIdentifier);
     }
 
     public function calculateDiscountedPrice(Price $originalPrice, Voucher $voucher): Price
@@ -716,8 +706,6 @@ final readonly class PermitService
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $permit->interner_kommentar,
             agreements: $permit->agreements,
-            state: null,
-            bezahlt_am: null,
         );
 
         // 6. Ins Archiv verschieben
@@ -750,36 +738,37 @@ final readonly class PermitService
             $dueDateStart = $this->calculatePaymentDueDate($permit)->setTime(0, 0, 0);
 
             // Wenn "heute" der letzte Zahlungstag (oder ein Tag danach) ist: Erinnerung senden
-            if ($now >= $dueDateStart) {
-
-                // 1. Status aktualisieren, BEVOR die Mail gesendet wird (Schützt vor Dauerschleifen bei Mail-Fehlern)
-                $updatedStatus = new Status(
-                    $permit->status->current,
-                    $permit->status->is_suspended,
-                    $permit->status->suspension_reason,
-                    true, // reminder_sent auf true
-                );
-
-                $updatedPermit = new Permit(
-                    $permit->code,
-                    $permit->template_key,
-                    $permit->owner,
-                    $permit->vehicle,
-                    $permit->validity,
-                    $updatedStatus,
-                    $permit->getCreatedAt(),
-                    $permit->interner_kommentar,
-                    $permit->agreements,
-                    $permit->state,
-                    $permit->bezahlt_am,
-                );
-
-                $this->storage->save($updatedPermit);
-
-                // 2. Event zum E-Mail-Versand auslösen
-                $this->eventDispatcher->dispatch(new PaymentReminderEvent($updatedPermit));
-                ++$sentCount;
+            if ($now < $dueDateStart) {
+                continue;
             }
+
+            // 1. Status aktualisieren, BEVOR die Mail gesendet wird (Schützt vor Dauerschleifen bei Mail-Fehlern)
+            $updatedStatus = new Status(
+                $permit->status->current,
+                $permit->status->is_suspended,
+                $permit->status->suspension_reason,
+                true, // reminder_sent auf true
+            );
+
+            $updatedPermit = new Permit(
+                $permit->code,
+                $permit->template_key,
+                $permit->owner,
+                $permit->vehicle,
+                $permit->validity,
+                $updatedStatus,
+                $permit->getCreatedAt(),
+                $permit->interner_kommentar,
+                $permit->agreements,
+                $permit->state,
+                $permit->bezahlt_am,
+            );
+
+            $this->storage->save($updatedPermit);
+
+            // 2. Event zum E-Mail-Versand auslösen
+            $this->eventDispatcher->dispatch(new PaymentReminderEvent($updatedPermit));
+            ++$sentCount;
         }
 
         return $sentCount;

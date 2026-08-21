@@ -21,7 +21,7 @@ final readonly class ExportRequest
     public static function fromArray(array $get, array $sessionFilters = []): self
     {
         $start = (string) ($get['start'] ?? 'all');
-        $end   = (string) ($get['end'] ?? 'all');
+        $end = (string) ($get['end'] ?? 'all');
 
         if ($start === 'all') {
             $start = $sessionFilters['start'] ?? \date('Y-01-01');

@@ -30,7 +30,7 @@ final class EventServiceProvider
     public function register(ContainerInterface $container): void
     {
         // Wir binden nur das Interface
-        $container->bind(EventDispatcherInterface::class, fn () => new EventDispatcher());
+        $container->bind(EventDispatcherInterface::class, fn (): EventDispatcher => new EventDispatcher());
 
         $dispatcher = $container->get(EventDispatcherInterface::class);
 

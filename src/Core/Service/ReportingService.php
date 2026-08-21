@@ -6,6 +6,7 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Core\Entity\Permit;
+use DateTimeImmutable;
 
 /**
  * Service für die Auswertung, Gruppierung und Bereitstellung von Statistik-Daten für das Dashboard.
@@ -32,12 +33,12 @@ final readonly class ReportingService
      */
     public function groupPermits(array $allPermits): array
     {
-        $now    = new \DateTimeImmutable('today');
+        $now = new DateTimeImmutable('today');
         $groups = [
-            'active'  => [],
-            'future'  => [],
+            'active' => [],
+            'future' => [],
             'expired' => [],
-            'unpaid'  => [],
+            'unpaid' => [],
         ];
 
         foreach ($allPermits as $permit) {
@@ -46,7 +47,7 @@ final readonly class ReportingService
             // gilt als "unbezahlt" und landet im Finanz-Tab.
 
             // Tell, don't ask! Wir fragen die Entität nach ihrem Zustand.
-            if (! $permit->isPaid()) {
+            if (!$permit->isPaid()) {
                 $groups['unpaid'][] = $permit;
             }
 
@@ -97,17 +98,17 @@ final readonly class ReportingService
 
         // [x] sortiert
         $stats = [
-            'count'          => \count($permits),
-            'plots'          => [],
-            'revenue_paid'   => 0.0,
+            'count' => \count($permits),
+            'plots' => [],
+            'revenue_paid' => 0.0,
             'revenue_unpaid' => 0.0,
-            'types'          => $typeStats,
+            'types' => $typeStats,
         ];
 
         foreach ($permits as $permit) {
             // Fahrzeugtypen zählen
             $pType = $permit->getVehicleType();
-            $pNum  = $permit->getPlotNumber();
+            $pNum = $permit->getPlotNumber();
             $price = $permit->getPrice();
 
             // Wenn Typ existiert, normal zählen, sonst in den Legacy-Topf
@@ -120,12 +121,12 @@ final readonly class ReportingService
             }
 
             // Initialisiere Parzelle im Ranking, falls noch nicht vorhanden
-            if (! isset($stats['plots'][$pNum])) {
+            if (!isset($stats['plots'][$pNum])) {
                 $stats['plots'][$pNum] = [
-                    'count'   => 0,
+                    'count' => 0,
                     'revenue' => 0.0,
-                    'email'   => '',
-                    'name'    => '',
+                    'email' => '',
+                    'name' => '',
                 ];
             }
 
@@ -134,7 +135,7 @@ final readonly class ReportingService
             $stats['plots'][$pNum]['revenue'] += $price;
 
             // Zuletzt verwendete Daten speichern
-            $stats['plots'][$pNum]['name']  = $permit->getOwnerName();
+            $stats['plots'][$pNum]['name'] = $permit->getOwnerName();
             $stats['plots'][$pNum]['email'] = $permit->getOwnerEmail();
 
             // Umsätze berechnen
@@ -154,11 +155,9 @@ final readonly class ReportingService
         );
 
         // Typen-Prüfung eingebaut, um PHP-Notice bei komplett leeren Filterergebnissen zu unterbinden
-        $maxCount = (
-            ! empty($stats['plots'])
+        $maxCount = !empty($stats['plots'])
             && \is_array(\reset($stats['plots']))
             && \reset($stats['plots'])['count'] > 0
-        )
             ? \reset($stats['plots'])['count']
             : 1;
 
@@ -180,16 +179,16 @@ final readonly class ReportingService
     public function calculateYearlyStats(array $allPermits): array
     {
         $yearlyStats = [];
-        $vConfig     = $this->config->get('vehicle_types', []);
+        $vConfig = $this->config->get('vehicle_types', []);
 
         foreach ($allPermits as $permit) {
             $year = $permit->getCreatedAt()->format('Y');
-            if (! isset($yearlyStats[$year])) {
+            if (!isset($yearlyStats[$year])) {
                 $yearlyStats[$year] = [
-                    'count'  => 0,
-                    'paid'   => 0.0,
+                    'count' => 0,
+                    'paid' => 0.0,
                     'unpaid' => 0.0,
-                    'types'  => \array_fill_keys(\array_keys($vConfig), 0),
+                    'types' => \array_fill_keys(\array_keys($vConfig), 0),
                 ];
                 $yearlyStats[$year]['types']['__legacy__'] = 0;
             }

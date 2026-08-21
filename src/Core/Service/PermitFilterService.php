@@ -23,9 +23,9 @@ final readonly class PermitFilterService
 
     public function getFilteredPermits(string $filterStart, string $filterEnd, string $filterType, string $searchQuery): array
     {
-        $allPermits      = $this->storage->getAll();
+        $allPermits = $this->storage->getAll();
         $permitTemplates = $this->config->get('permit_templates', []);
-        $queryLower      = \strtolower(\trim($searchQuery));
+        $queryLower = \strtolower(\trim($searchQuery));
 
         return \array_filter($allPermits, function (Permit $permit) use ($filterStart, $filterEnd, $filterType, $permitTemplates, $queryLower): bool {
             $date = $permit->getCreatedAt()->format('Y-m-d');

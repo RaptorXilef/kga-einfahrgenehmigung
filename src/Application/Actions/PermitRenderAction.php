@@ -37,11 +37,11 @@ final readonly class PermitRenderAction implements ViewActionInterface
         $dto = ViewRenderRequest::fromArray($request->get);
 
         // Wir holen uns die Flash-Messages manuell, um zu sehen, ob ein spezieller Text vorliegt
-        $flashes        = $this->sessionManager->getFlashes();
+        $flashes = $this->sessionManager->getFlashes();
         $successMessage = '';
 
         if ($dto->isSuccess) {
-            if (! empty($flashes['success'])) {
+            if (!empty($flashes['success'])) {
                 $successMessage = $flashes['success'][0];
             } else {
                 $successMessage = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
@@ -49,12 +49,12 @@ final readonly class PermitRenderAction implements ViewActionInterface
         }
 
         $this->renderer->render('formular', [
-            'agreements'        => $this->getParsedAgreements(),
-            'formData'          => $this->sessionManager->getFormData(),
+            'agreements' => $this->getParsedAgreements(),
+            'formData' => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),
-            'success'           => $dto->isSuccess,
-            'message'           => $successMessage, // <--- FIX: Die Variable für den Countdown zurückgeben!
-            'flashes'           => $flashes, // Flashes manuell an die View übergeben, da wir sie oben schon "geleert" haben
+            'success' => $dto->isSuccess,
+            'message' => $successMessage, // <--- FIX: Die Variable für den Countdown zurückgeben!
+            'flashes' => $flashes, // Flashes manuell an die View übergeben, da wir sie oben schon "geleert" haben
         ]);
 
         return null;
@@ -77,13 +77,13 @@ final readonly class PermitRenderAction implements ViewActionInterface
     private function getParsedAgreements(): array
     {
         $agreementsConfig = $this->config->get('agreements', []);
-        $baseUrl          = $this->config->getBaseUrl() ?? '/';
-        $parsed           = [];
+        $baseUrl = $this->config->getBaseUrl() ?? '/';
+        $parsed = [];
 
         foreach ($agreementsConfig as $key => $agree) {
             $cleanLabel = \htmlspecialchars($agree['label']);
 
-            if (! empty($agree['link'])) {
+            if (!empty($agree['link'])) {
                 if (\filter_var($agree['link'], \FILTER_VALIDATE_URL)) {
                     $finalLink = $agree['link'];
                 } else {
@@ -98,7 +98,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
             $parsed[$key] = [
                 'label_html' => $renderedLabel,
-                'required'   => $agree['required'] ?? false,
+                'required' => $agree['required'] ?? false,
             ];
         }
 

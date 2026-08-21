@@ -36,11 +36,11 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
 
     public function archivePermits(int $year, array $permitsToArchive): void
     {
-        if (empty($permitsToArchive)) {
+        if ($permitsToArchive === []) {
             return;
         }
 
-        $path     = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
         $existing = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         foreach ($permitsToArchive as $permit) {
@@ -53,25 +53,27 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
     public function anonymizeOldRecords(int $yearsThreshold = 10): int
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             return 0;
         }
 
-        $cutoffDate      = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years", APP_REQUEST_TIME));
+        $cutoffDate = \date('Y-m-d H:i:s', \strtotime("-{$yearsThreshold} years", APP_REQUEST_TIME));
         $anonymizedCount = 0;
-        $existing        = $this->jsonHelper->read($path);
-        $changed         = false;
+        $existing = $this->jsonHelper->read($path);
+        $changed = false;
 
-        foreach ($existing as $code => &$item) {
-            if (isset($item['erstellt']) && $item['erstellt'] <= $cutoffDate && empty($item['is_anonymized'])) {
-                $item['name']          = '[ANONYMISIERT]';
-                $item['email']         = ''; // Empty maps to null VO
-                $item['kennzeichen']   = 'XXX-XX 9999'; // Formal correct VO format
-                $item['parzelle']      = 0; // Pure int
-                $item['is_anonymized'] = 1;
-                $changed               = true;
-                ++$anonymizedCount;
+        foreach ($existing as &$item) {
+            if (!isset($item['erstellt']) || $item['erstellt'] > $cutoffDate || !empty($item['is_anonymized'])) {
+                continue;
             }
+
+            $item['name'] = '[ANONYMISIERT]';
+            $item['email'] = ''; // Empty maps to null VO
+            $item['kennzeichen'] = 'XXX-XX 9999'; // Formal correct VO format
+            $item['parzelle'] = 0; // Pure int
+            $item['is_anonymized'] = 1;
+            $changed = true;
+            ++$anonymizedCount;
         }
 
         if ($changed) {
@@ -85,7 +87,7 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
     {
         $objects = [];
         foreach ($data as $key => $item) {
-            if (! isset($item['code'])) {
+            if (!isset($item['code'])) {
                 $item['code'] = $key;
             }
             $objects[] = $this->mapToEntity($item);
@@ -96,18 +98,20 @@ final readonly class JsonPermitArchiveRepository implements PermitArchiveReposit
     public function getArchivedPermits(int $minYear): array
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_archive']['file']);
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             return [];
         }
 
-        $rawArc  = $this->jsonHelper->read($path);
+        $rawArc = $this->jsonHelper->read($path);
         $results = [];
 
         foreach ($rawArc as $aData) {
             $pYear = (int) \substr((string) ($aData['erstellt'] ?? $aData['von'] ?? '2000'), 0, 4);
-            if ($pYear >= $minYear) {
-                $results[] = $this->mapToEntity($aData);
+            if ($pYear < $minYear) {
+                continue;
             }
+
+            $results[] = $this->mapToEntity($aData);
         }
 
         return $results;

@@ -9,6 +9,8 @@ use App\Contracts\Utils\ClockInterface;
 use App\Core\Entity\Voucher;
 use App\Core\ValueObject\TemplateKey;
 use App\Core\ValueObject\VoucherCode;
+use DateTimeImmutable;
+use RuntimeException;
 
 /**
  * Service zur Verwaltung von Gutscheincodes und Rabatten.
@@ -36,21 +38,20 @@ final readonly class VoucherService
      * Generiert einen neuen Gutschein im System mit individuellen Restriktionen.
      * Überprüft Wunsch-Codes auf Einzigartigkeit gegen Live- und Archivbestände oder generiert ein 'GUT-'-Krypto-Token.
      *
-     * @param string      $reason       Der Grund oder Verwendungszweck des Gutscheins.
-     * @param string      $created_by   Kennung des Erstellers.
-     * @param string      $template_key Der zugehörige Vorlagen-Schlüssel.
-     * @param array       $prefillData  Optionale Formulardaten zum Vorbefüllen.
-     * @param string      $type         Die Art des Gutscheins ('free', 'percent', 'fixed').
-     * @param float       $value        Der Wert des Gutscheins (z.B. Prozent oder fester Euro-Betrag).
-     * @param bool        $multi_use    Gibt an, ob der Gutschein mehrfach verwendet werden kann.
-     * @param int|null    $max_uses     Maximale Anzahl der Verwendungen (null = unbegrenzt).
-     * @param string|null $custom_code  Ein benutzerdefinierter Code (optional).
-     * @param string|null $expires_at   Verfallsdatum (YYYY-MM-DD HH:MM:SS) oder null.
-     * @param string      $date_mode    Der Modus der Datumsberechnung ('fixed' etc.).
+     * @param string $reason Der Grund oder Verwendungszweck des Gutscheins.
+     * @param string $created_by Kennung des Erstellers.
+     * @param string $template_key Der zugehörige Vorlagen-Schlüssel.
+     * @param array $prefillData Optionale Formulardaten zum Vorbefüllen.
+     * @param string $type Die Art des Gutscheins ('free', 'percent', 'fixed').
+     * @param float $value Der Wert des Gutscheins (z.B. Prozent oder fester Euro-Betrag).
+     * @param bool $multi_use Gibt an, ob der Gutschein mehrfach verwendet werden kann.
+     * @param int|null $max_uses Maximale Anzahl der Verwendungen (null = unbegrenzt).
+     * @param string|null $custom_code Ein benutzerdefinierter Code (optional).
+     * @param string|null $expires_at Verfallsdatum (YYYY-MM-DD HH:MM:SS) oder null.
+     * @param string $date_mode Der Modus der Datumsberechnung ('fixed' etc.).
      *
      * @return string Der generierte oder übergebene Gutscheincode.
-     *
-     * @throws \RuntimeException Wenn ein benutzerdefinierter Code bereits existiert.
+     * @throws RuntimeException Wenn ein benutzerdefinierter Code bereits existiert.
      */
     public function createVoucher(
         string $reason,
@@ -66,7 +67,7 @@ final readonly class VoucherService
         string $date_mode = 'fixed',  // 'fixed' oder 'flexible'
     ): string {
         $activeVouchers = $this->repository->loadAll();
-        $archivedItems  = $this->repository->loadArchive(); // Hier wird die Datei der benutzten Codes geladen!
+        $archivedItems = $this->repository->loadArchive(); // Hier wird die Datei der benutzten Codes geladen!
 
         // Wir sammeln alle bereits vergebenen Codes in einer Liste für den Abgleich
         $alreadyUsedCodes = \array_keys($activeVouchers);
@@ -79,7 +80,7 @@ final readonly class VoucherService
         if ($custom_code !== null && \trim($custom_code) !== '') {
             $newGeneratedCode = \strtoupper(\trim($custom_code));
             if (\in_array($newGeneratedCode, $alreadyUsedCodes, true)) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     "Der Code '{$newGeneratedCode}' wurde bereits verwendet oder existiert schon.",
                 );
             }
@@ -100,7 +101,7 @@ final readonly class VoucherService
             $multi_use,
             $max_uses ?? 1,
             0,
-            $expires_at ? new \DateTimeImmutable($expires_at) : null,
+            $expires_at ? new DateTimeImmutable($expires_at) : null,
             $date_mode,
             $created_by,
             clone $this->clock->now(),
@@ -135,25 +136,25 @@ final readonly class VoucherService
     {
         $vouchers = $this->repository->loadAll();
 
-        if (! isset($vouchers[$code])) {
+        if (!isset($vouchers[$code])) {
             return null;
         }
 
-        $voucher  = $vouchers[$code];
+        $voucher = $vouchers[$code];
         $redeemed = $voucher->redeem();
 
         // --- ARCHIV-LOGIK VIA CONFIG ---
         $this->repository->appendToArchive([
-            'code'        => $code,
-            'reason'      => $redeemed->reason,
-            'template'    => $redeemed->templateKey->value,
+            'code' => $code,
+            'reason' => $redeemed->reason,
+            'template' => $redeemed->templateKey->value,
             'redeemed_at' => $this->clock->nowAsString(),
-            'user_name'   => $userData['name'] ?? 'Unbekannt',
-            'user_plot'   => $userData['parzelle'] ?? '?',
-            'user_email'  => $userData['email'] ?? '?',
+            'user_name' => $userData['name'] ?? 'Unbekannt',
+            'user_plot' => $userData['parzelle'] ?? '?',
+            'user_email' => $userData['email'] ?? '?',
         ]);
 
-        if (! $redeemed->multiUse || $redeemed->isDepleted()) {
+        if (!$redeemed->multiUse || $redeemed->isDepleted()) {
             unset($vouchers[$code]);
         } else {
             $vouchers[$code] = $redeemed;
@@ -171,7 +172,7 @@ final readonly class VoucherService
      *
      * Ändert den Status eines Gutscheins.
      *
-     * @param string $code   Der Gutscheincode.
+     * @param string $code Der Gutscheincode.
      * @param string $status Der neue Status ('aktiv' oder 'deaktiviert').
      *
      * @return bool True bei Erfolg, false wenn der Code nicht gefunden wurde.
@@ -180,7 +181,7 @@ final readonly class VoucherService
     {
         $vouchers = $this->repository->loadAll();
 
-        if (! isset($vouchers[$code])) {
+        if (!isset($vouchers[$code])) {
             return false;
         }
 
@@ -198,7 +199,7 @@ final readonly class VoucherService
     {
         $vouchers = $this->repository->loadAll();
 
-        if (! isset($vouchers[$code])) {
+        if (!isset($vouchers[$code])) {
             return false;
         }
 

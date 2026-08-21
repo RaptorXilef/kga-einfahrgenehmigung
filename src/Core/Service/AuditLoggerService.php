@@ -25,7 +25,7 @@ final readonly class AuditLoggerService
     /**
      * Logs an action with the current user context and IP address.
      *
-     * @param string $action  A short identifier for the action (e.g., 'PERMIT_CREATE')
+     * @param string $action A short identifier for the action (e.g., 'PERMIT_CREATE')
      * @param string $details A detailed description of the event
      */
     public function log(string $action, string $details): void
@@ -39,7 +39,7 @@ final readonly class AuditLoggerService
 
         // Wenn kein Admin eingeloggt ist (z.B. Pächter storniert seinen Antrag selbst)
         if ($userId === '') {
-            $userId   = 'public_user';
+            $userId = 'public_user';
             $username = 'Pächter / Öffentlicher Nutzer';
         } else {
             $username = $this->session->getAdminUser();

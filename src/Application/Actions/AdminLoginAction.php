@@ -16,6 +16,7 @@ use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
+use RuntimeException;
 
 /**
  * Action für den Login von Administratoren inkl. Rate-Limiting und CSRF-Schutz.
@@ -48,7 +49,6 @@ final readonly class AdminLoginAction implements ActionInterface
 
         try {
             if ($this->auth->login($dto->username, $dto->password, $request->getIp())) {
-
                 // LOG SCHREIBEN
                 $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
 
@@ -63,7 +63,7 @@ final readonly class AdminLoginAction implements ActionInterface
             $this->renderForm('Benutzername oder Passwort ist falsch.');
 
             return null;
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             $this->rescueFormData($request); // UX: Daten retten bei Rate-Limit-Fehlern
             $this->renderForm($e->getMessage());
 
@@ -93,9 +93,9 @@ final readonly class AdminLoginAction implements ActionInterface
         }
 
         $this->renderer->render('admin_login', [
-            'auth'            => $this->auth,
+            'auth' => $this->auth,
             'groupRepository' => $this->groupRepository,
-            'userRepository'  => $this->userRepository,
+            'userRepository' => $this->userRepository,
         ]);
     }
 }

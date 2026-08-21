@@ -31,7 +31,7 @@ final readonly class ImpressumAction implements ViewActionInterface
      */
     public function execute(ServerRequest $request): mixed
     {
-        $path      = $this->config->getStoragePath('settings/impressum.json');
+        $path = $this->config->getStoragePath('settings/impressum.json');
         $legalData = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
         $this->renderer->render('impressum', [

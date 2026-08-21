@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\DTO;
 
+use DateTimeImmutable;
+use Exception;
+
 /**
  * DTO für den asynchronen PayPal-Webhook/API-Call.
  * Kapselt das Lesen aus dem php://input Stream.
@@ -12,7 +15,7 @@ namespace App\Application\DTO;
  */
 final readonly class ApiDateInfoRequest
 {
-    private function __construct(public \DateTimeImmutable $von, public \DateTimeImmutable $bis)
+    private function __construct(public DateTimeImmutable $von, public DateTimeImmutable $bis)
     {
     }
 
@@ -22,15 +25,15 @@ final readonly class ApiDateInfoRequest
         $bisStr = (string) ($input['bis'] ?? 'today');
 
         try {
-            $von = new \DateTimeImmutable($vonStr);
-        } catch (\Exception) {
-            $von = new \DateTimeImmutable('today');
+            $von = new DateTimeImmutable($vonStr);
+        } catch (Exception) {
+            $von = new DateTimeImmutable('today');
         }
 
         try {
-            $bis = new \DateTimeImmutable($bisStr);
-        } catch (\Exception) {
-            $bis = new \DateTimeImmutable('today');
+            $bis = new DateTimeImmutable($bisStr);
+        } catch (Exception) {
+            $bis = new DateTimeImmutable('today');
         }
 
         return new self($von, $bis);

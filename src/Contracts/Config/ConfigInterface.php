@@ -19,8 +19,8 @@ interface ConfigInterface
      * Ruft einen Konfigurationswert anhand seines Keys ab.
      * Unterstützt standardmäßig Fallbacks, falls der Key nicht existiert.
      *
-     * @param string $key     Der Identifikations-Key (z.B. 'database.host').
-     * @param mixed  $default Standard-Rückgabewert bei Nichtexistenz.
+     * @param string $key Der Identifikations-Key (z.B. 'database.host').
+     * @param mixed $default Standard-Rückgabewert bei Nichtexistenz.
      *
      * @return mixed Der konfigurierte Wert oder das übergebene Default.
      */
@@ -59,7 +59,8 @@ interface ConfigInterface
     /**
      * Baut den absoluten Systempfad für eine Speicher-Datei zusammen.
      *
-     * @param  string $fileName Der Name der Zieldatei (z.B. 'users.json').
+     * @param string $fileName Der Name der Zieldatei (z.B. 'users.json').
+     *
      * @return string Der vollständige, validierte Pfad.
      */
     public function getStoragePath(string $fileName): string;

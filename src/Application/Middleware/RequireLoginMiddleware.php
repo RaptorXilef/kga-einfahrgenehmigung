@@ -34,7 +34,7 @@ final class RequireLoginMiddleware implements MiddlewareInterface
      */
     public static function withRedirect(AuthService $auth, string $fallbackUrl): self
     {
-        $middleware              = new self($auth);
+        $middleware = new self($auth);
         $middleware->fallbackUrl = $fallbackUrl;
 
         return $middleware;
@@ -42,19 +42,18 @@ final class RequireLoginMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        if (! $this->auth->isLoggedIn()) {
-
+        if (!$this->auth->isLoggedIn()) {
             // Modus 1: Harter Redirect (z.B. für Profil- oder Changelog-Seite)
             if ($this->fallbackUrl !== null) {
                 return new RedirectResponse($this->fallbackUrl);
             }
 
             // Modus 2: Rendern des Admin-Login-Formulars (Standard für das Dashboard)
-            if ($this->renderer !== null && $this->groupRepository !== null && $this->userRepository !== null) {
+            if ($this->renderer instanceof TemplateRenderer && $this->groupRepository instanceof GroupRepositoryInterface && $this->userRepository instanceof UserRepositoryInterface) {
                 $this->renderer->render('admin_login', [
-                    'auth'            => $this->auth,
+                    'auth' => $this->auth,
                     'groupRepository' => $this->groupRepository,
-                    'userRepository'  => $this->userRepository,
+                    'userRepository' => $this->userRepository,
                 ]);
 
                 return null;

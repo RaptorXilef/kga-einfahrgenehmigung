@@ -80,17 +80,19 @@ final readonly class JsonStorage implements StorageInterface
     // TODO DOCBLOCK
     public function deleteMultiple(array $codes): int
     {
-        if (empty($codes)) {
+        if ($codes === []) {
             return 0;
         }
 
         $result = $this->executeJsonTransaction($this->filePath, function (array &$data) use ($codes): int {
             $deletedCount = 0;
             foreach ($codes as $code) {
-                if (isset($data[$code])) {
-                    unset($data[$code]);
-                    ++$deletedCount;
+                if (!isset($data[$code])) {
+                    continue;
                 }
+
+                unset($data[$code]);
+                ++$deletedCount;
             }
 
             return $deletedCount;
@@ -120,11 +122,11 @@ final readonly class JsonStorage implements StorageInterface
 
         // 2. Extrahiere die hinterste ID für den formatübergreifenden Vergleich
         $searchParts = \explode('-', $hash);
-        $searchId    = \end($searchParts);
+        $searchId = \end($searchParts);
 
         foreach ($data as $item) {
             $itemParts = \explode('-', (string) $item['code']);
-            $itemId    = \end($itemParts);
+            $itemId = \end($itemParts);
 
             if ($itemId === $searchId) {
                 return $this->mapToEntity($item);
@@ -145,7 +147,7 @@ final readonly class JsonStorage implements StorageInterface
      */
     public function findByLicensePlate(string $plate): ?Permit
     {
-        $all         = $this->getAll();
+        $all = $this->getAll();
         $searchPlate = \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
 
         if ($searchPlate === '') {
@@ -174,10 +176,10 @@ final readonly class JsonStorage implements StorageInterface
             $aValid = $a->isValid();
             $bValid = $b->isValid();
 
-            if ($aValid && ! $bValid) {
+            if ($aValid && !$bValid) {
                 return -1;
             }
-            if (! $aValid && $bValid) {
+            if (!$aValid && $bValid) {
                 return 1;
             }
 
@@ -210,7 +212,7 @@ final readonly class JsonStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (! $target->save($permit)) {
+            if (!$target->save($permit)) {
                 continue;
             }
 
@@ -229,7 +231,7 @@ final readonly class JsonStorage implements StorageInterface
      */
     private function loadRaw(): array
     {
-        if (! \file_exists($this->filePath)) {
+        if (!\file_exists($this->filePath)) {
             return [];
         }
 
@@ -239,7 +241,7 @@ final readonly class JsonStorage implements StorageInterface
     public function import(array $data): void
     {
         foreach ($data as $key => $item) {
-            if (! isset($item['code'])) {
+            if (!isset($item['code'])) {
                 $item['code'] = $key;
             }
             $this->save($this->mapToEntity($item));

@@ -71,8 +71,10 @@ final readonly class ApiController
             return JsonResponse::error("API Endpoint '$actionKey' not found.", 404);
         });
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

@@ -50,14 +50,14 @@ final readonly class VerificationController
             ->add($this->mailQueueMiddleware);
 
         // Mache Keys global eindeutig für den Universal-Router
-        $actionKey = (isset($request->get['token']) || isset($request->post['submit_code'])) ? 'verify_submit' : 'verify_render';
+        $actionKey = isset($request->get['token']) || isset($request->post['submit_code']) ? 'verify_submit' : 'verify_render';
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            return $this->factory->create($actionKey)->execute($req);
-        });
+        $response = $pipeline->process($request, fn (ServerRequest $req): mixed => $this->factory->create($actionKey)->execute($req));
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

@@ -33,7 +33,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
     {
         try {
             // Nutze DTO für die Validierung statt rohem Array-Zugriff!
-            $dto  = SimpleIdentifierRequest::fromArray($request->post, 'code');
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'code');
             $code = $dto->identifier;
         } catch (ValidationException) {
             // Wenn Code fehlt, durchlassen -> Die Action wirft dann den Fehler!
@@ -41,7 +41,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
         }
 
         $permit = $this->storage->findByHash($code);
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             return $next($request);
         }
 
@@ -50,11 +50,11 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
 
         if ($isUnpaid && $this->auth->hasPermission('dashboard.finance.suspend')) {
             $hasRight = true;
-        } elseif (! $isUnpaid && $this->auth->hasPermission('dashboard.active.suspend')) {
+        } elseif (!$isUnpaid && $this->auth->hasPermission('dashboard.active.suspend')) {
             $hasRight = true;
         }
 
-        if (! $hasRight) {
+        if (!$hasRight) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Sperren.');
 
             return new RedirectResponse('admin.php');

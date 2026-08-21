@@ -6,6 +6,9 @@ namespace App\Core\Service;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
 
 /**
  * Service zur Prüfung von Feiertagen, Ruhetagen und erlaubten Einfahrtszeiten.
@@ -36,13 +39,13 @@ final readonly class HolidayService
      */
     public function isTimeAllowedNow(): bool
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
         if ($this->isRestrictedDay($now)) {
             return false;
         }
 
-        $dayKey      = \strtolower($now->format('D'));
-        $slots       = $this->getOpeningHoursForDate($now)[$dayKey] ?? [];
+        $dayKey = \strtolower($now->format('D'));
+        $slots = $this->getOpeningHoursForDate($now)[$dayKey] ?? [];
         $currentTime = $now->format('H:i');
 
         foreach ($slots as $slot) {
@@ -59,13 +62,13 @@ final readonly class HolidayService
      *
      * Prüft, ob ein gegebenes Datum ein Ruhetag (Sonntag oder Feiertag) ist.
      *
-     * @param \DateTimeImmutable $date Das zu prüfende Datum.
+     * @param DateTimeImmutable $date Das zu prüfende Datum.
      *
      * @return bool True, wenn das Datum ein Ruhetag ist.
      */
-    public function isRestrictedDay(\DateTimeImmutable $date): bool
+    public function isRestrictedDay(DateTimeImmutable $date): bool
     {
-        $dayKey       = \strtolower($date->format('D'));
+        $dayKey = \strtolower($date->format('D'));
         $openingHours = $this->getOpeningHoursForDate($date);
 
         // Wenn für diesen Tag leere Arrays definiert sind (wie bei 'sun'), ist er gesperrt
@@ -90,18 +93,18 @@ final readonly class HolidayService
      *
      * Berechnet den nächsten Zeitpunkt in der Zukunft, an dem eine Einfahrt erlaubt ist.
      *
-     * @param \DateTimeImmutable $now Das Referenzdatum (in der Regel "jetzt").
+     * @param DateTimeImmutable $now Das Referenzdatum (in der Regel "jetzt").
      *
-     * @return \DateTimeImmutable|null Der Startzeitpunkt des nächsten freien Slots oder null.
+     * @return DateTimeImmutable|null Der Startzeitpunkt des nächsten freien Slots oder null.
      */
-    public function getNextAvailableSlot(\DateTimeImmutable $now): ?\DateTimeImmutable
+    public function getNextAvailableSlot(DateTimeImmutable $now): ?DateTimeImmutable
     {
         $current = $now;
         // Wir prüfen die nächsten 14 Tage
         for ($i = 0; $i < 14; ++$i) {
-            if (! $this->isRestrictedDay($current)) {
+            if (!$this->isRestrictedDay($current)) {
                 $dayKey = \strtolower($current->format('D'));
-                $slots  = $this->getOpeningHoursForDate($current)[$dayKey] ?? [];
+                $slots = $this->getOpeningHoursForDate($current)[$dayKey] ?? [];
 
                 foreach ($slots as $slot) {
                     $slotStart = $current->setTime((int) \substr((string) $slot[0], 0, 2), (int) \substr((string) $slot[0], 3, 2));
@@ -130,8 +133,8 @@ final readonly class HolidayService
      */
     public function getTodayAllowedSlots(): string
     {
-        $dayKey = \strtolower((new \DateTimeImmutable())->format('D'));
-        $slots  = $this->getOpeningHoursForDate(new \DateTimeImmutable())[$dayKey] ?? [];
+        $dayKey = \strtolower((new DateTimeImmutable())->format('D'));
+        $slots = $this->getOpeningHoursForDate(new DateTimeImmutable())[$dayKey] ?? [];
 
         // FIX: empty() durch strikten Vergleich ersetzt
         if ($slots === []) {
@@ -151,7 +154,7 @@ final readonly class HolidayService
      *
      * Standard-Methode für allgemeine Texte (z.B. im Footer).
      */
-    public function getGeneralOpeningHoursText(?\DateTimeInterface $date = null): string
+    public function getGeneralOpeningHoursText(?DateTimeInterface $date = null): string
     {
         return \implode(' | ', $this->formatHoursArrayToText($this->getOpeningHoursForDate($date)));
     }
@@ -162,7 +165,7 @@ final readonly class HolidayService
      * Erstellt einen HTML-kompatiblen String mit allen Zeitblöcken für eine Genehmigung.
      * (Wird direkt im Frontend und PDF gerendert)
      */
-    public function getOpeningHoursDataForDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    public function getOpeningHoursDataForDateRange(DateTimeInterface $startDate, DateTimeInterface $endDate): array
     {
         $blocks = $this->getOpeningHoursForDateRange($startDate, $endDate);
         foreach ($blocks as &$block) {
@@ -177,20 +180,21 @@ final readonly class HolidayService
      *
      * Gibt einen formatierten Text der anstehenden Ruhetage innerhalb eines Zeitraums zurück.
      *
-     * @param  \DateTimeImmutable $von Startdatum.
-     * @param  \DateTimeImmutable $bis Enddatum.
-     * @return array              Ruhetags-Auflistung.
+     * @param DateTimeImmutable $von Startdatum.
+     * @param DateTimeImmutable $bis Enddatum.
+     *
+     * @return array Ruhetags-Auflistung.
      */
-    public function getHolidaysInRange(\DateTimeImmutable $von, \DateTimeImmutable $bis): array
+    public function getHolidaysInRange(DateTimeImmutable $von, DateTimeImmutable $bis): array
     {
         $startYear = (int) $von->format('Y');
-        $endYear   = (int) $bis->format('Y');
-        $holidays  = [];
+        $endYear = (int) $bis->format('Y');
+        $holidays = [];
 
         for ($year = $startYear; $year <= $endYear; ++$year) {
             $yearlyHolidays = $this->getAllHolidaysForYear($year);
             foreach ($yearlyHolidays as $dateStr) {
-                $date = new \DateTimeImmutable($dateStr);
+                $date = new DateTimeImmutable($dateStr);
                 if ($date < $von->setTime(0, 0, 0) || $date > $bis->setTime(23, 59, 59)) {
                     continue;
                 }
@@ -213,18 +217,18 @@ final readonly class HolidayService
     /**
      * Ermittelt die korrekten Öffnungszeiten für ein bestimmtes Datum.
      */
-    public function getOpeningHoursForDate(?\DateTimeInterface $date = null): array
+    public function getOpeningHoursForDate(?DateTimeInterface $date = null): array
     {
-        $date ??= new \DateTimeImmutable();
+        $date ??= new DateTimeImmutable();
         $seasons = $this->config->get('seasons', []);
 
         // Wenn Seasons existieren, prüfen in welche wir fallen
-        if (! empty($seasons)) {
+        if (!empty($seasons)) {
             $currentDayMonth = $date->format('m-d');
 
             foreach ($seasons as $season) {
                 $start = $season['start'] ?? '01-01';
-                $end   = $season['end'] ?? '12-31';
+                $end = $season['end'] ?? '12-31';
 
                 // Normales Jahr
                 if ($start <= $end) {
@@ -233,10 +237,8 @@ final readonly class HolidayService
                     }
                 }
                 // Jahresübergreifend (z.B. 11-01 bis 02-28)
-                else {
-                    if ($currentDayMonth >= $start || $currentDayMonth <= $end) {
-                        return $season['opening_hours'] ?? [];
-                    }
+                elseif ($currentDayMonth >= $start || $currentDayMonth <= $end) {
+                    return $season['opening_hours'] ?? [];
                 }
             }
         }
@@ -249,42 +251,43 @@ final readonly class HolidayService
      * Ermittelt alle zutreffenden Öffnungszeiten für einen kompletten Zeitraum (z.B. eine Genehmigung)
      * und gruppiert diese nach Zeiträumen, falls sich die Saison dazwischen ändert.
      *
-     * @param  \DateTimeInterface $startDate Beginn der Genehmigung
-     * @param  \DateTimeInterface $endDate   Ende der Genehmigung
-     * @return array              Liste von Blöcken mit 'from', 'to' und den jeweiligen 'hours'
+     * @param DateTimeInterface $startDate Beginn der Genehmigung
+     * @param DateTimeInterface $endDate Ende der Genehmigung
+     *
+     * @return array Liste von Blöcken mit 'from', 'to' und den jeweiligen 'hours'
      */
-    public function getOpeningHoursForDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    public function getOpeningHoursForDateRange(DateTimeInterface $startDate, DateTimeInterface $endDate): array
     {
         $intervals = [];
-        $current   = clone $startDate;
+        $current = clone $startDate;
 
         $currentIntervalStart = clone $current;
-        $lastHours            = null;
+        $lastHours = null;
 
         // Wir iterieren Tag für Tag durch die Genehmigung (performant und exakt, auch bei Schaltjahren)
         while ($current <= $endDate) {
             $hoursForDay = $this->getOpeningHoursForDate($current);
-            $hoursHash   = \json_encode($hoursForDay); // Einfacher Text-Vergleich der Arrays
+            $hoursHash = \json_encode($hoursForDay); // Einfacher Text-Vergleich der Arrays
 
             // Wenn sich die Zeiten ändern (Saisonwechsel!) UND wir nicht am allerersten Tag sind
             if ($lastHours !== null && $hoursHash !== $lastHours) {
                 $intervals[] = [
-                    'from'  => $currentIntervalStart->format('d.m.Y'),
-                    'to'    => (clone $current)->modify('-1 day')->format('d.m.Y'),
+                    'from' => $currentIntervalStart->format('d.m.Y'),
+                    'to' => (clone $current)->modify('-1 day')->format('d.m.Y'),
                     'hours' => $this->jsonHelper->decode($lastHours),
                 ];
                 $currentIntervalStart = clone $current; // Start für die neue Saison merken
             }
 
             $lastHours = $hoursHash;
-            $current   = $current->modify('+1 day');
+            $current = $current->modify('+1 day');
         }
 
         // Den letzten verbleibenden Zeitblock (bis zum Ende der Genehmigung) anhängen
         if ($lastHours !== null) {
             $intervals[] = [
-                'from'  => $currentIntervalStart->format('d.m.Y'),
-                'to'    => $endDate->format('d.m.Y'),
+                'from' => $currentIntervalStart->format('d.m.Y'),
+                'to' => $endDate->format('d.m.Y'),
                 'hours' => $this->jsonHelper->decode($lastHours),
             ];
         }
@@ -315,14 +318,14 @@ final readonly class HolidayService
         $customHolidays = $this->config->get('custom_holidays', []);
         foreach ($customHolidays as $customDate) {
             $cleanDate = \str_replace('.', '-', $customDate); // Macht aus 26.05.2026 -> 26-05-2026
-            $time      = \strtotime($cleanDate);
+            $time = \strtotime($cleanDate);
             if ($time === false) {
                 continue;
             }
 
             $parsedDate = \date('Y-m-d', $time);
             // Nur übernehmen, wenn es das angefragte Jahr betrifft
-            if (! \str_starts_with($parsedDate, (string) $year)) {
+            if (!\str_starts_with($parsedDate, (string) $year)) {
                 continue;
             }
 
@@ -347,7 +350,7 @@ final readonly class HolidayService
     {
         // UTC verhindert, dass bei +50 Tagen eine Stunde durch Sommerzeit verloren geht und
         // wir am Vortag um 23:00 Uhr landen
-        $base   = new \DateTimeImmutable("$year-03-21", new \DateTimeZone('UTC'));
+        $base = new DateTimeImmutable("$year-03-21", new DateTimeZone('UTC'));
         $easter = $base->modify('+' . \easter_days($year) . ' days');
 
         // Bundesweit einheitliche Feiertage
@@ -458,9 +461,9 @@ final readonly class HolidayService
         }
         if ($state === 'Sachsen') {
             // Buß- und Bettag: Mittwoch vor dem 23. November
-            $holidays[] = (new \DateTimeImmutable(
+            $holidays[] = (new DateTimeImmutable(
                 "$year-11-23",
-                new \DateTimeZone('UTC'),
+                new DateTimeZone('UTC'),
             ))->modify('last wednesday')->format('Y-m-d');
         }
 
@@ -482,15 +485,15 @@ final readonly class HolidayService
             return [];
         }
 
-        $ranges  = [];
-        $start   = $current = new \DateTimeImmutable($dates[0]);
+        $ranges = [];
+        $start = $current = new DateTimeImmutable($dates[0]);
         $counter = \count($dates);
 
         for ($i = 1; $i <= $counter; ++$i) {
-            $next = isset($dates[$i]) ? new \DateTimeImmutable($dates[$i]) : null;
+            $next = isset($dates[$i]) ? new DateTimeImmutable($dates[$i]) : null;
 
             // Prüfen, ob der nächste Tag direkt auf den aktuellen folgt
-            if ($next instanceof \DateTimeImmutable && $next->modify('-1 day')->format('Y-m-d') === $current->format('Y-m-d')) {
+            if ($next instanceof DateTimeImmutable && $next->modify('-1 day')->format('Y-m-d') === $current->format('Y-m-d')) {
                 $current = $next;
             } else {
                 // Bereich abschließen
@@ -501,7 +504,7 @@ final readonly class HolidayService
                     // hier bleiben wir beim Standard-Format für Klarheit
                     $ranges[] = $start->format('d.m.') . ' - ' . $current->format('d.m.Y');
                 }
-                if ($next instanceof \DateTimeImmutable) {
+                if ($next instanceof DateTimeImmutable) {
                     $start = $current = $next;
                 }
             }
@@ -516,12 +519,12 @@ final readonly class HolidayService
      */
     private function formatHoursArrayToText(array $hours): array
     {
-        if (empty($hours)) {
+        if ($hours === []) {
             return ['nach Vereinbarung'];
         }
 
         $useFullList = (bool) $this->config->get('holiday_service_use_full_list', false);
-        $daysMap     = ['mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi', 'thu' => 'Do', 'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So'];
+        $daysMap = ['mon' => 'Mo', 'tue' => 'Di', 'wed' => 'Mi', 'thu' => 'Do', 'fri' => 'Fr', 'sat' => 'Sa', 'sun' => 'So'];
 
         if ($useFullList) {
             $resultStrings = [];
@@ -532,7 +535,7 @@ final readonly class HolidayService
 
                     continue;
                 }
-                $daySlots        = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $slots);
+                $daySlots = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $slots);
                 $resultStrings[] = "{$label}: " . \implode(', ', $daySlots);
             }
 
@@ -540,9 +543,9 @@ final readonly class HolidayService
         }
 
         $chronologicalGroups = [];
-        $currentGroup        = null;
+        $currentGroup = null;
         foreach ($daysMap as $key => $label) {
-            $slots   = $hours[$key] ?? [];
+            $slots = $hours[$key] ?? [];
             $slotKey = empty($slots) ? 'none' : \implode(',', \array_map(fn (array $s): string => $s[0] . '-' . $s[1], $slots));
             if ($currentGroup === null || $currentGroup['slotKey'] !== $slotKey) {
                 if ($currentGroup !== null) {
@@ -558,7 +561,7 @@ final readonly class HolidayService
         $finalMerged = [];
         foreach ($chronologicalGroups as $group) {
             $slotKey = $group['slotKey'];
-            $count   = \count($group['days']);
+            $count = \count($group['days']);
             if ($count === 1) {
                 $dayString = $group['days'][0];
             } elseif ($count === 2) {
@@ -566,7 +569,7 @@ final readonly class HolidayService
             } else {
                 $dayString = $group['days'][0] . ' - ' . $group['days'][$count - 1];
             }
-            if (! isset($finalMerged[$slotKey])) {
+            if (!isset($finalMerged[$slotKey])) {
                 $finalMerged[$slotKey] = ['dayParts' => [$dayString], 'slots' => $group['slots']];
             } else {
                 $finalMerged[$slotKey]['dayParts'][] = $dayString;
@@ -579,7 +582,7 @@ final readonly class HolidayService
             if ($slotKey === 'none') {
                 $finalParts[] = "{$daysText}: Keine Einfahrt";
             } else {
-                $slotStrings  = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $data['slots']);
+                $slotStrings = \array_map(fn (array $s): string => $s[0] . ' - ' . $s[1], $data['slots']);
                 $finalParts[] = "{$daysText}: " . \implode(', ', $slotStrings);
             }
         }

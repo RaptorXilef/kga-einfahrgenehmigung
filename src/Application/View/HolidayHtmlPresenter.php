@@ -17,7 +17,7 @@ final class HolidayHtmlPresenter
      */
     public static function formatOpeningHours(array $blocks): string
     {
-        $result  = [];
+        $result = [];
         $isMulti = \count($blocks) > 1;
 
         foreach ($blocks as $block) {
@@ -46,7 +46,7 @@ final class HolidayHtmlPresenter
      */
     public static function formatHolidayNotice(array $holidays): string
     {
-        if (empty($holidays)) {
+        if ($holidays === []) {
             return '';
         }
 

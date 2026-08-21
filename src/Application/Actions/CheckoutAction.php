@@ -13,6 +13,8 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Core\Service\HolidayService;
 use App\Core\Service\PermitService;
+use DateTimeImmutable;
+use Exception;
 
 /**
  * Action für die Checkout-Übersicht.
@@ -42,18 +44,18 @@ final readonly class CheckoutAction implements ViewActionInterface
     {
         try {
             $dto = SimpleTokenRequest::fromArray($request->get);
-        } catch (\Exception $e) {
+        } catch (Exception) {
             return new RedirectResponse('index.php');
         }
 
-        $token    = $dto->token;
+        $token = $dto->token;
         $tempData = $this->permitService->getVerifiedRequest($token);
 
         if ($tempData === null) {
             return new RedirectResponse('index.php');
         }
-        $dtVon = new \DateTimeImmutable($tempData['datum_von'] ?? 'now');
-        $dtBis = new \DateTimeImmutable($tempData['datum_bis'] ?? 'now');
+        $dtVon = new DateTimeImmutable($tempData['datum_von'] ?? 'now');
+        $dtBis = new DateTimeImmutable($tempData['datum_bis'] ?? 'now');
         $this->renderer->render('checkout/summary', [
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($dtVon, $dtBis),
@@ -62,7 +64,7 @@ final readonly class CheckoutAction implements ViewActionInterface
                 $this->holidayService->getOpeningHoursDataForDateRange($dtVon, $dtBis),
             ),
             'tempData' => $tempData,
-            'token'    => $token]);
+            'token' => $token]);
 
         return null;
     }

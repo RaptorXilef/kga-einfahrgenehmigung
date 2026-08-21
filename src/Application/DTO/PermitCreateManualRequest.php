@@ -23,13 +23,11 @@ final readonly class PermitCreateManualRequest
     // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
-        $sanitized = \array_map(function ($value): mixed {
-            return \is_string($value) ? \trim(\strip_tags($value)) : $value;
-        }, $post);
+        $sanitized = \array_map(fn ($value): mixed => \is_string($value) ? \trim(\strip_tags($value)) : $value, $post);
 
-        $name     = $sanitized['name'] ?? '';
+        $name = $sanitized['name'] ?? '';
         $parzelle = $sanitized['parzelle'] ?? '';
-        $preis    = (float) ($sanitized['preis'] ?? 0.0);
+        $preis = (float) ($sanitized['preis'] ?? 0.0);
 
         if ($name === '') {
             throw ValidationException::withMessage('Fehler: Der Name darf nicht leer sein.');

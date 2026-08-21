@@ -9,6 +9,10 @@ use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
+use Exception;
+use PDO;
+use RuntimeException;
+use Throwable;
 
 /**
  * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
@@ -21,7 +25,7 @@ final readonly class BackupService implements BackupServiceInterface
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private ?\PDO $pdo,
+        private ?PDO $pdo,
         private ClockInterface $clock,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
@@ -40,19 +44,19 @@ final readonly class BackupService implements BackupServiceInterface
      */
     public function createBackup(string $target): string
     {
-        $timestamp  = $this->clock->now()->format('Ymd-His');
-        $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
+        $timestamp = $this->clock->now()->format('Ymd-His');
+        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
         $backupPath = $this->config->getStoragePath($subFolder . '/' . $timestamp);
 
-        if (! \is_dir($backupPath)) {
+        if (!\is_dir($backupPath)) {
             \mkdir($backupPath, 0o755, true);
         }
 
-        $jsonFlags     = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
+        $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
         $storageConfig = $this->config->get('storage_config', []);
 
         // Backup für "alles" oder ein spezifisches Ziel
-        if (! isset($storageConfig[$target])) {
+        if (!isset($storageConfig[$target])) {
             $keysToBackup = [
                 'permits',
                 'permits_archive',
@@ -72,26 +76,30 @@ final readonly class BackupService implements BackupServiceInterface
             ];
 
             foreach ($keysToBackup as $key) {
-                if (! isset($storageConfig[$key])) {
+                if (!isset($storageConfig[$key])) {
                     continue;
                 }
 
                 // JSON-Dump nur, wenn ein file-Key konfiguriert ist
                 if (isset($storageConfig[$key]['file'])) {
                     $path = $this->config->getStoragePath($storageConfig[$key]['file']);
-                    if (\file_exists($path) && ! \is_dir($path)) {
+                    if (\file_exists($path) && !\is_dir($path)) {
                         $data = $this->jsonHelper->read($path);
                         $this->writeJsonSafely($backupPath . "/{$key}_file.json", $data, $jsonFlags);
                     }
                 }
 
                 // SQL-Dump in der globalen Schleife ergänzen! (Verhindert Datenverlust)
-                if ($this->pdo instanceof \PDO && isset($storageConfig[$key]['table'])) {
-                    $sqlData = $this->loadRawSql($key);
-                    if ($sqlData !== []) {
-                        $this->writeJsonSafely($backupPath . "/{$key}_sql.json", $sqlData, $jsonFlags);
-                    }
+                if (!($this->pdo instanceof PDO) || !isset($storageConfig[$key]['table'])) {
+                    continue;
                 }
+
+                $sqlData = $this->loadRawSql($key);
+                if ($sqlData === []) {
+                    continue;
+                }
+
+                $this->writeJsonSafely($backupPath . "/{$key}_sql.json", $sqlData, $jsonFlags);
             }
 
             return $backupPath;
@@ -103,7 +111,7 @@ final readonly class BackupService implements BackupServiceInterface
             $this->writeJsonSafely($backupPath . "/{$target}_file.json", $jsonData, $jsonFlags);
         }
 
-        if ($this->pdo instanceof \PDO) {
+        if ($this->pdo instanceof PDO) {
             $sqlData = $this->loadRawSql($target);
             if ($sqlData !== []) {
                 $this->writeJsonSafely($backupPath . "/{$target}_sql.json", $sqlData, $jsonFlags);
@@ -122,22 +130,22 @@ final readonly class BackupService implements BackupServiceInterface
     public function listBackups(): array
     {
         // BUGFIX: Nutzt jetzt den konfigurieren Sub-Ordner!
-        $subFolder  = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
+        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
         $backupPath = $this->config->getStoragePath($subFolder);
 
-        if (! \is_dir($backupPath)) {
+        if (!\is_dir($backupPath)) {
             return [];
         }
 
         $folders = \array_diff(\scandir($backupPath), ['.', '..']);
-        $result  = [];
+        $result = [];
         foreach ($folders as $folder) {
             $fullPath = $backupPath . '/' . $folder;
-            if (! \is_dir($fullPath)) {
+            if (!\is_dir($fullPath)) {
                 continue;
             }
 
-            $files           = \array_diff(\scandir($fullPath), ['.', '..']);
+            $files = \array_diff(\scandir($fullPath), ['.', '..']);
             $result[$folder] = \array_values($files);
         }
         \krsort($result);
@@ -149,23 +157,23 @@ final readonly class BackupService implements BackupServiceInterface
      * Ruft die Daten eines spezifischen Backups ab.
      *
      * @param string $timestamp Der Zeitstempel (Ordnername) des Backups.
-     * @param string $target    Der Schlüssel des Speicherbereichs.
+     * @param string $target Der Schlüssel des Speicherbereichs.
      *
      * @return array|null Die Backup-Daten oder null, wenn nicht gefunden.
      */
     public function getBackupData(string $timestamp, string $target): ?array
     {
         $safeTimestamp = \basename($timestamp);
-        $safeTarget    = \basename($target);
+        $safeTarget = \basename($target);
 
         $backupBase = $this->config->getStoragePath('backup/' . $safeTimestamp);
 
         $backupFile = $backupBase . "/{$safeTarget}_file.json";
-        if (! \file_exists($backupFile)) {
+        if (!\file_exists($backupFile)) {
             $backupFile = $backupBase . "/{$safeTarget}_sql.json";
         }
 
-        if (! \file_exists($backupFile)) {
+        if (!\file_exists($backupFile)) {
             return null;
         }
 
@@ -182,7 +190,7 @@ final readonly class BackupService implements BackupServiceInterface
         $cfg = $this->config->get('backup_settings', []);
 
         // Ist Auto-Backup überhaupt aktiviert?
-        if (! ($cfg['enabled'] ?? false)) {
+        if (!($cfg['enabled'] ?? false)) {
             return;
         }
 
@@ -191,35 +199,37 @@ final readonly class BackupService implements BackupServiceInterface
 
         // Pfad in den /storage/logs/ Ordner setzen!
         $logDir = $this->config->getStoragePath('logs');
-        if (! \is_dir($logDir)) {
+        if (!\is_dir($logDir)) {
             @\mkdir($logDir, 0o755, true);
         }
 
-        $stateFile  = $logDir . '/last_auto_backup.txt';
+        $stateFile = $logDir . '/last_auto_backup.txt';
         $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
-        $now        = $this->clock->now()->getTimestamp();
+        $now = $this->clock->now()->getTimestamp();
 
         // Prüfen, ob das Intervall abgelaufen ist
         // Schützt vor negativen Werten, wenn das Intervall < 10 Minuten ist.
         // Nutzt bei kleinen Intervallen stattdessen 90% der Zeit als Schwellenwert.
         $threshold = \max((int) ($interval * 0.9), $interval - 600);
 
-        if (($now - $lastBackup) >= $threshold) {
-            try {
-                // BUGFIX: Ziel 'auto_maintenance' übergeben, damit alles gesichert wird
-                $this->createBackup('auto_maintenance');
+        if ($now - $lastBackup < $threshold) {
+            return;
+        }
 
-                // Zeitstempel aktualisieren
-                $result = \file_put_contents($stateFile, (string) $now, \LOCK_EX);
-                if ($result === false) {
-                    throw new \RuntimeException('Kritischer Schreibfehler beim Auto-Backup.');
-                }
+        try {
+            // BUGFIX: Ziel 'auto_maintenance' übergeben, damit alles gesichert wird
+            $this->createBackup('auto_maintenance');
 
-                // Veraltete Backups löschen
-                $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
-            } catch (\Throwable $e) {
-                \error_log('Auto-Backup fehlgeschlagen: ' . $e->getMessage());
+            // Zeitstempel aktualisieren
+            $result = \file_put_contents($stateFile, (string) $now, \LOCK_EX);
+            if ($result === false) {
+                throw new RuntimeException('Kritischer Schreibfehler beim Auto-Backup.');
             }
+
+            // Veraltete Backups löschen
+            $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
+        } catch (Throwable $e) {
+            \error_log('Auto-Backup fehlgeschlagen: ' . $e->getMessage());
         }
     }
 
@@ -234,14 +244,14 @@ final readonly class BackupService implements BackupServiceInterface
     {
         $backupPath = $this->config->getStoragePath('backup');
 
-        if (! \is_dir($backupPath)) {
+        if (!\is_dir($backupPath)) {
             return;
         }
 
-        $folders   = \array_diff(\scandir($backupPath), ['.', '..']);
+        $folders = \array_diff(\scandir($backupPath), ['.', '..']);
         $fullPaths = [];
         foreach ($folders as $f) {
-            if (! \is_dir($backupPath . '/' . $f)) {
+            if (!\is_dir($backupPath . '/' . $f)) {
                 continue;
             }
             $fullPaths[$f] = $backupPath . '/' . $f;
@@ -265,7 +275,7 @@ final readonly class BackupService implements BackupServiceInterface
      */
     private function recursiveDelete(string $dir): void
     {
-        if (! \is_dir($dir)) {
+        if (!\is_dir($dir)) {
             return;
         }
 
@@ -291,7 +301,7 @@ final readonly class BackupService implements BackupServiceInterface
     private function loadRawJson(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
-        if (! isset($cfg['file'])) {
+        if (!isset($cfg['file'])) {
             return [];
         }
         $path = $this->config->getStoragePath($cfg['file']);
@@ -310,28 +320,28 @@ final readonly class BackupService implements BackupServiceInterface
     private function loadRawSql(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
-        if (! $this->pdo instanceof \PDO) {
+        if (!$this->pdo instanceof PDO) {
             return [];
         }
 
         try {
             $tableName = $cfg['table'];
-            $stmt      = $this->pdo->query("SELECT * FROM `$tableName`");
-            $rows      = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $res       = [];
+            $stmt = $this->pdo->query("SELECT * FROM `$tableName`");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $res = [];
             // [x] Sortiert
             $idField = match ($key) {
                 // ID-Tabellen (alphabetisch sortiert)
-                'groups'           => 'id',
-                'mail_log'         => 'id',
-                'mail_queue'       => 'id',
-                'users'            => 'id',
+                'groups' => 'id',
+                'mail_log' => 'id',
+                'mail_queue' => 'id',
+                'users' => 'id',
                 'vouchers_archive' => 'id',
 
                 // Token-Tabellen (alphabetisch sortiert)
-                'magic_links'          => 'token',
+                'magic_links' => 'token',
                 'pending_verification' => 'token',
-                'verified_pending'     => 'token',
+                'verified_pending' => 'token',
 
                 // default
                 default => 'code'
@@ -347,7 +357,7 @@ final readonly class BackupService implements BackupServiceInterface
             }
 
             return $res;
-        } catch (\Exception $e) {
+        } catch (Exception) {
             return [];
         }
     }

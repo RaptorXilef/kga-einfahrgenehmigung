@@ -13,6 +13,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\System\SystemUpdaterInterface;
 use App\Core\Service\AuditLoggerService;
+use Throwable;
 
 /**
  * TODO DOCBLOCK
@@ -39,7 +40,7 @@ final readonly class SystemForceUpdateCheckAction implements ViewActionInterface
     {
         try {
             $currentVersion = $this->sysInfo->getCurrentVersion();
-            $updateData     = $this->updater->checkForUpdate($currentVersion, true);
+            $updateData = $this->updater->checkForUpdate($currentVersion, true);
 
             $this->auditLogger->log('SYSTEM_UPDATE_CHECK', 'Manuelle Prüfung auf System-Updates ausgelöst.');
 
@@ -50,7 +51,7 @@ final readonly class SystemForceUpdateCheckAction implements ViewActionInterface
             }
 
             return new RedirectResponse('admin.php');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             \error_log('Manual Update Check Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Fehler bei der Update-Prüfung: ' . $e->getMessage());
 

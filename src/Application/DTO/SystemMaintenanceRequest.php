@@ -35,7 +35,7 @@ final readonly class SystemMaintenanceRequest
 
     public static function forRestore(array $post): self
     {
-        $target    = \trim((string) ($post['target'] ?? ''));
+        $target = \trim((string) ($post['target'] ?? ''));
         $timestamp = \trim((string) ($post['timestamp'] ?? ''));
 
         if ($target === '' || $timestamp === '') {

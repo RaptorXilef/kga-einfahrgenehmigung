@@ -13,6 +13,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
+use DomainException;
 
 #[ActionRoute('history_cancel_permit')]
 final readonly class HistoryCancelPermitAction implements ViewActionInterface
@@ -47,7 +48,7 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
             $this->sessionManager->addFlash('success', 'Genehmigung wurde erfolgreich storniert.');
 
             return new RedirectResponse('history.php');
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('history.php');

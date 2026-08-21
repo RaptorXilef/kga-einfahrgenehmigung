@@ -47,7 +47,7 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
 
         if ($this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason)) {
             $actionStr = $dto->isSuspended ? 'gesperrt' : 'freigegeben';
-            $msg       = 'Genehmigung wurde ' . $actionStr . '.';
+            $msg = 'Genehmigung wurde ' . $actionStr . '.';
 
             // LOG SCHREIBEN
             $this->auditLogger->log('PERMIT_SUSPENSION', "Genehmigung '{$dto->code}' wurde {$actionStr}. Grund: {$dto->reason}");

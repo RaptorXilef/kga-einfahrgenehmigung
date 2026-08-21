@@ -30,8 +30,8 @@ interface PaymentProviderInterface
      * Verifiziert und finalisiert eine vom Kunden autorisierte Zahlung.
      * Schützt das System vor Manipulationen durch Abgleich des realen Betrags mit der Erwartung.
      *
-     * @param string $orderId        Die zu erfassende Order-ID des Zahlungsanbieters.
-     * @param float  $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung.
+     * @param string $orderId Die zu erfassende Order-ID des Zahlungsanbieters.
+     * @param float $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung.
      *
      * @return bool True, wenn die Zahlung erfolgreich eingezogen und stimmig ist.
      */

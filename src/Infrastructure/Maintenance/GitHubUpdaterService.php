@@ -9,6 +9,11 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\SystemUpdaterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
+use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
+use ZipArchive;
 
 /**
  * Service für automatische ZIP-Updates via GitHub.
@@ -24,7 +29,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
     // Fallback-Regeln, falls die update_manifest.json im ZIP mal fehlen sollte
     // Absolute Sperrzone! Diese Pfade werden beim Update NIEMALS angerührt.
-    private const DEFAULT_BLACKLIST = [
+    private const array DEFAULT_BLACKLIST = [
         'public/assets/img/user_images/',
         'public/assets/img/group_images/',
         // Schützt exakt die individuellen Vereinslogos des Nutzers
@@ -39,7 +44,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
     ];
 
     // Nur Dateien in diesen Pfaden (aus dem Root des ZIPs) dürfen ins Live-System kopiert werden!
-    private const DEFAULT_WHITELIST = [
+    private const array DEFAULT_WHITELIST = [
         'config/', // Erlaubt das Überschreiben der Standard-Configs (z.B. email.php)
         'public/',
         'src/Application/',
@@ -57,7 +62,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
     ];
 
     // Fallback für kritische Core-Configs, falls das Manifest fehlt
-    private const DEFAULT_CORE_CONFIGS = [
+    private const array DEFAULT_CORE_CONFIGS = [
         'config/sql_schema.php',
         'config/permissions.php',
         'config/.htaccess',
@@ -89,18 +94,18 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         }
 
         $logDir = $this->config->getStoragePath('logs');
-        if (! \is_dir($logDir)) {
+        if (!\is_dir($logDir)) {
             \mkdir($logDir, 0o755, true);
         }
 
         $cacheFile = $logDir . '/latest_release.json';
-        $now       = $this->clock->now()->getTimestamp();
+        $now = $this->clock->now()->getTimestamp();
 
         // 1. Aus Cache lesen, wenn nicht erzwungen und jünger als 24 Stunden
-        if (! $force && \file_exists($cacheFile)) {
-            if (($now - \filemtime($cacheFile)) < 86400) { // 86400 Sekunden = 24h
+        if (!$force && \file_exists($cacheFile)) {
+            if ($now - \filemtime($cacheFile) < 86400) { // 86400 Sekunden = 24h
                 $cachedResponse = $this->jsonHelper->read($cacheFile);
-                if (! empty($cachedResponse)) {
+                if ($cachedResponse !== []) {
                     return $this->compareAndFormatRelease($cachedResponse, $currentVersion);
                 }
             }
@@ -109,7 +114,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         // 2. Live von GitHub abrufen
         $response = $this->makeApiRequest('/releases/latest');
 
-        if (! $response || ! isset($response['tag_name'])) {
+        if (!$response || !isset($response['tag_name'])) {
             return null;
         }
 
@@ -125,7 +130,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
         // Versionsnummern vergleichen (entfernt 'v' für sauberen Vergleich)
         $cleanCurrent = \ltrim($currentVersion, 'vV');
-        $cleanLatest  = \ltrim($latestVersion, 'vV');
+        $cleanLatest = \ltrim($latestVersion, 'vV');
 
         if (\version_compare($cleanLatest, $cleanCurrent, '>')) {
             // Wir suchen in den angehängten Assets nach unserer gebauten ZIP
@@ -151,11 +156,11 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
             }
 
             return [
-                'version'      => $latestVersion,
-                'name'         => $response['name'] ?? $latestVersion,
-                'notes'        => $response['body'] ?? '',
+                'version' => $latestVersion,
+                'name' => $response['name'] ?? $latestVersion,
+                'notes' => $response['body'] ?? '',
                 'published_at' => $response['published_at'] ?? '',
-                'zipball_url'  => $downloadUrl,
+                'zipball_url' => $downloadUrl,
             ];
         }
 
@@ -175,66 +180,68 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
     {
         // Lokale Installationen blockieren, um cURL-Fehler abzufangen
         if ($this->config->get('is_local_env', false)) {
-            throw new \RuntimeException('GitHub-Updates sind in der lokalen Testumgebung deaktiviert.');
+            throw new RuntimeException('GitHub-Updates sind in der lokalen Testumgebung deaktiviert.');
         }
 
         $rootPath = \rtrim((string) $this->config->get('root_path'), '/\\');
-        $tempDir  = $this->config->getStoragePath('temp_update');
-        $zipFile  = $tempDir . '/update.zip';
+        $tempDir = $this->config->getStoragePath('temp_update');
+        $zipFile = $tempDir . '/update.zip';
 
         // 1. Ordner vorbereiten
-        if (! \is_dir($tempDir)) {
+        if (!\is_dir($tempDir)) {
             \mkdir($tempDir, 0o755, true);
         }
 
         // 2. ZIP herunterladen
-        if (! $this->downloadFile($zipUrl, $zipFile)) {
+        if (!$this->downloadFile($zipUrl, $zipFile)) {
             $this->cleanup($tempDir);
 
-            throw new \RuntimeException('Fehler beim Herunterladen des Updates.');
+            throw new RuntimeException('Fehler beim Herunterladen des Updates.');
         }
 
         // 3. ZIP entpacken
-        $zip = new \ZipArchive();
+        $zip = new ZipArchive();
         if ($zip->open($zipFile) !== true) {
             $this->cleanup($tempDir);
 
-            throw new \RuntimeException('Das Update-Archiv konnte nicht geöffnet werden.');
+            throw new RuntimeException('Das Update-Archiv konnte nicht geöffnet werden.');
         }
 
         // Schutz vor ZIP-Bomben (Decompression Bomb / DoS-Attacken)
         // Prüfe die dekomprimierte Gesamtgröße VOR dem eigentlichen Entpacken
         $totalUncompressedSize = 0;
-        $maxAllowedSize        = 10 * 1024 * 1024; // Limit auf 10 MB (ca. 5x größer als aktueller Bedarf)
+        $maxAllowedSize = 10 * 1024 * 1024; // Limit auf 10 MB (ca. 5x größer als aktueller Bedarf)
 
         for ($i = 0; $i < $zip->numFiles; ++$i) {
             $stat = $zip->statIndex($i);
-            if ($stat !== false) {
-                $totalUncompressedSize += $stat['size'];
+            if ($stat === false) {
+                continue;
             }
+
+            $totalUncompressedSize += $stat['size'];
         }
 
         if ($totalUncompressedSize > $maxAllowedSize) {
             $zip->close();
             $this->cleanup($tempDir);
 
-            throw new \RuntimeException('Sicherheitsabbruch: Das Update-Archiv überschreitet das Größenlimit.');
+            throw new RuntimeException('Sicherheitsabbruch: Das Update-Archiv überschreitet das Größenlimit.');
         }
 
         $extractPath = $tempDir . '/extracted';
 
         // Entpacken auf Fehler prüfen und Notbremse ziehen!
-        if (! $zip->extractTo($extractPath)) {
+        if (!$zip->extractTo($extractPath)) {
             $zip->close();
             $this->cleanup($tempDir);
 
-            throw new \RuntimeException('Das Update-Archiv konnte nicht entpackt werden.');
+            throw new RuntimeException('Das Update-Archiv konnte nicht entpackt werden.');
         }
         $zip->close();
 
         // 4. Den Hauptordner im ZIP finden
         // FIX: Sichere Erkennung des Quell-Ordners!
-        $sourceFolder   = $extractPath;
+        $sourceFolder = $extractPath;
         $extractedItems = \array_values(\array_diff(\scandir($extractPath), ['.', '..']));
 
         // Wenn genau 1 Element existiert UND es ein Ordner ist, dann ist das der GitHub-Source-Wrapper!
@@ -243,18 +250,18 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         }
 
         // DYNAMISCHES MANIFEST LADEN
-        $whitelist   = self::DEFAULT_WHITELIST;
-        $blacklist   = self::DEFAULT_BLACKLIST;
+        $whitelist = self::DEFAULT_WHITELIST;
+        $blacklist = self::DEFAULT_BLACKLIST;
         $coreConfigs = self::DEFAULT_CORE_CONFIGS;
 
         $manifestPath = $sourceFolder . '/update_manifest.json';
         if (\file_exists($manifestPath)) {
             try {
                 $manifestData = $this->jsonHelper->read($manifestPath);
-                $whitelist    = $manifestData['whitelist'] ?? $whitelist;
-                $blacklist    = $manifestData['blacklist'] ?? $blacklist;
-                $coreConfigs  = $manifestData['core_configs'] ?? $coreConfigs;
-            } catch (\Exception) {
+                $whitelist = $manifestData['whitelist'] ?? $whitelist;
+                $blacklist = $manifestData['blacklist'] ?? $blacklist;
+                $coreConfigs = $manifestData['core_configs'] ?? $coreConfigs;
+            } catch (Exception) {
                 // Bei fehlerhaftem JSON auf Defaults zurückfallen
             }
         }
@@ -279,9 +286,9 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
      */
     private function copyAllowedFiles(string $sourceDir, string $targetDir, array $whitelist, array $blacklist, array $coreConfigs): void
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($sourceDir, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST,
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($sourceDir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST,
         );
 
         foreach ($iterator as $item) {
@@ -295,16 +302,18 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
             $relativePath = \str_replace('\\', '/', $relativePath);
 
             // Prüfen, ob der Pfad erlaubt ist
-            if ($this->isPathAllowed($relativePath, $whitelist, $blacklist, $coreConfigs)) {
-                $targetFile    = $targetDir . '/' . $relativePath;
-                $targetDirPath = \dirname($targetFile);
-
-                if (! \is_dir($targetDirPath)) {
-                    \mkdir($targetDirPath, 0o755, true);
-                }
-
-                \copy($item->getPathname(), $targetFile);
+            if (!$this->isPathAllowed($relativePath, $whitelist, $blacklist, $coreConfigs)) {
+                continue;
             }
+
+            $targetFile = $targetDir . '/' . $relativePath;
+            $targetDirPath = \dirname($targetFile);
+
+            if (!\is_dir($targetDirPath)) {
+                \mkdir($targetDirPath, 0o755, true);
+            }
+
+            \copy($item->getPathname(), $targetFile);
         }
     }
 
@@ -315,13 +324,13 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
         foreach ($directoriesToClean as $dir) {
             $targetDir = $targetRoot . '/' . $dir;
-            if (! \is_dir($targetDir)) {
+            if (!\is_dir($targetDir)) {
                 continue;
             }
 
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($targetDir, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::CHILD_FIRST, // Wichtig für rekursives rmdir
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($targetDir, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST, // Wichtig für rekursives rmdir
             );
 
             foreach ($iterator as $item) {
@@ -339,18 +348,18 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
                 if ($item->isFile()) {
                     // Konfigurations-Dateien: Niemals löschen, es sei denn es ist eine ".default.php" Datei!
                     if (\str_starts_with($relativePath, 'config/')) {
-                        if (! \str_ends_with($relativePath, '.default.php')) {
+                        if (!\str_ends_with($relativePath, '.default.php')) {
                             continue;
                         }
                     }
 
                     // Existiert die Datei im Update-Paket nicht mehr? -> Löschen!
-                    if (! \file_exists($sourceEquivalent)) {
+                    if (!\file_exists($sourceEquivalent)) {
                         @\unlink($item->getPathname());
                     }
                 } elseif ($item->isDir()) {
                     // Leere verwaiste Ordner löschen
-                    if (! \file_exists($sourceEquivalent)) {
+                    if (!\file_exists($sourceEquivalent)) {
                         @\rmdir($item->getPathname());
                     }
                 }
@@ -411,11 +420,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         }
 
         // Spezifischer Schutz für alle Formate im logo Ordner
-        if (\str_starts_with($path, 'public/assets/img/logo/')) {
-            return true;
-        }
-
-        return false;
+        return \str_starts_with($path, 'public/assets/img/logo/');
     }
 
     private function downloadFile(string $url, string $saveTo): bool
@@ -427,10 +432,10 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
         $ch = \curl_init($url);
         \curl_setopt_array($ch, [
-            \CURLOPT_FILE           => $fp,
+            \CURLOPT_FILE => $fp,
             \CURLOPT_FOLLOWLOCATION => true, // Wichtig für GitHub (Redirects!)
-            \CURLOPT_USERAGENT      => 'KGA-Updater-App',
-            \CURLOPT_TIMEOUT        => 120, // 60s auf 120s erhöht wegen Vendor-Größe
+            \CURLOPT_USERAGENT => 'KGA-Updater-App',
+            \CURLOPT_TIMEOUT => 120, // 60s auf 120s erhöht wegen Vendor-Größe
         ]);
 
         \curl_exec($ch);
@@ -446,13 +451,13 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
      */
     private function cleanup(string $dir): void
     {
-        if (! \is_dir($dir)) {
+        if (!\is_dir($dir)) {
             return;
         }
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
 
         foreach ($files as $fileinfo) {
@@ -474,20 +479,20 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
     {
         // TODO URL
         $baseUrl = $this->config->get('github_api_url', 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung');
-        $url     = $baseUrl . $endpoint;
+        $url = $baseUrl . $endpoint;
 
         $ch = \curl_init();
         \curl_setopt_array($ch, [
-            \CURLOPT_URL            => $url,
+            \CURLOPT_URL => $url,
             \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_USERAGENT      => 'KGA-Updater-App',
-            \CURLOPT_TIMEOUT        => 10,
+            \CURLOPT_USERAGENT => 'KGA-Updater-App',
+            \CURLOPT_TIMEOUT => 10,
         ]);
 
         $response = \curl_exec($ch);
         $httpCode = \curl_getinfo($ch, \CURLINFO_HTTP_CODE);
 
-        if ($httpCode !== 200 || ! $response) {
+        if ($httpCode !== 200 || !$response) {
             return null;
         }
 

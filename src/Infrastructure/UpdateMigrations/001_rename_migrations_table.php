@@ -21,12 +21,12 @@ use App\Contracts\Config\ConfigInterface;
 
 return function (?\PDO $pdo, ConfigInterface $config): void {
     $cfg = $config->get('storage_config')['update_migrations'] ?? null;
-    if (! $cfg) {
+    if (!$cfg) {
         return;
     }
 
     $newTable = $cfg['table'];
-    $newFile  = $cfg['file'];
+    $newFile = $cfg['file'];
 
     // 1. MySQL Migration (Falls Datenbank aktiv ist)
     if ($pdo instanceof \PDO) {
@@ -37,7 +37,7 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
             // Prüfen, ob die neue Tabelle 'update_migrations' schon existiert (um Konflikte zu vermeiden)
             $newTableExists = $pdo->query("SHOW TABLES LIKE '{$newTable}'")->rowCount() > 0;
 
-            if ($oldTableExists && ! $newTableExists) {
+            if ($oldTableExists && !$newTableExists) {
                 $pdo->exec("RENAME TABLE `migrations` TO `{$newTable}`");
             } elseif ($oldTableExists && $newTableExists) {
                 // Falls aus irgendeinem Grund beide existieren, löschen wir die alte leere,
@@ -55,7 +55,7 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
         $oldJsonPath = $config->getStoragePath('migrations.json');
         $newJsonPath = $config->getStoragePath($newFile);
 
-        if (\file_exists($oldJsonPath) && ! \file_exists($newJsonPath)) {
+        if (\file_exists($oldJsonPath) && !\file_exists($newJsonPath)) {
             \rename($oldJsonPath, $newJsonPath);
         } elseif (\file_exists($oldJsonPath) && \file_exists($newJsonPath)) {
             \unlink($oldJsonPath); // Alte Datei aufräumen, falls beide existieren

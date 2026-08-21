@@ -7,6 +7,8 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
+use Exception;
+use PDO;
 
 /**
  * TODO DOCBLOCK
@@ -18,18 +20,18 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
     ) {
     }
 
     public function loadAll(): array
     {
-        $cfg   = $this->config->get('storage_config')['users'];
+        $cfg = $this->config->get('storage_config')['users'];
         $users = [];
 
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $users[$row['id']] = new User(
                 $row['id'],
                 $row['username'],
@@ -54,25 +56,25 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
 
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($users as $id => $user) {
                 $data = [
-                    'id'       => $id,
+                    'id' => $id,
                     'username' => $user->username,
-                    'group'    => $user->groupId,
-                    'pass'     => $user->passwordHash,
+                    'group' => $user->groupId,
+                    'pass' => $user->passwordHash,
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $data);
+                    $sql = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
                 $stmt->execute($data);
             }
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

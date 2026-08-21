@@ -12,6 +12,8 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Service\PermitService;
+use Exception;
+use Throwable;
 
 /**
  * Action zur Erstellung einer Zahlungs-Order (PayPal) aus dem Checkout.
@@ -38,7 +40,7 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
         try {
             $tempRequest = $this->permitService->getVerifiedRequest($dto->identifier);
             if ($tempRequest === null) {
-                throw new \Exception('Sitzung nicht gefunden oder abgelaufen');
+                throw new Exception('Sitzung nicht gefunden oder abgelaufen');
             }
 
             $orderId = $this->payment->createOrder((float) $tempRequest['preis']);
@@ -47,7 +49,7 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
             }
 
             return JsonResponse::error('PayPal Error', 500);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
     }

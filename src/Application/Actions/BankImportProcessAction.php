@@ -51,7 +51,6 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
             }
 
             return new RedirectResponse('admin.php');
-
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

@@ -17,11 +17,11 @@ return [
     // --- RELATIONALES BACKEND (MYSQL) ---
     'database' => [
         'enabled' => false,
-        'host'    => 'localhost',
-        'port'    => '', // Optionaler Port
-        'dbname'  => 'kga_einfahrts_manager',
-        'user'    => 'root',
-        'pass'    => '',
+        'host' => 'localhost',
+        'port' => '', // Optionaler Port
+        'dbname' => 'kga_einfahrts_manager',
+        'user' => 'root',
+        'pass' => '',
         'charset' => 'utf8mb4',
     ],
 ];

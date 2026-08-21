@@ -19,6 +19,7 @@ use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
+use DomainException;
 
 /**
  * Action zum Erstellen eines neuen Benutzers.
@@ -73,7 +74,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             }
 
             // Gruppen-Namen ermitteln
-            $groups    = $this->groupRepository->loadAll();
+            $groups = $this->groupRepository->loadAll();
             $groupName = isset($groups[$dto->group]) ? $groups[$dto->group]->name : $dto->group;
 
             // LOG SCHREIBEN
@@ -82,7 +83,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 
             return new RedirectResponse('users.php');
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users.php');

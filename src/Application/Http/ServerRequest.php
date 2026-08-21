@@ -47,7 +47,7 @@ final readonly class ServerRequest
     {
         $keys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR'];
         foreach ($keys as $k) {
-            if (! empty($this->server[$k])) {
+            if (!empty($this->server[$k])) {
                 $ips = \explode(',', $this->server[$k]);
 
                 return \trim($ips[0]);

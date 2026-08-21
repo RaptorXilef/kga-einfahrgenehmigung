@@ -10,6 +10,9 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Voucher;
 use App\Core\ValueObject\TemplateKey;
 use App\Core\ValueObject\VoucherCode;
+use DateTimeImmutable;
+use Exception;
+use PDO;
 
 /**
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -19,7 +22,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
@@ -27,14 +30,14 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
 
     public function loadAll(): array
     {
-        $cfg      = $this->config->get('storage_config')['vouchers'];
-        $stmt     = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
+        $cfg = $this->config->get('storage_config')['vouchers'];
+        $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         $vouchers = [];
 
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $data    = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
-            $expires = $r['expires_at'] ? new \DateTimeImmutable($r['expires_at']) : null;
-            $created = $r['created_at'] ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $data = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
+            $expires = $r['expires_at'] ? new DateTimeImmutable($r['expires_at']) : null;
+            $created = $r['created_at'] ? new DateTimeImmutable($r['created_at']) : new DateTimeImmutable();
 
             $vouchers[$r['code']] = new Voucher(
                 new VoucherCode($r['code']),
@@ -64,29 +67,29 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
 
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($vouchers as $v) {
                 $data = [
-                    'code'         => $v->code->value,
-                    'reason'       => $v->reason,
+                    'code' => $v->code->value,
+                    'reason' => $v->reason,
                     'template_key' => $v->templateKey->value,
-                    'type'         => $v->type,
-                    'value'        => $v->value,
-                    'multi_use'    => (int) $v->multiUse,
-                    'max_uses'     => $v->maxUses,
-                    'uses_count'   => $v->usesCount,
-                    'expires_at'   => $v->expiresAt?->format('Y-m-d H:i:s'),
-                    'date_mode'    => $v->dateMode,
-                    'created_by'   => $v->createdBy,
-                    'created_at'   => $v->createdAt->format('Y-m-d H:i:s'),
-                    'status'       => $v->status,
-                    'data'         => \json_encode($v->data, \JSON_UNESCAPED_UNICODE),
+                    'type' => $v->type,
+                    'value' => $v->value,
+                    'multi_use' => (int) $v->multiUse,
+                    'max_uses' => $v->maxUses,
+                    'uses_count' => $v->usesCount,
+                    'expires_at' => $v->expiresAt?->format('Y-m-d H:i:s'),
+                    'date_mode' => $v->dateMode,
+                    'created_by' => $v->createdBy,
+                    'created_at' => $v->createdAt->format('Y-m-d H:i:s'),
+                    'status' => $v->status,
+                    'data' => \json_encode($v->data, \JSON_UNESCAPED_UNICODE),
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $data);
+                    $sql = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
 
@@ -94,7 +97,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
             }
 
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;
@@ -105,17 +108,17 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
     {
         $cfg = $this->config->get('storage_config')['vouchers_archive'];
 
-        return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY redeemed_at DESC")->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY redeemed_at DESC")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function appendToArchive(array $archiveEntry): void
     {
         $table = $this->config->get('storage_config')['vouchers_archive']['table'];
-        $data  = [
-            'code'        => $archiveEntry['code'],
+        $data = [
+            'code' => $archiveEntry['code'],
             'redeemed_at' => $archiveEntry['redeemed_at'],
-            'user_name'   => $archiveEntry['user_name'],
-            'user_plot'   => $archiveEntry['user_plot'],
+            'user_name' => $archiveEntry['user_name'],
+            'user_plot' => $archiveEntry['user_plot'],
         ];
 
         $sql = $this->buildReplaceSql($table, $data);
@@ -127,8 +130,8 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
         $objects = [];
         foreach ($data as $code => $r) {
             $payload = \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
-            $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
-            $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
+            $expires = !empty($r['expires_at']) ? new DateTimeImmutable($r['expires_at']) : null;
+            $created = !empty($r['created_at']) ? new DateTimeImmutable($r['created_at']) : new DateTimeImmutable();
 
             $objects[$code] = new Voucher(
                 new VoucherCode((string) $code),
@@ -156,20 +159,20 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
         $this->pdo->beginTransaction();
 
         try {
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($data as $id => $item) {
                 $mapped = [
-                    'id'          => $id,
-                    'code'        => $item['code'] ?? '',
+                    'id' => $id,
+                    'code' => $item['code'] ?? '',
                     'redeemed_at' => $item['redeemed_at'] ?? '',
-                    'user_name'   => $item['user_name'] ?? '',
-                    'user_plot'   => $item['user_plot'] ?? '',
+                    'user_name' => $item['user_name'] ?? '',
+                    'user_plot' => $item['user_plot'] ?? '',
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $sql = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
 
@@ -177,7 +180,7 @@ final readonly class MySqlVoucherRepository implements VoucherRepositoryInterfac
             }
 
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

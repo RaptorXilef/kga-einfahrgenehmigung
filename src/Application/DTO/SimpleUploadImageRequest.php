@@ -28,7 +28,7 @@ final readonly class SimpleUploadImageRequest
         }
 
         $file = $files['avatar'] ?? null;
-        if (! $file || ! isset($file['error']) || $file['error'] !== 0) {
+        if (!$file || !isset($file['error']) || $file['error'] !== 0) {
             throw ValidationException::withMessage('Fehler: Ungültiger oder fehlender Datei-Upload.');
         }
 

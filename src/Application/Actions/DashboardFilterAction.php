@@ -33,11 +33,11 @@ final readonly class DashboardFilterAction implements ActionInterface
     {
         $dto = DashboardFilterRequest::fromArray($request->post);
         $this->sessionManager->setAdminFilters([
-            'end'   => $dto->end,
+            'end' => $dto->end,
             'limit' => $dto->limit,
-            'q'     => $dto->q,
+            'q' => $dto->q,
             'start' => $dto->start,
-            'type'  => $dto->type,
+            'type' => $dto->type,
         ]);
 
         $this->sessionManager->addFlash('success', 'Filter angewendet.');

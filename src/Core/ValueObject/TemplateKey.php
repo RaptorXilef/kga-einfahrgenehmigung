@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Core\ValueObject;
 
+use InvalidArgumentException;
+use Stringable;
+
 /**
  * Value Object representing a template identifier (e.g., for documents or emails).
  */
-final readonly class TemplateKey
+final readonly class TemplateKey implements Stringable
 {
     /**
      * @var string The normalized template key.
@@ -15,8 +18,9 @@ final readonly class TemplateKey
     public string $value;
 
     /**
-     * @param  string                    $value The raw template key (e.g. 'std_7' or legacy 'std.7').
-     * @throws \InvalidArgumentException If empty or contains invalid characters.
+     * @param string $value The raw template key (e.g. 'std_7' or legacy 'std.7').
+     *
+     * @throws InvalidArgumentException If empty or contains invalid characters.
      */
     public function __construct(string $value)
     {
@@ -27,12 +31,12 @@ final readonly class TemplateKey
         $value = \str_replace('.', '_', $value);
 
         if ($value === '') {
-            throw new \InvalidArgumentException('Der Template-Key darf nicht leer sein.');
+            throw new InvalidArgumentException('Der Template-Key darf nicht leer sein.');
         }
 
         // 3. Strikte Validierung: alphanumerisch + Unterstrich + Bindestrich
-        if (! \preg_match('/^[a-zA-Z0-9_-]+$/', $value)) {
-            throw new \InvalidArgumentException("Ungültiges Format für Template-Key: {$value}");
+        if (!\preg_match('/^[a-zA-Z0-9_-]+$/', $value)) {
+            throw new InvalidArgumentException("Ungültiges Format für Template-Key: {$value}");
         }
 
         $this->value = \strtolower($value);

@@ -54,14 +54,14 @@ final readonly class UserChangeGroupAction implements ActionInterface, RequiresP
         $users = $this->userRepository->loadAll();
 
         if (isset($users[$dto->userId])) {
-            $u        = $users[$dto->userId];
+            $u = $users[$dto->userId];
             $oldGroup = $u->groupId;
 
             $users[$dto->userId] = new User($u->id, $u->username, $dto->group, $u->passwordHash);
             $this->userRepository->saveAll($users);
 
             // Gruppen-Namen für das Log auflösen
-            $groups       = $this->groupRepository->loadAll();
+            $groups = $this->groupRepository->loadAll();
             $oldGroupName = isset($groups[$oldGroup]) ? $groups[$oldGroup]->name : $oldGroup;
             $newGroupName = isset($groups[$dto->group]) ? $groups[$dto->group]->name : $dto->group;
 

@@ -29,8 +29,8 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         // 1. Sicherheit: Entweder valider CSRF-Token (vom Admin-Dashboard) ODER valider Cron-Token (von extern)
-        $isCron            = false;
-        $providedToken     = $request->get['token'] ?? '';
+        $isCron = false;
+        $providedToken = $request->get['token'] ?? '';
         $expectedCronToken = (string) $this->config->get('cron_secret', '');
 
         if ($providedToken === $expectedCronToken && $expectedCronToken !== '') {
@@ -38,13 +38,13 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
         }
 
         // Wenn weder Cron-Token gültig, noch ein valider Admin-Post-Request (CSRF wird durch Middleware geprüft)
-        if (! $isCron && $request->getMethod() !== 'POST') {
+        if (!$isCron && $request->getMethod() !== 'POST') {
             return JsonResponse::error('Unautorisiert.', 403);
         }
 
         if (\method_exists($this->mailService, 'processQueue')) {
             // Limits dynamisch aus der Konfiguration laden
-            $cronLimit  = (int) $this->config->get('mail_queue_limit_cron', 50);
+            $cronLimit = (int) $this->config->get('mail_queue_limit_cron', 50);
             $adminLimit = (int) $this->config->get('mail_queue_limit_admin', 10);
 
             $limit = $isCron ? $cronLimit : $adminLimit;
@@ -52,9 +52,9 @@ final readonly class SystemProcessMailQueueAction implements ViewActionInterface
             $sent = $this->mailService->processQueue($limit);
 
             return JsonResponse::success([
-                'status'     => 'processed',
+                'status' => 'processed',
                 'sent_count' => $sent,
-                'mode'       => $isCron ? 'cron' : 'admin_trigger',
+                'mode' => $isCron ? 'cron' : 'admin_trigger',
             ]);
         }
 

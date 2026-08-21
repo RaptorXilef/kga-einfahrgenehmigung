@@ -25,7 +25,7 @@ interface MagicLinkRepositoryInterface
      * Speichert alle Magic-Links.
      *
      * @param MagicLink[] $links
-     * @param bool        $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
+     * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      */
     public function saveAll(array $links, bool $forceSql = false): void;
 

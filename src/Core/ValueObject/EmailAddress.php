@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Core\ValueObject;
 
+use InvalidArgumentException;
+use Stringable;
+
 /**
  * Value Object representing a valid email address.
  *
  * Enforces strict email format validation and immutability.
  */
-final readonly class EmailAddress
+final readonly class EmailAddress implements Stringable
 {
     /**
      * @var string The normalized, lowercase email address.
@@ -17,19 +20,20 @@ final readonly class EmailAddress
     public string $value;
 
     /**
-     * @param  string                    $value The raw email address string.
-     * @throws \InvalidArgumentException If the email is empty or invalid.
+     * @param string $value The raw email address string.
+     *
+     * @throws InvalidArgumentException If the email is empty or invalid.
      */
     public function __construct(string $value)
     {
         $value = \trim($value);
 
         if ($value === '') {
-            throw new \InvalidArgumentException('E-Mail-Adresse darf nicht leer sein.');
+            throw new InvalidArgumentException('E-Mail-Adresse darf nicht leer sein.');
         }
 
-        if (! \filter_var($value, \FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException("Ungültiges E-Mail-Format: {$value}");
+        if (!\filter_var($value, \FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Ungültiges E-Mail-Format: {$value}");
         }
 
         $this->value = \strtolower($value);

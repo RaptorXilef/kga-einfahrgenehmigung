@@ -9,6 +9,7 @@ use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\TextResponse;
 use App\Core\Service\Maintenance\CronScheduler;
+use Throwable;
 
 /**
  * TODO DOCBLOCK
@@ -29,7 +30,7 @@ final readonly class SystemCronAction implements ViewActionInterface
             $this->cron->runForce();
 
             return new TextResponse("Status 200 OK: Cronjobs (Archivierung & Backup) erfolgreich ausgeführt.\n");
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             \error_log('Cron Execution Error: ' . $e->getMessage()); // Fehler ins Log...
 
             // ... aber NIEMALS den Stacktrace oder Pfade an den HTTP-Client senden!

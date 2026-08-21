@@ -7,6 +7,7 @@ namespace App\Application\DTO;
 use App\Application\Exception\ValidationException;
 use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PlotNumber;
+use InvalidArgumentException;
 
 /**
  * DTO für das Erstellen von Gutscheinen.
@@ -34,27 +35,27 @@ final readonly class VoucherCreateRequest
     {
         // Fix: Fallback von 'std.7' auf korrekten Key 'std_7' korrigiert
         $templateKey = (string) ($post['template_key'] ?? 'std_7');
-        $reason      = \trim((string) ($post['reason'] ?? 'Gutschein'));
-        $type        = (string) ($post['voucher_discount_type'] ?? 'free');
-        $value       = (float) ($post['voucher_discount_value'] ?? 0.0);
-        $isMultiUse  = isset($post['voucher_multi_use']);
-        $maxUses     = $isMultiUse ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
-        $customCode  = \strtoupper(\trim((string) ($post['voucher_custom_code'] ?? '')));
-        $expiresAt   = (string) ($post['voucher_expires_at'] ?? '');
-        $dateMode    = (string) ($post['voucher_date_mode'] ?? 'fixed');
+        $reason = \trim((string) ($post['reason'] ?? 'Gutschein'));
+        $type = (string) ($post['voucher_discount_type'] ?? 'free');
+        $value = (float) ($post['voucher_discount_value'] ?? 0.0);
+        $isMultiUse = isset($post['voucher_multi_use']);
+        $maxUses = $isMultiUse ? (int) ($post['voucher_max_uses'] ?? 1) : 1;
+        $customCode = \strtoupper(\trim((string) ($post['voucher_custom_code'] ?? '')));
+        $expiresAt = (string) ($post['voucher_expires_at'] ?? '');
+        $dateMode = (string) ($post['voucher_date_mode'] ?? 'fixed');
 
         if ($value < 0) {
             throw ValidationException::withMessage('Fehler: Der Rabattwert darf nicht negativ sein.');
         }
 
-        $parzelleRaw    = \trim(\strip_tags((string) ($post['parzelle'] ?? '')));
+        $parzelleRaw = \trim(\strip_tags((string) ($post['parzelle'] ?? '')));
         $kennzeichenRaw = \trim(\strip_tags((string) ($post['kennzeichen'] ?? '')));
 
         // FIX: Parzelle prüfen und zusätzlich gegen die Config-Grenze (max_plot_number) abgleichen
         if ($parzelleRaw !== '') {
             $plot = new PlotNumber($parzelleRaw);
             if ($plot->value > $maxPlot) {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     "Die eingegebene Parzelle {$plot->value} existiert nicht. Das Maximum in dieser Anlage ist {$maxPlot}.",
                 );
             }
@@ -65,14 +66,14 @@ final readonly class VoucherCreateRequest
         }
 
         $prefillData = [
-            'datum_bis'   => $dateMode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
-            'datum_von'   => $dateMode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
-            'firma'       => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
+            'datum_bis' => $dateMode === 'fixed' ? (string) ($post['datum_bis'] ?? '') : '',
+            'datum_von' => $dateMode === 'fixed' ? (string) ($post['datum_von'] ?? '') : '',
+            'firma' => \trim(\strip_tags((string) ($post['firma'] ?? ''))),
             'kennzeichen' => $kennzeichenRaw,
-            'name'        => \trim(\strip_tags((string) ($post['name'] ?? ''))),
-            'parzelle'    => $parzelleRaw,
-            'typ'         => (string) ($post['typ'] ?? ''),
-            'zweck'       => \strip_tags((string) ($post['zweck'] ?? '')),
+            'name' => \trim(\strip_tags((string) ($post['name'] ?? ''))),
+            'parzelle' => $parzelleRaw,
+            'typ' => (string) ($post['typ'] ?? ''),
+            'zweck' => \strip_tags((string) ($post['zweck'] ?? '')),
         ];
 
         return new self(

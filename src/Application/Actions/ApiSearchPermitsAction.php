@@ -11,6 +11,7 @@ use App\Application\DTO\ApiSearchPermitsRequest;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Core\Service\PermitService;
+use Throwable;
 
 /**
  * Action für die asynchrone Suche nach Genehmigungen im Admin-Dashboard.
@@ -33,7 +34,7 @@ final readonly class ApiSearchPermitsAction implements ViewActionInterface, Requ
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto    = ApiSearchPermitsRequest::fromArray($request->post);
+            $dto = ApiSearchPermitsRequest::fromArray($request->post);
             $result = $this->permitService->searchAndPaginate(
                 $dto->query,
                 $dto->tab,
@@ -45,13 +46,13 @@ final readonly class ApiSearchPermitsAction implements ViewActionInterface, Requ
             return JsonResponse::success([
                 'data' => $result['items'],
                 'meta' => [
-                    'total'       => $result['total'],
-                    'page'        => $dto->page,
-                    'limit'       => $dto->limit,
+                    'total' => $result['total'],
+                    'page' => $dto->page,
+                    'limit' => $dto->limit,
                     'total_pages' => \ceil($result['total'] / $dto->limit),
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage(), 500);
         }
     }

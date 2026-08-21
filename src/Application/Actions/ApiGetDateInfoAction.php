@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Core\Service\HolidayService;
+use Throwable;
 
 /**
  * Action für den API-Aufruf zur Abfrage der erlaubten Einfahrtszeiten
@@ -29,8 +30,8 @@ final readonly class ApiGetDateInfoAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto         = ApiDateInfoRequest::fromArray($request->input);
-            $holidays    = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
+            $dto = ApiDateInfoRequest::fromArray($request->input);
+            $holidays = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
             $openingData = $this->holidayService->getOpeningHoursDataForDateRange($dto->von, $dto->bis);
 
             $openingHtml = '<strong>⏰ Erlaubte Einfahrzeiten (Ruhezeiten beachten):</strong><br>' .
@@ -39,10 +40,10 @@ final readonly class ApiGetDateInfoAction implements ViewActionInterface
                 HolidayHtmlPresenter::formatOpeningHours($openingData) . '</span>';
 
             return JsonResponse::success([
-                'openingHours'  => $openingHtml,
+                'openingHours' => $openingHtml,
                 'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice($holidays),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
     }

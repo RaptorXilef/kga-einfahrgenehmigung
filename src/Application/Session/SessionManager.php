@@ -35,18 +35,18 @@ final class SessionManager implements AuthSessionInterface
     {
         $now = \time();
 
-        if (! isset($_SESSION['session_created'])) {
+        if (!isset($_SESSION['session_created'])) {
             $_SESSION['session_created'] = $now;
-            $_SESSION['last_activity']   = $now;
+            $_SESSION['last_activity'] = $now;
 
             return;
         }
 
         // Prüfen, ob der Nutzer gerade authentifizierte Daten in der Session hat
-        $isAuthenticated = ! empty($_SESSION['user_id']) || ! empty($_SESSION['admin_user']);
+        $isAuthenticated = !empty($_SESSION['user_id']) || !empty($_SESSION['admin_user']);
 
         // Idle Timeout: User war zu lange inaktiv
-        if (($now - $_SESSION['last_activity']) > self::IDLE_TIMEOUT) {
+        if ($now - $_SESSION['last_activity'] > self::IDLE_TIMEOUT) {
             // Wir zerstören die Session nach 30 Min NUR, wenn sensible Admin-Daten drin liegen!
             // Gast-Sessions (für das CSRF Token auf der Loginseite) lassen wir am Leben.
             if ($isAuthenticated) {
@@ -54,17 +54,17 @@ final class SessionManager implements AuthSessionInterface
                 \session_start();
             }
             $_SESSION['session_created'] = $now;
-            $_SESSION['last_activity']   = $now;
+            $_SESSION['last_activity'] = $now;
 
             return;
         }
 
         // Absolute Timeout: Session existiert insgesamt zu lange
-        if (($now - $_SESSION['session_created']) > self::MAX_LIFETIME) {
+        if ($now - $_SESSION['session_created'] > self::MAX_LIFETIME) {
             $this->destroy();
             \session_start();
             $_SESSION['session_created'] = $now;
-            $_SESSION['last_activity']   = $now;
+            $_SESSION['last_activity'] = $now;
 
             return;
         }
@@ -90,7 +90,7 @@ final class SessionManager implements AuthSessionInterface
     public function setEditState(string $email, string $token): void
     {
         $_SESSION['verified_email'] = $email;
-        $_SESSION['edit_token']     = $token;
+        $_SESSION['edit_token'] = $token;
     }
 
     public function getVerifiedEmail(): ?string
@@ -154,19 +154,21 @@ final class SessionManager implements AuthSessionInterface
         $_SESSION = [];
         if (\ini_get('session.use_cookies')) {
             $p = \session_get_cookie_params();
-            \setcookie(\session_name(), '', \time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+            \setcookie(\session_name(), '', ['expires' => \time() - 42000, 'path' => $p['path'], 'domain' => $p['domain'], 'secure' => $p['secure'], 'httponly' => $p['httponly']]);
         }
         \session_destroy();
     }
 
     public function setAuthSession(string $userId, string $groupId, string $label, ?string $hash = null): void
     {
-        $_SESSION['user_id']     = $userId;
-        $_SESSION['admin_user']  = $label;
+        $_SESSION['user_id'] = $userId;
+        $_SESSION['admin_user'] = $label;
         $_SESSION['admin_group'] = $groupId;
-        if ($hash) {
-            $_SESSION['auth_hash'] = $hash;
+        if (!$hash) {
+            return;
         }
+
+        $_SESSION['auth_hash'] = $hash;
     }
 
     public function getAuthHash(): ?string

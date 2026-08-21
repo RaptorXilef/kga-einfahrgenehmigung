@@ -12,6 +12,10 @@ use App\Core\Entity\MailLogEntry;
 use App\Core\ValueObject\TemplateKey;
 use App\Infrastructure\Storage\JsonTransactionTrait;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
+use DateTimeImmutable;
+use Exception;
+use PDO;
+use RuntimeException;
 
 /**
  * Low-Level SMTP-E-Mail-Dienst zur Direktübertragung über Sockets.
@@ -28,7 +32,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private ?\PDO $pdo,
+        private ?PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
@@ -41,10 +45,10 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      * Fängt leere Empfänger ab, liest Mail-Konfigurationen aus, prüft den Testmodus-Status
      * und übergibt an den Socket-Dispatcher, bevor ein Log-Eintrag generiert wird.
      *
-     * @param string               $recipient Der Ziel-Empfänger.
-     * @param string               $subject   Der E-Mail-Betreff.
-     * @param string               $template  Das .phtml-Template im Ordner templates/emails/.
-     * @param array<string, mixed> $data      Variablen zur Injektion in das Template.
+     * @param string $recipient Der Ziel-Empfänger.
+     * @param string $subject Der E-Mail-Betreff.
+     * @param string $template Das .phtml-Template im Ordner templates/emails/.
+     * @param array<string, mixed> $data Variablen zur Injektion in das Template.
      *
      * @return bool|string True bei Erfolg, andernfalls eine Fehlermeldung als String.
      */
@@ -94,10 +98,10 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      */
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
-        $cfg    = $this->config->get('storage_config')['mail_log'];
+        $cfg = $this->config->get('storage_config')['mail_log'];
         $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
-        if ($useSql && $this->pdo instanceof \PDO) {
+        if ($useSql && $this->pdo instanceof PDO) {
             $this->pdo->beginTransaction();
 
             try {
@@ -114,7 +118,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                     ]);
                 }
                 $this->pdo->commit();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->pdo->rollBack();
 
                 throw $e;
@@ -125,24 +129,26 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             } // Beenden, falls MySQL via Migration erzwungen wurde
         }
 
-        if (! $forceSql) {
-            $path       = $this->config->getStoragePath($cfg['file']);
-            $dataToSave = [];
-
-            foreach ($logs as $log) {
-                $dataToSave[$log->id] = [
-                    'id'        => $log->id,
-                    'timestamp' => $log->timestamp->format('Y-m-d H:i:s'),
-                    'recipient' => $log->recipient,
-                    'subject'   => $log->subject,
-                    'template'  => $log->template->value,
-                    'status'    => $log->status,
-                    'data'      => $log->data,
-                ];
-            }
-
-            $this->writeJsonSafely($path, \array_values($dataToSave));
+        if ($forceSql) {
+            return;
         }
+
+        $path = $this->config->getStoragePath($cfg['file']);
+        $dataToSave = [];
+
+        foreach ($logs as $log) {
+            $dataToSave[$log->id] = [
+                'id' => $log->id,
+                'timestamp' => $log->timestamp->format('Y-m-d H:i:s'),
+                'recipient' => $log->recipient,
+                'subject' => $log->subject,
+                'template' => $log->template->value,
+                'status' => $log->status,
+                'data' => $log->data,
+            ];
+        }
+
+        $this->writeJsonSafely($path, \array_values($dataToSave));
     }
 
     /**
@@ -152,15 +158,15 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      */
     public function loadLogs(): array
     {
-        $cfg  = $this->config->get('storage_config')['mail_log'];
+        $cfg = $this->config->get('storage_config')['mail_log'];
         $logs = [];
 
-        if ($cfg['type'] === 'mysql' && $this->pdo instanceof \PDO) {
-            $rows = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll(\PDO::FETCH_ASSOC);
+        if ($cfg['type'] === 'mysql' && $this->pdo instanceof PDO) {
+            $rows = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll(PDO::FETCH_ASSOC);
             foreach ($rows as $r) {
                 $logs[] = new MailLogEntry(
                     (string) $r['id'],
-                    new \DateTimeImmutable($r['timestamp']),
+                    new DateTimeImmutable($r['timestamp']),
                     $r['recipient'],
                     $r['subject'],
                     new TemplateKey($r['template'] ?: 'std_7'),
@@ -178,7 +184,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             foreach ($data as $r) {
                 $logs[] = new MailLogEntry(
                     (string) ($r['id'] ?? \uniqid()),
-                    new \DateTimeImmutable($r['timestamp']),
+                    new DateTimeImmutable($r['timestamp']),
                     $r['recipient'],
                     $r['subject'],
                     new TemplateKey($r['template'] ?: 'std_7'),
@@ -197,7 +203,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         foreach ($data as $id => $r) {
             $objects[] = new MailLogEntry(
                 (string) $id,
-                new \DateTimeImmutable($r['timestamp'] ?? 'now'),
+                new DateTimeImmutable($r['timestamp'] ?? 'now'),
                 $r['recipient'] ?? '',
                 $r['subject'] ?? '',
                 new TemplateKey($r['template'] ?: 'std_7'),
@@ -216,18 +222,18 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      * Rendert das PHTML-E-Mail-Template über den Output-Buffer und ersetzt Platzhalter.
      * Sucht im gerenderten HTML nach `{{key}}` Mustern und ersetzt diese mit skalaren Array-Inhalten.
      *
-     * @param string               $templatePath Der Dateiname des Templates.
-     * @param array<string, mixed> $data         Die Injektionsvariablen.
+     * @param string $templatePath Der Dateiname des Templates.
+     * @param array<string, mixed> $data Die Injektionsvariablen.
      *
      * @return string Das finale, versandbereite HTML-Markup.
      */
     private function render(string $templatePath, array $data): string
     {
-        $root     = $this->config->get('root_path');
+        $root = $this->config->get('root_path');
         $fullPath = $root . "/templates/emails/{$templatePath}.phtml";
 
-        if (! \file_exists($fullPath)) {
-            throw new \RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
+        if (!\file_exists($fullPath)) {
+            throw new RuntimeException("Mail-Template nicht gefunden: {$fullPath}");
         }
 
         // 1. Daten für das Template verfügbar machen
@@ -247,31 +253,31 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      * Führt die physische SMTP-Socket-Kommunikation mit dem Mailserver durch.
      * Abstrahiert SSL-Protokolle, authentifiziert sich via AUTH LOGIN und überträgt UTF-8 / Base64-kodierte Header.
      *
-     * @param string               $recipient  Empfänger-E-Mail.
-     * @param string               $subject    Betreff-Zeile.
-     * @param string               $body       Der gerenderte HTML-Textkörper.
+     * @param string $recipient Empfänger-E-Mail.
+     * @param string $subject Betreff-Zeile.
+     * @param string $body Der gerenderte HTML-Textkörper.
      * @param array<string, mixed> $smtpConfig Serverdaten (host, port, user, pass, from).
      *
      * @return bool|string True bei SMTP-Erfolg (Code 250), andernfalls Fehlermeldung.
      */
     private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig): bool|string
     {
-        $host      = $smtpConfig['host'] ?? '';
-        $port      = (int) ($smtpConfig['port'] ?? 465);
-        $user      = \str_replace(["\r", "\n"], '', $smtpConfig['user'] ?? '');
-        $pass      = \str_replace(["\r", "\n"], '', $smtpConfig['pass'] ?? '');
-        $from      = \str_replace(["\r", "\n"], '', $smtpConfig['from'] ?? '');
+        $host = $smtpConfig['host'] ?? '';
+        $port = (int) ($smtpConfig['port'] ?? 465);
+        $user = \str_replace(["\r", "\n"], '', $smtpConfig['user'] ?? '');
+        $pass = \str_replace(["\r", "\n"], '', $smtpConfig['pass'] ?? '');
+        $from = \str_replace(["\r", "\n"], '', $smtpConfig['from'] ?? '');
         $recipient = \str_replace(["\r", "\n"], '', $recipient);
 
         $protocol = $port === 465 ? 'ssl://' : '';
-        $socket   = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);
+        $socket = @\fsockopen($protocol . $host, $port, $errno, $errstr, 15);
 
-        if (! $socket) {
+        if (!$socket) {
             return "Verbindung fehlgeschlagen: $errstr ($errno)";
         }
 
         // 1. Begrüßung abwarten (Code 220)
-        if (! $this->checkResponse($socket, '220')) {
+        if (!$this->checkResponse($socket, '220')) {
             return 'Server meldet sich nicht (Timeout)';
         }
 
@@ -280,7 +286,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // 2. EHLO senden mit sicherem, server-kontrolliertem Hostnamen
         \fwrite($socket, 'EHLO ' . $smtpEhloHost . "\r\n");
 
-        if (! $this->checkResponse($socket, '250')) {
+        if (!$this->checkResponse($socket, '250')) {
             return 'EHLO abgelehnt';
         }
 
@@ -292,7 +298,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         $this->getServerResponse($socket);
 
         \fwrite($socket, \base64_encode($pass) . "\r\n");
-        if (! $this->checkResponse($socket, '235')) {
+        if (!$this->checkResponse($socket, '235')) {
             return 'SMTP Login fehlgeschlagen (Daten prüfen)';
         }
 
@@ -301,7 +307,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         $this->getServerResponse($socket);
 
         \fwrite($socket, "RCPT TO: <$recipient>\r\n");
-        if (! $this->checkResponse($socket, '250')) {
+        if (!$this->checkResponse($socket, '250')) {
             return "Empfänger $recipient wurde vom Server abgelehnt";
         }
 
@@ -316,7 +322,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         $headers .= 'Subject: =?UTF-8?B?' . \base64_encode($subject) . "?=\r\n\r\n";
 
         \fwrite($socket, $headers . $body . "\r\n.\r\n");
-        if (! $this->checkResponse($socket, '250')) {
+        if (!$this->checkResponse($socket, '250')) {
             return 'E-Mail Daten wurden nicht akzeptiert';
         }
 
@@ -367,12 +373,12 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      */
     private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, array $data = []): void
     {
-        $statusStr  = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
+        $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
 
         $entry = new MailLogEntry(
             \uniqid('ml_'),
-            new \DateTimeImmutable(APP_REQUEST_TIME_STR),
+            new DateTimeImmutable(APP_REQUEST_TIME_STR),
             $recipient,
             $subject,
             $template,

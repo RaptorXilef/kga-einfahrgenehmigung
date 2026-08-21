@@ -7,8 +7,9 @@ use App\Contracts\Config\ConfigInterface;
 /**
  * Nicht mehr benötigte permission.php und sql_schema.php aus configs/... löschen
  */
+
 return function (?\PDO $pdo, ConfigInterface $config): void {
-    $appRoot     = \rtrim((string) $config->get('root_path'), '/\\');
+    $appRoot = \rtrim((string) $config->get('root_path'), '/\\');
     $settingsDir = $appRoot . '/storage/settings';
 
     // 1. Sicherheits-Check: Lief die JSON-Migration (006) bereits erfolgreich?
@@ -24,8 +25,10 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
     ];
 
     foreach ($filesToDelete as $file) {
-        if (\file_exists($file) && \is_file($file)) {
-            @\unlink($file);
+        if (!\file_exists($file) || !\is_file($file)) {
+            continue;
         }
+
+        @\unlink($file);
     }
 };

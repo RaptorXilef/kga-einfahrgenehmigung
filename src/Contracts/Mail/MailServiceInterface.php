@@ -16,10 +16,10 @@ namespace App\Contracts\Mail;
 interface MailServiceInterface
 {
     /**
-     * @param string               $recipient Die E-Mail-Adresse des Empfängers.
-     * @param string               $subject   Betreffzeile der E-Mail.
-     * @param string               $template  Pfad zum Template relativ zum Template-Ordner.
-     * @param array<string, mixed> $data      Platzhalter- und Payload-Daten für das Template.
+     * @param string $recipient Die E-Mail-Adresse des Empfängers.
+     * @param string $subject Betreffzeile der E-Mail.
+     * @param string $template Pfad zum Template relativ zum Template-Ordner.
+     * @param array<string, mixed> $data Platzhalter- und Payload-Daten für das Template.
      *
      * @return bool|string True bei Erfolg, Fehlermeldung als String bei Fehlern.
      */

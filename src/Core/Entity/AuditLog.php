@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Entity;
 
 use App\Core\ValueObject\IpAddress;
+use DateTimeImmutable;
 
 final readonly class AuditLog
 {
@@ -15,7 +16,7 @@ final readonly class AuditLog
         public string $action,
         public string $details,
         public IpAddress $ipAddress,
-        public \DateTimeImmutable $createdAt,
+        public DateTimeImmutable $createdAt,
     ) {
     }
 }

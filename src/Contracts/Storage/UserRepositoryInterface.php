@@ -24,9 +24,8 @@ interface UserRepositoryInterface
     /**
      * Speichert alle Benutzer.
      *
-     * @param array<string, array<string, mixed>> $users    Die zu speichernden Benutzer.
-     * @param bool                                $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
-     *
+     * @param array<string, array<string, mixed>> $users Die zu speichernden Benutzer.
+     * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      * @param User[] $users
      */
     public function saveAll(array $users, bool $forceSql = false): void;

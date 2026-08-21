@@ -28,11 +28,11 @@ final readonly class SendVerificationMailListener
             "E-Mail bestätigen: {$event->shortCode}",
             'verify_email',
             [
-                'baseUrl'     => $this->config->getBaseUrl(),
-                'code'        => $event->shortCode,
-                'name'        => (string) $event->data['name'],
+                'baseUrl' => $this->config->getBaseUrl(),
+                'code' => $event->shortCode,
+                'name' => (string) $event->data['name'],
                 'vereinsName' => $this->config->get('vereins_name'),
-                'verifyUrl'   => $this->config->getBaseUrl() . 'verify.php?token=' . $event->token,
+                'verifyUrl' => $this->config->getBaseUrl() . 'verify.php?token=' . $event->token,
             ],
         );
     }

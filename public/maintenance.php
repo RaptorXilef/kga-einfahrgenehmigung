@@ -12,11 +12,11 @@ declare(strict_types=1);
 
 // 1. Falls das Script über den Bootstrapper (app.php) läuft, ist $settings schon da.
 // Falls nicht (Direktaufruf), laden wir sie hier sicherheitshalber.
-if (! isset($settings)) {
+if (!isset($settings)) {
     $settings = require __DIR__ . '/../config/config.php';
     if (\file_exists(__DIR__ . '/../config/config.local.php')) {
         $localSettings = require __DIR__ . '/../config/config.local.php';
-        $settings      = \array_replace_recursive($settings, $localSettings);
+        $settings = \array_replace_recursive($settings, $localSettings);
     }
 }
 
@@ -24,8 +24,8 @@ if (! isset($settings)) {
 if (empty($settings['base_url'])) {
     // Fallback auf relativen Pfad, niemals HTTP_HOST vertrauen
     // Und wir ermitteln den Pfad zum Root-Verzeichnis
-    $scriptPath           = \str_replace('\\', '/', \dirname((string) $_SERVER['SCRIPT_NAME']));
-    $rootPath             = \rtrim($scriptPath, '/public');
+    $scriptPath = \str_replace('\\', '/', \dirname((string) $_SERVER['SCRIPT_NAME']));
+    $rootPath = \rtrim($scriptPath, '/public');
     $settings['base_url'] = \rtrim($rootPath, '/') . '/';
 }
 
@@ -113,7 +113,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
             um Ihnen den bestmöglichen Service zu bieten.
         </p>
 
-        <?php if (! empty($settings['maintenance_mode_admin'])) { ?>
+        <?php if (!empty($settings['maintenance_mode_admin'])) { ?>
             <div style="display:inline-block; margin-top: 15px; padding: 5px 15px; background: #fee2e2;
                         color: #991b1b; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
                         text-transform: uppercase;">

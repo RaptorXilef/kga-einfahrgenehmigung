@@ -9,6 +9,7 @@ use App\Application\Http\ServerRequest;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Core\Service\Maintenance\CronScheduler;
+use Throwable;
 
 /**
  * TODO
@@ -30,7 +31,7 @@ final readonly class SystemMaintenanceMiddleware implements MiddlewareInterface
             $this->bootstrapper->bootstrap();
             $this->cronScheduler->runIfNeeded();
             $this->backupService->checkAutoBackup();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             \error_log('Bootstrapping Warning: ' . $e->getMessage());
         }
 

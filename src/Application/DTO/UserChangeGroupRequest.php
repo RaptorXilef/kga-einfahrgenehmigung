@@ -23,7 +23,7 @@ final readonly class UserChangeGroupRequest
     public static function fromArray(array $post): self
     {
         $userId = \trim((string) ($post['user_id'] ?? ''));
-        $group  = \trim((string) ($post['group'] ?? ''));
+        $group = \trim((string) ($post['group'] ?? ''));
 
         if ($userId === '') {
             throw ValidationException::withMessage('Fehler: Kein Benutzer ausgewählt.');

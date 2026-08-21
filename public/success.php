@@ -17,5 +17,5 @@ use App\Application\Http\ServerRequest;
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
 
 $req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
-$action    = $container->get(SuccessAction::class);
+$action = $container->get(SuccessAction::class);
 $container->get(FrontendController::class)->handleRequest($action, $req);

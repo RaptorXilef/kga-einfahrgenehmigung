@@ -35,20 +35,18 @@ final readonly class PermitSubmitRequest
     public static function fromArray(array $post): self
     {
         // 1. Array komplett säubern (XSS-Schutz, Trimmen)
-        $sanitized = \array_map(function ($value): mixed {
-            return \is_string($value) ? \trim(\strip_tags($value)) : $value;
-        }, $post);
+        $sanitized = \array_map(fn ($value): mixed => \is_string($value) ? \trim(\strip_tags($value)) : $value, $post);
 
-        $name        = $sanitized['name'] ?? '';
-        $email       = $sanitized['email'] ?? '';
-        $parzelle    = $sanitized['parzelle'] ?? '';
+        $name = $sanitized['name'] ?? '';
+        $email = $sanitized['email'] ?? '';
+        $parzelle = $sanitized['parzelle'] ?? '';
         $kennzeichen = $sanitized['kennzeichen'] ?? '';
 
         // 2. Strenge Validierung
         if ($name === '') {
             throw ValidationException::withMessage('Bitte geben Sie einen Namen ein.');
         }
-        if ($email !== '' && ! \filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+        if ($email !== '' && !\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw ValidationException::withMessage('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
         if ($parzelle === '') {
@@ -85,18 +83,18 @@ final readonly class PermitSubmitRequest
     public function toDomainDto(): array
     {
         return [
-            'agreements'   => $this->agreements,
-            'datum_bis'    => $this->datumBis,
-            'datum_von'    => $this->datumVon,
-            'email'        => $this->email,
-            'firma'        => $this->firma,
-            'kennzeichen'  => $this->kennzeichen,
-            'name'         => $this->name,
-            'parzelle'     => $this->parzelle,
+            'agreements' => $this->agreements,
+            'datum_bis' => $this->datumBis,
+            'datum_von' => $this->datumVon,
+            'email' => $this->email,
+            'firma' => $this->firma,
+            'kennzeichen' => $this->kennzeichen,
+            'name' => $this->name,
+            'parzelle' => $this->parzelle,
             'template_key' => $this->templateKey,
-            'typ'          => $this->typ,
-            'voucher'      => $this->voucher,
-            'zweck'        => $this->zweck,
+            'typ' => $this->typ,
+            'voucher' => $this->voucher,
+            'zweck' => $this->zweck,
         ];
     }
 }

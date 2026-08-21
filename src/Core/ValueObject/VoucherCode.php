@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Core\ValueObject;
 
+use InvalidArgumentException;
+use Stringable;
+
 /**
  * Value Object representing a discount or access voucher code.
  */
-final readonly class VoucherCode
+final readonly class VoucherCode implements Stringable
 {
     /**
      * @var string The normalized voucher code.
@@ -15,15 +18,16 @@ final readonly class VoucherCode
     public string $value;
 
     /**
-     * @param  string                    $value The raw voucher code.
-     * @throws \InvalidArgumentException If the voucher code is empty.
+     * @param string $value The raw voucher code.
+     *
+     * @throws InvalidArgumentException If the voucher code is empty.
      */
     public function __construct(string $value)
     {
         $value = \trim($value);
 
         if ($value === '') {
-            throw new \InvalidArgumentException('Der Gutscheincode darf nicht leer sein.');
+            throw new InvalidArgumentException('Der Gutscheincode darf nicht leer sein.');
         }
 
         $this->value = \strtoupper($value);

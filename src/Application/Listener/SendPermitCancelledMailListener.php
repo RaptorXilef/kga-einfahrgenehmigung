@@ -31,10 +31,10 @@ final readonly class SendPermitCancelledMailListener
             "Stornierungsbestätigung: {$permitCodeStr}",
             'permit_cancelled',
             [
-                'baseUrl'        => $this->config->getBaseUrl(),
+                'baseUrl' => $this->config->getBaseUrl(),
                 'fullIdentifier' => $permitCodeStr,
-                'name'           => $permit->getOwnerName(),
-                'vereinsName'    => $this->config->get('vereins_name'),
+                'name' => $permit->getOwnerName(),
+                'vereinsName' => $this->config->get('vereins_name'),
             ],
         );
     }

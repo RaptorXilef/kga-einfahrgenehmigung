@@ -33,21 +33,21 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         $userId = $this->auth->getUserId();
-        $users  = $this->userRepository->loadAll();
+        $users = $this->userRepository->loadAll();
         $groups = $this->groupRepository->loadAll();
 
-        $user        = $users[$userId] ?? null;
+        $user = $users[$userId] ?? null;
         $userGroupId = $user ? $user->groupId : 'guest';
-        $group       = $groups[$userGroupId] ?? null;
+        $group = $groups[$userGroupId] ?? null;
 
         $this->renderer->render('profile', [
-            'auth'            => $this->auth,
-            'group'           => $group ? $group->name : $userGroupId,
+            'auth' => $this->auth,
+            'group' => $group ? $group->name : $userGroupId,
             'groupRepository' => $this->groupRepository,
-            'imageStorage'    => $this->imageStorage,
-            'userId'          => $userId,
-            'username'        => $user ? $user->username : 'Unbekannt',
-            'userRepository'  => $this->userRepository,
+            'imageStorage' => $this->imageStorage,
+            'userId' => $userId,
+            'username' => $user ? $user->username : 'Unbekannt',
+            'userRepository' => $this->userRepository,
         ]);
 
         return null;

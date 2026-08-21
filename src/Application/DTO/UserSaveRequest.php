@@ -26,15 +26,16 @@ final readonly class UserSaveRequest
      * Named Constructor (Factory Method): Baut das DTO aus dem rohen POST-Array.
      * Führt zwingend alle Validierungen durch!
      *
-     * @param  array<string, mixed> $post Das rohe $_POST Array.
-     * @throws ValidationException  Wenn die Daten ungültig sind.
+     * @param array<string, mixed> $post Das rohe $_POST Array.
+     *
+     * @throws ValidationException Wenn die Daten ungültig sind.
      */
     public static function fromArray(array $post, array $files = []): self
     {
         $username = \trim((string) ($post['username'] ?? ''));
-        $pw1      = (string) ($post['password'] ?? '');
-        $pw2      = (string) ($post['password_repeat'] ?? '');
-        $group    = (string) ($post['group'] ?? 'guest');
+        $pw1 = (string) ($post['password'] ?? '');
+        $pw2 = (string) ($post['password_repeat'] ?? '');
+        $group = (string) ($post['group'] ?? 'guest');
 
         // 1. Validierung: Pflichtfelder
         if ($username === '') {
@@ -52,7 +53,7 @@ final readonly class UserSaveRequest
             throw ValidationException::withMessage('Fehler: Das Passwort muss mindestens 8 Zeichen lang sein.');
         }
 
-        $avatarFile      = $files['avatar'] ?? null;
+        $avatarFile = $files['avatar'] ?? null;
         $validatedAvatar = null;
         if ($avatarFile && isset($avatarFile['error']) && $avatarFile['error'] === 0) {
             $validatedAvatar = $avatarFile;

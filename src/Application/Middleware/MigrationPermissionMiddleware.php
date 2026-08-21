@@ -26,8 +26,8 @@ final readonly class MigrationPermissionMiddleware implements MiddlewareInterfac
     public function process(ServerRequest $request, callable $next): mixed
     {
         $target = $request->post['target'] ?? '';
-        $dir    = $request->post['direction'] ?? '';
-        if (! $this->auth->hasPermission("dashboard.migration.{$target}.{$dir}")) {
+        $dir = $request->post['direction'] ?? '';
+        if (!$this->auth->hasPermission("dashboard.migration.{$target}.{$dir}")) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung für diese Migrations-Aktion.');
 
             return new RedirectResponse('admin.php');

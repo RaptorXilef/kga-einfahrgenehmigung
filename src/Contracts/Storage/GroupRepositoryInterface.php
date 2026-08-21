@@ -24,9 +24,8 @@ interface GroupRepositoryInterface
     /**
      * Speichert alle Benutzergruppen.
      *
-     * @param array<string, array<string, mixed>> $groups   Die zu speichernden Gruppen.
-     * @param bool                                $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
-     *
+     * @param array<string, array<string, mixed>> $groups Die zu speichernden Gruppen.
+     * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      * @param Group[] $groups
      */
     public function saveAll(array $groups, bool $forceSql = false): void;

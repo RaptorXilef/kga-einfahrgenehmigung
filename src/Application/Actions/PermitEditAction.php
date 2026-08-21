@@ -29,7 +29,7 @@ final readonly class PermitEditAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $dto      = SimpleTokenRequest::fromArray($request->get);
+        $dto = SimpleTokenRequest::fromArray($request->get);
         $tempData = $this->permitService->getVerifiedRequest($dto->token);
         if ($tempData !== null) {
             $this->sessionManager->setFormData($tempData);

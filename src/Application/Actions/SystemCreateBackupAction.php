@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Core\Service\AuditLoggerService;
+use Throwable;
 
 /**
  * TODO DOCBLOCK
@@ -42,7 +43,7 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
             $this->sessionManager->addFlash('success', "Erfolg: Vollständiges Backup erstellt in Ordner '" . \basename($folder) . "'.");
 
             return new RedirectResponse('admin.php');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', 'Fehler beim Backup: ' . $e->getMessage());
 
             return new RedirectResponse('admin.php');

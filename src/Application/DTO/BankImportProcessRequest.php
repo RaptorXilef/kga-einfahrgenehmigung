@@ -19,7 +19,7 @@ final readonly class BankImportProcessRequest
     public static function fromArray(array $post): self
     {
         $file = \trim((string) ($post['temp_file'] ?? ''));
-        if ($file === '' || ! \file_exists($file)) {
+        if ($file === '' || !\file_exists($file)) {
             throw ValidationException::withMessage('Temporäre Importdatei nicht gefunden.');
         }
 

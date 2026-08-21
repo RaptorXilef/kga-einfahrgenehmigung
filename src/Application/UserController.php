@@ -50,7 +50,7 @@ final readonly class UserController
             ->add($this->maintenanceGuard);
 
         // Inline Permission Check statt Middleware
-        if (! $this->auth->hasPermission('system.permissions.view')) {
+        if (!$this->auth->hasPermission('system.permissions.view')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
             (new RedirectResponse('admin.php'))->send();
 
@@ -63,11 +63,11 @@ final readonly class UserController
             ->add($this->mailQueueMiddleware);
 
         $actionKey = $request->post['action'] ?? '';
-        $action    = $this->factory->create($actionKey);
+        $action = $this->factory->create($actionKey);
 
         // Dynamisches Routing der Rechte für User- & Group-Actions
         if ($action instanceof RequiresPermissionInterface) {
-            if (! $this->auth->hasPermission($action->getRequiredPermission())) {
+            if (!$this->auth->hasPermission($action->getRequiredPermission())) {
                 $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
                 (new RedirectResponse('users.php'))->send();
 
@@ -84,9 +84,11 @@ final readonly class UserController
         });
 
         // STRING FALLBACK ENTFERNT!
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 
     /**
@@ -114,8 +116,10 @@ final readonly class UserController
             return $this->factory->create('render_profile')->execute($req);
         });
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

@@ -37,12 +37,12 @@ final readonly class FrontendController
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($action): mixed {
-            return $action->execute($req);
-        });
+        $response = $pipeline->process($request, fn (ServerRequest $req): mixed => $action->execute($req));
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

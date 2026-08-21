@@ -65,9 +65,11 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             if (\file_exists($archivePath)) {
                 $archiveData = $this->jsonHelper->read($archivePath);
                 foreach ($archiveData as $item) {
-                    if (\strtolower((string) $item['email']) === \strtolower($emailInSession)) {
-                        $permits[] = $this->storage->mapToEntity($item);
+                    if (\strtolower((string) $item['email']) !== \strtolower($emailInSession)) {
+                        continue;
                     }
+
+                    $permits[] = $this->storage->mapToEntity($item);
                 }
             }
         }

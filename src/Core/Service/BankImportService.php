@@ -76,7 +76,7 @@ final readonly class BankImportService
         $erfolgreich = 0;
 
         while (($row = \fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
-            if (empty($row) || (\count($row) === 1 && $row[0] === null)) {
+            if (\count($row) === 1 && $row[0] === null) {
                 continue;
             }
 
@@ -98,7 +98,7 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
             foreach ($matches[1] as $permitId) {
-                $permitIdStr = (string) $permitId;
+                $permitIdStr = $permitId;
                 if (!isset($aggregierteZahlungen[$permitIdStr])) {
                     $aggregierteZahlungen[$permitIdStr] = 0.0;
                 }
@@ -109,7 +109,7 @@ final readonly class BankImportService
         \fclose($handle);
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
-            $permit = $this->storage->findByHash((string) $permitId);
+            $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
                 ++$uebersprungen;
@@ -121,10 +121,10 @@ final readonly class BankImportService
                 continue;
             }
 
-            if (\round((float) $gesamtsumme, 2) >= \round($permit->getPrice(), 2)) {
+            if (\round($gesamtsumme, 2) >= \round($permit->getPrice(), 2)) {
                 $datumRaw = (string) $letztesDatumPerPermit[$permitId];
                 $formatierterTag = $this->parseDate($datumRaw);
-                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format((float) $gesamtsumme, 2, ',', '.') . ' €)';
+                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';
 
                 // FIX: Hier auf ->value zugreifen, da PermitCode jetzt ein Objekt ist!
                 if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
@@ -137,9 +137,7 @@ final readonly class BankImportService
             }
         }
 
-        if (\file_exists($filePath)) {
-            @\unlink($filePath);
-        }
+        @\unlink($filePath);
 
         return [
             'success' => true,
@@ -157,10 +155,12 @@ final readonly class BankImportService
     private function normalizeLineEndings(string $filePath): void
     {
         $content = \file_get_contents($filePath);
-        if (\is_string($content)) {
-            $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
-            \file_put_contents($filePath, $normalized);
+        if (!\is_string($content)) {
+            return;
         }
+
+        $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
+        \file_put_contents($filePath, $normalized);
     }
 
     /**
@@ -184,6 +184,7 @@ final readonly class BankImportService
      * Bereinigt und konvertiert ein Array von Strings streng nach UTF-8.
      *
      * @param array<int, mixed> $row
+     *
      * @return array<int, string>
      */
     private function convertToUtf8(array $row): array

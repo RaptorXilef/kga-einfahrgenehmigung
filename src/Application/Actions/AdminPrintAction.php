@@ -42,28 +42,28 @@ final readonly class AdminPrintAction implements ViewActionInterface
     {
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
-        } catch (ValidationException $e) {
+        } catch (ValidationException) {
             return null;
         }
 
-        $code   = $dto->code;
+        $code = $dto->code;
         $permit = $this->storage->findByHash($code);
-        if (! $permit instanceof Permit) {
+        if (!$permit instanceof Permit) {
             return null;
         }
 
         $this->auditLogger->log('PERMIT_PRINT', "Druckvorschau für Genehmigung '{$code}' aufgerufen.");
 
         $this->renderer->render('admin_print_view', [
-            'auth'            => $this->auth,
+            'auth' => $this->auth,
             'groupRepository' => $this->groupRepository,
-            'holidayNotice'   => HolidayHtmlPresenter::formatHolidayNotice(
+            'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
             ),
             'opening_html' => HolidayHtmlPresenter::formatOpeningHours(
                 $this->holidayService->getOpeningHoursDataForDateRange($permit->getValidFrom(), $permit->getValidUntil()),
             ),
-            'permit'         => $permit,
+            'permit' => $permit,
             'userRepository' => $this->userRepository,
         ]);
 

@@ -53,7 +53,7 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::EARLY_RETURN, // Bouncer-Pattern. Löst tiefe Verschachtelungen auf und nutzt 'continue'/'return'
 
         // PHPUnit & Attribute-Migration
-        PHPUnitSetList::PHPUNIT_100,          // Basis für v11/v12
+        // PHPUnitSetList::PHPUNIT_100,          // Basis für v11/v12
         PHPUnitSetList::ANNOTATIONS_TO_ATTRIBUTES,
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
     ]);

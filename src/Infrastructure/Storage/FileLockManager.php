@@ -22,7 +22,7 @@ final readonly class FileLockManager implements LockManagerInterface
     public function executeWithLock(string $lockName, callable $operation): mixed
     {
         $lockFile = $this->config->getStoragePath("logs/{$lockName}.lock");
-        $fp       = @\fopen($lockFile, 'c');
+        $fp = @\fopen($lockFile, 'c');
 
         if ($fp) {
             \flock($fp, \LOCK_EX);

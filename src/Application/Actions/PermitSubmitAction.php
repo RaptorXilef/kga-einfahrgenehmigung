@@ -13,6 +13,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Service\PermitService;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * Action zur Verarbeitung des abgesendeten Antragsformulars (POST).
@@ -32,7 +34,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
     {
         try {
             $dto = PermitSubmitRequest::fromArray($request->post);
-        } catch (ValidationException|\InvalidArgumentException $e) {
+        } catch (ValidationException|InvalidArgumentException $e) {
             // FIX: UX-Rettung! Bevor wir abbrechen, speichern wir die bereits eingetippten Daten
             // in der Session zwischen, damit das Formular nicht leer ist.
             $postData = $request->post;
@@ -49,7 +51,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 
         try {
             $verifiedEmail = $this->sessionManager->getVerifiedEmail();
-            $editToken     = $this->sessionManager->getEditToken();
+            $editToken = $this->sessionManager->getEditToken();
 
             if ($verifiedEmail !== null && $editToken !== null) {
                 $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
@@ -72,7 +74,6 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->clearEditState();
 
             return new RedirectResponse('index.php?sent=1');
-
         } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen
             // 1. Detaillierter Log für dich als Admin im Hintergrund
             \error_log('Permit Collision: ' . $exception->getMessage());
@@ -85,12 +86,12 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             );
 
             return new RedirectResponse('index.php');
-        } catch (\InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             // Validerungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
             $this->sessionManager->addFlash('error', $exception->getMessage());
 
             return new RedirectResponse('index.php');
-        } catch (\Throwable $exception) { // FIX: Throwable fängt auch TypeErrors und ParseErrors!
+        } catch (Throwable $exception) { // FIX: Throwable fängt auch TypeErrors und ParseErrors!
             \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
 

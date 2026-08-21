@@ -26,11 +26,11 @@ final readonly class JsonGroupRepository implements GroupRepositoryInterface
 
     public function loadAll(): array
     {
-        $cfg  = $this->config->get('storage_config')['groups'];
+        $cfg = $this->config->get('storage_config')['groups'];
         $path = $this->config->getStoragePath($cfg['file']);
 
         $groups = [];
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             return $groups;
         }
 
@@ -55,12 +55,12 @@ final readonly class JsonGroupRepository implements GroupRepositoryInterface
             return;
         }
 
-        $cfg        = $this->config->get('storage_config')['groups'];
+        $cfg = $this->config->get('storage_config')['groups'];
         $dataToSave = [];
 
         foreach ($groups as $id => $group) {
             $dataToSave[$id] = [
-                'name'        => $group->name,
+                'name' => $group->name,
                 'permissions' => $group->permissions,
             ];
         }

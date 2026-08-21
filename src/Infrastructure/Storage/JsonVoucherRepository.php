@@ -10,6 +10,7 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Voucher;
 use App\Core\ValueObject\TemplateKey;
 use App\Core\ValueObject\VoucherCode;
+use DateTimeImmutable;
 
 /**
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -26,14 +27,14 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
 
     public function loadAll(): array
     {
-        $cfg      = $this->config->get('storage_config')['vouchers'];
-        $path     = $this->config->getStoragePath($cfg['file']);
-        $raw      = \file_exists($path) ? $this->jsonHelper->read($path) : [];
+        $cfg = $this->config->get('storage_config')['vouchers'];
+        $path = $this->config->getStoragePath($cfg['file']);
+        $raw = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         $vouchers = [];
 
         foreach ($raw as $code => $r) {
-            $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
-            $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
+            $expires = !empty($r['expires_at']) ? new DateTimeImmutable($r['expires_at']) : null;
+            $created = !empty($r['created_at']) ? new DateTimeImmutable($r['created_at']) : new DateTimeImmutable();
 
             $vouchers[$code] = new Voucher(
                 new VoucherCode((string) $code),
@@ -62,25 +63,25 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
             return;
         }
 
-        $cfg        = $this->config->get('storage_config')['vouchers'];
+        $cfg = $this->config->get('storage_config')['vouchers'];
         $dataToSave = [];
 
         foreach ($vouchers as $code => $v) {
             $dataToSave[$code] = [
-                'code'         => $v->code->value,
-                'reason'       => $v->reason,
+                'code' => $v->code->value,
+                'reason' => $v->reason,
                 'template_key' => $v->templateKey->value,
-                'type'         => $v->type,
-                'value'        => $v->value,
-                'multi_use'    => $v->multiUse,
-                'max_uses'     => $v->maxUses,
-                'uses_count'   => $v->usesCount,
-                'expires_at'   => $v->expiresAt?->format('Y-m-d H:i:s'),
-                'date_mode'    => $v->dateMode,
-                'created_by'   => $v->createdBy,
-                'created_at'   => $v->createdAt->format('Y-m-d H:i:s'),
-                'status'       => $v->status,
-                'data'         => $v->data,
+                'type' => $v->type,
+                'value' => $v->value,
+                'multi_use' => $v->multiUse,
+                'max_uses' => $v->maxUses,
+                'uses_count' => $v->usesCount,
+                'expires_at' => $v->expiresAt?->format('Y-m-d H:i:s'),
+                'date_mode' => $v->dateMode,
+                'created_by' => $v->createdBy,
+                'created_at' => $v->createdAt->format('Y-m-d H:i:s'),
+                'status' => $v->status,
+                'data' => $v->data,
             ];
         }
 
@@ -90,7 +91,7 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
 
     public function loadArchive(): array
     {
-        $cfg  = $this->config->get('storage_config')['vouchers_archive'];
+        $cfg = $this->config->get('storage_config')['vouchers_archive'];
         $path = $this->config->getStoragePath($cfg['file']);
 
         return \file_exists($path) ? $this->jsonHelper->read($path) : [];
@@ -98,10 +99,10 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
 
     public function appendToArchive(array $archiveEntry): void
     {
-        $arcCfg      = $this->config->get('storage_config')['vouchers_archive'];
+        $arcCfg = $this->config->get('storage_config')['vouchers_archive'];
         $archivePath = $this->config->getStoragePath($arcCfg['file']);
-        $archive     = \file_exists($archivePath) ? $this->jsonHelper->read($archivePath) : [];
-        $archive[]   = $archiveEntry;
+        $archive = \file_exists($archivePath) ? $this->jsonHelper->read($archivePath) : [];
+        $archive[] = $archiveEntry;
         $this->writeJsonSafely($archivePath, $archive);
     }
 
@@ -110,8 +111,8 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
         $objects = [];
         foreach ($data as $code => $r) {
             $payload = \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []);
-            $expires = ! empty($r['expires_at']) ? new \DateTimeImmutable($r['expires_at']) : null;
-            $created = ! empty($r['created_at']) ? new \DateTimeImmutable($r['created_at']) : new \DateTimeImmutable();
+            $expires = !empty($r['expires_at']) ? new DateTimeImmutable($r['expires_at']) : null;
+            $created = !empty($r['created_at']) ? new DateTimeImmutable($r['created_at']) : new DateTimeImmutable();
 
             $objects[$code] = new Voucher(
                 new VoucherCode((string) $code),
@@ -135,7 +136,7 @@ final readonly class JsonVoucherRepository implements VoucherRepositoryInterface
 
     public function importArchive(array $data): void
     {
-        $cfg  = $this->config->get('storage_config')['vouchers_archive'];
+        $cfg = $this->config->get('storage_config')['vouchers_archive'];
         $path = $this->config->getStoragePath($cfg['file']);
         $this->writeJsonSafely($path, \array_values($data));
     }

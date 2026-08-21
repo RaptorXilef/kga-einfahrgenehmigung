@@ -57,12 +57,12 @@ final readonly class PermitController
             $actionKey = 'permit_edit';
         }
 
-        $response = $pipeline->process($request, function (ServerRequest $req) use ($actionKey): mixed {
-            return $this->actionFactory->create($actionKey)->execute($req);
-        });
+        $response = $pipeline->process($request, fn (ServerRequest $req): mixed => $this->actionFactory->create($actionKey)->execute($req));
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

@@ -7,6 +7,7 @@ namespace App\Infrastructure\System;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\SystemInfoInterface;
+use Exception;
 
 /**
  * TODO DOCBLOCK
@@ -24,7 +25,7 @@ final readonly class SystemInfoService implements SystemInfoInterface
     public function getChangelog(): string
     {
         $path = \rtrim((string) $this->config->get('root_path'), '/\\') . '/CHANGELOG.md';
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             $path = \str_replace('.md', '.MD', $path);
         }
 
@@ -40,7 +41,7 @@ final readonly class SystemInfoService implements SystemInfoInterface
                 if (isset($data['version'])) {
                     return 'v' . $data['version'];
                 }
-            } catch (\Exception $e) {
+            } catch (Exception) {
             }
         }
 

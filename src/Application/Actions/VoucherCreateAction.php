@@ -15,6 +15,8 @@ use App\Contracts\Config\ConfigInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\VoucherService;
+use InvalidArgumentException;
+use Throwable;
 
 /**
  * Action zum Erstellen eines neuen Gutscheins.
@@ -43,8 +45,8 @@ final readonly class VoucherCreateAction implements ActionInterface
         try {
             // FIX: Wir lesen das Parzellen-Limit aus der Config und geben es an das DTO weiter
             $maxPlot = (int) $this->config->get('max_plot_number', 9999);
-            $dto     = VoucherCreateRequest::fromArray($request->post, $maxPlot);
-        } catch (ValidationException|\InvalidArgumentException $e) {
+            $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
+        } catch (ValidationException|InvalidArgumentException $e) {
             // UX-Rettung für die Gutschein-Erstellung
             $postData = $request->post;
             unset($postData['csrf_token']);
@@ -77,8 +79,7 @@ final readonly class VoucherCreateAction implements ActionInterface
 
             // Wenn erfolgreich, direkt zum Gutschein-Reiter springen
             return new RedirectResponse('admin.php?focus=tab-vouchers');
-
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);

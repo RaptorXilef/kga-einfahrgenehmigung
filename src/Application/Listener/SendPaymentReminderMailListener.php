@@ -34,8 +34,8 @@ final readonly class SendPaymentReminderMailListener
         $shortCode = \substr($permitCodeStr, -6);
 
         $nameParts = \explode(' ', $permit->getOwnerName());
-        $vorname   = $nameParts[0] ?? 'Unbekannt';
-        $nachname  = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
+        $vorname = $nameParts[0] ?? 'Unbekannt';
+        $nachname = $nameParts[\count($nameParts) - 1] ?? 'Unbekannt';
 
         $usage = "EFG-{$nachname}-{$vorname}-{$shortCode}";
 
@@ -46,16 +46,16 @@ final readonly class SendPaymentReminderMailListener
             "Zahlungserinnerung: Ausnahmegenehmigung {$permitCodeStr}",
             'payment_reminder',
             [
-                'baseUrl'        => $this->config->getBaseUrl(),
-                'betrag'         => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
-                'dueDate'        => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
-                'epcData'        => \urlencode($epcQrData),
+                'baseUrl' => $this->config->getBaseUrl(),
+                'betrag' => \number_format($permit->getPrice(), 2, ',', '.') . ' €',
+                'dueDate' => $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y'),
+                'epcData' => \urlencode($epcQrData),
                 'fullIdentifier' => $permitCodeStr,
-                'iban'           => $this->config->get('iban'),
-                'kontoinhaber'   => $this->config->get('kontoinhaber'),
-                'name'           => $permit->getOwnerName(),
-                'usage'          => $usage,
-                'vereinsName'    => $this->config->get('vereins_name'),
+                'iban' => $this->config->get('iban'),
+                'kontoinhaber' => $this->config->get('kontoinhaber'),
+                'name' => $permit->getOwnerName(),
+                'usage' => $usage,
+                'vereinsName' => $this->config->get('vereins_name'),
             ],
         );
     }

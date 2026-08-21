@@ -22,8 +22,8 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
 
     public function saveCancelled(Permit $permit): void
     {
-        $path                       = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
-        $data                       = \file_exists($path) ? $this->jsonHelper->read($path) : [];
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
+        $data = \file_exists($path) ? $this->jsonHelper->read($path) : [];
         $data[$permit->code->value] = $this->flattenEntity($permit);
         $this->writeJsonSafely($path, $data);
     }
@@ -43,12 +43,12 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
     public function loadAll(): array
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             return [];
         }
-        $data    = $this->jsonHelper->read($path);
+        $data = $this->jsonHelper->read($path);
         $permits = \array_map($this->mapToEntity(...), $data);
-        \usort($permits, fn ($a, $b) => $b->getCreatedAt() <=> $a->getCreatedAt());
+        \usort($permits, fn ($a, $b): int => $b->getCreatedAt() <=> $a->getCreatedAt());
 
         return $permits;
     }
@@ -57,16 +57,16 @@ final readonly class JsonCancelledPermitRepository implements CancelledPermitRep
     {
         $objects = [];
         foreach ($data as $key => $item) {
-            if (! isset($item['code'])) {
+            if (!isset($item['code'])) {
                 $item['code'] = $key;
             }
             $objects[] = $this->mapToEntity($item);
         }
 
-        $path       = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['permits_cancelled']['file']);
         $mappedData = [];
         foreach ($objects as $permit) {
-            $item                  = $this->flattenEntity($permit);
+            $item = $this->flattenEntity($permit);
             $item['is_anonymized'] = 1;
             $item['agreements'] ??= '{}';
             $mappedData[$permit->code->value] = $item;

@@ -8,6 +8,7 @@ use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use Throwable;
 
 /**
  * Sendet Serverseitige Events an Google Analytics (GA4).
@@ -29,7 +30,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
 
         try {
             $this->trackEvent($request);
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         return $response;
@@ -48,7 +49,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
 
         // --- 1. DATENSCHUTZ-FIX: Consent-Prüfung ---
         $consentCookie = $_COOKIE['kga_cookie_consent'] ?? null;
-        if (! $consentCookie) {
+        if (!$consentCookie) {
             return; // Kein Consent-Cookie vorhanden -> Nichts tracken
         }
 
@@ -58,8 +59,8 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         }
         // -------------------------------------------
 
-        $gaCfg     = $this->config->get('ga4_server_side', []);
-        $gaId      = $gaCfg['measurement_id'] ?? '';
+        $gaCfg = $this->config->get('ga4_server_side', []);
+        $gaId = $gaCfg['measurement_id'] ?? '';
         $apiSecret = $gaCfg['api_secret'] ?? '';
 
         if ($gaId === '' || $apiSecret === '') {
@@ -72,7 +73,7 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
 
         // --- 2. BUGFIX: GA4 Session-ID ---
         // GA4 erwartet als session_id in der Regel den UNIX-Timestamp des Sitzungsstarts
-        if (! isset($_SESSION['ga4_session_id'])) {
+        if (!isset($_SESSION['ga4_session_id'])) {
             $_SESSION['ga4_session_id'] = \time();
         }
         $sessionId = $_SESSION['ga4_session_id'];
@@ -83,17 +84,17 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
             : 'https://' . ($request->server['SERVER_NAME'] ?? 'localhost');
 
         $pageLocation = $baseUrl . ($request->server['REQUEST_URI'] ?? '');
-        $pageTitle    = \ucfirst(\basename($scriptName, '.php'));
+        $pageTitle = \ucfirst(\basename($scriptName, '.php'));
 
         $payload = [
             'client_id' => $this->sessionManager->getAnalyticsId(),
-            'events'    => [
+            'events' => [
                 [
-                    'name'   => 'page_view',
+                    'name' => 'page_view',
                     'params' => [
-                        'page_location'        => $pageLocation,
-                        'page_title'           => $pageTitle,
-                        'session_id'           => $sessionId, // verknüpft die Klicks zu EINER Sitzung
+                        'page_location' => $pageLocation,
+                        'page_title' => $pageTitle,
+                        'session_id' => $sessionId, // verknüpft die Klicks zu EINER Sitzung
                         'engagement_time_msec' => 1,
                     ],
                 ],
@@ -106,12 +107,12 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
         }
 
         \curl_setopt_array($ch, [
-            \CURLOPT_PROTOCOLS      => \CURLPROTO_HTTPS,
+            \CURLOPT_PROTOCOLS => \CURLPROTO_HTTPS,
             \CURLOPT_RETURNTRANSFER => true,
-            \CURLOPT_POST           => true,
-            \CURLOPT_POSTFIELDS     => \json_encode($payload),
-            \CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            \CURLOPT_TIMEOUT_MS     => 250,
+            \CURLOPT_POST => true,
+            \CURLOPT_POSTFIELDS => \json_encode($payload),
+            \CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            \CURLOPT_TIMEOUT_MS => 250,
         ]);
         \curl_exec($ch);
     }

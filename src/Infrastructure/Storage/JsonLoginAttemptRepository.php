@@ -9,6 +9,7 @@ use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\LoginAttempt;
 use App\Core\ValueObject\IpAddress;
+use DateTimeImmutable;
 
 /**
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -26,7 +27,7 @@ final readonly class JsonLoginAttemptRepository implements LoginAttemptRepositor
     public function findByIp(string $ip): ?LoginAttempt
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['login_attempts']['file']);
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             return null;
         }
 
@@ -35,7 +36,7 @@ final readonly class JsonLoginAttemptRepository implements LoginAttemptRepositor
             return new LoginAttempt(
                 new IpAddress($ip === 'unknown' || $ip === '' ? '0.0.0.0' : $ip),
                 (int) $data[$ip]['attempts'],
-                new \DateTimeImmutable($data[$ip]['last_attempt']),
+                new DateTimeImmutable($data[$ip]['last_attempt']),
             );
         }
 
@@ -48,7 +49,7 @@ final readonly class JsonLoginAttemptRepository implements LoginAttemptRepositor
 
         $this->executeJsonTransaction($path, function (array &$data) use ($attempt): bool {
             $data[$attempt->ipAddress->value] = [
-                'attempts'     => $attempt->attempts,
+                'attempts' => $attempt->attempts,
                 'last_attempt' => $attempt->lastAttempt->format('Y-m-d H:i:s'),
             ];
 
@@ -78,9 +79,11 @@ final readonly class JsonLoginAttemptRepository implements LoginAttemptRepositor
         $this->executeJsonTransaction($path, function (array &$data) use ($minutes): bool {
             $threshold = \time() - ($minutes * 60);
             foreach ($data as $ip => $info) {
-                if (isset($info['last_attempt']) && \strtotime($info['last_attempt']) < $threshold) {
-                    unset($data[$ip]);
+                if (!isset($info['last_attempt']) || \strtotime($info['last_attempt']) >= $threshold) {
+                    continue;
                 }
+
+                unset($data[$ip]);
             }
 
             return true;

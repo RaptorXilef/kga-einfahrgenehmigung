@@ -8,6 +8,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
+use Exception;
+use PDO;
+use Throwable;
 
 /**
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -17,7 +20,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
@@ -28,12 +31,12 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
         $table = $this->config->get('storage_config')['mail_queue']['table'];
 
         $data = [
-            'id'         => $job->id,
-            'recipient'  => $job->recipient,
-            'subject'    => $job->subject,
-            'template'   => $job->template->value,
-            'data'       => \json_encode($job->data, \JSON_UNESCAPED_UNICODE),
-            'attempts'   => $job->attempts,
+            'id' => $job->id,
+            'recipient' => $job->recipient,
+            'subject' => $job->subject,
+            'template' => $job->template->value,
+            'data' => \json_encode($job->data, \JSON_UNESCAPED_UNICODE),
+            'attempts' => $job->attempts,
             'created_at' => $job->createdAt->format('Y-m-d H:i:s'),
         ];
 
@@ -43,7 +46,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
 
     public function processBatch(int $limit, callable $processor): int
     {
-        $table     = $this->config->get('storage_config')['mail_queue']['table'];
+        $table = $this->config->get('storage_config')['mail_queue']['table'];
         $sentCount = 0;
 
         // #Email #Priorität #Query #Warteschlange
@@ -65,7 +68,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
         // MySQL App-Level Lock: Verhindert, dass Cronjob und Web-Request gleichzeitig abarbeiten!
         $lockAcquired = $this->pdo->query("SELECT GET_LOCK('kga_mail_queue', 2)")->fetchColumn();
 
-        if (! $lockAcquired) {
+        if (!$lockAcquired) {
             return 0; // Ein anderer Prozess bearbeitet die Queue bereits
         }
 
@@ -74,7 +77,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
             $this->pdo->exec("UPDATE `{$table}` SET attempts = attempts + 100 WHERE attempts < 3 ORDER BY {$orderBy} LIMIT {$limit}");
 
             // 2. Die blockierten Zeilen abrufen
-            $items = $this->pdo->query("SELECT * FROM `{$table}` WHERE attempts >= 100 ORDER BY {$orderBy}")->fetchAll(\PDO::FETCH_ASSOC);
+            $items = $this->pdo->query("SELECT * FROM `{$table}` WHERE attempts >= 100 ORDER BY {$orderBy}")->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($items as $item) {
                 try {
@@ -82,7 +85,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
                     // Nach Erfolg löschen
                     $this->pdo->prepare("DELETE FROM `{$table}` WHERE id = ?")->execute([$item['id']]);
                     ++$sentCount;
-                } catch (\Throwable $t) {
+                } catch (Throwable $t) {
                     \error_log("MailQueue Error [ID {$item['id']}]: " . $t->getMessage());
                     // Entsperren und Fehler zählen
                     $origAttempts = $item['attempts'] - 100 + 1;
@@ -106,23 +109,23 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
         $this->pdo->beginTransaction();
 
         try {
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($data as $id => $item) {
                 $payload = $item['data'] ?? [];
-                $mapped  = [
-                    'id'         => $id,
-                    'recipient'  => $item['recipient'] ?? '',
-                    'subject'    => $item['subject'] ?? '',
-                    'template'   => $item['template'] ?? '',
-                    'data'       => \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
-                    'attempts'   => (int) ($item['attempts'] ?? 0),
+                $mapped = [
+                    'id' => $id,
+                    'recipient' => $item['recipient'] ?? '',
+                    'subject' => $item['subject'] ?? '',
+                    'template' => $item['template'] ?? '',
+                    'data' => \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
+                    'attempts' => (int) ($item['attempts'] ?? 0),
                     'created_at' => $item['created_at'] ?? '',
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $sql = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
 
@@ -130,7 +133,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
             }
 
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

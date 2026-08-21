@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Database;
 
 use App\Contracts\Config\ConfigInterface;
+use PDO;
+use PDOException;
 
 /**
  * Factory zur Erstellung der zentralen PDO-Datenbankverbindung.
@@ -21,28 +23,28 @@ final class PdoFactory
      *
      * @param ConfigInterface $config Die Systemkonfiguration.
      *
-     * @return \PDO|null Die aktive Verbindung oder null, wenn MySQL deaktiviert ist oder fehlschlägt.
+     * @return PDO|null Die aktive Verbindung oder null, wenn MySQL deaktiviert ist oder fehlschlägt.
      */
-    public static function create(ConfigInterface $config): ?\PDO
+    public static function create(ConfigInterface $config): ?PDO
     {
         $db = $config->get('database', []);
 
-        if (! isset($db['enabled']) || $db['enabled'] === false) {
+        if (!isset($db['enabled']) || $db['enabled'] === false) {
             return null;
         }
 
-        $portStr   = ! empty($db['port']) ? ";port={$db['port']}" : '';
+        $portStr = !empty($db['port']) ? ";port={$db['port']}" : '';
         $dsnWithDb = "mysql:host={$db['host']}{$portStr};dbname={$db['dbname']};charset={$db['charset']}";
-        $pdo       = null;
+        $pdo = null;
 
         try {
-            $pdo = new \PDO($dsnWithDb, $db['user'], $db['pass'], [
-                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                \PDO::ATTR_EMULATE_PREPARES   => false,
-                \PDO::ATTR_TIMEOUT            => 2,
+            $pdo = new PDO($dsnWithDb, $db['user'], $db['pass'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_TIMEOUT => 2,
             ]);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             $mysqlErrorCode = $e->errorInfo[1] ?? null;
 
             if ($mysqlErrorCode !== 1049) {
@@ -54,18 +56,18 @@ final class PdoFactory
             $dsnWithoutDb = "mysql:host={$db['host']}{$portStr};charset={$db['charset']}";
 
             try {
-                $pdo = new \PDO($dsnWithoutDb, $db['user'], $db['pass'], [
-                    \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                    \PDO::ATTR_EMULATE_PREPARES   => false,
-                    \PDO::ATTR_TIMEOUT            => 2,
+                $pdo = new PDO($dsnWithoutDb, $db['user'], $db['pass'], [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                    PDO::ATTR_TIMEOUT => 2,
                 ]);
                 $sql = "CREATE DATABASE IF NOT EXISTS `{$db['dbname']}` " .
                     "CHARACTER SET {$db['charset']} COLLATE {$db['charset']}_unicode_ci";
 
                 $pdo->exec($sql);
                 $pdo->exec("USE `{$db['dbname']}`");
-            } catch (\PDOException $e2) {
+            } catch (PDOException $e2) {
                 \error_log('MySQL Auto-Install Error (DB Create): ' . $e2->getMessage());
 
                 return null;
@@ -74,12 +76,12 @@ final class PdoFactory
 
         try {
             $pdo->query('SELECT 1 FROM `users` LIMIT 1');
-        } catch (\PDOException) {
+        } catch (PDOException) {
             $schema = $config->get('db_schema', []);
             foreach ($schema as $tableName => $sql) {
                 try {
                     $pdo->exec($sql);
-                } catch (\PDOException $ex) {
+                } catch (PDOException $ex) {
                     \error_log("MySQL Auto-Install Error (Table $tableName): " . $ex->getMessage());
                 }
             }

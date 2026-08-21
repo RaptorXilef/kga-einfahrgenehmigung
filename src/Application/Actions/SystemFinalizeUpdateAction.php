@@ -12,6 +12,7 @@ use App\Application\Response\JsonResponse;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
+use Throwable;
 
 /**
  * Action zum Ausführen von DB-Migrationen nach einem Update (Phase 2).
@@ -39,14 +40,14 @@ final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, 
             $executedScripts = $this->migrationService->runAllPending();
             $this->auth->refreshSessionPermissions($this->auth->getGroup());
 
-            $msg = empty($executedScripts)
+            $msg = $executedScripts === []
                 ? 'Update abgeschlossen. System ist auf dem neuesten Stand.'
                 : 'Update abgeschlossen. Datenbank aktualisiert: ' . \implode(', ', $executedScripts);
 
             $this->auditLogger->log('SYSTEM_UPDATE_FINALIZE', 'Update-Prozess finalisiert. ' . $msg);
 
             return JsonResponse::success(['message' => $msg, 'executed' => $executedScripts]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error('Fehler bei der Datenbank-Migration: ' . $e->getMessage());
         }
     }

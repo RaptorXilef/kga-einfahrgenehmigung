@@ -16,6 +16,7 @@ use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
+use DomainException;
 
 /**
  * Action zum Ändern des eigenen Passworts (inkl. Alt-Passwort-Prüfung).
@@ -51,8 +52,8 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             $users = $this->userRepository->loadAll();
 
             if (isset($users[$userId])) {
-                $u              = $users[$userId];
-                $newHash        = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
+                $u = $users[$userId];
+                $newHash = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
                 $users[$userId] = new User($u->id, $u->username, $u->groupId, $newHash);
 
                 $this->userRepository->saveAll($users);
@@ -68,7 +69,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('profile.php');
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('profile.php');

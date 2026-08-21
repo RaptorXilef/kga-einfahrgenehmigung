@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
+use Throwable;
 
 /**
  * TODO DOCBLOCK
@@ -39,7 +40,7 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
         try {
             $executed = $this->migrationService->runAllPending();
 
-            if (empty($executed)) {
+            if ($executed === []) {
                 $this->sessionManager->addFlash('info', 'Hinweis: Es gab keine neuen Datenbank-Skripte auszuführen.');
             } else {
                 $this->auditLogger->log('SYSTEM_DB_MIGRATION', 'Datenbank-Migrationsskripte ausgeführt: ' . \implode(', ', $executed));
@@ -47,7 +48,7 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
             }
 
             return new RedirectResponse('admin.php');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             \error_log('Manual Update Migration Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Fehler bei der Ausführung: ' . $e->getMessage());
 

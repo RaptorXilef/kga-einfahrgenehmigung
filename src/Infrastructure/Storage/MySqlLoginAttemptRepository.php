@@ -8,6 +8,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Core\Entity\LoginAttempt;
 use App\Core\ValueObject\IpAddress;
+use DateTimeImmutable;
+use Exception;
+use PDO;
 
 /**
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -17,7 +20,7 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
     ) {
     }
@@ -25,16 +28,16 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
     public function findByIp(string $ip): ?LoginAttempt
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
-        $stmt  = $this->pdo->prepare("SELECT attempts, last_attempt FROM `{$table}` WHERE ip_address = ?");
+        $stmt = $this->pdo->prepare("SELECT attempts, last_attempt FROM `{$table}` WHERE ip_address = ?");
         $stmt->execute([$ip]);
 
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
             return new LoginAttempt(
                 new IpAddress($ip === 'unknown' || $ip === '' ? '0.0.0.0' : $ip),
                 (int) $row['attempts'],
-                new \DateTimeImmutable($row['last_attempt']),
+                new DateTimeImmutable($row['last_attempt']),
             );
         }
 
@@ -44,9 +47,9 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
     public function save(LoginAttempt $attempt): void
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
-        $data  = [
-            'ip_address'   => $attempt->ipAddress->value,
-            'attempts'     => $attempt->attempts,
+        $data = [
+            'ip_address' => $attempt->ipAddress->value,
+            'attempts' => $attempt->attempts,
             'last_attempt' => $attempt->lastAttempt->format('Y-m-d H:i:s'),
         ];
 
@@ -72,18 +75,18 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
         $this->pdo->beginTransaction();
 
         try {
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($data as $ip => $item) {
                 $mapped = [
-                    'ip_address'   => $ip,
-                    'attempts'     => (int) ($item['attempts'] ?? 0),
+                    'ip_address' => $ip,
+                    'attempts' => (int) ($item['attempts'] ?? 0),
                     'last_attempt' => $item['last_attempt'] ?? 'now',
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $sql = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
 
@@ -91,7 +94,7 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
             }
 
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

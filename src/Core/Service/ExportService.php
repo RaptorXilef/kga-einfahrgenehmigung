@@ -52,9 +52,11 @@ final readonly class ExportService
             // Schutz vor CSV-Injection
             foreach ($row as &$cell) {
                 $firstChar = \substr((string) $cell, 0, 1);
-                if ($cell !== '' && \in_array($firstChar, ['=', '+', '-', '@', "\t", "\r"], true)) {
-                    $cell = "'" . $cell;
+                if ($cell === '' || !\in_array($firstChar, ['=', '+', '-', '@', "\t", "\r"], true)) {
+                    continue;
                 }
+
+                $cell = "'" . $cell;
             }
             unset($cell);
 

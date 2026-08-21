@@ -12,6 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Core\Entity\PermitStatus;
 use App\Core\Service\PermitService;
+use Throwable;
 
 /**
  * Action zum finalisieren eines Antrags via klassischer Banküberweisung.
@@ -43,7 +44,7 @@ final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
 
             // Explicitly extract the string value, otherwise json_encode transforms the VO into an object
             return JsonResponse::success(['code' => $permit->code->value]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
     }

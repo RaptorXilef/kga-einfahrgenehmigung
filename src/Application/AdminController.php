@@ -100,7 +100,7 @@ final readonly class AdminController
 
         // Dynamisches Routing! Die Action entscheidet selbst, welche Rechte sie braucht.
         if ($action instanceof RequiresPermissionInterface) {
-            if (! $this->auth->hasPermission($action->getRequiredPermission())) {
+            if (!$this->auth->hasPermission($action->getRequiredPermission())) {
                 $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
                 (new RedirectResponse('admin.php'))->send();
 
@@ -114,7 +114,7 @@ final readonly class AdminController
         }
         if ($actionKey === 'resend_mail') {
             // Vereinfachter Permission Check für Middlewares ohne URL-Parameter
-            if (! $this->auth->hasPermission('dashboard.logs.view') || ! $this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
+            if (!$this->auth->hasPermission('dashboard.logs.view') || !$this->auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) {
                 $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung.');
                 (new RedirectResponse('admin.php'))->send();
 
@@ -139,8 +139,10 @@ final readonly class AdminController
             return new RedirectResponse('admin.php');
         });
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

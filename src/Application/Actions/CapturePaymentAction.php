@@ -13,6 +13,7 @@ use App\Application\Response\JsonResponse;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Core\Entity\PermitStatus;
 use App\Core\Service\PermitService;
+use Exception;
 
 /**
  * Action zur Abwicklung und Erfassung externer Zahlungen (PayPal-Capture).
@@ -53,7 +54,7 @@ final readonly class CapturePaymentAction implements ViewActionInterface
             }
 
             return JsonResponse::error('Fehler bei Verifizierung der Zahlung', 400);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return JsonResponse::error($exception->getMessage(), 400);
         }
     }

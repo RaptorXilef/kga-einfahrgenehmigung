@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Application\Actions\SystemChangelogAction;
-use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Middleware\AnalyticsMiddleware;
@@ -41,24 +40,22 @@ final readonly class ChangelogController
             ->add($this->securityHeaders)
             ->add($this->maintenanceGuard)
             ->add(RequireLoginMiddleware::withRedirect($this->auth, 'index.php'));
-        if ($this->action instanceof RequiresPermissionInterface) {
-            $pipeline->add(new PermissionMiddleware(
-                $this->auth,
-                $this->action->getRequiredPermission(),
-                'index.php',
-            ));
-        }
+        $pipeline->add(new PermissionMiddleware(
+            $this->auth,
+            $this->action->getRequiredPermission(),
+            'index.php',
+        ));
 
         $pipeline
             ->add($this->analyticsMiddleware)
             ->add($this->mailQueueMiddleware);
 
-        $response = $pipeline->process($request, function (ServerRequest $req): mixed {
-            return $this->action->execute($req);
-        });
+        $response = $pipeline->process($request, fn (ServerRequest $req): mixed => $this->action->execute($req));
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

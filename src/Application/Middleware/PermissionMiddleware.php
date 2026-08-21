@@ -25,7 +25,7 @@ final readonly class PermissionMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        if (! $this->auth->hasPermission($this->requiredPermission)) {
+        if (!$this->auth->hasPermission($this->requiredPermission)) {
             return new RedirectResponse($this->fallbackUrl);
         }
 

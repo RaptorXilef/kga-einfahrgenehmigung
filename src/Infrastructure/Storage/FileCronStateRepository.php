@@ -24,11 +24,11 @@ final readonly class FileCronStateRepository implements CronStateRepositoryInter
     public function setLastRunTime(int $timestamp): void
     {
         $path = $this->config->getStoragePath('logs/last_cron_run.txt');
-        $dir  = \dirname($path);
+        $dir = \dirname($path);
 
         // Sicherstellen, dass das logs/ Verzeichnis existiert, da file_put_contents
         // sonst fehlschlägt und der Cron bei JEDEM Seitenaufruf in eine Dauerschleife läuft.
-        if (! \is_dir($dir)) {
+        if (!\is_dir($dir)) {
             @\mkdir($dir, 0o755, true);
         }
 

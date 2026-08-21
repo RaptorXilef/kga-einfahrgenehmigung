@@ -40,11 +40,11 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
     public function execute(ServerRequest $request): mixed
     {
         $sessionFilters = $this->sessionManager->getAdminFilters();
-        $dto            = ExportRequest::fromArray($request->get, $sessionFilters);
+        $dto = ExportRequest::fromArray($request->get, $sessionFilters);
 
         $start = $dto->start;
-        $end   = $dto->end;
-        $type  = $sessionFilters['type'] ?? 'all';
+        $end = $dto->end;
+        $type = $sessionFilters['type'] ?? 'all';
         $query = $sessionFilters['q'] ?? '';
 
         $filtered = $this->filterService->getFilteredPermits($start, $end, $type, $query);

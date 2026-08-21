@@ -26,11 +26,11 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
 
     public function loadAll(): array
     {
-        $cfg  = $this->config->get('storage_config')['users'];
+        $cfg = $this->config->get('storage_config')['users'];
         $path = $this->config->getStoragePath($cfg['file']);
 
         $users = [];
-        if (! \file_exists($path)) {
+        if (!\file_exists($path)) {
             return $users;
         }
 
@@ -58,14 +58,14 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
             return;
         }
 
-        $cfg        = $this->config->get('storage_config')['users'];
+        $cfg = $this->config->get('storage_config')['users'];
         $dataToSave = [];
 
         foreach ($users as $id => $user) {
             $dataToSave[$id] = [
                 'username' => $user->username,
-                'group'    => $user->groupId,
-                'pass'     => $user->passwordHash,
+                'group' => $user->groupId,
+                'pass' => $user->passwordHash,
             ];
         }
 

@@ -15,6 +15,7 @@ use App\Application\Session\SessionManager;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\GroupService;
+use DomainException;
 
 /**
  * Action zum Löschen einer Berechtigungsgruppe.
@@ -54,7 +55,7 @@ final readonly class GroupDeleteAction implements ActionInterface, RequiresPermi
 
         try {
             // Gruppennamen vor dem Löschen sichern
-            $groups    = $this->groupRepository->loadAll();
+            $groups = $this->groupRepository->loadAll();
             $groupName = isset($groups[$dto->identifier]) ? $groups[$dto->identifier]->name : 'Unbekannt';
 
             $this->groupService->deleteGroup($dto->identifier);
@@ -63,7 +64,7 @@ final readonly class GroupDeleteAction implements ActionInterface, RequiresPermi
             $this->sessionManager->addFlash('success', 'Gruppe gelöscht.');
 
             return new RedirectResponse('users.php');
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('users.php');

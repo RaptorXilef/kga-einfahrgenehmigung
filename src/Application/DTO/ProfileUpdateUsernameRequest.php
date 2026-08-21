@@ -19,7 +19,8 @@ final readonly class ProfileUpdateUsernameRequest
     }
 
     /**
-     * @param  array<string, mixed> $post
+     * @param array<string, mixed> $post
+     *
      * @throws ValidationException
      */
     public static function fromArray(array $post): self

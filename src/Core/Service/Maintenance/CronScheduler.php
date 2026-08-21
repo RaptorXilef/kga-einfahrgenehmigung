@@ -10,6 +10,7 @@ use App\Contracts\Storage\CronStateRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Service\PermitService;
+use Throwable;
 
 /**
  * Scheduler für automatisierte Wartungsaufgaben (Pseudo-Cron oder Server-Cron).
@@ -39,27 +40,29 @@ final readonly class CronScheduler
      */
     public function runIfNeeded(): void
     {
-        if (! $this->config->get('use_pseudo_cron', true)) {
+        if (!$this->config->get('use_pseudo_cron', true)) {
             return;
         }
 
         $this->lockManager->executeWithLock('cron', function (): void {
-            $now     = \time();
+            $now = \time();
             $lastRun = $this->cronState->getLastRunTime();
 
             // TODO Zeitspanne für BAckup/Cronjob in config auslagern
             // FIX: 23 Stunden und 50 Minuten (85800 Sekunden) als Trigger.
             // Verhindert das Überspringen von Tagen durch leichte Zeitverschiebungen!
-            if (($now - $lastRun) >= 85800) {
-                $this->cronState->setLastRunTime($now);
+            if ($now - $lastRun < 85800) {
+                return;
+            }
 
-                try {
-                    $this->runForce();
-                } catch (\Throwable $t) {
-                    $this->cronState->setLastRunTime($lastRun);
+            $this->cronState->setLastRunTime($now);
 
-                    throw $t;
-                }
+            try {
+                $this->runForce();
+            } catch (Throwable $t) {
+                $this->cronState->setLastRunTime($lastRun);
+
+                throw $t;
             }
         });
     }

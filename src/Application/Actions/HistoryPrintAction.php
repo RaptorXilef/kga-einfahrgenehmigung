@@ -41,11 +41,11 @@ final readonly class HistoryPrintAction implements ViewActionInterface
     {
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
-        } catch (ValidationException $e) {
+        } catch (ValidationException) {
             return new RedirectResponse('history.php');
         }
 
-        $code           = $dto->code;
+        $code = $dto->code;
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         $permit = $this->storage->findByHash($code);

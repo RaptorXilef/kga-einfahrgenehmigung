@@ -22,8 +22,8 @@ final class PermissionCompiler
      *
      * Wandelt den Permissions-Baum in ein flaches Array um, basierend auf den Gruppen-Einstellungen.
      *
-     * @param array<int, array<string, mixed>> $structure        Der hierarchische Baum aus der permissions-Config.
-     * @param array<int, string>               $groupPermissions Ungefilterte Berechtigungs-Strings der Benutzergruppe.
+     * @param array<int, array<string, mixed>> $structure Der hierarchische Baum aus der permissions-Config.
+     * @param array<int, string> $groupPermissions Ungefilterte Berechtigungs-Strings der Benutzergruppe.
      *
      * @return array<string, bool> Flache Map, bei der Berechtigungs-Keys direkt auf True/False mappen.
      */
@@ -41,10 +41,10 @@ final class PermissionCompiler
      * Rekursiver Tree-Walker zur Vererbung und Auswertung von Rechten über Knotenebenen hinweg.
      * Beachtet hierarchische Parent-Sperren, verarbeitet Wildcards und wertet Negierungen (Präfix '-') aus.
      *
-     * @param array<int, array<string, mixed>> $nodes         Aktuelle Knoten-Ebene des Baums.
-     * @param array<int, string>               $groupPerms    Die Rechte-Vorgaben der Gruppe.
-     * @param bool                             $parentAllowed Vererbter Freigabestatus der übergeordneten Ebene.
-     * @param array<string, bool>              $result        Referenzierte Ergebnisliste für den Output.
+     * @param array<int, array<string, mixed>> $nodes Aktuelle Knoten-Ebene des Baums.
+     * @param array<int, string> $groupPerms Die Rechte-Vorgaben der Gruppe.
+     * @param bool $parentAllowed Vererbter Freigabestatus der übergeordneten Ebene.
+     * @param array<string, bool> $result Referenzierte Ergebnisliste für den Output.
      *
      * @return void Modifiziert das Ergebnis-Array per Referenz.
      */
@@ -61,17 +61,17 @@ final class PermissionCompiler
                 // 3. Es NICHT explizit verboten ist ('-key')
 
                 $explicitAllow = \in_array($key, $groupPerms, true) || \in_array('*', $groupPerms, true);
-                $explicitDeny  = \in_array('-' . $key, $groupPerms, true);
+                $explicitDeny = \in_array('-' . $key, $groupPerms, true);
 
                 // Cascading Deny Logik
-                $isAllowed    = $parentAllowed && $explicitAllow && ! $explicitDeny;
+                $isAllowed = $parentAllowed && $explicitAllow && !$explicitDeny;
                 $result[$key] = $isAllowed;
             } else {
                 // Wenn kein Key da ist (Kategorie), gilt der Zustand des Vaters für die Kinder.
                 $isAllowed = $parentAllowed;
             }
 
-            if (! isset($node['children'])) {
+            if (!isset($node['children'])) {
                 continue;
             }
 

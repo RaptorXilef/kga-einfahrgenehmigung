@@ -39,6 +39,6 @@ return [
      */
     'ga4_server_side' => [
         'measurement_id' => 'G-R0T4M36HCX', // Google Analytics ID (z.B. 'G-R0T4M36HCX')
-        'api_secret'     => 'DEIN_API_GEHEIMNIS_AUS_GA4', // Das generierte API-Geheimnis
+        'api_secret' => 'DEIN_API_GEHEIMNIS_AUS_GA4', // Das generierte API-Geheimnis
     ],
 ];

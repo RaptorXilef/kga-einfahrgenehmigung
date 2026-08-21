@@ -24,7 +24,7 @@ final readonly class ApiPermissionMiddleware implements MiddlewareInterface
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        if (! $this->auth->isLoggedIn() || ! $this->auth->hasPermission($this->permission)) {
+        if (!$this->auth->isLoggedIn() || !$this->auth->hasPermission($this->permission)) {
             return JsonResponse::error('Nicht autorisiert. Es fehlen die Rechte.', 403);
         }
 

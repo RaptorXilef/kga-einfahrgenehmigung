@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Core\ValueObject;
 
+use InvalidArgumentException;
+use Stringable;
+
 /**
  * Value Object representing a monetary price.
  *
  * Ensures prices are never negative.
  */
-final readonly class Price
+final readonly class Price implements Stringable
 {
     /**
      * @var float The price value.
@@ -17,13 +20,14 @@ final readonly class Price
     public float $value;
 
     /**
-     * @param  float                     $value The raw price (e.g. from DB or form).
-     * @throws \InvalidArgumentException If the price is below 0.
+     * @param float $value The raw price (e.g. from DB or form).
+     *
+     * @throws InvalidArgumentException If the price is below 0.
      */
     public function __construct(float $value)
     {
         if ($value < 0.0) {
-            throw new \InvalidArgumentException("Der Preis darf nicht negativ sein: {$value}");
+            throw new InvalidArgumentException("Der Preis darf nicht negativ sein: {$value}");
         }
 
         // Optional: Hier könnte man auf 2 Nachkommastellen runden,

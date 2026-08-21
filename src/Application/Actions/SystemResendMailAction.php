@@ -51,7 +51,7 @@ final readonly class SystemResendMailAction implements ActionInterface
                 continue;
             }
 
-            if (empty($log->data)) {
+            if ($log->data === []) {
                 $this->sessionManager->addFlash('error', 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).');
 
                 return new RedirectResponse('admin.php');

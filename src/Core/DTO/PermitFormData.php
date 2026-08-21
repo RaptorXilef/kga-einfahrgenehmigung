@@ -41,10 +41,10 @@ final readonly class PermitFormData
 
     public static function fromArray(array $data): self
     {
-        $statusStr  = $data['status'] ?? 'offen';
+        $statusStr = $data['status'] ?? 'offen';
         $statusEnum = $statusStr instanceof PermitStatus ? $statusStr : (PermitStatus::tryFrom($statusStr) ?? PermitStatus::Offen);
 
-        $emailInput   = \trim($data['email'] ?? '');
+        $emailInput = \trim($data['email'] ?? '');
         $voucherInput = \trim($data['voucher'] ?? '');
 
         return new self(

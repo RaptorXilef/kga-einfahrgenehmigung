@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Entity;
 
 use App\Core\ValueObject\TemplateKey;
+use DateTimeImmutable;
 
 /**
  * SPDX-License-Identifier: LicenseRef-Proprietary
@@ -18,7 +19,7 @@ final readonly class MailJob
         public TemplateKey $template,
         public array $data,
         public int $attempts,
-        public \DateTimeImmutable $createdAt,
+        public DateTimeImmutable $createdAt,
     ) {
     }
 }

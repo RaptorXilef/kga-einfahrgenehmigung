@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Core\ValueObject;
 
+use InvalidArgumentException;
+use Stringable;
+
 /**
  * Value Object representing a garden plot number (Parzellennummer).
  *
  * Enforces strict integer types internally.
  */
-final readonly class PlotNumber
+final readonly class PlotNumber implements Stringable
 {
     /**
      * @var int The pure numeric plot number.
@@ -17,19 +20,20 @@ final readonly class PlotNumber
     public int $value;
 
     /**
-     * @param  int|string                $value The raw plot number input.
-     * @throws \InvalidArgumentException If the plot number is empty, not numeric, or <= 0.
+     * @param int|string $value The raw plot number input.
+     *
+     * @throws InvalidArgumentException If the plot number is empty, not numeric, or <= 0.
      */
     public function __construct(int|string $value)
     {
         if (\is_string($value)) {
             $value = \trim($value);
             if ($value === '') {
-                throw new \InvalidArgumentException('Die Parzellennummer darf nicht leer sein.');
+                throw new InvalidArgumentException('Die Parzellennummer darf nicht leer sein.');
             }
 
-            if (! \ctype_digit($value)) {
-                throw new \InvalidArgumentException('Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.');
+            if (!\ctype_digit($value)) {
+                throw new InvalidArgumentException('Fehler: Die Parzellennummer darf ausschließlich aus Zahlen bestehen.');
             }
         }
 
@@ -37,7 +41,7 @@ final readonly class PlotNumber
 
         // Erlaubt > 0 für normale Parzellen und 0 für DSGVO-Anonymisierung
         if ($intVal < 0) {
-            throw new \InvalidArgumentException('Fehler: Die Parzellennummer darf nicht negativ sein.');
+            throw new InvalidArgumentException('Fehler: Die Parzellennummer darf nicht negativ sein.');
         }
 
         $this->value = $intVal;

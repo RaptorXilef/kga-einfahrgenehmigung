@@ -6,6 +6,7 @@ namespace App\Infrastructure\Payment;
 
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Infrastructure\Config\Config;
+use RuntimeException;
 
 /**
  * PayPal-Implementierung des PaymentProviders.
@@ -46,7 +47,7 @@ final readonly class PayPalService implements PaymentProviderInterface
     public function createOrder(float $amount): string|false
     {
         $accessToken = $this->getAccessToken();
-        $baseUrl     = $this->getBaseUrl();
+        $baseUrl = $this->getBaseUrl();
 
         $curlHandle = \curl_init("$baseUrl/v2/checkout/orders");
         \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
@@ -57,11 +58,11 @@ final readonly class PayPalService implements PaymentProviderInterface
         ]);
 
         $payload = [
-            'intent'         => 'CAPTURE',
+            'intent' => 'CAPTURE',
             'purchase_units' => [[
                 'amount' => [
                     'currency_code' => 'EUR',
-                    'value'         => \number_format($amount, 2, '.', ''),
+                    'value' => \number_format($amount, 2, '.', ''),
                 ],
             ]],
         ];
@@ -81,15 +82,15 @@ final readonly class PayPalService implements PaymentProviderInterface
      *
      * Verifiziert eine Zahlung und prüft, ob der gezahlte Betrag korrekt ist.
      *
-     * @param string $orderId        Die zu buchende PayPal-Order-ID.
-     * @param float  $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung (z.B. 3.00 oder 10.00).
+     * @param string $orderId Die zu buchende PayPal-Order-ID.
+     * @param float $expectedAmount Der im System hinterlegte Soll-Betrag der Genehmigung (z.B. 3.00 oder 10.00).
      *
      * @return bool True, wenn das Geld erfolgreich eingezogen wurde und der Betrag exakt stimmt.
      */
     public function captureOrder(string $orderId, float $expectedAmount): bool
     {
         $accessToken = $this->getAccessToken();
-        $baseUrl     = $this->getBaseUrl();
+        $baseUrl = $this->getBaseUrl();
 
         // 1. PayPal API aufrufen, um das Geld endgültig einzuziehen ("Capture")
         $curlHandle = \curl_init("$baseUrl/v2/checkout/orders/$orderId/capture");
@@ -115,8 +116,8 @@ final readonly class PayPalService implements PaymentProviderInterface
 
         // 3. BETRAGS-PRÜFUNG (WICHTIG für Sicherheit!)
         // PayPal liefert den Betrag als String im Deep-Array: purchase_units -> payments -> captures -> amount -> value
-        $captureData      = $data['purchase_units'][0]['payments']['captures'][0]['amount'] ?? [];
-        $capturedAmount   = $captureData['value'] ?? '0.00';
+        $captureData = $data['purchase_units'][0]['payments']['captures'][0]['amount'] ?? [];
+        $capturedAmount = $captureData['value'] ?? '0.00';
         $capturedCurrency = $captureData['currency_code'] ?? ''; // Währung auslesen
 
         // Wir formatieren deinen erwarteten Preis auf das PayPal-Format (String mit 2 Nachkommastellen)
@@ -141,10 +142,10 @@ final readonly class PayPalService implements PaymentProviderInterface
         $baseUrl = $this->getBaseUrl();
 
         // Dynamische Auswahl der Credentials basierend auf dem Modus
-        $ppCfg    = $this->config->get('paypal');
-        $mode     = $this->config->isTestMode() ? 'sandbox' : 'live';
+        $ppCfg = $this->config->get('paypal');
+        $mode = $this->config->isTestMode() ? 'sandbox' : 'live';
         $clientId = $ppCfg[$mode]['client_id'];
-        $secret   = $ppCfg[$mode]['secret'];
+        $secret = $ppCfg[$mode]['secret'];
 
         $curlHandle = \curl_init("$baseUrl/v1/oauth2/token");
         \curl_setopt($curlHandle, \CURLOPT_RETURNTRANSFER, true);
@@ -152,10 +153,10 @@ final readonly class PayPalService implements PaymentProviderInterface
         \curl_setopt($curlHandle, \CURLOPT_POSTFIELDS, 'grant_type=client_credentials');
 
         $response = \curl_exec($curlHandle);
-        $data     = \json_decode((string) $response, true);
+        $data = \json_decode((string) $response, true);
 
-        if (! isset($data['access_token'])) {
-            throw new \RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte API-Daten prüfen.');
+        if (!isset($data['access_token'])) {
+            throw new RuntimeException('PayPal Authentifizierung fehlgeschlagen. Bitte API-Daten prüfen.');
         }
 
         return (string) $data['access_token'];

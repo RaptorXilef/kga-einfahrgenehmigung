@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contracts\Storage;
 
+use App\Core\Entity\Permit;
+
 /**
  * Interface für das Speicher-Repository historischer Genehmigungen.
  * Kümmert sich um die langfristige Archivierung abgelaufener Einträge.
@@ -24,7 +26,7 @@ interface PermitArchiveRepositoryInterface
     /**
      * Verschiebt eine Liste von Genehmigungen in das Archiv des angegebenen Jahres.
      *
-     * @param int                  $year             Das Jahr der Archivierung.
+     * @param int $year Das Jahr der Archivierung.
      * @param array<string, mixed> $permitsToArchive Die zu archivierenden Datensätze.
      */
     public function archivePermits(int $year, array $permitsToArchive): void;
@@ -40,7 +42,8 @@ interface PermitArchiveRepositoryInterface
 
     /**
      * Lädt archivierte Genehmigungen ab einem bestimmten Jahr (Lazy-Loading)
-     * @return \App\Core\Entity\Permit[]
+     *
+     * @return Permit[]
      */
     public function getArchivedPermits(int $minYear): array;
 }

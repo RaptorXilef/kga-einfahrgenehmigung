@@ -23,7 +23,7 @@ final readonly class CapturePaymentRequest
     public static function fromArray(array $input): self
     {
         $orderId = (string) ($input['orderID'] ?? '');
-        $token   = (string) ($input['token'] ?? '');
+        $token = (string) ($input['token'] ?? '');
 
         if ($orderId === '' || $token === '') {
             throw ValidationException::withMessage('Fehlende Parameter (orderID oder token).');

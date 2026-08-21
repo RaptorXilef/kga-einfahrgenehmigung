@@ -54,18 +54,18 @@ final readonly class GroupSaveAction implements ActionInterface, RequiresPermiss
             return new RedirectResponse('users.php');
         }
 
-        $groups   = $this->groupRepository->loadAll();
+        $groups = $this->groupRepository->loadAll();
         $isUpdate = $dto->groupId !== '' && isset($groups[$dto->groupId]);
-        $groupId  = $dto->groupId;
+        $groupId = $dto->groupId;
 
-        if (! $isUpdate) {
+        if (!$isUpdate) {
             do {
                 $groupId = $this->auth->generateId('grp_');
             } while (isset($groups[$groupId]));
         }
 
         $newPermissions = $dto->permissions;
-        if (! $isUpdate && $dto->inheritGroup !== '' && isset($groups[$dto->inheritGroup])) {
+        if (!$isUpdate && $dto->inheritGroup !== '' && isset($groups[$dto->inheritGroup])) {
             $newPermissions = $groups[$dto->inheritGroup]->permissions;
         }
 

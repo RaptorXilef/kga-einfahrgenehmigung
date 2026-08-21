@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Service\AuditLoggerService;
+use Throwable;
 
 /**
  * Action zur DSGVO-konformen Anonymisierung von alten Archiv-Einträgen.
@@ -46,7 +47,7 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface, Re
             }
 
             return new RedirectResponse('admin.php');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             \error_log('DSGVO Anonymize Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Fehler bei der Anonymisierung: ' . $e->getMessage());
 

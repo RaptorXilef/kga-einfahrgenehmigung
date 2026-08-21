@@ -36,43 +36,59 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
     $jsonKeys = ['permits', 'permits_archive', 'permits_cancelled'];
     foreach ($jsonKeys as $key) {
         $file = $config->get('storage_config')[$key]['file'] ?? null;
-        if ($file) {
-            $path = $config->getStoragePath($file);
-            if (\file_exists($path)) {
-                $data    = \json_decode(\file_get_contents($path), true);
-                $changed = false;
-                foreach ($data as &$row) {
-                    if (isset($row['parzelle']) && ! \is_int($row['parzelle'])) {
-                        // "0036" wird zu 36
-                        $row['parzelle'] = (int) $row['parzelle'];
-                        $changed         = true;
-                    }
-                }
-                unset($row);
-                if ($changed) {
-                    \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
-                }
-            }
+        if (!$file) {
+            continue;
         }
+
+        $path = $config->getStoragePath($file);
+        if (!\file_exists($path)) {
+            continue;
+        }
+
+        $data = \json_decode(\file_get_contents($path), true);
+        $changed = false;
+        foreach ($data as &$row) {
+            if (!isset($row['parzelle']) || \is_int($row['parzelle'])) {
+                continue;
+            }
+
+            // "0036" wird zu 36
+            $row['parzelle'] = (int) $row['parzelle'];
+            $changed = true;
+        }
+        unset($row);
+        if (!$changed) {
+            continue;
+        }
+
+        \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
     }
 
     // Vouchers Archive JSON
     $vArcFile = $config->get('storage_config')['vouchers_archive']['file'] ?? null;
-    if ($vArcFile) {
-        $path = $config->getStoragePath($vArcFile);
-        if (\file_exists($path)) {
-            $data    = \json_decode(\file_get_contents($path), true);
-            $changed = false;
-            foreach ($data as &$row) {
-                if (isset($row['user_plot']) && ! \is_int($row['user_plot'])) {
-                    $row['user_plot'] = (int) $row['user_plot'];
-                    $changed          = true;
-                }
-            }
-            unset($row);
-            if ($changed) {
-                \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
-            }
-        }
+    if (!$vArcFile) {
+        return;
     }
+
+    $path = $config->getStoragePath($vArcFile);
+    if (!\file_exists($path)) {
+        return;
+    }
+
+    $data = \json_decode(\file_get_contents($path), true);
+    $changed = false;
+    foreach ($data as &$row) {
+        if (!isset($row['user_plot']) || \is_int($row['user_plot'])) {
+            continue;
+        }
+
+        $row['user_plot'] = (int) $row['user_plot'];
+        $changed = true;
+    }
+    unset($row);
+    if (!$changed) {
+        return;
+    }
+
+    \file_put_contents($path, \json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE), \LOCK_EX);
 };

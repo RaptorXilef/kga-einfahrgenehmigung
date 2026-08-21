@@ -8,6 +8,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\VerificationRequest;
+use DateTimeImmutable;
+use Exception;
+use PDO;
 
 /**
  * TODO DOCBLOCK
@@ -19,7 +22,7 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
@@ -28,9 +31,9 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
     public function loadPending(): array
     {
         $data = $this->loadSql('pending_verification');
-        $now  = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
 
-        return \array_filter($data, fn (VerificationRequest $req): bool => ! $req->isExpired($now));
+        return \array_filter($data, fn (VerificationRequest $req): bool => !$req->isExpired($now));
     }
 
     public function savePending(array $data, bool $forceSql = false): void
@@ -52,9 +55,9 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
     {
         $objects = [];
         foreach ($data as $token => $row) {
-            $exp             = $row['expires'] ?? 'now';
-            $dt              = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
-            $payload         = \is_string($row['data'] ?? []) ? $this->jsonHelper->decode($row['data']) : ($row['data'] ?? []);
+            $exp = $row['expires'] ?? 'now';
+            $dt = \is_numeric($exp) ? (new DateTimeImmutable())->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
+            $payload = \is_string($row['data'] ?? []) ? $this->jsonHelper->decode($row['data']) : ($row['data'] ?? []);
             $objects[$token] = new VerificationRequest((string) $token, $dt, $payload);
         }
         $this->saveSql('pending_verification', $objects); // Import geht primär auf pending (für Migration)
@@ -62,13 +65,13 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
 
     private function loadSql(string $targetKey): array
     {
-        $cfg  = $this->config->get('storage_config')[$targetKey];
+        $cfg = $this->config->get('storage_config')[$targetKey];
         $data = [];
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
-            $payload           = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
-            $exp               = $r['expires'];
-            $dt                = \is_numeric($exp) ? (new \DateTimeImmutable())->setTimestamp((int) $exp) : new \DateTimeImmutable($exp);
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $payload = \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : [];
+            $exp = $r['expires'];
+            $dt = \is_numeric($exp) ? (new DateTimeImmutable())->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
             $data[$r['token']] = new VerificationRequest($r['token'], $dt, $payload);
         }
 
@@ -83,24 +86,24 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
 
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($requests as $token => $req) {
                 $data = [
-                    'token'   => $token,
+                    'token' => $token,
                     'expires' => $req->expiresAt->format('Y-m-d H:i:s'),
-                    'data'    => \json_encode($req->data, \JSON_UNESCAPED_UNICODE),
+                    'data' => \json_encode($req->data, \JSON_UNESCAPED_UNICODE),
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $data);
+                    $sql = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
                 $stmt->execute($data);
             }
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

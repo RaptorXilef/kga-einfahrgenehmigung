@@ -12,6 +12,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\System\SystemUpdaterInterface;
+use Throwable;
 
 /**
  * Action für die asynchrone Prüfung auf GitHub-Updates.
@@ -35,14 +36,14 @@ final readonly class SystemCheckUpdateAction implements ViewActionInterface, Req
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $dto            = ApiCheckUpdateRequest::fromArray($request->input);
+            $dto = ApiCheckUpdateRequest::fromArray($request->input);
             $currentVersion = $this->sysInfo->getCurrentVersion();
 
             // Reicht das "force" Flag durch, um den 24h-Cache zu umgehen
             $updateData = $this->updater->checkForUpdate($currentVersion, $dto->force);
 
             return JsonResponse::success(['update_available' => $updateData !== null, 'data' => $updateData]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
     }

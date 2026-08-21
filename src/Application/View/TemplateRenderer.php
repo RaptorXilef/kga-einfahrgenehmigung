@@ -33,11 +33,11 @@ final readonly class TemplateRenderer
 
         // 1. Systemvariablen bereitstellen
         $systemVars = [
-            'appRoot'      => $appRoot,
-            'config'       => $this->config,
+            'appRoot' => $appRoot,
+            'config' => $this->config,
             'imageStorage' => $this->imageStorage,
-            'jsonHelper'   => $this->jsonHelper,
-            'settings'     => $this->getGlobalSettings(),
+            'jsonHelper' => $this->jsonHelper,
+            'settings' => $this->getGlobalSettings(),
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!
@@ -58,17 +58,17 @@ final readonly class TemplateRenderer
         $templates = (array) $this->config->get('permit_templates', []);
 
         return [
-            'base_url'           => $this->config->getBaseUrl(),
-            'bic'                => $this->config->get('bic'),
-            'iban'               => $this->config->get('iban'),
-            'jahresFarbe'        => $this->config->get('jahresFarbe'),
-            'kontoinhaber'       => $this->config->get('kontoinhaber'),
-            'opening_hours'      => $this->config->get('default_opening_hours'),
-            'public_templates'   => \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true),
-            'purposes'           => $this->config->get('purposes'),
+            'base_url' => $this->config->getBaseUrl(),
+            'bic' => $this->config->get('bic'),
+            'iban' => $this->config->get('iban'),
+            'jahresFarbe' => $this->config->get('jahresFarbe'),
+            'kontoinhaber' => $this->config->get('kontoinhaber'),
+            'opening_hours' => $this->config->get('default_opening_hours'),
+            'public_templates' => \array_filter($templates, fn (array $t): bool => ($t['public'] ?? false) === true),
+            'purposes' => $this->config->get('purposes'),
             'terminkalender_url' => $this->config->get('terminkalender_url'),
-            'vehicle_types'      => $this->config->get('vehicle_types'),
-            'vereins_name'       => $this->config->get('vereins_name'),
+            'vehicle_types' => $this->config->get('vehicle_types'),
+            'vereins_name' => $this->config->get('vereins_name'),
         ];
     }
 }

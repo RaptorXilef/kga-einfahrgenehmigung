@@ -15,15 +15,15 @@ final readonly class UserRenameRequest
 {
     private function __construct(
         public string $userId,
-        public string $newUsername
+        public string $newUsername,
     ) {
     }
 
     // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
-        $userId   = (string) ($post['user_id'] ?? '');
-        $newName  = \trim((string) ($post['new_username'] ?? ''));
+        $userId = (string) ($post['user_id'] ?? '');
+        $newName = \trim((string) ($post['new_username'] ?? ''));
 
         if ($userId === '') {
             throw ValidationException::withMessage('Fehler: Kein Benutzer ausgewählt.');

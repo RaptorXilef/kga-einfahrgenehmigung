@@ -15,6 +15,7 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\PermitService;
 use App\Core\Service\VoucherService;
 use App\Core\ValueObject\Price;
+use Throwable;
 
 /**
  * Action für die dynamische Preisberechnung via API.
@@ -38,55 +39,55 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
     {
         try {
             $vehicleTypes = $this->config->get('vehicle_types', []);
-            $defaultType  = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
+            $defaultType = empty($vehicleTypes) ? 'pkw' : \array_key_first($vehicleTypes);
 
             $dto = ApiTemplatePriceRequest::fromArray($request->input, $defaultType);
 
             $templates = $this->config->get('permit_templates', []);
-            $template  = $templates[$dto->key] ?? $templates['std_7'];
+            $template = $templates[$dto->key] ?? $templates['std_7'];
 
             $originalPrice = (float) ($template['prices'][$dto->typ] ?? 0.0);
 
-            $finalPrice   = $originalPrice;
+            $finalPrice = $originalPrice;
             $discountText = '';
 
             if ($dto->voucherCode !== '') {
                 $vouchers = $this->voucherRepo->loadAll();
-                $v        = $vouchers[$dto->voucherCode] ?? null;
+                $v = $vouchers[$dto->voucherCode] ?? null;
 
                 if ($v && $this->voucherService->isValid($v)) {
                     $this->rateLimiter->clearAttempts($request->getIp());
 
                     // FIX: Den primitiven float-Wert in ein Price VO verpacken
                     $discountedPriceVO = $this->permitService->calculateDiscountedPrice(new Price($originalPrice), $v);
-                    $finalPrice        = $discountedPriceVO->value; // Und den neuen float-Wert für die Ausgabe extrahieren
+                    $finalPrice = $discountedPriceVO->value; // Und den neuen float-Wert für die Ausgabe extrahieren
 
                     $discountText = match ($v->type) {
-                        'fixed'   => 'Sonderpreis aktiviert',
-                        'free'    => '100% Rabatt (Kostenlos)',
+                        'fixed' => 'Sonderpreis aktiviert',
+                        'free' => '100% Rabatt (Kostenlos)',
                         'percent' => $v->value . '% Rabatt',
-                        default   => ''
+                        default => ''
                     };
                 } else {
                     $this->rateLimiter->recordFailedAttempt($request->getIp());
-                    $isDeactivated = $v ? $v->isDeactivated() : false;
-                    $discountText  = $v ? ($isDeactivated ? 'Code gesperrt' : 'Code abgelaufen') : 'Ungültiger Code';
+                    $isDeactivated = $v && $v->isDeactivated();
+                    $discountText = $v ? ($isDeactivated ? 'Code gesperrt' : 'Code abgelaufen') : 'Ungültiger Code';
                 }
             }
 
             return JsonResponse::success([
                 'discountText' => $discountText,
-                'formatted'    => \number_format($finalPrice, 2, ',', '.') . ' €',
-                'isFree'       => $finalPrice <= 0,
-                'original'     => $originalPrice,
-                'price'        => $finalPrice,
+                'formatted' => \number_format($finalPrice, 2, ',', '.') . ' €',
+                'isFree' => $finalPrice <= 0,
+                'original' => $originalPrice,
+                'price' => $finalPrice,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::sendPayload([
-                'error'     => $e->getMessage(),
+                'error' => $e->getMessage(),
                 'formatted' => 'Fehler',
-                'price'     => 0.0,
-                'success'   => false,
+                'price' => 0.0,
+                'success' => false,
             ], 400);
         }
     }

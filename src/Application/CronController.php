@@ -35,12 +35,12 @@ final readonly class CronController
             ->add($this->securityHeaders)
             ->add($this->maintenanceGuard)
             ->add(new CronAuthMiddleware($this->config));
-        $response = $pipeline->process($request, function (ServerRequest $req): mixed {
-            return $this->action->execute($req);
-        });
+        $response = $pipeline->process($request, fn (ServerRequest $req): mixed => $this->action->execute($req));
 
-        if ($response instanceof ResponseInterface) {
-            $response->send();
+        if (!$response instanceof ResponseInterface) {
+            return;
         }
+
+        $response->send();
     }
 }

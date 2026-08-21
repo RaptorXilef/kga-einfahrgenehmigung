@@ -10,6 +10,8 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Core\Entity\Group;
 use App\Core\Entity\User;
+use PDO;
+use PDOException;
 
 /**
  * Bootstrapper für die Initialisierung der Speicher-Infrastruktur.
@@ -21,7 +23,7 @@ use App\Core\Entity\User;
 final readonly class StorageBootstrapper implements StorageBootstrapperInterface
 {
     public function __construct(
-        private ?\PDO $pdo,
+        private ?PDO $pdo,
         private ConfigInterface $config,
         private GroupRepositoryInterface $groupRepository,
         private UserRepositoryInterface $userRepository,
@@ -34,12 +36,12 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     public function bootstrap(): void
     {
         // 1. Wenn MySQL konfiguriert ist, Tabellen sicherstellen
-        if ($this->pdo instanceof \PDO) {
+        if ($this->pdo instanceof PDO) {
             $schema = $this->config->get('db_schema', []);
             foreach ($schema as $tableName => $sql) {
                 try {
                     $this->pdo->exec($sql);
-                } catch (\PDOException $e) {
+                } catch (PDOException $e) {
                     \error_log("Bootstrap: Fehler beim Erstellen der Tabelle '$tableName': " . $e->getMessage());
                 }
             }
@@ -61,10 +63,10 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
      */
     private function ensureStorageSecurity(): void
     {
-        $storageDir   = \rtrim($this->config->getStoragePath(''), '/\\');
+        $storageDir = \rtrim($this->config->getStoragePath(''), '/\\');
         $htaccessPath = $storageDir . '/.htaccess';
 
-        if (! \is_dir($storageDir)) {
+        if (!\is_dir($storageDir)) {
             @\mkdir($storageDir, 0o755, true);
         }
 
@@ -76,9 +78,11 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             "Options -Indexes\n";
 
         // Prüfen, ob die Datei fehlt ODER der Inhalt veraltet/verändert ist
-        if (! \file_exists($htaccessPath) || \file_get_contents($htaccessPath) !== $expectedContent) {
-            @\file_put_contents($htaccessPath, $expectedContent, \LOCK_EX);
+        if (\file_exists($htaccessPath) && \file_get_contents($htaccessPath) === $expectedContent) {
+            return;
         }
+
+        @\file_put_contents($htaccessPath, $expectedContent, \LOCK_EX);
     }
 
     /**
@@ -88,13 +92,13 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     private function cleanupOrphanedPermissions(): void
     {
         $groups = $this->groupRepository->loadAll();
-        if (empty($groups)) {
+        if ($groups === []) {
             return;
         }
 
         // Alle gültigen Basis-Keys aus der aktuellen Config holen
         // app.php generiert bereits ein flaches Array in 'permissions'
-        $validKeys   = \array_keys($this->config->get('permissions', []));
+        $validKeys = \array_keys($this->config->get('permissions', []));
         $validKeys[] = '*'; // Der globale Wildcard ist immer erlaubt
 
         $changed = false;
@@ -102,30 +106,36 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         // Referenz (&) nutzen, um das Array direkt zu modifizieren
         foreach ($groups as $id => $group) {
             $originalCount = \count($group->permissions);
-            $cleanedPerms  = [];
+            $cleanedPerms = [];
 
             foreach ($group->permissions as $perm) {
                 // Deny-Prefix (-) für den Abgleich entfernen
                 $basePerm = \ltrim($perm, '-');
-                if (\in_array($basePerm, $validKeys, true)) {
-                    $cleanedPerms[] = $perm;
+                if (!\in_array($basePerm, $validKeys, true)) {
+                    continue;
                 }
+
+                $cleanedPerms[] = $perm;
             }
 
-            if (\count($cleanedPerms) !== $originalCount) {
-                $groups[$id] = new Group(
-                    $group->id,
-                    $group->name,
-                    \array_values($cleanedPerms),
-                );
-                $changed = true;
+            if (\count($cleanedPerms) === $originalCount) {
+                continue;
             }
+
+            $groups[$id] = new Group(
+                $group->id,
+                $group->name,
+                \array_values($cleanedPerms),
+            );
+            $changed = true;
         }
 
-        if ($changed) {
-            \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
-            $this->groupRepository->saveAll($groups);
+        if (!$changed) {
+            return;
         }
+
+        \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
+        $this->groupRepository->saveAll($groups);
     }
 
     /**
@@ -136,17 +146,19 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     {
         // Wir prüfen, ob die Benutzerverwaltung komplett leer ist (egal ob JSON oder SQL aktiv ist)
         // Nutzt die vorhandenen loadUsers/loadGroups Methoden aus deinem AuthService
-        $currentUsers  = $this->userRepository->loadAll();
+        $currentUsers = $this->userRepository->loadAll();
         $currentGroups = $this->groupRepository->loadAll();
 
-        if (empty($currentGroups)) {
+        if ($currentGroups === []) {
             \error_log('Bootstrap: Initialisiere Standard-Gruppen.');
             $this->groupRepository->saveAll($this->getDefaultGroups());
         }
-        if (empty($currentUsers)) {
-            \error_log('Bootstrap: Initialisiere Standard-Admin.');
-            $this->userRepository->saveAll($this->getDefaultUsers());
+        if ($currentUsers !== []) {
+            return;
         }
+
+        \error_log('Bootstrap: Initialisiere Standard-Admin.');
+        $this->userRepository->saveAll($this->getDefaultUsers());
     }
 
     /**

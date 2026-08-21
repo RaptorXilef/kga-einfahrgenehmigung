@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Config;
 
 use App\Contracts\Config\ConfigInterface;
+use RuntimeException;
 
 /**
  * Konfigurations-Infrastruktur-Provider der Anwendung.
@@ -36,8 +37,8 @@ final readonly class Config implements ConfigInterface
      *
      * (Der wichtigste universelle Getter)
      *
-     * @param string $key     Der exakte Array-Schlüssel.
-     * @param mixed  $default Fallback bei Nichtexistenz.
+     * @param string $key Der exakte Array-Schlüssel.
+     * @param mixed $default Fallback bei Nichtexistenz.
      *
      * @return mixed Der gespeicherte Wert.
      */
@@ -48,11 +49,11 @@ final readonly class Config implements ConfigInterface
         // TODO Auto-Heal auch für andere Speichereinstellungen ergänzen
         // Auto-Heal: Ergänzt fehlende storage_config Einträge (z.B. nach Updates),
         // damit das System nicht abstürzt, wenn die JSON-Datei nicht aktuell ist.
-        if ($key === 'storage_config' && \is_array($val) && ! isset($val['audit_logs'])) {
+        if ($key === 'storage_config' && \is_array($val) && !isset($val['audit_logs'])) {
             $val['audit_logs'] = [
-                'type'  => $val['permits']['type'] ?? 'json', // Nimmt klugerweise das Format der Permits
+                'type' => $val['permits']['type'] ?? 'json', // Nimmt klugerweise das Format der Permits
                 'table' => 'audit_logs',
-                'file'  => 'audit_logs.json',
+                'file' => 'audit_logs.json',
             ];
         }
 
@@ -97,7 +98,7 @@ final readonly class Config implements ConfigInterface
      */
     public function getPriceForType(string $type): float
     {
-        $vConfig     = $this->get('vehicle_types', []);
+        $vConfig = $this->get('vehicle_types', []);
         $defaultType = empty($vConfig) ? 'pkw' : \array_key_first($vConfig);
 
         // Wir schauen in das Preise-Mapping (pkw)
@@ -119,22 +120,22 @@ final readonly class Config implements ConfigInterface
     public function getBaseUrl(): string
     {
         $configured = $this->get('base_url');
-        if (! empty($configured)) {
+        if (!empty($configured)) {
             return \rtrim((string) $configured, '/') . '/';
         }
 
         // Fallback NUR für lokale Entwicklungsumgebungen (.local, localhost)
         if ($this->get('is_local_env', false)) {
             $protocol = $this->get('server_protocol', 'http://');
-            $host     = $this->get('server_host', 'localhost');
-            $path     = \rtrim(\dirname($this->get('server_script', '')), '/\\');
-            $path     = \str_replace('/api', '', $path);
+            $host = $this->get('server_host', 'localhost');
+            $path = \rtrim(\dirname($this->get('server_script', '')), '/\\');
+            $path = \str_replace('/api', '', $path);
 
             return $protocol . $host . $path . '/';
         }
 
         // Harter Abbruch im Live-Betrieb, um Host Header Injection zu verhindern
-        throw new \RuntimeException('Sicherheits-Abbruch: "base_url" ist in der config/organization.php nicht gesetzt! Host-Header-Fallback ist deaktiviert.');
+        throw new RuntimeException('Sicherheits-Abbruch: "base_url" ist in der config/organization.php nicht gesetzt! Host-Header-Fallback ist deaktiviert.');
     }
 
     // TODO DOCBLOCK

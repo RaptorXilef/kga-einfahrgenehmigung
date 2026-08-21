@@ -30,10 +30,10 @@ final readonly class SendMagicLinkMailListener
             'Login-Code: Ihre Genehmigungen',
             'magic_link',
             [
-                'baseUrl'     => $this->config->getBaseUrl(),
-                'code'        => $event->code,
-                'duration'    => $this->config->get('magic_link_duration'),
-                'link'        => $link,
+                'baseUrl' => $this->config->getBaseUrl(),
+                'code' => $event->code,
+                'duration' => $this->config->get('magic_link_duration'),
+                'link' => $link,
                 'vereinsName' => $this->config->get('vereins_name'),
             ],
         );

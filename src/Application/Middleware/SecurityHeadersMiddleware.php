@@ -18,7 +18,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         ServerRequest $request,
         callable $next,
     ): mixed {
-        if (! \headers_sent()) {
+        if (!\headers_sent()) {
             \header('X-Frame-Options: SAMEORIGIN');
             \header('X-Content-Type-Options: nosniff');
             \header('X-XSS-Protection: 1; mode=block');
@@ -34,13 +34,13 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
             // Verbindet die Zeilen mit "; " und sendet den Header
             \header('Content-Security-Policy: ' . \implode('; ', $cspDirectives) . ';');
 
-            $host    = $request->server['HTTP_HOST'] ?? '';
+            $host = $request->server['HTTP_HOST'] ?? '';
             $isLocal = \str_ends_with($host, '.local')
                 || $host === 'localhost'
                 || $host === '127.0.0.1'
                 || \php_sapi_name() === 'cli';
 
-            if (! $isLocal) {
+            if (!$isLocal) {
                 \header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
             }
         }

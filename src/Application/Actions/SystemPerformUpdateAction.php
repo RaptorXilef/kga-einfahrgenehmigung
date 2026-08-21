@@ -13,6 +13,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\System\SystemUpdaterInterface;
 use App\Core\Service\AuditLoggerService;
+use Throwable;
 
 /**
  * Action zum Entpacken und Anwenden eines System-Updates (Phase 1).
@@ -50,7 +51,7 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface, R
             $this->auditLogger->log('SYSTEM_UPDATE_PERFORM', 'System-Dateien aus ZIP-Archiv aktualisiert.');
 
             return JsonResponse::success(['message' => 'Update erfolgreich installiert!']);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }
     }

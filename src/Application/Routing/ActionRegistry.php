@@ -6,12 +6,13 @@ namespace App\Application\Routing;
 
 use App\Application\Attribute\ActionRoute;
 use App\Contracts\Config\ConfigInterface;
+use ReflectionClass;
 
 final class ActionRegistry
 {
     private array $routes = [];
 
-    public function __construct(private ConfigInterface $config)
+    public function __construct(private readonly ConfigInterface $config)
     {
         $this->loadRoutes();
     }
@@ -21,7 +22,7 @@ final class ActionRegistry
         $cacheFile = $this->config->getStoragePath('cache/routes.php');
 
         // Im Dev-Modus scannen wir immer live, produktiv wird gecacht (pfeilschnell!)
-        if (\file_exists($cacheFile) && ! $this->config->get('admin_dev_mode', false)) {
+        if (\file_exists($cacheFile) && !$this->config->get('admin_dev_mode', false)) {
             $this->routes = require $cacheFile;
 
             return;
@@ -30,7 +31,7 @@ final class ActionRegistry
         $this->routes = $this->scanDirectory(\rtrim((string) $this->config->get('root_path'), '/\\') . '/src/Application/Actions');
 
         $cacheDir = \dirname($cacheFile);
-        if (! \is_dir($cacheDir)) {
+        if (!\is_dir($cacheDir)) {
             @\mkdir($cacheDir, 0o755, true);
         }
 
@@ -40,18 +41,20 @@ final class ActionRegistry
     private function scanDirectory(string $dir): array
     {
         $map = [];
-        if (! \is_dir($dir)) {
+        if (!\is_dir($dir)) {
             return $map;
         }
 
         foreach (\glob($dir . '/*.php') as $file) {
             $className = 'App\\Application\\Actions\\' . \basename($file, '.php');
-            if (\class_exists($className)) {
-                $reflection = new \ReflectionClass($className);
-                foreach ($reflection->getAttributes(ActionRoute::class) as $attribute) {
-                    $route            = $attribute->newInstance();
-                    $map[$route->key] = $className;
-                }
+            if (!\class_exists($className)) {
+                continue;
+            }
+
+            $reflection = new ReflectionClass($className);
+            foreach ($reflection->getAttributes(ActionRoute::class) as $attribute) {
+                $route = $attribute->newInstance();
+                $map[$route->key] = $className;
             }
         }
 

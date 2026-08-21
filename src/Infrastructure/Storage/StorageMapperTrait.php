@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
+use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Owner;
 use App\Core\Entity\Permit;
 use App\Core\Entity\PermitStatus;
@@ -16,6 +17,8 @@ use App\Core\ValueObject\PermitCode;
 use App\Core\ValueObject\PlotNumber;
 use App\Core\ValueObject\Price;
 use App\Core\ValueObject\TemplateKey;
+use DateTimeImmutable;
+use Exception;
 
 /**
  * Trait für die bidirektionale Transformation zwischen Objekten und relationalen Arrays.
@@ -24,7 +27,7 @@ use App\Core\ValueObject\TemplateKey;
  * in flache, speicherbare Array-Strukturen zu transformieren und umgekehrt (Hydrierung).
  * Dient als Data Mapper für alle Storage-Engines.
  *
- * @property \App\Contracts\System\JsonHelperInterface $jsonHelper
+ * @property JsonHelperInterface $jsonHelper
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -56,13 +59,13 @@ trait StorageMapperTrait
         if ($emailStr === '[ANONYMISIERT]' || $emailStr === 'ANONYMISIERT') {
             $emailStr = '';
         }
-        $emailObj = ($emailStr !== '' && $emailStr !== '0') ? new EmailAddress($emailStr) : null;
+        $emailObj = $emailStr !== '' && $emailStr !== '0' ? new EmailAddress($emailStr) : null;
 
         $pzInt = (int) ($item['parzelle'] ?? 0); // Liest jetzt den int aus der DB/JSON
 
         $kzStr = \trim((string) ($item['kennzeichen'] ?? ''));
         // Self-Healing: Alte anonymisierte oder komplett leere Kennzeichen umwandeln
-        if ($kzStr === '' || $kzStr === '[ANONYMISIERT]' || $kzStr === 'ANONYMISIERT') {
+        if (\in_array($kzStr, ['', '[ANONYMISIERT]', 'ANONYMISIERT'], true)) {
             $kzStr = 'XXX-XX 9999'; // Legacy Fallback & Anonymization Fallback
         }
 
@@ -71,41 +74,41 @@ trait StorageMapperTrait
             $codeStr = 'LEGACY-' . \uniqid();
         }
 
-        $name    = (string) ($item['name'] ?? 'Unbekannt');
-        $von     = (string) ($item['von'] ?? 'now');
-        $bis     = (string) ($item['bis'] ?? 'now');
+        $name = (string) ($item['name'] ?? 'Unbekannt');
+        $von = (string) ($item['von'] ?? 'now');
+        $bis = (string) ($item['bis'] ?? 'now');
         $created = (string) ($item['erstellt'] ?? 'now');
 
         $is_suspended = (bool) ($item['is_suspended'] ?? false);
-        $suspReason   = $item['suspension_reason'] ?? null;
-        $kommentar    = $item['interner_kommentar'] ?? null;
+        $suspReason = $item['suspension_reason'] ?? null;
+        $kommentar = $item['interner_kommentar'] ?? null;
 
         // 2. Datumsobjekte sicher generieren
         try {
-            $dtVon = new \DateTimeImmutable($von);
-        } catch (\Exception) {
-            $dtVon = new \DateTimeImmutable('today');
+            $dtVon = new DateTimeImmutable($von);
+        } catch (Exception) {
+            $dtVon = new DateTimeImmutable('today');
         }
 
         try {
-            $dtBis = new \DateTimeImmutable($bis);
-        } catch (\Exception) {
-            $dtBis = new \DateTimeImmutable('tomorrow');
+            $dtBis = new DateTimeImmutable($bis);
+        } catch (Exception) {
+            $dtBis = new DateTimeImmutable('tomorrow');
         }
 
         try {
-            $dtCreated = new \DateTimeImmutable($created);
-        } catch (\Exception) {
-            $dtCreated = new \DateTimeImmutable('now');
+            $dtCreated = new DateTimeImmutable($created);
+        } catch (Exception) {
+            $dtCreated = new DateTimeImmutable('now');
         }
 
         // Hydrierung des neuen bezahlt_am Feldes aus den Rohdaten (JSON oder SQL)
         $bezahltAmStr = $item['bezahlt_am'] ?? null;
-        $dtBezahltAm  = null;
+        $dtBezahltAm = null;
         if ($bezahltAmStr && $bezahltAmStr !== '0000-00-00 00:00:00' && $bezahltAmStr !== 'null') {
             try {
-                $dtBezahltAm = new \DateTimeImmutable($bezahltAmStr);
-            } catch (\Exception) {
+                $dtBezahltAm = new DateTimeImmutable($bezahltAmStr);
+            } catch (Exception) {
             }
         }
 
@@ -145,7 +148,6 @@ trait StorageMapperTrait
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
             agreements: $agreements,
-            state: null,
             bezahlt_am: $dtBezahltAm,
         );
     }
@@ -165,26 +167,26 @@ trait StorageMapperTrait
     private function flattenEntity(Permit $permit): array
     {
         return [
-            'agreements'         => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
-            'bezahlt_am'         => $permit->bezahlt_am ? $permit->bezahlt_am->format('Y-m-d H:i:s') : null,
-            'bis'                => $permit->getValidUntil()->format('Y-m-d'),
-            'code'               => $permit->code->value,
-            'email'              => $permit->owner->email ? $permit->owner->email->value : '',
-            'erstellt'           => $permit->getCreatedAt()->format('Y-m-d H:i:s'),
-            'firma'              => $permit->getCompany(),
+            'agreements' => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
+            'bezahlt_am' => $permit->bezahlt_am ? $permit->bezahlt_am->format('Y-m-d H:i:s') : null,
+            'bis' => $permit->getValidUntil()->format('Y-m-d'),
+            'code' => $permit->code->value,
+            'email' => $permit->owner->email ? $permit->owner->email->value : '',
+            'erstellt' => $permit->getCreatedAt()->format('Y-m-d H:i:s'),
+            'firma' => $permit->getCompany(),
             'interner_kommentar' => $permit->interner_kommentar,
-            'is_suspended'       => (int) $permit->isSuspended(),
-            'kennzeichen'        => $permit->vehicle->kennzeichen->value,
-            'name'               => $permit->getOwnerName(),
-            'parzelle'           => $permit->owner->parzelle->value, // Schreibt den reinen INT in die DB!
-            'preis'              => $permit->validity->preis->value,
-            'reminder_sent'      => (int) $permit->status->reminder_sent,
-            'status'             => $permit->getStatus()->value,
-            'suspension_reason'  => $permit->getSuspensionReason(),
-            'template_key'       => $permit->template_key->value,
-            'typ'                => $permit->vehicle->typ,
-            'von'                => $permit->getValidFrom()->format('Y-m-d'),
-            'zweck'              => $permit->getPurpose(),
+            'is_suspended' => (int) $permit->isSuspended(),
+            'kennzeichen' => $permit->vehicle->kennzeichen->value,
+            'name' => $permit->getOwnerName(),
+            'parzelle' => $permit->owner->parzelle->value, // Schreibt den reinen INT in die DB!
+            'preis' => $permit->validity->preis->value,
+            'reminder_sent' => (int) $permit->status->reminder_sent,
+            'status' => $permit->getStatus()->value,
+            'suspension_reason' => $permit->getSuspensionReason(),
+            'template_key' => $permit->template_key->value,
+            'typ' => $permit->vehicle->typ,
+            'von' => $permit->getValidFrom()->format('Y-m-d'),
+            'zweck' => $permit->getPurpose(),
         ];
     }
 }

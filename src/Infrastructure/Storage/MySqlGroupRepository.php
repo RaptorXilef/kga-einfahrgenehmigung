@@ -8,6 +8,8 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Group;
+use Exception;
+use PDO;
 
 /**
  * TODO DOCBLOCK
@@ -19,7 +21,7 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
@@ -27,11 +29,11 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
 
     public function loadAll(): array
     {
-        $cfg    = $this->config->get('storage_config')['groups'];
+        $cfg = $this->config->get('storage_config')['groups'];
         $groups = [];
 
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $perms = \is_string($row['permissions'])
                 ? $this->jsonHelper->decode($row['permissions'])
                 : $row['permissions'];
@@ -58,24 +60,24 @@ final readonly class MySqlGroupRepository implements GroupRepositoryInterface
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
 
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($groups as $id => $group) {
                 $data = [
-                    'id'          => $id,
-                    'name'        => $group->name,
+                    'id' => $id,
+                    'name' => $group->name,
                     'permissions' => \json_encode($group->permissions, \JSON_UNESCAPED_UNICODE),
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $data);
+                    $sql = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
                 $stmt->execute($data);
             }
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

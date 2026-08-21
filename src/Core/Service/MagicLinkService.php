@@ -21,16 +21,10 @@ use App\Core\ValueObject\EmailAddress;
  */
 final readonly class MagicLinkService
 {
-    private string $storagePath;
-
-    public function __construct(
-        private ClockInterface $clock,
-        private ConfigInterface $config,
-        private MagicLinkRepositoryInterface $repository,
-    ) {
+    public function __construct(private ClockInterface $clock, private ConfigInterface $config, private MagicLinkRepositoryInterface $repository)
+    {
         // storagePath wird für JSON weiter berechnet
-        $cfg               = $this->config->get('storage_config')['magic_links'];
-        $this->storagePath = $this->config->getStoragePath($cfg['file']);
+        $this->config->get('storage_config');
     }
 
     /**
@@ -49,7 +43,7 @@ final readonly class MagicLinkService
         // Kurzer, gut lesbarer Code für manuelle Eingabe
         $code = \strtoupper(\substr(\bin2hex(\random_bytes(4)), 0, 6));
 
-        $links    = $this->repository->loadAll();
+        $links = $this->repository->loadAll();
         $duration = (int) $this->config->get('magic_link_duration', 15);
 
         $links[$token] = new MagicLink(
@@ -77,9 +71,9 @@ final readonly class MagicLinkService
      */
     public function verifyAny(string $input): ?string
     {
-        $links      = $this->repository->loadAll();
-        $now        = $this->clock->now();
-        $trimmed    = \trim($input);
+        $links = $this->repository->loadAll();
+        $now = $this->clock->now();
+        $trimmed = \trim($input);
         $foundEmail = null;
 
         foreach ($links as $token => $magicLink) {
@@ -93,7 +87,7 @@ final readonly class MagicLinkService
             // Differenzierte Prüfung
             // 1. Vergleich gegen Lang-Token (Case-Insensitive für Hex)
             // 2. Vergleich gegen Kurz-Code (Immer Großbuchstaben)
-            $strToken         = (string) $token;
+            $strToken = (string) $token;
             $isLongTokenMatch = \strlen($strToken) === \strlen($trimmed)
                 && \hash_equals(\strtolower($strToken), \strtolower($trimmed));
 

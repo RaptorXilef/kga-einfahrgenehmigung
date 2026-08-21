@@ -90,14 +90,20 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             $allHistoricalAndActive[] = $p;
             $pDate = $p->getCreatedAt()->format('Y-m-d');
 
-            if ($pDate >= $dto->start && $pDate <= $dto->end) {
-                if ($dto->type === 'all' || (($this->config->get('permit_templates')[$p->template_key->value]['type'] ?? 'standard') === $dto->type)) {
-                    // Berücksichtige auch das Suchfeld für Archiv-Einträge!
-                    if ($queryLower === '' || $p->matchesSearch($queryLower)) {
-                        $filteredHistoricalAndActive[] = $p;
-                    }
-                }
+            if ($pDate < $dto->start || $pDate > $dto->end) {
+                continue;
             }
+
+            if ($dto->type !== 'all' && (!(($this->config->get('permit_templates')[$p->template_key->value]['type'] ?? 'standard') === $dto->type))) {
+                continue;
+            }
+
+            // Berücksichtige auch das Suchfeld für Archiv-Einträge!
+            if ($queryLower !== '' && !$p->matchesSearch($queryLower)) {
+                continue;
+            }
+
+            $filteredHistoricalAndActive[] = $p;
         }
 
         // 4. Tab-Gruppierungen ERST JETZT aus den kombinierten Daten erstellen!

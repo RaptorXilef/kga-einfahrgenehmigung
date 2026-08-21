@@ -50,14 +50,14 @@ final readonly class GroupRenameAction implements ActionInterface, RequiresPermi
         }
 
         $groups = $this->groupRepository->loadAll();
-        if (! isset($groups[$dto->groupId])) {
+        if (!isset($groups[$dto->groupId])) {
             $this->sessionManager->addFlash('error', 'Fehler: Gruppe nicht gefunden.');
 
             return new RedirectResponse('users.php');
         }
 
-        $g                     = $groups[$dto->groupId];
-        $oldName               = $g->name;
+        $g = $groups[$dto->groupId];
+        $oldName = $g->name;
         $groups[$dto->groupId] = new Group($g->id, $dto->newGroupName, $g->permissions);
         $this->groupRepository->saveAll($groups);
 

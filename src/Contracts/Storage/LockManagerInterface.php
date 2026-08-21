@@ -14,7 +14,7 @@ interface LockManagerInterface
     /**
      * Führt einen Prozess atomar (mit Lock) aus.
      *
-     * @param string   $lockName  Identifier des Locks.
+     * @param string $lockName Identifier des Locks.
      * @param callable $operation Die auszuführende Operation.
      *
      * @return mixed Rückgabe der Operation.

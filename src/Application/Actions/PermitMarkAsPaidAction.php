@@ -42,7 +42,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
      */
     public function execute(ServerRequest $request): mixed
     {
-        $codes      = $request->post['codes'] ?? [];
+        $codes = $request->post['codes'] ?? [];
         $singleCode = $request->post['code'] ?? '';
 
         if ($singleCode !== '') {
@@ -56,7 +56,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
         }
 
         $successCount = 0;
-        $errorCount   = 0;
+        $errorCount = 0;
 
         foreach ($codes as $code) {
             if ($this->permitService->manualActivate($code)) {

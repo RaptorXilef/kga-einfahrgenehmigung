@@ -8,13 +8,16 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Core\Entity\AuditLog;
 use App\Core\ValueObject\IpAddress;
+use DateTimeImmutable;
+use Exception;
+use PDO;
 
 final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterface
 {
     use DynamicSqlTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private ConfigInterface $config,
     ) {
     }
@@ -24,11 +27,11 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
         $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
 
         $data = [
-            'id'         => $log->id,
-            'user_id'    => $log->userId,
-            'username'   => $log->username,
-            'action'     => $log->action,
-            'details'    => $log->details,
+            'id' => $log->id,
+            'user_id' => $log->userId,
+            'username' => $log->username,
+            'action' => $log->action,
+            'details' => $log->details,
             'ip_address' => $log->ipAddress->value,
             'created_at' => $log->createdAt->format('Y-m-d H:i:s'),
         ];
@@ -39,12 +42,12 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
 
     public function getPaginated(int $page, int $limit, string $actionFilter = ''): array
     {
-        $table  = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
-        $where  = '';
+        $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
+        $where = '';
         $params = [];
 
         if ($actionFilter !== '') {
-            $where    = 'WHERE action = ?';
+            $where = 'WHERE action = ?';
             $params[] = $actionFilter;
         }
 
@@ -56,20 +59,20 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
         $total = (int) $stmtCount->fetchColumn();
 
         // Items holen
-        $sql  = "SELECT * FROM `{$table}` $where ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+        $sql = "SELECT * FROM `{$table}` $where ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
         $items = [];
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $items[] = new AuditLog(
                 $r['id'],
                 $r['user_id'],
                 $r['username'],
                 $r['action'],
                 $r['details'],
-                new IpAddress(! empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? $r['ip_address'] : '0.0.0.0'),
-                new \DateTimeImmutable($r['created_at']),
+                new IpAddress(!empty($r['ip_address']) && $r['ip_address'] !== 'unknown' ? $r['ip_address'] : '0.0.0.0'),
+                new DateTimeImmutable($r['created_at']),
             );
         }
 
@@ -82,22 +85,22 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
         $this->pdo->beginTransaction();
 
         try {
-            $sql  = null;
+            $sql = null;
             $stmt = null;
 
             foreach ($data as $id => $item) {
                 $mapped = [
-                    'id'         => $id,
-                    'user_id'    => $item['user_id'] ?? '',
-                    'username'   => $item['username'] ?? '',
-                    'action'     => $item['action'] ?? '',
-                    'details'    => $item['details'] ?? '',
+                    'id' => $id,
+                    'user_id' => $item['user_id'] ?? '',
+                    'username' => $item['username'] ?? '',
+                    'action' => $item['action'] ?? '',
+                    'details' => $item['details'] ?? '',
                     'ip_address' => $item['ip_address'] ?? '0.0.0.0',
                     'created_at' => $item['created_at'] ?? '',
                 ];
 
                 if ($sql === null) {
-                    $sql  = $this->buildReplaceSql($table, $mapped);
+                    $sql = $this->buildReplaceSql($table, $mapped);
                     $stmt = $this->pdo->prepare($sql);
                 }
 
@@ -105,7 +108,7 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
             }
 
             $this->pdo->commit();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->pdo->rollBack();
 
             throw $e;

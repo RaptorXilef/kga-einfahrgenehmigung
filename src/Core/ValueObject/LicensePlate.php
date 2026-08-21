@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Core\ValueObject;
 
+use InvalidArgumentException;
+use Stringable;
+
 /**
  * TODO Auf deutsch schreiben
  * Value Object representing a vehicle license plate (Kennzeichen).
  *
  * Enforces standardized formatting and strict structural validation.
  */
-final readonly class LicensePlate
+final readonly class LicensePlate implements Stringable
 {
     /**
      * @var string The formatted license plate string.
@@ -18,20 +21,21 @@ final readonly class LicensePlate
     public string $value;
 
     /**
-     * @param  string                    $plate The raw license plate input.
-     * @throws \InvalidArgumentException If the plate is empty after trimming.
+     * @param string $plate The raw license plate input.
+     *
+     * @throws InvalidArgumentException If the plate is empty after trimming.
      */
     public function __construct(string $plate)
     {
         $plate = \trim(\strtoupper($plate));
 
         if ($plate === '') {
-            throw new \InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
+            throw new InvalidArgumentException('Das Kennzeichen darf nicht leer sein.');
         }
 
         // 1. Basis-Zeichen-Validierung (Buchstaben, Zahlen, Leerzeichen, Bindestriche, Umlaute)
-        if (! \preg_match('/^[A-ZÄÖÜ0-9\-\s]+$/u', $plate)) {
-            throw new \InvalidArgumentException('Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt.');
+        if (!\preg_match('/^[A-ZÄÖÜ0-9\-\s]+$/u', $plate)) {
+            throw new InvalidArgumentException('Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt.');
         }
 
         // Nur alphanumerische Zeichen für den Bauplan filtern
@@ -40,14 +44,14 @@ final readonly class LicensePlate
         // 2. Der Bauplan (Strikte Struktur-Prüfung für deutsche Kennzeichen)
         // Regel: 1 bis 5 Buchstaben, gefolgt von 1 bis 4 Zahlen, optional 'E' oder 'H' am Ende.
         // Diese eine Regel blockiert automatisch: 5-stellige Zahlen, Doppel-Kennzeichen und reine Text-Eingaben!
-        if (! \preg_match('/^[A-ZÄÖÜ]{1,5}[0-9]{1,4}[EH]?$/u', $cleanAlphanumeric)) {
-            throw new \InvalidArgumentException('Das Kennzeichen ist ungültig. Ein reguläres Kennzeichen hat maximal 4 Ziffern und folgt dem Format "B-AB 1234".');
+        if (!\preg_match('/^[A-ZÄÖÜ]{1,5}[0-9]{1,4}[EH]?$/u', $cleanAlphanumeric)) {
+            throw new InvalidArgumentException('Das Kennzeichen ist ungültig. Ein reguläres Kennzeichen hat maximal 4 Ziffern und folgt dem Format "B-AB 1234".');
         }
 
         $formatted = $this->format($plate);
 
         if ($formatted === '') {
-            throw new \InvalidArgumentException('Das Kennzeichen konnte nicht formatiert werden.');
+            throw new InvalidArgumentException('Das Kennzeichen konnte nicht formatiert werden.');
         }
 
         $this->value = $formatted;

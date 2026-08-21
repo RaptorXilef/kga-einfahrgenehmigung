@@ -25,39 +25,39 @@ final readonly class ImageStorageService implements ImageStorageInterface
             return false;
         }
 
-        $safeId     = \basename($id);
-        $rootPath   = (string) $this->config->get('root_path');
-        $targetDir  = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/';
+        $safeId = \basename($id);
+        $rootPath = (string) $this->config->get('root_path');
+        $targetDir = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/';
         $outputPath = $targetDir . $safeId . '.webp';
 
-        if (! \is_dir($targetDir)) {
+        if (!\is_dir($targetDir)) {
             \mkdir($targetDir, 0o755, true);
         }
 
-        if (! \extension_loaded('gd')) {
+        if (!\extension_loaded('gd')) {
             return \move_uploaded_file($file['tmp_name'], $outputPath);
         }
 
         $info = @\getimagesize($file['tmp_name']);
-        if (! $info) {
+        if (!$info) {
             return false;
         }
 
         $src = match ($info[2]) {
-            \IMAGETYPE_GIF  => @\imagecreatefromgif($file['tmp_name']),
+            \IMAGETYPE_GIF => @\imagecreatefromgif($file['tmp_name']),
             \IMAGETYPE_JPEG => @\imagecreatefromjpeg($file['tmp_name']),
-            \IMAGETYPE_PNG  => @\imagecreatefrompng($file['tmp_name']),
+            \IMAGETYPE_PNG => @\imagecreatefrompng($file['tmp_name']),
             \IMAGETYPE_WEBP => @\imagecreatefromwebp($file['tmp_name']),
-            default         => null
+            default => null
         };
 
-        if (! $src) {
+        if (!$src) {
             return false;
         }
 
-        $width  = \imagesx($src);
+        $width = \imagesx($src);
         $height = \imagesy($src);
-        $dst    = \imagecreatetruecolor($width, $height);
+        $dst = \imagecreatetruecolor($width, $height);
 
         \imagealphablending($dst, false);
         \imagesavealpha($dst, true);
@@ -76,8 +76,8 @@ final readonly class ImageStorageService implements ImageStorageInterface
             return $baseUrl . 'assets/img/icons/' . $fallbackIcon;
         }
 
-        $rootPath    = (string) $this->config->get('root_path');
-        $serverPath  = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
+        $rootPath = (string) $this->config->get('root_path');
+        $serverPath = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
         $browserPath = 'assets/img/' . $folder . '/' . $id . '.webp';
 
         if (\file_exists($serverPath)) {

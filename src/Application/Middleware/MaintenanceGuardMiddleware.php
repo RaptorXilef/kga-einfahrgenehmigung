@@ -31,15 +31,15 @@ final readonly class MaintenanceGuardMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $adminMaintenance      = $this->config->get('maintenance_mode_admin', false) === true;
-        $publicMaintenance     = $this->config->get('maintenance_mode', false) === true;
+        $adminMaintenance = $this->config->get('maintenance_mode_admin', false) === true;
+        $publicMaintenance = $this->config->get('maintenance_mode', false) === true;
         $shouldShowMaintenance = false;
 
         if ($adminMaintenance) {
             $shouldShowMaintenance = true;
         } elseif ($publicMaintenance) {
             $allowedAdminScripts = ['admin.php', 'users.php'];
-            if (! \in_array($currentScript, $allowedAdminScripts, true) && ! \str_contains((string) ($request->server['SCRIPT_NAME'] ?? ''), '/api/')) {
+            if (!\in_array($currentScript, $allowedAdminScripts, true) && !\str_contains((string) ($request->server['SCRIPT_NAME'] ?? ''), '/api/')) {
                 $shouldShowMaintenance = true;
             }
         }
@@ -48,10 +48,10 @@ final readonly class MaintenanceGuardMiddleware implements MiddlewareInterface
             \http_response_code(503);
             \header('Retry-After: 3600');
 
-            $appRoot  = $this->config->get('root_path');
+            $appRoot = $this->config->get('root_path');
             $settings = [
-                'base_url'               => $this->config->getBaseUrl(),
-                'vereins_name'           => $this->config->get('vereins_name'),
+                'base_url' => $this->config->getBaseUrl(),
+                'vereins_name' => $this->config->get('vereins_name'),
                 'maintenance_mode_admin' => $adminMaintenance,
             ];
 

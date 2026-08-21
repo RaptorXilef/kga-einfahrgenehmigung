@@ -25,7 +25,7 @@ interface VoucherRepositoryInterface
      * Speichert die aktiven Gutscheine.
      *
      * @param Voucher[] $vouchers
-     * @param bool      $forceSql Erzwingt das Speichern in MySQL.
+     * @param bool $forceSql Erzwingt das Speichern in MySQL.
      */
     public function saveAll(array $vouchers, bool $forceSql = false): void;
 

@@ -7,6 +7,7 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Permit;
+use PDO;
 
 /**
  * MySQL-Implementierung des Storage-Interfaces.
@@ -23,7 +24,7 @@ final readonly class MySqlStorage implements StorageInterface
     use StorageMapperTrait;
 
     public function __construct(
-        private \PDO $pdo,
+        private PDO $pdo,
         private JsonHelperInterface $jsonHelper,
     ) {
     }
@@ -48,13 +49,13 @@ final readonly class MySqlStorage implements StorageInterface
 
         // 3. SQL-Teile vollautomatisch generieren!
         // Aus ['code', 'preis'] wird: "`code`, `preis`"
-        $colString = \implode(', ', \array_map(fn ($c) => "`$c`", $columns));
+        $colString = \implode(', ', \array_map(fn (string $c): string => "`$c`", $columns));
 
         // Aus ['code', 'preis'] wird: ":code, :preis"
-        $valString = \implode(', ', \array_map(fn ($c) => ":$c", $columns));
+        $valString = \implode(', ', \array_map(fn (string $c): string => ":$c", $columns));
 
         // Aus ['code', 'preis'] wird: "`code` = VALUES(`code`), `preis` = VALUES(`preis`)"
-        $updString = \implode(', ', \array_map(fn ($c) => "`$c` = VALUES(`$c`)", $columns));
+        $updString = \implode(', ', \array_map(fn (string $c): string => "`$c` = VALUES(`$c`)", $columns));
 
         // 4. Den fertigen SQL-String zusammensetzen
         $sql = "INSERT INTO `permits` ($colString) VALUES ($valString) ON DUPLICATE KEY UPDATE $updString";
@@ -83,12 +84,12 @@ final readonly class MySqlStorage implements StorageInterface
     // TODO DOCBLOCK
     public function deleteMultiple(array $codes): int
     {
-        if (empty($codes)) {
+        if ($codes === []) {
             return 0;
         }
 
         $placeholders = \implode(',', \array_fill(0, \count($codes), '?'));
-        $stmt         = $this->pdo->prepare("DELETE FROM `permits` WHERE code IN ($placeholders)");
+        $stmt = $this->pdo->prepare("DELETE FROM `permits` WHERE code IN ($placeholders)");
         $stmt->execute(\array_values($codes));
 
         return $stmt->rowCount();
@@ -110,7 +111,7 @@ final readonly class MySqlStorage implements StorageInterface
         // 1. Direkter Match
         $stmt = $this->pdo->prepare('SELECT * FROM `permits` WHERE code = ?');
         $stmt->execute([$hash]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
             return $this->mapToEntity($row);
@@ -118,12 +119,12 @@ final readonly class MySqlStorage implements StorageInterface
 
         // 2. Fallback: Suche nach der extrahierten ID am Ende des Codes
         $searchParts = \explode('-', $hash);
-        $searchId    = \end($searchParts);
+        $searchId = \end($searchParts);
 
         // Sucht nach %-ID (langer Code) ODER genau der ID (kurzer Code)
         $stmt = $this->pdo->prepare('SELECT * FROM `permits` WHERE code LIKE ? OR code = ?');
         $stmt->execute(['%-' . $searchId, $searchId]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row ? $this->mapToEntity($row) : null;
     }
@@ -149,9 +150,9 @@ final readonly class MySqlStorage implements StorageInterface
             "SELECT * FROM `permits` WHERE REPLACE(REPLACE(kennzeichen, ' ', ''), '-', '') = ?",
         );
         $stmt->execute([$searchPlate]);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (! $rows) {
+        if (!$rows) {
             return null;
         }
 
@@ -165,10 +166,10 @@ final readonly class MySqlStorage implements StorageInterface
             $aValid = $a->isValid();
             $bValid = $b->isValid();
 
-            if ($aValid && ! $bValid) {
+            if ($aValid && !$bValid) {
                 return -1;
             }
-            if (! $aValid && $bValid) {
+            if (!$aValid && $bValid) {
                 return 1;
             }
 
@@ -186,7 +187,7 @@ final readonly class MySqlStorage implements StorageInterface
     public function getAll(): array
     {
         $stmt = $this->pdo->query('SELECT * FROM `permits`');
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return \array_map($this->mapToEntity(...), $rows);
     }
@@ -204,7 +205,7 @@ final readonly class MySqlStorage implements StorageInterface
     {
         $count = 0;
         foreach ($this->getAll() as $permit) {
-            if (! $target->save($permit)) {
+            if (!$target->save($permit)) {
                 continue;
             }
 
@@ -217,7 +218,7 @@ final readonly class MySqlStorage implements StorageInterface
     public function import(array $data): void
     {
         foreach ($data as $key => $item) {
-            if (! isset($item['code'])) {
+            if (!isset($item['code'])) {
                 $item['code'] = $key;
             }
             $this->save($this->mapToEntity($item));

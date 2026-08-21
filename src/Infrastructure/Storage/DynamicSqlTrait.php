@@ -11,10 +11,10 @@ trait DynamicSqlTrait
      */
     protected function buildInsertUpdateSql(string $table, array $data): string
     {
-        $columns   = \array_keys($data);
-        $colString = \implode(', ', \array_map(fn ($c) => "`$c`", $columns));
-        $valString = \implode(', ', \array_map(fn ($c) => ":$c", $columns));
-        $updString = \implode(', ', \array_map(fn ($c) => "`$c` = VALUES(`$c`)", $columns));
+        $columns = \array_keys($data);
+        $colString = \implode(', ', \array_map(fn (int|string $c): string => "`$c`", $columns));
+        $valString = \implode(', ', \array_map(fn (int|string $c): string => ":$c", $columns));
+        $updString = \implode(', ', \array_map(fn (int|string $c): string => "`$c` = VALUES(`$c`)", $columns));
 
         return "INSERT INTO `{$table}` ($colString) VALUES ($valString) ON DUPLICATE KEY UPDATE $updString";
     }
@@ -24,9 +24,9 @@ trait DynamicSqlTrait
      */
     protected function buildReplaceSql(string $table, array $data): string
     {
-        $columns   = \array_keys($data);
-        $colString = \implode(', ', \array_map(fn ($c) => "`$c`", $columns));
-        $valString = \implode(', ', \array_map(fn ($c) => ":$c", $columns));
+        $columns = \array_keys($data);
+        $colString = \implode(', ', \array_map(fn (int|string $c): string => "`$c`", $columns));
+        $valString = \implode(', ', \array_map(fn (int|string $c): string => ":$c", $columns));
 
         return "REPLACE INTO `{$table}` ($colString) VALUES ($valString)";
     }

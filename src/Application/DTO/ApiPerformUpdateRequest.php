@@ -28,7 +28,7 @@ final readonly class ApiPerformUpdateRequest
 
         // TODO URL GITHUB
         $allowedPrefix = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/download/';
-        if (! \str_starts_with($zipUrl, $allowedPrefix)) {
+        if (!\str_starts_with($zipUrl, $allowedPrefix)) {
             throw ValidationException::withMessage('Sicherheitsverletzung: Ungültige Update-Quelle (SSRF Block).');
         }
 
