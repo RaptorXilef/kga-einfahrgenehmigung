@@ -45,51 +45,43 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
                 $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
 
-                // Basis-Nachricht
                 $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
 
                 $htmlDetails = [];
                 $logDetails = [];
 
-                // Details: Erfolgreich
-                if (!empty($res['erfolgreich_codes']) && \is_array($res['erfolgreich_codes'])) {
-                    $codes = \implode(', ', $res['erfolgreich_codes']);
-                    $htmlDetails[] = '<br>✅ <b>Erfolgreich:</b> ' . \htmlspecialchars($codes);
-                    $logDetails[] = 'Erfolgreich: [' . $codes . ']';
+                // 1. Erfolgreich freigeschaltete Genehmigungen
+                if (!empty($res['erfolgreich_details']) && \is_array($res['erfolgreich_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 6px;">✅ <strong>Freigeschaltet:</strong> ' . \htmlspecialchars(\implode(', ', $res['erfolgreich_details'])) . '</div>';
+                    $logDetails[] = 'Freigeschaltet: [' . \implode(', ', $res['erfolgreich_details']) . ']';
                 }
 
-                // Details: Übersprungen
-                if (!empty($res['uebersprungen_codes']) && \is_array($res['uebersprungen_codes'])) {
-                    $codes = \implode(', ', $res['uebersprungen_codes']);
-                    $htmlDetails[] = '<br>⏭️ <b>Übersprungen:</b> ' . \htmlspecialchars($codes);
-                    $logDetails[] = 'Übersprungen: [' . $codes . ']';
+                // 2. Übersprungene Datensätze
+                if (!empty($res['uebersprungen_details']) && \is_array($res['uebersprungen_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 4px;">⏭️ <strong>Übersprungen:</strong> ' . \htmlspecialchars(\implode(', ', $res['uebersprungen_details'])) . '</div>';
+                    $logDetails[] = 'Übersprungen: [' . \implode(', ', $res['uebersprungen_details']) . ']';
                 }
 
-                // Details: Fehlerhaft
-                if (!empty($res['fehlerhaft_codes']) && \is_array($res['fehlerhaft_codes'])) {
-                    $codes = \implode(', ', $res['fehlerhaft_codes']);
-                    $htmlDetails[] = '<br>❌ <b>Fehlerhaft (Summe zu gering):</b> ' . \htmlspecialchars($codes);
-                    $logDetails[] = 'Fehlerhaft: [' . $codes . ']';
+                // 3. Fehlerhafte Datensätze
+                if (!empty($res['fehlerhaft_details']) && \is_array($res['fehlerhaft_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 4px;">❌ <strong>Fehlerhaft:</strong> ' . \htmlspecialchars(\implode(', ', $res['fehlerhaft_details'])) . '</div>';
+                    $logDetails[] = 'Fehlerhaft: [' . \implode(', ', $res['fehlerhaft_details']) . ']';
                 }
 
-                // Details: Unlesbare Zeilen (Formatierungsfehler in der CSV)
-                if (($res['unbekannte_fehler'] ?? 0) > 0) {
-                    $htmlDetails[] = '<br>⚠️ <b>Unlesbare Zeilen (z.B. falsches CSV-Format):</b> ' . $res['unbekannte_fehler'];
-                    $logDetails[] = 'Unlesbare Zeilen: ' . $res['unbekannte_fehler'];
+                // 4. Formatierungsfehler in der CSV
+                if (!empty($res['unlesbare_zeilen_details']) && \is_array($res['unlesbare_zeilen_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 4px;">⚠️ <strong>CSV-Fehler:</strong> ' . \htmlspecialchars(\implode(', ', $res['unlesbare_zeilen_details'])) . '</div>';
+                    $logDetails[] = 'CSV-Fehler: [' . \implode(', ', $res['unlesbare_zeilen_details']) . ']';
                 }
 
-                // Zusammenbauen für die grüne Toast/Flash-Nachricht
                 $fullMsg = $msg . \implode('', $htmlDetails);
 
-                // Zusammenbauen für das Nutzerprotokoll (Audit Log)
                 $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
                 if ($logDetails !== []) {
-                    $logStr .= ' | Details -> ' . \implode(' | ', $logDetails);
+                    $logStr .= ' | ' . \implode(' | ', $logDetails);
                 }
 
-                // LOG SCHREIBEN
                 $this->auditLogger->log('BANK_IMPORT', $logStr);
-
                 $this->sessionManager->addFlash('success', $fullMsg);
             } else {
                 $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));

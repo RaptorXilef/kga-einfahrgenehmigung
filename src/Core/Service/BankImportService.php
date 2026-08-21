@@ -51,7 +51,7 @@ final readonly class BankImportService
     /**
      * Verarbeitet die Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
      *
-     * @return array<string, mixed> Resultat der Verarbeitung inkl. Arrays der betroffenen Codes.
+     * @return array<string, mixed> Resultat der Verarbeitung inklusive detaillierter Begründungen.
      */
     public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
     {
@@ -79,10 +79,10 @@ final readonly class BankImportService
         $letztesDatumPerPermit = [];
 
         // Wir sammeln jetzt detailliert die Codes anstatt nur hochzuzählen
-        $erfolgreichCodes = [];
-        $uebersprungenCodes = [];
-        $fehlerhaftCodes = [];
-        $unbekannteFehler = 0;
+        $erfolgreichDetails = [];
+        $uebersprungenDetails = [];
+        $fehlerhaftDetails = [];
+        $unlesbareZeilenDetails = [];
 
         $rowNumber = 1;
 
@@ -95,8 +95,9 @@ final readonly class BankImportService
 
             if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
                 $colCount = \count($row);
+                $errorMsg = "Zeile {$rowNumber} (Spalten fehlen, nur {$colCount} vorhanden)";
                 \error_log("BankImport [Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
-                ++$unbekannteFehler;
+                $unlesbareZeilenDetails[] = $errorMsg;
                 continue;
             }
 
@@ -133,8 +134,8 @@ final readonly class BankImportService
             $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
-                \error_log("BankImport [Code {$permitId}] Übersprungen: Code aus Kontoauszug existiert nicht in der Datenbank.");
-                $uebersprungenCodes[] = $permitId;
+                \error_log("BankImport [Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.");
+                $uebersprungenDetails[] = "{$permitId} (Nicht in Datenbank)";
                 continue;
             }
 
@@ -142,39 +143,43 @@ final readonly class BankImportService
 
             if ($permit->isPaid()) {
                 \error_log("BankImport [Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.");
-                $uebersprungenCodes[] = $permitId;
+                $uebersprungenDetails[] = "{$permitId} (Bereits bezahlt - {$ownerName})";
                 continue;
             }
 
             $sollBetrag = \round($permit->getPrice(), 2);
             $istBetrag = \round($gesamtsumme, 2);
 
+            $sollFormatted = \number_format($sollBetrag, 2, ',', '.') . ' €';
+            $istFormatted = \number_format($istBetrag, 2, ',', '.') . ' €';
+
             if ($istBetrag >= $sollBetrag) {
                 $datumRaw = (string) $letztesDatumPerPermit[$permitId];
                 $formatierterTag = $this->parseDate($datumRaw);
-                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . \number_format($gesamtsumme, 2, ',', '.') . ' €)';
+                $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
 
                 if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
-                    \error_log("BankImport [Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht. Freigeschaltet!");
-                    $erfolgreichCodes[] = $permitId;
+                    \error_log("BankImport [Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.");
+                    $erfolgreichDetails[] = "{$permitId} ({$istFormatted} - {$ownerName})";
                 } else {
-                    \error_log("BankImport [Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Speicherfehler).");
-                    $fehlerhaftCodes[] = $permitId;
+                    \error_log("BankImport [Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.");
+                    $fehlerhaftDetails[] = "{$permitId} (Speicherfehler - {$ownerName})";
                 }
             } else {
-                \error_log("BankImport [Code {$permitId}] FEHLER (Teilzahlung): Der überwiesene Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
-                $fehlerhaftCodes[] = $permitId;
+                \error_log("BankImport [Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
+                $fehlerhaftDetails[] = "{$permitId} ({$istFormatted} statt {$sollFormatted} - {$ownerName})";
             }
         }
 
         // Duplikate entfernen, falls ein Code mehrfach aufgeschlagen ist
-        $erfolgreichCodes = \array_values(\array_unique($erfolgreichCodes));
-        $uebersprungenCodes = \array_values(\array_unique($uebersprungenCodes));
-        $fehlerhaftCodes = \array_values(\array_unique($fehlerhaftCodes));
+        $erfolgreichDetails = \array_values(\array_unique($erfolgreichDetails));
+        $uebersprungenDetails = \array_values(\array_unique($uebersprungenDetails));
+        $fehlerhaftDetails = \array_values(\array_unique($fehlerhaftDetails));
+        $unlesbareZeilenDetails = \array_values(\array_unique($unlesbareZeilenDetails));
 
-        $erfCount = \count($erfolgreichCodes);
-        $uebCount = \count($uebersprungenCodes);
-        $fehlCount = \count($fehlerhaftCodes) + $unbekannteFehler;
+        $erfCount = \count($erfolgreichDetails);
+        $uebCount = \count($uebersprungenDetails);
+        $fehlCount = \count($fehlerhaftDetails) + \count($unlesbareZeilenDetails);
 
         \error_log("BankImport: Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}");
 
@@ -185,10 +190,10 @@ final readonly class BankImportService
             'erfolgreich_count' => $erfCount,
             'uebersprungen_count' => $uebCount,
             'fehlerhaft_count' => $fehlCount,
-            'erfolgreich_codes' => $erfolgreichCodes,
-            'uebersprungen_codes' => $uebersprungenCodes,
-            'fehlerhaft_codes' => $fehlerhaftCodes,
-            'unbekannte_fehler' => $unbekannteFehler,
+            'erfolgreich_details' => $erfolgreichDetails,
+            'uebersprungen_details' => $uebersprungenDetails,
+            'fehlerhaft_details' => $fehlerhaftDetails,
+            'unlesbare_zeilen_details' => $unlesbareZeilenDetails,
         ];
     }
 
