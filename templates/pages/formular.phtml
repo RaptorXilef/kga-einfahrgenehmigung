@@ -13,15 +13,15 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string                                $appRoot   System-Root-Pfad.
+ * @var string $appRoot   System-Root-Pfad.
  * @var \App\Contracts\Config\ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
- * @var array                                 $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
- * @var bool                                  $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
- * @var string                                $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
- * @var array|null                            $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
- * @var array                                 $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
- * @var bool                                  $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
- * @var string                                $token             Das Sitzungs-Token für Korrekturen.
+ * @var array $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
+ * @var bool $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
+ * @var string $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
+ * @var array|null $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
+ * @var array $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
+ * @var bool $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
+ * @var string $token             Das Sitzungs-Token für Korrekturen.
  */
 $prefill ??= null;
 $formData ??= [];
@@ -389,7 +389,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                             <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
                                         <?php foreach ($config->get('vehicle_types') as $val => $vData) {
                                             // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
-                                            if (! ($vData['active'] ?? true) && ($formData['typ'] ?? $prefill['data']['typ'] ?? '') !== $val) {
+                                            if (!($vData['active'] ?? true) && ($formData['typ'] ?? $prefill['data']['typ'] ?? '') !== $val) {
                                                 continue;
                                             }
                                             ?>
@@ -511,7 +511,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             Wird berechnet...
                         </div>
 
-                        <?php if (! empty($agreements)) { ?>
+                        <?php if (!empty($agreements)) { ?>
                             <div class="c-form-group u-margin-bottom-l"
                                  style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
                                 <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Rechtliches:</p>
@@ -546,7 +546,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                             <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                         </button>
 
-                        <?php if (! $prefill) { ?>
+                        <?php if (!$prefill) { ?>
                             <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Auswahl der
                                 Zahlungsart erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
 
@@ -639,27 +639,29 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         inputKennzeichen.addEventListener('blur', (e) => {
             if (e.target.readOnly) return;
             let val = e.target.value.toUpperCase().trim();
-            if (val.length <= 3) return;
+            if (val.length <= 1) return;
+
+            val = val.replace(/[^A-ZÄÖÜ0-9\-\s]/g, '');
 
             // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
             if (val.includes('-')) {
-                e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
+                val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
+                e.target.value = val.replace(/([A-ZÄÖÜ])(\d)/g, '$1 $2').trim();
                 return;
             }
 
             // Automatik-Modus ohne manuellen Bindestrich
-            let clean = val.replace(/[^A-Z0-9]/g, '');
+            let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
 
             // RegEx erweitert um [EH]? am Ende
-            const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
-            const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-            const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-            const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
+            const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+            const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+            const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
 
-            if (pattern4.test(clean)) e.target.value = clean.replace(pattern4, '$1-$2 $3');
-            else if (berlinPattern.test(clean)) e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
-            else if (complexPattern.test(clean)) e.target.value = clean.replace(complexPattern, '$1-$2 $3');
-            else if (fallbackPattern.test(clean)) e.target.value = clean.replace(fallbackPattern, '$1 $2');
+            if (pattern32.test(clean)) e.target.value = clean.replace(pattern32, '$1-$2 $3');
+            else if (pattern12.test(clean)) e.target.value = clean.replace(pattern12, '$1-$2 $3');
+            else if (fallback.test(clean)) e.target.value = clean.replace(fallback, '$1 $2');
+            else e.target.value = val.replace(/\s+/g, ' ').trim();
         });
     }
 

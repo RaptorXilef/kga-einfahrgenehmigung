@@ -88,6 +88,7 @@ export class PermitFormHandler {
                 ? 'Amtl. Kennzeichen (Optional)'
                 : '* Amtl. Kennzeichen';
         }
+
         if (this.kennzeichenInput) this.kennzeichenInput.required = !isCompanyRequired;
     }
 
@@ -100,23 +101,34 @@ export class PermitFormHandler {
      * @return {void} Modifiziert den Value des Elements direkt.
      */
     formatLicensePlate(input) {
-        const val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (val.length <= 3) return;
+        if (input.readOnly) return;
+        let val = input.value.toUpperCase().trim();
+        if (val.length <= 1) return;
 
-        // RegEx erweitert um [EH]? am Ende für E-Autos und Oldtimer
-        // 1. Spezialfall Berlin: Falls es mit B beginnt und 3 Buchstaben hat (B-XX 123)
-        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        // 2. Standard Komplex: Stadt (1-3) + Zeichen (1-2) + Zahlen (1-4)
-        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        // 3. Standard Simpel: Stadt (1-3) + Zahlen (1-4)
-        const simplePattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
+        // Erlaube Buchstaben (inkl. Umlaute), Zahlen, Leerzeichen und Bindestriche
+        val = val.replace(/[^A-ZÄÖÜ0-9\-\s]/g, '');
 
-        if (berlinPattern.test(val)) {
-            input.value = val.replace(berlinPattern, '$1-$2 $3');
-        } else if (complexPattern.test(val)) {
-            input.value = val.replace(complexPattern, '$1-$2 $3');
-        } else if (simplePattern.test(val)) {
-            input.value = val.replace(simplePattern, '$1 $2');
+        if (val.includes('-')) {
+            val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
+            input.value = val.replace(/([A-ZÄÖÜ])(\d)/g, '$1 $2').trim();
+            return;
+        }
+
+        let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
+
+        const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+        const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+        const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
+
+        if (pattern32.test(clean)) {
+            input.value = clean.replace(pattern32, '$1-$2 $3');
+        } else if (pattern12.test(clean)) {
+            input.value = clean.replace(pattern12, '$1-$2 $3');
+        } else if (fallback.test(clean)) {
+            input.value = clean.replace(fallback, '$1 $2');
+        } else {
+            // Fallback für internationale Kennzeichen: Einfach doppelte Leerzeichen entfernen
+            input.value = val.replace(/\s+/g, ' ').trim();
         }
     }
 
@@ -176,9 +188,9 @@ export class PermitFormHandler {
         const year = checkDate.getFullYear();
         const month = checkDate.getMonth() + 1;
         const day = checkDate.getDate();
+
         const dateStr = `${month}-${day}`;
 
-        // 2. Feste Berliner Feiertage
         const fixedHolidays = [
             '1-1', // Neujahr
             '3-8', // Frauentag (Berlin Spezial)
@@ -228,6 +240,7 @@ export class PermitFormHandler {
             m = Math.floor((a + 11 * h + 22 * l) / 451),
             month = Math.floor((h + l - 7 * m + 114) / 31),
             day = ((h + l - 7 * m + 114) % 31) + 1;
+
         return new Date(year, month - 1, day);
     }
 
@@ -264,6 +277,7 @@ export class PermitFormHandler {
                     voucher: voucher,
                 }),
             });
+
             const data = await response.json();
 
             if (this.priceDisplay && data.success) {

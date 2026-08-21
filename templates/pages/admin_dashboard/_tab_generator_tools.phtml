@@ -10,16 +10,16 @@
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService     $auth
- * @var array                             $settings
+ * @var \App\Core\Service\AuthService $auth
+ * @var array $settings
  */
 
 // Vorbereitung der Template-Daten für JavaScript inkl. Preise
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
     $tplMetadata[$key] = [
-        'days'   => $tpl['days'],
-        'type'   => $tpl['type'],
+        'days' => $tpl['days'],
+        'type' => $tpl['type'],
         'prices' => $tpl['prices'],
     ];
 }
@@ -35,7 +35,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     }
 }
 
-$hasAnyTemplate = ! empty($allowedTemplates);
+$hasAnyTemplate = !empty($allowedTemplates);
 // FIX: Gerettete POST-Daten sicher bereitstellen
 $formData ??= [];
 ?>
@@ -121,7 +121,7 @@ $formData ??= [];
             </header>
 
             <div class="c-card__body">
-                <?php if (! $hasAnyTemplate) { ?>
+                <?php if (!$hasAnyTemplate) { ?>
                     <!-- PROFESSIONELLE LEERMELDUNG -->
                     <div class="u-text-center u-padding-y-xl">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">🚫</div>
@@ -239,7 +239,7 @@ $formData ??= [];
                                             class="c-form-select">
                                         <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                             // NUR aktive Fahrzeug-Typen im Generator anzeigen
-                                            if (! ($vData['active'] ?? true)) {
+                                            if (!($vData['active'] ?? true)) {
                                                 continue;
                                             } ?>
                                             <option value="<?php echo $val; ?>"
@@ -707,33 +707,37 @@ $formData ??= [];
         if (e.target.value) e.target.value = e.target.value.toString().padStart(4, '0');
     });
 
-    /**
-     * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
-     */
-    inputKennzeichen.addEventListener('blur', (e) => {
-        let val = e.target.value.toUpperCase().trim();
-        if (val.length <= 3) return;
+    if (inputKennzeichen) {
+        /**
+         * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
+         */
+        inputKennzeichen.addEventListener('blur', (e) => {
+            if (e.target.readOnly) return;
+            let val = e.target.value.toUpperCase().trim();
+            if (val.length <= 1) return;
+
+            val = val.replace(/[^A-ZÄÖÜ0-9\-\s]/g, '');
 
         // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
-        if (val.includes('-')) {
-            e.target.value = val.replace(/([A-Z])([0-9])/, '$1 $2');
-            return;
-        }
+            if (val.includes('-')) {
+                val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
+                e.target.value = val.replace(/([A-ZÄÖÜ])(\d)/g, '$1 $2').trim();
+                return;
+            }
 
-        // Automatik-Modus ohne manuellen Bindestrich
-        let clean = val.replace(/[^A-Z0-9]/g, '');
+            let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
 
-        // RegEx erweitert um [EH]? am Ende
-        const pattern4 = /^([A-Z]{2})([A-Z]{2})([0-9]{1,4}[EH]?)$/;
-        const berlinPattern = /^(B)([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        const complexPattern = /^([A-Z]{1,3})([A-Z]{1,2})([0-9]{1,4}[EH]?)$/;
-        const fallbackPattern = /^([A-Z]{1,3})([0-9]{1,4}[EH]?)$/;
+            // RegEx erweitert um [EH]? am Ende
+            const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+            const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+            const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
 
-        if (pattern4.test(clean)) e.target.value = clean.replace(pattern4, '$1-$2 $3');
-        else if (berlinPattern.test(clean)) e.target.value = clean.replace(berlinPattern, '$1-$2 $3');
-        else if (complexPattern.test(clean)) e.target.value = clean.replace(complexPattern, '$1-$2 $3');
-        else if (fallbackPattern.test(clean)) e.target.value = clean.replace(fallbackPattern, '$1 $2');
-    });
+            if (pattern32.test(clean)) e.target.value = clean.replace(pattern32, '$1-$2 $3');
+            else if (pattern12.test(clean)) e.target.value = clean.replace(pattern12, '$1-$2 $3');
+            else if (fallback.test(clean)) e.target.value = clean.replace(fallback, '$1 $2');
+            else e.target.value = val.replace(/\s+/g, ' ').trim();
+        });
+    }
 
     /**
      * Firma ein/ausblenden
