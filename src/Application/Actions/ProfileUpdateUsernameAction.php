@@ -18,12 +18,7 @@ use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 use DomainException;
 
-/**
- * Action zum Aktualisieren des eigenen Anzeigenamens/Login-Namens.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/change_own_username')]
+#[Route('POST', '/change_own_username')]
 final readonly class ProfileUpdateUsernameAction implements ActionInterface
 {
     public function __construct(
@@ -54,13 +49,12 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
             if (isset($users[$userId])) {
                 $u = $users[$userId];
                 $oldName = $u->username;
-                $users[$userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
+                // FIX: u->roleId statt u->groupId
+                $users[$userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
 
                 $this->sessionManager->updateAdminUsername($dto->newUsername);
-
                 $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
-
                 $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
 
                 return new RedirectResponse('profile.php');
@@ -69,6 +63,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('profile.php');
+
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

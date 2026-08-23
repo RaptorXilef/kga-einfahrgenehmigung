@@ -11,7 +11,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
@@ -19,18 +19,13 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 
-/**
- * Action zum Rendern der administrativen Druckansicht.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/admin_print')]
+#[Route('GET', '/admin_print')]
 final readonly class AdminPrintAction implements ViewActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private GroupRepositoryInterface $groupRepository,
+        private RoleRepositoryInterface $roleRepository, // <-- FIX
         private HolidayService $holidayService,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
@@ -48,6 +43,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
 
         $code = $dto->code;
         $permit = $this->storage->findByHash($code);
+
         if (!$permit instanceof Permit) {
             return null;
         }
@@ -56,7 +52,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
 
         $this->renderer->render('admin_print_view', [
             'auth' => $this->auth,
-            'groupRepository' => $this->groupRepository,
+            'roleRepository' => $this->roleRepository, // <-- FIX
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
             ),

@@ -65,11 +65,6 @@ final readonly class MigrationService implements MigrationServiceInterface
     /**
      * Orchestriert eine Migrationsaktion für einen Datenbereich.
      * Erstellt vorab zwingend ein Sicherheitsbackup und verzweigt dann in die Sub-Migrationsschritte.
-     *
-     * @param string $target Der Schlüssel des Speicherbereichs (z.B. 'permits', 'users', 'vouchers').
-     * @param string $action Die Migrationsart ('json_to_mysql', 'mysql_to_json', 'sync').
-     *
-     * @return string HTML-formatierte Erfolgs- oder Fehlermeldung für das Admin-Interface.
      */
     public function execute(string $target, string $action): string
     {
@@ -136,22 +131,15 @@ final readonly class MigrationService implements MigrationServiceInterface
     /**
      * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
      * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
-     *
-     * @param string $timestamp Der Ordnername (Zeitstempel) des Quell-Backups.
-     * @param string $target Der Zielbereich, welcher überschrieben werden soll.
-     *
-     * @return string Status-Ergebnistext für das Admin-Frontend.
      */
     public function restore(string $timestamp, string $target, string $engine = 'all'): string
     {
-        // 1. Zwingendes Sicherheitsbackup vor der Wiederherstellung
         try {
             $this->backupService->createBackup($target . '_before_restore');
         } catch (Exception $e) {
             return 'Abbruch: Sicherheits-Backup des Ist-Zustands konnte nicht erstellt werden (' . $e->getMessage() . ').';
         }
 
-        // 2. Daten aus dem Backup-Archiv abrufen
         $data = $this->backupService->getBackupData($timestamp, $target);
 
         if ($data === null) {
@@ -160,13 +148,11 @@ final readonly class MigrationService implements MigrationServiceInterface
 
         $restoredIn = [];
 
-        // 3. Nach MySQL wiederherstellen
         if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof PDO) {
             $this->saveToSql($target, $data);
             $restoredIn[] = 'MySQL';
         }
 
-        // 4. Nach JSON wiederherstellen
         if (\in_array($engine, ['all', 'json'], true)) {
             $this->saveToJson($target, $data);
             $restoredIn[] = 'JSON';
@@ -181,16 +167,11 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     /**
      * Leert den Deptrac-Cache und kompiliert die Session-Berechtigungen neu.
-     *
-     * @return string Statusmeldung.
      */
     public function clearCache(): string
     {
         $root = $this->config->get('root_path');
-
-        // 1. Deptrac Cache löschen
         $deptracCache = $root . '/.cache/deptrac/.deptrac.cache';
-
         if (\file_exists($deptracCache)) {
             \unlink($deptracCache);
         }
@@ -200,23 +181,15 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     /**
      * Löscht alle Daten eines Zielbereichs (Truncate) und erstellt vorher ein Backup.
-     *
-     * @param string $target Der zu leerende Speicherbereich.
-     * @param string $engine 'all', 'json' oder 'mysql'.
-     *
-     * @return string Statusmeldung über den Vorgang.
      */
     public function truncateTarget(string $target, string $engine = 'all'): string
     {
-        // 1. Zwingendes Backup vor der Löschung!
         try {
-            // Backup erstellt sicherheitshalber immer beide Bestände
             $this->backupService->createBackup($target . '_before_truncate');
         } catch (Exception $e) {
             return 'Abbruch: Sicherheits-Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
         }
 
-        // 2. SQL oder JSON leeren
         $cfg = $this->config->get('storage_config')[$target] ?? null;
         if (!$cfg) {
             return "Fehler: Unbekannter Speicherbereich '$target'.";
@@ -224,7 +197,6 @@ final readonly class MigrationService implements MigrationServiceInterface
 
         $clearedIn = [];
 
-        // MySQL Tabelle leeren (Wenn engine 'all' oder 'mysql' ist)
         if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof PDO) {
             try {
                 $tableName = $cfg['table'];
@@ -241,7 +213,6 @@ final readonly class MigrationService implements MigrationServiceInterface
             }
         }
 
-        // JSON Datei leeren (Wenn engine 'all' oder 'json' ist)
         if (\in_array($engine, ['all', 'json'], true) && isset($cfg['file'])) {
             $path = $this->config->getStoragePath($cfg['file']);
             $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
@@ -262,15 +233,10 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     /**
      * Exportiert Tabellendaten aus MySQL in eine flache JSON-Datei.
-     *
-     * @param string $target Der zu exportierende Bereich.
-     *
-     * @return string Statusmeldung über die Anzahl exportierter Datensätze.
      */
     private function migrateSqlToJson(string $target): string
     {
         if ($target === 'permits') {
-            // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
             $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
             $json = new JsonStorage($this->config->getStoragePath($file), $this->jsonHelper);
             $sql = new MySqlStorage($this->pdo, $this->jsonHelper);
@@ -280,7 +246,6 @@ final readonly class MigrationService implements MigrationServiceInterface
         }
 
         $data = $this->loadRawSql($target);
-
         if ($data === []) {
             return "Keine Daten in MySQL-Quelle für $target gefunden.";
         }
@@ -292,15 +257,10 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     /**
      * Importiert flache JSON-Datensätze in die relationale MySQL-Struktur.
-     *
-     * @param string $target Der zu importierende Bereich.
-     *
-     * @return string Statusmeldung über die importierten Zeilen.
      */
     private function migrateJsonToSql(string $target): string
     {
         if ($target === 'permits') {
-            // Sonderbehandlung für Genehmigungen wegen Entity-Mapping
             $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
             $json = new JsonStorage($this->config->getStoragePath($file), $this->jsonHelper);
             $sql = new MySqlStorage($this->pdo, $this->jsonHelper);
@@ -310,7 +270,6 @@ final readonly class MigrationService implements MigrationServiceInterface
         }
 
         $data = $this->loadRawJson($target);
-
         if ($data === []) {
             return "Keine Daten in JSON-Quelle für $target gefunden.";
         }
@@ -322,28 +281,23 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     /**
      * Führt JSON- und MySQL-Bestände über ein rekursives Array-Merging zusammen und gleicht beide Backends an.
-     *
-     * @param string $target Der zu konsolidierende Datenbereich.
-     *
-     * @return string Erfolgsmeldung inklusive Gesamtanzahl der Datensätze.
      */
     private function syncBoth(string $target): string
     {
-        // Bei Permits nutzen wir die Domain-Objekte für den sauberen Sync
         if ($target === 'permits') {
             $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
             $json = new JsonStorage($this->config->getStoragePath($file), $this->jsonHelper);
             $sql = new MySqlStorage($this->pdo, $this->jsonHelper);
+
             $jsonPermits = $json->getAll();
             $sqlPermits = $sql->getAll();
 
             $count = 0;
-            // SQL nach JSON syncen
             foreach ($sqlPermits as $permit) {
                 $json->save($permit);
                 ++$count;
             }
-            // JSON nach SQL syncen
+
             foreach ($jsonPermits as $permit) {
                 $sql->save($permit);
                 ++$count;
@@ -352,14 +306,11 @@ final readonly class MigrationService implements MigrationServiceInterface
             return "Erfolg: '$target' (Domain-Entitäten) synchronisiert.";
         }
 
-        // 1. Daten aus beiden Quellen laden
         $jsonData = $this->loadRawJson($target);
         $sqlData = $this->loadRawSql($target);
 
-        // 2. Zusammenführen (SQL Daten haben bei gleichen Keys Vorrang)
         $merged = \array_replace_recursive($jsonData, $sqlData);
 
-        // 3. Den neuen Gesamtbestand in beide Welten schreiben
         $this->saveToJson($target, $merged);
         $this->saveToSql($target, $merged);
 
@@ -371,19 +322,13 @@ final readonly class MigrationService implements MigrationServiceInterface
     /**
      * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
      * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
-     *
-     * @param string $key Speicher-Key aus der Konfiguration.
-     *
-     * @return array<string, mixed> Ungefiltertes Datenarray.
      */
     private function loadRawJson(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key] ?? null;
-
         if (!isset($cfg['file'])) {
             return [];
         }
-
         $path = $this->config->getStoragePath($cfg['file']);
 
         return $this->jsonHelper->read($path);
@@ -392,28 +337,20 @@ final readonly class MigrationService implements MigrationServiceInterface
     /**
      * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
      * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
-     *
-     * @param string $key Tabellen-Key aus der storage_config.
-     *
-     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
      */
     private function loadRawSql(string $key): array
     {
         $cfg = $this->config->get('storage_config')[$key];
-
         if (!$this->pdo instanceof PDO) {
             return [];
         }
 
         try {
-            // Wir loggen kurz den Tabellennamen zur Sicherheit
             $tableName = $cfg['table'];
             $stmt = $this->pdo->query("SELECT * FROM `$tableName`");
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (empty($rows)) {
-                // \error_log("Bootstrap: MySQL-Tabelle `$tableName` ist leer.");
-
                 return [];
             }
         } catch (PDOException $e) {
@@ -426,21 +363,15 @@ final readonly class MigrationService implements MigrationServiceInterface
         $idField = $this->getIdFieldForKey($key);
 
         foreach ($rows as $r) {
-            // WICHTIG: Hier entpacken wir MySQL-JSON-Strings in echte PHP-Arrays,
-            // damit file_put_contents später sauberes, verschachteltes JSON schreibt
-            // und keine hässlichen "{\"name\":\"Test\"}" Strings.
-
             if (isset($r['data']) && \is_string($r['data'])) {
                 $decoded = $this->jsonHelper->decode($r['data']);
                 $r['data'] = $decoded ?? [];
             }
-
             if (isset($r['permissions']) && \is_string($r['permissions'])) {
                 $decoded = $this->jsonHelper->decode($r['permissions']);
                 $r['permissions'] = $decoded ?? [];
             }
 
-            // Sicherstellen, dass Zahlen auch als Zahlen im JSON landen (optional, aber sauber)
             if (isset($r['value'])) {
                 $r['value'] = (float) $r['value'];
             }
@@ -496,9 +427,6 @@ final readonly class MigrationService implements MigrationServiceInterface
     /**
      * Schreibt Daten-Arrays formatiert zurück in die physische JSON-Zieldatei.
      * Robust gegen fehlende 'file'-Keys.
-     *
-     * @param string $key Speicher-Key.
-     * @param array<string, mixed> $data Die zu serialisierenden Daten.
      */
     private function saveToJson(string $key, array $data): void
     {
@@ -524,16 +452,12 @@ final readonly class MigrationService implements MigrationServiceInterface
 
     /**
      * Ermittelt den Namen der Primärschlüssel-Spalte (ID) für einen bestimmten Speicherbereich.
-     *
-     * @param string $key Der Schlüssel des Speicherbereichs.
-     *
-     * @return string Der Name der Spalte ('id', 'token' oder 'code').
      */
     private function getIdFieldForKey(string $key): string
     {
         return match ($key) {
             'audit_logs' => 'id',
-            'groups' => 'id',
+            'roles' => 'id',
             'mail_log' => 'id',
             'mail_queue' => 'id',
             'update_migrations' => 'id',

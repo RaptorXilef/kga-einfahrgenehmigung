@@ -28,7 +28,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
         $data = $this->extractEntity($job, [
-            'template' => $job->template->value, // Hier ValueObject extrahieren!
+            'template' => $job->template->value,
         ]);
         $this->executeUpsert($table, $data, ['id']);
     }
@@ -154,7 +154,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
                     'template' => $item['template'] ?? '',
                     'data' => \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
                     'attempts' => (int) ($item['attempts'] ?? 0),
-                    'priority' => (int) ($item['priority'] ?? 10), // KGA Update!
+                    'priority' => (int) ($item['priority'] ?? 10),
                     'created_at' => $item['created_at'] ?? '',
                 ];
 

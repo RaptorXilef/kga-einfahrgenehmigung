@@ -16,12 +16,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\User;
 use App\Core\Service\AuditLoggerService;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/change_user_password')]
+#[Route('POST', '/change_user_password')]
 final readonly class UserResetPasswordAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -50,10 +45,10 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
         }
 
         $users = $this->userRepository->loadAll();
-
         if (isset($users[$dto->userId])) {
             $u = $users[$dto->userId];
-            $users[$dto->userId] = new User($u->id, $u->username, $u->groupId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
+            // FIX: u->roleId statt u->groupId
+            $users[$dto->userId] = new User($u->id, $u->username, $u->roleId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
             $this->userRepository->saveAll($users);
 
             $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$u->username}' (ID: {$u->id}) manuell zurückgesetzt.");

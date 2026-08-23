@@ -14,12 +14,7 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use Throwable;
 
-/**
- * Action zum Ausführen von DB-Migrationen nach einem Update (Phase 2).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/finalize_update')]
+#[Route('POST', '/finalize_update')]
 final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -38,7 +33,8 @@ final readonly class SystemFinalizeUpdateAction implements ViewActionInterface, 
     {
         try {
             $executedScripts = $this->migrationService->runAllPending();
-            $this->auth->refreshSessionPermissions($this->auth->getGroup());
+            // FIX: getRole() statt getGroup()
+            $this->auth->refreshSessionPermissions($this->auth->getRole());
 
             $msg = $executedScripts === []
                 ? 'Update abgeschlossen. System ist auf dem neuesten Stand.'

@@ -14,12 +14,7 @@ use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 
-/**
- * Action zum Leeren des Anwendungs-Caches.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/clear_cache')]
+#[Route('POST', '/clear_cache')]
 final readonly class SystemClearCacheAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -39,8 +34,8 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
     {
         $msg = $this->migrationService->clearCache();
 
-        // Session-Rechte neu kompilieren (für den aktuellen Admin)
-        $this->auth->refreshSessionPermissions($this->auth->getGroup());
+        // FIX: getRole() statt getGroup()
+        $this->auth->refreshSessionPermissions($this->auth->getRole());
 
         $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache wurde manuell geleert.');
         $this->sessionManager->addFlash('success', $msg);

@@ -18,12 +18,7 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\UserService;
 use DomainException;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/rename_user')]
+#[Route('POST', '/rename_user')]
 final readonly class UserRenameAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -59,7 +54,8 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
             if (isset($users[$dto->userId])) {
                 $u = $users[$dto->userId];
                 $oldName = $u->username;
-                $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->groupId, $u->passwordHash);
+                // FIX: u->roleId statt u->groupId
+                $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash);
                 $this->userRepository->saveAll($users);
 
                 $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
@@ -71,6 +67,7 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('users.php');
+
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

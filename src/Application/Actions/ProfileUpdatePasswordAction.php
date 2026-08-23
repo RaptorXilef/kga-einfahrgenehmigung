@@ -18,12 +18,7 @@ use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 use DomainException;
 
-/**
- * Action zum Ändern des eigenen Passworts (inkl. Alt-Passwort-Prüfung).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/change_own_password')]
+#[Route('POST', '/change_own_password')]
 final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {
     public function __construct(
@@ -54,13 +49,12 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             if (isset($users[$userId])) {
                 $u = $users[$userId];
                 $newHash = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
-                $users[$userId] = new User($u->id, $u->username, $u->groupId, $newHash);
-
+                // FIX: u->roleId statt u->groupId
+                $users[$userId] = new User($u->id, $u->username, $u->roleId, $newHash);
                 $this->userRepository->saveAll($users);
-                $this->sessionManager->setAuthSession($userId, $u->groupId, $u->username, $newHash);
 
+                $this->sessionManager->setAuthSession($userId, $u->roleId, $u->username, $newHash);
                 $this->auditLogger->log('PROFILE_PASSWORD_CHANGE', 'Eigenes Kennwort wurde geändert.');
-
                 $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
 
                 return new RedirectResponse('profile.php');
@@ -69,6 +63,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('profile.php');
+
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
