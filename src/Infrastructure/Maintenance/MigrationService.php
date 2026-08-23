@@ -81,7 +81,7 @@ final readonly class MigrationService implements MigrationServiceInterface
         try {
             if ($target === 'all') {
                 $targetsToMigrate = [
-                    'roles', // <-- FIX: War groups
+                    'roles', // FIX: War früher groups
                     'login_attempts',
                     'magic_links',
                     'mail_log',

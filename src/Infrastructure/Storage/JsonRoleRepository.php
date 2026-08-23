@@ -64,4 +64,17 @@ final readonly class JsonRoleRepository implements RoleRepositoryInterface
         $path = $this->config->getStoragePath($cfg['file']);
         $this->writeJsonSafely($path, $dataToSave);
     }
+
+    public function import(array $data): void
+    {
+        $objects = [];
+        foreach ($data as $id => $row) {
+            $objects[$id] = new Role(
+                (string) $id,
+                $row['name'] ?? '',
+                $row['permissions'] ?? [],
+            );
+        }
+        $this->saveAll($objects, false);
+    }
 }

@@ -9,9 +9,6 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\User;
 
-/**
- * TODO DOCBLOCK
- */
 final readonly class JsonUserRepository implements UserRepositoryInterface
 {
     use SafeJsonWriterTrait;
@@ -37,7 +34,7 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
             $users[$id] = new User(
                 (string) $id,
                 $row['username'] ?? '',
-                $row['role_id'] ?? $row['group'] ?? 'guest', // <-- FIX: Rückwärtskompatibilität!
+                $row['role_id'] ?? $row['group'] ?? 'guest', // Fallback für Legacy-Daten
                 $row['pass'] ?? $row['password_hash'] ?? '',
             );
         }
@@ -50,8 +47,6 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
      */
     public function saveAll(array $users, bool $forceSql = false): void
     {
-        // Wenn jemand (z.B. MigrationService) explizit SQL erzwingt, brechen wir hier ab,
-        // da dieses Repository keine Datenbank-Verbindung hat.
         if ($forceSql) {
             return;
         }
@@ -62,7 +57,7 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
         foreach ($users as $id => $user) {
             $dataToSave[$id] = [
                 'username' => $user->username,
-                'role_id' => $user->roleId,
+                'role_id' => $user->roleId, // FIX: Hier wurde fälschlicherweise noch ->groupId aufgerufen
                 'pass' => $user->passwordHash,
             ];
         }

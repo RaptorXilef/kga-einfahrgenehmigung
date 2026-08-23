@@ -10,13 +10,10 @@ use App\Core\Entity\User;
 use Exception;
 use PDO;
 
-/**
- * TODO DOCBLOCK
- */
 final readonly class MySqlUserRepository implements UserRepositoryInterface
 {
     use DynamicSqlTrait;
-    use EntityHydratorTrait; // <-- Nutzt jetzt Hydrator für sauberes Laden
+    use EntityHydratorTrait;
 
     public function __construct(
         private PDO $pdo,
@@ -59,7 +56,7 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
                 $data = [
                     'id' => $id,
                     'username' => $user->username,
-                    'role_id' => $user->roleId, // <-- FIX!
+                    'role_id' => $user->roleId, // FIX: Hier wurde fälschlicherweise noch ->groupId aufgerufen
                     'pass' => $user->passwordHash,
                 ];
 

@@ -25,7 +25,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository, // <-- FIX
+        private RoleRepositoryInterface $roleRepository,
         private HolidayService $holidayService,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
@@ -52,7 +52,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
 
         $this->renderer->render('admin_print_view', [
             'auth' => $this->auth,
-            'roleRepository' => $this->roleRepository, // <-- FIX
+            'roleRepository' => $this->roleRepository,
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
             ),
