@@ -1,10 +1,10 @@
 <?php
-
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\RequiresAuth;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\UserSaveRequest;
@@ -12,7 +12,7 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Entity\User;
@@ -21,18 +21,14 @@ use App\Core\Service\AuthService;
 use App\Core\Service\UserService;
 use DomainException;
 
-/**
- * Action zum Erstellen eines neuen Benutzers.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[ActionRoute('save_user')]
+#[Route('POST', '/save_user')]
+#[RequiresAuth]
 final readonly class UserSaveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private GroupRepositoryInterface $groupRepository, // <-- NEU: Für Gruppen-Namen
+        private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private SessionManager $sessionManager,
         private UserRepositoryInterface $userRepository,
@@ -45,16 +41,12 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         return 'system.permissions.users.manage';
     }
 
-    /**
-     * Erstellt einen neuen Datensatz in der Benutzerverwaltung inklusive Passwort-Hashing.
-     */
     public function execute(ServerRequest $request): mixed
     {
         try {
             $dto = UserSaveRequest::fromArray($request->post, $request->files);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
-
             return new RedirectResponse('users.php');
         }
 
@@ -66,26 +58,29 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
                 $newId = $this->auth->generateId('usr_');
             } while (isset($users[$newId]));
 
-            $users[$newId] = new User($newId, $dto->username, $dto->group, \password_hash($dto->password, \PASSWORD_DEFAULT));
+            $users[$newId] = new User(
+                $newId,
+                $dto->username,
+                $dto->group, // Das DTO liest den POST Key "group", übergibt ihn aber an Role
+                \password_hash($dto->password, \PASSWORD_DEFAULT)
+            );
+
             $this->userRepository->saveAll($users);
 
             if ($dto->avatar !== null) {
                 $this->imageStorage->uploadImage('user_images', $newId, $dto->avatar);
             }
 
-            // Gruppen-Namen ermitteln
-            $groups = $this->groupRepository->loadAll();
-            $groupName = isset($groups[$dto->group]) ? $groups[$dto->group]->name : $dto->group;
+            $roles = $this->roleRepository->loadAll();
+            $roleName = isset($roles[$dto->group]) ? $roles[$dto->group]->name : $dto->group;
 
-            // LOG SCHREIBEN
-            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (ID: {$newId}, Gruppe: {$groupName}) erstellt.");
-
+            $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (ID: {$newId}, Rolle: {$roleName}) erstellt.");
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 
             return new RedirectResponse('users.php');
+
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
-
             return new RedirectResponse('users.php');
         }
     }
