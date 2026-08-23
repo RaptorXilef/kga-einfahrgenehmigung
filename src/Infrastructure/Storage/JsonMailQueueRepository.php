@@ -24,13 +24,13 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
     public function enqueue(MailJob $job): void
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
-
         $queue = \file_exists($path) ? $this->jsonHelper->read($path) : [];
+
         $queue[] = [
             'id' => $job->id,
             'recipient' => $job->recipient,
             'subject' => $job->subject,
-            'template' => $job->template->value,
+            'template' => $job->template->value, // Extrahieren!
             'data' => $job->data,
             'attempts' => $job->attempts,
             'created_at' => $job->createdAt->format('Y-m-d H:i:s'),
@@ -39,9 +39,10 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
         $this->writeJsonSafely($path, $queue);
     }
 
-    public function processBatch(int $limit, callable $processor): int
+    public function processBatch(int $limit, callable $processor, array $allowedTemplates = []): int
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
+
         if (!\file_exists($path)) {
             return 0;
         }
@@ -66,14 +67,14 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
                     default => 7,
                 };
 
-                $aPrio = $getPrio($a['template']);
-                $bPrio = $getPrio($b['template']);
+                $aPrio = $getPrio($a['template'] ?? '');
+                $bPrio = $getPrio($b['template'] ?? '');
 
                 if ($aPrio !== $bPrio) {
                     return $aPrio <=> $bPrio;
                 }
 
-                return $a['created_at'] <=> $b['created_at'];
+                return ($a['created_at'] ?? 0) <=> ($b['created_at'] ?? 0);
             });
 
             $actualLimit = \min($limit, \count($queue));
@@ -85,14 +86,14 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
                     $processor($item['recipient'], $item['subject'], $item['template'], $item['data']);
                     ++$sentCount;
                 } catch (Throwable $t) {
-                    // Neues dediziertes Logging für abgelehnte E-Mails (JSON Variante)
+                    $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+                    $logPath = $rootPath . '/logs/mail_queue_errors.log';
                     $logMsg = '[' . \date('d-M-Y H:i:s e') . "] MailQueue Error [ID {$item['id']}]: " . $t->getMessage() . "\n";
-                    $logPath = $this->config->getStoragePath('logs/mail_queue_errors.log');
                     @\file_put_contents($logPath, $logMsg, \FILE_APPEND | \LOCK_EX);
 
                     $item['attempts'] = ($item['attempts'] ?? 0) + 1;
                     if ($item['attempts'] < 3) {
-                        $queue[] = $item; // Re-queue
+                        $queue[] = $item;
                     }
                 }
             }
@@ -107,5 +108,52 @@ final readonly class JsonMailQueueRepository implements MailQueueRepositoryInter
     {
         $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
         $this->writeJsonSafely($path, \array_values($data));
+    }
+
+    public function findAllQueue(): array
+    {
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
+        if (!\file_exists($path)) {
+            return [];
+        }
+
+        $queue = $this->jsonHelper->read($path);
+        \usort($queue, fn (array $a, array $b): int => ($b['created_at'] ?? 0) <=> ($a['created_at'] ?? 0));
+
+        return $queue;
+    }
+
+    public function findById(string $id): ?array
+    {
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
+        if (!\file_exists($path)) {
+            return null;
+        }
+
+        $queue = $this->jsonHelper->read($path);
+        foreach ($queue as $item) {
+            if (($item['id'] ?? '') === $id) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
+    public function delete(string $id): void
+    {
+        $path = $this->config->getStoragePath($this->config->get('storage_config')['mail_queue']['file']);
+        $this->executeJsonTransaction($path, function (array &$queue) use ($id): bool {
+            foreach ($queue as $index => $item) {
+                if (($item['id'] ?? '') === $id) {
+                    unset($queue[$index]);
+                    $queue = \array_values($queue);
+
+                    return true;
+                }
+            }
+
+            return false;
+        });
     }
 }

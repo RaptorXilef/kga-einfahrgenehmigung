@@ -67,7 +67,8 @@ final class SystemBootstrapper
 
     private static function initErrorLogging(string $appRoot): void
     {
-        $customLogDir = $appRoot . '/storage/logs';
+        // GEÄNDERT: Log-Ordner ist nun im Root!
+        $customLogDir = $appRoot . '/logs';
         if (!\is_dir($customLogDir)) {
             \mkdir($customLogDir, 0o755, true);
         }

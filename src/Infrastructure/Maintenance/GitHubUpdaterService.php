@@ -41,6 +41,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         // Die Datei kga-zm.webp steht absichtlich NICHT hier, damit sie geupdatet wird!
         'src/assets/',
         'storage/',
+        'logs/', // KGA New Folder
     ];
 
     // Nur Dateien in diesen Pfaden (aus dem Root des ZIPs) dürfen ins Live-System kopiert werden!
@@ -88,12 +89,14 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
      */
     public function checkForUpdate(string $currentVersion, bool $force = false): ?array
     {
-        // NEU: Wenn wir uns in einer lokalen Testumgebung befinden, cURL-Anfrage überspringen
+        // Wenn wir uns in einer lokalen Testumgebung befinden, cURL-Anfrage überspringen
         if ($this->config->get('is_local_env', false)) {
             return null;
         }
 
-        $logDir = $this->config->getStoragePath('logs');
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+        $logDir = $rootPath . '/logs';
+
         if (!\is_dir($logDir)) {
             \mkdir($logDir, 0o755, true);
         }
@@ -103,7 +106,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
         // 1. Aus Cache lesen, wenn nicht erzwungen und jünger als 24 Stunden
         if (!$force && \file_exists($cacheFile)) {
-            if ($now - \filemtime($cacheFile) < 86400) { // 86400 Sekunden = 24h
+            if ($now - \filemtime($cacheFile) < 86400) {
                 $cachedResponse = $this->jsonHelper->read($cacheFile);
                 if ($cachedResponse !== []) {
                     return $this->compareAndFormatRelease($cachedResponse, $currentVersion);
@@ -123,6 +126,8 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
         return $this->compareAndFormatRelease($response, $currentVersion);
     }
+
+    // ... (restliche Methoden bleiben identisch)
 
     private function compareAndFormatRelease(array $response, string $currentVersion): ?array
     {
@@ -144,7 +149,6 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
                 foreach ($response['assets'] as $asset) {
                     if ($asset['name'] === $expectedFilename) {
                         $downloadUrl = $asset['browser_download_url'];
-
                         break;
                     }
                 }
@@ -217,7 +221,6 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
             if ($stat === false) {
                 continue;
             }
-
             $totalUncompressedSize += $stat['size'];
         }
 
@@ -240,9 +243,8 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         $zip->close();
 
         // 4. Den Hauptordner im ZIP finden
-        // FIX: Sichere Erkennung des Quell-Ordners!
         $sourceFolder = $extractPath;
-        $extractedItems = \array_values(\array_diff(\scandir($extractPath), ['.', '..']));
+        $extractedItems = \array_values(\array_diff(\scandir($extractPath) ?: [], ['.', '..']));
 
         // Wenn genau 1 Element existiert UND es ein Ordner ist, dann ist das der GitHub-Source-Wrapper!
         if (\count($extractedItems) === 1 && \is_dir($extractPath . '/' . $extractedItems[0])) {
@@ -262,7 +264,6 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
                 $blacklist = $manifestData['blacklist'] ?? $blacklist;
                 $coreConfigs = $manifestData['core_configs'] ?? $coreConfigs;
             } catch (Exception) {
-                // Bei fehlerhaftem JSON auf Defaults zurückfallen
             }
         }
 
@@ -271,7 +272,6 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
         // 2. ORPHANED FILES (DATENMÜLL) LÖSCHEN (Wir übergeben die dynamische Blacklist als Schutz!)
         $this->purgeOrphanedFiles($rootPath, $sourceFolder, $blacklist);
-
         $this->cleanup($tempDir);
 
         return true;
@@ -296,12 +296,9 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
                 continue;
             }
 
-            // Relativen Pfad (aus Sicht des Projekt-Roots) berechnen
-            // FIX: Strikte String-Längen-Berechnung verhindert falsche Ersetzungen
             $relativePath = \substr($item->getPathname(), \strlen($sourceDir) + 1);
             $relativePath = \str_replace('\\', '/', $relativePath);
 
-            // Prüfen, ob der Pfad erlaubt ist
             if (!$this->isPathAllowed($relativePath, $whitelist, $blacklist, $coreConfigs)) {
                 continue;
             }
@@ -319,26 +316,24 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
 
     private function purgeOrphanedFiles(string $targetRoot, string $sourceRoot, array $blacklist): void
     {
-        // public/ ist jetzt enthalten, aber durch isProtectedPath abgesichert!
         $directoriesToClean = ['src', 'templates', 'public', 'config'];
 
         foreach ($directoriesToClean as $dir) {
             $targetDir = $targetRoot . '/' . $dir;
+
             if (!\is_dir($targetDir)) {
                 continue;
             }
 
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($targetDir, RecursiveDirectoryIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::CHILD_FIRST, // Wichtig für rekursives rmdir
+                RecursiveIteratorIterator::CHILD_FIRST,
             );
 
             foreach ($iterator as $item) {
-                // FIX: Strikte String-Längen-Berechnung
                 $relativePath = \substr($item->getPathname(), \strlen($targetRoot) + 1);
                 $relativePath = \str_replace('\\', '/', $relativePath);
 
-                // Benutzer-Uploads und Storage komplett ignorieren (Die Blacklist definiert unsere geschützten Daten!)
                 if ($this->isProtectedPath($relativePath, $blacklist)) {
                     continue;
                 }
@@ -411,15 +406,12 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
      */
     private function isProtectedPath(string $path, array $blacklist): bool
     {
-        // Wir nutzen die Blacklist aus dem Manifest als Schutz-Schild!
-        // Was nicht überschrieben werden darf, darf auch nicht gelöscht werden.
         foreach ($blacklist as $protectedPrefix) {
             if (\str_starts_with($path, $protectedPrefix)) {
                 return true;
             }
         }
 
-        // Spezifischer Schutz für alle Formate im logo Ordner
         return \str_starts_with($path, 'public/assets/img/logo/');
     }
 
@@ -433,9 +425,9 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         $ch = \curl_init($url);
         \curl_setopt_array($ch, [
             \CURLOPT_FILE => $fp,
-            \CURLOPT_FOLLOWLOCATION => true, // Wichtig für GitHub (Redirects!)
+            \CURLOPT_FOLLOWLOCATION => true,
             \CURLOPT_USERAGENT => 'KGA-Updater-App',
-            \CURLOPT_TIMEOUT => 120, // 60s auf 120s erhöht wegen Vendor-Größe
+            \CURLOPT_TIMEOUT => 120,
         ]);
 
         \curl_exec($ch);
@@ -479,7 +471,7 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
     {
         // TODO URL
         $baseUrl = $this->config->get('github_api_url', 'https://api.github.com/repos/RaptorXilef/kga-einfahrgenehmigung');
-        $url = $baseUrl . $endpoint;
+        $url = \is_string($baseUrl) ? $baseUrl . $endpoint : $endpoint;
 
         $ch = \curl_init();
         \curl_setopt_array($ch, [
@@ -492,10 +484,12 @@ final readonly class GitHubUpdaterService implements SystemUpdaterInterface
         $response = \curl_exec($ch);
         $httpCode = \curl_getinfo($ch, \CURLINFO_HTTP_CODE);
 
-        if ($httpCode !== 200 || !$response) {
+        if ($httpCode !== 200 || !$response || !\is_string($response)) {
             return null;
         }
 
-        return \json_decode($response, true);
+        $decoded = \json_decode($response, true);
+
+        return \is_array($decoded) ? $decoded : null;
     }
 }

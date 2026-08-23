@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
-use App\Core\Entity\Group;
+use App\Core\Entity\Role;
 use App\Core\Entity\User;
 use PDO;
 use PDOException;
@@ -25,7 +25,7 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     public function __construct(
         private ?PDO $pdo,
         private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
+        private RoleRepositoryInterface $roleRepository,
         private UserRepositoryInterface $userRepository,
     ) {
     }
@@ -35,7 +35,6 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
      */
     public function bootstrap(): void
     {
-        // 1. Wenn MySQL konfiguriert ist, Tabellen sicherstellen
         if ($this->pdo instanceof PDO) {
             $schema = $this->config->get('db_schema', []);
             foreach ($schema as $tableName => $sql) {
@@ -47,20 +46,11 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             }
         }
 
-        // 2. Nur Core-Strukturen (Users/Groups) initial mit Defaults befüllen, falls komplett leer
-        $this->initDefaultGroupsAndUsers();
-
-        // Veraltete Berechtigungen direkt beim Start bereinigen
+        $this->initDefaultRolesAndUsers();
         $this->cleanupOrphanedPermissions();
-
-        // Stellt sicher, dass das Storage-Verzeichnis absolut dicht ist
         $this->ensureStorageSecurity();
     }
 
-    /**
-     * Erstellt oder aktualisiert automatisch eine restriktive .htaccess im storage/ Verzeichnis,
-     * um direkten HTTP-Zugriff auf Backups, Logs und JSON-DBs zu blockieren.
-     */
     private function ensureStorageSecurity(): void
     {
         $storageDir = \rtrim($this->config->getStoragePath(''), '/\\');
@@ -70,14 +60,12 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             @\mkdir($storageDir, 0o755, true);
         }
 
-        // Der aktuell gewünschte Zustand der Datei
         $expectedContent = "# AUTO-GENERATED SECURITY FILE\n" .
             "# Verhindert jeglichen direkten HTTP-Zugriff auf Logs und Backups.\n" .
             "Order Allow,Deny\n" .
             "Deny from all\n\n" .
             "Options -Indexes\n";
 
-        // Prüfen, ob die Datei fehlt ODER der Inhalt veraltet/verändert ist
         if (\file_exists($htaccessPath) && \file_get_contents($htaccessPath) === $expectedContent) {
             return;
         }
@@ -91,30 +79,24 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
      */
     private function cleanupOrphanedPermissions(): void
     {
-        $groups = $this->groupRepository->loadAll();
-        if ($groups === []) {
+        $roles = $this->roleRepository->loadAll();
+        if ($roles === []) {
             return;
         }
 
-        // Alle gültigen Basis-Keys aus der aktuellen Config holen
-        // app.php generiert bereits ein flaches Array in 'permissions'
         $validKeys = \array_keys($this->config->get('permissions', []));
-        $validKeys[] = '*'; // Der globale Wildcard ist immer erlaubt
+        $validKeys[] = '*';
 
         $changed = false;
-
-        // Referenz (&) nutzen, um das Array direkt zu modifizieren
-        foreach ($groups as $id => $group) {
-            $originalCount = \count($group->permissions);
+        foreach ($roles as $id => $role) {
+            $originalCount = \count($role->permissions);
             $cleanedPerms = [];
 
-            foreach ($group->permissions as $perm) {
-                // Deny-Prefix (-) für den Abgleich entfernen
+            foreach ($role->permissions as $perm) {
                 $basePerm = \ltrim($perm, '-');
                 if (!\in_array($basePerm, $validKeys, true)) {
                     continue;
                 }
-
                 $cleanedPerms[] = $perm;
             }
 
@@ -122,9 +104,9 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
                 continue;
             }
 
-            $groups[$id] = new Group(
-                $group->id,
-                $group->name,
+            $roles[$id] = new Role(
+                $role->id,
+                $role->name,
                 \array_values($cleanedPerms),
             );
             $changed = true;
@@ -135,24 +117,23 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
         }
 
         \error_log('Bootstrap: Veraltete Berechtigungen (Orphaned Permissions) wurden erfolgreich bereinigt.');
-        $this->groupRepository->saveAll($groups);
+        $this->roleRepository->saveAll($roles);
     }
 
     /**
      * Initialisiert Standard-Gruppen und einen Standard-Admin,
      * falls das System (Datenbank oder JSON) komplett leer ist.
      */
-    private function initDefaultGroupsAndUsers(): void
+    private function initDefaultRolesAndUsers(): void
     {
-        // Wir prüfen, ob die Benutzerverwaltung komplett leer ist (egal ob JSON oder SQL aktiv ist)
-        // Nutzt die vorhandenen loadUsers/loadGroups Methoden aus deinem AuthService
         $currentUsers = $this->userRepository->loadAll();
-        $currentGroups = $this->groupRepository->loadAll();
+        $currentRoles = $this->roleRepository->loadAll();
 
-        if ($currentGroups === []) {
-            \error_log('Bootstrap: Initialisiere Standard-Gruppen.');
-            $this->groupRepository->saveAll($this->getDefaultGroups());
+        if ($currentRoles === []) {
+            \error_log('Bootstrap: Initialisiere Standard-Rollen.');
+            $this->roleRepository->saveAll($this->getDefaultRoles());
         }
+
         if ($currentUsers !== []) {
             return;
         }
@@ -162,9 +143,7 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
     }
 
     /**
-     * Liefert die Zugangsdaten für den Standard-Administrator (Systembetreuer).
-     *
-     * @return array<string, array<string, mixed>> Der initiale Benutzer.
+     * @return array<string, User>
      */
     private function getDefaultUsers(): array
     {
@@ -172,26 +151,57 @@ final readonly class StorageBootstrapper implements StorageBootstrapperInterface
             'usr_7c13b491' => new User(
                 'usr_7c13b491',
                 'Admin',
-                'grp_71cb1c0d',
+                'role_admin', // Zuweisung zur Admin-Rolle
                 '$2y$12$DHelEqSuvcbbGPYWqnIrIOfs/PYaMVfyahWHkW.aRM43syMd5ASoW',
             ),
         ];
     }
 
     /**
-     * Liefert die Berechtigungs-Struktur der Standard-Gruppen (Admin, Finanzen, etc.).
-     *
-     * @return array<string, array<string, mixed>> Die Standard-Gruppen.
+     * @return array<string, Role>
      */
-    private function getDefaultGroups(): array
+    private function getDefaultRoles(): array
     {
-        // phpcs:disable Generic.Files.LineLength.TooLong
         return [
-            'grp_71cb1c0d' => new Group('grp_71cb1c0d', 'Administrator', ['*']),
-            'grp_180a3ec6' => new Group('grp_180a3ec6', 'Finanzen', ['privacy.finance.reveal', 'privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print', 'dashboard.active.details', 'dashboard.active.suspend', 'dashboard.finance.view', 'dashboard.finance.details', 'dashboard.finance.suspend', 'dashboard.finance.mark_paid', 'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details', 'dashboard.future.suspend', 'dashboard.expired.view', 'dashboard.expired.print', 'dashboard.expired.details', 'dashboard.stats.view', 'dashboard.stats.current', 'dashboard.stats.charts', 'dashboard.stats.history', 'dashboard.ranking.view', 'dashboard.export.view', 'finance.export.execute', 'dashboard.export.csv', 'dashboard.export.json', 'dashboard.vouchers.view', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.vouchers.remove', 'dashboard.vouchers.archive', 'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute', 'template.manage', 'template.std_7', 'template.std_14', 'template.std_30', 'template.perm_3', 'template.perm_6', 'template.perm_9', 'template.perm_12', 'template.custom_std', 'template.custom_perm']),
-            'grp_fd72d38c' => new Group('grp_fd72d38c', 'Sachbearbeitung', ['privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print', 'dashboard.active.details', 'dashboard.finance.view', 'dashboard.finance.details', 'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details', 'dashboard.expired.view', 'dashboard.vouchers.view', 'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute', 'dashboard.logs.view', 'template.manage', 'template.std_7', 'template.std_14', 'template.std_30', 'template.perm_3', 'template.perm_6', 'template.perm_9', 'template.perm_12', 'template.custom_std', 'template.custom_perm']),
-            'grp_a53d6b56' => new Group('grp_a53d6b56', 'Prüfer vor Ort', ['dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.active.view', 'dashboard.active.details']),
+            'role_admin' => new Role('role_admin', 'Administrator', ['*']),
+            'role_finance' => new Role('role_finance', 'Finanzen', [
+                'privacy.finance.reveal', 'privacy.email.reveal', 'check.admin.print',
+                'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future',
+                'dashboard.control_bar.search', 'dashboard.info_alert.view', 'dashboard.info_alert.print',
+                'dashboard.info_alert.details', 'dashboard.active.view', 'dashboard.active.print',
+                'dashboard.active.details', 'dashboard.active.suspend', 'dashboard.finance.view',
+                'dashboard.finance.details', 'dashboard.finance.suspend', 'dashboard.finance.mark_paid',
+                'dashboard.future.view', 'dashboard.future.print', 'dashboard.future.details',
+                'dashboard.future.suspend', 'dashboard.expired.view', 'dashboard.expired.print',
+                'dashboard.expired.details', 'dashboard.stats.view', 'dashboard.stats.current',
+                'dashboard.stats.charts', 'dashboard.stats.history', 'dashboard.ranking.view',
+                'dashboard.export.view', 'finance.export.execute', 'dashboard.export.csv',
+                'dashboard.export.json', 'dashboard.vouchers.view', 'dashboard.vouchers.open',
+                'dashboard.vouchers.suspend', 'dashboard.vouchers.remove', 'dashboard.vouchers.archive',
+                'dashboard.generator-tools.view', 'dashboard.generator-tools.direct_issue.reveal',
+                'dashboard.generator-tools.direct_issue.execute', 'dashboard.generator-tools.voucher_gen.reveal',
+                'dashboard.generator-tools.voucher_gen.execute', 'template.manage', 'template.std_7',
+                'template.std_14', 'template.std_30', 'template.perm_3', 'template.perm_6', 'template.perm_9',
+                'template.perm_12', 'template.custom_std', 'template.custom_perm',
+            ]),
+            'role_support' => new Role('role_support', 'Sachbearbeitung', [
+                'privacy.email.reveal', 'check.admin.print', 'dashboard.view', 'dashboard.control_bar.view',
+                'dashboard.control_bar.future', 'dashboard.control_bar.search', 'dashboard.info_alert.view',
+                'dashboard.info_alert.print', 'dashboard.info_alert.details', 'dashboard.active.view',
+                'dashboard.active.print', 'dashboard.active.details', 'dashboard.finance.view',
+                'dashboard.finance.details', 'dashboard.future.view', 'dashboard.future.print',
+                'dashboard.future.details', 'dashboard.expired.view', 'dashboard.vouchers.view',
+                'dashboard.vouchers.open', 'dashboard.vouchers.suspend', 'dashboard.generator-tools.view',
+                'dashboard.generator-tools.direct_issue.reveal', 'dashboard.generator-tools.direct_issue.execute',
+                'dashboard.generator-tools.voucher_gen.reveal', 'dashboard.generator-tools.voucher_gen.execute',
+                'dashboard.logs.view', 'template.manage', 'template.std_7', 'template.std_14', 'template.std_30',
+                'template.perm_3', 'template.perm_6', 'template.perm_9', 'template.perm_12', 'template.custom_std',
+                'template.custom_perm',
+            ]),
+            'role_inspector' => new Role('role_inspector', 'Prüfer vor Ort', [
+                'dashboard.view', 'dashboard.control_bar.view', 'dashboard.control_bar.future',
+                'dashboard.control_bar.search', 'dashboard.active.view', 'dashboard.active.details',
+            ]),
         ];
-        // phpcs:enable Generic.Files.LineLength.TooLong
     }
 }

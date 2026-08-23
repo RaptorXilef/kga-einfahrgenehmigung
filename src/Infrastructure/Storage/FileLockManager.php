@@ -21,9 +21,10 @@ final readonly class FileLockManager implements LockManagerInterface
     // TODO DOCBLOCK
     public function executeWithLock(string $lockName, callable $operation): mixed
     {
-        $lockFile = $this->config->getStoragePath("logs/{$lockName}.lock");
-        $fp = @\fopen($lockFile, 'c');
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+        $lockFile = $rootPath . "/logs/{$lockName}.lock";
 
+        $fp = @\fopen($lockFile, 'c');
         if ($fp) {
             \flock($fp, \LOCK_EX);
         }

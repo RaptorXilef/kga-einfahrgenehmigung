@@ -19,12 +19,12 @@ use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\Storage\CronStateRepositoryInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
@@ -53,22 +53,22 @@ use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonAuditLogRepository;
 use App\Infrastructure\Storage\JsonCancelledPermitRepository;
-use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonHelper;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
 use App\Infrastructure\Storage\JsonMailQueueRepository;
 use App\Infrastructure\Storage\JsonPermitArchiveRepository;
+use App\Infrastructure\Storage\JsonRoleRepository;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
 use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
-use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
+use App\Infrastructure\Storage\MySqlRoleRepository;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
@@ -142,12 +142,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
                 : new JsonCancelledPermitRepository($config, $container->get(JsonHelperInterface::class));
         });
 
-        $container->bind(GroupRepositoryInterface::class, function () use ($container): MySqlGroupRepository|JsonGroupRepository {
+        $container->bind(RoleRepositoryInterface::class, function () use ($container): MySqlRoleRepository|JsonRoleRepository {
             $config = $container->get(ConfigInterface::class);
+            \assert($config instanceof ConfigInterface);
 
-            return ($config->get('storage_config')['groups']['type'] ?? 'json') === 'mysql'
-                ? new MySqlGroupRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonGroupRepository($config, $container->get(JsonHelperInterface::class));
+            return ($config->get('storage_config')['roles']['type'] ?? 'json') === 'mysql'
+                ? new MySqlRoleRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
+                : new JsonRoleRepository($config, $container->get(JsonHelperInterface::class));
         });
 
         $container->bind(LoginAttemptRepositoryInterface::class, function () use ($container): MySqlLoginAttemptRepository|JsonLoginAttemptRepository {
@@ -213,9 +214,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          | Externe APIs, Payment-Provider und E-Mail Versand.
          */
 
-        $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(
-            PayPalService::class,
-        ));
+        $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
 
         // Mail Decorator Pattern: Trennt asynchrone Warteschlange (Queue) vom echten Versand (SMTP)
         $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
@@ -238,17 +237,11 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          | Schutzmechanismen gegen Brute-Force, Dateizugriff und Auth-Handling.
          */
 
-        $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(
-            SessionManager::class,
-        ));
+        $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
 
-        $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(
-            FileLockManager::class,
-        ));
+        $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
 
-        $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(
-            RateLimiter::class,
-        ));
+        $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
 
         /*
          |--------------------------------------------------------------------------
@@ -257,39 +250,23 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
          */
 
-        $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(
-            BackupService::class,
-        ));
+        $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
 
-        $container->bind(CronStateRepositoryInterface::class, fn (): mixed => $container->get(
-            FileCronStateRepository::class,
-        ));
+        $container->bind(CronStateRepositoryInterface::class, fn (): mixed => $container->get(FileCronStateRepository::class));
 
-        $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(
-            ErrorLogger::class,
-        ));
+        $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
 
-        $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(
-            ImageStorageService::class,
-        ));
+        $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));
 
         $container->bind(JsonHelperInterface::class, fn (): JsonHelper => new JsonHelper());
 
-        $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(
-            StorageBootstrapper::class,
-        ));
+        $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(StorageBootstrapper::class));
 
-        $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(
-            SystemInfoService::class,
-        ));
+        $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
 
-        $container->bind(SystemUpdaterInterface::class, fn (): mixed => $container->get(
-            GitHubUpdaterService::class,
-        ));
+        $container->bind(SystemUpdaterInterface::class, fn (): mixed => $container->get(GitHubUpdaterService::class));
 
-        $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(
-            UpdateMigrationService::class,
-        ));
+        $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
 
         // Haupt-Migrations-Dienst
         $container->bind(MigrationServiceInterface::class, fn (): MigrationService => new MigrationService(

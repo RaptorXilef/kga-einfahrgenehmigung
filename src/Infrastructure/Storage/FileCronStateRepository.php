@@ -15,15 +15,16 @@ final readonly class FileCronStateRepository implements CronStateRepositoryInter
 
     public function getLastRunTime(): int
     {
-        // TODO Pfad und Dateiname in config/storage.php auslagern
-        $path = $this->config->getStoragePath('logs/last_cron_run.txt');
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+        $path = $rootPath . '/logs/last_cron_run.txt';
 
         return \file_exists($path) ? (int) \file_get_contents($path) : 0;
     }
 
     public function setLastRunTime(int $timestamp): void
     {
-        $path = $this->config->getStoragePath('logs/last_cron_run.txt');
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+        $path = $rootPath . '/logs/last_cron_run.txt';
         $dir = \dirname($path);
 
         // Sicherstellen, dass das logs/ Verzeichnis existiert, da file_put_contents

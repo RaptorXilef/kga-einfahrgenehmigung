@@ -55,14 +55,13 @@ final readonly class BackupService implements BackupServiceInterface
         $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
         $storageConfig = $this->config->get('storage_config', []);
 
-        // Backup für "alles" oder ein spezifisches Ziel
         if (!isset($storageConfig[$target])) {
             $keysToBackup = [
                 'permits',
                 'permits_archive',
                 'permits_cancelled',
                 'users',
-                'groups',
+                'roles', // War früher groups
                 'vouchers',
                 'vouchers_archive',
                 'pending_verification',
@@ -129,7 +128,6 @@ final readonly class BackupService implements BackupServiceInterface
      */
     public function listBackups(): array
     {
-        // BUGFIX: Nutzt jetzt den konfigurieren Sub-Ordner!
         $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
         $backupPath = $this->config->getStoragePath($subFolder);
 
@@ -137,17 +135,19 @@ final readonly class BackupService implements BackupServiceInterface
             return [];
         }
 
-        $folders = \array_diff(\scandir($backupPath), ['.', '..']);
+        $folders = \array_diff(\scandir($backupPath) ?: [], ['.', '..']);
         $result = [];
+
         foreach ($folders as $folder) {
             $fullPath = $backupPath . '/' . $folder;
             if (!\is_dir($fullPath)) {
                 continue;
             }
 
-            $files = \array_diff(\scandir($fullPath), ['.', '..']);
+            $files = \array_diff(\scandir($fullPath) ?: [], ['.', '..']);
             $result[$folder] = \array_values($files);
         }
+
         \krsort($result);
 
         return $result;
@@ -165,7 +165,6 @@ final readonly class BackupService implements BackupServiceInterface
     {
         $safeTimestamp = \basename($timestamp);
         $safeTarget = \basename($target);
-
         $backupBase = $this->config->getStoragePath('backup/' . $safeTimestamp);
 
         $backupFile = $backupBase . "/{$safeTarget}_file.json";
@@ -197,14 +196,16 @@ final readonly class BackupService implements BackupServiceInterface
         // Intervall von Stunden in Sekunden umrechnen (Standard: 24h)
         $interval = (int) ($cfg['interval_hours'] ?? 24) * 3600;
 
-        // Pfad in den /storage/logs/ Ordner setzen!
-        $logDir = $this->config->getStoragePath('logs');
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+        $logDir = $rootPath . '/logs';
+
         if (!\is_dir($logDir)) {
             @\mkdir($logDir, 0o755, true);
         }
 
         $stateFile = $logDir . '/last_auto_backup.txt';
         $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
+
         $now = $this->clock->now()->getTimestamp();
 
         // Prüfen, ob das Intervall abgelaufen ist
@@ -217,16 +218,15 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         try {
-            // BUGFIX: Ziel 'auto_maintenance' übergeben, damit alles gesichert wird
             $this->createBackup('auto_maintenance');
 
             // Zeitstempel aktualisieren
             $result = \file_put_contents($stateFile, (string) $now, \LOCK_EX);
+
             if ($result === false) {
                 throw new RuntimeException('Kritischer Schreibfehler beim Auto-Backup.');
             }
 
-            // Veraltete Backups löschen
             $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
         } catch (Throwable $e) {
             \error_log('Auto-Backup fehlgeschlagen: ' . $e->getMessage());
@@ -243,19 +243,20 @@ final readonly class BackupService implements BackupServiceInterface
     private function rotateBackups(int $max): void
     {
         $backupPath = $this->config->getStoragePath('backup');
-
         if (!\is_dir($backupPath)) {
             return;
         }
 
-        $folders = \array_diff(\scandir($backupPath), ['.', '..']);
+        $folders = \array_diff(\scandir($backupPath) ?: [], ['.', '..']);
         $fullPaths = [];
+
         foreach ($folders as $f) {
             if (!\is_dir($backupPath . '/' . $f)) {
                 continue;
             }
             $fullPaths[$f] = $backupPath . '/' . $f;
         }
+
         \ksort($fullPaths);
 
         if (\count($fullPaths) <= $max) {
@@ -279,10 +280,11 @@ final readonly class BackupService implements BackupServiceInterface
             return;
         }
 
-        $files = \array_diff(\scandir($dir), ['.', '..']);
+        $files = \array_diff(\scandir($dir) ?: [], ['.', '..']);
         foreach ($files as $file) {
             \is_dir("$dir/$file") ? $this->recursiveDelete("$dir/$file") : \unlink("$dir/$file");
         }
+
         \rmdir($dir);
     }
 
@@ -300,10 +302,11 @@ final readonly class BackupService implements BackupServiceInterface
      */
     private function loadRawJson(string $key): array
     {
-        $cfg = $this->config->get('storage_config')[$key];
+        $cfg = $this->config->get('storage_config')[$key] ?? null;
         if (!isset($cfg['file'])) {
             return [];
         }
+
         $path = $this->config->getStoragePath($cfg['file']);
 
         return $this->jsonHelper->read($path);
@@ -319,8 +322,8 @@ final readonly class BackupService implements BackupServiceInterface
      */
     private function loadRawSql(string $key): array
     {
-        $cfg = $this->config->get('storage_config')[$key];
-        if (!$this->pdo instanceof PDO) {
+        $cfg = $this->config->get('storage_config')[$key] ?? null;
+        if (!$cfg || !$this->pdo instanceof PDO) {
             return [];
         }
 
@@ -328,13 +331,13 @@ final readonly class BackupService implements BackupServiceInterface
             $tableName = $cfg['table'];
             $stmt = $this->pdo->query("SELECT * FROM `$tableName`");
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
             $res = [];
-            // [x] Sortiert
             $idField = match ($key) {
                 // ID-Tabellen (alphabetisch sortiert)
-                'groups' => 'id',
                 'mail_log' => 'id',
                 'mail_queue' => 'id',
+                'roles' => 'id',
                 'users' => 'id',
                 'vouchers_archive' => 'id',
 
@@ -346,12 +349,13 @@ final readonly class BackupService implements BackupServiceInterface
                 // default
                 default => 'code'
             };
+
             foreach ($rows as $r) {
                 if (isset($r['data']) && \is_string($r['data'])) {
-                    $decoded = $this->jsonHelper->decode($r['data']);
+                    $r['data'] = $this->jsonHelper->decode($r['data']) ?? [];
                 }
                 if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                    $decoded = $this->jsonHelper->decode($r['permissions']);
+                    $r['permissions'] = $this->jsonHelper->decode($r['permissions']) ?? [];
                 }
                 $res[$r[$idField]] = $r;
             }
