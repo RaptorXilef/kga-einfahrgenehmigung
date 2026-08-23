@@ -22,7 +22,7 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository, // Geändert!
+        private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -33,8 +33,8 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
     {
         $this->renderer->render('admin_users', [
             'auth' => $this->auth,
-            'roleRepository' => $this->roleRepository, // Geändert!
-            'roles' => $this->roleRepository->loadAll(), // Geändert (Vorher groups)
+            'roleRepository' => $this->roleRepository,
+            'roles' => $this->roleRepository->loadAll(),
             'imageStorage' => $this->imageStorage,
             'permissions' => $this->config->get('permissions', []),
             'structure' => $this->config->get('structure', []),

@@ -18,8 +18,6 @@ use Throwable;
 
 /**
  * Action zur Verarbeitung des abgesendeten Antragsformulars (POST).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('POST', '/')]
 final readonly class PermitSubmitAction implements ViewActionInterface
@@ -35,12 +33,9 @@ final readonly class PermitSubmitAction implements ViewActionInterface
         try {
             $dto = PermitSubmitRequest::fromArray($request->post);
         } catch (ValidationException|InvalidArgumentException $e) {
-            // FIX: UX-Rettung! Bevor wir abbrechen, speichern wir die bereits eingetippten Daten
-            // in der Session zwischen, damit das Formular nicht leer ist.
             $postData = $request->post;
             unset($postData['csrf_token']); // Sicherheits-Token nicht mitspeichern
             $this->sessionManager->setFormData($postData);
-
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('index.php');
@@ -55,27 +50,25 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 
             if ($verifiedEmail !== null && $editToken !== null) {
                 $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
-
                 $this->sessionManager->clearFormData();
                 $this->sessionManager->clearEditState();
 
                 if ($result === 'redirect_checkout') {
-                    return new RedirectResponse('checkout.php?token=' . $editToken);
+                    return new RedirectResponse('checkout?token=' . $editToken);
                 }
 
                 $this->sessionManager->addFlash('success', 'Sie haben die Vorlage oder den Fahrzeugtyp geändert. Bitte E-Mail erneut bestätigen.');
 
-                return new RedirectResponse('index.php?sent=1');
+                return new RedirectResponse('?sent=1');
             }
 
             $this->permitService->createPendingVerification($dto->toDomainDto());
-
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
 
-            return new RedirectResponse('index.php?sent=1');
+            return new RedirectResponse('?sent=1');
         } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen
-            // 1. Detaillierter Log für dich als Admin im Hintergrund
+            // 1. Detaillierter Log für Admin im Hintergrund
             \error_log('Permit Collision: ' . $exception->getMessage());
 
             // 2. Datenschutzkonforme, vage UI-Meldung für den User
@@ -91,7 +84,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->addFlash('error', $exception->getMessage());
 
             return new RedirectResponse('index.php');
-        } catch (Throwable $exception) { // FIX: Throwable fängt auch TypeErrors und ParseErrors!
+        } catch (Throwable $exception) {
             \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
 

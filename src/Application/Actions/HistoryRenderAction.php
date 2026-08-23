@@ -17,10 +17,8 @@ use App\Core\Service\PermitService;
 
 /**
  * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/history_render')]
+#[Route('GET', '/history')]
 final readonly class HistoryRenderAction implements ViewActionInterface
 {
     public function __construct(
@@ -41,7 +39,6 @@ final readonly class HistoryRenderAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         $dto = ViewRenderRequest::fromArray($request->get);
-
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         if ($emailInSession === '') {
@@ -56,7 +53,6 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         $permits = $this->permitService->getHistoryByEmail($emailInSession);
 
         $loadedYear = $dto->loadArchive;
-
         if ($loadedYear > 0) {
             $arcCfg = $this->config->get('storage_config')['permits_archive'];
             $yearFile = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern'] ?? $arcCfg['file']);
@@ -68,7 +64,6 @@ final readonly class HistoryRenderAction implements ViewActionInterface
                     if (\strtolower((string) $item['email']) !== \strtolower($emailInSession)) {
                         continue;
                     }
-
                     $permits[] = $this->storage->mapToEntity($item);
                 }
             }

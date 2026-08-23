@@ -30,8 +30,6 @@ use App\Core\Service\VoucherService;
 
 /**
  * Rendert das zentrale Admin-Dashboard.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/admin')]
 #[RequiresAuth]
@@ -43,7 +41,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private BackupServiceInterface $backupService,
         private CancelledPermitRepositoryInterface $cancelledRepository,
         private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository, // Geändert!
+        private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private MailLogInterface $mailLog,
         private PermitArchiveRepositoryInterface $archiveRepository,
@@ -86,10 +84,12 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         // 3. Datenbestände kombinieren
         $allHistoricalAndActive = $allActivePermits;
         $filteredHistoricalAndActive = $filteredActive;
+
         $queryLower = \strtolower(\trim($dto->query));
 
         foreach ($archivedPermits as $p) {
             $allHistoricalAndActive[] = $p;
+
             $pDate = $p->getCreatedAt()->format('Y-m-d');
             if ($pDate < $dto->start || $pDate > $dto->end) {
                 continue;
@@ -149,8 +149,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'filterQuery' => $dto->query,
             'filterStart' => $dto->start,
             'filterType' => $dto->type,
-            'formData' => $formData, // An Template übergeben
-            'roleRepository' => $this->roleRepository, // Geändert!
+            'formData' => $formData,
+            'roleRepository' => $this->roleRepository,
             'imageStorage' => $this->imageStorage,
             'itemsPerPage' => $dto->limit,
             'mailLogs' => $this->mailLog->loadLogs(),

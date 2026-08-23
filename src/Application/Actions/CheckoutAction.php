@@ -20,10 +20,8 @@ use Exception;
  * Action für die Checkout-Übersicht.
  * Zeigt dem Benutzer vor dem finalen Zahlungsabschluss eine Zusammenfassung
  * der Antragsdaten und die berechneten Einfahrtszeiten.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/checkout')]
+#[Route('GET', '/checkout')]
 final readonly class CheckoutAction implements ViewActionInterface
 {
     public function __construct(
@@ -45,17 +43,19 @@ final readonly class CheckoutAction implements ViewActionInterface
         try {
             $dto = SimpleTokenRequest::fromArray($request->get);
         } catch (Exception) {
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('/');
         }
 
         $token = $dto->token;
         $tempData = $this->permitService->getVerifiedRequest($token);
 
         if ($tempData === null) {
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('/');
         }
+
         $dtVon = new DateTimeImmutable($tempData['datum_von'] ?? 'now');
         $dtBis = new DateTimeImmutable($tempData['datum_bis'] ?? 'now');
+
         $this->renderer->render('checkout/summary', [
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($dtVon, $dtBis),
@@ -64,7 +64,8 @@ final readonly class CheckoutAction implements ViewActionInterface
                 $this->holidayService->getOpeningHoursDataForDateRange($dtVon, $dtBis),
             ),
             'tempData' => $tempData,
-            'token' => $token]);
+            'token' => $token,
+        ]);
 
         return null;
     }

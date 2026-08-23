@@ -14,11 +14,9 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\VoucherService;
 
-// FIX: Hört jetzt auf das Root-Verzeichnis '/' !
 #[Route('GET', '/')]
 final readonly class PermitRenderAction implements ViewActionInterface
 {
-    // ... Konstruktor und Execute bleiben exakt identisch
     public function __construct(
         private ConfigInterface $config,
         private SessionManager $sessionManager,
@@ -54,7 +52,6 @@ final readonly class PermitRenderAction implements ViewActionInterface
         return null;
     }
 
-    // ... Rest bleibt gleich
     private function checkAvailableVouchers(): bool
     {
         $vouchers = $this->voucherRepository->loadAll();

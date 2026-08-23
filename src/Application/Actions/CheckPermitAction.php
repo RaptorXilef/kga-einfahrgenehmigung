@@ -24,8 +24,6 @@ use DateTimeImmutable;
 /**
  * Action zur Überprüfung von Genehmigungen und Kennzeichen.
  * Erlaubt die öffentliche und administrative Abfrage von Gültigkeiten (z.B. via QR-Code).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/check')]
 final readonly class CheckPermitAction implements ViewActionInterface
@@ -33,7 +31,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
-        private RoleRepositoryInterface $roleRepository, // Geändert!
+        private RoleRepositoryInterface $roleRepository,
         private HolidayService $holidayService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
@@ -116,7 +114,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
             \array_merge($adminData, [
                 'allowedToday' => $nextAllowedSlotText,
                 'auth' => $this->auth,
-                'roleRepository' => $this->roleRepository, // Geändert!
+                'roleRepository' => $this->roleRepository,
                 'holidayNotice' => \implode(', ', $this->holidayService->getHolidaysInRange(
                     $permit->getValidFrom(),
                     $permit->getValidUntil(),
