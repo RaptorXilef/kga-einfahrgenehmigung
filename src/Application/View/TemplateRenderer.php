@@ -6,6 +6,7 @@ namespace App\Application\View;
 
 use App\Application\Session\SessionManager;
 use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
 
@@ -23,6 +24,7 @@ final readonly class TemplateRenderer
         private ImageStorageInterface $imageStorage,
         private JsonHelperInterface $jsonHelper,
         private SessionManager $sessionManager,
+        private AssetHelperInterface $assetHelper,
     ) {
     }
 
@@ -37,6 +39,7 @@ final readonly class TemplateRenderer
             'config' => $this->config,
             'imageStorage' => $this->imageStorage,
             'jsonHelper' => $this->jsonHelper,
+            'asset' => $this->assetHelper,
             'settings' => $this->getGlobalSettings(),
         ];
 
@@ -49,6 +52,7 @@ final readonly class TemplateRenderer
         // 2. Nutzerdaten bereitstellen (EXTR_SKIP verhindert das Überschreiben der Systemvariablen!)
         \extract($data, \EXTR_SKIP);
 
+        // KGA Legacy Templates liegen in templates/pages/
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
     }
 
@@ -58,7 +62,8 @@ final readonly class TemplateRenderer
         $templates = (array) $this->config->get('permit_templates', []);
 
         return [
-            'base_url' => $this->config->getBaseUrl(),
+            // FALLBACK FÜR KGA-TEMPLATES: Wir erzwingen hier den Slash am Ende!
+            'base_url' => \rtrim($this->config->getBaseUrl(), '/') . '/',
             'bic' => $this->config->get('bic'),
             'iban' => $this->config->get('iban'),
             'jahresFarbe' => $this->config->get('jahresFarbe'),
