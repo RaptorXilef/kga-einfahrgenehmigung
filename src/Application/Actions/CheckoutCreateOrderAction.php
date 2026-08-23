@@ -20,7 +20,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/create_order')]
+#[Route('POST', '/api/create_order')]
 final readonly class CheckoutCreateOrderAction implements ViewActionInterface
 {
     public function __construct(
@@ -44,6 +44,7 @@ final readonly class CheckoutCreateOrderAction implements ViewActionInterface
             }
 
             $orderId = $this->payment->createOrder((float) $tempRequest['preis']);
+
             if ($orderId) {
                 return JsonResponse::success(['id' => $orderId]);
             }

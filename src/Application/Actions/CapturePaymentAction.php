@@ -20,7 +20,7 @@ use Exception;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/capture')]
+#[Route('POST', '/api/capture')]
 final readonly class CapturePaymentAction implements ViewActionInterface
 {
     public function __construct(

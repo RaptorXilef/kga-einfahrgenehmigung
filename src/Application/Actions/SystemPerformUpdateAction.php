@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -17,10 +18,9 @@ use Throwable;
 
 /**
  * Action zum Entpacken und Anwenden eines System-Updates (Phase 1).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/perform_update')]
+#[Route('POST', '/api/perform_update')]
+#[RequiresAuth]
 final readonly class SystemPerformUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -36,10 +36,6 @@ final readonly class SystemPerformUpdateAction implements ViewActionInterface, R
 
     public function execute(ServerRequest $request): mixed
     {
-        // FIX: Klasse explizit in den RAM laden, um Autoloader-Abstürze
-        // während des Live-Austauschs von Systemdateien zu verhindern!
-        \class_exists(JsonResponse::class);
-
         try {
             $dto = ApiPerformUpdateRequest::fromArray($request->input);
         } catch (ValidationException $e) {

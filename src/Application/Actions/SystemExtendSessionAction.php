@@ -11,14 +11,13 @@ use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
 
-#[Route('GET|POST', '/extend_session')]
+#[Route('POST', '/api/ping')]
 final readonly class SystemExtendSessionAction implements ActionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private SessionManager $sessionManager,
     ) {
-        \class_exists(JsonResponse::class);
     }
 
     public function execute(ServerRequest $request): mixed

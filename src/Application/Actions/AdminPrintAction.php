@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleCodeRequest;
@@ -20,6 +21,7 @@ use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
 
 #[Route('GET', '/admin_print')]
+#[RequiresAuth]
 final readonly class AdminPrintAction implements ViewActionInterface
 {
     public function __construct(

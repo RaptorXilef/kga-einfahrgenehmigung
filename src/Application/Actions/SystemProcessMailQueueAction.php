@@ -14,10 +14,9 @@ use App\Contracts\Mail\MailServiceInterface;
 /**
  * Action zum manuellen Anstoßen der Mail-Warteschlange.
  * Oder zum anstoßen per cronjob
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/process_mail_queue')]
+#[Route('GET', '/api/process_mail_queue')]
+#[Route('POST', '/api/process_mail_queue')]
 final readonly class SystemProcessMailQueueAction implements ViewActionInterface
 {
     public function __construct(

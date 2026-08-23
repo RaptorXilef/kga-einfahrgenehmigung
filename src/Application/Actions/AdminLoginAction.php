@@ -25,7 +25,7 @@ final readonly class AdminLoginAction implements ActionInterface
     public function __construct(
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository,
+        private RoleRepositoryInterface $roleRepository, // FIX
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,

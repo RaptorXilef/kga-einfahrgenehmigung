@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -16,10 +17,9 @@ use Throwable;
 
 /**
  * Action für die asynchrone Prüfung auf GitHub-Updates.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/check_update')]
+#[Route('POST', '/api/check_update')]
+#[RequiresAuth]
 final readonly class SystemCheckUpdateAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -42,7 +42,10 @@ final readonly class SystemCheckUpdateAction implements ViewActionInterface, Req
             // Reicht das "force" Flag durch, um den 24h-Cache zu umgehen
             $updateData = $this->updater->checkForUpdate($currentVersion, $dto->force);
 
-            return JsonResponse::success(['update_available' => $updateData !== null, 'data' => $updateData]);
+            return JsonResponse::success([
+                'update_available' => $updateData !== null,
+                'data' => $updateData,
+            ]);
         } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());
         }

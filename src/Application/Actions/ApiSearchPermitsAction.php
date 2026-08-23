@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
+use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -18,7 +19,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/search_permits')]
+#[Route('POST', '/api/search_permits')]
+#[RequiresAuth]
 final readonly class ApiSearchPermitsAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -35,6 +37,7 @@ final readonly class ApiSearchPermitsAction implements ViewActionInterface, Requ
     {
         try {
             $dto = ApiSearchPermitsRequest::fromArray($request->post);
+
             $result = $this->permitService->searchAndPaginate(
                 $dto->query,
                 $dto->tab,

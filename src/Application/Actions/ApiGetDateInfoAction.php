@@ -17,7 +17,7 @@ use Throwable;
  * Action für den API-Aufruf zur Abfrage der erlaubten Einfahrtszeiten
  * und Ruhetage für einen gewählten Zeitraum.
  */
-#[Route('GET|POST', '/get_date_info')]
+#[Route('POST', '/api/get_date_info')]
 final readonly class ApiGetDateInfoAction implements ViewActionInterface
 {
     public function __construct(

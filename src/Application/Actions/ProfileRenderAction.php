@@ -14,13 +14,13 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 
-#[Route('GET', '/render_profile')]
+#[Route('GET', '/profile')]
 #[RequiresAuth]
 final readonly class ProfileRenderAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
-        private RoleRepositoryInterface $roleRepository, // Geändert!
+        private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -34,12 +34,12 @@ final readonly class ProfileRenderAction implements ViewActionInterface
         $roles = $this->roleRepository->loadAll();
 
         $user = $users[$userId] ?? null;
-        $userRoleId = $user ? $user->roleId : 'guest'; // Geändert!
+        $userRoleId = $user ? $user->roleId : 'guest';
         $role = $roles[$userRoleId] ?? null;
 
         $this->renderer->render('profile', [
             'auth' => $this->auth,
-            'role' => $role ? $role->name : $userRoleId, // Geändert! Template Parameter angepasst
+            'role' => $role ? $role->name : $userRoleId,
             'roleRepository' => $this->roleRepository,
             'imageStorage' => $this->imageStorage,
             'userId' => $userId,

@@ -19,7 +19,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('POST', '/finalize_wire')]
+#[Route('POST', '/api/finalize_wire')]
 final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
 {
     public function __construct(
