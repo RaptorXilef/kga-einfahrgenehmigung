@@ -16,12 +16,18 @@ final readonly class UniversalActionFactory
     ) {
     }
 
-    public function create(string $actionKey): ActionInterface|ViewActionInterface|null
+    public function getRegistry(): ActionRegistry
     {
-        $class = $this->registry->getActionClass($actionKey);
+        return $this->registry;
+    }
 
-        if ($class !== null) {
-            return $this->container->get($class);
+    public function create(string $className): ActionInterface|ViewActionInterface|null
+    {
+        if (\class_exists($className)) {
+            $instance = $this->container->get($className);
+            if ($instance instanceof ActionInterface || $instance instanceof ViewActionInterface) {
+                return $instance;
+            }
         }
 
         return null;

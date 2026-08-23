@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Infrastructure\Config;
 
 use App\Contracts\Config\ConfigInterface;
-use RuntimeException;
 
 /**
  * Konfigurations-Infrastruktur-Provider der Anwendung.
@@ -44,104 +43,76 @@ final readonly class Config implements ConfigInterface
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        $val = $this->settings[$key] ?? $default;
+        return $this->settings[$key] ?? $default;
+    }
 
-        // TODO Auto-Heal auch für andere Speichereinstellungen ergänzen
-        // Auto-Heal: Ergänzt fehlende storage_config Einträge (z.B. nach Updates),
-        // damit das System nicht abstürzt, wenn die JSON-Datei nicht aktuell ist.
-        if ($key === 'storage_config' && \is_array($val) && !isset($val['audit_logs'])) {
-            $val['audit_logs'] = [
-                'type' => $val['permits']['type'] ?? 'json', // Nimmt klugerweise das Format der Permits
-                'table' => 'audit_logs',
-                'file' => 'audit_logs.json',
-            ];
-        }
+    public function isTestMode(): bool
+    {
+        return $this->get('test_mode', true) === true;
+    }
 
-        return $val;
+    public function getPriceForType(string $type): float
+    {
+        $vConfigRaw = $this->get('vehicle_types', []);
+        $vConfig = \is_array($vConfigRaw) ? $vConfigRaw : [];
+        $defaultType = empty($vConfig) ? 'pkw' : (string) \array_key_first($vConfig);
+
+        $pricesRaw = $this->get('prices', []);
+        $prices = \is_array($pricesRaw) ? $pricesRaw : [];
+
+        $price = $prices[$type] ?? ($prices[$defaultType] ?? 0.00);
+
+        return \is_scalar($price) ? (float) $price : 0.00;
     }
 
     /**
-     * Liefert den Mail- und SMTP-Spezifischen Konfigurationsblock.
-     *
      * @return array<string, mixed>
      */
     public function getMailSettings(): array
     {
-        // Wir casten auf array, damit PHPStan sicher ist, dass wir das Interface erfüllen
-        return (array) $this->get('mail', []);
+        $mail = $this->get('mail', []);
+        if (!\is_array($mail)) {
+            return [];
+        }
+
+        /** @var array<string, mixed> $mailArray */
+        $mailArray = $mail;
+
+        return $mailArray;
     }
 
-    /**
-     * Gibt an, ob das System im Test- oder Sandbox-Modus operiert.
-     */
-    public function isTestMode(): bool
-    {
-        return (bool) $this->get('test_mode', true);
-    }
-
-    /**
-     * Gibt die Standard-Dauer für Genehmigungen zurück.
-     */
-    public function getPermitDuration(): int
-    {
-        // Standardmäßig 5 Tage, falls nichts in der config.php steht
-        return (int) $this->get('permit_duration', 5);
-    }
-
-    /**
-     * Ermittelt den Preis für einen Fahrzeugtyp. Falls kein expliziter Preis
-     * hinterlegt ist, wird der Preis des ersten konfigurierten Fahrzeugtyps als Fallback genutzt.
-     *
-     * @param string $type Der Typ-Schlüssel (z.B. 'pkw', 'lkw').
-     *
-     * @return float Der Brutto-Preis.
-     */
-    public function getPriceForType(string $type): float
-    {
-        $vConfig = $this->get('vehicle_types', []);
-        $defaultType = empty($vConfig) ? 'pkw' : \array_key_first($vConfig);
-
-        // Wir schauen in das Preise-Mapping (pkw)
-        $prices = $this->get('prices', []);
-
-        // Fallback-Logik: Wenn für den Typ kein Preis da ist, nimm den Standardpreis (z.B. PKW)
-        return (float) ($prices[$type] ?? ($prices[$defaultType] ?? 0.00));
-    }
-
-    /**
-     * Ermittelt die Basis-URL der Installation.
-     * Falls 'base_url' in der Konfiguration leer ist, wird die URL automatisch
-     * anhand der $_SERVER-Umgebungsvariablen (Protokoll, Host, Script-Name) dynamisch generiert.
-     *
-     * (Komplexester Getter mit Logik ans Ende)
-     *
-     * @return string Bereinigte URL mit abschließendem Schrägstrich.
-     */
     public function getBaseUrl(): string
     {
         $configured = $this->get('base_url');
-        if (!empty($configured)) {
-            return \rtrim((string) $configured, '/') . '/';
+        if (\is_string($configured) && $configured !== '') {
+            return \rtrim($configured, '/');
         }
 
-        // Fallback NUR für lokale Entwicklungsumgebungen (.local, localhost)
-        if ($this->get('is_local_env', false)) {
-            $protocol = $this->get('server_protocol', 'http://');
-            $host = $this->get('server_host', 'localhost');
-            $path = \rtrim(\dirname($this->get('server_script', '')), '/\\');
-            $path = \str_replace('/api', '', $path);
+        $isCli = \php_sapi_name() === 'cli' || !isset($_SERVER['HTTP_HOST']);
+        if ($isCli) {
+            $fallbackRaw = $this->get('cli_fallback_url', 'http://localhost');
+            $fallback = \is_string($fallbackRaw) ? $fallbackRaw : 'http://localhost';
 
-            return $protocol . $host . $path . '/';
+            return \rtrim($fallback, '/');
         }
 
-        // Harter Abbruch im Live-Betrieb, um Host Header Injection zu verhindern
-        throw new RuntimeException('Sicherheits-Abbruch: "base_url" ist in der config/organization.php nicht gesetzt! Host-Header-Fallback ist deaktiviert.');
+        $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+        $protocol = $isSecure ? 'https' : 'http';
+        $hostRaw = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $host = \is_string($hostRaw) ? $hostRaw : 'localhost';
+
+        return $protocol . '://' . $host;
     }
 
-    // TODO DOCBLOCK
     public function getStoragePath(string $fileName): string
     {
-        return \rtrim((string) $this->get('root_path'), '/\\') . '/' .
-               \ltrim((string) $this->get('storage_path_prefix'), '/\\') . $fileName;
+        $rootRaw = $this->get('root_path', '');
+        $root = \is_string($rootRaw) ? $rootRaw : '';
+        $prefixRaw = $this->get('storage_path_prefix', '');
+        $prefix = \is_string($prefixRaw) ? $prefixRaw : '';
+
+        return \rtrim($root, '/\\') . '/' . \ltrim($prefix, '/\\') . \ltrim($fileName, '/\\');
     }
 }

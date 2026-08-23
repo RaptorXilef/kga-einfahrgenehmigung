@@ -7,9 +7,11 @@ namespace App\Application\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class ActionRoute
+final class Route
 {
-    public function __construct(public string $key)
-    {
+    public function __construct(
+        public string $method,
+        public string $path,
+    ) {
     }
 }
