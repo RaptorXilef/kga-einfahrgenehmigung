@@ -17,7 +17,7 @@ final readonly class BankImportService
     }
 
     /**
-     * Analysiert die hochgeladene CSV, normalisiert Zeilenumbrüche und extrahiert Header & erste Datenzeile.
+     * Analysiert die hochgeladene CSV, wäscht sie komplett rein und extrahiert Header & erste Datenzeile.
      *
      * @return array{headers: array<int, string>, previewRow: array<int, string>}
      */
@@ -27,7 +27,8 @@ final readonly class BankImportService
             return ['headers' => [], 'previewRow' => []];
         }
 
-        $this->normalizeLineEndings($filePath);
+        // 1. Die komplette Datei vorab waschen (BOM, Encoding, Umbrüche)
+        $this->prepareAndNormalizeFile($filePath);
 
         $handle = \fopen($filePath, 'r');
         if ($handle === false) {
@@ -43,13 +44,13 @@ final readonly class BankImportService
         \fclose($handle);
 
         return [
-            'headers' => $this->convertToUtf8($headers),
-            'previewRow' => $this->convertToUtf8($previewRow),
+            'headers' => $headers,
+            'previewRow' => $previewRow,
         ];
     }
 
     /**
-     * Verarbeitet die Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
+     * Verarbeitet die gereinigte Bank-CSV-Datei, addiert Teilzahlungen auf und gleicht sie mit dem System ab.
      *
      * @return array<string, mixed> Resultat der Verarbeitung inklusive detaillierter Begründungen.
      */
@@ -61,9 +62,10 @@ final readonly class BankImportService
             return ['success' => false, 'message' => 'Datei konnte nicht gefunden werden.'];
         }
 
-        \error_log('BankImport: Starte Verarbeitung der CSV-Datei...');
+        \error_log('BankImport: Starte Dateireinigung und Verarbeitung der CSV...');
 
-        $this->normalizeLineEndings($filePath);
+        // 1. Die komplette Datei vorab waschen (BOM, Encoding, Umbrüche)
+        $this->prepareAndNormalizeFile($filePath);
 
         $handle = \fopen($filePath, 'r');
         if ($handle === false) {
@@ -198,21 +200,44 @@ final readonly class BankImportService
     }
 
     /**
-     * Normalisiert alte Mac- (\r) und Windows- (\r\n) Zeilenumbrüche zu \n.
+     * DIE WASCHANLAGE FÜR CSV-DATEIEN.
+     * Bereinigt die CSV-Datei komplett im RAM, bevor PHP sie iteriert.
+     * 1. Entfernt unsichtbare UTF-8 BOMs
+     * 2. Erkennt das globale File-Encoding zuverlässig und konvertiert zu UTF-8
+     * 3. Normalisiert Mac/Windows Line-Endings zu sauberen \n Umbrüchen
      */
-    private function normalizeLineEndings(string $filePath): void
+    private function prepareAndNormalizeFile(string $filePath): void
     {
         $content = \file_get_contents($filePath);
-        if (!\is_string($content)) {
+        if (!\is_string($content) || $content === '') {
             return;
         }
 
-        $normalized = \str_replace(["\r\n", "\r"], "\n", $content);
-        \file_put_contents($filePath, $normalized);
+        // 1. UTF-8 BOM entfernen (Hex: EF BB BF)
+        if (\str_starts_with($content, "\xEF\xBB\xBF")) {
+            $content = \substr($content, 3);
+        }
+
+        // 2. Globale Encoding-Erkennung
+        // Viel robuster als zellbasierte Erkennung, da der Textkorpus groß genug für korrekte Analyse ist.
+        $encoding = \mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-15', 'ISO-8859-1', 'ASCII'], true);
+        if ($encoding && $encoding !== 'UTF-8') {
+            $content = \mb_convert_encoding($content, 'UTF-8', $encoding);
+        } elseif (!$encoding) {
+            // Fallback auf klassisches Banken-ANSI, falls die Erkennung fehlschlägt
+            $content = \mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
+        }
+
+        // 3. Line Endings normalisieren (Mac \r oder Windows \r\n zu Unix \n)
+        $content = \str_replace(["\r\n", "\r"], "\n", $content);
+
+        // 4. Gewaschenen Text speichern
+        \file_put_contents($filePath, $content);
     }
 
     /**
      * Erkennt anhand der ersten Zeile dynamisch das Trennzeichen.
+     * Analysiert ; , \t und | nach Häufigkeit.
      *
      * @param resource $handle
      */
@@ -221,33 +246,21 @@ final readonly class BankImportService
         $firstLine = \fgets($handle);
         \rewind($handle);
 
-        if ($firstLine !== false && \substr_count($firstLine, ',') > \substr_count($firstLine, ';')) {
-            return ',';
+        if ($firstLine === false) {
+            return ';';
         }
 
-        return ';';
-    }
+        $delimiters = [
+            ';' => \substr_count($firstLine, ';'),
+            ',' => \substr_count($firstLine, ','),
+            "\t" => \substr_count($firstLine, "\t"),
+            '|' => \substr_count($firstLine, '|'),
+        ];
 
-    /**
-     * Bereinigt und konvertiert ein Array von Strings streng nach UTF-8.
-     *
-     * @param array<int, mixed> $row
-     *
-     * @return array<int, string>
-     */
-    private function convertToUtf8(array $row): array
-    {
-        $converted = [];
-        foreach ($row as $value) {
-            if (!\is_string($value) || $value === '') {
-                $converted[] = (string) $value;
-                continue;
-            }
-            $encoding = \mb_detect_encoding($value, 'UTF-8, ISO-8859-1, Windows-1252', true);
-            $converted[] = $encoding ? \mb_convert_encoding($value, 'UTF-8', $encoding) : \mb_convert_encoding($value, 'UTF-8', 'Windows-1252');
-        }
+        // Absteigend sortieren, den Key mit dem höchsten Wert zurückgeben
+        \arsort($delimiters);
 
-        return $converted;
+        return (string) \array_key_first($delimiters);
     }
 
     /**
