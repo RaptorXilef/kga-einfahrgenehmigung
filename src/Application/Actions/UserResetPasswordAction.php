@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\UserResetPasswordRequest;
@@ -21,7 +21,7 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('change_user_password')]
+#[Route('GET|POST', '/change_user_password')]
 final readonly class UserResetPasswordAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

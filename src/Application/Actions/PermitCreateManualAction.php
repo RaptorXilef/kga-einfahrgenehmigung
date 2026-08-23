@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\PermitCreateManualRequest;
@@ -22,7 +22,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('create_manual')]
+#[Route('GET|POST', '/create_manual')]
 final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

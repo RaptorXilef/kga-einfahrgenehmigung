@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleTokenRequest;
 use App\Application\Exception\ValidationException;
@@ -20,7 +20,7 @@ use App\Core\Service\MagicLinkService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('history_verify_token')]
+#[Route('GET|POST', '/history_verify_token')]
 final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 {
     public function __construct(

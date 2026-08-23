@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
@@ -19,7 +19,7 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('migrate_data')]
+#[Route('GET|POST', '/migrate_data')]
 final readonly class SystemMigrateDataAction implements ActionInterface
 {
     public function __construct(

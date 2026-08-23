@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\SimpleUploadImageRequest;
@@ -20,7 +20,7 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('upload_avatar')]
+#[Route('GET|POST', '/upload_avatar')]
 final readonly class UserUploadAvatarAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

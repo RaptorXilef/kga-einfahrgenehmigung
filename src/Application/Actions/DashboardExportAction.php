@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ExportRequest;
@@ -21,7 +21,7 @@ use App\Core\Service\PermitFilterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('dashboard_export')]
+#[Route('GET|POST', '/dashboard_export')]
 final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\TextResponse;
@@ -16,7 +16,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('cron')]
+#[Route('GET|POST', '/cron')]
 final readonly class SystemCronAction implements ViewActionInterface
 {
     public function __construct(

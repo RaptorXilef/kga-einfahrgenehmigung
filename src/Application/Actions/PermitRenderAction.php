@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ViewRenderRequest;
 use App\Application\Http\ServerRequest;
@@ -19,7 +19,7 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('permit_render')]
+#[Route('GET|POST', '/permit_render')]
 final readonly class PermitRenderAction implements ViewActionInterface
 {
     public function __construct(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\SimpleIdentifierRequest;
@@ -24,7 +24,7 @@ use DomainException;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('delete_user')]
+#[Route('GET|POST', '/delete_user')]
 final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\VerificationRenderRequest;
 use App\Application\Http\ServerRequest;
@@ -15,7 +15,7 @@ use App\Application\View\TemplateRenderer;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('verify_render')]
+#[Route('GET|POST', '/verify_render')]
 final readonly class VerificationRenderAction implements ViewActionInterface
 {
     public function __construct(

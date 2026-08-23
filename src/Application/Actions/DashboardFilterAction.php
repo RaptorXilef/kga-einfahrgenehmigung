@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\DashboardFilterRequest;
 use App\Application\Http\ServerRequest;
@@ -16,7 +16,7 @@ use App\Application\Session\SessionManager;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('filter_dashboard')]
+#[Route('GET|POST', '/filter_dashboard')]
 final readonly class DashboardFilterAction implements ActionInterface
 {
     public function __construct(

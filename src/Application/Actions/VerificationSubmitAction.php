@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\VerificationSubmitRequest;
 use App\Application\Exception\ValidationException;
@@ -20,7 +20,7 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('verify_submit')]
+#[Route('GET|POST', '/verify_submit')]
 final readonly class VerificationSubmitAction implements ViewActionInterface
 {
     public function __construct(

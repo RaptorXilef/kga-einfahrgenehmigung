@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
@@ -20,7 +20,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('force_update_check')]
+#[Route('GET|POST', '/force_update_check')]
 final readonly class SystemForceUpdateCheckAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

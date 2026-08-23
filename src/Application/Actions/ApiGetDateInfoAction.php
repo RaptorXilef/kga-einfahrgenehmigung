@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ApiDateInfoRequest;
 use App\Application\Http\ServerRequest;
@@ -19,7 +19,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('get_date_info')]
+#[Route('GET|POST', '/get_date_info')]
 final readonly class ApiGetDateInfoAction implements ViewActionInterface
 {
     public function __construct(

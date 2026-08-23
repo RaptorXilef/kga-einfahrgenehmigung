@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\SystemMaintenanceRequest;
@@ -20,7 +20,7 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('restore_data')]
+#[Route('GET|POST', '/restore_data')]
 final readonly class SystemRestoreDataAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

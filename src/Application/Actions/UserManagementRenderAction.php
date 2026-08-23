@@ -4,28 +4,25 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\RequiresAuth;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[ActionRoute('render_users')]
+#[Route('GET', '/render_users')]
+#[RequiresAuth]
 final readonly class UserManagementRenderAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
+        private RoleRepositoryInterface $roleRepository, // Geändert!
         private ImageStorageInterface $imageStorage,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
@@ -36,8 +33,8 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
     {
         $this->renderer->render('admin_users', [
             'auth' => $this->auth,
-            'groupRepository' => $this->groupRepository,
-            'groups' => $this->groupRepository->loadAll(),
+            'roleRepository' => $this->roleRepository, // Geändert!
+            'roles' => $this->roleRepository->loadAll(), // Geändert (Vorher groups)
             'imageStorage' => $this->imageStorage,
             'permissions' => $this->config->get('permissions', []),
             'structure' => $this->config->get('structure', []),

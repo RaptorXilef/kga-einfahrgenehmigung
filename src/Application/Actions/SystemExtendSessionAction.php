@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
 
-#[ActionRoute('extend_session')]
+#[Route('GET|POST', '/extend_session')]
 final readonly class SystemExtendSessionAction implements ActionInterface
 {
     public function __construct(

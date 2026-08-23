@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\ProfileUpdatePasswordRequest;
 use App\Application\Exception\ValidationException;
@@ -23,7 +23,7 @@ use DomainException;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('change_own_password')]
+#[Route('GET|POST', '/change_own_password')]
 final readonly class ProfileUpdatePasswordAction implements ActionInterface
 {
     public function __construct(

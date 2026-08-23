@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\PermitToggleSuspensionRequest;
 use App\Application\Exception\ValidationException;
@@ -19,8 +19,8 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('suspend_permit')]
-#[ActionRoute('unsuspend_permit')]
+#[Route('GET|POST', '/suspend_permit')]
+#[Route('GET|POST', '/unsuspend_permit')]
 final readonly class PermitToggleSuspensionAction implements ActionInterface
 {
     public function __construct(

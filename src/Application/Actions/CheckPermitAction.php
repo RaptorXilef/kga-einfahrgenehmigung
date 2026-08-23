@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
@@ -13,7 +13,7 @@ use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
@@ -27,13 +27,13 @@ use DateTimeImmutable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('check_permit')]
+#[Route('GET', '/check_permit')]
 final readonly class CheckPermitAction implements ViewActionInterface
 {
     public function __construct(
         private AuthService $auth,
         private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
+        private RoleRepositoryInterface $roleRepository, // Geändert!
         private HolidayService $holidayService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
@@ -74,7 +74,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         $adminData = [
             'adminUser' => $this->auth->getUsername(),
             'adminId' => $this->auth->getUserId(),
-            'adminGroup' => $this->auth->getGroup(),
+            'adminGroup' => $this->auth->getRole(), // Aus Kompatibilität zum Template Key behalten, Methode geändert
         ];
 
         // --- Logik für den nächsten befahrbaren Slot ---
@@ -116,7 +116,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
             \array_merge($adminData, [
                 'allowedToday' => $nextAllowedSlotText,
                 'auth' => $this->auth,
-                'groupRepository' => $this->groupRepository,
+                'roleRepository' => $this->roleRepository, // Geändert!
                 'holidayNotice' => \implode(', ', $this->holidayService->getHolidaysInRange(
                     $permit->getValidFrom(),
                     $permit->getValidUntil(),

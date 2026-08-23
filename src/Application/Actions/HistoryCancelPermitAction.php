@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\HistoryCancelPermitRequest;
 use App\Application\Exception\ValidationException;
@@ -15,7 +15,7 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
 use DomainException;
 
-#[ActionRoute('history_cancel_permit')]
+#[Route('GET|POST', '/history_cancel_permit')]
 final readonly class HistoryCancelPermitAction implements ViewActionInterface
 {
     public function __construct(

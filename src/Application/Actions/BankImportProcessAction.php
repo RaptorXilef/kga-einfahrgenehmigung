@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\RequiresAuth;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\BankImportProcessRequest;
@@ -15,7 +16,8 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\BankImportService;
 use Throwable;
 
-#[ActionRoute('bank_import_process')]
+#[Route('POST', '/bank_import_process')]
+#[RequiresAuth]
 final readonly class BankImportProcessAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
@@ -46,7 +48,6 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
 
                 $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
-
                 $htmlDetails = [];
                 $logDetails = [];
 
@@ -75,7 +76,6 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 }
 
                 $fullMsg = $msg . \implode('', $htmlDetails);
-
                 $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
                 if ($logDetails !== []) {
                     $logStr .= ' | ' . \implode(' | ', $logDetails);

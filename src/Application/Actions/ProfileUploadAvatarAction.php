@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\ProfileUploadAvatarRequest;
 use App\Application\Exception\ValidationException;
@@ -20,7 +20,7 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('change_own_avatar')]
+#[Route('GET|POST', '/change_own_avatar')]
 final readonly class ProfileUploadAvatarAction implements ActionInterface
 {
     public function __construct(

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\View\TemplateRenderer;
@@ -16,7 +16,7 @@ use App\Contracts\System\JsonHelperInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('datenschutz')]
+#[Route('GET|POST', '/datenschutz')]
 final readonly class DatenschutzAction implements ViewActionInterface
 {
     public function __construct(

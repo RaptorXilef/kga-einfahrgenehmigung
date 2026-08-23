@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\DTO\VoucherCreateRequest;
 use App\Application\Exception\ValidationException;
@@ -23,7 +23,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('create_voucher')]
+#[Route('GET|POST', '/create_voucher')]
 final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(

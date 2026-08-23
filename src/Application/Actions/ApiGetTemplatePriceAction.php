@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\ApiTemplatePriceRequest;
 use App\Application\Http\ServerRequest;
@@ -23,7 +23,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('get_template_price')]
+#[Route('GET|POST', '/get_template_price')]
 final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 {
     public function __construct(

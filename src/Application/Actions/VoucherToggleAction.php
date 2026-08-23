@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\RequiresAuth;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\VoucherToggleRequest;
@@ -15,13 +16,9 @@ use App\Application\Session\SessionManager;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\VoucherService;
 
-/**
- * Action zum Aktivieren oder Deaktivieren eines Gutscheins.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[ActionRoute('activate_voucher')]
-#[ActionRoute('deactivate_voucher')]
+#[Route('POST', '/activate_voucher')]
+#[Route('POST', '/deactivate_voucher')]
+#[RequiresAuth]
 final readonly class VoucherToggleAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

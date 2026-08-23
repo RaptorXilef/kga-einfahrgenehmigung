@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleIdentifierRequest;
 use App\Application\Exception\ValidationException;
@@ -19,7 +19,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('finalize_wire')]
+#[Route('POST', '/finalize_wire')]
 final readonly class CheckoutFinalizeWireAction implements ViewActionInterface
 {
     public function __construct(

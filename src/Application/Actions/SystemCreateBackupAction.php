@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
@@ -20,7 +20,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('create_backup')]
+#[Route('GET|POST', '/create_backup')]
 final readonly class SystemCreateBackupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

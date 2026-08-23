@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\SimpleCodeRequest;
 use App\Application\Exception\ValidationException;
@@ -24,7 +24,7 @@ use App\Core\Service\HolidayService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('admin_print')]
+#[Route('GET|POST', '/admin_print')]
 final readonly class AdminPrintAction implements ViewActionInterface
 {
     public function __construct(

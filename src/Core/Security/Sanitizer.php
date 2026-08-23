@@ -59,21 +59,20 @@ final class Sanitizer
     public static function slugify(string $filename): string
     {
         $info = \pathinfo($filename);
+        $name = $info['filename'];
+        $ext = isset($info['extension']) ? '.' . \strtolower($info['extension']) : '';
 
-        $nameRaw = $info['filename'] ?? '';
-        $name = \is_string($nameRaw) ? $nameRaw : '';
-
-        $extRaw = $info['extension'] ?? '';
-        $ext = \is_string($extRaw) && $extRaw !== '' ? '.' . \strtolower($extRaw) : '';
-
+        // Umlaute ersetzen
         $name = \mb_strtolower($name, 'UTF-8');
         $name = \str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $name);
 
+        // Sonderzeichen durch Bindestriche ersetzen
         $replaced = \preg_replace('/[^a-z0-9]+/', '-', $name);
-        $name = \is_string($replaced) ? $replaced : $name;
+        $name = \is_string($replaced) ? $replaced : '';
 
+        // Mehrfache Bindestriche entfernen
         $replaced2 = \preg_replace('/-+/', '-', $name);
-        $name = \is_string($replaced2) ? $replaced2 : $name;
+        $name = \is_string($replaced2) ? $replaced2 : '';
 
         return \trim($name, '-') . $ext;
     }

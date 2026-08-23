@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Actions;
 
-use App\Application\Attribute\ActionRoute;
+use App\Application\Attribute\RequiresAuth;
+use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\DTO\DashboardViewRequest;
 use App\Application\Http\ServerRequest;
@@ -15,8 +16,8 @@ use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
-use App\Contracts\Storage\GroupRepositoryInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
@@ -32,7 +33,8 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[ActionRoute('render_dashboard')]
+#[Route('GET', '/render_dashboard')]
+#[RequiresAuth]
 final readonly class DashboardRenderAction implements ViewActionInterface
 {
     public function __construct(
@@ -41,7 +43,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private BackupServiceInterface $backupService,
         private CancelledPermitRepositoryInterface $cancelledRepository,
         private ConfigInterface $config,
-        private GroupRepositoryInterface $groupRepository,
+        private RoleRepositoryInterface $roleRepository, // Geändert!
         private ImageStorageInterface $imageStorage,
         private MailLogInterface $mailLog,
         private PermitArchiveRepositoryInterface $archiveRepository,
@@ -84,12 +86,11 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         // 3. Datenbestände kombinieren
         $allHistoricalAndActive = $allActivePermits;
         $filteredHistoricalAndActive = $filteredActive;
-
         $queryLower = \strtolower(\trim($dto->query));
+
         foreach ($archivedPermits as $p) {
             $allHistoricalAndActive[] = $p;
             $pDate = $p->getCreatedAt()->format('Y-m-d');
-
             if ($pDate < $dto->start || $pDate > $dto->end) {
                 continue;
             }
@@ -119,7 +120,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $vouchers = $this->voucherRepository->loadAll();
         $voucherValidities = [];
         foreach ($vouchers as $code => $v) {
-            // FIX: Verwende $v->code->value als Schlüssel, da es ein Value Object ist!
             $voucherValidities[$code] = $this->voucherService->isValid($v);
         }
 
@@ -150,7 +150,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'filterStart' => $dto->start,
             'filterType' => $dto->type,
             'formData' => $formData, // An Template übergeben
-            'groupRepository' => $this->groupRepository,
+            'roleRepository' => $this->roleRepository, // Geändert!
             'imageStorage' => $this->imageStorage,
             'itemsPerPage' => $dto->limit,
             'mailLogs' => $this->mailLog->loadLogs(),
