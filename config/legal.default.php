@@ -1,0 +1,120 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'agreements' => [
+        'datenschutz' => [
+            'label' => 'Ich willige in die Datenverarbeitung gemäß [Datenschutzerklärung] ein.',
+            'link' => 'assets/documents/datenschutz.pdf',
+            'required' => true,
+        ],
+        'ordnung' => [
+            'label' => 'Ich habe [Abschnitt VI der Vereinsordnung] zur Kenntnis genommen.',
+            'link' => 'assets/documents/Ordnung_KGA.pdf',
+            'required' => true,
+        ],
+        'newsletter' => [
+            'label' => 'Ich möchte den [Newsletter] abonnieren.',
+            'link' => null,
+            'required' => false,
+        ],
+    ],
+
+    'consent' => [
+        'enabled' => true,
+        'texts' => [
+            'title' => 'Datenschutz & Cookies',
+            'description' => 'Wir nutzen Cookies und ähnliche Technologien auf unserer Website. Einige von ihnen sind essenziell für den Betrieb der Seite (z. B. für den Antragsfortschritt), während andere uns helfen, diese Website zu verbessern.',
+            'accept_all' => '🍪 Ich mag Cookies! [Alle akzeptieren] 🍪',
+            'accept_essential' => '[Nur essenzielle]',
+            'save_selection' => 'Auswahl speichern',
+            'show_details' => 'Details einblenden',
+            'hide_details' => 'Details ausblenden',
+            'link_datenschutz' => 'Datenschutzerklärung',
+            'link_impressum' => 'Impressum',
+        ],
+        'groups' => [
+            'essential' => [
+                'id' => 'essential',
+                'title' => 'Essenziell (Technisch notwendig)',
+                'description' => 'Diese Cookies sind für die Kernfunktionen der Website (wie das temporäre Speichern Ihrer Formulardaten und das Session-Management) zwingend erforderlich.',
+                'required' => true,
+            ],
+            'analytics' => [
+                'id' => 'analytics',
+                'title' => 'Statistiken (Google Analytics)',
+                'description' => 'Erfasst anonyme Statistiken über die Nutzung unserer Website, um unser Angebot zu verbessern. Es werden keine personenbezogenen Daten an Google übermittelt. Ihre IP-Adresse wird anonymisiert. Sie helfen uns Sehr, wenn Sie diese Statistik-Cookies akzeptieren.',
+                'required' => false,
+            ],
+        ],
+    ],
+
+    'datenschutz' => [
+        'title' => 'Datenschutzerklärung',
+        'letzte_aktualisierung' => 'Juni 2026',
+        'verantwortlich' => [
+            'name' => 'Kleingärtnerverein Mustergarten e.V.',
+            'adresse' => 'Musterstraße 42, 10115 Berlin',
+            'email' => 'vorstand@deinedomain.de',
+        ],
+        'aufsichtsbehoerde' => [
+            'name' => 'Berliner Beauftragte für Datenschutz und Informationsfreiheit',
+            'adresse' => 'Alt-Moabit 59-61, 10555 Berlin',
+        ],
+        'sections' => [
+            'allgemein' => [
+                'title' => '1. Allgemeine Hinweise und Pflichtinformationen',
+                'text' => 'Der Schutz Ihrer persönlichen Daten ist uns ein ernstes Anliegen. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend den gesetzlichen Datenschutzvorschriften (insbesondere der EU-Datenschutz-Grundverordnung DSGVO sowie dem Bundesdatenschutzgesetz BDSG). Wenn Sie dieses System zur Beantragung von Ausnahmegenehmigungen nutzen, werden verschiedene personenbezogene Daten erhoben. Diese Erklärung erläutert, welche Daten wir erheben und wofür wir sie nutzen.',
+            ],
+            'hosting' => [
+                'title' => '2. Bereitstellung der Website (Hosting) und Server-Logfiles',
+                'text' => 'Der Provider dieser Seiten erhebt und speichert automatisch Informationen in sogenannten Server-Logfiles, die Ihr Browser automatisch an uns übermittelt. Dies sind: Browsertyp/-version, verwendetes Betriebssystem, Referrer URL, Hostname des zugreifenden Rechners, Uhrzeit der Serveranfrage und die IP-Adresse. Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen. Die Erfassung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der fehlerfreien Darstellung und Sicherheit der Website).',
+            ],
+            'cookies' => [
+                'title' => '3. Technisch notwendige Cookies (PHP-Session)',
+                'text' => 'Diese Website verwendet ein technisch notwendiges Cookie, um die Antragsdaten während des Ausfüllens und des Verifizierungsprozesses zwischenzuspeichern (Session-Management). Dieses Cookie wird nach dem Schließen Ihres Browsers automatisch gelöscht. Es werden keine Marketing- oder Tracking-Cookies ohne Ihre explizite Zustimmung gesetzt. Rechtsgrundlage ist § 25 Abs. 2 Nr. 2 TTDSG / TDDDG (unbedingte Erforderlichkeit zur Bereitstellung des Dienstes).',
+            ],
+            'antrag' => [
+                'title' => '4. Datenerfassung im Antragsformular',
+                'text' => 'Bei der Beantragung einer Ausnahmegenehmigung erfassen wir Name, E-Mail-Adresse, Kfz-Kennzeichen, Parzellennummer, Antragstyp, ggf. Firmenname und den Verwendungszweck. Zweck ist die Prüfung, Ausstellung und Kontrolle von zeitlich befristeten Befahrungserlaubnissen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung/vorvertragliche Maßnahmen) sowie Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse zur Regulierung des Verkehrs auf dem Vereinsgelände).',
+            ],
+            'double_opt_in' => [
+                'title' => '5. Double-Opt-In und Einwilligungsprotokollierung',
+                'text' => 'Zur Vermeidung von Missbrauch werden Ihre Daten nach dem Absenden temporär verschlüsselt gespeichert, bis Sie den Bestätigungslink in der Verifizierungs-E-Mail anklicken. Ihre erteilten Zustimmungen (z. B. zu AGB oder Datenschutz) werden rechtssicher als strukturiertes Protokoll (JSON) dauerhaft am Datensatz der Genehmigung gespeichert, um unserer Nachweispflicht nach Art. 7 Abs. 1 DSGVO nachzukommen (Rechtsgrundlage: Art. 6 Abs. 1 lit. c DSGVO).',
+            ],
+            'emails' => [
+                'title' => '6. E-Mail-Versand und Protokollierung',
+                'text' => 'Um Ihnen Verifizierungs-Links und die fertigen Genehmigungs-PDFs zuzustellen, verarbeitet das System E-Mails über eine interne Warteschlange (Mail-Queue). Der Versand erfolgt über den SMTP-Server unseres Webhosting-Providers, mit dem ein Vertrag zur Auftragsverarbeitung (AVV) geschlossen wurde. Zum Nachweis der Zustellung werden Empfängeradresse und Sendezeitpunkt protokolliert (Art. 6 Abs. 1 lit. f DSGVO).',
+            ],
+            'anonymisierung' => [
+                'title' => '7. Speicherdauer und automatisierte Anonymisierung',
+                'text' => 'Daten aktiver Genehmigungen bleiben für die Dauer ihrer Gültigkeit im System einsehbar, um Kontrollen zu ermöglichen. Nach Ablauf der Gültigkeit und des laufenden Kalenderjahres werden personenbezogene Klartextdaten (Name, E-Mail) über eine integrierte Anonymisierungsfunktion unwiderruflich gelöscht, sofern keine steuerlichen Aufbewahrungspflichten entgegenstehen. Das Kennzeichen und die erteilten Zustimmungen verbleiben anonymisiert zu Nachweiszwecken im Archiv.',
+            ],
+            'google_analytics' => [
+                'title' => '8. Webanalyse via Google Analytics (Optional)',
+                'text' => 'Sofern Sie über unser Consent-Banner eingewilligt haben (Art. 6 Abs. 1 lit. a DSGVO), nutzen wir Google Analytics der Google Ireland Ltd. zur Auswertung der Websitenutzung. Die IP-Anonymisierung ist aktiviert, sodass IP-Aderssen innerhalb der EU vor der Übermittlung in die USA gekürzt werden. Sie können diese Einwilligung jederzeit über die Browsereinstellungen oder ein Google-Deaktivierungs-Add-on widerrufen.',
+            ],
+        ],
+    ],
+
+    'impressum' => [
+        'title' => 'Impressum',
+        'verein' => 'Kleingärtnerverein Mustergarten e.V.',
+        'adresse' => 'Musterstraße 42, 10115 Berlin',
+        'vorstand' => ['Max Mustermann (1. Vorsitzender)', 'Erika Mustermann (2. Vorsitzende)'],
+        'kontakt' => [
+            'telefon' => '+49 (0) 30 1234567',
+            'email' => 'vorstand@deinedomain.de',
+        ],
+        'register' => [
+            'gericht' => 'Amtsgericht Charlottenburg (Berlin)',
+            'nummer' => 'VR 12345 B',
+        ],
+        'ust_id' => null,
+        'verantwortlich_18_mstv' => [
+            'name' => 'Max Mustermann',
+            'adresse' => 'Anschrift wie oben',
+        ],
+    ],
+];

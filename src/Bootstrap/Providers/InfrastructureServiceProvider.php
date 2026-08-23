@@ -32,6 +32,7 @@ use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
 use App\Contracts\System\SystemUpdaterInterface;
@@ -72,6 +73,7 @@ use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
+use App\Infrastructure\System\FileRouteCache;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 use PDO;
@@ -296,5 +298,13 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
+
+        // Route Cache Binding für die ActionRegistry
+        $container->bind(RouteCacheInterface::class, function () use ($container): FileRouteCache {
+            $config = $container->get(ConfigInterface::class);
+            \assert($config instanceof ConfigInterface);
+
+            return new FileRouteCache($config);
+        });
     }
 }

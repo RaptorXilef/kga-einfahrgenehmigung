@@ -11,7 +11,8 @@
 declare(strict_types=1);
 
 return [
-    'user' => 'Systembetreuer',    // Hier kannst du den Namen jederzeit ändern
-    'pass' => 'mein_passwort_123', // Ändere dieses Passwort unbedingt!
-    'label' => 'Systembetreuer',    // Der Anzeigename im System
+    'Systembetreuer' => [
+        'pass' => 'mein_passwort_123',
+        'label' => 'Systembetreuer',
+    ],
 ];
