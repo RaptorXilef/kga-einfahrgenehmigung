@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.57.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.57.0...v0.57.1) (2026-08-23)
+
+### 🧹 Chore / Maintenance
+
+* **finance:** Isolate bank import logs into dedicated file ([2591196](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/25911961c683b752cc74131c4c7db16eef5ee4ce))
+
 ## [0.57.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.56.0...v0.57.0) (2026-08-23)
 
 ### 🚀 Features
