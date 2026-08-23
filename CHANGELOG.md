@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.57.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.56.0...v0.57.0) (2026-08-23)
+
+### 🚀 Features
+
+* **core:** Supercharge CSV normalization for bomb-proof bank imports ([261c35f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/261c35f3f3a982eb20ae8cadf96c45bb2beb2776))
+
 ## [0.56.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.55.4...v0.56.0) (2026-08-21)
 
 ### 🚀 Features
