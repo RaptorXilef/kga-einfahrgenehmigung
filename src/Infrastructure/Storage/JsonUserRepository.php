@@ -11,8 +11,6 @@ use App\Core\Entity\User;
 
 /**
  * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class JsonUserRepository implements UserRepositoryInterface
 {
@@ -28,8 +26,8 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
     {
         $cfg = $this->config->get('storage_config')['users'];
         $path = $this->config->getStoragePath($cfg['file']);
-
         $users = [];
+
         if (!\file_exists($path)) {
             return $users;
         }
@@ -37,10 +35,10 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
         $data = $this->jsonHelper->read($path);
         foreach ($data as $id => $row) {
             $users[$id] = new User(
-                $id,
-                $row['username'],
-                $row['group'],
-                $row['pass'],
+                (string) $id,
+                $row['username'] ?? '',
+                $row['role_id'] ?? $row['group'] ?? 'guest', // <-- FIX: Rückwärtskompatibilität!
+                $row['pass'] ?? $row['password_hash'] ?? '',
             );
         }
 
@@ -64,7 +62,7 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
         foreach ($users as $id => $user) {
             $dataToSave[$id] = [
                 'username' => $user->username,
-                'group' => $user->groupId,
+                'role_id' => $user->roleId,
                 'pass' => $user->passwordHash,
             ];
         }
@@ -77,7 +75,12 @@ final readonly class JsonUserRepository implements UserRepositoryInterface
     {
         $objects = [];
         foreach ($data as $id => $row) {
-            $objects[$id] = new User((string) $id, $row['username'] ?? '', $row['group'] ?? 'guest', $row['pass'] ?? '');
+            $objects[$id] = new User(
+                (string) $id,
+                $row['username'] ?? '',
+                $row['role_id'] ?? $row['group'] ?? 'guest',
+                $row['pass'] ?? '',
+            );
         }
         $this->saveAll($objects);
     }

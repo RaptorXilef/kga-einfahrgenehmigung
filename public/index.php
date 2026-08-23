@@ -1,22 +1,23 @@
 <?php
 
-/**
- * Haupteinstiegspunkt der Anwendung.
- *
- * Initialisiert die Umgebung und delegiert Anfragen an den PermitService.
- * Trennt Request-Handling von der Geschäftslogik.
- *
- * Path: public/index.php
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-
 declare(strict_types=1);
 
+use App\Application\Contracts\ResponseInterface;
+use App\Application\FrontendController;
 use App\Application\Http\ServerRequest;
-use App\Application\PermitController;
+use App\Bootstrap\Container;
 
 $container = require_once __DIR__ . '/../src/Bootstrap/app.php';
+\assert($container instanceof Container);
 
-$req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER);
-$container->get(PermitController::class)->handleRequest($req);
+// ServerRequest muss auf das neue Format aus TwoKinds (mit Cookies) reagieren.
+// Falls deine Klasse Cookies noch nicht unterstützt, können wir das gleich nachrüsten.
+$req = new ServerRequest($_GET, $_POST, $_FILES, $_SERVER, [], $_COOKIE ?? []);
+
+$controller = $container->get(FrontendController::class);
+\assert($controller instanceof FrontendController);
+
+$response = $controller->handleRequest($req);
+if ($response instanceof ResponseInterface) {
+    $response->send();
+}

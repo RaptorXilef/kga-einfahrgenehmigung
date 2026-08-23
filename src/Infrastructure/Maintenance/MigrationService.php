@@ -10,22 +10,22 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Storage\JsonAuditLogRepository;
 use App\Infrastructure\Storage\JsonCancelledPermitRepository;
-use App\Infrastructure\Storage\JsonGroupRepository;
 use App\Infrastructure\Storage\JsonLoginAttemptRepository;
 use App\Infrastructure\Storage\JsonMagicLinkRepository;
 use App\Infrastructure\Storage\JsonMailQueueRepository;
 use App\Infrastructure\Storage\JsonPermitArchiveRepository;
+use App\Infrastructure\Storage\JsonRoleRepository;
 use App\Infrastructure\Storage\JsonStorage;
 use App\Infrastructure\Storage\JsonUserRepository;
 use App\Infrastructure\Storage\JsonVerificationRepository;
 use App\Infrastructure\Storage\JsonVoucherRepository;
 use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
-use App\Infrastructure\Storage\MySqlGroupRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
 use App\Infrastructure\Storage\MySqlMagicLinkRepository;
 use App\Infrastructure\Storage\MySqlMailQueueRepository;
 use App\Infrastructure\Storage\MySqlPermitArchiveRepository;
+use App\Infrastructure\Storage\MySqlRoleRepository;
 use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
@@ -84,10 +84,9 @@ final readonly class MigrationService implements MigrationServiceInterface
         }
 
         try {
-            // Logik für das "Alles Migrieren"
             if ($target === 'all') {
                 $targetsToMigrate = [
-                    'groups',
+                    'roles', // <-- FIX: War groups
                     'login_attempts',
                     'magic_links',
                     'mail_log',
@@ -118,7 +117,6 @@ final readonly class MigrationService implements MigrationServiceInterface
                 return "Voll-Backup erstellt in $backupFolder. <br>Erfolg: $count Bereiche komplett migriert ($action).";
             }
 
-            // Bisherige Einzel-Logik
             $result = match ($action) {
                 'json_to_mysql' => $this->migrateJsonToSql($target),
                 'mysql_to_json' => $this->migrateSqlToJson($target),
@@ -127,11 +125,10 @@ final readonly class MigrationService implements MigrationServiceInterface
             };
 
             return "Backup erstellt in $backupFolder. <br>" . $result;
+
         } catch (Throwable $e) {
-            // Fehler direkt in die Log-Datei schreiben...
             \error_log("Migration Error ({$target} / {$action}): " . $e->getMessage() . "\n" . $e->getTraceAsString());
 
-            // ... und als rote Meldung ins Dashboard zurückgeben!
             return 'Kritischer Fehler bei der Migration: ' . $e->getMessage();
         }
     }
@@ -478,7 +475,7 @@ final readonly class MigrationService implements MigrationServiceInterface
 
         match ($key) {
             'audit_logs' => (new MySqlAuditLogRepository($this->pdo, $this->config))->import($data),
-            'groups' => (new MySqlGroupRepository($this->pdo, $this->config, $this->jsonHelper))->import($data),
+            'roles' => (new MySqlRoleRepository($this->pdo, $this->config, $this->jsonHelper))->import($data),
             'users' => (new MySqlUserRepository($this->pdo, $this->config))->import($data),
             'login_attempts' => (new MySqlLoginAttemptRepository($this->pdo, $this->config))->import($data),
             'magic_links' => (new MySqlMagicLinkRepository($this->pdo, $this->config))->import($data),
@@ -507,7 +504,7 @@ final readonly class MigrationService implements MigrationServiceInterface
     {
         match ($key) {
             'audit_logs' => (new JsonAuditLogRepository($this->config, $this->jsonHelper))->import($data),
-            'groups' => (new JsonGroupRepository($this->config, $this->jsonHelper))->import($data),
+            'roles' => (new JsonRoleRepository($this->config, $this->jsonHelper))->import($data),
             'users' => (new JsonUserRepository($this->config, $this->jsonHelper))->import($data),
             'login_attempts' => (new JsonLoginAttemptRepository($this->config, $this->jsonHelper))->import($data),
             'magic_links' => (new JsonMagicLinkRepository($this->config, $this->jsonHelper))->import($data),

@@ -12,12 +12,11 @@ use PDO;
 
 /**
  * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class MySqlUserRepository implements UserRepositoryInterface
 {
     use DynamicSqlTrait;
+    use EntityHydratorTrait; // <-- Nutzt jetzt Hydrator für sauberes Laden
 
     public function __construct(
         private PDO $pdo,
@@ -32,12 +31,11 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
 
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $users[$row['id']] = new User(
-                $row['id'],
-                $row['username'],
-                $row['group'],
-                $row['pass'],
-            );
+            // Mapping für Legacy Spaltennamen ('group' -> 'roleId', 'pass' -> 'passwordHash')
+            $users[$row['id']] = $this->hydrateEntity(User::class, $row, [
+                'roleId' => $row['role_id'] ?? $row['group'] ?? 'guest',
+                'passwordHash' => $row['pass'] ?? $row['password_hash'] ?? '',
+            ]);
         }
 
         return $users;
@@ -48,14 +46,12 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
      */
     public function saveAll(array $users, bool $forceSql = false): void
     {
-        // $forceSql wird hier ignoriert, da wir ohnehin in MySQL speichern.
         $table = $this->config->get('storage_config')['users']['table'];
 
         $this->pdo->beginTransaction();
 
         try {
             $this->pdo->exec("DELETE FROM `{$table}`");
-
             $sql = null;
             $stmt = null;
 
@@ -63,7 +59,7 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
                 $data = [
                     'id' => $id,
                     'username' => $user->username,
-                    'group' => $user->groupId,
+                    'role_id' => $user->roleId, // <-- FIX!
                     'pass' => $user->passwordHash,
                 ];
 
@@ -71,8 +67,10 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
                     $sql = $this->buildReplaceSql($table, $data);
                     $stmt = $this->pdo->prepare($sql);
                 }
+
                 $stmt->execute($data);
             }
+
             $this->pdo->commit();
         } catch (Exception $e) {
             $this->pdo->rollBack();
@@ -85,7 +83,12 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
     {
         $objects = [];
         foreach ($data as $id => $row) {
-            $objects[$id] = new User((string) $id, $row['username'] ?? '', $row['group'] ?? 'guest', $row['pass'] ?? '');
+            $objects[$id] = new User(
+                (string) $id,
+                $row['username'] ?? '',
+                $row['role_id'] ?? $row['group'] ?? 'guest',
+                $row['pass'] ?? '',
+            );
         }
         $this->saveAll($objects);
     }
