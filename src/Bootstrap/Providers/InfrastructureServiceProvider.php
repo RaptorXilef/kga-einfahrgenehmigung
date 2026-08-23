@@ -29,6 +29,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
+use App\Contracts\System\AssetHelperInterface; // <-- NEU
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
@@ -74,6 +75,7 @@ use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\FileRouteCache;
+use App\Infrastructure\System\LocalAssetHelper; // <-- NEU
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 use PDO;
@@ -104,7 +106,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          |--------------------------------------------------------------------------
          | Grundlegende Datenbankverbindungen und persistente Systemspeicher.
          */
-
         $container->bind(PDO::class, fn (): ?PDO => PdoFactory::create(
             $container->get(ConfigInterface::class),
         ));
@@ -125,7 +126,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          | Entscheidet zur Laufzeit anhand der Konfiguration (storage_config),
          | ob die Daten im JSON-Flatfile oder in einer MySQL-Tabelle landen.
          */
-
         $container->bind(AuditLogRepositoryInterface::class, function () use ($container): MySqlAuditLogRepository|JsonAuditLogRepository {
             $config = $container->get(ConfigInterface::class);
 
@@ -213,10 +213,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          |--------------------------------------------------------------------------
          | Externe APIs, Payment-Provider und E-Mail Versand.
          */
-
         $container->bind(PaymentProviderInterface::class, fn (): mixed => $container->get(PayPalService::class));
 
-        // Mail Decorator Pattern: Trennt asynchrone Warteschlange (Queue) vom echten Versand (SMTP)
         $container->bind('mail.smtp', fn (): SmtpMailService => new SmtpMailService(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
@@ -236,11 +234,8 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          |--------------------------------------------------------------------------
          | Schutzmechanismen gegen Brute-Force, Dateizugriff und Auth-Handling.
          */
-
         $container->bind(AuthSessionInterface::class, fn (): object => clone $container->get(SessionManager::class));
-
         $container->bind(LockManagerInterface::class, fn (): mixed => $container->get(FileLockManager::class));
-
         $container->bind(RateLimiterInterface::class, fn (): mixed => $container->get(RateLimiter::class));
 
         /*
@@ -249,23 +244,14 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          |--------------------------------------------------------------------------
          | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
          */
-
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
-
         $container->bind(CronStateRepositoryInterface::class, fn (): mixed => $container->get(FileCronStateRepository::class));
-
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
-
         $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));
-
         $container->bind(JsonHelperInterface::class, fn (): JsonHelper => new JsonHelper());
-
         $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(StorageBootstrapper::class));
-
         $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
-
         $container->bind(SystemUpdaterInterface::class, fn (): mixed => $container->get(GitHubUpdaterService::class));
-
         $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
 
         // Haupt-Migrations-Dienst
@@ -282,6 +268,14 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             \assert($config instanceof ConfigInterface);
 
             return new FileRouteCache($config);
+        });
+
+        // <-- NEU: Hier ist das fehlende Binding
+        $container->bind(AssetHelperInterface::class, function () use ($container): LocalAssetHelper {
+            $config = $container->get(ConfigInterface::class);
+            \assert($config instanceof ConfigInterface);
+
+            return new LocalAssetHelper($config);
         });
     }
 }

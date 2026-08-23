@@ -1,9 +1,0 @@
-{
-    "_meta": "Auswahlmöglichkeiten für den Grund der Einfahrt im Antragsformular.",
-    "purposes": {
-        "bau": "Baumaßnahmen (genehmigt)",
-        "abriss": "Abriss",
-        "liefer": "Lieferung",
-        "entsorg": "Entsorgung\/Abfuhr"
-    }
-}
