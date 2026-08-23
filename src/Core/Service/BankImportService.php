@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Service;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use DateTimeImmutable;
@@ -13,6 +14,7 @@ final readonly class BankImportService
     public function __construct(
         private StorageInterface $storage,
         private PermitService $permitService,
+        private ConfigInterface $config,
     ) {
     }
 
@@ -57,19 +59,19 @@ final readonly class BankImportService
     public function processCsv(string $filePath, int $idCol, int $amountCol, int $dateCol): array
     {
         if (!\file_exists($filePath)) {
-            \error_log("BankImport Fehler: Die Datei '{$filePath}' konnte nicht gefunden werden.");
+            $this->writeLog("Fehler: Die Datei '{$filePath}' konnte nicht gefunden werden.");
 
             return ['success' => false, 'message' => 'Datei konnte nicht gefunden werden.'];
         }
 
-        \error_log('BankImport: Starte Dateireinigung und Verarbeitung der CSV...');
+        $this->writeLog('Starte Dateireinigung und Verarbeitung der CSV...');
 
         // 1. Die komplette Datei vorab waschen (BOM, Encoding, Umbrüche)
         $this->prepareAndNormalizeFile($filePath);
 
         $handle = \fopen($filePath, 'r');
         if ($handle === false) {
-            \error_log("BankImport Fehler: Die Datei '{$filePath}' konnte nicht zum Lesen geöffnet werden.");
+            $this->writeLog("Fehler: Die Datei '{$filePath}' konnte nicht zum Lesen geöffnet werden.");
 
             return ['success' => false, 'message' => 'Datei konnte nicht gelesen werden.'];
         }
@@ -98,7 +100,7 @@ final readonly class BankImportService
             if (!isset($row[$idCol], $row[$amountCol], $row[$dateCol])) {
                 $colCount = \count($row);
                 $errorMsg = "Zeile {$rowNumber} (Spalten fehlen, nur {$colCount} vorhanden)";
-                \error_log("BankImport [Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
+                $this->writeLog("[Zeile {$rowNumber}] Fehler: Benötigte Spalten fehlen. Verfügbare Spalten: {$colCount}.");
                 $unlesbareZeilenDetails[] = $errorMsg;
                 continue;
             }
@@ -108,7 +110,7 @@ final readonly class BankImportService
             $datumRaw = (string) $row[$dateCol];
 
             if (!\preg_match_all('/([ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8})/', \strtoupper($verwendungszweck), $matches)) {
-                \error_log("BankImport [Zeile {$rowNumber}] Info: Kein 8-stelliger System-Code gefunden. Rohdaten Zweck: '{$verwendungszweck}'");
+                $this->writeLog("[Zeile {$rowNumber}] Info: Kein 8-stelliger System-Code gefunden. Rohdaten Zweck: '{$verwendungszweck}'");
                 continue;
             }
 
@@ -117,7 +119,7 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
             $gefundeneCodes = \implode(', ', $matches[1]);
-            \error_log("BankImport [Zeile {$rowNumber}] Info: Code(s) erkannt: [{$gefundeneCodes}]. Lese Betrag: {$ueberwiesenerBetrag} €");
+            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$gefundeneCodes}]. Lese Betrag: {$ueberwiesenerBetrag} €");
 
             foreach ($matches[1] as $permitId) {
                 $permitIdStr = $permitId;
@@ -130,13 +132,13 @@ final readonly class BankImportService
         }
         \fclose($handle);
 
-        \error_log('BankImport: Dateidurchlauf beendet. Starte Datenbank-Abgleich...');
+        $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...');
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
             $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
-                \error_log("BankImport [Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.");
+                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.");
                 $uebersprungenDetails[] = "{$permitId} (Nicht in Datenbank)";
                 continue;
             }
@@ -144,7 +146,7 @@ final readonly class BankImportService
             $ownerName = $permit->getOwnerName();
 
             if ($permit->isPaid()) {
-                \error_log("BankImport [Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.");
+                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.");
                 $uebersprungenDetails[] = "{$permitId} (Bereits bezahlt - {$ownerName})";
                 continue;
             }
@@ -160,15 +162,18 @@ final readonly class BankImportService
                 $formatierterTag = $this->parseDate($datumRaw);
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
 
-                if ($this->permitService->manualActivate($permit->code->value, $grund, $formatierterTag)) {
-                    \error_log("BankImport [Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.");
+                // Permit erwartet `$permit->code` als String (ValueObject wurde hier schon dekonstruiert oder ist String, wir sichern uns mit ->value ab falls nötig, im Rector-Code war es String)
+                $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
+
+                if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
+                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.");
                     $erfolgreichDetails[] = "{$permitId} ({$istFormatted} - {$ownerName})";
                 } else {
-                    \error_log("BankImport [Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.");
+                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.");
                     $fehlerhaftDetails[] = "{$permitId} (Speicherfehler - {$ownerName})";
                 }
             } else {
-                \error_log("BankImport [Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
+                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)");
                 $fehlerhaftDetails[] = "{$permitId} ({$istFormatted} statt {$sollFormatted} - {$ownerName})";
             }
         }
@@ -183,7 +188,7 @@ final readonly class BankImportService
         $uebCount = \count($uebersprungenDetails);
         $fehlCount = \count($fehlerhaftDetails) + \count($unlesbareZeilenDetails);
 
-        \error_log("BankImport: Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}");
+        $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---");
 
         @\unlink($filePath);
 
@@ -197,6 +202,23 @@ final readonly class BankImportService
             'fehlerhaft_details' => $fehlerhaftDetails,
             'unlesbare_zeilen_details' => $unlesbareZeilenDetails,
         ];
+    }
+
+    /**
+     * Schreibt eine formatierte Log-Nachricht in die dedizierte Bank-Import-Logdatei.
+     */
+    private function writeLog(string $message): void
+    {
+        $logDir = $this->config->getStoragePath('logs');
+        if (!\is_dir($logDir)) {
+            @\mkdir($logDir, 0o755, true);
+        }
+
+        $logFile = $logDir . '/bank_import.log';
+        $timestamp = \date('d-M-Y H:i:s e');
+        $formattedMessage = "[$timestamp] BankImport: $message\n";
+
+        @\file_put_contents($logFile, $formattedMessage, \FILE_APPEND | \LOCK_EX);
     }
 
     /**
