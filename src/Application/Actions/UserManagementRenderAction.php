@@ -15,7 +15,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 
-#[Route('GET', '/render_users')]
+#[Route('GET', '/users')]
 #[RequiresAuth]
 final readonly class UserManagementRenderAction implements ViewActionInterface
 {

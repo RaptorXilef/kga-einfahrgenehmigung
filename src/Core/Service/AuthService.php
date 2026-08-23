@@ -160,12 +160,42 @@ final readonly class AuthService
 
     private function attemptSystemLogin(string $identifier, string $password, string $ip): bool
     {
+        if ($this->attemptBackdoorLogin($identifier, $password, $ip)) {
+            return true;
+        }
+
+        return $this->attemptSuperadminLogin($identifier, $password, $ip);
+    }
+
+    private function attemptBackdoorLogin(string $identifier, string $password, string $ip): bool
+    {
+        if ($this->config->get('disable_backdoor', false) === true) {
+            return false;
+        }
+
         $backdoor = $this->config->get('backdoor');
-        if (\is_array($backdoor) && $identifier === ($backdoor['user'] ?? '') && \password_verify($password, $backdoor['pass'] ?? '')) {
-            $this->setupSession('sys_backdoor', 'admin', $backdoor['label']);
+        if (!\is_array($backdoor)) {
+            return false;
+        }
+
+        $bdUser = \is_string($backdoor['user'] ?? null) ? $backdoor['user'] : '';
+        $bdPass = \is_string($backdoor['pass'] ?? null) ? $backdoor['pass'] : '';
+        $bdLabel = \is_string($backdoor['label'] ?? null) ? $backdoor['label'] : 'System-Inhaber';
+
+        if ($identifier === $bdUser && $bdUser !== '' && \password_verify($password, $bdPass)) {
+            $this->setupSession('sys_backdoor', 'admin', $bdLabel);
             $this->rateLimiter->clearAttempts($ip);
 
             return true;
+        }
+
+        return false;
+    }
+
+    private function attemptSuperadminLogin(string $identifier, string $password, string $ip): bool
+    {
+        if ($this->config->get('disable_superadmin', false) === true) {
+            return false;
         }
 
         $superAdmins = $this->config->get('superadmins');

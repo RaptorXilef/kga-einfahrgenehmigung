@@ -21,7 +21,7 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/permit_submit')]
+#[Route('POST', '/')]
 final readonly class PermitSubmitAction implements ViewActionInterface
 {
     public function __construct(

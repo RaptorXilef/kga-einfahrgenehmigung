@@ -42,7 +42,7 @@ final readonly class FrontendController
         $className = $routeMatch['class'];
         $requiresAuth = $routeMatch['requiresAuth'];
 
-        if ($this->isMaintenanceLockActive($className)) {
+        if ($this->isMaintenanceLockActive($className, $relativePath)) {
             return $this->sendMaintenanceResponse($className);
         }
 
@@ -112,13 +112,10 @@ final readonly class FrontendController
         ];
     }
 
-    private function isMaintenanceLockActive(string $className): bool
+    private function isMaintenanceLockActive(string $className, string $relativePath): bool
     {
         $maintenanceMode = $this->config->get('maintenance_mode', false) === true;
         $maintenanceAdmin = $this->config->get('maintenance_mode_admin', false) === true;
-
-        $isAdminAction = \str_contains($className, '\\Admin');
-        $isFrontendAction = !$isAdminAction;
 
         $safeDuringMaintenance = [
             AdminLoginAction::class,
@@ -130,11 +127,15 @@ final readonly class FrontendController
             return false;
         }
 
-        if ($isAdminAction && $maintenanceAdmin) {
+        $isFrontendRoute = \in_array($relativePath, ['/', '/check', '/checkout', '/history', '/success', '/verify', '/datenschutz', '/impressum'], true);
+
+        // Voller Admin-Wartungsmodus (Sperrt alles außer Logins und Cron)
+        if (!$isFrontendRoute && $maintenanceAdmin) {
             return true;
         }
 
-        return $isFrontendAction && $maintenanceMode && $this->sessionManager->getAdminGroup() !== 'admin';
+        // Frontend-Wartungsmodus: Sperrt das Frontend, es sei denn, ein Admin ist eingeloggt
+        return $isFrontendRoute && $maintenanceMode && $this->sessionManager->getAdminGroup() !== 'admin';
     }
 
     private function sendMaintenanceResponse(string $className): ResponseInterface
@@ -144,8 +145,15 @@ final readonly class FrontendController
         }
 
         \ob_start();
-        $rootPathRaw = $this->config->get('root_path');
+        $rootPathRaw = $this->config->get('root_path', '');
         $rootPath = \is_string($rootPathRaw) ? $rootPathRaw : '';
+
+        $settings = [
+            'base_url' => \rtrim($this->config->getBaseUrl(), '/') . '/',
+            'vereins_name' => $this->config->get('vereins_name', 'KGA e.V.'),
+            'maintenance_mode_admin' => $this->config->get('maintenance_mode_admin', false),
+        ];
+
         require_once \rtrim($rootPath, '/\\') . '/public/maintenance.php';
         $html = \ob_get_clean();
 
@@ -170,7 +178,7 @@ final readonly class FrontendController
                 return $action->execute($req);
             }
 
-            return new HtmlResponse('404 Not Found - Route oder Klasse nicht konfiguriert.', 404);
+            return new HtmlResponse('404 Not Found - Die angeforderte Seite existiert nicht.', 404);
         });
 
         if ($response instanceof ResponseInterface) {

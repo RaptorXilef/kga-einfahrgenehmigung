@@ -33,7 +33,7 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET', '/render_dashboard')]
+#[Route('GET', '/admin')]
 #[RequiresAuth]
 final readonly class DashboardRenderAction implements ViewActionInterface
 {

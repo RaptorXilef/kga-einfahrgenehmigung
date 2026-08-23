@@ -27,7 +27,7 @@ use DateTimeImmutable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET', '/check_permit')]
+#[Route('GET', '/check')]
 final readonly class CheckPermitAction implements ViewActionInterface
 {
     public function __construct(

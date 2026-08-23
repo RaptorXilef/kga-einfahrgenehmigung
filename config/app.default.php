@@ -11,6 +11,9 @@ return [
     'max_plot_number' => 1270,
     'use_long_permit_code' => false,
 
+    'disable_backdoor' => false,     // KGA Sicherheitstoggle
+    'disable_superadmin' => false,   // KGA Sicherheitstoggle
+
     'jahresFarbe' => '#2ecc71',
     'permanent_color' => '#3498db',
     'vorlaeufigFarbe' => '#f1c40f',

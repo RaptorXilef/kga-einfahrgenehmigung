@@ -14,14 +14,11 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
 use App\Core\Service\VoucherService;
 
-/**
- * Action zum Rendern des öffentlichen Antragsformulars.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
-#[Route('GET|POST', '/permit_render')]
+// FIX: Hört jetzt auf das Root-Verzeichnis '/' !
+#[Route('GET', '/')]
 final readonly class PermitRenderAction implements ViewActionInterface
 {
+    // ... Konstruktor und Execute bleiben exakt identisch
     public function __construct(
         private ConfigInterface $config,
         private SessionManager $sessionManager,
@@ -31,12 +28,9 @@ final readonly class PermitRenderAction implements ViewActionInterface
     ) {
     }
 
-    // TODO DOCBLOCK
     public function execute(ServerRequest $request): mixed
     {
         $dto = ViewRenderRequest::fromArray($request->get);
-
-        // Wir holen uns die Flash-Messages manuell, um zu sehen, ob ein spezieller Text vorliegt
         $flashes = $this->sessionManager->getFlashes();
         $successMessage = '';
 
@@ -53,14 +47,14 @@ final readonly class PermitRenderAction implements ViewActionInterface
             'formData' => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),
             'success' => $dto->isSuccess,
-            'message' => $successMessage, // <--- FIX: Die Variable für den Countdown zurückgeben!
-            'flashes' => $flashes, // Flashes manuell an die View übergeben, da wir sie oben schon "geleert" haben
+            'message' => $successMessage,
+            'flashes' => $flashes,
         ]);
 
         return null;
     }
 
-    // TODO DOCBLOCK
+    // ... Rest bleibt gleich
     private function checkAvailableVouchers(): bool
     {
         $vouchers = $this->voucherRepository->loadAll();
@@ -73,7 +67,6 @@ final readonly class PermitRenderAction implements ViewActionInterface
         return false;
     }
 
-    // TODO DOCBLOCK
     private function getParsedAgreements(): array
     {
         $agreementsConfig = $this->config->get('agreements', []);
@@ -82,7 +75,6 @@ final readonly class PermitRenderAction implements ViewActionInterface
 
         foreach ($agreementsConfig as $key => $agree) {
             $cleanLabel = \htmlspecialchars($agree['label']);
-
             if (!empty($agree['link'])) {
                 if (\filter_var($agree['link'], \FILTER_VALIDATE_URL)) {
                     $finalLink = $agree['link'];
