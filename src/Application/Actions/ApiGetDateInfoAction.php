@@ -16,8 +16,6 @@ use Throwable;
 /**
  * Action für den API-Aufruf zur Abfrage der erlaubten Einfahrtszeiten
  * und Ruhetage für einen gewählten Zeitraum.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET|POST', '/get_date_info')]
 final readonly class ApiGetDateInfoAction implements ViewActionInterface
@@ -31,6 +29,7 @@ final readonly class ApiGetDateInfoAction implements ViewActionInterface
     {
         try {
             $dto = ApiDateInfoRequest::fromArray($request->input);
+
             $holidays = $this->holidayService->getHolidaysInRange($dto->von, $dto->bis);
             $openingData = $this->holidayService->getOpeningHoursDataForDateRange($dto->von, $dto->bis);
 

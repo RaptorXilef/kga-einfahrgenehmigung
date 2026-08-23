@@ -1,11 +1,64 @@
 <?php return array (
   'exact' => 
   array (
+    'GET' => 
+    array (
+      '/admin_login' => 
+      array (
+        'class' => 'App\\Application\\Actions\\AdminLoginAction',
+        'auth' => false,
+      ),
+      '/admin_print' => 
+      array (
+        'class' => 'App\\Application\\Actions\\AdminPrintAction',
+        'auth' => false,
+      ),
+      '/checkout' => 
+      array (
+        'class' => 'App\\Application\\Actions\\CheckoutAction',
+        'auth' => false,
+      ),
+      '/check' => 
+      array (
+        'class' => 'App\\Application\\Actions\\CheckPermitAction',
+        'auth' => false,
+      ),
+      '/admin' => 
+      array (
+        'class' => 'App\\Application\\Actions\\DashboardRenderAction',
+        'auth' => true,
+      ),
+      '/history' => 
+      array (
+        'class' => 'App\\Application\\Actions\\HistoryRenderAction',
+        'auth' => false,
+      ),
+      '/' => 
+      array (
+        'class' => 'App\\Application\\Actions\\PermitRenderAction',
+        'auth' => false,
+      ),
+      '/render_profile' => 
+      array (
+        'class' => 'App\\Application\\Actions\\ProfileRenderAction',
+        'auth' => true,
+      ),
+      '/users' => 
+      array (
+        'class' => 'App\\Application\\Actions\\UserManagementRenderAction',
+        'auth' => true,
+      ),
+    ),
     'POST' => 
     array (
       '/admin_login' => 
       array (
         'class' => 'App\\Application\\Actions\\AdminLoginAction',
+        'auth' => false,
+      ),
+      '/api/get_template_price' => 
+      array (
+        'class' => 'App\\Application\\Actions\\ApiGetTemplatePriceAction',
         'auth' => false,
       ),
       '/bank_import_process' => 
@@ -99,11 +152,6 @@
       '/get_date_info' => 
       array (
         'class' => 'App\\Application\\Actions\\ApiGetDateInfoAction',
-        'auth' => false,
-      ),
-      '/get_template_price' => 
-      array (
-        'class' => 'App\\Application\\Actions\\ApiGetTemplatePriceAction',
         'auth' => false,
       ),
       '/search_permits' => 
@@ -320,49 +368,6 @@
       array (
         'class' => 'App\\Application\\Actions\\VoucherDeleteAction',
         'auth' => false,
-      ),
-    ),
-    'GET' => 
-    array (
-      '/admin_print' => 
-      array (
-        'class' => 'App\\Application\\Actions\\AdminPrintAction',
-        'auth' => false,
-      ),
-      '/checkout' => 
-      array (
-        'class' => 'App\\Application\\Actions\\CheckoutAction',
-        'auth' => false,
-      ),
-      '/check' => 
-      array (
-        'class' => 'App\\Application\\Actions\\CheckPermitAction',
-        'auth' => false,
-      ),
-      '/admin' => 
-      array (
-        'class' => 'App\\Application\\Actions\\DashboardRenderAction',
-        'auth' => true,
-      ),
-      '/history' => 
-      array (
-        'class' => 'App\\Application\\Actions\\HistoryRenderAction',
-        'auth' => false,
-      ),
-      '/' => 
-      array (
-        'class' => 'App\\Application\\Actions\\PermitRenderAction',
-        'auth' => false,
-      ),
-      '/render_profile' => 
-      array (
-        'class' => 'App\\Application\\Actions\\ProfileRenderAction',
-        'auth' => true,
-      ),
-      '/users' => 
-      array (
-        'class' => 'App\\Application\\Actions\\UserManagementRenderAction',
-        'auth' => true,
       ),
     ),
   ),

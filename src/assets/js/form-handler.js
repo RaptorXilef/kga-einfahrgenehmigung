@@ -267,7 +267,7 @@ export class PermitFormHandler {
 
         try {
             // Umgestellt auf POST mit JSON-Body, um Gutscheincodes aus der URL fernzuhalten
-            const response = await fetch(`${baseUrl}api/get_template_price.php`, {
+            const response = await fetch(`${baseUrl}api/get_template_price`, {
                 method: 'POST',
 
                 // Den Schlüssel im Header mitsenden (API-Key)

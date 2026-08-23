@@ -20,10 +20,8 @@ use Throwable;
 /**
  * Action für die dynamische Preisberechnung via API.
  * Evaluiert Vorlagen-Preise, Fahrzeugtypen und Gutscheincodes.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/get_template_price')]
+#[Route('POST', '/api/get_template_price')]
 final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 {
     public function __construct(
@@ -47,7 +45,6 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
             $template = $templates[$dto->key] ?? $templates['std_7'];
 
             $originalPrice = (float) ($template['prices'][$dto->typ] ?? 0.0);
-
             $finalPrice = $originalPrice;
             $discountText = '';
 
@@ -57,10 +54,8 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
 
                 if ($v && $this->voucherService->isValid($v)) {
                     $this->rateLimiter->clearAttempts($request->getIp());
-
-                    // FIX: Den primitiven float-Wert in ein Price VO verpacken
                     $discountedPriceVO = $this->permitService->calculateDiscountedPrice(new Price($originalPrice), $v);
-                    $finalPrice = $discountedPriceVO->value; // Und den neuen float-Wert für die Ausgabe extrahieren
+                    $finalPrice = $discountedPriceVO->value;
 
                     $discountText = match ($v->type) {
                         'fixed' => 'Sonderpreis aktiviert',
@@ -82,6 +77,7 @@ final readonly class ApiGetTemplatePriceAction implements ViewActionInterface
                 'original' => $originalPrice,
                 'price' => $finalPrice,
             ]);
+
         } catch (Throwable $e) {
             return JsonResponse::sendPayload([
                 'error' => $e->getMessage(),

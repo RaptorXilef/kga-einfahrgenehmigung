@@ -18,6 +18,7 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use RuntimeException;
 
+#[Route('GET', '/admin_login')]
 #[Route('POST', '/admin_login')]
 final readonly class AdminLoginAction implements ActionInterface
 {
@@ -33,6 +34,18 @@ final readonly class AdminLoginAction implements ActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
+        // Sauberer GET-Handler: Rendert einfach das Formular
+        if ($request->getMethod() === 'GET') {
+            $this->renderer->render('admin_login', [
+                'auth' => $this->auth,
+                'roleRepository' => $this->roleRepository,
+                'userRepository' => $this->userRepository,
+            ]);
+
+            return null;
+        }
+
+        // Ab hier: Verarbeitung des POST-Logins
         try {
             $dto = AdminLoginRequest::fromArray($request->post);
         } catch (ValidationException $e) {
@@ -46,10 +59,10 @@ final readonly class AdminLoginAction implements ActionInterface
             if ($this->auth->login($dto->username, $dto->password, $request->getIp())) {
                 $this->auditLogger->log('LOGIN', 'Erfolgreicher Login in den Adminbereich.');
                 if ($dto->redirectCode !== '') {
-                    return new RedirectResponse('check.php?code=' . \urlencode($dto->redirectCode));
+                    return new RedirectResponse('check?code=' . \urlencode($dto->redirectCode));
                 }
 
-                return new RedirectResponse('admin.php');
+                return new RedirectResponse('admin');
             }
 
             $this->rescueFormData($request);
