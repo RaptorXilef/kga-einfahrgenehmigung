@@ -19,4 +19,10 @@ interface RoleRepositoryInterface
      * @param array<string, Role> $roles Die zu speichernden Rollen.
      */
     public function saveAll(array $roles, bool $forceSql = false): void;
+
+    /**
+     * Importiert Rollen direkt als Array in den Speicher
+     * @param array<string, mixed> $data
+     */
+    public function import(array $data): void;
 }
