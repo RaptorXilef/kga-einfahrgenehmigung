@@ -14,9 +14,23 @@ final readonly class FileRouteCache implements RouteCacheInterface
     ) {
     }
 
+    private function getCacheFilePath(): string
+    {
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+
+        return $rootPath . '/cache/routes_v2.php';
+    }
+
+    private function getOldCacheFilePath(): string
+    {
+        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
+
+        return $rootPath . '/cache/routes.php';
+    }
+
     public function load(): ?array
     {
-        $cacheFile = $this->config->getStoragePath('cache/routes_v2.php');
+        $cacheFile = $this->getCacheFilePath();
         if (\file_exists($cacheFile)) {
             /** @var array{exact: array<string, array<string, array{class: string, auth: bool}>>, dynamic: array<string, array<string, array{class: string, auth: bool}>>} $routes */
             $routes = require $cacheFile;
@@ -29,7 +43,7 @@ final readonly class FileRouteCache implements RouteCacheInterface
 
     public function save(array $routes): void
     {
-        $cacheFile = $this->config->getStoragePath('cache/routes_v2.php');
+        $cacheFile = $this->getCacheFilePath();
         $cacheDir = \dirname($cacheFile);
 
         if (!\is_dir($cacheDir)) {
@@ -41,20 +55,18 @@ final readonly class FileRouteCache implements RouteCacheInterface
 
     public function clearOld(): void
     {
-        $oldCache = $this->config->getStoragePath('cache/routes.php');
-        if (!\file_exists($oldCache)) {
-            return;
+        $oldCache = $this->getOldCacheFilePath();
+        if (\file_exists($oldCache)) {
+            @\unlink($oldCache);
         }
-        @\unlink($oldCache);
     }
 
     public function clearAll(): void
     {
         $this->clearOld();
-        $cacheFileV2 = $this->config->getStoragePath('cache/routes_v2.php');
-        if (!\file_exists($cacheFileV2)) {
-            return;
+        $cacheFileV2 = $this->getCacheFilePath();
+        if (\file_exists($cacheFileV2)) {
+            @\unlink($cacheFileV2);
         }
-        @\unlink($cacheFileV2);
     }
 }
