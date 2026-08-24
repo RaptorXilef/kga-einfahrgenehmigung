@@ -7,83 +7,81 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\ImageStorageInterface;
 
-/**
- * Verantwortlich für das Speichern, Skalieren und Laden von Bildern.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class ImageStorageService implements ImageStorageInterface
 {
-    public function __construct(
-        private ConfigInterface $config,
-    ) {
+    public function __construct(private ConfigInterface $config)
+    {
+    }
+
+    public function getImageUrl(string $folder, string $id, string $fallback): string
+    {
+        // FIX: Wir zwingen hier den Slash an das Ende der BaseUrl
+        $baseUrl = \rtrim($this->config->getBaseUrl(), '/') . '/';
+
+        $physicalPath = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
+
+        if (\file_exists($physicalPath)) {
+            $mtime = \filemtime($physicalPath);
+
+            return $baseUrl . 'assets/img/' . $folder . '/' . $id . '.webp?v=' . $mtime;
+        }
+
+        return $baseUrl . 'assets/img/icons/' . $fallback;
     }
 
     public function uploadImage(string $folder, string $id, array $file): bool
     {
-        if (\str_contains($id, '://') || \str_contains($id, "\0") || \str_contains($id, '..')) {
-            return false;
-        }
-
-        $safeId = \basename($id);
-        $rootPath = (string) $this->config->get('root_path');
-        $targetDir = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/';
-        $outputPath = $targetDir . $safeId . '.webp';
-
+        $targetDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/public/assets/img/' . $folder;
         if (!\is_dir($targetDir)) {
             \mkdir($targetDir, 0o755, true);
         }
 
-        if (!\extension_loaded('gd')) {
-            return \move_uploaded_file($file['tmp_name'], $outputPath);
-        }
+        $targetPath = $targetDir . '/' . $id . '.webp';
+        $tmpPath = $file['tmp_name'] ?? '';
 
-        $info = @\getimagesize($file['tmp_name']);
-        if (!$info) {
+        if ($tmpPath === '' || !\file_exists($tmpPath)) {
             return false;
         }
 
-        $src = match ($info[2]) {
-            \IMAGETYPE_GIF => @\imagecreatefromgif($file['tmp_name']),
-            \IMAGETYPE_JPEG => @\imagecreatefromjpeg($file['tmp_name']),
-            \IMAGETYPE_PNG => @\imagecreatefrompng($file['tmp_name']),
-            \IMAGETYPE_WEBP => @\imagecreatefromwebp($file['tmp_name']),
-            default => null
+        $info = @\getimagesize($tmpPath);
+        if ($info === false) {
+            return false;
+        }
+
+        $mime = $info['mime'];
+        $image = match ($mime) {
+            'image/jpeg' => @\imagecreatefromjpeg($tmpPath),
+            'image/png' => @\imagecreatefrompng($tmpPath),
+            'image/webp' => @\imagecreatefromwebp($tmpPath),
+            'image/gif' => @\imagecreatefromgif($tmpPath),
+            default => null,
         };
 
-        if (!$src) {
+        if (!$image) {
             return false;
         }
 
-        $width = \imagesx($src);
-        $height = \imagesy($src);
-        $dst = \imagecreatetruecolor($width, $height);
+        $width = \imagesx($image);
+        $height = \imagesy($image);
+        $size = \min($width, $height);
+        $cropX = (int) (($width - $size) / 2);
+        $cropY = (int) (($height - $size) / 2);
 
-        \imagealphablending($dst, false);
-        \imagesavealpha($dst, true);
-        $transparent = \imagecolorallocatealpha($dst, 255, 255, 255, 127);
-        \imagefill($dst, 0, 0, $transparent);
-        \imagecopyresampled($dst, $src, 0, 0, 0, 0, $width, $height, $width, $height);
-
-        return \imagewebp($dst, $outputPath, 75);
-    }
-
-    public function getImageUrl(string $folder, string $id, string $fallbackIcon): string
-    {
-        $baseUrl = $this->config->getBaseUrl();
-
-        if (\str_contains($id, '://') || \str_contains($id, "\0") || \str_contains($id, '..')) {
-            return $baseUrl . 'assets/img/icons/' . $fallbackIcon;
+        $square = \imagecreatetruecolor($size, $size);
+        if ($square !== false) {
+            if ($mime === 'image/png' || $mime === 'image/webp') {
+                \imagealphablending($square, false);
+                \imagesavealpha($square, true);
+                $transparent = \imagecolorallocatealpha($square, 255, 255, 255, 127);
+                \imagefilledrectangle($square, 0, 0, $size, $size, $transparent);
+            }
+            \imagecopyresampled($square, $image, 0, 0, $cropX, $cropY, $size, $size, $size, $size);
+            \imagewebp($square, $targetPath, 85);
+            \imagedestroy($square);
         }
 
-        $rootPath = (string) $this->config->get('root_path');
-        $serverPath = \rtrim($rootPath, '/\\') . '/public/assets/img/' . $folder . '/' . $id . '.webp';
-        $browserPath = 'assets/img/' . $folder . '/' . $id . '.webp';
+        \imagedestroy($image);
 
-        if (\file_exists($serverPath)) {
-            return $baseUrl . $browserPath . '?v=' . \filemtime($serverPath);
-        }
-
-        return $baseUrl . 'assets/img/icons/' . $fallbackIcon;
+        return \file_exists($targetPath);
     }
 }

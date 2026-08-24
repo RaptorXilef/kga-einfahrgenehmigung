@@ -6,45 +6,126 @@ namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Session\SessionManager;
 
 /**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Global Security Headers.
+ * Implementiert Zero-Trust CSP, HSTS und Permissions-Policies zum Schutz vor XSS und Clickjacking.
  */
 final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
 {
+    public function __construct(
+        private SessionManager $sessionManager,
+    ) {
+    }
+
     public function process(
         ServerRequest $request,
         callable $next,
     ): mixed {
         if (!\headers_sent()) {
+            // Verhindert das Caching der HTML-Seite durch den Browser. Zwingend nötig für korrekte
+            // CSRF-Tokens und damit der Browser immer die neusten ?v= Datei-Versionen für CSS/JS lädt!
+            \header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            \header('Pragma: no-cache');
+            \header('Expires: 0');
+
+            // Basis Security Header
             \header('X-Frame-Options: SAMEORIGIN');
             \header('X-Content-Type-Options: nosniff');
             \header('X-XSS-Protection: 1; mode=block');
             \header('Referrer-Policy: strict-origin-when-cross-origin');
-            $cspDirectives = [
-                "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.paypal.com https://www.sandbox.paypal.com https://www.googletagmanager.com",
-                "style-src 'self' 'unsafe-inline'",
-                "img-src 'self' data: https://api.qrserver.com https://www.google-analytics.com https://www.paypalobjects.com",
-                "connect-src 'self' https://www.google-analytics.com https://www.paypal.com https://www.sandbox.paypal.com",
-                "frame-src 'self' https://www.paypal.com https://www.sandbox.paypal.com",
-            ];
-            // Verbindet die Zeilen mit "; " und sendet den Header
-            \header('Content-Security-Policy: ' . \implode('; ', $cspDirectives) . ';');
+            \header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
 
-            $host = $request->server['HTTP_HOST'] ?? '';
+            $hostRaw = $request->server['HTTP_HOST'] ?? '';
+            $host = \is_string($hostRaw) ? $hostRaw : '';
+
             $isLocal = \str_ends_with($host, '.local')
                 || $host === 'localhost'
                 || $host === '127.0.0.1'
                 || \php_sapi_name() === 'cli';
 
+            $cspHeader = $this->buildCspHeader($isLocal);
+            \header('Content-Security-Policy: ' . $cspHeader);
+
+            // HSTS nur erzwingen, wenn wir NICHT in der lokalen Entwicklung sind
             if (!$isLocal) {
                 \header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
             }
         }
 
         return $next($request);
+    }
+
+    private function buildCspHeader(bool $isLocal): string
+    {
+        // Hochlesbare CSP Definition (Konsolidiert aus Public & Admin)
+        $csp = [
+            'default-src' => ["'self'"],
+            'upgrade-insecure-requests' => [],
+            'script-src' => [
+                "'self'",
+                "'unsafe-inline'", // Wichtig für KGA Inline-Scripte
+                "'unsafe-eval'",   // Nötig für Chart.js
+                'https://cdnjs.cloudflare.com',
+                'https://www.paypal.com',
+                'https://www.sandbox.paypal.com',
+                'https://www.googletagmanager.com',
+            ],
+            'style-src' => [
+                "'self'",
+                "'unsafe-inline'",
+                'https://cdnjs.cloudflare.com',
+            ],
+            'font-src' => [
+                "'self'",
+                'data:',
+                'https://cdnjs.cloudflare.com',
+            ],
+            'img-src' => [
+                "'self'",
+                'data:',
+                'blob:',
+                'https://api.qrserver.com',
+                'https://www.google-analytics.com',
+                'https://www.paypalobjects.com',
+            ],
+            'connect-src' => [
+                "'self'",
+                'https://*.google-analytics.com',
+                'https://www.paypal.com',
+                'https://www.sandbox.paypal.com',
+            ],
+            'frame-src' => [
+                "'self'",
+                'https://www.paypal.com',
+                'https://www.sandbox.paypal.com',
+            ],
+            'object-src' => ["'none'"],
+            'base-uri' => ["'self'"],
+            'form-action' => ["'self'"],
+        ];
+
+        // Lokale Dev-Umgebungen dynamisch zu den Arrays hinzufügen
+        if ($isLocal) {
+            $localHosts = ['http://localhost'];
+            if (isset($_SERVER['HTTP_HOST'])) {
+                $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+                $localHosts[] = $protocol . $_SERVER['HTTP_HOST'];
+            }
+
+            foreach (['default-src', 'script-src', 'style-src', 'font-src', 'img-src', 'connect-src', 'frame-src'] as $directive) {
+                $csp[$directive] = \array_merge($csp[$directive], $localHosts);
+            }
+        }
+
+        // CSP Array zu einem sauberen String kompilieren
+        $cspHeader = '';
+        foreach ($csp as $directive => $sources) {
+            $sourceString = $sources === [] ? '' : ' ' . \implode(' ', $sources);
+            $cspHeader .= $directive . $sourceString . '; ';
+        }
+
+        return \trim($cspHeader);
     }
 }

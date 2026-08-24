@@ -372,7 +372,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 
     <?php if ($auth->hasPermission('system.update.view')) { ?>
-        <script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const banner = document.getElementById('github-update-banner');
             const versionLabel = document.getElementById('gh-version');
@@ -430,7 +430,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
                                 .data.version;
 
-                            // NEU: Setze die Download-URL als Data-Attribut für den JS-Handler
+                            // Setze die Download-URL als Data-Attribut für den JS-Handler
                             if (installBtn) {
                                 installBtn.setAttribute('data-url', data.data.zipball_url);
                             }
@@ -453,13 +453,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             // Beim Laden der Seite normalen (gecachten) Check ausführen
             performCheck(false);
         });
+    </script>
+<?php } ?>
 
-        </script>
-    <?php } ?>
-
-    <script type="module"
-            src="<?php echo $config->getBaseUrl(); ?>assets/js/admin-handler.js?v=<?php echo \time(); ?>"></script>
-    <script src="<?php echo $config->getBaseUrl(); ?>assets/js/table-sorter.js"></script>
+<!-- FIX: Hier $settings['base_url'] nutzen anstatt $config->getBaseUrl(), damit der Slash dran ist! -->
+<script type="module"
+        src="<?php echo $settings['base_url']; ?>assets/js/admin-handler.js?v=<?php echo \time(); ?>"></script>
+<script src="<?php echo $settings['base_url']; ?>assets/js/table-sorter.js"></script>
 </body>
-
 </html>
