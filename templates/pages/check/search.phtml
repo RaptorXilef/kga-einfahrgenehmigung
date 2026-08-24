@@ -12,10 +12,10 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                             $settings
- * @var string                            $appRoot
+ * @var array $settings
+ * @var string $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var string|null                       $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
+ * @var string|null $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
 ?>
 <!DOCTYPE html>
@@ -82,7 +82,7 @@
         // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
     // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
             method: 'POST',
             credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));

@@ -3,20 +3,18 @@
 /**
  * Partial: Group & Permissions Matrix
  *
- * Dynamische Rechte-Zuweisung an Systemgruppen.
+ * Dynamische Rechte-Zuweisung an Systemrollen.
  *
  * Path: templates/pages/admin_users/_tab_groups.phtml
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Infrastructure\Config\Config               $config
- * @var \App\Core\Service\AuthService                   $auth
- * @var \App\Contracts\Storage\GroupRepositoryInterface $groupRepository
- * @var array                                           $groups
- * @var array                                           $settings
- * @var array                                           $structure
- * @var string                                          $appRoot
- * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
+ * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Core\Service\AuthService $auth
+ * @var \App\Contracts\Storage\RoleRepositoryInterface $roleRepository
+ * @var array $roles
+ * @var array $settings
+ * @var array $structure
  */
 if ($auth->hasPermission('system.permissions.groups.manage')) {
     $structure ??= $config->get('structure', []);
@@ -24,19 +22,19 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
     /**
      * Rekursive Funktion zum Rendern des Permission-Baums
      */
-    if (! \function_exists('renderPermissionNode')) {
-        function renderPermissionNode(array $nodes, array $groupPerms, int $depth = 0): void
+    if (!\function_exists('renderPermissionNode')) {
+        function renderPermissionNode(array $nodes, array $rolePerms, int $depth = 0): void
         {
             foreach ($nodes as $id => $node) {
-                $key         = $node['key'] ?? null; // BUGFIX: Null-Check
-                $isAllowed   = $key ? \in_array($key, $groupPerms, true) : false;
-                $hasChildren = ! empty($node['children']);
-                $padding     = $depth * 25;
+                $key = $node['key'] ?? null;
+                $isAllowed = $key ? \in_array($key, $rolePerms, true) : false;
+                $hasChildren = !empty($node['children']);
+                $padding = $depth * 25;
                 ?>
                 <div class="p-tree-node"
                      style="padding-left: <?php echo $padding; ?>px;"
                      data-key="<?php echo $key ?? $id; ?>">
-                    <div class="p-item <?php echo $depth === 0 ? 'is-root' : ''; ?> <?php echo ! $key ? 'is-category' : ''; ?>">
+                    <div class="p-item <?php echo $depth === 0 ? 'is-root' : ''; ?> <?php echo !$key ? 'is-category' : ''; ?>">
                         <div class="p-label">
                             <span class="main"><?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?></span>
                             <?php if ($key) { ?>
@@ -45,7 +43,6 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                 <span class="sub" style="font-style: italic; opacity: 0.5;">Kategorie</span>
                             <?php } ?>
                         </div>
-
                         <div class="p-controls">
                             <?php if ($key) { // Nur Schalter anzeigen, wenn ein Key existiert
                                 ?>
@@ -62,7 +59,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                         </div>
                     </div>
                     <?php if ($hasChildren) {
-                        \renderPermissionNode($node['children'], $groupPerms, $depth + 1);
+                        \renderPermissionNode($node['children'], $rolePerms, $depth + 1);
                     } ?>
                 </div>
     <?php
@@ -76,20 +73,16 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
         <section class="c-card"
                  style="border-top: 4px solid var(--primary-color);">
             <header class="c-card__header">
-                <h3 class="u-margin-none">📦 Neue Rechte-Gruppe erstellen</h3>
+                <h3 class="u-margin-none">📦 Neue Rolle erstellen</h3>
             </header>
             <div class="c-card__body u-padding-around-l">
                 <form method="POST"
-                      action="users.php"
-                      enctype="multipart/form-data"
+                      action="save_role"
                       class="u-grid u-gap-m"
-                      style="grid-template-columns: 1.5fr 1.5fr 1fr auto;">
+                      style="grid-template-columns: 1fr 1fr auto;">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <input type="hidden"
-                           name="action"
-                           value="save_group">
                     <div class="c-form-group">
                         <label class="c-form-label">Anzeigename</label>
                         <input type="text"
@@ -102,34 +95,17 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                         <label class="c-form-label">Rechte kopieren von...</label>
                         <select name="inherit_group"
                                 class="c-form-select">
-                            <option value="">
-                                <?php foreach ($groups as $id => $g) { ?>
-                            <option value="<?php echo $id; ?>">Kopie von: <?php echo \htmlspecialchars($g->name); ?></option>
-                        <?php } ?>
+                            <option value="">(Keine Vorlage)</option>
+                            <?php foreach ($roles as $id => $r) { ?>
+                                <option value="<?php echo $id; ?>">Kopie von: <?php echo \htmlspecialchars($r->name); ?></option>
+                            <?php } ?>
                         </select>
                     </div>
-                    <div class="c-form-group u-flex u-align-center u-gap-m">
-                        <div class="js-avatar-dropzone js-preview-only u-position-relative u-text-center"
-                             style="width: 46px; height: 46px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8fafc; overflow: hidden; flex-shrink: 0;">
-                            <img class="js-preview-img u-hidden"
-                                 style="width: 100%; height: 100%; object-fit: cover;">
-                            <span class="js-preview-text" style="font-size: 1.2rem; opacity: 0.3;">🖼️</span>
-                            <div class="drop-overlay"
-                                 style="border-radius: 8px; font-size: 0.6rem;">Ablegen</div>
-                            <input type="file"
-                                   name="group_icon"
-                                   class="u-hidden"
-                                   accept="image/*">
-                        </div>
-                        <div>
-                            <label class="c-form-label u-margin-none">Icon (optional)</label>
-                            <p class="u-text-muted u-text-small u-margin-none"
-                               style="line-height: 1;">Klick / Drag</p>
-                        </div>
-                    </div>
-                    <div class="u-flex u-align-end"><button type="submit"
+                    <div class="u-flex u-align-end">
+                        <button type="submit"
                                 class="c-button--primary"
-                                style="height: 46px;">Erstellen</button></div>
+                                style="height: 46px;">Erstellen</button>
+                    </div>
                 </form>
             </div>
         </section>
@@ -162,37 +138,33 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
         </div>
 
         <div class="u-flex u-flex-column u-gap-m">
-            <?php foreach ($groups as $groupId => $gData) {
-                $groupImage = $imageStorage->getImageUrl('group_images', $groupId, 'icon-group-default.webp');
-                ?>
+            <?php foreach ($roles as $roleId => $rData) { ?>
                 <div class="category-card is-closed"
-                     id="card-<?php echo $groupId; ?>">
+                     id="card-<?php echo $roleId; ?>">
                     <header class="category-header u-flex u-justify-between u-align-center"
                             style="background: #fff; padding: 12px 20px; border-radius: 12px;">
                         <div class="u-flex u-align-center u-gap-m"
                              onclick="this.parentElement.parentElement.classList.toggle('is-closed')"
                              style="cursor: pointer; flex-grow: 1;">
-                            <img src="<?php echo $groupImage; ?>"
-                                 style="width: 38px; height: 38px; border-radius: 8px; object-fit: cover; background: #f8fafc;">
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-shield.webp"
+                                 style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain; padding: 5px; background: #f8fafc; border: 1px solid var(--border-color);">
                             <div>
-                                <strong style="font-size: 1.05rem;"><?php echo \htmlspecialchars($gData->name); ?></strong>
+                                <strong style="font-size: 1.05rem;"><?php echo \htmlspecialchars($rData->name); ?></strong>
                                 <div style="font-size: 0.7rem; opacity: 0.6; font-family: monospace;">System-ID:
-                                    <?php echo \htmlspecialchars((string) $groupId, \ENT_QUOTES, 'UTF-8'); ?>
-                                </div>
+                                    <?php echo \htmlspecialchars((string) $roleId, \ENT_QUOTES, 'UTF-8'); ?></div>
                             </div>
                         </div>
-                        <?php if ($groupId !== 'admin') { ?>
+                        <?php if ($roleId !== 'admin') { ?>
                             <form method="POST"
-                                  onsubmit="return confirm('Gruppe löschen?')"
+                                  action="delete_role"
+                                  onsubmit="return confirm('Rolle löschen?')"
                                   style="margin: 0;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                 <input type="hidden"
-                                       name="action"
-                                       value="delete_group"><input type="hidden"
                                        name="group_id"
-                                       value="<?php echo $groupId; ?>">
+                                       value="<?php echo $roleId; ?>">
                                 <button type="submit"
                                         class="c-button c-button--danger">🗑️</button>
                             </form>
@@ -201,83 +173,43 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
 
                     <div class="category-body u-padding-around-l"
                          style="background: #fcfdfe; border: 1px solid #e2e8f0; border-top: none;">
-
-                        <div class="u-grid u-gap-l u-margin-bottom-xl"
-                             style="grid-template-columns: 150px 1fr;">
-                            <div class="u-text-center js-avatar-dropzone"
-                                 style="padding: 10px;">
-                                <div class="u-position-relative"
-                                     style="display: inline-block;">
-                                    <img src="<?php echo $groupImage; ?>"
-                                         style="width: 80px; height: 80px; border-radius: 12px; border: 3px solid #fff; box-shadow: var(--shadow-sm); margin-bottom: 10px; object-fit: cover;">
-                                    <div class="drop-overlay"
-                                         style="border-radius: 12px; margin-bottom: 10px;">Ablegen</div>
+                        <div class="u-margin-bottom-l">
+                            <form method="POST"
+                                  action="rename_role"
+                                  class="u-flex u-gap-s u-align-end">
+                                <input type="hidden"
+                                       name="csrf_token"
+                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                <input type="hidden"
+                                       name="group_id"
+                                       value="<?php echo $roleId; ?>">
+                                <div class="c-form-group"
+                                     style="flex-grow: 1;">
+                                    <label class="c-form-label">Anzeigename ändern</label>
+                                    <input type="text"
+                                           name="new_group_name"
+                                           class="c-form-input"
+                                           value="<?php echo \htmlspecialchars($rData->name); ?>">
                                 </div>
-                                <form method="POST"
-                                      enctype="multipart/form-data">
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="upload_group_image">
-                                    <input type="hidden"
-                                           name="group_id"
-                                           value="<?php echo $groupId; ?>">
-                                    <input type="file"
-                                           name="avatar"
-                                           class="u-hidden"
-                                           id="gimg-<?php echo \md5($groupId); ?>"
-                                           onchange="this.form.submit()"
-                                           accept="image/*">
-                                    <button type="button"
-                                            onclick="document.getElementById('gimg-<?php echo \md5($groupId); ?>').click()"
-                                            class="c-tabs__btn u-width-100"
-                                            style="font-size: 0.65rem;">Icon ändern</button>
-                                </form>
-                            </div>
-                            <div class="u-flex u-flex-column u-justify-center">
-                                <form method="POST"
-                                      class="u-flex u-gap-s u-align-end">
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="rename_group">
-                                    <input type="hidden"
-                                           name="group_id"
-                                           value="<?php echo $groupId; ?>">
-                                    <div class="c-form-group"
-                                         style="flex-grow: 1;">
-                                        <label class="c-form-label">Anzeigename ändern</label>
-                                        <input type="text"
-                                               name="new_group_name"
-                                               class="c-form-input"
-                                               value="<?php echo \htmlspecialchars($gData->name); ?>">
-                                    </div>
-                                    <button type="submit"
-                                            class="c-button--primary">Speichern</button>
-                                </form>
-                            </div>
+                                <button type="submit"
+                                        class="c-button--primary">Speichern</button>
+                            </form>
                         </div>
 
                         <hr style="border: none; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
                         <form method="POST"
+                              action="save_role"
                               class="permission-container">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <input type="hidden"
-                                   name="action"
-                                   value="save_group">
-                            <input type="hidden"
                                    name="group_id"
-                                   value="<?php echo $groupId; ?>">
+                                   value="<?php echo $roleId; ?>">
                             <input type="hidden"
                                    name="group_name"
-                                   value="<?php echo \htmlspecialchars($gData->name, \ENT_QUOTES, 'UTF-8'); ?>">
+                                   value="<?php echo \htmlspecialchars($rData->name, \ENT_QUOTES, 'UTF-8'); ?>">
 
                             <?php if ($auth->hasPermission('*')) { ?>
                                 <div class="u-margin-bottom-l"
@@ -286,11 +218,9 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                         <div class="u-flex u-align-center u-gap-m">
                                             <span style="font-size: 1.5rem;">👑</span>
                                             <div>
-                                                <strong style="color: #c53030;">Vollständiger
-                                                    System-Zugriff</strong>
-                                                <small style="color: #e53e3e; display: block;">Aktiviert
-                                                    alle Rechte (Gott-Modus). Der Baum unten wird
-                                                    ignoriert.</small>
+                                                <strong style="color: #c53030;">Vollständiger System-Zugriff</strong>
+                                                <small style="color: #e53e3e; display: block;">Aktiviert alle Rechte
+                                                    (Gott-Modus). Der Baum unten wird ignoriert.</small>
                                             </div>
                                         </div>
                                         <label class="c-switch c-switch--danger">
@@ -298,7 +228,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
                                                    name="perms[]"
                                                    value="*"
                                                    data-master-toggle="true"
-                                                   <?php echo \in_array('*', $gData->permissions, true) ? 'checked' : ''; ?>>
+                                                   <?php echo \in_array('*', $rData->permissions, true) ? 'checked' : ''; ?>>
                                             <span class="c-switch-label" data-on="MASTER" data-off="OFF"></span>
                                         </label>
                                     </div>
@@ -307,20 +237,19 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
 
                             <div class="u-margin-bottom-m u-flex u-justify-between u-align-center">
                                 <h4 class="u-margin-none">Berechtigungs-Struktur</h4>
-                                <div class="u-text-muted u-text-small">Smarte Auswahl: Väter werden
-                                    automatisch mit
+                                <div class="u-text-muted u-text-small">Smarte Auswahl: Väter werden automatisch mit
                                     aktiviert.</div>
                             </div>
 
-                            <div class="p-tree-wrapper mode-hide <?php echo \in_array('*', $gData->permissions, true) ? 'is-master-active' : ''; ?>">
-                                <?php \renderPermissionNode($structure, $gData->permissions); ?>
+                            <div class="p-tree-wrapper mode-hide <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
+                                <?php \renderPermissionNode($structure, $rData->permissions); ?>
                             </div>
 
                             <div class="u-margin-top-xl">
                                 <button type="submit"
                                         class="c-button--primary u-width-100"
                                         style="padding: 15px; font-weight: bold;">
-                                    🛡️ RECHTE FÜR <?php echo \strtoupper($gData->name); ?> SPEICHERN
+                                    🛡️ RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
                                 </button>
                             </div>
                         </form>

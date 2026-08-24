@@ -638,7 +638,7 @@ $formData ??= [];
     async function fetchDateInfo() {
         if (!inputVon || !inputBis) return;
         try {
-            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info.php', {
+            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -813,7 +813,7 @@ $formData ??= [];
     // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
     // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
             method: 'POST',
             credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));

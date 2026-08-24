@@ -246,7 +246,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     // Mail-Versand im Hintergrund anstupsen
                     // Wir rufen die API auf, die die Queue abarbeitet
                     // Der User merkt davon nichts, aber der Server fängt an zu senden
-                    fetch('api/process_mail_queue.php', {
+                    fetch('api/process_mail_queue', {
                         headers: {
                             'X-CSRF-Token': window.KGA_CONFIG.csrfToken
                         }
@@ -672,7 +672,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
         if (!inputVon || !inputBis) return;
         try {
             // Umgestellt auf JSON-POST
-            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info.php', {
+            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -763,7 +763,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 '');
 
             // Auf JSON-POST umgestellt
-            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_template_price.php', {
+            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_template_price', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -829,7 +829,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
     // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
             method: 'POST',
             credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));

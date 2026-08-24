@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * @var \App\Infrastructure\Config\Config $config
- * @var array                             $settings Enthält Basis-Konfigurationen (z.B. vereins_name, base_url).
- * @var string                            $appRoot
+ * @var array $settings Enthält Basis-Konfigurationen (z.B. vereins_name, base_url).
+ * @var string $appRoot
  */
 
 // Gerettete Formulardaten holen und sofort aus der Session löschen (Flash-Prinzip)
@@ -148,7 +148,7 @@ unset($_SESSION['form_data']);
     // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
     // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
             method: 'POST',
             credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));

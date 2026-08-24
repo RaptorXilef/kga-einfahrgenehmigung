@@ -7,18 +7,15 @@
  *
  * Path: templates/pages/admin_users/_tab_users.phtml
  *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var array                                           $settings
- * @var array                                           $groups
- * @var array                                           $users
- * @var \App\Core\Service\AuthService                   $auth
- * @var string                                          $appRoot
- * @var \App\Contracts\Storage\UserRepositoryInterface  $userRepository
+ * @var array $settings
+ * @var array $roles
+ * @var array $users
+ * @var \App\Core\Service\AuthService $auth
+ * @var string $appRoot
+ * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
  * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
-if ($auth->hasPermission('system.permissions.users.manage')) {
-    ?>
+if ($auth->hasPermission('system.permissions.users.manage')) { ?>
     <div class="u-flex u-flex-column u-gap-l">
         <section class="c-card"
                  style="border-top: 4px solid var(--success-color);">
@@ -26,21 +23,18 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                 <h3 class="u-margin-none">
                     <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
                          class="c-icon"
-                         alt=""><!-- 👤 --> Neues Benutzerkonto anlegen
+                         alt=""> Neues Benutzerkonto anlegen
                 </h3>
             </header>
             <div class="c-card__body u-padding-around-l">
                 <form method="POST"
-                      action="users.php"
+                      action="save_user"
                       enctype="multipart/form-data"
                       class="u-grid u-gap-m"
                       style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <input type="hidden"
-                           name="action"
-                           value="save_user">
                     <div class="c-form-group">
                         <label class="c-form-label">Benutzername</label>
                         <input type="text"
@@ -66,11 +60,11 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                required>
                     </div>
                     <div class="c-form-group">
-                        <label class="c-form-label">Gruppe</label>
+                        <label class="c-form-label">Rolle</label>
                         <select name="group"
                                 class="c-form-select">
-                            <?php foreach ($groups as $id => $g) { ?>
-                                <option value="<?php echo $id; ?>"><?php echo \htmlspecialchars($g->name ?? 'Unbenannt'); ?></option>
+                            <?php foreach ($roles as $id => $r) { ?>
+                                <option value="<?php echo $id; ?>"><?php echo \htmlspecialchars($r->name ?? 'Unbenannt'); ?></option>
                             <?php } ?>
                         </select>
                     </div>
@@ -85,10 +79,10 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                             <img class="js-preview-img u-hidden"
                                  style="width: 100%; height: 100%; object-fit: cover;">
                             <span class="js-preview-text" style="font-size: 1.5rem; opacity: 0.3;">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
-                                 class="c-icon"
-                                 alt=""><!-- 👤 -->
-                        </span>
+                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                                     class="c-icon"
+                                     alt="">
+                            </span>
                             <div class="drop-overlay"
                                  style="border-radius: 50%; font-size: 0.7rem;">Ablegen</div>
                             <input type="file"
@@ -104,15 +98,12 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                 </form>
             </div>
         </section>
-
         <div class="u-flex u-flex-column u-gap-m">
             <h3 class="u-margin-none u-margin-left-s">Registrierte Konten (<?php echo \count($users); ?>)</h3>
-
             <?php foreach ($users as $userId => $u) {
-                $userImage    = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
-                $groupData    = $groups[$u->groupId] ?? null;
-                $displayLogin = $u->username ?? $userId; // Fallback auf ID
-                ?>
+                $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
+                $roleData = $roles[$u->roleId] ?? null;
+                $displayLogin = $u->username ?? $userId; ?>
                 <div class="category-card is-closed"
                      id="card-<?php echo $userId; ?>">
                     <header class="category-header u-flex u-justify-between u-align-center"
@@ -125,22 +116,19 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                             <div>
                                 <strong style="font-size: 1.05rem; color: var(--text-main);"><?php echo \htmlspecialchars((string) $displayLogin); ?></strong>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">
-                                    <?php echo \htmlspecialchars($groupData ? $groupData->name : 'Unbekannt'); ?>
+                                    <?php echo \htmlspecialchars($roleData ? $roleData->name : 'Unbekannt'); ?>
                                     <span style="opacity: 0.6; font-family: monospace;">(ID: <?php echo \htmlspecialchars($userId); ?>)</span>
                                 </div>
                             </div>
                         </div>
-
                         <?php $confirmMsg = 'Soll der Benutzer \'' . $displayLogin . '\' wirklich gelöscht werden?'; ?>
                         <form method="POST"
+                              action="delete_user"
                               onsubmit="return confirm(<?php echo \htmlspecialchars(\json_encode($confirmMsg), \ENT_QUOTES, 'UTF-8'); ?>)"
                               style="margin: 0;">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="delete_user">
                             <input type="hidden"
                                    name="user_id"
                                    value="<?php echo $userId; ?>">
@@ -148,12 +136,10 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                     class="c-button c-button--danger">🗑️</button>
                         </form>
                     </header>
-
                     <div class="category-body u-padding-around-l"
                          style="background: #fcfdfe; border: 1px solid #e2e8f0; border-top: none;">
                         <div class="u-grid u-gap-l"
                              style="grid-template-columns: 200px 1.2fr 1fr;">
-
                             <div class="u-text-center js-avatar-dropzone"
                                  style="padding: 10px;">
                                 <label class="c-form-label u-justify-center">Profilbild</label>
@@ -165,13 +151,11 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                          style="border-radius: 12px; margin-bottom: 10px;">Foto ablegen</div>
                                 </div>
                                 <form method="POST"
+                                      action="upload_avatar"
                                       enctype="multipart/form-data">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="upload_avatar">
                                     <input type="hidden"
                                            name="user_id"
                                            value="<?php echo $userId; ?>">
@@ -187,13 +171,11 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                             style="font-size: 0.75rem;">Bild ändern</button>
                                 </form>
                                 <hr style="border:none; border-top:1px solid #eee; margin:20px 0;">
-                                <form method="POST">
+                                <form method="POST"
+                                      action="rename_user">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="rename_user">
                                     <input type="hidden"
                                            name="user_id"
                                            value="<?php echo $userId; ?>">
@@ -210,16 +192,13 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                     </div>
                                 </form>
                             </div>
-
                             <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
+                                      action="change_user_password"
                                       class="u-flex u-flex-column u-gap-s">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="change_user_password">
                                     <input type="hidden"
                                            name="user_id"
                                            value="<?php echo $userId; ?>">
@@ -238,37 +217,33 @@ if ($auth->hasPermission('system.permissions.users.manage')) {
                                             class="c-button--primary u-width-100">Aktualisieren</button>
                                 </form>
                             </div>
-
                             <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
+                                      action="change_user_role"
                                       class="u-flex u-flex-column u-gap-s">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
-                                           name="action"
-                                           value="change_user_group">
-                                    <input type="hidden"
                                            name="user_id"
                                            value="<?php echo $userId; ?>">
-                                    <label class="c-form-label">Gruppe zuweisen</label>
+                                    <label class="c-form-label">Rolle zuweisen</label>
                                     <select name="group"
                                             class="c-form-select"
                                             onchange="this.form.submit()">
-                                        <?php foreach ($groups as $gid => $g) { ?>
-                                            <option value="<?php echo $gid; ?>"
-                                                    <?php echo ($u->groupId === $gid) ? 'selected' : ''; ?>>
-                                                <?php echo \htmlspecialchars($g->name); ?>
+                                        <?php foreach ($roles as $rid => $r) { ?>
+                                            <option value="<?php echo $rid; ?>"
+                                                    <?php echo ($u->roleId === $rid) ? 'selected' : ''; ?>>
+                                                <?php echo \htmlspecialchars($r->name); ?>
                                             </option>
                                         <?php } ?>
                                     </select>
                                     <p class="u-text-muted u-text-small"
                                        style="margin-top: 5px;">
-                                        ℹ️ Änderungen an der Gruppe wirken sich sofort auf die Berechtigungen aus.
+                                       ℹ️ Änderungen an der Rolle wirken sich sofort auf die Berechtigungen aus.
                                     </p>
                                 </form>
                             </div>
-
                         </div>
                     </div>
                 </div>

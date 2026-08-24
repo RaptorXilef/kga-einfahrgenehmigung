@@ -10,16 +10,14 @@
  *
  * Path: templates/pages/profile.phtml
  *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var string                                          $userId   Die aktive Benutzer-ID des angemeldeten Benutzers aus der Session.
- * @var string                                          $username Der aktuelle Anzeigename.
- * @var string                                          $group    Der Klartext-Name der eigenen Berechtigungsgruppe.
- * @var \App\Core\Service\AuthService                   $auth
- * @var array                                           $settings
- * @var string                                          $appRoot
- * @var \App\Infrastructure\Config\Config               $config
- * @var \App\Contracts\Storage\UserRepositoryInterface  $userRepository
+ * @var string $userId   Die aktive Benutzer-ID.
+ * @var string $username Der aktuelle Anzeigename.
+ * @var string $role     Der Klartext-Name der eigenen Rolle.
+ * @var \App\Core\Service\AuthService $auth
+ * @var array $settings
+ * @var string $appRoot
+ * @var \App\Infrastructure\Config\Config $config
+ * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
  * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
 
@@ -40,10 +38,8 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
 
 <body class="l-admin">
     <?php include $appRoot . '/templates/components/_admin_header_nav.phtml'; ?>
-
     <main class="c-tab-content-container u-padding-y-l">
         <div style="max-width: 800px; margin: 0 auto;">
-
             <header class="u-flex u-justify-between u-align-end u-margin-bottom-l">
                 <div>
                     <h1 class="u-margin-none"
@@ -55,17 +51,13 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                     </h1>
                     <p class="u-text-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
                 </div>
-                <a href="admin.php" class="c-tabs__btn">← Zum Dashboard</a>
+                <a href="admin" class="c-tabs__btn">← Zum Dashboard</a>
             </header>
-
             <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-
             <div class="u-grid u-gap-l"
                  style="grid-template-columns: 250px 1fr;">
-
                 <aside>
                     <section class="c-card u-text-center u-padding-around-l js-avatar-dropzone">
-
                         <div class="u-position-relative u-margin-bottom-m"
                              style="display: inline-block;">
                             <img src="<?php echo $userImage; ?>"
@@ -73,15 +65,12 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                             <div class="drop-overlay"
                                  style="border-radius: 50%;">Foto ablegen</div>
                         </div>
-
                         <form method="POST"
+                              action="change_own_avatar"
                               enctype="multipart/form-data">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="change_own_avatar">
                             <input type="file"
                                    name="avatar"
                                    id="avatar-input"
@@ -98,16 +87,13 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                                 Bild ändern
                             </button>
                         </form>
-
                         <div class="u-margin-top-l u-padding-top-m u-border-top">
                             <small class="u-text-muted u-font-bold"
-                                   style="text-transform: uppercase;">
-                                Zugehörigkeit
-                            </small>
+                                   style="text-transform: uppercase;"> Rolle </small>
                             <div class="u-margin-top-xs">
                                 <span class="c-badge"
                                       style="background: var(--primary-soft); color: var(--primary-color); font-size: 0.8rem; padding: 5px 15px;">
-                                    <?php echo \strtoupper(\htmlspecialchars($group)); ?>
+                                <?php echo \strtoupper(\htmlspecialchars($role)); ?>
                                 </span>
                             </div>
                             <code class="u-text-muted"
@@ -117,7 +103,6 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                         </div>
                     </section>
                 </aside>
-
                 <div class="u-flex u-flex-column u-gap-l">
                     <section class="c-card">
                         <header class="c-card__header">
@@ -125,14 +110,12 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                         </header>
                         <div class="c-card__body">
                             <form method="POST"
+                                  action="change_own_username"
                                   class="u-grid u-gap-m"
                                   style="grid-template-columns: 1fr auto;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="action"
-                                       value="change_own_username">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Anzeigename / Login</label>
                                     <input type="text"
@@ -151,7 +134,6 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                             </form>
                         </div>
                     </section>
-
                     <section class="c-card"
                              style="border-top-color: var(--danger-color);">
                         <header class="c-card__header">
@@ -159,13 +141,11 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                         </header>
                         <div class="c-card__body">
                             <form method="POST"
+                                  action="change_own_password"
                                   class="u-flex u-flex-column u-gap-m">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="action"
-                                       value="change_own_password">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Aktuelles Passwort</label>
                                     <input type="password"
@@ -208,7 +188,6 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
             </div>
         </div>
     </main>
-
     <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
 </body>

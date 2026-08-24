@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Page: User & Group Management Wrapper
+ * Page: User & Role Management Wrapper
  *
  * Container für die Benutzer- und Rechte-Matrix.
  *
@@ -12,15 +12,14 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                             $users       Vollständige Liste aller registrierten Benutzerkonten im System.
- * @var array                             $groups      Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
- * @var array                             $settings
- * @var string                            $appRoot
+ * @var array $users Vollständige Liste aller registrierten Benutzerkonten im System.
+ * @var array $roles Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
+ * @var array $settings
+ * @var string $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Core\Service\AuthService $auth
  */
 if ($auth->hasPermission('system.permissions.view')) { ?>
-
     <!DOCTYPE html>
     <html lang="de">
 
@@ -36,11 +35,8 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
     <body class="l-admin">
         <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
         <?php include $appRoot . '/templates/components/_admin_header_nav.phtml'; ?>
-
         <main class="c-tab-content-container u-padding-y-l">
-
             <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-
             <div class="c-tabs">
                 <div class="c-tabs__nav u-margin-bottom-l">
                     <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
@@ -54,19 +50,17 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                     <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
                         <button class="c-tabs__btn"
                                 data-tab-target="tab-groups">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-group.webp"
+                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-shield.webp"
                                  class="c-icon"
-                                 alt=""> Gruppen & Rechte
+                                 alt=""> Rollen & Rechte
                         </button>
                     <?php } ?>
                 </div>
-
                 <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
                     <div id="tab-users"
                          class="c-tabs__content c-tabs__content--active">
                         <?php include $appRoot . '/templates/pages/admin_users/_tab_users.phtml'; ?>
                     </div>
-
                 <?php } ?>
                 <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
                     <div id="tab-groups"
@@ -76,14 +70,11 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                 <?php } ?>
             </div>
         </main>
-
         <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
-
         <script type="module"
                 src="<?php echo $settings['base_url']; ?>assets/js/admin-handler.js">
         </script>
         <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
-
         <script>
         function updateUiMode(mode) {
             const wrappers = document.querySelectorAll('.p-tree-wrapper');
@@ -135,8 +126,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
          * Fokus-Logik: Springt zum editierten User/Gruppe
          */
         function handleUrlFocus() {
-            const urlParams = new window.URLSearchParams(window.location
-                .search); // TODO wenn in eigener JS Datei das "window." entfernen
+            const urlParams = new window.URLSearchParams(window.location.search); // TODO wenn in eigener JS Datei das "window." entfernen
             const focusId = urlParams.get('focus');
 
             if (focusId) {
@@ -235,7 +225,6 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
         });
 
         </script>
-
     </body>
 
     </html>

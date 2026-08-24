@@ -405,7 +405,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             // 1. Im Hintergrund prüfen, ob ein Update da ist
             // CSRF-Header hinzugefügt, da die API nun gehärtet ist
             function performCheck(force = false) {
-                fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update.php', {
+                fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

@@ -7,13 +7,13 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                                 $tempData      Temporäre Sitzungsdaten des Antrags.
+ * @var array $tempData      Temporäre Sitzungsdaten des Antrags.
  * @var \App\Contracts\Config\ConfigInterface $config        Globale Konfiguration (für PayPal-IDs).
- * @var string                                $appRoot       Absoluter Systempfad.
- * @var array                                 $settings      Layout-Einstellungen.
- * @var string|null                           $opening       Formatierter Text der allgemeinen Öffnungszeiten.
- * @var string|null                           $holidayNotice Warnung bei Feiertagen im gewählten Zeitraum.
- * @var string                                $token         Das Verifizierungs-Token.
+ * @var string $appRoot       Absoluter Systempfad.
+ * @var array $settings      Layout-Einstellungen.
+ * @var string|null $opening       Formatierter Text der allgemeinen Öffnungszeiten.
+ * @var string|null $holidayNotice Warnung bei Feiertagen im gewählten Zeitraum.
+ * @var string $token         Das Verifizierungs-Token.
  */
 ?>
 <!DOCTYPE html>
@@ -32,7 +32,7 @@
     <?php
     // Wir prüfen, ob ein Preis existiert UND PayPal in der Config aktiviert ist
     $paypalConfig = $config->get('paypal', []);
-$isPayPalEnabled  = ($paypalConfig['enabled'] ?? false) === true;
+$isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
 if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
         <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($paypalConfig[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"></script>
     <?php } ?>
@@ -89,7 +89,7 @@ echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey); ?><
                                 style="padding: 12px 0; font-weight: 700; text-transform: uppercase; font-family: monospace; font-size: 1.05rem;">
                                 <?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
                         </tr>
-                        <?php if (! empty($tempData['firma'])) { ?>
+                        <?php if (!empty($tempData['firma'])) { ?>
                             <tr style="border-top: 1px solid #e2e8f0;">
                                 <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Firma / Lieferant:</td>
                                 <td style="padding: 12px 0; font-weight: 600;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
@@ -121,7 +121,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                     Das Befahren der Anlage ist ausschließlich zu folgenden Zeiten gestattet:<br>
                     <span style="color: #333;"><?php echo $opening ?? ''; ?></span>
 
-                    <?php if (! empty($holidayNotice)) { ?>
+                    <?php if (!empty($holidayNotice)) { ?>
                         <div
                              style="margin-top: 10px; color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px;">
                             <?php echo $holidayNotice; ?>
@@ -179,7 +179,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
         params.append('token', appToken);
         params.append('csrf_token', csrfToken);
 
-        fetch('<?php echo $settings['base_url']; ?>api/finalize_wire.php', {
+        fetch('<?php echo $settings['base_url']; ?>api/finalize_wire', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -210,7 +210,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                     params.append('token', appToken);
                     params.append('csrf_token', csrfToken);
 
-                    return fetch('<?php echo $settings['base_url']; ?>api/create_order_for_token.php', {
+                    return fetch('<?php echo $settings['base_url']; ?>api/create_order_for_token', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -231,7 +231,7 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
                         });
                 },
                 onApprove: function(data, actions) {
-                    return fetch('<?php echo $settings['base_url']; ?>api/capture.php', {
+                    return fetch('<?php echo $settings['base_url']; ?>api/capture', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

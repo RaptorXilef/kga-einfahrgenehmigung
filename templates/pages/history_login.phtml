@@ -12,11 +12,11 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string                            $appRoot
+ * @var string $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var bool                              $isSuccess Flag für grüne Erfolgsmeldungen (z.B. Code erfolgreich versendet).
- * @var int                               $step      Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
- * @var array                             $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
+ * @var bool $isSuccess Flag für grüne Erfolgsmeldungen (z.B. Code erfolgreich versendet).
+ * @var int $step      Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
+ * @var array $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
  */
 ?>
 <!DOCTYPE html>
@@ -138,7 +138,7 @@
     // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
     // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
             method: 'POST',
             credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));

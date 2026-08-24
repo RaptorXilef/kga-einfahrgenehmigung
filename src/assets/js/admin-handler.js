@@ -129,7 +129,7 @@ class AdminDashboardHandler {
         try {
             // --- PHASE 1: Download & Copy ---
             btn.innerText = 'Phase 1/2: Lade Update herunter...';
-            const res1 = await fetch('api/perform_update.php', {
+            const res1 = await fetch('api/perform_update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -143,7 +143,7 @@ class AdminDashboardHandler {
 
             // --- PHASE 2: Migrate Database ---
             btn.innerText = 'Phase 2/2: Aktualisiere Datenbank...';
-            const res2 = await fetch('api/finalize_update.php', {
+            const res2 = await fetch('api/finalize_update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

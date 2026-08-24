@@ -12,9 +12,9 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var bool                              $isError  Gibt an, ob die Nachricht ein Fehlerzustand ist (steuert CSS-Alert-Klassen).
- * @var array                             $settings Globale Einstellungen (z.B. base_url für Icons, vereins_name).
- * @var string                            $appRoot
+ * @var bool $isError  Gibt an, ob die Nachricht ein Fehlerzustand ist (steuert CSS-Alert-Klassen).
+ * @var array $settings Globale Einstellungen (z.B. base_url für Icons, vereins_name).
+ * @var string $appRoot
  * @var \App\Infrastructure\Config\Config $config
  */
 ?>
@@ -94,14 +94,15 @@
     </div>
     <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
     <script>
-        // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
+    // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
     // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
     setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
             method: 'POST',
             credentials: 'include'
         }).catch(() => console.debug('Session Ping fehlgeschlagen'));
     }, 3 * 60 * 1000); // Alle 3 Minuten
+
     </script>
 </body>
 

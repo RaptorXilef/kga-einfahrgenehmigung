@@ -9,24 +9,18 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService                   $auth
- * @var \App\Contracts\Storage\GroupRepositoryInterface $groupRepository
+ * @var \App\Core\Service\AuthService $auth
+ * @var \App\Contracts\Storage\RoleRepositoryInterface $roleRepository
  * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
- * @var array                                           $settings
+ * @var array $settings
  */
-$groupId    = $auth->getGroup();
-$groupName  = $groupId;
-$groupImage = '';
-
-// (Absicherung falls nicht eingeloggt/übergeben))
-if (isset($groupRepository) && $auth->isLoggedIn()) {
-    $groups     = $groupRepository->loadAll(); // Wir brauchen die Liste für den Namen
-    $groupName  = isset($groups[$groupId]) ? $groups[$groupId]->name : $groupId; // Name finden, sonst ID als Fallback
-    $groupImage = isset($imageStorage) ? $imageStorage->getImageUrl('group_images', $groupId, 'icon-group-default.webp') : '';
+$roleId = $auth->getRole();
+$roleName = $roleId;
+if (isset($roleRepository) && $auth->isLoggedIn()) {
+    $roles = $roleRepository->loadAll();
+    $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
 }
-
-$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : '';
-?>
+$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : ''; ?>
 <nav
      style="background: var(--bg-light); border-bottom: 1px solid var(--border-color); padding: 10px 0; margin-bottom: 2rem; position: relative; z-index: 100;">
     <div class="c-tab-content-container"
@@ -39,55 +33,54 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                     <img src="<?php echo $userImgUrl; ?>"
                          style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);"
                          alt="User Avatar">
-                    <a href="profile.php" style="text-decoration: none; color: inherit;"
+                    <a href="profile"
+                       style="text-decoration: none; color: inherit;"
                        title="Zum Profil">
-                        <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                    <?php echo \htmlspecialchars($auth->getUsername()); ?>
                     </a>
-                </span>
-
+                    </span>
                 <div class="c-group-badge">
-                    <img src="<?php echo $groupImage; ?>"
-                         style="width: 18px; height: 18px; border-radius: 4px; object-fit: cover;"
-                         alt="Group Icon">
-                    <span><?php echo \htmlspecialchars($groupName); ?></span>
+                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-shield.webp"
+                         class="c-icon"
+                         style="width: 18px; height: 18px; object-fit: contain;"
+                         alt="Role Icon">
+                    <span><?php echo \htmlspecialchars($roleName); ?></span>
                 </div>
             </div>
 
             <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('system.permissions.view')) { ?>
-                <a href="users.php"
+                <a href="users"
                    class="c-tabs__btn"
                    style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" c
-                     lass="c-icon"
+                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                     class="c-icon"
                      style="width:16px;"
                      alt=""> Benutzer-Rechteverwaltung
-            </a>
+                </a>
             <?php } ?>
 
             <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('dashboard.view')) { ?>
-                <a href="admin.php"
+                <a href="admin"
                    class="c-tabs__btn"
                    style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
                 <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp"
                      class="c-icon"
                      style="width:16px;"
                      alt=""> Dashboard
-            </a>
+                </a>
             <?php } ?>
-
-            <a href="check.php"
+            <a href="check"
                class="c-tabs__btn"
                style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;"
                target="_blank">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
-                     class="c-icon"
-                     style="width:16px;"
-                     alt=""> Check
+            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                 class="c-icon"
+                 style="width:16px;"
+                 alt=""> Check
             </a>
         </div>
-
         <div style="display: flex; align-items: center; gap: 15px;">
             <div title="Automatische Abmeldung bei Inaktivität"
                  style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
@@ -96,14 +89,11 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
 
             <!-- Logout -->
             <form method="POST"
-                  action="admin.php"
+                  action="api/admin_logout"
                   style="display: inline; margin: 0;">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <input type="hidden"
-                       name="action"
-                       value="logout">
                 <button type="submit"
                         style="background: none; border: none; padding: 0; color: var(--danger-color); font-weight: 700; font-size: 0.85rem; cursor: pointer;">
                     ✕ Abmelden
@@ -112,7 +102,6 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
         </div>
     </div>
 </nav>
-
 <div id="session-warning-modal"
      style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
     <div class="c-card"
@@ -124,7 +113,6 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                     id="modal-session-countdown"
                     style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
             abgemeldet.</p>
-
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
             <button onclick="sessionHandler.logoutNow()"
                     class="c-button c-button--secondary"
@@ -139,7 +127,6 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
         </div>
     </div>
 </div>
-
 <script>
 const sessionHandler = (function() {
     const MAX_IDLE_TIME = 20 * 60; // 20 Minuten in Sekunden
@@ -210,12 +197,10 @@ const sessionHandler = (function() {
     }
 
     function stayLoggedIn() {
-        // Ping an den Server via HEAD (lädt keine Daten herunter, weckt aber PHP auf)
         const fd = new window.FormData(); // TODO window. entfernen, wenn in JS-Datei
-        fd.append('action', 'extend_session');
         fd.append('csrf_token', window.KGA_CONFIG.csrfToken);
 
-        fetch(window.KGA_CONFIG.baseUrl + 'admin.php', {
+        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
                 method: 'POST',
                 body: fd
             })
@@ -231,19 +216,13 @@ const sessionHandler = (function() {
     function logoutNow() {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = window.KGA_CONFIG.baseUrl + 'admin.php';
-
-        const actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        actionInput.value = 'logout';
+        form.action = window.KGA_CONFIG.baseUrl + 'api/admin_logout';
 
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
         csrfInput.name = 'csrf_token';
         csrfInput.value = window.KGA_CONFIG.csrfToken;
 
-        form.appendChild(actionInput);
         form.appendChild(csrfInput);
         document.body.appendChild(form);
         form.submit();
