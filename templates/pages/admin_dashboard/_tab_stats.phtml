@@ -9,28 +9,28 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Core\Service\AuthService $auth
  * @var \App\Infrastructure\Config\Config $config
- * @var string                            $filterStart
- * @var string                            $filterEnd
- * @var int                               $minArchiveYear
- * @var array                             $periodStats
- * @var \App\Core\Service\PermitService   $permitService
- * @var array                             $yearlyStats
- * @var array                             $settings
+ * @var string $filterStart
+ * @var string $filterEnd
+ * @var int $minArchiveYear
+ * @var array $periodStats
+ * @var \App\Core\Service\PermitService $permitService
+ * @var array $yearlyStats
+ * @var array $settings
  */
 
 // --- NEU: Monatliche Statistiken für den Chart berechnen ---
 $allPermitsForStats = $allPermits ?? []; // Nutzt nun die aus dem Controller übergebene Variable
-$monthlyStats       = [];
+$monthlyStats = [];
 foreach ($allPermitsForStats as $permit) {
     $mKey = $permit->getCreatedAt()->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
-    if (! isset($monthlyStats[$mKey])) {
+    if (!isset($monthlyStats[$mKey])) {
         // Wir nutzen den Zeitstempel für die korrekte Sortierung, da m.Y textuell falsch sortiert würde
         $monthlyStats[$mKey] = [
             'sort_key' => $permit->getCreatedAt()->format('Y-m'),
-            'count'    => 0,
-            'revenue'  => 0.0,
+            'count' => 0,
+            'revenue' => 0.0,
         ];
     }
     ++$monthlyStats[$mKey]['count'];
@@ -40,9 +40,9 @@ foreach ($allPermitsForStats as $permit) {
 // Nach dem unsichtbaren sort_key (Y-m) aufsteigend sortieren
 \uasort($monthlyStats, fn ($a, $b) => $a['sort_key'] <=> $b['sort_key']);
 
-$monthLabels  = \array_keys($monthlyStats);
+$monthLabels = \array_keys($monthlyStats);
 $monthRevenue = \array_map(fn ($d) => $d['revenue'], $monthlyStats);
-$monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
+$monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
 // -----------------------------------------------------------
 ?>
 
@@ -52,7 +52,7 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
         <div class="u-flex u-align-center u-gap-s u-margin-bottom-m">
             <div
                  style="background: #fff; border: 2px solid var(--primary-color); border-radius: 30px; padding: 8px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 10px;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp"
+                <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                      class="c-icon"
                      alt=""
                      style="width: 20px; height: 20px;">
@@ -108,10 +108,10 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
 
                 if ($typeKey === '__legacy__') {
                     $label = 'Sonstige / Ehem.';
-                    $icon  = 'assets/img/icons/status-invalid.webp';
+                    $icon = 'assets/img/icons/status-invalid.webp';
                 } else {
                     $label = $vConfig[$typeKey]['label'] ?? $typeKey;
-                    $icon  = $vConfig[$typeKey]['icon'] ?? '';
+                    $icon = $vConfig[$typeKey]['icon'] ?? '';
                 } // Nur anzeigen wenn vorhanden
                 ?>
                                 <div
@@ -144,7 +144,7 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
                 <details>
                     <summary class="u-padding-around-m u-cursor-pointer u-font-bold"
                              style="list-style: none; display: flex; align-items: center; gap: 10px;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-stats.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
                              class="c-icon"
                              alt="">
                         Wachstums-Trend & Jahresvergleich (Grafik einblenden)
@@ -178,7 +178,7 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
         <?php if ($auth->hasPermission('dashboard.stats.history') && $auth->hasPermission('privacy.finance.reveal')) { ?>
             <h3 class="u-margin-bottom-m"
                 style="display: flex; align-items: center; gap: 10px;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                      class="c-icon"
                      alt=""
                      style="width: 24px;">
@@ -189,7 +189,7 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
                 <details class="u-margin-bottom-s">
                     <summary style="background: var(--bg-light); padding: 15px 20px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
                         <span style="font-size: 1.1rem;">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-tear-off-calendar.webp"
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>"
                                  class="c-icon"
                                  alt="">
                             Geschäftsjahr <strong><?php echo $year; ?></strong>
@@ -242,7 +242,7 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
                                 <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
                                     <?php
                         $vConfig = $config->get('vehicle_types', []);
-                $typeItems       = [];
+                $typeItems = [];
                 foreach ($data['types'] as $tKey => $count) {
                     if ($count === 0) {
                         continue;
@@ -250,10 +250,10 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
 
                     if ($tKey === '__legacy__') {
                         $vLabel = 'Sonstige / Ehem.';
-                        $vIcon  = 'assets/img/icons/status-invalid.webp';
+                        $vIcon = 'assets/img/icons/status-invalid.webp';
                     } else {
                         $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
-                        $vIcon  = $vConfig[$tKey]['icon'] ?? '';
+                        $vIcon = $vConfig[$tKey]['icon'] ?? '';
                     }
 
                     // Wir bauen uns ein Array von HTML-Schnipseln
@@ -285,14 +285,14 @@ $monthCounts  = \array_map(fn ($d) => $d['count'], $monthlyStats);
             <!-- Button zum Nachladen von alten Jahren! -->
             <div class="u-text-center u-margin-top-l">
                 <?php
-                $queryParams              = $_GET;
+                $queryParams = $_GET;
             $queryParams['archive_depth'] = $minArchiveYear - 1;
-            $loadUrl                      = '?' . \http_build_query($queryParams);
+            $loadUrl = '?' . \http_build_query($queryParams);
             ?>
                 <a href="<?php echo $loadUrl; ?>"
                    class="c-button c-button--secondary"
                    style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_inbox-tray.webp"
+                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
                     class="c-icon"
                     alt="">
                 &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen

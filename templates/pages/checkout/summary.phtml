@@ -26,7 +26,7 @@
     <title>Zusammenfassung - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <?php
@@ -44,7 +44,7 @@ if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
     <div class="c-tab-content-container u-padding-y-xl"
          style="max-width: 650px;">
         <div class="u-text-center u-margin-bottom-l">
-            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                  alt="Erfolg"
                  style="width: 64px; margin-bottom: 15px;">
             <h1 class="u-margin-none"

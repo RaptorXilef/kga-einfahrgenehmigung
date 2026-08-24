@@ -28,7 +28,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
         <title>Benutzer & Rechte - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
         <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
         <link rel="stylesheet"
-              href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+              href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
         <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
     </head>
 
@@ -42,7 +42,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                     <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
                         <button class="c-tabs__btn c-tabs__btn--active"
                                 data-tab-target="tab-users">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                                  class="c-icon"
                                  alt=""> Benutzerverwaltung
                         </button>
@@ -50,7 +50,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                     <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
                         <button class="c-tabs__btn"
                                 data-tab-target="tab-groups">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-shield.webp"
+                            <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                                  class="c-icon"
                                  alt=""> Rollen & Rechte
                         </button>
@@ -72,7 +72,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
         </main>
         <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
         <script type="module"
-                src="<?php echo $settings['base_url']; ?>assets/js/admin-handler.js">
+                src="<?php echo $asset->url('assets/js/admin-handler.js'); ?>">
         </script>
         <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
         <script>

@@ -9,23 +9,23 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Core\Service\AuthService $auth
  * @var \App\Infrastructure\Config\Config $config
- * @var int                               $minArchiveYear
- * @var array                             $permitGroups
- * @var array                             $settings
+ * @var int $minArchiveYear
+ * @var array $permitGroups
+ * @var array $settings
  */
 $allExpired = $permitGroups['expired'] ?? [];
 
 \usort($allExpired, fn ($a, $b) => $b->getValidUntil() <=> $a->getValidUntil());
 
 // Paginierungs-Logik
-$limit      = $itemsPerPage ?? 25;
-$page       = $currentPage ?? 1;
+$limit = $itemsPerPage ?? 25;
+$page = $currentPage ?? 1;
 $totalCount = \count($allExpired);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
-$page       = \min($page, $totalPages);
-$offset     = ($page - 1) * $limit;
+$page = \min($page, $totalPages);
+$offset = ($page - 1) * $limit;
 
 $expiredPermits = \array_slice($allExpired, $offset, $limit);
 
@@ -37,7 +37,7 @@ if ($auth->hasPermission('dashboard.expired.view')) {
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
                     <h3 class="u-margin-none">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-expired.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
                              class="c-icon"
                              alt=""> Historisches Archiv
                     </h3>
@@ -79,10 +79,10 @@ if ($auth->hasPermission('dashboard.expired.view')) {
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($expiredPermits as $permit) {
-                                $vKey     = $permit->getVehicleType();
-                                $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
+                                $vKey = $permit->getVehicleType();
+                                $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
-                                $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+                                $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade"
                                     style="opacity: 0.75;">
@@ -124,7 +124,7 @@ if ($auth->hasPermission('dashboard.expired.view')) {
                                             style="vertical-align: middle;">
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
-                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                                                          class="c-icon"
                                                          style="width: 14px; opacity: 0.6;">
                                                     <small>
@@ -161,14 +161,14 @@ if ($auth->hasPermission('dashboard.expired.view')) {
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
                                                    title="Drucken">
-                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                                                         class="c-icon"
                                                         alt="">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('dashboard.expired.details')) { ?>
-                                                <a href="check.php?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Details">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp" class="c-icon" alt="">
+                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Details">
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
                                         </a>
                                             <?php } ?>
                                         </div>
@@ -185,7 +185,7 @@ if ($auth->hasPermission('dashboard.expired.view')) {
                     $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
 
                     // --- Smarte Paginierungs-Logik ---
-                    $adjacents   = 2; // Zeige 2 Seiten links und rechts der aktuellen
+                    $adjacents = 2; // Zeige 2 Seiten links und rechts der aktuellen
                     $pagesToShow = [];
                     if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
                         for ($i = 1; $i <= $totalPages; ++$i) {
@@ -278,14 +278,14 @@ if ($auth->hasPermission('dashboard.expired.view')) {
             <div class="u-padding-around-m u-border-top u-text-center"
                  style="background: rgba(0,0,0,0.02);">
                 <?php
-                $queryParams      = $_GET;
+                $queryParams = $_GET;
     $queryParams['archive_depth'] = $minArchiveYear - 1;
-    $loadUrl                      = '?' . \http_build_query($queryParams);
+    $loadUrl = '?' . \http_build_query($queryParams);
     ?>
                 <a href="<?php echo $loadUrl; ?>"
                    class="c-button c-button--secondary"
                    style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_inbox-tray.webp"
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
                          class="c-icon"
                          alt="">
                     &nbsp; Daten aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen

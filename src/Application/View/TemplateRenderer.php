@@ -14,8 +14,6 @@ use App\Contracts\System\JsonHelperInterface;
  * TODO DOCBLOCK
  * Zentraler Service für das Rendering von PHTML-Templates.
  * Sammelt globale System-Variablen und injiziert sie sicher in den View-Scope.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class TemplateRenderer
 {
@@ -39,7 +37,7 @@ final readonly class TemplateRenderer
             'config' => $this->config,
             'imageStorage' => $this->imageStorage,
             'jsonHelper' => $this->jsonHelper,
-            'asset' => $this->assetHelper,
+            'asset' => $this->assetHelper, // AssetHelper injiziert!
             'settings' => $this->getGlobalSettings(),
         ];
 
@@ -52,11 +50,22 @@ final readonly class TemplateRenderer
         // 2. Nutzerdaten bereitstellen (EXTR_SKIP verhindert das Überschreiben der Systemvariablen!)
         \extract($data, \EXTR_SKIP);
 
-        // KGA Legacy Templates liegen in templates/pages/
+        // 3. Rendere den eigentlichen Seiteninhalt in den Puffer
+        \ob_start();
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
+        $content = \ob_get_clean();
+
+        // 4. Prüfe, ob ein Layout-Wrapper definiert ist (z.B. 'layout' => 'admin')
+        $layout = $data['layout'] ?? null;
+
+        if ($layout !== null && \file_exists($appRoot . "/templates/layouts/{$layout}.phtml")) {
+            include $appRoot . "/templates/layouts/{$layout}.phtml";
+        } else {
+            // Fallback für alte Templates, die ihr <html> Gerüst noch selbst mitbringen
+            echo $content;
+        }
     }
 
-    // TODO DOCBLOCK
     private function getGlobalSettings(): array
     {
         $templates = (array) $this->config->get('permit_templates', []);

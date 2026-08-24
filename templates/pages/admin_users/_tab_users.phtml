@@ -21,7 +21,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) { ?>
                  style="border-top: 4px solid var(--success-color);">
             <header class="c-card__header">
                 <h3 class="u-margin-none">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                          class="c-icon"
                          alt=""> Neues Benutzerkonto anlegen
                 </h3>
@@ -79,7 +79,7 @@ if ($auth->hasPermission('system.permissions.users.manage')) { ?>
                             <img class="js-preview-img u-hidden"
                                  style="width: 100%; height: 100%; object-fit: cover;">
                             <span class="js-preview-text" style="font-size: 1.5rem; opacity: 0.3;">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                                      class="c-icon"
                                      alt="">
                             </span>

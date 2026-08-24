@@ -60,7 +60,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     <title>Antrag - <?php echo \htmlspecialchars($config->get('vereins_name')); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <script>
@@ -217,7 +217,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php if ($success) { ?>
                     <div class="c-alert c-alert--success u-margin-bottom-l"
                          style="flex-direction: column; text-align: center; padding: 50px 30px; border: 2px solid #10b981;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                              style="width: 64px; height: 64px;"
                              class="u-margin-bottom-m"
                              alt="">
@@ -279,7 +279,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                     <?php if ($prefill) { ?>
                         <div class="c-voucher-alert">
-                            <span style="font-size: 1.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp" class="c-icon" alt=""></span>
+                            <span style="font-size: 1.5rem;"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
                             <div>
                                 <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
                                 <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -289,7 +289,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
                         <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
                             <span class="c-voucher-toggle" onclick="toggleVoucher()">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                                <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                      class="c-icon"
                                      alt="">
                                 Sie haben einen Aktivierungscode? Dann hier klicken.
@@ -560,14 +560,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                 <?php } ?>
             </div>
 
-            <!--<footer class="u-margin-top-xl u-padding-top-m u-text-center" style="border-top: 1px solid var(--border-color);">
+            <?php /*<footer class="u-margin-top-xl u-padding-top-m u-text-center" style="border-top: 1px solid var(--border-color);">
                 <p class="u-text-small u-text-muted">
                     Bereits eine Genehmigung beantragt?<br>
-                    <a href="history.php" class="u-text-link" style="font-weight: 600;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt=""> Zum Genehmigungsverlauf
+                    <a href="history" class="u-text-link" style="font-weight: 600;">
+                        <img src="<?php echo $asset->url('assets/on-scroll.webp'); ?>" class="c-icon" alt=""> Zum Genehmigungsverlauf
                     </a>
                 </p>
-            </footer>-->
+            </footer> */ ?>
         </div>
     </div>
 

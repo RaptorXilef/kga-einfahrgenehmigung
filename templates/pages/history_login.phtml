@@ -29,7 +29,7 @@
     <title>Verlauf - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <script>
@@ -47,7 +47,7 @@
         <div class="c-card u-margin-auto"
              style="max-width: 450px; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-text-center u-padding-around-l">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                      class="c-icon"
                      style="width: 48px; height: 48px;"
                      alt="">
@@ -80,12 +80,12 @@
                                 name="request_link"
                                 class="c-button--primary u-width-100 u-margin-top-m"
                                 style="padding: 14px;">
-                            Link anfordern <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                            Link anfordern <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                                  class="c-icon"
                                  alt="">
                         </button>
                         <div class="u-margin-top-m u-text-center">
-                            <a href="history.php?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
+                            <a href="history?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
                         </div>
                     </form>
                 <?php } else { ?>

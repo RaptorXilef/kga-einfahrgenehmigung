@@ -24,7 +24,7 @@
     <title><?php echo \htmlspecialchars($legal['title']); ?> - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
 

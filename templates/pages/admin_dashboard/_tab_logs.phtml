@@ -10,21 +10,21 @@
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * @var \App\Infrastructure\Config\Config $config
- * @var array                             $mailLogs
- * @var \App\Core\Service\AuthService     $auth
- * @var array                             $settings
+ * @var array $mailLogs
+ * @var \App\Core\Service\AuthService $auth
+ * @var array $settings
  */
 
 // Limit aus der Config holen
 $displayLimit = (int) $config->get('mail_log_display_limit', 50);
-$logs         = \array_slice($mailLogs, 0, $displayLimit);
+$logs = \array_slice($mailLogs, 0, $displayLimit);
 ?>
 <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
-                    <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-logs.webp"
+                    <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
                              class="c-icon"
                              alt=""> E-Mail Versand-Log</h3>
                     <p class="u-text-muted u-text-small">Verlauf der letzten <?php echo $displayLimit; ?> System-Nachrichten.</p>
@@ -75,7 +75,7 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                     <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
                                         <td style="vertical-align: middle;">
                                             <div class="u-flex u-align-center u-gap-xs">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                                                      class="c-icon"
                                                      style="width: 14px; opacity: 0.5;">
                                                 <span style="font-weight: 700; font-size: 0.9rem; word-break: break-all;">
@@ -98,7 +98,7 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                         </div>
 
                                         <!-- FEHLERANZEIGE (Nur wenn Status nicht Erfolg) -->
-                                        <?php if (! $isSuccess && ! empty($log->status)) { ?>
+                                        <?php if (!$isSuccess && !empty($log->status)) { ?>
                                             <div
                                                  style="margin-top: 8px; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 6px; border: 1px solid rgba(225, 29, 72, 0.1);">
                                                 <div
@@ -117,7 +117,8 @@ $logs         = \array_slice($mailLogs, 0, $displayLimit);
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center">
                                             <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>"
                                                   style="min-width: 100px; justify-content: center; height: 32px; display: inline-flex; align-items: center;">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-<?php echo $isSuccess ? 'success' : 'invalid'; ?>.webp"
+                                                <?php $statusIcon = $isSuccess ? 'success' : 'invalid'; ?>
+                                                <img src="<?php echo $asset->url("assets/img/icons/status-{$statusIcon}.webp"); ?>"
                                                      class="c-icon"
                                                      alt="">
                                                 <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>

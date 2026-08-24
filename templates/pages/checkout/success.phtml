@@ -12,13 +12,13 @@ use App\Core\Entity\PermitStatus;
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * @var \App\Core\Entity\Permit $permit         Die bewilligte Genehmigungs-Entität.
- * @var string                  $method         Zahlungsmethode (z.B. 'wire' oder 'paypal').
- * @var bool                    $requirePayment Gibt an, ob das Ticket erst nach Zahlungseingang gültig ist.
- * @var string                  $dueDate        Das berechnete Datum für das Zahlungsziel.
- * @var string                  $epcData        Der rohe Payload für den Giro-QR-Code.
- * @var string                  $usage          Der maschinenlesbare Verwendungszweck.
- * @var array                   $settings       Globale UI-Einstellungen.
- * @var string                  $appRoot        Absoluter Pfad.
+ * @var string $method         Zahlungsmethode (z.B. 'wire' oder 'paypal').
+ * @var bool $requirePayment Gibt an, ob das Ticket erst nach Zahlungseingang gültig ist.
+ * @var string $dueDate        Das berechnete Datum für das Zahlungsziel.
+ * @var string $epcData        Der rohe Payload für den Giro-QR-Code.
+ * @var string $usage          Der maschinenlesbare Verwendungszweck.
+ * @var array $settings       Globale UI-Einstellungen.
+ * @var string $appRoot        Absoluter Pfad.
  */
 ?>
 <!DOCTYPE html>
@@ -31,7 +31,7 @@ use App\Core\Entity\PermitStatus;
     <title>Antrag erfolgreich - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
 
@@ -58,7 +58,7 @@ use App\Core\Entity\PermitStatus;
         <div class="c-card u-text-center"
              style="border-top: 5px solid var(--success-color);">
             <div class="c-card__body u-padding-around-xl">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                      alt="Erfolg"
                      style="width: 80px; margin-bottom: 20px;">
                 <h1 class="u-margin-top-none"
@@ -136,7 +136,7 @@ use App\Core\Entity\PermitStatus;
                      style="border-top: 1px solid var(--border-color);">
                     <p class="u-margin-bottom-m"
                        style="font-size: 0.95rem;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                              class="c-icon"
                              alt=""
                              style="width: 18px; vertical-align: middle; margin-right: 5px; opacity: 0.7;">
@@ -144,7 +144,7 @@ use App\Core\Entity\PermitStatus;
                         <strong style="color: var(--text-dark);"><?php echo \htmlspecialchars($permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse'); ?></strong> gesendet.
                     </p>
 
-                    <a href="check.php?code=<?php echo $permit->code; ?>"
+                    <a href="check?code=<?php echo $permit->code; ?>"
                        class="c-button c-button--primary"
                        style="display: inline-block; padding: 15px 20px; font-size: 1.1rem; width: 100%; max-width: 400px; height: 100%; text-decoration: none;">
                        Zum Live-Status der Genehmigung &rarr;

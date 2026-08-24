@@ -32,7 +32,7 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
     <title>Mein Profil - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 </head>
 
@@ -44,7 +44,7 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                 <div>
                     <h1 class="u-margin-none"
                         style="text-align: left;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                              class="c-icon"
                              alt="">
                         Mein Profil
@@ -81,7 +81,7 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                                     onclick="document.getElementById('avatar-input').click()"
                                     class="c-button--primary u-width-100"
                                     style="font-size: 0.8rem; height: 36px;">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-camera.webp"
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
                                      class="c-icon"
                                      style="width:14px;">
                                 Bild ändern

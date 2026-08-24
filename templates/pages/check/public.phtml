@@ -54,7 +54,7 @@ if ($permit) {
     <title>Status-Check - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 </head>
 
@@ -83,7 +83,7 @@ if ($permit) {
                     <?php if ($permit->isSuspended()) { ?>
                         <div style="color: var(--danger-color);">
                             <span style="font-size: 5rem;">
-                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt="">
+                                <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>" class="c-icon" alt="">
                             </span>
                             <h2 style="color: var(--danger-color); margin-top: 15px;">ZUTRITT VERWEIGERT</h2>
                             <p class="u-font-bold">Diese Genehmigung wurde gesperrt/widerrufen.</p>
@@ -104,7 +104,7 @@ if ($permit) {
                         </div>
                     <?php } elseif ($isDateValid && $isTimeAllowed) { ?>
                         <div style="color: var(--success-color);">
-                            <span style="font-size: 5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""></span>
+                            <span style="font-size: 5rem;"><img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>" class="c-icon" alt=""></span>
                             <h2 style="color: var(--success-color); margin-top: 15px;">GÜLTIG</h2>
                             <?php include '_details.phtml'; ?>
                         </div>
@@ -126,7 +126,7 @@ if ($permit) {
                         </div>
                     <?php } else { ?>
                         <div style="color: var(--text-muted);">
-                            <span style="font-size: 5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""></span>
+                            <span style="font-size: 5rem;"><img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>" class="c-icon" alt=""></span>
                             <h2 style="margin-top: 15px;">UNGÜLTIG</h2>
                             <p>Zahlung offen, Zeitraum abgelaufen oder noch nicht erreicht.</p>
                         </div>

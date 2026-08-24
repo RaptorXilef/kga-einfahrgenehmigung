@@ -10,18 +10,18 @@
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * @var \App\Core\Service\AuthService $auth
- * @var array                         $settings
- * @var string                        $filterStart
- * @var string                        $filterEnd
- * @var string                        $filterType
+ * @var array $settings
+ * @var string $filterStart
+ * @var string $filterEnd
+ * @var string $filterType
  */
 $filterType ??= 'all';
 $sessionFilters = $_SESSION['admin_filters'] ?? [];
-$currentStart   = $sessionFilters['start'] ?? $filterStart;
-$currentEnd     = $sessionFilters['end'] ?? $filterEnd;
-$currentType    = $sessionFilters['type'] ?? $filterType;
-$currentQ       = $sessionFilters['q'] ?? '';
-$currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
+$currentStart = $sessionFilters['start'] ?? $filterStart;
+$currentEnd = $sessionFilters['end'] ?? $filterEnd;
+$currentType = $sessionFilters['type'] ?? $filterType;
+$currentQ = $sessionFilters['q'] ?? '';
+$currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 ?>
 <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
     <div class="c-control-bar-wrapper">
@@ -44,7 +44,7 @@ $currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 <?php if ($auth->hasPermission('dashboard.control_bar.future')) { ?>
                     <span class="u-text-muted u-font-bold"
                           style="font-size: 0.8rem; letter-spacing: 0.05em;">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-future.webp"
+                    <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                          class="c-icon"
                          alt="">
                         ZEITRAUM:
@@ -105,7 +105,7 @@ $currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
                     <div style="position: relative; min-width: 150px; max-width: 230px; margin-left: auto;">
                         <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
                              class="c-icon"
                              alt="">
                     </span>
@@ -121,7 +121,7 @@ $currentLimit   = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     </div>
                 <?php } ?>
 
-                <?php if (! empty($sessionFilters)) { ?>
+                <?php if (!empty($sessionFilters)) { ?>
                     <a href="?reset_filters=1"
                        class="c-tabs__btn"
                        style="text-decoration:none; padding: 6px 12px; font-size:0.8rem; border:1px solid var(--border-color);">

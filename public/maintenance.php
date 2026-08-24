@@ -54,7 +54,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
     <title>Wartungsarbeiten - <?php echo \htmlspecialchars($vereinsName); ?></title>
 
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
 
     <style>
     body {
@@ -100,7 +100,7 @@ foreach (['webp', 'png', 'jpg'] as $ext) {
         <?php } ?>
 
         <span class="c-icon-large">
-            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-tools.webp"
+            <img src="<?php echo $asset->url('assets/img/icons/nav-tools.webp'); ?>"
                  class="c-icon"
                  alt=""
                  style="width: 1.5em; height: 1.5em;">

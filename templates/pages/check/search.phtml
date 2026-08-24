@@ -28,7 +28,7 @@
     <title>Genehmigung prüfen</title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <!-- Geändert: Nutzt jetzt direkt $appRoot -->
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
@@ -47,7 +47,7 @@
         <div class="c-card u-margin-auto"
              style="max-width: 500px;">
             <header class="c-card__header u-text-center u-padding-around-l">
-                <h2 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp"
+                <h2 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
                          class="c-icon"
                          alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
                 <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>

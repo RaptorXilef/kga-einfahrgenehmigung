@@ -11,12 +11,12 @@ use App\Core\Entity\Voucher;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Core\Service\AuthService $auth
  * @var \App\Infrastructure\Config\Config $config
- * @var array                             $settings
- * @var array                             $vouchers
- * @var array                             $voucherArchive
- * @var \App\Core\Service\VoucherService  $voucherService
+ * @var array $settings
+ * @var array $vouchers
+ * @var array $voucherArchive
+ * @var \App\Core\Service\VoucherService $voucherService
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
@@ -29,7 +29,7 @@ use App\Core\Entity\Voucher;
                 <section class="c-card">
                     <header class="c-card__header">
                         <h3 class="u-margin-none">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
                                  alt=""> Offene Gutscheincodes
                         </h3>
@@ -49,7 +49,7 @@ use App\Core\Entity\Voucher;
                                 <?php
                                 // TODO DIE STELLE PRÜFEN!
                                 $activeVouchers = \array_filter($vouchers ?? [], function (Voucher $v): bool {
-                                    return $v->status === 'aktiv' && ! $v->isDepleted();
+                                    return $v->status === 'aktiv' && !$v->isDepleted();
                                 });
                 if (empty($activeVouchers)) {
                     ?>
@@ -62,12 +62,12 @@ use App\Core\Entity\Voucher;
                                 <?php } else { ?>
                                     <?php foreach ($vouchers as $v) {
                                         // FIX: Explizit ->value nutzen für Array-Zugriffe und Ausgaben
-                                        $vCodeStr      = $v->code->value;
-                                        $url           = $config->getBaseUrl() . 'index.php?voucher=' . $vCodeStr;
-                                        $isValid       = $voucherValidities[$vCodeStr] ?? false;
+                                        $vCodeStr = $v->code->value;
+                                        $url = $config->getBaseUrl() . 'index.php?voucher=' . $vCodeStr;
+                                        $isValid = $voucherValidities[$vCodeStr] ?? false;
                                         $isDeactivated = $v->isDeactivated();
-                                        $isExpired     = $v->isExpired(new \DateTimeImmutable());
-                                        $discountText  = 'Kostenlos';
+                                        $isExpired = $v->isExpired(new \DateTimeImmutable());
+                                        $discountText = 'Kostenlos';
 
                                         if ($v->type === 'percent') {
                                             $discountText = $v->value . '% Rabatt';
@@ -75,7 +75,7 @@ use App\Core\Entity\Voucher;
                                             $discountText = \number_format($v->value, 2, ',', '.') . ' € Festpreis';
                                         }
                                         ?>
-                                        <tr class="<?php echo ! $isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
+                                        <tr class="<?php echo !$isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
                                             <td>
                                                 <div class="u-text-center">
                                                     <button type="button"
@@ -83,7 +83,7 @@ use App\Core\Entity\Voucher;
                                                             style="padding: 4px 8px; font-size: 0.75rem;"
                                                             title="QR-Code anzeigen"
                                                             onclick="showVoucherQr('<?php echo \htmlspecialchars($vCodeStr); ?>', '<?php echo \htmlspecialchars($url); ?>')">
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
                                                              class="c-icon"
                                                              alt=""
                                                              style="width: 14px;"> QR
@@ -110,7 +110,7 @@ use App\Core\Entity\Voucher;
                                                     <?php if ($v->multiUse) { ?>
                                                         <span class="c-badge"
                                                               style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                                                                  class="c-icon"
                                                                  alt="">
                                                             &nbsp;
@@ -137,7 +137,7 @@ use App\Core\Entity\Voucher;
 
                                                 <div class="u-margin-top-s"
                                                      style="font-size: 0.8rem; color: var(--text-muted);">
-                                                    <?php if (! empty($v->data['name'])) { ?>
+                                                    <?php if (!empty($v->data['name'])) { ?>
                                                         Vorbefüllt für: <strong><?php echo \htmlspecialchars($v->data['name']); ?></strong> (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
                                                     <?php } ?>
                                                     <?php if ($v->expiresAt) { ?>
@@ -150,7 +150,7 @@ use App\Core\Entity\Voucher;
                                                           style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
                                                           onclick="copyVoucherLink('<?php echo $url; ?>', this)">
                                                         Link kopieren
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-clipboard.webp"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
                                                              class="c-icon"
                                                              alt="">
                                                 </span>
@@ -174,7 +174,7 @@ use App\Core\Entity\Voucher;
                                                                 <button type="submit"
                                                                         class="c-button c-button--success c-button--small"
                                                                         title="Aktivieren"><img
-                                                                         src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
+                                                                         src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                          class="c-icon"
                                                                          alt=""></button>
                                                             <?php } else { ?>
@@ -184,7 +184,7 @@ use App\Core\Entity\Voucher;
                                                                 <button type="submit"
                                                                         class="c-button c-button--danger c-button--small"
                                                                         title="Sperren"><img
-                                                                         src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
+                                                                         src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                          class="c-icon"
                                                                          alt=""></button>
                                                             <?php } ?>
@@ -208,7 +208,7 @@ use App\Core\Entity\Voucher;
                                                                     class="c-button c-button--small"
                                                                     style="background: transparent; border-color: var(--danger-color);"
                                                                     title="Löschen"><img
-                                                                     src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
+                                                                     src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                                      class="c-icon"
                                                                      alt=""></button>
                                                         </form>
@@ -228,7 +228,7 @@ use App\Core\Entity\Voucher;
             <?php if ($auth->hasPermission('dashboard.vouchers.archive')) { ?>
                 <section class="c-card">
                     <header class="c-card__header">
-                        <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                        <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                                  class="c-icon"
                                  alt=""> Archiv</h3>
                         <p class="u-text-muted">Bereits vollständig eingelöste Codes.</p>
@@ -408,7 +408,7 @@ use App\Core\Entity\Voucher;
         const toast = document.createElement('div');
         toast.className = 'c-toast';
         toast.innerHTML =
-            `<img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" style="width:16px"> ${message}`;
+            `<img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>" class="c-icon" style="width:16px"> ${message}`;
 
         document.body.appendChild(toast);
 

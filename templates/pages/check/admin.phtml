@@ -15,14 +15,14 @@ use App\Core\Entity\PermitStatus;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Entity\Permit|null      $permit        Die gefundene Genehmigungs-Entität.
- * @var bool                              $isDateValid   Ob das Ticket im Datumsbereich liegt.
- * @var bool                              $isTimeAllowed Ob laut HolidayService jetzt geöffnet ist.
- * @var string                            $allowedToday  Nächster regulärer Einfahrts-Slot als Text.
- * @var array                             $settings
- * @var string                            $appRoot
+ * @var \App\Core\Entity\Permit|null $permit        Die gefundene Genehmigungs-Entität.
+ * @var bool $isDateValid   Ob das Ticket im Datumsbereich liegt.
+ * @var bool $isTimeAllowed Ob laut HolidayService jetzt geöffnet ist.
+ * @var string $allowedToday  Nächster regulärer Einfahrts-Slot als Text.
+ * @var array $settings
+ * @var string $appRoot
  * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService     $auth
+ * @var \App\Core\Service\AuthService $auth
  */
 
 // Status-Farbe bestimmen (Logik synchron zur public.phtml)
@@ -32,7 +32,7 @@ if ($permit) {
         $pageStateClass = 'state-bg-error';
     } elseif ($isDateValid && $isTimeAllowed) {
         $pageStateClass = 'state-bg-valid'; // Grün
-    } elseif ($isDateValid && ! $isTimeAllowed) {
+    } elseif ($isDateValid && !$isTimeAllowed) {
         $pageStateClass = 'state-bg-rest'; // Gelb/Orange
     }
 }
@@ -46,7 +46,7 @@ if ($permit) {
     <title>Vorstands-Prüfung - <?php echo $permit->code; ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
 
     <script>
@@ -69,17 +69,17 @@ if ($permit) {
              style="border-top: none;">
             <?php if ($permit->isSuspended()) { ?>
                 <div style="color: var(--danger-color);">
-                    <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp" class="c-icon" alt=""></span>
+                    <span style="font-size: 3.5rem;"><img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>" class="c-icon" alt=""></span>
                     <h2 style="color: var(--danger-color); margin-top: 10px; margin-bottom: 5px;">ZUTRITT VERWEIGERT
                     </h2>
                     <p class="u-font-bold u-margin-none">Diese Genehmigung ist gesperrt/wiederrufen.</p>
                 </div>
             <?php } elseif ($isDateValid && $isTimeAllowed) { ?>
                 <div style="color: var(--success-color);">
-                    <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp" class="c-icon" alt=""></span>
+                    <span style="font-size: 3.5rem;"><img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>" class="c-icon" alt=""></span>
                     <h2 style="color: var(--success-color); margin-top: 10px; margin-bottom: 0;">GENEHMIGUNG GÜLTIG</h2>
                 </div>
-            <?php } elseif ($isDateValid && ! $isTimeAllowed) { ?>
+            <?php } elseif ($isDateValid && !$isTimeAllowed) { ?>
                 <div style="color: #f59e0b;">
                     <span style="font-size: 3.5rem;">⏳</span>
                     <h2 style="color: #f59e0b; margin-top: 10px;">AKTUELL RUHEZEIT</h2>
@@ -94,7 +94,7 @@ if ($permit) {
                 </div>
             <?php } else { ?>
                 <div style="color: var(--text-muted);">
-                    <span style="font-size: 3.5rem;"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-invalid.webp" class="c-icon" alt=""></span>
+                    <span style="font-size: 3.5rem;"><img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>" class="c-icon" alt=""></span>
                     <h2 style="margin-top: 10px; margin-bottom: 0;">GENEHMIGUNG UNGÜLTIG
                         <!--ZEITRAUM UNGÜLTIG / ZAHLUNG OFFEN-->
                     </h2>
@@ -109,12 +109,12 @@ if ($permit) {
                 <p class="u-text-muted">Interne Daten für Code: <code><?php echo $permit->code; ?></code></p>
             </div>
             <div class="u-flex u-gap-s">
-                <a href="check.php" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: #fff; border: 1px solid var(--border-color);">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung
+                <a href="check" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: #fff; border: 1px solid var(--border-color);">
+                    <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung
                 </a>
                 <?php if ($auth->hasPermission('check.admin.print')) { ?>
                     <a href="admin.php?action=print&code=<?php echo $permit->code; ?>" target="_blank" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
+                        <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
                     </a>
                 <?php } ?>
             </div>
@@ -130,7 +130,7 @@ if ($permit) {
             </header>
             <div class="c-card__body u-padding-none">
                 <table class="c-table">
-                    <?php if ($permit->isSuspended() && ! empty($permit->getSuspensionReason())) { ?>
+                    <?php if ($permit->isSuspended() && !empty($permit->getSuspensionReason())) { ?>
                         <tr style="background: #fff1f2;">
                             <td class="u-font-bold"
                                 style="color: var(--danger-color);">Sperrgrund</td>
@@ -187,7 +187,7 @@ if ($permit) {
                         <td><?php echo $opening ?? ''; ?></td>
                     </tr>
 
-                    <?php if (! empty($holidayNotice)) { ?>
+                    <?php if (!empty($holidayNotice)) { ?>
                         <tr style="background: rgba(211, 47, 47, 0.05);">
                             <td class="u-font-bold"
                                 style="color: var(--danger-color);">Enthaltene Ruhe- und Feiertage</td>

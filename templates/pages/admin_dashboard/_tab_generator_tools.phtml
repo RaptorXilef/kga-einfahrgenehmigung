@@ -274,7 +274,7 @@ $formData ??= [];
                             </div>
                             <div class="c-form-group u-margin-top-m">
                                 <label class="c-form-label">Zweck
-                                    <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell</span></label>
+                                    <span class="u-text-link" onclick="toggleZweckMode()" id="u_zweck_toggle"><img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" alt=""> Manuell</span></label>
                                 <select name="zweck"
                                         id="u_zweck_select"
                                         class="c-form-select">
@@ -303,7 +303,7 @@ $formData ??= [];
                                     <div id="btn_mode_manual"
                                          class="c-gen-mode-card"
                                          onclick="setGeneratorMode('manual')">
-                                        <div class="u-icon-container"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp"
+                                        <div class="u-icon-container"><img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>"
                                                  class="c-icon"
                                                  style="width:24px"
                                                  alt=""></div>
@@ -318,7 +318,7 @@ $formData ??= [];
                                          class="c-gen-mode-card"
                                          onclick="setGeneratorMode('voucher')">
                                         <div class="u-icon-container"><img
-                                                 src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                                                 src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                                  class="c-icon"
                                                  style="width:24px"
                                                  alt=""></div>
@@ -350,7 +350,7 @@ $formData ??= [];
                                                 class="c-button"
                                                 style="width: auto; padding: 0 12px; gap: 8px;"
                                                 onclick="cyclePriceMode()">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-money-bag.webp"
+                                            <img src="<?php echo $asset->url('assets/img/icons/icon-money-bag.webp'); ?>"
                                                  class="c-icon"
                                                  id="price_mode_icon"
                                                  alt="">
@@ -491,7 +491,7 @@ $formData ??= [];
                                      style="display:none;"
                                      onclick="submitUnifiedForm('create_voucher')">
                                     <div class="c-action-card__icon"><img
-                                             src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-vouchers.webp"
+                                             src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                              class="c-icon"
                                              alt=""></div>
                                     <div class="c-action-card__content">
@@ -507,7 +507,7 @@ $formData ??= [];
                                      style="display:none;"
                                      onclick="submitUnifiedForm('create_manual')">
                                     <div class="c-action-card__icon"><img
-                                             src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                                             src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                              class="c-icon"
                                              alt=""></div>
                                     <div class="c-action-card__content">

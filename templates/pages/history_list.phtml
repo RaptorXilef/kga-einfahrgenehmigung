@@ -38,7 +38,7 @@ $now = new \DateTimeImmutable('today');
     <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php // include $appRoot . '/templates/components/_base_styles.phtml';
     ?>
     <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
@@ -59,7 +59,7 @@ $now = new \DateTimeImmutable('today');
         <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
             <div>
                 <h2 class="u-margin-none u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp"
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                          class="c-icon"
                          style="width: 32px; height: 32px;"
                          alt="">
@@ -253,28 +253,28 @@ $now = new \DateTimeImmutable('today');
                                                             class="c-button c-button--danger"
                                                             style="width: auto; padding: 0 12px; height: 36px; font-size: 0.8rem; gap: 6px;"
                                                             title="Antrag stornieren">
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-delete.webp"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                              class="c-icon"
                                                              alt=""> <!--Stornieren-->
                                                     </button>
                                                 </form>
                                             <?php } ?>
 
-                                            <a href="check.php?code=<?php echo $permit->code; ?>"
+                                            <a href="check?code=<?php echo $permit->code; ?>"
                                                target="_blank"
                                                class="c-button c-button--secondary"
                                                style="width: 36px; height: 36px;"
                                                title="Status / Prüfseite öffnen">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
                                                      class="c-icon"
                                                      alt="">
                                             </a>
-                                            <a href="history.php?action=print&code=<?php echo $permit->code; ?>"
+                                            <a href="history?action=print&code=<?php echo $permit->code; ?>"
                                                target="_blank"
                                                class="c-button c-button--primary"
                                                style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;"
                                                title="Dokument anzeigen">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                                                <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                                                      class="c-icon"
                                                      alt=""> Dokument
                                             </a>
@@ -448,7 +448,7 @@ if ($currentArchiveYear !== $lastYear) {
     })();
 
     </script>
-    <script src="<?php echo $settings['base_url']; ?>assets/js/table-sorter.js"></script>
+    <script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>
 </body>
 
 </html>

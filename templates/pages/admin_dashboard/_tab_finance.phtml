@@ -57,7 +57,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                 class="c-button c-button--success"
                                 style="display: none; width: auto; height: 34px; padding: 0 16px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; border: none; box-shadow: var(--shadow-sm); align-items: center; justify-content: center; gap: 6px;"
                                 onclick="return confirm('Sollen die ausgewählten Genehmigungen jetzt als BEZAHLT markiert werden?');">
-                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-success.webp"
+                            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                  class="c-icon"
                                  style="width: 16px; height: 16px;"
                                  alt="">
@@ -72,7 +72,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                  style="overflow-x: auto;">
                 <form method="POST"
                       id="bulk-pay-form"
-                      action="admin.php"
+                      action="admin"
                       style="margin:0;">
                     <input type="hidden"
                            name="csrf_token"
@@ -144,7 +144,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                 <?php } else { ?>
                                                     <span title="Gesperrt"
                                                           style="opacity: 0.5;">
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_prohibited.webp"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>"
                                                              class="c-icon"
                                                              alt="">
                                                     </span>
@@ -208,7 +208,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                             style="vertical-align: middle;">
                                             <?php if ($overdueLevel === 2) { ?>
                                                 <span class="c-badge c-badge--danger">
-                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_police-car-light.webp"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>"
                                                          class="c-icon"
                                                          alt="">
                                                     <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
@@ -247,12 +247,12 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                         <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                             <div class="u-flex u-gap-xs u-justify-end">
                                                 <?php if ($auth->hasPermission('dashboard.finance.details')) { ?>
-                                                    <a href="check.php?code=<?php echo $permit->code; ?>"
+                                                    <a href="check?code=<?php echo $permit->code; ?>"
                                                        target="_blank"
                                                        class="c-button c-button--secondary"
                                                        style="width: 34px; height: 34px;"
                                                        title="Details">
-                                                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
                                                      class="c-icon"
                                                      alt="">
                                             </a>
@@ -264,7 +264,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                                 class="c-button c-button--success"
                                                                 style="width: 34px; height: 34px;"
                                                                 title="Wieder freigeben">
-                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                  class="c-icon"
                                                                  alt="">
                                                         </button>
@@ -274,7 +274,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                                 style="width: 34px; height: 34px;"
                                                                 data-code="<?php echo $permit->code; ?>"
                                                                 title="Sperren">
-                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                  class="c-icon"
                                                                  alt="">
                                                         </button>
@@ -286,7 +286,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                             style="width: 34px; height: 34px;"
                                                             title="Einzeln als Bezahlt markieren"
                                                             onclick="if(confirm('Zahlung für <?php echo $permit->code; ?> bestätigen?')) document.getElementById('single_pay_<?php echo $permit->code; ?>').submit();">
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-check-mark.webp"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
                                                              class="c-icon"
                                                              alt="">
                                                     </button>
@@ -305,7 +305,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                     <?php if ($hasBulkRight) { ?>
                         <form id="single_pay_<?php echo $permit->code; ?>"
                               method="POST"
-                              action="admin.php"
+                              action="admin"
                               style="display:none;">
                             <input type="hidden"
                                    name="csrf_token"
@@ -321,7 +321,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                     <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
                         <form id="form_unsuspend_<?php echo $permit->code; ?>"
                               method="POST"
-                              action="admin.php"
+                              action="admin"
                               style="display:none;">
                             <input type="hidden"
                                    name="csrf_token"
@@ -335,7 +335,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                         </form>
                         <form id="form_suspend_<?php echo $permit->code; ?>"
                               method="POST"
-                              action="admin.php"
+                              action="admin"
                               style="display:none;">
                             <input type="hidden"
                                    name="csrf_token"

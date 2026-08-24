@@ -38,7 +38,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         <?php if ($auth->hasPermission('dashboard.migration.sync.view')) { ?>
             <div class="u-margin-bottom-l">
                 <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                    <img src="<?php echo $asset->url('assets/on-sync.webp'); ?>"
                          class="c-icon u-font-xl"
                          alt="Sync">
                     <div>
@@ -49,7 +49,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                 </header>
 
                 <div class="c-alert c-alert--warning u-margin-bottom-m">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp"
+                    <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
                          class="c-icon"
                          alt="">
                     <span><strong>Achtung:</strong> Migrationen überschreiben Daten am Zielort. Es wird automatisch ein Backup erstellt.</span>
@@ -193,12 +193,12 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                             class="c-button c-button--primary u-width-100"
                                             style="font-size: 0.9rem; font-weight: 600;"
                                             <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.sync") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
-                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-sync.webp"
+                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                                              class="c-icon"
                                              alt="Sync">
                                         </a>
                                         &ensp;Zusammenführen (Sync)&ensp;
-                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp"
+                                        <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
                                              class="c-icon"
                                              alt="Gefährliche Aktion!">
                                         </a>

@@ -3,40 +3,40 @@
  * Partial: Dashboard Tab - Audit Log (Nutzerprotokoll)
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService                   $auth
- * @var array                                           $settings
+ * @var \App\Core\Service\AuthService $auth
+ * @var array $settings
  * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
 $auditLogs ??= [];
 $auditTotal ??= 0;
 $auditPage ??= 1;
 $auditFilter ??= '';
-$auditLimit      = 50;
+$auditLimit = 50;
 $auditTotalPages = \max(1, (int) \ceil($auditTotal / $auditLimit));
 
 $filterOptions = [
-    ''                     => 'Alle Aktionen',
-    'LOGIN'                => 'Erfolgreiche Logins (Admin)',
-    'LOGOUT'               => 'Abmeldungen (Admin)',
-    'PERMIT_CREATE'        => 'Genehmigung erstellt',
-    'PERMIT_PAID'          => 'Zahlung bestätigt',
-    'PERMIT_SUSPENSION'    => 'Sperre / Freigabe',
-    'PERMIT_PRINT'         => 'Genehmigung gedruckt',
-    'BANK_IMPORT'          => 'Autom. Bankabgleich',
-    'VOUCHER_CREATE'       => 'Gutschein erstellt',
-    'VOUCHER_TOGGLE'       => 'Gutschein umgeschaltet',
-    'VOUCHER_DELETE'       => 'Gutschein gelöscht',
-    'USER_CREATE'          => 'Benutzer angelegt',
-    'USER_RENAME'          => 'Benutzer umbenannt',
-    'USER_CHANGE_GROUP'    => 'Rechte geändert',
-    'USER_DELETE'          => 'Benutzer gelöscht',
-    'GROUP_CREATE'         => 'Rollenmatrix erstellt', // <-- Neu hinzugefügt für Konsistenz
-    'GROUP_UPDATE'         => 'Rollenmatrix bearbeitet',
-    'GROUP_DELETE'         => 'Rollenmatrix gelöscht',
+    '' => 'Alle Aktionen',
+    'LOGIN' => 'Erfolgreiche Logins (Admin)',
+    'LOGOUT' => 'Abmeldungen (Admin)',
+    'PERMIT_CREATE' => 'Genehmigung erstellt',
+    'PERMIT_PAID' => 'Zahlung bestätigt',
+    'PERMIT_SUSPENSION' => 'Sperre / Freigabe',
+    'PERMIT_PRINT' => 'Genehmigung gedruckt',
+    'BANK_IMPORT' => 'Autom. Bankabgleich',
+    'VOUCHER_CREATE' => 'Gutschein erstellt',
+    'VOUCHER_TOGGLE' => 'Gutschein umgeschaltet',
+    'VOUCHER_DELETE' => 'Gutschein gelöscht',
+    'USER_CREATE' => 'Benutzer angelegt',
+    'USER_RENAME' => 'Benutzer umbenannt',
+    'USER_CHANGE_GROUP' => 'Rechte geändert',
+    'USER_DELETE' => 'Benutzer gelöscht',
+    'GROUP_CREATE' => 'Rollenmatrix erstellt', // <-- Neu hinzugefügt für Konsistenz
+    'GROUP_UPDATE' => 'Rollenmatrix bearbeitet',
+    'GROUP_DELETE' => 'Rollenmatrix gelöscht',
     'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
-    'DATA_EXPORT'          => 'Daten exportiert',
-    'USER_HISTORY_LOGIN'   => 'Pächter-Logins (Verlauf)',
-    'USER_PERMIT_CANCEL'   => 'Pächter-Stornos',
+    'DATA_EXPORT' => 'Daten exportiert',
+    'USER_HISTORY_LOGIN' => 'Pächter-Logins (Verlauf)',
+    'USER_PERMIT_CANCEL' => 'Pächter-Stornos',
 ];
 
 if ($auth->hasPermission('dashboard.audit_log.view')) {
@@ -45,11 +45,11 @@ if ($auth->hasPermission('dashboard.audit_log.view')) {
     <section class="c-card">
         <header class="c-card__header u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
             <div>
-                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" alt=""> Administrator-Aktivitäten</h3>
+                <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Administrator-Aktivitäten</h3>
                 <p class="u-text-muted u-text-small u-margin-none">Protokolliert sicherheitsrelevante Änderungen durch eingeloggte Nutzer.</p>
             </div>
 
-            <form method="GET" action="admin.php" class="u-flex u-align-center u-gap-s" style="margin: 0;">
+            <form method="GET" action="admin" class="u-flex u-align-center u-gap-s" style="margin: 0;">
                 <input type="hidden" name="action" value="render_dashboard">
                 <span class="u-text-small u-font-bold u-text-muted">FILTER:</span>
                 <select name="audit_filter" class="c-form-select" style="width: auto; min-width: 200px; height: 34px; padding: 0 10px; font-size: 0.85rem;" onchange="this.form.submit()">

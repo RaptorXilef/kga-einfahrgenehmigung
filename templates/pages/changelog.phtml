@@ -8,10 +8,10 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                                 $settings Globale Einstellungen inkl. base_url und vereins_name
- * @var string                                $appRoot Absoluter Pfad zum Installationsverzeichnis
- * @var string                                $markdownContent Der rohe Markdown-Inhalt der CHANGELOG.md
- * @var \App\Core\Service\AuthService         $auth
+ * @var array $settings Globale Einstellungen inkl. base_url und vereins_name
+ * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis
+ * @var string $markdownContent Der rohe Markdown-Inhalt der CHANGELOG.md
+ * @var \App\Core\Service\AuthService $auth
  * @var \App\Contracts\Config\ConfigInterface $config
  */
 ?>
@@ -23,7 +23,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Versionshistorie - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-    <link rel="stylesheet" href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+    <link rel="stylesheet" href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
 
     <!-- DOMPurify (Sicherheit) + Marked.js (Markdown Parser) -->
@@ -106,7 +106,7 @@
         <div class="c-card" style="border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-flex u-justify-between u-align-center u-flex-wrap u-gap-s">
                 <h2 class="u-margin-none u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" alt="" style="width: 32px; height: 32px;">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt="" style="width: 32px; height: 32px;">
                     Versionshistorie
                 </h2>
                 <a href="javascript:history.back()" class="c-button c-button--secondary" style="width: auto; padding: 0 15px; height: 36px; font-size: 0.85rem;">← Zurück</a>

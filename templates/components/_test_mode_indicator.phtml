@@ -10,7 +10,7 @@
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * @var \App\Infrastructure\Config\Config $config
- * @var array                             $settings
+ * @var array $settings
  */
 ?>
 <?php if ($config->isTestMode()) { ?>
@@ -57,7 +57,7 @@
 
             <div
                  style="background: rgba(255,255,255,0.9); padding: 2px 12px; border-radius: 4px; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.1); box-shadow: var(--shadow-sm);">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-warning.webp"
+                <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
                      class="c-icon"
                      alt=""><!-- ⚠️ --> Test-System
             </div>

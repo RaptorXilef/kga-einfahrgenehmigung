@@ -9,24 +9,24 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                             $permitGroups
- * @var \App\Core\Service\AuthService     $auth
- * @var array                             $settings
+ * @var array $permitGroups
+ * @var \App\Core\Service\AuthService $auth
+ * @var array $settings
  * @var \App\Infrastructure\Config\Config $config
  */
-$now       = new \DateTimeImmutable('today');
+$now = new \DateTimeImmutable('today');
 $allActive = $permitGroups['active'] ?? [];
 
 // Sortierung - Am kürzesten gültig zuerst! (bis ASC)
 \usort($allActive, fn ($a, $b) => $a->getValidUntil() <=> $b->getValidUntil());
 
 // Paginierungs-Logik
-$limit      = $itemsPerPage ?? 25;
-$page       = $currentPage ?? 1;
+$limit = $itemsPerPage ?? 25;
+$page = $currentPage ?? 1;
 $totalCount = \count($allActive);
 $totalPages = \max(1, (int) \ceil($totalCount / $limit));
-$page       = \min($page, $totalPages);
-$offset     = ($page - 1) * $limit;
+$page = \min($page, $totalPages);
+$offset = ($page - 1) * $limit;
 
 $activePermits = \array_slice($allActive, $offset, $limit);
 
@@ -37,7 +37,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
                     <h3 class="u-margin-none">
-                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-active.webp"
+                        <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
                              class="c-icon"
                              alt=""> Aktive Genehmigungen
                     </h3>
@@ -80,15 +80,15 @@ if ($auth->hasPermission('dashboard.active.view')) {
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($activePermits as $permit) {
-                                $is_suspended  = $permit->isSuspended();
-                                $diff          = $now->diff($permit->getValidUntil());
-                                $remaining     = (int) $diff->format('%r%a');
+                                $is_suspended = $permit->isSuspended();
+                                $diff = $now->diff($permit->getValidUntil());
+                                $remaining = (int) $diff->format('%r%a');
                                 $remainingText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
 
-                                $vKey     = $permit->getVehicleType();
-                                $vCfg     = $config->get('vehicle_types')[$vKey] ?? null;
+                                $vKey = $permit->getVehicleType();
+                                $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp'; // Fallback Icon
-                                $vLabel   = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+                                $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
                                 <tr class="u-hover-fade <?php echo $is_suspended ? 'u-bg-suspended' : ''; ?>">
                                     <!-- 1. Pächter & Parzelle -->
@@ -131,7 +131,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                             style="vertical-align: middle;">
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
-                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-envelope.webp"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                                                          class="c-icon"
                                                          style="width: 14px; opacity: 0.6;">
                                                     <small>
@@ -160,7 +160,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                             </small>
                                             <div style="margin-top: 6px;">
                                                 <span style="color: <?php echo ($remaining <= 1) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-hourglass-not-done.webp"
+                                            <img src="<?php echo $asset->url('assets/on-hourglass-not-done.webp'); ?>"
                                                  class="c-icon"
                                                  alt="">
                                             <?php echo $remainingText; ?>
@@ -175,7 +175,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                         style="vertical-align: middle;">
                                         <?php if ($is_suspended) { ?>
                                             <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->getSuspensionReason()); ?>">GESPERRT</span>
-                                        <?php } elseif (! $permit->isValid((bool) $config->get('require_payment_for_validity', false))) { ?>
+                                        <?php } elseif (!$permit->isValid((bool) $config->get('require_payment_for_validity', false))) { ?>
                                             <span class="c-badge c-badge--warning" title="Zeitraum gültig, aber Zahlung ausstehend">UNBEZAHLT</span>
                                         <?php } else { ?>
                                             <span class="c-badge c-badge--success">AKTIV</span>
@@ -191,18 +191,18 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
                                                    title="Druckvorschau">
-                                                    <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                                                         class="c-icon"
                                                         alt="Drucken">
                                                 </a>
                                                     <?php } ?>
                                                     <?php if ($auth->hasPermission('dashboard.active.details')) { ?>
-                                                <a href="check.php?code=<?php echo $permit->code; ?>"
+                                                <a href="check?code=<?php echo $permit->code; ?>"
                                                    target="_blank"
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
                                                    title="Details">
-                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-view.webp"
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
                                                  class="c-icon"
                                                  alt="Details">
                                         </a>
@@ -225,7 +225,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                                 class="c-button c-button--success"
                                                                 style="width: 36px; height: 36px;"
                                                                 title="Wieder freigeben">
-                                                            <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-unlock.webp"
+                                                            <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                              class="c-icon"
                                                              alt="">
                                                         </button>
@@ -236,7 +236,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                                                             style="width: 36px; height: 36px;"
                                                             data-code="<?php echo $permit->code; ?>"
                                                             title="Sperren">
-                                                        <img src="<?php echo $settings['base_url']; ?>assets/img/icons/status-denied.webp"
+                                                        <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                              class="c-icon"
                                                              alt="">
                                                     </button>
@@ -274,7 +274,7 @@ if ($auth->hasPermission('dashboard.active.view')) {
                     $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
 
                     // --- Smarte Paginierungs-Logik ---
-                    $adjacents   = 2; // Zeige 2 Seiten links und rechts der aktuellen
+                    $adjacents = 2; // Zeige 2 Seiten links und rechts der aktuellen
                     $pagesToShow = [];
                     if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
                         for ($i = 1; $i <= $totalPages; ++$i) {

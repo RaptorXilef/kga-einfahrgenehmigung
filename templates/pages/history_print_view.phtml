@@ -13,11 +13,11 @@
  *
  * Path: templates/pages/history_print_view.phtml
  *
- * @var \App\Core\Entity\Permit               $permit   Die zu druckende Genehmigungs-Entität.
- * @var array                                 $settings Einstellungen für das Layout (z.B. jahresFarbe).
+ * @var \App\Core\Entity\Permit $permit   Die zu druckende Genehmigungs-Entität.
+ * @var array $settings Einstellungen für das Layout (z.B. jahresFarbe).
  * @var \App\Contracts\Config\ConfigInterface $config   Globale System-Konfiguration.
- * @var string                                $appRoot  Absoluter Pfad zum Root-Verzeichnis.
- * @var array|string                          $opening  Formatierter Text der allgemeinen Öffnungszeiten.
+ * @var string $appRoot  Absoluter Pfad zum Root-Verzeichnis.
+ * @var array|string $opening  Formatierter Text der allgemeinen Öffnungszeiten.
  */
 ?>
 
@@ -29,7 +29,7 @@
     <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
     <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
     <link rel="stylesheet"
-          href="<?php echo $settings['base_url']; ?>assets/css/main.min.css">
+          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
 
     <script>
     window.KGA_CONFIG = {
@@ -141,7 +141,7 @@
         <button type="button" onclick="window.close()" class="c-button c-button--secondary">✕ Druckansicht schließen</button>
         <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()"
-                class="c-button c-button--primary"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-print.webp"
+                class="c-button c-button--primary"><img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                  class="c-icon"
                  alt="Drucken"></a> Dokument jetzt drucken</button>
     </div>
@@ -150,22 +150,22 @@
     // WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->getValidFrom()),
     // damit das A4-Template die Quartale berechnen kann!
     $data = [
-        'fullIdentifier'    => $permit->code,
-        'von_formatted'     => $permit->getValidFrom()->format('d.m.Y'),
-        'bis_formatted'     => $permit->getValidUntil()->format('d.m.Y'),
-        'kennzeichen'       => $permit->getLicensePlate(),
-        'firma'             => $permit->getCompany() ?? '',
-        'parzelle'          => $permit->getPlotNumber(),
-        'zweck'             => $permit->getPurpose(),
-        'template_key'      => $permit->template_key,
-        'vereinsName'       => $settings['vereins_name'],
-        'jahresFarbe'       => $settings['jahresFarbe'],
-        'opening_html'      => $opening_html ?? '',
-        'holidayNotice'     => $holidayNotice ?? '',
+        'fullIdentifier' => $permit->code,
+        'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
+        'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
+        'kennzeichen' => $permit->getLicensePlate(),
+        'firma' => $permit->getCompany() ?? '',
+        'parzelle' => $permit->getPlotNumber(),
+        'zweck' => $permit->getPurpose(),
+        'template_key' => $permit->template_key,
+        'vereinsName' => $settings['vereins_name'],
+        'jahresFarbe' => $settings['jahresFarbe'],
+        'opening_html' => $opening_html ?? '',
+        'holidayNotice' => $holidayNotice ?? '',
         'terminkalenderUrl' => $settings['terminkalender_url'],
-        'erstellt'          => $permit->getCreatedAt()->format('d.m.Y H:i'),
-        'checkUrl'          => $settings['base_url'] . 'check.php?code=' . $permit->code,
-        'config'            => $config,
+        'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
+        'checkUrl' => $settings['base_url'] . 'check.php?code=' . $permit->code,
+        'config' => $config,
     ];
 
 // Variablen in den lokalen Scope extrahieren

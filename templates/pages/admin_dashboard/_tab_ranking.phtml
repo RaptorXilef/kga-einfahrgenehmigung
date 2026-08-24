@@ -9,9 +9,9 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var array                         $periodStats
+ * @var array $periodStats
  * @var \App\Core\Service\AuthService $auth
- * @var array                         $settings
+ * @var array $settings
  */
 $plots = $periodStats['plots'] ?? [];
 ?>
@@ -19,7 +19,7 @@ $plots = $periodStats['plots'] ?? [];
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header">
-                <h3 class="u-margin-none"><img src="<?php echo $settings['base_url']; ?>assets/img/icons/nav-ranking.webp"
+                <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
                          class="c-icon"
                          alt=""> Parzellen-Ranking (Top 30)</h3>
                 <p class="u-text-muted">Auswertung basierend auf dem gewählten Zeitraum.</p>
@@ -51,19 +51,19 @@ $plots = $periodStats['plots'] ?? [];
                                     gefunden.</td>
                             </tr>
                             <?php } else {
-                            $rank      = 1;
-                            $firstPlot = \reset($plots);
-                            $maxCount  = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
+                                $rank = 1;
+                                $firstPlot = \reset($plots);
+                                $maxCount = $firstPlot['count'] > 0 ? $firstPlot['count'] : 1;
 
-                            foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
-                                $perc = ($data['count'] / $maxCount) * 100;
-                            ?>
+                                foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
+                                    $perc = ($data['count'] / $maxCount) * 100;
+                                    ?>
                                 <tr>
                                     <!-- RANG -->
                                     <td style="text-align: center; vertical-align: middle;">
                                         <?php if ($rank <= 3) { ?>
                                             <div style="font-size: 1.2rem;"><img
-                                                     src="<?php echo $settings['base_url']; ?>assets/img/icons/icon_trophy.webp"
+                                                     src="<?php echo $asset->url('assets/img/icons/icon_trophy.webp'); ?>"
                                                      class="c-icon"
                                                      alt=""><!-- 🏆 --></div>
                                             <div style="font-size: 0.7rem; font-weight: 800; margin-top: -5px;"><?php echo $rank++; ?>
@@ -123,7 +123,7 @@ $plots = $periodStats['plots'] ?? [];
                                     </td>
                                 </tr>
                         <?php }
-                        } ?>
+                                } ?>
                     </tbody>
                 </table>
             </div>

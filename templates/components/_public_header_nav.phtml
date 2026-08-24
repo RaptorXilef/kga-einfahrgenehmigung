@@ -31,21 +31,21 @@ $currentPage = \basename($_SERVER['PHP_SELF']);
             </span>
 
             <a href="index.php" class="c-tabs__btn <?php echo $currentPage === 'index.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-memo.webp" class="c-icon" style="width:16px;" alt=""> Antrag
+                <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Antrag
             </a>
 
-            <a href="history.php" class="c-tabs__btn <?php echo $currentPage === 'history.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-scroll.webp" class="c-icon" style="width:16px;" alt=""> Verlauf
+            <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Verlauf
             </a>
 
-            <a href="check.php" class="c-tabs__btn <?php echo $currentPage === 'check.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/action-search.webp" class="c-icon" style="width:16px;" alt=""> Check
+            <a href="check" class="c-tabs__btn <?php echo $currentPage === 'check.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Check
             </a>
         </div>
 
         <div>
             <a href="admin.php" class="c-tabs__btn <?php echo $currentPage === 'admin.php' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $settings['base_url']; ?>assets/img/icons/icon-user.webp" class="c-icon" style="width:16px;" alt=""> Verwaltung
+                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Verwaltung
             </a>
         </div>
     </div>
