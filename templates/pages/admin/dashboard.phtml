@@ -12,27 +12,27 @@ use App\Infrastructure\Maintenance\MigrationService;
  * Page: Main Admin Dashboard Wrapper
  *
  * Haupt-Dashboard für die Administration (Zentralansicht).
- * Rendert die Kontrollleiste, Statistiken, Tabellen aktiver/abgelaufener Genehmigungen,
- * die Gutscheinverwaltung sowie System-Tools (Migration/Logs).
+ *
+ * Path: templates/pages/admin/dashboard.phtml
  *
  * @var AssetHelperInterface $asset
- * @var AuthService $auth              Service für die Rechteprüfung im Template.
- * @var ConfigInterface $config            Anwendungs-Konfiguration.
- * @var JsonHelperInterface $jsonHelper        Hilfsklasse für JSON-Operationen.
- * @var MigrationService $migrationService  Migrations- & Backup-Manager.
- * @var PermitService $permitService     Zentraler Genehmigungs-Dienst.
- * @var VoucherService $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
- * @var array $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
- * @var array $settings          Globale UI- und Mapping-Einstellungen.
- * @var array $structure         Verschachtelter Berechtigungsbaum.
- * @var array $vouchers          Liste aller aktiven Gutscheine im System.
- * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups      Genehmigungen gruppiert nach Status.
- * @var array<string, array<string, mixed>> $yearlyStats       Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
- * @var array<string, mixed> $periodStats       Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
- * @var string $appRoot           Absoluter Pfad zum Installationsverzeichnis.
- * @var string $filterEnd         Aktives Filter-Enddatum (Y-m-d).
- * @var string $filterStart       Aktives Filter-Startdatum (Y-m-d).
- * @var string $filterType        Aktiver Filter-Fahrzeugtyp.
+ * @var AuthService $auth Service für die Rechteprüfung im Template.
+ * @var ConfigInterface $config Anwendungs-Konfiguration.
+ * @var JsonHelperInterface $jsonHelper Hilfsklasse für JSON-Operationen.
+ * @var MigrationService $migrationService Migrations- & Backup-Manager.
+ * @var PermitService $permitService Zentraler Genehmigungs-Dienst.
+ * @var VoucherService $voucherService Dienst zur Validierung/Verwaltung von Gutscheinen.
+ * @var array $mailLogs Die chronologischen E-Mail-Versandprotokolle.
+ * @var array $settings Globale UI- und Mapping-Einstellungen.
+ * @var array $structure Verschachtelter Berechtigungsbaum.
+ * @var array $vouchers Liste aller aktiven Gutscheine im System.
+ * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups Genehmigungen gruppiert nach Status.
+ * @var array<string, array<string, mixed>> $yearlyStats Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
+ * @var array<string, mixed> $periodStats Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
+ * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis.
+ * @var string $filterEnd Aktives Filter-Enddatum (Y-m-d).
+ * @var string $filterStart Aktives Filter-Startdatum (Y-m-d).
+ * @var string $filterType Aktiver Filter-Fahrzeugtyp.
  */
 
 // Aktiviere das Admin-Layout

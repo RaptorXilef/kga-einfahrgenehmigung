@@ -25,7 +25,8 @@ $pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
 
 if ($auth->hasPermission('system.permissions.view')) { ?>
     <main class="c-tab-content-container u-padding-y-l">
-        <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+        <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
+
         <div class="c-tabs">
             <div class="c-tabs__nav u-margin-bottom-l">
                 <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
@@ -49,13 +50,13 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
             <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
                 <div id="tab-users"
                      class="c-tabs__content c-tabs__content--active">
-                    <?php include $appRoot . '/templates/pages/admin_users/_tab_users.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_users.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
                 <div id="tab-groups"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_users/_tab_groups.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_roles.phtml'; ?>
                 </div>
             <?php } ?>
         </div>
@@ -112,8 +113,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
      * Fokus-Logik: Springt zum editierten User/Gruppe
      */
     function handleUrlFocus() {
-        const urlParams = new window.URLSearchParams(window.location
-        .search); // TODO wenn in eigener JS Datei das "window." entfernen
+        const urlParams = new window.URLSearchParams(window.location.search); // TODO JS Datei "window." entfernen
         const focusId = urlParams.get('focus');
 
         if (focusId) {
