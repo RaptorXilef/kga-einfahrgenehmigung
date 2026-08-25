@@ -114,7 +114,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     <?php if ($auth->hasPermission('dashboard.info_alert.view')) { ?>
         <div class="c-tab-content-container u-margin-auto">
-            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+            <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
         </div>
     <?php } ?>
 
@@ -123,7 +123,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </div>
 
     <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
-        <?php include $appRoot . '/templates/pages/admin_dashboard/_control_bar.phtml'; ?>
+        <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
     <?php } ?>
 
     <div class="u-width-100">
@@ -248,86 +248,85 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
                 <div id="tab-active"
                      class="c-tabs__content c-tabs__content--active">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
                 <div id="tab-future"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_future.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
                 <div id="tab-expired"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_expired.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
                 <div id="tab-ranking"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_ranking.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
                 <div id="tab-cancelled"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_cancelled.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
                 <div id="tab-finance"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_finance.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
                 <div id="tab-stats"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
                 <div id="tab-bank-import"
                      class="c-tabs__content <?php echo isset($bank_headers) ? 'c-tabs__content--active' : ''; ?>">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_bank_import.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
                 <div id="tab-export"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_export.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
                 <div id="tab-tools"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_generator_tools.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
                 <div id="tab-vouchers"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
                 <div id="tab-logs"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
                 </div>
             <?php } ?>
-            <!-- Audit Log Content -->
             <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
                 <div id="tab-audit-log"
                      class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'c-tabs__content--active' : ''; ?>">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_audit_log.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
                 </div>
             <?php } ?>
             <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
                 <div id="tab-migration"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_migration.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_migration.phtml'; ?>
                 </div>
             <?php } ?>
         </div>

@@ -34,7 +34,7 @@ final readonly class DatenschutzAction implements ViewActionInterface
         $path = $this->config->getStoragePath('settings/datenschutz.json');
         $legalData = \file_exists($path) ? $this->jsonHelper->read($path) : [];
 
-        $this->renderer->render('datenschutz', [
+        $this->renderer->render('frontend/datenschutz', [
             'legal' => $legalData,
         ]);
 

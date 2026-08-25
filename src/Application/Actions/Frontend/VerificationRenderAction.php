@@ -27,7 +27,7 @@ final readonly class VerificationRenderAction implements ViewActionInterface
     {
         $dto = VerificationRenderRequest::fromArray($request->get);
 
-        $this->renderer->render('verify_input', [
+        $this->renderer->render('frontend/verify_input', [
             'isError' => $dto->isError,
         ]);
 

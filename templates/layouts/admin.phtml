@@ -27,10 +27,10 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
           content="width=device-width, initial-scale=1.0">
     <title><?php echo \htmlspecialchars($pageTitle); ?></title>
 
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <?php include_once $appRoot . '/templates/partials/frontend/favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/admin/inline_styles.phtml'; ?>
 
     <script>
     window.KGA_CONFIG = {
@@ -46,14 +46,14 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
 
 <body class="l-admin <?php echo $pageStateClass ?? ''; ?>">
 
-    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
-    <?php include $appRoot . '/templates/components/_admin_header_nav.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/frontend/test_mode_indicator.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/admin/header_nav.phtml'; ?>
 
     <!-- HIER KOMMT DAS DASHBOARD / PROFILE / USERS REIN -->
     <?php echo $content; ?>
 
-    <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/admin/drag_drop_avatar.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/frontend/footer.phtml'; ?>
 
     <script type="module"
             src="<?php echo $asset->url('assets/js/admin-handler.js'); ?>"></script>

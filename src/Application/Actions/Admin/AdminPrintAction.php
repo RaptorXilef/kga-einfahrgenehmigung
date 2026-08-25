@@ -52,7 +52,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
 
         $this->auditLogger->log('PERMIT_PRINT', "Druckvorschau für Genehmigung '{$code}' aufgerufen.");
 
-        $this->renderer->render('admin_print_view', [
+        $this->renderer->render('admin/print_view', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(

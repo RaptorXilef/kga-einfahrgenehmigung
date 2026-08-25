@@ -42,7 +42,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         if ($emailInSession === '') {
-            $this->renderer->render('history_login', [
+            $this->renderer->render('frontend/history_login', [
                 'isSuccess' => $dto->isSuccess,
                 'step' => $dto->step,
             ]);
@@ -77,7 +77,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
             $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 
-        $this->renderer->render('history_list', [
+        $this->renderer->render('frontend/history_list', [
             'currentArchiveYear' => $loadedYear,
             'email' => $emailInSession,
             'isSuccess' => $dto->isSuccess,

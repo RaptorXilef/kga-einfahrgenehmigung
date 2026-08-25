@@ -1,7 +1,6 @@
 <?php
 
 use App\Contracts\System\AssetHelperInterface;
-use App\Infrastructure\Config\Config;
 
 /**
  * Page: Admin Login
@@ -10,7 +9,6 @@ use App\Infrastructure\Config\Config;
  * Zeigt das Anmeldeformular für Systembetreuer und Administratoren an.
  *
  * @var AssetHelperInterface $asset
- * @var Config $config
  * @var array $settings Enthält Basis-Konfigurationen (z.B. vereins_name, base_url).
  * @var string $appRoot
  */
@@ -39,7 +37,8 @@ unset($_SESSION['form_data']);
         </header>
 
         <div class="c-card__body u-padding-around-l">
-            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+            <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
+
             <form method="POST"
                   class="c-form">
                 <input type="hidden"

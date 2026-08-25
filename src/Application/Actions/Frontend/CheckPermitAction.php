@@ -45,7 +45,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
         } catch (ValidationException) {
-            $this->renderer->render('check/search');
+            $this->renderer->render('frontend/check_search');
 
             return null;
         }
@@ -63,7 +63,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
 
         if (!$permit instanceof Permit) {
             $this->sessionManager->addFlash('error', "Code '{$code}' nicht gefunden.");
-            $this->renderer->render('check/search');
+            $this->renderer->render('frontend/check_search');
 
             return null;
         }
@@ -110,7 +110,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         $requirePayment = (bool) $this->config->get('require_payment_for_validity', false);
         // Pfade angepasst auf Unterordner check/
         $this->renderer->render(
-            $showAdminView ? 'check/admin' : 'check/public',
+            $showAdminView ? 'frontend/check_admin' : 'frontend/check_public',
             \array_merge($adminData, [
                 'allowedToday' => $nextAllowedSlotText,
                 'auth' => $this->auth,

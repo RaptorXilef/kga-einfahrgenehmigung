@@ -40,7 +40,7 @@ final readonly class PermitRenderAction implements ViewActionInterface
             }
         }
 
-        $this->renderer->render('formular', [
+        $this->renderer->render('frontend/formular', [
             'agreements' => $this->getParsedAgreements(),
             'formData' => $this->sessionManager->getFormData(),
             'hasActiveVouchers' => $this->checkAvailableVouchers(),

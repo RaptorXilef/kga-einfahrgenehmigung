@@ -25,10 +25,10 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
           content="width=device-width, initial-scale=1.0">
     <title><?php echo \htmlspecialchars($pageTitle); ?></title>
 
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <?php include_once $appRoot . '/templates/partials/frontend/favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/frontend/base_styles.phtml'; ?>
 
     <script>
     window.KGA_CONFIG = {
@@ -41,13 +41,13 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
 
 <body class="u-bg-light l-public-body <?php echo $pageStateClass ?? ''; ?>">
 
-    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
-    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/frontend/test_mode_indicator.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/frontend/public_header_nav.phtml'; ?>
 
     <!-- HIER KOMMT DER INHALT DER EINZELNEN SEITEN REIN -->
     <?php echo $content; ?>
 
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+    <?php include $appRoot . '/templates/partials/frontend/footer.phtml'; ?>
 
     <!-- Ping für Session -->
     <script>

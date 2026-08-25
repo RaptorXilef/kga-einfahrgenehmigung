@@ -36,7 +36,7 @@ final readonly class AdminLoginAction implements ActionInterface
     {
         // Sauberer GET-Handler: Rendert einfach das Formular
         if ($request->getMethod() === 'GET') {
-            $this->renderer->render('admin_login', [
+            $this->renderer->render('admin/login', [
                 'auth' => $this->auth,
                 'roleRepository' => $this->roleRepository,
                 'userRepository' => $this->userRepository,
@@ -91,7 +91,7 @@ final readonly class AdminLoginAction implements ActionInterface
             $this->sessionManager->addFlash('error', $message);
         }
 
-        $this->renderer->render('admin_login', [
+        $this->renderer->render('admin/login', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'userRepository' => $this->userRepository,

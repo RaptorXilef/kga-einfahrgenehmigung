@@ -150,7 +150,7 @@
     "// --- MASTER COMMANDS ---": "Zusammengefasste Workflows",
     "chk": ["@qa"],
     "fix": ["@fmt", "@fix:cs"],
-    "fix:2": ["@fmt", "@fix:cs", "@fmt", "@fix:cs"],
+    "fix:cache": ["@php -r \"array_map('unlink', glob('cache/*'));\"", "@fmt", "@fix:cs"],
     "fmt": ["@fix:modern", "@fix:style"],
     "qa": [
       "@chk:style",

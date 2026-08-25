@@ -12,17 +12,13 @@ use App\Contracts\System\AssetHelperInterface;
  * Erfasst Anträge für Ausnahmegenehmigungen. Integriert PayPal-Smart-Buttons für Online-Zahlungen,
  * falls ein Tarif kostenpflichtig ist und unterstützt Vorbefüllungen durch Gutscheincodes.
  *
- * Path: templates/pages/formular.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
  * @var AssetHelperInterface $asset
- * @var ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
+ * @var ConfigInterface $config Anwendungs-Konfigurationsinstanz.
  * @var array $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
- * @var array $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
- * @var array|null $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
+ * @var array $settings  Enthält gefilterte Templates.
+ * @var array|null $prefill   Gutschein-Stammdaten.
  * @var bool $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
- * @var bool $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
+ * @var bool $success   True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
  * @var string $appRoot   System-Root-Pfad.
  * @var string $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
  * @var string $token             Das Sitzungs-Token für Korrekturen.
@@ -236,7 +232,7 @@ select[readonly] {
                 </script>
             <?php } else { ?>
 
-                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+                <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
                 <!-- Warnung-Box für Datumsfehler -->
                 <div id="date-warning"

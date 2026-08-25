@@ -37,7 +37,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
         $userRoleId = $user ? $user->roleId : 'guest';
         $role = $roles[$userRoleId] ?? null;
 
-        $this->renderer->render('profile', [
+        $this->renderer->render('admin/profile', [
             'auth' => $this->auth,
             'role' => $role ? $role->name : $userRoleId,
             'roleRepository' => $this->roleRepository,

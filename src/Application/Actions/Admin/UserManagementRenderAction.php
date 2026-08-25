@@ -31,7 +31,7 @@ final readonly class UserManagementRenderAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
-        $this->renderer->render('admin_users', [
+        $this->renderer->render('admin/users', [
             'auth' => $this->auth,
             'roleRepository' => $this->roleRepository,
             'roles' => $this->roleRepository->loadAll(),

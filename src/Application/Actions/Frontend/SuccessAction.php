@@ -69,7 +69,7 @@ final readonly class SuccessAction implements ViewActionInterface
         // Dynamisches Datum laden und formatieren
         $dueDate = $this->permitService->calculatePaymentDueDate($permit)->format('d.m.Y');
 
-        $this->renderer->render('checkout/success', [
+        $this->renderer->render('frontend/checkout_success', [
             'dueDate' => $dueDate,
             'epcData' => \urlencode($epcData),
             'method' => $method,

@@ -50,7 +50,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
 
         $permit = $this->storage->findByHash($code);
         if ($permit instanceof Permit && \strtolower($permit->getOwnerEmail()) === \strtolower($emailInSession)) {
-            $this->renderer->render('history_print_view', [
+            $this->renderer->render('frontend/history_print_view', [
                 'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                     $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),
                 ),

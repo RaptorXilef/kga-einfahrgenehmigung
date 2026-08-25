@@ -56,7 +56,7 @@ final readonly class CheckoutAction implements ViewActionInterface
         $dtVon = new DateTimeImmutable($tempData['datum_von'] ?? 'now');
         $dtBis = new DateTimeImmutable($tempData['datum_bis'] ?? 'now');
 
-        $this->renderer->render('checkout/summary', [
+        $this->renderer->render('frontend/checkout_summary', [
             'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                 $this->holidayService->getHolidaysInRange($dtVon, $dtBis),
             ),

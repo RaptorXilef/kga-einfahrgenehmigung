@@ -134,7 +134,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $this->sessionManager->clearFormData();
 
         // 6. View rendern
-        $this->renderer->render('admin_dashboard', [
+        $this->renderer->render('admin/dashboard', [
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits' => $allHistoricalAndActive,
             'auditFilter' => $auditFilter,

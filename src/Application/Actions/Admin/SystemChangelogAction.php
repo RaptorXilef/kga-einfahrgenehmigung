@@ -34,7 +34,7 @@ final readonly class SystemChangelogAction implements ViewActionInterface, Requi
 
     public function execute(ServerRequest $request): mixed
     {
-        $this->renderer->render('changelog', [
+        $this->renderer->render('admin/changelog', [
             'auth' => $this->auth,
             'markdownContent' => $this->sysInfo->getChangelog(),
         ]);
