@@ -91,7 +91,7 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                     <div style="color: var(--success-color);">
                         <span style="font-size: 5rem;"><img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>" class="c-icon" alt=""></span>
                         <h2 style="color: var(--success-color); margin-top: 15px;">GÜLTIG</h2>
-                        <?php include '_details.phtml'; ?>
+                        <?php include $appRoot . '/templates/partials/frontend/check_details.phtml'; ?>
                     </div>
                 <?php } elseif ($isDateValid && !$isTimeAllowed) { ?>
                     <div style="color: #f59e0b;">
@@ -107,7 +107,7 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                             <p>Nächste Einfahrt möglich:<br><strong><?php echo $allowedToday; ?></strong></p>
                         <?php } ?>
 
-                        <?php include '_details.phtml'; ?>
+                        <?php include $appRoot . '/templates/partials/frontend/check_details.phtml'; ?>
                     </div>
                 <?php } else { ?>
                     <div style="color: var(--text-muted);">
