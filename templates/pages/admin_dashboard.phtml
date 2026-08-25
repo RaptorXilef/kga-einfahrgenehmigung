@@ -192,7 +192,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                         <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
                             <button class="c-tabs__btn"
                                     data-tab-target="tab-finance">
-                                <img src="<?php echo $asset->url('assets/on-card.webp'); ?>"
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-card.webp'); ?>"
                                      class="c-icon"
                                      alt=""> Finanzen
                                 <?php $openCount = \count($permitGroups['unpaid'] ?? []);

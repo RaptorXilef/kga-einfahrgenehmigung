@@ -19,11 +19,11 @@
  * @var \App\Infrastructure\Config\Config $config
  * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
  * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
+ * @var \App\Contracts\System\AssetHelperInterface $asset
  */
 
 // $userId wird nun vom Controller übergeben
-$userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
-?>
+$userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp'); ?>
 <!DOCTYPE html>
 <html lang="de">
 
@@ -47,7 +47,7 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                              class="c-icon"
                              alt="">
-                        Mein Profil
+                            Mein Profil
                     </h1>
                     <p class="u-text-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
                 </div>

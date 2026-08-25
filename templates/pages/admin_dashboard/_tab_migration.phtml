@@ -10,27 +10,27 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService                 $auth
+ * @var \App\Core\Service\AuthService $auth
  * @var \App\Infrastructure\Maintenance\BackupService $backupService
- * @var array                                         $settings
+ * @var array $settings
  */
 if ($auth->hasPermission('dashboard.migration.view')) {
     $targets = [
-        'groups'               => ['label' => 'Benutzergruppen', 'icon' => '🛡️'],
-        'magic_links'          => ['label' => 'Login-Tokens', 'icon' => '🔗'],
-        'mail_log'             => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
-        'mail_queue'           => ['label' => 'Mail-Warteschlange', 'icon' => '📤'],
+        'groups' => ['label' => 'Benutzergruppen', 'icon' => '🛡️'],
+        'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
+        'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
+        'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => '📤'],
         'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => '✉️'],
-        'permits'              => ['label' => 'Genehmigungen', 'icon' => '📄'],
-        'permits_archive'      => ['label' => 'Genehmigungs-Archiv', 'icon' => '🗄️'],
-        'permits_cancelled'    => ['label' => 'Stornierte Genehmigungen', 'icon' => '🚫'],
-        'users'                => ['label' => 'Benutzerkonten', 'icon' => '👥'],
-        'verified_pending'     => ['label' => 'Warteraum (Zahlung)', 'icon' => '💳'],
-        'vouchers'             => ['label' => 'Gutscheine', 'icon' => '🎟️'],
-        'vouchers_archive'     => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
-        'login_attempts'       => ['label' => 'Login-Versuche', 'icon' => '🛡'],
-        'update_migrations'    => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
-        'audit_logs'           => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => '👁️‍🗨️'],
+        'permits' => ['label' => 'Genehmigungen', 'icon' => '📄'],
+        'permits_archive' => ['label' => 'Genehmigungs-Archiv', 'icon' => '🗄️'],
+        'permits_cancelled' => ['label' => 'Stornierte Genehmigungen', 'icon' => '🚫'],
+        'users' => ['label' => 'Benutzerkonten', 'icon' => '👥'],
+        'verified_pending' => ['label' => 'Warteraum (Zahlung)', 'icon' => '💳'],
+        'vouchers' => ['label' => 'Gutscheine', 'icon' => '🎟️'],
+        'vouchers_archive' => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
+        'login_attempts' => ['label' => 'Login-Versuche', 'icon' => '🛡'],
+        'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
+        'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => '👁️‍🗨️'],
     ];
     ?>
     <div class="c-tab-content-container">
@@ -38,7 +38,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
         <?php if ($auth->hasPermission('dashboard.migration.sync.view')) { ?>
             <div class="u-margin-bottom-l">
                 <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $asset->url('assets/on-sync.webp'); ?>"
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                          class="c-icon u-font-xl"
                          alt="Sync">
                     <div>
@@ -146,7 +146,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         <button type="submit"
                                                 class="c-button c-button--secondary u-width-100"
                                                 style="font-size: 0.85rem;"
-                                                <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.json_to_mysql") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
+                                                <?php echo !$auth->hasPermission("dashboard.migration.{$key}.json_to_mysql") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
                                             JSON ➔ SQL
                                         </button>
                                     </form>
@@ -169,7 +169,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         <button type="submit"
                                                 class="c-button c-button--secondary u-width-100"
                                                 style="font-size: 0.85rem;"
-                                                <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.mysql_to_json") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
+                                                <?php echo !$auth->hasPermission("dashboard.migration.{$key}.mysql_to_json") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
                                             SQL ➔ JSON
                                         </button>
                                     </form>
@@ -192,7 +192,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                     <button type="submit"
                                             class="c-button c-button--primary u-width-100"
                                             style="font-size: 0.9rem; font-weight: 600;"
-                                            <?php echo ! $auth->hasPermission("dashboard.migration.{$key}.sync") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
+                                            <?php echo !$auth->hasPermission("dashboard.migration.{$key}.sync") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
                                         <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                                              class="c-icon"
                                              alt="Sync">
@@ -462,7 +462,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                     <div class="u-grid"
                          style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
                         <?php foreach ($backups as $ts => $files) {
-                            $dateObj       = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
+                            $dateObj = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
                             $formattedDate = $dateObj ? $dateObj->format('d.m.Y — H:i:s') : $ts;
                             ?>
                             <div class="c-card"
@@ -480,7 +480,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                     <div class="u-flex u-flex-wrap u-gap-xs">
                                         <?php foreach ($files as $file) {
                                             $badgeColor = \str_contains($file, 'sql.json') ? 'var(--primary-color)' : 'var(--json-color)';
-                                            $cleanName  = \str_replace(['_file.json', '_sql.json'], '', $file);
+                                            $cleanName = \str_replace(['_file.json', '_sql.json'], '', $file);
                                             ?>
                                             <span class="c-badge" style="background: <?php echo $badgeColor; ?>; font-size: 0.7rem;">
                                                 <?php echo \htmlspecialchars($cleanName); ?>
