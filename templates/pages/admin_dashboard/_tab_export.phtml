@@ -1,18 +1,18 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+
 /**
  * Partial: Dashboard Tab - Data Export
  *
  * CSV und JSON Export-Schnittstellen für Buchhaltungs-Software.
  *
- * Path: templates/pages/admin_dashboard/_tab_export.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Core\Service\AuthService $auth
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
  * @var array $settings
- * @var string $filterStart
  * @var string $filterEnd
+ * @var string $filterStart
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.export.view')) { ?>

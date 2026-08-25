@@ -1,19 +1,20 @@
 <?php
 
+use App\Contracts\Storage\RoleRepositoryInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Storage\ImageStorageService;
+
 /**
  * Component: Administrative Header Navigation
  *
  * Beinhaltet das Top-Menü für eingeloggte Administratoren, Profil-Shortcuts und System-Links.
  *
- * Path: templates/components/_admin_header_nav.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Core\Service\AuthService $auth
- * @var \App\Contracts\Storage\RoleRepositoryInterface $roleRepository
- * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var ImageStorageService $imageStorage
+ * @var RoleRepositoryInterface $roleRepository
  * @var array $settings
- * @var \App\Contracts\System\AssetHelperInterface $asset
  */
 $roleId = $auth->getRole();
 $roleName = $roleId;

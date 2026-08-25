@@ -1,5 +1,13 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Contracts\System\JsonHelperInterface;
+use App\Core\Service\AuthService;
+use App\Core\Service\PermitService;
+use App\Core\Service\VoucherService;
+use App\Infrastructure\Maintenance\MigrationService;
+
 /**
  * Page: Main Admin Dashboard Wrapper
  *
@@ -7,28 +15,29 @@
  * Rendert die Kontrollleiste, Statistiken, Tabellen aktiver/abgelaufener Genehmigungen,
  * die Gutscheinverwaltung sowie System-Tools (Migration/Logs).
  *
- * Path: templates/pages/admin_dashboard.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Contracts\Config\ConfigInterface $config            Anwendungs-Konfiguration.
- * @var string $appRoot           Absoluter Pfad zum Installationsverzeichnis.
- * @var array $structure         Verschachtelter Berechtigungsbaum.
- * @var array<string, mixed> $periodStats       Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
- * @var array<string, array<string, mixed>> $yearlyStats       Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
- * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups      Genehmigungen gruppiert nach Status.
- * @var array $settings          Globale UI- und Mapping-Einstellungen.
- * @var \App\Core\Service\AuthService $auth              Service für die Rechteprüfung im Template.
- * @var string $filterStart       Aktives Filter-Startdatum (Y-m-d).
- * @var string $filterEnd         Aktives Filter-Enddatum (Y-m-d).
- * @var string $filterType        Aktiver Filter-Fahrzeugtyp.
- * @var array $vouchers          Liste aller aktiven Gutscheine im System.
- * @var \App\Core\Service\VoucherService $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth              Service für die Rechteprüfung im Template.
+ * @var ConfigInterface $config            Anwendungs-Konfiguration.
+ * @var JsonHelperInterface $jsonHelper        Hilfsklasse für JSON-Operationen.
+ * @var MigrationService $migrationService  Migrations- & Backup-Manager.
+ * @var PermitService $permitService     Zentraler Genehmigungs-Dienst.
+ * @var VoucherService $voucherService    Dienst zur Validierung/Verwaltung von Gutscheinen.
  * @var array $mailLogs          Die chronologischen E-Mail-Versandprotokolle.
- * @var \App\Core\Service\PermitService $permitService     Zentraler Genehmigungs-Dienst.
- * @var \App\Infrastructure\Maintenance\MigrationService $migrationService  Migrations- & Backup-Manager.
- * @var \App\Contracts\System\JsonHelperInterface $jsonHelper        Hilfsklasse für JSON-Operationen.
+ * @var array $settings          Globale UI- und Mapping-Einstellungen.
+ * @var array $structure         Verschachtelter Berechtigungsbaum.
+ * @var array $vouchers          Liste aller aktiven Gutscheine im System.
+ * @var array<string, array<int, \App\Core\Entity\Permit>> $permitGroups      Genehmigungen gruppiert nach Status.
+ * @var array<string, array<string, mixed>> $yearlyStats       Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
+ * @var array<string, mixed> $periodStats       Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
+ * @var string $appRoot           Absoluter Pfad zum Installationsverzeichnis.
+ * @var string $filterEnd         Aktives Filter-Enddatum (Y-m-d).
+ * @var string $filterStart       Aktives Filter-Startdatum (Y-m-d).
+ * @var string $filterType        Aktiver Filter-Fahrzeugtyp.
  */
+
+// Aktiviere das Admin-Layout
+$layout = 'admin';
+
 $now = new \DateTimeImmutable();
 $currentVersion = 'v0.0.0';
 
@@ -47,7 +56,6 @@ if ($auth->hasPermission('system.update.view')) {
     }
     // --- ENDE ---
 }
-
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
     $tplMetadata[$key] = [
@@ -57,408 +65,355 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     ];
 }
 ?>
-<!DOCTYPE html>
-<html lang="de">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-    <link rel="stylesheet"
-          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
-
-    <script>
-    window.KGA_CONFIG = {
-        baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
-        <?php if (isset($config)) { ?>
-            vehicleConfig: <?php echo \json_encode($config->get('vehicle_types'), \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>,
-        <?php } ?>
-        csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
-    };
-
-    </script>
-</head>
-
-<body class="l-admin">
-
-    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
-    <?php include $appRoot . '/templates/components/_admin_header_nav.phtml'; ?>
-
-    <?php if ($auth->hasPermission('dashboard.view')) { ?>
-        <main class="c-container u-padding-y-l">
-
-            <?php if ($auth->hasPermission('system.update.view')) { ?>
-                <div class="c-tab-content-container">
-                    <div id="github-update-banner"
-                         class="c-alert c-alert--info u-hidden u-margin-bottom-l"
-                         style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-wrap: wrap; gap: 15px;">
-                        <div style="flex: 1 1 250px;">
-                            <h3 class="u-margin-none"
-                                style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
-                            <p class="u-margin-top-xs u-margin-bottom-none"
-                               style="color: #1e40af; font-size: 0.95rem;">
-                                Aktuell installiert: <strong><?php echo \htmlspecialchars($currentVersion); ?></strong> ➔ Neue Version: <strong
-                                        id="gh-version"></strong><br>
-                                <small id="gh-notes"
-                                       style="opacity: 0.8;"></small>
-                            </p>
-
-                            <div class="u-margin-top-s"
-                                 style="font-size: 0.85rem; display: flex; gap: 15px;">
-                                <a id="gh-release-link" href="#" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
-                                📦 Release-Notes ansehen
-                            </a>
-                                <a href="https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/CHANGELOG.md" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
-                                📜 Changelog öffnen
-                            </a>
-                            </div>
-                        </div>
-                        <?php if ($auth->hasPermission('system.update.execute')) { ?>
-                            <div style="flex-shrink: 0;">
-                                <button id="gh-install-btn"
-                                        class="c-button c-button--primary js-run-update-btn"
-                                        data-csrf="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
-                                        data-url=""
-                                        style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
-                                    Jetzt 1-Klick Update starten
-                                </button>
-                            </div>
-                        <?php } ?>
+<main class="c-container u-padding-y-l">
+    <?php if ($auth->hasPermission('system.update.view')) { ?>
+        <div class="c-tab-content-container">
+            <div id="github-update-banner"
+                 class="c-alert c-alert--info u-hidden u-margin-bottom-l"
+                 style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-wrap: wrap; gap: 15px;">
+                <div style="flex: 1 1 250px;">
+                    <h3 class="u-margin-none"
+                        style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
+                    <p class="u-margin-top-xs u-margin-bottom-none"
+                       style="color: #1e40af; font-size: 0.95rem;">
+                        Aktuell installiert: <strong><?php echo \htmlspecialchars($currentVersion); ?></strong> ➔ Neue Version:
+                        <strong id="gh-version"></strong><br>
+                        <small id="gh-notes"
+                               style="opacity: 0.8;"></small>
+                    </p>
+                    <div class="u-margin-top-s"
+                         style="font-size: 0.85rem; display: flex; gap: 15px;">
+                        <a id="gh-release-link"
+                           href="#"
+                           target="_blank"
+                           style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                            📦 Release-Notes ansehen
+                        </a>
+                        <a href="https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/CHANGELOG.md"
+                           target="_blank"
+                           style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                            📜 Changelog öffnen
+                        </a>
                     </div>
                 </div>
-            <?php } ?>
-
-            <?php if ($auth->hasPermission('dashboard.info_alert.view')) { ?>
-                <div class="c-tab-content-container u-margin-auto">
-                    <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-                </div>
-            <?php } ?>
-
-            <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
-                <h1 class="u-margin-none">Dashboard & Statistiken</h1>
-            </div>
-
-            <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
-                <?php include $appRoot . '/templates/pages/admin_dashboard/_control_bar.phtml'; ?>
-            <?php } ?>
-
-            <div class="u-width-100">
-                <div class="c-tabs">
-                    <div class="c-tabs__nav">
-                        <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
-                            <button class="c-tabs__btn c-tabs__btn--active"
-                                    data-tab-target="tab-active">
-                                <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Aktiv
-                                (<?php echo \count($permitGroups['active'] ?? []); ?>)
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-future">
-                                <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Zukünftig
-                                (<?php echo \count($permitGroups['future'] ?? []); ?>)
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-expired">
-                                <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Abgelaufen
-                                (<?php echo \count($permitGroups['expired'] ?? []); ?>)
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-ranking">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Ranking
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-cancelled">
-                                <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-finance">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-card.webp'); ?>"
-                                     class="c-icon"
-                                     alt=""> Finanzen
-                                <?php $openCount = \count($permitGroups['unpaid'] ?? []);
-                            if ($openCount > 0) {
-                                echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
-                            }
-                            ?>
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-stats">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Statistiken
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
-                            <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'c-tabs__btn--active' : ''; ?>"
-                                    data-tab-target="tab-bank-import">
-                                🏦 Bank-Abgleich
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-export">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-export.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Daten & Export
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-tools">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-tools.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Werkzeuge
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-vouchers">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Gutscheincodes
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-logs">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Mail Log
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-audit-log">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Nutzerprotokoll
-                            </button>
-                        <?php } ?>
-                        <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
-                            <button class="c-tabs__btn"
-                                    data-tab-target="tab-migration">
-                                <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">Migration
-                            </button>
-                        <?php } ?>
+                <?php if ($auth->hasPermission('system.update.execute')) { ?>
+                    <div style="flex-shrink: 0;">
+                        <button id="gh-install-btn"
+                                class="c-button c-button--primary js-run-update-btn"
+                                data-csrf="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
+                                data-url=""
+                                style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
+                            Jetzt 1-Klick Update starten
+                        </button>
                     </div>
-
-                    <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
-                        <div id="tab-active"
-                             class="c-tabs__content c-tabs__content--active">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
-                        <div id="tab-future"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
-                        <div id="tab-expired"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
-                        <div id="tab-ranking"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
-                        <div id="tab-cancelled"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_cancelled.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
-                        <div id="tab-finance"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
-                        <div id="tab-stats"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
-                        <div id="tab-bank-import"
-                             class="c-tabs__content <?php echo isset($bank_headers) ? 'c-tabs__content--active' : ''; ?>">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_bank_import.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
-                        <div id="tab-export"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_export.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
-                        <div id="tab-tools"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_generator_tools.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
-                        <div id="tab-vouchers"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
-                        <div id="tab-logs"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <!-- Audit Log Content -->
-                    <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
-                        <div id="tab-audit-log"
-                             class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'c-tabs__content--active' : ''; ?>">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_audit_log.phtml'; ?>
-                        </div>
-                    <?php } ?>
-
-                    <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
-                        <div id="tab-migration"
-                             class="c-tabs__content">
-                            <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_migration.phtml'; ?>
-                        </div>
-                    <?php } ?>
-                </div>
+                <?php } ?>
             </div>
-        </main>
+        </div>
     <?php } ?>
 
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+    <?php if ($auth->hasPermission('dashboard.info_alert.view')) { ?>
+        <div class="c-tab-content-container u-margin-auto">
+            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+        </div>
+    <?php } ?>
 
-    <?php if ($auth->hasPermission('system.update.view')) { ?>
+    <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
+        <h1 class="u-margin-none">Dashboard & Statistiken</h1>
+    </div>
+
+    <?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
+        <?php include $appRoot . '/templates/pages/admin_dashboard/_control_bar.phtml'; ?>
+    <?php } ?>
+
+    <div class="u-width-100">
+        <div class="c-tabs">
+            <div class="c-tabs__nav">
+                <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
+                    <button class="c-tabs__btn c-tabs__btn--active"
+                            data-tab-target="tab-active">
+                        <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
+                             class="c-icon"
+                             alt="">Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-future">
+                        <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
+                             class="c-icon"
+                             alt="">Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-expired">
+                        <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
+                             class="c-icon"
+                             alt="">Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-ranking">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
+                             class="c-icon"
+                             alt="">Ranking
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-cancelled">
+                        <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                             class="c-icon"
+                             alt="">Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-finance">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-card.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Finanzen
+                        <?php $openCount = \count($permitGroups['unpaid'] ?? []);
+                    if ($openCount > 0) {
+                        echo '<span class="c-badge c-badge--danger" style="padding: 2px 6px; font-size: 10px; margin-left: 5px;">' . $openCount . '</span>';
+                    } ?>
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-stats">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
+                             class="c-icon"
+                             alt="">Statistiken
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
+                    <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'c-tabs__btn--active' : ''; ?>"
+                            data-tab-target="tab-bank-import">
+                        🏦 Bank-Abgleich
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-export">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-export.webp'); ?>"
+                             class="c-icon"
+                             alt="">Daten & Export
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-tools">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-tools.webp'); ?>"
+                             class="c-icon"
+                             alt="">Werkzeuge
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-vouchers">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                             class="c-icon"
+                             alt="">Gutscheincodes
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-logs">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
+                             class="c-icon"
+                             alt="">Mail Log
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-audit-log">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                             class="c-icon"
+                             alt="">Nutzerprotokoll
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-migration">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                             class="c-icon"
+                             alt="">Migration
+                    </button>
+                <?php } ?>
+            </div>
+
+            <?php if ($auth->hasPermission('dashboard.active.view')) { ?>
+                <div id="tab-active"
+                     class="c-tabs__content c-tabs__content--active">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_active.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.future.view')) { ?>
+                <div id="tab-future"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_future.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.expired.view')) { ?>
+                <div id="tab-expired"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_expired.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.ranking.view')) { ?>
+                <div id="tab-ranking"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_ranking.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
+                <div id="tab-cancelled"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_cancelled.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.finance.view')) { ?>
+                <div id="tab-finance"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_finance.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
+                <div id="tab-stats"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_stats.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.finance.bank_import')) { ?>
+                <div id="tab-bank-import"
+                     class="c-tabs__content <?php echo isset($bank_headers) ? 'c-tabs__content--active' : ''; ?>">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_bank_import.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.export.view')) { ?>
+                <div id="tab-export"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_export.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
+                <div id="tab-tools"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_generator_tools.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>
+                <div id="tab-vouchers"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_vouchers.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.logs.view')) { ?>
+                <div id="tab-logs"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_logs.phtml'; ?>
+                </div>
+            <?php } ?>
+            <!-- Audit Log Content -->
+            <?php if ($auth->hasPermission('dashboard.audit_log.view')) { ?>
+                <div id="tab-audit-log"
+                     class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'c-tabs__content--active' : ''; ?>">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_audit_log.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('dashboard.migration.view')) { ?>
+                <div id="tab-migration"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_dashboard/_tab_migration.phtml'; ?>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+</main>
+
+<?php if ($auth->hasPermission('system.update.view')) { ?>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const banner = document.getElementById('github-update-banner');
-            const versionLabel = document.getElementById('gh-version');
-            const notesLabel = document.getElementById('gh-notes');
-            const installBtn = document.getElementById('gh-install-btn');
-            const releaseLink = document.getElementById('gh-release-link');
+    document.addEventListener('DOMContentLoaded', () => {
+        const banner = document.getElementById('github-update-banner');
+        const versionLabel = document.getElementById('gh-version');
+        const notesLabel = document.getElementById('gh-notes');
+        const installBtn = document.getElementById('gh-install-btn');
+        const releaseLink = document.getElementById('gh-release-link');
 
-            // Wir rendern dynamisch einen "Neu laden" Button neben den Install-Button
-            let checkBtn = null;
-            if (installBtn) {
-                checkBtn = document.createElement('button');
-                // Keine Standard-Klassen, sondern exakt auf das Banner abgestimmtes Design:
-                checkBtn.style.cssText =
-                    'background: rgba(59, 130, 246, 0.1); color: #1e40af; border: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 16px; margin-top: 10px; font-size: 0.85rem; width: 100%; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 6px;';
+        // Wir rendern dynamisch einen "Neu laden" Button neben den Install-Button
+        let checkBtn = null;
+        if (installBtn) {
+            checkBtn = document.createElement('button');
+            // Keine Standard-Klassen, sondern exakt auf das Banner abgestimmtes Design:
+            checkBtn.style.cssText =
+                'background: rgba(59, 130, 246, 0.1); color: #1e40af; border: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 16px; margin-top: 10px; font-size: 0.85rem; width: 100%; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 6px;';
 
-                checkBtn.onmouseover = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.2)';
-                checkBtn.onmouseout = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.1)';
+            checkBtn.onmouseover = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+            checkBtn.onmouseout = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.1)';
+            checkBtn.innerHTML = '🔄 Auf Updates prüfen';
 
-                checkBtn.innerHTML = '🔄 Auf Updates prüfen';
+            checkBtn.onclick = (e) => {
+                e.preventDefault();
+                checkBtn.innerText = 'Prüfe...';
+                checkBtn.disabled = true;
+                performCheck(true);
+            };
+            installBtn.parentNode.appendChild(checkBtn);
+        }
 
-                checkBtn.onclick = (e) => {
-                    e.preventDefault();
-                    checkBtn.innerText = 'Prüfe...';
-                    checkBtn.disabled = true;
-                    performCheck(true);
-                };
-                installBtn.parentNode.appendChild(checkBtn);
-            }
-
-            // 1. Im Hintergrund prüfen, ob ein Update da ist
-            // CSRF-Header hinzugefügt, da die API nun gehärtet ist
-            function performCheck(force = false) {
-                fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                        },
-                        body: JSON.stringify({
-                            force: force
-                        })
+        // 1. Im Hintergrund prüfen, ob ein Update da ist
+        // CSRF-Header hinzugefügt, da die API nun gehärtet ist
+        function performCheck(force = false) {
+            fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                    },
+                    body: JSON.stringify({
+                        force: force
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (checkBtn) {
-                            checkBtn.innerText = '🔄 Auf neuere Version';
-                            checkBtn.disabled = false;
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (checkBtn) {
+                        checkBtn.innerText = '🔄 Auf neuere Version';
+                        checkBtn.disabled = false;
+                    }
+
+                    if (data.success && data.update_available) {
+                        versionLabel.innerText = data.data.version;
+
+                        // Release Notes dynamisch verlinken
+                        releaseLink.href =
+                            'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
+                            .data.version;
+
+                        // Setze die Download-URL als Data-Attribut für den JS-Handler
+                        if (installBtn) {
+                            installBtn.setAttribute('data-url', data.data.zipball_url);
                         }
+                        if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
+                        banner.classList.remove('u-hidden');
+                    } else if (force) {
+                        alert('Das System ist aktuell. Es wurden keine neuen Versionen gefunden.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Update-Check fehlgeschlagen:', err);
+                    if (checkBtn) {
+                        checkBtn.innerText = 'Fehler beim Prüfen';
+                        checkBtn.disabled = false;
+                    }
+                });
+        }
 
-                        if (data.success && data.update_available) {
-                            versionLabel.innerText = data.data.version;
+        // Beim Laden der Seite normalen (gecachten) Check ausführen
+        performCheck(false);
+    });
 
-                            // Release Notes dynamisch verlinken
-                            releaseLink.href =
-                                'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
-                                .data.version;
-
-                            // Setze die Download-URL als Data-Attribut für den JS-Handler
-                            if (installBtn) {
-                                installBtn.setAttribute('data-url', data.data.zipball_url);
-                            }
-
-                            if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
-                            banner.classList.remove('u-hidden');
-                        } else if (force) {
-                            alert('Das System ist aktuell. Es wurden keine neuen Versionen gefunden.');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Update-Check fehlgeschlagen:', err);
-                        if (checkBtn) {
-                            checkBtn.innerText = 'Fehler beim Prüfen';
-                            checkBtn.disabled = false;
-                        }
-                    });
-            }
-
-            // Beim Laden der Seite normalen (gecachten) Check ausführen
-            performCheck(false);
-        });
     </script>
 <?php } ?>
-
-<!-- FIX: Hier $settings['base_url'] nutzen anstatt $config->getBaseUrl(), damit der Slash dran ist! -->
-<script type="module"
-        src="<?php echo $asset->url('assets/js/admin-handler.js'); ?>"></script>
-<script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>
-</body>
-</html>

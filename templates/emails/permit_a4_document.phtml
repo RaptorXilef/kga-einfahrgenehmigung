@@ -6,32 +6,28 @@
  * Das offizielle Genehmigungsdokument als HTML/PDF.
  * Diese Version ist optimiert für den Versand via Mail-Queue und die Druckansicht.
  *
- * Path: templates/emails/permit_a4_document.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var string       $template_key
- * @var string       $jahresFarbe
- * @var string       $von_formatted
- * @var string       $bis_formatted
- * @var string       $von
- * @var string       $bis
- * @var string       $fullIdentifier
- * @var string       $checkUrl
- * @var string       $kennzeichen
- * @var string       $firma
- * @var string       $parzelle
- * @var string       $zweck
- * @var string       $terminkalenderUrl
- * @var string       $erstellt
- * @var string       $vereinsName
+ * @var array $settings
  * @var array|string $opening
- * @var array        $settings
- * @var string|null  $holidayNotice
+ * @var string $bis
+ * @var string $bis_formatted
+ * @var string $checkUrl
+ * @var string $erstellt
+ * @var string $firma
+ * @var string $fullIdentifier
+ * @var string $jahresFarbe
+ * @var string $kennzeichen
+ * @var string $parzelle
+ * @var string $template_key
+ * @var string $terminkalenderUrl
+ * @var string $vereinsName
+ * @var string $von
+ * @var string $von_formatted
+ * @var string $zweck
+ * @var string|null $holidayNotice
  */
 $isPermanent = \str_contains(\strtolower($template_key), 'perm');
 $headerColor = $isPermanent ? '#3498db' : $jahresFarbe;
-$title       = $isPermanent ? 'DAUER&shy;EINFAHRT&shy;GENEHMIGUNG' : 'AUSNAHME&shy;GENEHMIGUNG';
+$title = $isPermanent ? 'DAUER&shy;EINFAHRT&shy;GENEHMIGUNG' : 'AUSNAHME&shy;GENEHMIGUNG';
 
 $displayVon = ($von_formatted ?? '') ?: ($von instanceof \DateTimeInterface ? $von->format('d.m.Y') : $von);
 $displayBis = ($bis_formatted ?? '') ?: ($bis instanceof \DateTimeInterface ? $bis->format('d.m.Y') : $bis);
@@ -41,13 +37,13 @@ $dtBis = \DateTimeImmutable::createFromFormat('d.m.Y', $bis_formatted);
 
 $activeQuarters = [];
 if ($dtVon && $dtBis) {
-    $qStart         = (int) \ceil((int) $dtVon->format('n') / 3);
-    $qEnd           = (int) \ceil((int) $dtBis->format('n') / 3);
+    $qStart = (int) \ceil((int) $dtVon->format('n') / 3);
+    $qEnd = (int) \ceil((int) $dtBis->format('n') / 3);
     $activeQuarters = \range($qStart, $qEnd);
 }
 
 $baseUrl = '';
-if (! empty($settings['base_url'])) {
+if (!empty($settings['base_url'])) {
     $baseUrl = \rtrim((string) $settings['base_url'], '/') . '/';
 } else {
     // Wenn keine Base-URL existiert, brechen wir die Erstellung ab
@@ -394,7 +390,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
                 <?php echo $openingText; ?>
             </span>
 
-            <?php if (! empty($holidayNotice)) { ?>
+            <?php if (!empty($holidayNotice)) { ?>
                 <div
                      style="margin-top: 10px; color: #d32f2f; font-weight: bold; font-size: 10.5pt; padding: 8px; background: rgba(211, 47, 47, 0.05); border-radius: 6px; border-left: 4px solid #d32f2f;">
                     <?php echo $holidayNotice; ?>
@@ -416,7 +412,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
                     <td class="label">Amtl. Kennzeichen:</td>
                     <td class="value"><?php echo \htmlspecialchars($kennzeichen); ?></td>
                 </tr>
-                <?php if (! empty($firma)) { ?>
+                <?php if (!empty($firma)) { ?>
                     <tr>
                         <td class="label">Firma / Lieferant:</td>
                         <td class="value"><?php echo \htmlspecialchars($firma); ?></td>
@@ -454,7 +450,7 @@ if (isset($opening_html) && \is_string($opening_html) && $opening_html !== '') {
             <ul>
                 <li><strong>Sichtbarkeit:</strong> Dieses Dokument oder der handgeschriebene Code ist gut sichtbar im
                     Fahrzeug (Windschutzscheibe) auszulegen.</li>
-                <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo ! $isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten, Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
+                <li><strong>Gültigkeit:</strong> Gilt nur für den oben genannten Zweck. <?php echo !$isPermanent ? '<strong>Gilt NICHT</strong> während der Ruhezeiten, Sonn- und Feiertagen.' : 'Gültig innerhalb der genehmigten Quartale.'; ?></li>
                 <li><strong>Geschwindigkeit:</strong> In der gesamten Anlage gilt Schritttempo (<strong>max. 10
                         km/h</strong>).</li>
                 <li><strong>Parken:</strong> <?php echo $isPermanent ? 'Berechtigt zum Parken auf ausgewiesenen Flächen / Vereinshaus.' : 'Berechtigt zum Be- und Entladen, jedoch <strong>nicht zum Parken</strong>.'; ?></li>

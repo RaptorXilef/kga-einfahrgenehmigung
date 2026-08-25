@@ -1,5 +1,8 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Infrastructure\Config\Config;
+
 /**
  * Page: Manual Code Input (Search)
  *
@@ -8,86 +11,43 @@
  * Suchmaske für die manuelle Genehmigungsprüfung.
  * Bietet Kontrolleuren ein Eingabefeld zur Eingabe von System-Codes oder Kennzeichen.
  *
- * Path: templates/pages/check/search.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
  * @var array $settings
+ * @var AssetHelperInterface $asset
+ * @var Config $config
  * @var string $appRoot
- * @var \App\Infrastructure\Config\Config $config
  * @var string|null $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
+$layout = 'public';
+$pageTitle = 'Genehmigung prüfen';
 ?>
-<!DOCTYPE html>
-<html lang="de">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-    <title>Genehmigung prüfen</title>
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-    <link rel="stylesheet"
-          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <!-- Geändert: Nutzt jetzt direkt $appRoot -->
-    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+<div class="c-tab-content-container u-padding-y-xl">
+    <div class="c-card u-margin-auto"
+         style="max-width: 500px;">
+        <header class="c-card__header u-text-center u-padding-around-l">
+            <h2 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                     class="c-icon"
+                     alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
+            <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
+        </header>
+        <div class="c-card__body u-padding-around-l">
+            <?php require __DIR__ . '/../../components/_alerts.phtml'; ?>
 
-    <script>
-    window.KGA_CONFIG = {
-        baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
-        csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
-    };
-
-    </script>
-</head>
-
-<body class="u-bg-light l-public-body">
-    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
-    <div class="c-tab-content-container u-padding-y-xl">
-        <div class="c-card u-margin-auto"
-             style="max-width: 500px;">
-            <header class="c-card__header u-text-center u-padding-around-l">
-                <h2 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
-                         class="c-icon"
-                         alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
-                <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
-            </header>
-            <div class="c-card__body u-padding-around-l">
-
-                <?php require __DIR__ . '/../../components/_alerts.phtml'; ?>
-
-                <form action="check.php"
-                      method="GET"
-                      class="c-form">
-                    <div class="c-form-group u-margin-bottom-l">
-                        <input type="text"
-                               name="code"
-                               class="c-form-input u-text-center u-font-xl"
-                               placeholder="z.B. 6Y5C"
-                               required
-                               autofocus
-                               style="letter-spacing: 5px; font-family: monospace; height: 60px;">
-                    </div>
-                    <button type="submit"
-                            class="c-button--primary u-width-100">Code jetzt prüfen</button>
-                </form>
-            </div>
-            <!--<footer class="u-text-center u-padding-bottom-l">
-                <a href="index.php" class="u-text-link u-text-small">← Zurück zum Antrag</a>
-            </footer>-->
+            <form action="check.php"
+                  method="GET"
+                  class="c-form">
+                <div class="c-form-group u-margin-bottom-l">
+                    <input type="text"
+                           name="code"
+                           class="c-form-input u-text-center u-font-xl"
+                           placeholder="z.B. 6Y5C"
+                           required
+                           autofocus
+                           style="letter-spacing: 5px; font-family: monospace; height: 60px;">
+                </div>
+                <button type="submit"
+                        class="c-button--primary u-width-100">Code jetzt prüfen</button>
+            </form>
         </div>
     </div>
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
-    <script>
-        // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
-    // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
-    setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
-            method: 'POST',
-            credentials: 'include'
-        }).catch(() => console.debug('Session Ping fehlgeschlagen'));
-    }, 3 * 60 * 1000); // Alle 3 Minuten
-    </script>
-</body>
-
-</html>
+</div>

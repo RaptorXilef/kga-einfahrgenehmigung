@@ -1,0 +1,51 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Actions\Api\Frontend;
+
+use App\Application\Attribute\Route;
+use App\Application\Contracts\ViewActionInterface;
+use App\Application\DTO\SimpleIdentifierRequest;
+use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
+use App\Application\Response\JsonResponse;
+use App\Core\Entity\PermitStatus;
+use App\Core\Service\PermitService;
+use Throwable;
+
+/**
+ * Action zum finalisieren eines Antrags via klassischer Banküberweisung.
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
+ */
+#[Route('POST', '/api/finalize_wire')]
+final readonly class FinalizeWireAction implements ViewActionInterface
+{
+    public function __construct(
+        private PermitService $permitService,
+    ) {
+    }
+
+    public function execute(ServerRequest $request): mixed
+    {
+        try {
+            $dto = SimpleIdentifierRequest::fromArray($request->post, 'token');
+        } catch (ValidationException $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+
+        try {
+            $permit = $this->permitService->finaliseRequest(
+                $dto->identifier,
+                PermitStatus::Offen,
+                'Zahlung per Überweisung gewählt',
+            );
+
+            // Explicitly extract the string value, otherwise json_encode transforms the VO into an object
+            return JsonResponse::success(['code' => $permit->code->value]);
+        } catch (Throwable $e) {
+            return JsonResponse::error($e->getMessage());
+        }
+    }
+}

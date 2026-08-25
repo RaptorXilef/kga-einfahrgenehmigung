@@ -1,5 +1,9 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Page: User & Role Management Wrapper
  *
@@ -8,224 +12,202 @@
  * Verwaltungsoberfläche für Systembenutzer, Gruppen und Rechte.
  * Bietet Masken für Passwörtrücksetzungen, Gruppen-Rechte-Zuweisungen (Matrix) sowie Avatar-/Icon-Uploads.
  *
- * Path: templates/pages/admin_users.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var array $users Vollständige Liste aller registrierten Benutzerkonten im System.
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
  * @var array $roles Liste aller Berechtigungsgruppen samt zugeordneter Roh-Rechte.
  * @var array $settings
+ * @var array $users Vollständige Liste aller registrierten Benutzerkonten im System.
  * @var string $appRoot
- * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService $auth
  */
+$layout = 'admin';
+$pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
+
 if ($auth->hasPermission('system.permissions.view')) { ?>
-    <!DOCTYPE html>
-    <html lang="de">
-
-    <head>
-        <meta charset="UTF-8">
-        <title>Benutzer & Rechte - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-        <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-        <link rel="stylesheet"
-              href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-        <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
-    </head>
-
-    <body class="l-admin">
-        <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
-        <?php include $appRoot . '/templates/components/_admin_header_nav.phtml'; ?>
-        <main class="c-tab-content-container u-padding-y-l">
-            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-            <div class="c-tabs">
-                <div class="c-tabs__nav u-margin-bottom-l">
-                    <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
-                        <button class="c-tabs__btn c-tabs__btn--active"
-                                data-tab-target="tab-users">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
-                                 class="c-icon"
-                                 alt=""> Benutzerverwaltung
-                        </button>
-                    <?php } ?>
-                    <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
-                        <button class="c-tabs__btn"
-                                data-tab-target="tab-groups">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
-                                 class="c-icon"
-                                 alt=""> Rollen & Rechte
-                        </button>
-                    <?php } ?>
-                </div>
+    <main class="c-tab-content-container u-padding-y-l">
+        <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+        <div class="c-tabs">
+            <div class="c-tabs__nav u-margin-bottom-l">
                 <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
-                    <div id="tab-users"
-                         class="c-tabs__content c-tabs__content--active">
-                        <?php include $appRoot . '/templates/pages/admin_users/_tab_users.phtml'; ?>
-                    </div>
+                    <button class="c-tabs__btn c-tabs__btn--active"
+                            data-tab-target="tab-users">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Benutzerverwaltung
+                    </button>
                 <?php } ?>
                 <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
-                    <div id="tab-groups"
-                         class="c-tabs__content">
-                        <?php include $appRoot . '/templates/pages/admin_users/_tab_groups.phtml'; ?>
-                    </div>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-groups">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Rollen & Rechte
+                    </button>
                 <?php } ?>
             </div>
-        </main>
-        <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
-        <script type="module"
-                src="<?php echo $asset->url('assets/js/admin-handler.js'); ?>">
-        </script>
-        <?php include $appRoot . '/templates/components/_drag_drop_avatar.phtml'; ?>
-        <script>
-        function updateUiMode(mode) {
-            const wrappers = document.querySelectorAll('.p-tree-wrapper');
-            wrappers.forEach(w => {
-                w.classList.remove('mode-hide', 'mode-grey');
-                w.classList.add('mode-' + mode);
-            });
-            localStorage.setItem('pref_perm_ui_mode', mode);
-        }
 
-        function applyMasterState(container, isMaster) {
-            const treeWrapper = container.querySelector('.p-tree-wrapper');
-            if (!treeWrapper) return;
-            if (isMaster) {
-                treeWrapper.classList.add('is-master-active');
-                treeWrapper.querySelectorAll('input[data-perm-check]').forEach(cb => {
-                    cb.disabled = true;
-                    cb.parentElement.style.opacity = "0.5";
-                    cb.parentElement.style.pointerEvents = "none";
-                });
-            } else {
-                treeWrapper.classList.remove('is-master-active');
-                treeWrapper.querySelectorAll('input[data-perm-check]').forEach(cb => {
-                    cb.disabled = false;
-                    cb.parentElement.style.opacity = "1";
-                    cb.parentElement.style.pointerEvents = "auto";
-                });
+            <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
+                <div id="tab-users"
+                     class="c-tabs__content c-tabs__content--active">
+                    <?php include $appRoot . '/templates/pages/admin_users/_tab_users.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
+                <div id="tab-groups"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/pages/admin_users/_tab_groups.phtml'; ?>
+                </div>
+            <?php } ?>
+        </div>
+    </main>
+
+    <script>
+    function updateUiMode(mode) {
+        const wrappers = document.querySelectorAll('.p-tree-wrapper');
+        wrappers.forEach(w => {
+            w.classList.remove('mode-hide', 'mode-grey');
+            w.classList.add('mode-' + mode);
+        });
+        localStorage.setItem('pref_perm_ui_mode', mode);
+    }
+
+    function applyMasterState(container, isMaster) {
+        const treeWrapper = container.querySelector('.p-tree-wrapper');
+        if (!treeWrapper) return;
+        if (isMaster) {
+            treeWrapper.classList.add('is-master-active');
+            treeWrapper.querySelectorAll('input[data-perm-check]').forEach(cb => {
+                cb.disabled = true;
+                cb.parentElement.style.opacity = "0.5";
+                cb.parentElement.style.pointerEvents = "none";
+            });
+        } else {
+            treeWrapper.classList.remove('is-master-active');
+            treeWrapper.querySelectorAll('input[data-perm-check]').forEach(cb => {
+                cb.disabled = false;
+                cb.parentElement.style.opacity = "1";
+                cb.parentElement.style.pointerEvents = "auto";
+            });
+        }
+    }
+
+    function refreshTreeVisually(container) {
+        const nodes = container.querySelectorAll('.p-tree-node');
+        nodes.forEach(node => {
+            const key = node.dataset.key;
+            if (!key) return;
+            const parentNode = node.parentElement.closest('.p-tree-node');
+            if (parentNode) {
+                const parentCheckbox = parentNode.querySelector(':scope > .p-item input[data-perm-check]');
+                if (parentCheckbox && !parentCheckbox.checked) {
+                    node.classList.add('is-locked');
+                } else {
+                    node.classList.remove('is-locked');
+                }
+            }
+        });
+    }
+
+    /**
+     * Fokus-Logik: Springt zum editierten User/Gruppe
+     */
+    function handleUrlFocus() {
+        const urlParams = new window.URLSearchParams(window.location
+        .search); // TODO wenn in eigener JS Datei das "window." entfernen
+        const focusId = urlParams.get('focus');
+
+        if (focusId) {
+            // 1. Karte im gesamten Dokument suchen
+            const targetCard = document.getElementById('card-' + focusId);
+
+            if (targetCard) {
+                // 2. Intelligenten Tab-Wechsel durchführen
+                const parentTabContent = targetCard.closest('.c-tabs__content');
+                if (parentTabContent) {
+                    const tabBtn = document.querySelector(`[data-tab-target="${parentTabContent.id}"]`);
+                    if (tabBtn) {
+                        // Alle Tabs deaktivieren
+                        document.querySelectorAll('.c-tabs__btn').forEach(b => b.classList.remove(
+                            'c-tabs__btn--active'));
+                        document.querySelectorAll('.c-tabs__content').forEach(c => c.classList.remove(
+                            'c-tabs__content--active'));
+
+                        // Ziel-Tab aktivieren
+                        tabBtn.classList.add('c-tabs__btn--active');
+                        parentTabContent.classList.add('c-tabs__content--active');
+                    }
+                }
+
+                // 3. Karte aufklappen und hinklettern
+                setTimeout(() => {
+                    targetCard.classList.remove('is-closed');
+                    targetCard.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+
+                    // Visuelles Feedback (Ring-Leuchten)
+                    targetCard.style.outline = "3px solid var(--primary-color)";
+                    targetCard.style.outlineOffset = "2px";
+                    setTimeout(() => {
+                        targetCard.style.outline = "none";
+                    }, 2000);
+                }, 400);
             }
         }
+    }
 
-        function refreshTreeVisually(container) {
-            const nodes = container.querySelectorAll('.p-tree-node');
-            nodes.forEach(node => {
-                const key = node.dataset.key;
-                if (!key) return;
-                const parentNode = node.parentElement.closest('.p-tree-node');
-                if (parentNode) {
+    document.addEventListener('DOMContentLoaded', () => {
+        // A. UI Modus (Fokus/Experte) wiederherstellen
+        const savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
+        updateUiMode(savedMode);
+        const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
+        if (radio) radio.checked = true;
+
+        // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
+        document.querySelectorAll('.permission-container').forEach(container => {
+            const masterCb = container.querySelector('input[data-master-toggle]');
+            if (masterCb) applyMasterState(container, masterCb.checked);
+            refreshTreeVisually(container);
+        });
+
+        // C. Fokus-Sprung ausführen
+        handleUrlFocus();
+    });
+
+    document.addEventListener('change', function(e) {
+        // 1. MASTER TOGGLE Logik
+        if (e.target && e.target.dataset.masterToggle) {
+            applyMasterState(e.target.closest('.permission-container'), e.target.checked);
+        }
+
+        // 2. SMART TREE Logik
+        if (e.target && e.target.dataset.permCheck) {
+            const checkbox = e.target;
+            const container = checkbox.closest('.permission-container');
+            if (checkbox.checked) {
+                // Bottom-Up Aktivierung
+                let parentNode = checkbox.closest('.p-tree-node').parentElement.closest('.p-tree-node');
+                while (parentNode) {
                     const parentCheckbox = parentNode.querySelector(':scope > .p-item input[data-perm-check]');
                     if (parentCheckbox && !parentCheckbox.checked) {
-                        node.classList.add('is-locked');
-                    } else {
-                        node.classList.remove('is-locked');
-                    }
-                }
-            });
-        }
-
-        /**
-         * Fokus-Logik: Springt zum editierten User/Gruppe
-         */
-        function handleUrlFocus() {
-            const urlParams = new window.URLSearchParams(window.location.search); // TODO wenn in eigener JS Datei das "window." entfernen
-            const focusId = urlParams.get('focus');
-
-            if (focusId) {
-                // 1. Karte im gesamten Dokument suchen
-                const targetCard = document.getElementById('card-' + focusId);
-
-                if (targetCard) {
-                    // 2. Intelligenten Tab-Wechsel durchführen
-                    const parentTabContent = targetCard.closest('.c-tabs__content');
-                    if (parentTabContent) {
-                        const tabBtn = document.querySelector(`[data-tab-target="${parentTabContent.id}"]`);
-                        if (tabBtn) {
-                            // Alle Tabs deaktivieren
-                            document.querySelectorAll('.c-tabs__btn').forEach(b => b.classList.remove(
-                                'c-tabs__btn--active'));
-                            document.querySelectorAll('.c-tabs__content').forEach(c => c.classList.remove(
-                                'c-tabs__content--active'));
-
-                            // Ziel-Tab aktivieren
-                            tabBtn.classList.add('c-tabs__btn--active');
-                            parentTabContent.classList.add('c-tabs__content--active');
-                        }
-                    }
-
-                    // 3. Karte aufklappen und hinklettern
-                    setTimeout(() => {
-                        targetCard.classList.remove('is-closed');
-
-                        targetCard.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-
-                        // Visuelles Feedback (Ring-Leuchten)
-                        targetCard.style.outline = "3px solid var(--primary-color)";
-                        targetCard.style.outlineOffset = "2px";
+                        parentCheckbox.checked = true;
+                        parentCheckbox.closest('.p-item').classList.add('is-auto-active');
                         setTimeout(() => {
-                            targetCard.style.outline = "none";
-                        }, 2000);
-                    }, 400);
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // A. UI Modus (Fokus/Experte) wiederherstellen
-            const savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
-            updateUiMode(savedMode);
-            const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
-            if (radio) radio.checked = true;
-
-            // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
-            document.querySelectorAll('.permission-container').forEach(container => {
-                const masterCb = container.querySelector('input[data-master-toggle]');
-                if (masterCb) applyMasterState(container, masterCb.checked);
-                refreshTreeVisually(container);
-            });
-
-            // C. Fokus-Sprung ausführen
-            handleUrlFocus();
-        });
-
-        document.addEventListener('change', function(e) {
-            // 1. MASTER TOGGLE Logik
-            if (e.target && e.target.dataset.masterToggle) {
-                applyMasterState(e.target.closest('.permission-container'), e.target.checked);
-            }
-
-            // 2. SMART TREE Logik
-            if (e.target && e.target.dataset.permCheck) {
-                const checkbox = e.target;
-                const container = checkbox.closest('.permission-container');
-                if (checkbox.checked) {
-                    // Bottom-Up Aktivierung
-                    let parentNode = checkbox.closest('.p-tree-node').parentElement.closest('.p-tree-node');
-                    while (parentNode) {
-                        const parentCheckbox = parentNode.querySelector(
-                            ':scope > .p-item input[data-perm-check]');
-                        if (parentCheckbox && !parentCheckbox.checked) {
-                            parentCheckbox.checked = true;
-                            parentCheckbox.closest('.p-item').classList.add('is-auto-active');
-                            setTimeout(() => {
-                                if (parentCheckbox.closest('.p-item')) parentCheckbox.closest('.p-item')
-                                    .classList.remove('is-auto-active');
-                            }, 1000);
-                        }
-                        parentNode = parentNode.parentElement.closest('.p-tree-node');
+                            if (parentCheckbox.closest('.p-item')) parentCheckbox.closest('.p-item')
+                                .classList.remove('is-auto-active');
+                        }, 1000);
                     }
-                } else {
-                    // Top-Down Deaktivierung
-                    checkbox.closest('.p-tree-node').querySelectorAll('input[data-perm-check]').forEach(child =>
-                        child.checked = false);
+                    parentNode = parentNode.parentElement.closest('.p-tree-node');
                 }
-                refreshTreeVisually(container);
+            } else {
+                // Top-Down Deaktivierung
+                checkbox.closest('.p-tree-node').querySelectorAll('input[data-perm-check]').forEach(child =>
+                    child.checked = false);
             }
-        });
+            refreshTreeVisually(container);
+        }
+    });
 
-        </script>
-    </body>
-
-    </html>
+    </script>
 <?php } ?>

@@ -1,18 +1,19 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Partial: Dashboard Tab - Future Permits
  *
  * Übersicht aller noch nicht gestarteten, anstehenden Genehmigungen.
  *
- * Path: templates/pages/admin_dashboard/_tab_future.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
  * @var array $permitGroups
- * @var \App\Core\Service\AuthService $auth
  * @var array $settings
- * @var \App\Infrastructure\Config\Config $config
  */
 $now = new \DateTimeImmutable('today');
 $allFuture = $permitGroups['future'] ?? [];

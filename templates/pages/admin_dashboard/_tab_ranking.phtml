@@ -1,17 +1,16 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+
 /**
  * Partial: Dashboard Tab - Plot Ranking
  *
  * Top 30 Ranking der Parzellen nach Antragsintensität.
  *
- * Path: templates/pages/admin_dashboard/_tab_ranking.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var array $periodStats
- * @var \App\Core\Service\AuthService $auth
- * @var array $settings
+ * 
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
  */
 $plots = $periodStats['plots'] ?? [];
 ?>

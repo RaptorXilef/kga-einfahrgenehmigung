@@ -1,20 +1,23 @@
 <?php
 
+use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Storage\ImageStorageService;
+
 /**
  * Partial: User Account Management
  *
  * Erstellung, Bearbeitung und Zuweisung von Benutzerkonten.
  *
- * Path: templates/pages/admin_users/_tab_users.phtml
- *
+ * @var AuthService $auth
+ * @var UserRepositoryInterface $userRepository
+ * @var ImageStorageService $imageStorage
+ * @var AssetHelperInterface $asset
  * @var array $settings
  * @var array $roles
  * @var array $users
- * @var \App\Core\Service\AuthService $auth
  * @var string $appRoot
- * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
- * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
- * @var \App\Contracts\System\AssetHelperInterface $asset
  */
 if ($auth->hasPermission('system.permissions.users.manage')) { ?>
     <div class="u-flex u-flex-column u-gap-l">

@@ -1,5 +1,8 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Infrastructure\Config\Config;
+
 /**
  * Page: History Magic Link Login
  *
@@ -12,139 +15,99 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string $appRoot
- * @var \App\Infrastructure\Config\Config $config
+ * @var AssetHelperInterface $asset
+ * @var Config $config
+ * @var array $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
  * @var bool $isSuccess Flag für grüne Erfolgsmeldungen (z.B. Code erfolgreich versendet).
  * @var int $step      Aktueller UI-Eingabeschritt (1 = E-Mail anfordern, 2 = Code eingeben).
- * @var array $settings  Frontend-Konfigurationen (vereins_name, jahresFarbe).
+ * @var string $appRoot
  */
+$layout = 'public';
+$pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
 ?>
-<!DOCTYPE html>
-<html lang="de">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-    <title>Verlauf - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-    <link rel="stylesheet"
-          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+<div class="c-tab-content-container u-padding-y-xl">
+    <div class="c-card u-margin-auto"
+         style="max-width: 450px; border-top: 5px solid var(--primary-color);">
+        <header class="c-card__header u-text-center u-padding-around-l">
+            <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
+                 class="c-icon"
+                 style="width: 48px; height: 48px;"
+                 alt="">
+            <h2 class="u-margin-none">Meine Genehmigungen</h2>
+            <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, mit der Sie bereits eine
+                Genemigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
+        </header>
 
-    <script>
-    window.KGA_CONFIG = {
-        baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
-        csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
-    };
+        <div class="c-card__body u-padding-around-l">
+            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
 
-    </script>
-</head>
+            <?php if ($step === 1) { ?>
+                <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
+                <form method="POST"
+                      class="c-form">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <div class="c-form-group">
+                        <label class="c-form-label">E-Mail-Adresse</label>
+                        <input type="email"
+                               name="email"
+                               class="c-form-input"
+                               placeholder="ihre@mail.de"
+                               required
+                               autofocus>
+                    </div>
+                    <button type="submit"
+                            name="request_link"
+                            class="c-button--primary u-width-100 u-margin-top-m"
+                            style="padding: 14px;">
+                        Link anfordern
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
+                             class="c-icon"
+                             alt="">
+                    </button>
+                    <div class="u-margin-top-m u-text-center">
+                        <a href="history?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
+                    </div>
+                </form>
+            <?php } else { ?>
+                <!-- SCHRITT 2: Code eingeben (Wird nach Schritt 1 eingeblendet) -->
+                <form method="POST"
+                      class="c-form u-text-center">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <div class="c-form-group">
+                        <label class="c-form-label u-justify-center">6-stelligen Login-Code eingeben</label>
+                        <input type="text"
+                               name="login_code"
+                               class="c-form-input u-text-center u-font-xl"
+                               placeholder="______"
+                               required
+                               autofocus
+                               maxlength="6"
+                               style="letter-spacing: 8px; font-family: monospace; height: 60px; text-transform: uppercase;">
+                    </div>
+                    <button type="submit"
+                            name="submit_code"
+                            class="c-button--primary u-width-100 u-margin-top-m">
+                        Einloggen 🔓
+                    </button>
+                </form>
 
-<body class="u-bg-light l-public-body">
-    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
-    <div class="c-tab-content-container u-padding-y-xl">
-        <div class="c-card u-margin-auto"
-             style="max-width: 450px; border-top: 5px solid var(--primary-color);">
-            <header class="c-card__header u-text-center u-padding-around-l">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                     class="c-icon"
-                     style="width: 48px; height: 48px;"
-                     alt="">
-                <h2 class="u-margin-none">Meine Genehmigungen</h2>
-                <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, mit der Sie bereits eine
-                    Genemigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
-            </header>
-
-            <div class="c-card__body u-padding-around-l">
-
-                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-
-                <?php if ($step === 1) { ?>
-                    <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->
-                    <form method="POST"
-                          class="c-form">
-                        <input type="hidden"
-                               name="csrf_token"
-                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                        <div class="c-form-group">
-                            <label class="c-form-label">E-Mail-Adresse</label>
-                            <input type="email"
-                                   name="email"
-                                   class="c-form-input"
-                                   placeholder="ihre@mail.de"
-                                   required
-                                   autofocus>
-                        </div>
-                        <button type="submit"
-                                name="request_link"
-                                class="c-button--primary u-width-100 u-margin-top-m"
-                                style="padding: 14px;">
-                            Link anfordern <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
-                                 class="c-icon"
-                                 alt="">
-                        </button>
-                        <div class="u-margin-top-m u-text-center">
-                            <a href="history?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
-                        </div>
-                    </form>
-                <?php } else { ?>
-                    <!-- SCHRITT 2: Code eingeben (Wird nach Schritt 1 eingeblendet) -->
-                    <form method="POST"
-                          class="c-form u-text-center">
-                        <input type="hidden"
-                               name="csrf_token"
-                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                        <div class="c-form-group">
-                            <label class="c-form-label u-justify-center">6-stelligen Login-Code eingeben</label>
-                            <input type="text"
-                                   name="login_code"
-                                   class="c-form-input u-text-center u-font-xl"
-                                   placeholder="______"
-                                   required
-                                   autofocus
-                                   maxlength="6"
-                                   style="letter-spacing: 8px; font-family: monospace; height: 60px; text-transform: uppercase;">
-                        </div>
-                        <button type="submit"
-                                name="submit_code"
-                                class="c-button--primary u-width-100 u-margin-top-m">
-                            Einloggen 🔓
-                        </button>
-                    </form>
-
-                    <form method="POST"
-                          action="history.php"
-                          style="margin: 20px 0 0 0; text-align: center;">
-                        <input type="hidden"
-                               name="csrf_token"
-                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                        <button type="submit"
-                                style="background: transparent; border: none; color: var(--text-muted); text-decoration: underline; font-size: 0.85rem; cursor: pointer;">
-                            &larr; E-Mail erneut eingeben / zurück <!-- E-Mail erneut senden -->
-                        </button>
-                    </form>
-                <?php } ?>
-            </div>
-
-            <!--<footer class="u-text-center u-padding-bottom-l">
-                <a href="index.php" class="u-text-link u-text-small">← Zurück zum Antrag</a>
-            </footer>-->
+                <form method="POST"
+                      action="history.php"
+                      style="margin: 20px 0 0 0; text-align: center;">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <button type="submit"
+                            style="background: transparent; border: none; color: var(--text-muted); text-decoration: underline; font-size: 0.85rem; cursor: pointer;">
+                        &larr; E-Mail erneut eingeben / zurück <!-- E-Mail erneut senden -->
+                    </button>
+                </form>
+            <?php } ?>
         </div>
     </div>
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
-
-    <script>
-    // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
-    // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
-    setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
-            method: 'POST',
-            credentials: 'include'
-        }).catch(() => console.debug('Session Ping fehlgeschlagen'));
-    }, 3 * 60 * 1000); // Alle 3 Minuten
-
-    </script>
-</body>
-
-</html>
+</div>

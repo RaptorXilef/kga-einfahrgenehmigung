@@ -1,15 +1,15 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Infrastructure\Config\Config;
+
 /**
  * Component: Test Mode & Admin Bypass Indicator (Animated)
  *
  * Zeigt einen globalen Warnbanner, wenn PayPal Sandbox oder der Dev-Admin-Modus aktiv sind.
  *
- * Path: templates/components/_test_mode_indicator.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Infrastructure\Config\Config $config
+ * @var AssetHelperInterface $asset
+ * @var Config $config
  * @var array $settings
  */
 ?>

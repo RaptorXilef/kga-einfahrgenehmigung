@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Actions\Admin;
+
+use App\Application\Attribute\Route;
+use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
+use App\Application\DTO\UserResetPasswordRequest;
+use App\Application\Exception\ValidationException;
+use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
+use App\Contracts\Storage\UserRepositoryInterface;
+use App\Core\Entity\User;
+use App\Core\Service\AuditLoggerService;
+
+#[Route('POST', '/change_user_password')]
+final readonly class UserResetPasswordAction implements ActionInterface, RequiresPermissionInterface
+{
+    public function __construct(
+        private AuditLoggerService $auditLogger,
+        private SessionManager $sessionManager,
+        private UserRepositoryInterface $userRepository,
+    ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.permissions.users.manage';
+    }
+
+    /**
+     * Setzt das Passwort eines Benutzers administrativ (ohne Alt-Passwort-Prüfung) zurück.
+     */
+    public function execute(ServerRequest $request): mixed
+    {
+        try {
+            $dto = UserResetPasswordRequest::fromArray($request->post);
+        } catch (ValidationException $e) {
+            $this->sessionManager->addFlash('error', $e->getMessage());
+
+            return new RedirectResponse('users.php');
+        }
+
+        $users = $this->userRepository->loadAll();
+        if (isset($users[$dto->userId])) {
+            $u = $users[$dto->userId];
+            // FIX: u->roleId statt u->groupId
+            $users[$dto->userId] = new User($u->id, $u->username, $u->roleId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
+            $this->userRepository->saveAll($users);
+
+            $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$u->username}' (ID: {$u->id}) manuell zurückgesetzt.");
+            $this->sessionManager->addFlash('success', 'Passwort wurde zurückgesetzt.');
+
+            return new RedirectResponse('users.php');
+        }
+
+        $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
+
+        return new RedirectResponse('users.php');
+    }
+}

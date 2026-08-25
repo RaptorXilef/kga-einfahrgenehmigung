@@ -1,6 +1,10 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
 use App\Core\Entity\Voucher;
+use App\Core\Service\AuthService;
+use App\Core\Service\VoucherService;
+use App\Infrastructure\Config\Config;
 
 /**
  * Partial: Dashboard Tab - Voucher Management
@@ -11,12 +15,13 @@ use App\Core\Entity\Voucher;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService $auth
- * @var \App\Infrastructure\Config\Config $config
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
+ * @var VoucherService $voucherService
  * @var array $settings
- * @var array $vouchers
  * @var array $voucherArchive
- * @var \App\Core\Service\VoucherService $voucherService
+ * @var array $vouchers
  */
 ?>
 <?php if ($auth->hasPermission('dashboard.vouchers.view')) { ?>

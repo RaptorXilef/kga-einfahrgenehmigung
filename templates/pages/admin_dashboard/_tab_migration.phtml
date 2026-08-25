@@ -1,17 +1,18 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Maintenance\BackupService;
+
 /**
  * Partial: Dashboard Tab - Data Migration
  *
  * SQL/JSON Synchronisation und Backup-Wiederherstellung.
  * Modernisiertes Kachel-Design.
  *
- * Path: templates/pages/admin_dashboard/_tab_migration.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Core\Service\AuthService $auth
- * @var \App\Infrastructure\Maintenance\BackupService $backupService
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var BackupService $backupService
  * @var array $settings
  */
 if ($auth->hasPermission('dashboard.migration.view')) {

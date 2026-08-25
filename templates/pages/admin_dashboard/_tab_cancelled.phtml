@@ -1,8 +1,14 @@
 <?php
+
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Entity\Permit;
+use App\Core\Service\AuthService;
+
 /**
- * @var \App\Core\Service\AuthService $auth
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Permit[] $cancelledPermits
  * @var array $settings
- * @var \App\Core\Entity\Permit[] $cancelledPermits
  */
 $cancelledPermits ??= [];
 ?>

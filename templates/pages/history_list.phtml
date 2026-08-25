@@ -1,6 +1,9 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
 use App\Core\Entity\PermitStatus;
+use App\Core\Service\PermitService;
 
 /**
  * Page: Tenant History
@@ -11,444 +14,393 @@ use App\Core\Entity\PermitStatus;
  * Listet alle Genehmigungen einer verifizierten E-Mail-Adresse auf. Bietet Optionen zum
  * Nachladen von Jahresarchiven sowie Verknüpfungen zur PDF-A4-Druckansicht.
  *
- * Path: templates/pages/history_list.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var string $appRoot
  * @var \DateTimeImmutable $now
- * @var array<int, \App\Core\Entity\Permit> $permits           Gefilterte und sortierte Genehmigungen des Nutzers.
- * @var string $email             Die verifizierte E-Mail-Adresse aus der Session.
+ * @var AssetHelperInterface $asset
+ * @var ConfigInterface $config         Globale Konfiguration.
+ * @var PermitService $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
  * @var array $settings          Layout-Optionen (Farben, URLs).
- * @var int $currentArchiveYear Das aktuell geladene Archivjahr (0 = nur Live-Daten).
+ * @var array<int, \App\Core\Entity\Permit> $permits           Gefilterte und sortierte Genehmigungen des Nutzers.
  * @var bool $isSuccess         Status-Flag.
- * @var \App\Contracts\Config\ConfigInterface $config         Globale Konfiguration.
- * @var \App\Core\Service\PermitService $permitService     Dienst für Hilfsberechnungen (z.B. Overdue-Level).
+ * @var int $currentArchiveYear Das aktuell geladene Archivjahr (0 = nur Live-Daten).
+ * @var string $appRoot
+ * @var string $email             Die verifizierte E-Mail-Adresse aus der Session.
  */
+$layout = 'public';
+$pageTitle = 'Meine Genehmigungen - ' . ($settings['vereins_name'] ?? '');
+
 $now = new \DateTimeImmutable('today');
 \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
 ?>
-<!DOCTYPE html>
-<html lang="de">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-    <title>Meine Genehmigungen - <?php echo \htmlspecialchars($settings['vereins_name']); ?></title>
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-    <link rel="stylesheet"
-          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php // include $appRoot . '/templates/components/_base_styles.phtml';
-    ?>
-    <?php include $appRoot . '/templates/pages/admin_dashboard/_inline_styles.phtml'; ?>
+<div class="c-tab-content-container u-padding-y-xl">
 
-    <script>
-    window.KGA_CONFIG = {
-        baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
-        csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
-    };
+    <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
+        <div>
+            <h2 class="u-margin-none u-flex u-align-center u-gap-s">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
+                     class="c-icon"
+                     style="width: 32px; height: 32px;"
+                     alt=""> Meine Genehmigungen
+            </h2>
+            <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als: <strong
+                        style="color: var(--text-main);"><?php echo \htmlspecialchars($email); ?></strong></p>
+        </div>
 
-    </script>
-</head>
-
-<body class="u-bg-light l-public-body">
-    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
-    <div class="c-tab-content-container u-padding-y-xl">
-
-        <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
-            <div>
-                <h2 class="u-margin-none u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                         class="c-icon"
-                         style="width: 32px; height: 32px;"
-                         alt="">
-                    Meine Genehmigungen
-                </h2>
-                <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als:
-                    <strong style="color: var(--text-main);"><?php echo \htmlspecialchars($email); ?></strong>
-                </p>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div title="Automatische Abmeldung bei Inaktivität"
+                 style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                ⏳ <span id="ui-session-timer">20:00</span>
             </div>
-
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div title="Automatische Abmeldung bei Inaktivität"
-                     style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
-                    ⏳ <span id="ui-session-timer">20:00</span>
-                </div>
-
-                <form method="POST"
-                      action="history.php"
-                      style="margin: 0; display: inline;">
-                    <input type="hidden"
-                           name="csrf_token"
-                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <input type="hidden"
-                           name="action"
-                           value="logout">
-                    <button type="submit"
-                            class="c-button c-button--secondary"
-                            style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color); height: 42px; background: none; font-weight: 600; cursor: pointer;">
-                        Abmelden ✕
-                    </button>
-                </form>
-            </div>
-        </header>
-
-        <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-
-        <section class="c-card"
-                 style="border-top: 5px solid var(--primary-color);">
-            <div class="c-card__body u-padding-none"
-                 style="overflow-x: auto;">
-                <?php if (empty($permits)) { ?>
-                    <div class="u-text-center u-padding-around-l u-text-muted">
-                        <span style="font-size: 2.5rem; opacity: 0.5;">📄</span><br>
-                        <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum gefunden.</p>
-                    </div>
-                <?php } else { ?>
-                    <table class="c-table js-sort-table"
-                           style="min-width: 950px; table-layout: fixed;">
-                        <thead>
-                            <tr style="background: #f8fafc;">
-                                <th class="js-sort-header"
-                                    style="width: 250px;">Antragsteller & Kennung</th>
-                                <th class="js-sort-header"
-                                    style="width: 150px; text-align: center;">Fahrzeug</th>
-                                <th class="js-sort-header"
-                                    style="width: 180px; text-align: center;">Gültigkeit & Restzeit</th>
-                                <th class="js-sort-header"
-                                    style="width: 140px; text-align: center;">Finanz-Status</th>
-                                <th class="u-text-right"
-                                    style="width: 150px; padding-right: 20px;">Aktion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($permits as $permit) {
-                                // 1. Zeit-Berechnungen
-                                $isExpired = $permit->getValidUntil() < $now;
-                                $isFuture = $permit->getValidFrom() > $now;
-
-                                $diff = $now->diff($permit->getValidUntil());
-                                $remaining = (int) $diff->format('%r%a');
-
-                                $countdownText = '';
-                                if ($isExpired) {
-                                    $countdownText = 'ABGELAUFEN';
-                                } elseif ($isFuture) {
-                                    $daysToStart = (int) $now->diff($permit->getValidFrom())->format('%r%a');
-                                    $countdownText = "Startet in $daysToStart Tagen";
-                                } else {
-                                    $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
-                                }
-
-                                // 2. Finanz-Berechnungen
-                                $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
-                                $statusText = \strtoupper($permit->getStatus()->value);
-                                $statusClass = 'warning'; // default Orange
-
-                                if ($isPaid) {
-                                    $statusClass = 'success';
-                                } else {
-                                    // Überfälligkeit checken via Service
-                                    $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
-                                    if ($overdueLevel === 2) {
-                                        $statusClass = 'danger'; // Rot
-                                        $statusText = 'ZAHLUNG ÜBERFÄLLIG';
-                                    } elseif ($overdueLevel === 1) {
-                                        $statusText = 'MAHNFRIST';
-                                    } else {
-                                        $statusText = 'ZAHLUNG OFFEN';
-                                    }
-                                }
-
-                                // 3. Fahrzeug Icon
-                                $vKey = $permit->getVehicleType();
-                                $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
-                                $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
-                                $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
-                                ?>
-                                <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
-                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
-                                        style="vertical-align: middle;">
-                                        <div class="u-flex u-flex-column">
-                                            <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
-                                                <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
-                                            </span>
-                                            <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
-                                                <?php echo $permit->code; ?>
-                                            </code>
-                                            <div>
-                                                <span style="font-size: 0.7rem; background: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;">
-                                                    PARZELLE <?php echo $permit->getPlotNumber(); ?>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                        style="text-align: center; vertical-align: middle;">
-                                        <div style="line-height: 1;">
-                                            <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon"
-                                                 style="width: 24px; height: 24px; <?php echo $isExpired ? 'grayscale(1);' : ''; ?>"
-                                                 title="<?php echo $vLabel; ?>">
-                                        </div>
-                                        <div style="margin-top: 4px;">
-                                            <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
-                                                <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                            </code>
-                                        </div>
-                                    </td>
-
-                                    <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                        class="u-text-center"
-                                        style="vertical-align: middle;">
-                                        <div style="line-height: 1.3;">
-                                            <strong style="color: #1e293b; font-size: 0.95rem;"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
-                                            <small class="u-text-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
-                                            <div style="margin-top: 6px;">
-                                                <?php if ($isExpired) { ?>
-                                                    <span style="color: var(--text-muted); font-size: 0.7rem; font-weight: 800; background: #e2e8f0; padding: 2px 8px; border-radius: 10px;">
-                                                        <?php echo $countdownText; ?>
-                                                    </span>
-                                                <?php } else { ?>
-                                                    <span style="color: <?php echo ($remaining <= 1 && !$isFuture) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1 && !$isFuture) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;">
-                                                        ⏳ <?php echo $countdownText; ?>
-                                                    </span>
-                                                <?php } ?>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
-                                        style="vertical-align: middle; text-align: center;">
-                                        <span class="c-badge c-badge--<?php echo $statusClass; ?>">
-                                            <?php echo $statusText; ?>
-                                        </span>
-                                    </td>
-
-                                    <td class="u-text-right"
-                                        style="vertical-align: middle; padding-right: 20px;">
-                                        <div class="u-flex u-gap-xs u-justify-end">
-
-                                            <?php
-                                                // NEU: Stornierungsbutton - nur zeigen, wenn in Config erlaubt, unbezahlt, in der Zukunft und nicht ohnehin gesperrt
-                                                $allowCancel = (bool) $config->get('allow_user_cancellation', true);
-                                if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) {
-                                    ?>
-                                                <form method="POST"
-                                                      action="history.php"
-                                                      style="margin: 0;"
-                                                      onsubmit="return confirm('Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet. Sie müssen in diesem Fall die Finanzabteilung des Vorstands für eine Rücküberweisung kontaktieren.');">
-                                                    <input type="hidden"
-                                                           name="csrf_token"
-                                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                    <input type="hidden"
-                                                           name="action"
-                                                           value="cancel_permit">
-                                                    <input type="hidden"
-                                                           name="code"
-                                                           value="<?php echo $permit->code; ?>">
-                                                    <button type="submit"
-                                                            class="c-button c-button--danger"
-                                                            style="width: auto; padding: 0 12px; height: 36px; font-size: 0.8rem; gap: 6px;"
-                                                            title="Antrag stornieren">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                                                             class="c-icon"
-                                                             alt=""> <!--Stornieren-->
-                                                    </button>
-                                                </form>
-                                            <?php } ?>
-
-                                            <a href="check?code=<?php echo $permit->code; ?>"
-                                               target="_blank"
-                                               class="c-button c-button--secondary"
-                                               style="width: 36px; height: 36px;"
-                                               title="Status / Prüfseite öffnen">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
-                                                     class="c-icon"
-                                                     alt="">
-                                            </a>
-                                            <a href="history?action=print&code=<?php echo $permit->code; ?>"
-                                               target="_blank"
-                                               class="c-button c-button--primary"
-                                               style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;"
-                                               title="Dokument anzeigen">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
-                                                     class="c-icon"
-                                                     alt=""> Dokument
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                <?php } ?>
-            </div>
-
-            <div class="u-padding-around-m u-border-top u-text-center"
-                 style="background: #fcfdfe;">
-                <?php
-                $lastYear = (int) \date('Y') - 1;
-if ($currentArchiveYear !== $lastYear) {
-    ?>
-                    <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary" style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
-                        📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
-                    </a>
-                <?php } else { ?>
-                    <p class="u-text-small u-text-muted u-margin-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
-                <?php } ?>
-            </div>
-        </section>
-
-        <footer class="u-margin-top-l u-text-center">
-            <a href="index.php" class="c-button c-button--primary" style="width: auto; padding: 0 25px; height: 46px; font-size: 1rem;">
-                Neuen Antrag stellen
-            </a>
-        </footer>
-    </div>
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
-    <div id="session-warning-modal"
-         style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-        <div class="c-card"
-             style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
-            <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
-            </h3>
-            <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong
-                        id="modal-session-countdown"
-                        style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
-                abgemeldet.</p>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
-                <button onclick="sessionHandler.logoutNow()"
+            <form method="POST"
+                  action="history.php"
+                  style="margin: 0; display: inline;">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                <input type="hidden"
+                       name="action"
+                       value="logout">
+                <button type="submit"
                         class="c-button c-button--secondary"
-                        style="font-size: 0.85rem; width: 100%; padding: 12px 0;">
-                    Abmelden
+                        style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color); height: 42px; background: none; font-weight: 600; cursor: pointer;">
+                    Abmelden ✕
                 </button>
-                <button onclick="sessionHandler.stayLoggedIn()"
-                        class="c-button c-button--primary"
-                        style="background: var(--success-color); border: 2px solid var(--success-color); font-size: 0.85rem; width: 100%; padding: 12px 0;">
-                    Angemeldet bleiben
-                </button>
-            </div>
+            </form>
+        </div>
+    </header>
+
+    <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+
+    <section class="c-card"
+             style="border-top: 5px solid var(--primary-color);">
+        <div class="c-card__body u-padding-none"
+             style="overflow-x: auto;">
+            <?php if (empty($permits)) { ?>
+                <div class="u-text-center u-padding-around-l u-text-muted">
+                    <span style="font-size: 2.5rem; opacity: 0.5;">📄</span><br>
+                    <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum gefunden.</p>
+                </div>
+            <?php } else { ?>
+                <table class="c-table js-sort-table"
+                       style="min-width: 950px; table-layout: fixed;">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th class="js-sort-header"
+                                style="width: 250px;">Antragsteller & Kennung</th>
+                            <th class="js-sort-header"
+                                style="width: 150px; text-align: center;">Fahrzeug</th>
+                            <th class="js-sort-header"
+                                style="width: 180px; text-align: center;">Gültigkeit & Restzeit</th>
+                            <th class="js-sort-header"
+                                style="width: 140px; text-align: center;">Finanz-Status</th>
+                            <th class="u-text-right"
+                                style="width: 150px; padding-right: 20px;">Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($permits as $permit) {
+                            // 1. Zeit-Berechnungen
+                            $isExpired = $permit->getValidUntil() < $now;
+                            $isFuture = $permit->getValidFrom() > $now;
+                            $diff = $now->diff($permit->getValidUntil());
+                            $remaining = (int) $diff->format('%r%a');
+
+                            $countdownText = '';
+                            if ($isExpired) {
+                                $countdownText = 'ABGELAUFEN';
+                            } elseif ($isFuture) {
+                                $daysToStart = (int) $now->diff($permit->getValidFrom())->format('%r%a');
+                                $countdownText = "Startet in $daysToStart Tagen";
+                            } else {
+                                $countdownText = ($remaining === 0) ? 'Läuft heute ab' : "Noch $remaining Tage";
+                            }
+
+                            // 2. Finanz-Berechnungen
+                            $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
+                            $statusText = \strtoupper($permit->getStatus()->value);
+                            $statusClass = 'warning'; // default Orange
+
+                            if ($isPaid) {
+                                $statusClass = 'success';
+                            } else {
+                                // Überfälligkeit checken via Service
+                                $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
+                                if ($overdueLevel === 2) {
+                                    $statusClass = 'danger'; // Rot
+                                    $statusText = 'ZAHLUNG ÜBERFÄLLIG';
+                                } elseif ($overdueLevel === 1) {
+                                    $statusText = 'MAHNFRIST';
+                                } else {
+                                    $statusText = 'ZAHLUNG OFFEN';
+                                }
+                            }
+
+                            // 3. Fahrzeug Icon
+                            $vKey = $permit->getVehicleType();
+                            $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
+                            $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
+                            $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
+                            ?>
+                            <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
+                                <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
+                                    style="vertical-align: middle;">
+                                    <div class="u-flex u-flex-column">
+                                        <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
+                                        <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
+                                    </span>
+                                        <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
+                                        <?php echo $permit->code; ?>
+                                    </code>
+                                        <div>
+                                            <span style="font-size: 0.7rem; background: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;"> PARZELLE <?php echo $permit->getPlotNumber(); ?>
+                                        </span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
+                                    style="text-align: center; vertical-align: middle;">
+                                    <div style="line-height: 1;">
+                                        <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
+                                             class="c-icon"
+                                             style="width: 24px; height: 24px; <?php echo $isExpired ? 'grayscale(1);' : ''; ?>"
+                                             title="<?php echo $vLabel; ?>">
+                                    </div>
+                                    <div style="margin-top: 4px;">
+                                        <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
+                                        <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
+                                    </code>
+                                    </div>
+                                </td>
+                                <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
+                                    class="u-text-center"
+                                    style="vertical-align: middle;">
+                                    <div style="line-height: 1.3;">
+                                        <strong style="color: #1e293b; font-size: 0.95rem;"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
+                                        <small class="u-text-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
+                                        <div style="margin-top: 6px;">
+                                            <?php if ($isExpired) { ?>
+                                                <span style="color: var(--text-muted); font-size: 0.7rem; font-weight: 800; background: #e2e8f0; padding: 2px 8px; border-radius: 10px;">
+                                                <?php echo $countdownText; ?>
+                                            </span>
+                                            <?php } else { ?>
+                                                <span style="color: <?php echo ($remaining <= 1 && !$isFuture) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1 && !$isFuture) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;"> ⏳ <?php echo $countdownText; ?>
+                                            </span>
+                                            <?php } ?>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
+                                    style="vertical-align: middle; text-align: center;">
+                                    <span class="c-badge c-badge--<?php echo $statusClass; ?>">
+                                    <?php echo $statusText; ?>
+                                </span>
+                                </td>
+                                <td class="u-text-right"
+                                    style="vertical-align: middle; padding-right: 20px;">
+                                    <div class="u-flex u-gap-xs u-justify-end">
+                                        <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
+                            if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
+                                            <form method="POST"
+                                                  action="history.php"
+                                                  style="margin: 0;"
+                                                  onsubmit="return confirm('Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet.');">
+                                                <input type="hidden"
+                                                       name="csrf_token"
+                                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                <input type="hidden"
+                                                       name="action"
+                                                       value="cancel_permit">
+                                                <input type="hidden"
+                                                       name="code"
+                                                       value="<?php echo $permit->code; ?>">
+                                                <button type="submit"
+                                                        class="c-button c-button--danger"
+                                                        style="width: auto; padding: 0 12px; height: 36px; font-size: 0.8rem; gap: 6px;"
+                                                        title="Antrag stornieren">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                                         class="c-icon"
+                                                         alt=""> <!--Stornieren-->
+                                                </button>
+                                            </form>
+                                        <?php } ?>
+                                        <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Status / Prüfseite öffnen">
+                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                    </a>
+                                        <a href="history?action=print&code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--primary" style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;" title="Dokument anzeigen">
+                                        <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt=""> Dokument </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            <?php } ?>
+        </div>
+
+        <div class="u-padding-around-m u-border-top u-text-center"
+             style="background: #fcfdfe;">
+            <?php $lastYear = (int) \date('Y') - 1;
+if ($currentArchiveYear !== $lastYear) { ?>
+                <a href="?load_archive=<?php echo $lastYear; ?>"
+                   class="c-button c-button--secondary"
+                   style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
+                    📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
+                </a>
+            <?php } else { ?>
+                <p class="u-text-small u-text-muted u-margin-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
+            <?php } ?>
+        </div>
+    </section>
+
+    <footer class="u-margin-top-l u-text-center">
+        <a href="index.php"
+           class="c-button c-button--primary"
+           style="width: auto; padding: 0 25px; height: 46px; font-size: 1rem;">
+            Neuen Antrag stellen
+        </a>
+    </footer>
+</div>
+
+<div id="session-warning-modal"
+     style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="c-card"
+         style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
+        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
+        </h3>
+        <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong
+                    id="modal-session-countdown"
+                    style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
+            abgemeldet.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
+            <button onclick="sessionHandler.logoutNow()"
+                    class="c-button c-button--secondary"
+                    style="font-size: 0.85rem; width: 100%; padding: 12px 0;">
+                Abmelden
+            </button>
+            <button onclick="sessionHandler.stayLoggedIn()"
+                    class="c-button c-button--primary"
+                    style="background: var(--success-color); border: 2px solid var(--success-color); font-size: 0.85rem; width: 100%; padding: 12px 0;">
+                Angemeldet bleiben
+            </button>
         </div>
     </div>
+</div>
 
-    <script>
-    const sessionHandler = (function() {
-        const MAX_IDLE_TIME = 20 * 60; // 20 Minuten in Sekunden
-        const WARNING_TIME = 3 * 60; // 3 Minuten Warnung
+<script>
+const sessionHandler = (function() {
+    const MAX_IDLE_TIME = 20 * 60; // 20 Minuten in Sekunden
+    const WARNING_TIME = 3 * 60; // 3 Minuten Warnung
 
-        let idleSeconds = 0;
-        let countdownInterval;
-        let isWarningActive = false;
+    let idleSeconds = 0;
+    let countdownInterval;
+    let isWarningActive = false;
 
-        const uiTimer = document.getElementById('ui-session-timer');
-        const modalTimer = document.getElementById('modal-session-countdown');
-        const modal = document.getElementById('session-warning-modal');
+    const uiTimer = document.getElementById('ui-session-timer');
+    const modalTimer = document.getElementById('modal-session-countdown');
+    const modal = document.getElementById('session-warning-modal');
 
-        function formatTime(totalSeconds) {
-            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            const s = (totalSeconds % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
+    function formatTime(totalSeconds) {
+        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const s = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function updateDisplay(remaining) {
+        if (uiTimer) {
+            uiTimer.innerText = formatTime(remaining);
+            uiTimer.style.color = remaining <= WARNING_TIME ? 'var(--danger-color)' : 'var(--text-muted)';
+        }
+        if (modalTimer && isWarningActive) {
+            modalTimer.innerText = formatTime(remaining);
+        }
+    }
+
+    // Setzt den lokalen Client-Timer bei Bewegung zurück
+    function resetIdleTime() {
+        if (!isWarningActive) {
+            idleSeconds = 0;
+            updateDisplay(MAX_IDLE_TIME);
+        }
+    }
+
+    // Ressourcen-schonend: Belausche nur echte Klicks und Tastenanschläge
+    ['click', 'keyup'].forEach(evt =>
+        document.addEventListener(evt, resetIdleTime, {
+            passive: true
+        })
+    );
+
+    function tick() {
+        idleSeconds++;
+        const remaining = MAX_IDLE_TIME - idleSeconds;
+
+        updateDisplay(remaining);
+
+        if (remaining <= WARNING_TIME && remaining > 0 && !isWarningActive) {
+            isWarningActive = true;
+            modal.style.display = 'flex';
         }
 
-        function updateDisplay(remaining) {
-            if (uiTimer) {
-                uiTimer.innerText = formatTime(remaining);
-                uiTimer.style.color = remaining <= WARNING_TIME ? 'var(--danger-color)' : 'var(--text-muted)';
-            }
-            if (modalTimer && isWarningActive) {
-                modalTimer.innerText = formatTime(remaining);
-            }
+        if (remaining <= 0) {
+            clearInterval(countdownInterval);
+            logoutNow();
         }
+    }
 
-        // Setzt den lokalen Client-Timer bei Bewegung zurück
-        function resetIdleTime() {
-            if (!isWarningActive) {
-                idleSeconds = 0;
-                updateDisplay(MAX_IDLE_TIME);
-            }
-        }
+    function stayLoggedIn() {
+        // Ping an history.php, um die PHP-Session serverseitig zu verlängern
+        const fd = new window.FormData(); // TODO window. entfernen, wenn in JS-Datei
+        fd.append('action', 'extend_session');
+        fd.append('csrf_token', window.KGA_CONFIG.csrfToken);
 
-        // Ressourcen-schonend: Belausche nur echte Klicks und Tastenanschläge
-        ['click', 'keyup'].forEach(evt =>
-            document.addEventListener(evt, resetIdleTime, {
-                passive: true
+        fetch(window.KGA_CONFIG.baseUrl + 'history.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: fd
             })
-        );
+            .then(() => {
+                idleSeconds = 0;
+                isWarningActive = false;
+                modal.style.display = 'none';
+                updateDisplay(MAX_IDLE_TIME);
+            })
+            .catch(err => console.error("Konnte Session nicht verlängern", err));
+    }
 
-        function tick() {
-            idleSeconds++;
-            const remaining = MAX_IDLE_TIME - idleSeconds;
+    function logoutNow() {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.KGA_CONFIG.baseUrl + 'history.php';
 
-            updateDisplay(remaining);
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'logout';
 
-            if (remaining <= WARNING_TIME && remaining > 0 && !isWarningActive) {
-                isWarningActive = true;
-                modal.style.display = 'flex';
-            }
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = window.KGA_CONFIG.csrfToken;
 
-            if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                logoutNow();
-            }
-        }
+        form.appendChild(actionInput);
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
 
-        function stayLoggedIn() {
-            // Ping an history.php, um die PHP-Session serverseitig zu verlängern
-            const fd = new window.FormData(); // TODO window. entfernen, wenn in JS-Datei
-            fd.append('action', 'extend_session');
-            fd.append('csrf_token', window.KGA_CONFIG.csrfToken);
+    // Starte den Takt
+    countdownInterval = setInterval(tick, 1000);
+    updateDisplay(MAX_IDLE_TIME);
 
-            fetch(window.KGA_CONFIG.baseUrl + 'history.php', {
-                    method: 'POST',
-                    body: fd
-                })
-                .then(() => {
-                    idleSeconds = 0;
-                    isWarningActive = false;
-                    modal.style.display = 'none';
-                    updateDisplay(MAX_IDLE_TIME);
-                })
-                .catch(err => console.error("Konnte Session nicht verlängern", err));
-        }
+    return {
+        stayLoggedIn,
+        logoutNow
+    };
+})();
 
-        function logoutNow() {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = window.KGA_CONFIG.baseUrl + 'history.php';
+</script>
 
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'logout';
-
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrf_token';
-            csrfInput.value = window.KGA_CONFIG.csrfToken;
-
-            form.appendChild(actionInput);
-            form.appendChild(csrfInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        // Starte den Takt
-        countdownInterval = setInterval(tick, 1000);
-        updateDisplay(MAX_IDLE_TIME);
-
-        return {
-            stayLoggedIn,
-            logoutNow
-        };
-    })();
-
-    </script>
-    <script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>
-</body>
-
-</html>
+<script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>

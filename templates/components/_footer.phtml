@@ -1,23 +1,21 @@
 <?php
 
+use App\Contracts\System\JsonHelperInterface;
+
 /**
  * Component: Global Dynamic Footer
  *
  * Liest die Version aus der package.json und zeigt Urheberrechts- und GitHub-Informationen.
  *
- * Path: templates/components/_footer.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var string|null                               $appRoot (optional, wird berechnet falls nicht vorhanden)
- * @var \App\Contracts\System\JsonHelperInterface $jsonHelper
+ * @var JsonHelperInterface $jsonHelper
+ * @var string|null $appRoot (optional, wird berechnet falls nicht vorhanden)
  */
 
 // 1. App-Root Fallback (falls die Variable mal nicht übergeben wird)
 $root = $appRoot ?? \dirname(__DIR__, 2);
 
 // 2. Versionsnummer aus der package.json auslesen
-$version         = 'v0.0.0';
+$version = 'v0.0.0';
 $packageJsonPath = $root . '/package.json';
 
 if (\file_exists($packageJsonPath) && isset($jsonHelper)) {
@@ -32,19 +30,19 @@ if (\file_exists($packageJsonPath) && isset($jsonHelper)) {
 }
 
 // 3. Copyright-Jahr Logik (Zeigt "2026" oder "2026 - 2027")
-$startYear   = 2026;
+$startYear = 2026;
 $currentYear = (int) \date('Y');
 $yearDisplay = $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (string) $startYear;
 
 // 4. Software Details
 $developerName = 'Felix Maywald';
-$softwareName  = 'KGA-Einfahrts-Manager'; // KGA-Einfahrgenehmigung
-$githubUrl     = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
-$issuesUrl     = $githubUrl . '/issues';
+$softwareName = 'KGA-Einfahrts-Manager'; // KGA-Einfahrgenehmigung
+$githubUrl = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
+$issuesUrl = $githubUrl . '/issues';
 
 // 5. Rechtliche Links berechnen
-$baseUrl        = $settings['base_url'] ?? '/';
-$impressumUrl   = \rtrim($baseUrl, '/') . '/impressum.php';
+$baseUrl = $settings['base_url'] ?? '/';
+$impressumUrl = \rtrim($baseUrl, '/') . '/impressum.php';
 $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz.php';
 
 ?>

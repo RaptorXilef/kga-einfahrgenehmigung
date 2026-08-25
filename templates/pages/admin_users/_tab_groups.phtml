@@ -1,19 +1,22 @@
 <?php
 
+use App\Contracts\Storage\RoleRepositoryInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Partial: Group & Permissions Matrix
  *
  * Dynamische Rechte-Zuweisung an Systemrollen.
  *
- * Path: templates/pages/admin_users/_tab_groups.phtml
- *
- * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService $auth
- * @var \App\Contracts\Storage\RoleRepositoryInterface $roleRepository
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
+ * @var RoleRepositoryInterface $roleRepository
  * @var array $roles
  * @var array $settings
  * @var array $structure
- * @var \App\Contracts\System\AssetHelperInterface $asset
  */
 if ($auth->hasPermission('system.permissions.groups.manage')) {
     $structure ??= $config->get('structure', []);

@@ -1,17 +1,18 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Partial: Dashboard Tab - Universal Generator
  *
  * Manuelle Dokumenten-Ausstellung und Gutschein-Erstellung.
  *
- * Path: templates/pages/admin_dashboard/_tab_generator_tools.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Infrastructure\Config\Config $config
- * @var \App\Core\Service\AuthService $auth
- * @var array $settings
+ * 
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
  */
 
 // Vorbereitung der Template-Daten für JavaScript inkl. Preise

@@ -1,5 +1,8 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
+
 /**
  * Page: Public Application Form
  *
@@ -13,16 +16,20 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var string $appRoot   System-Root-Pfad.
- * @var \App\Contracts\Config\ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
+ * @var AssetHelperInterface $asset
+ * @var ConfigInterface $config Anwendungs-Konfigurationsinstanz (für PayPal-IDs etc.).
  * @var array $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
- * @var bool $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
- * @var string $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
- * @var array|null $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
  * @var array $settings  Enthält gefilterte 'public_templates', 'vehicle_types' und 'purposes'.
+ * @var array|null $prefill   Gutschein-Stammdaten zur automatischen Feldbefüllung und Preisanpassung (null falls ungenutzt).
+ * @var bool $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
  * @var bool $success   True, wenn der Vorab-Antrag (Double-Opt-In) erfolgreich ausgelöst wurde.
+ * @var string $appRoot   System-Root-Pfad.
+ * @var string $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
  * @var string $token             Das Sitzungs-Token für Korrekturen.
  */
+$layout = 'public';
+$pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
+
 $prefill ??= null;
 $formData ??= [];
 $tplMetadata = [];
@@ -45,797 +52,732 @@ $logoFile = null;
 foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
     if (\file_exists("assets/img/logo/kga.$ext")) {
         $logoFile = "assets/img/logo/kga.$ext";
-
         break;
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="de">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-    <title>Antrag - <?php echo \htmlspecialchars($config->get('vereins_name')); ?></title>
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
-    <link rel="stylesheet"
-          href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php include $appRoot . '/templates/components/_base_styles.phtml'; ?>
+<style>
+.c-form-section {
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: #fcfdfe;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+}
 
-    <script>
-    window.KGA_CONFIG = {
-        baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
-        <?php if (isset($config)) { ?>
-            vehicleConfig: <?php echo \json_encode($config->get('vehicle_types'), \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>,
-        <?php } ?>
-        csrfToken: '<?php echo \htmlspecialchars($_SESSION['csrf_token'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>'
-    };
+.c-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    color: #1e293b;
+}
 
-    </script>
+.c-form-section-title__step {
+    background: var(--primary-color);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
 
-    <style>
-    .c-form-section {
-        margin-bottom: 2.5rem;
-        padding: 1.5rem;
-        background: #fcfdfe;
-        border-radius: 12px;
-        border: 1px solid #f1f5f9;
-    }
+input[readonly],
+select[readonly] {
+    background-color: #f8fafc;
+    cursor: not-allowed;
+    color: var(--text-muted);
+    border-color: #e2e8f0;
+}
 
-    .c-form-section-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 1.5rem;
-        color: #1e293b;
-    }
+.c-button--wide {
+    width: auto !important;
+    height: auto !important;
+    padding: 12px 24px !important;
+    font-size: 1rem;
+    text-decoration: none;
+}
 
-    .c-form-section-title__step {
-        background: var(--primary-color);
-        color: #fff;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-    }
+.c-voucher-alert {
+    background: #10b981;
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
 
-    input[readonly],
-    select[readonly] {
-        background-color: #f8fafc;
-        cursor: not-allowed;
-        color: var(--text-muted);
-        border-color: #e2e8f0;
-    }
+.c-voucher-toggle {
+    cursor: pointer;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
 
-    /* Fix für den Text-Button in der Erfolgsmeldung */
-    .c-button--wide {
-        width: auto !important;
-        height: auto !important;
-        padding: 12px 24px !important;
-        font-size: 1rem;
-        text-decoration: none;
-    }
+.c-voucher-toggle:hover {
+    text-decoration: underline;
+}
 
-    .c-voucher-alert {
-        background: #10b981;
-        color: white;
-        padding: 16px;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-    }
+#voucher-container {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
 
-    /* Gutschein Accordion Styles */
-    .c-voucher-toggle {
-        cursor: pointer;
-        color: var(--primary-color);
-        font-weight: 600;
-        font-size: 0.95rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
+#voucher-container.is-open {
+    max-height: 200px;
+    opacity: 1;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
 
-    .c-voucher-toggle:hover {
-        text-decoration: underline;
-    }
+.u-hidden {
+    display: none !important;
+}
 
-    #voucher-container {
-        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-    }
+.c-price-original {
+    font-size: 0.9rem;
+    text-decoration: line-through;
+    opacity: 0.6;
+    margin-bottom: 2px;
+}
 
-    #voucher-container.is-open {
-        max-height: 200px;
-        opacity: 1;
-        margin-top: 1rem;
-        margin-bottom: 2rem;
-    }
+.c-price-discount-hint {
+    font-size: 0.85rem;
+    color: #059669;
+    font-weight: 600;
+    margin-top: 4px;
+}
 
-    .u-hidden {
-        display: none !important;
-    }
+</style>
 
-    /* Spezial-Style für Streichpreise */
-    .c-price-original {
-        font-size: 0.9rem;
-        text-decoration: line-through;
-        opacity: 0.6;
-        margin-bottom: 2px;
-    }
-
-    .c-price-discount-hint {
-        font-size: 0.85rem;
-        color: #059669;
-        font-weight: 600;
-        margin-top: 4px;
-    }
-
-    </style>
-</head>
-
-<body class="u-bg-light l-public-body">
-
-    <?php include $appRoot . '/templates/components/_test_mode_indicator.phtml'; ?>
-
-    <?php include $appRoot . '/templates/components/_public_header_nav.phtml'; ?>
-
-    <div class="c-tab-content-container u-padding-y-l">
-        <div class="c-card u-margin-auto"
-             style="max-width: 750px; border-top: 5px solid var(--primary-color);">
-            <header class="c-card__header u-text-center u-padding-around-l">
-                <?php /* <div class="u-margin-bottom-m u-flex u-justify-center">
+<div class="c-tab-content-container u-padding-y-l">
+    <div class="c-card u-margin-auto"
+         style="max-width: 750px; border-top: 5px solid var(--primary-color);">
+        <header class="c-card__header u-text-center u-padding-around-l">
+            <?php /* <div class="u-margin-bottom-m u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
                          alt="KGA Einfahrts-Manager Logo"
                          style="max-width: 280px; max-height: 220px; object-fit: contain;">
                 </div> */ ?>
-                <!-- u-text-center für Überschrift und Text -->
-                <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
-                <?php if ($logoFile) { ?>
-                    <div class="u-margin-bottom-m u-flex u-justify-center">
-                        <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
-                             alt="KGA Logo"
-                             style="max-width: 120px; max-height: 120px; object-fit: contain;">
+            <!-- u-text-center für Überschrift und Text -->
+            <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
+            <?php if ($logoFile) { ?>
+                <div class="u-margin-bottom-m u-flex u-justify-center">
+                    <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
+                         alt="KGA Logo"
+                         style="max-width: 120px; max-height: 120px; object-fit: contain;">
+                </div>
+            <?php } ?>
+            <p class="u-text-muted u-margin-top-s"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
+        </header>
 
+        <div class="c-card__body u-padding-around-l">
+
+            <!-- Bestätigungs Meldung - E-Mail versandt - und Weiterleitung -->
+            <?php if ($success) { ?>
+                <div class="c-alert c-alert--success u-margin-bottom-l"
+                     style="flex-direction: column; text-align: center; padding: 50px 30px; border: 2px solid #10b981;">
+                    <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+                         style="width: 64px; height: 64px;"
+                         class="u-margin-bottom-m"
+                         alt="">
+                    <h2 class="u-margin-none"
+                        style="color: #065f46;">E-Mail bestätigen!</h2>
+
+                    <p class="u-margin-top-m"
+                       style="font-size: 1.15rem; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        <?php echo \htmlspecialchars($message, \ENT_QUOTES, 'UTF-8'); ?>
+                    </p>
+
+                    <div class="u-margin-top-xl"
+                         style="font-size: 0.95rem; opacity: 0.8; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 30px; width: 100%;">
+                        <p>Sie werden in
+                            <span id="countdown" style="font-weight: 800; font-size: 1.3rem; color: var(--primary-color);">30</span>
+                            Sekunden zur Code-Eingabe weitergeleitet...
+                        </p>
+                        <a href="verify.php" class="c-button c-button--success c-button--wide u-margin-top-m"> Jetzt direkt zur Eingabe </a>
+                    </div>
+                </div>
+
+                <script>
+                // Mail-Versand im Hintergrund anstupsen
+                // Wir rufen die API auf, die die Queue abarbeitet
+                // Der User merkt davon nichts, aber der Server fängt an zu senden
+                fetch('api/process_mail_queue', {
+                    headers: {
+                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                    }
+                }).then(() => console.log('Mail-Versand gestartet'));
+
+                // 30 Sekunden Countdown
+                let seconds = 30; // redirect Zeit
+                const display = document.getElementById('countdown');
+                const timer = setInterval(() => {
+                    seconds--;
+                    if (display) display.innerText = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        window.location.href = 'verify.php';
+                    }
+                }, 1000);
+
+                </script>
+            <?php } else { ?>
+
+                <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+
+                <!-- Warnung-Box für Datumsfehler -->
+                <div id="date-warning"
+                     class="u-margin-bottom-m"
+                     style="display:none; background: #fffbeb; border-left: 4px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 8px;">
+                    <span id="date-warning-text"></span>
+                </div>
+
+                <!-- GUTSCHEIN EINGABE / ANZEIGE -->
+                <?php if ($prefill) { ?>
+                    <div class="c-voucher-alert">
+                        <span style="font-size: 1.5rem;"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
+                        <div>
+                            <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
+                            <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
+                        </div>
+                    </div>
+                <?php } elseif ($hasActiveVouchers) { ?>
+                    <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
+                    <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
+                        <span class="c-voucher-toggle" onclick="toggleVoucher()">
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                                 class="c-icon"
+                                 alt="">
+                                Sie haben einen Aktivierungscode? Dann hier klicken.
+                        </span>
+                    </div>
+
+                    <div id="voucher-container"
+                         class="u-margin-auto"
+                         style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left; max-width: 500px;">
+
+                        <!-- Formular nur für den Gutschein-Check -->
+                        <form method="GET"
+                              action="index.php"
+                              class="u-flex u-gap-s u-align-end">
+                            <div class="c-form-group"
+                                 style="flex-grow: 1;">
+                                <label class="c-form-label">Code eingeben</label>
+                                <input type="text"
+                                       name="voucher"
+                                       class="c-form-input"
+                                       placeholder="GUT-XXXX-XXXX"
+                                       style="text-transform: uppercase;"
+                                       value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
+                            </div>
+                            <button type="submit"
+                                    class="c-button--primary"
+                                    style="padding: 11px 20px; border-radius: 8px;">Einlösen</button>
+                        </form>
                     </div>
                 <?php } ?>
-                <p class="u-text-muted u-margin-top-s"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
-            </header>
 
-            <div class="c-card__body u-padding-around-l">
+                <!-- HAUPT-FORMULAR -->
+                <form action="index.php"
+                      method="POST"
+                      id="permitForm"
+                      class="c-form">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                    <input type="hidden"
+                           name="voucher"
+                           value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ($prefill['code'] ?? '')); ?>">
 
-                <!-- Bestätigungs Meldung - E-Mail versandt - und Weiterleitung -->
-                <?php if ($success) { ?>
-                    <div class="c-alert c-alert--success u-margin-bottom-l"
-                         style="flex-direction: column; text-align: center; padding: 50px 30px; border: 2px solid #10b981;">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
-                             style="width: 64px; height: 64px;"
-                             class="u-margin-bottom-m"
-                             alt="">
-                        <h2 class="u-margin-none"
-                            style="color: #065f46;">E-Mail bestätigen!</h2>
-
-                        <p class="u-margin-top-m"
-                           style="font-size: 1.15rem; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;">
-                            <?php echo \htmlspecialchars($message, \ENT_QUOTES, 'UTF-8'); ?>
-                        </p>
-
-                        <div class="u-margin-top-xl"
-                             style="font-size: 0.95rem; opacity: 0.8; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 30px; width: 100%;">
-                            <p>Sie werden in
-                                <span id="countdown" style="font-weight: 800; font-size: 1.3rem; color: var(--primary-color);">30</span>
-                                Sekunden zur Code-Eingabe weitergeleitet...
-                            </p><!-- redirect Zeit -->
-
-                            <a href="verify.php" class="c-button c-button--success c-button--wide u-margin-top-m">
-                                Jetzt direkt zur Eingabe
-                            </a>
-                        </div>
-                    </div>
-
-                    <script>
-                    // Mail-Versand im Hintergrund anstupsen
-                    // Wir rufen die API auf, die die Queue abarbeitet
-                    // Der User merkt davon nichts, aber der Server fängt an zu senden
-                    fetch('api/process_mail_queue', {
-                        headers: {
-                            'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                        }
-                    }).then(() => console.log('Mail-Versand gestartet'));
-
-                    // 30 Sekunden Countdown
-                    let seconds = 30; // redirect Zeit
-                    const display = document.getElementById('countdown');
-                    const timer = setInterval(() => {
-                        seconds--;
-                        if (display) display.innerText = seconds;
-                        if (seconds <= 0) {
-                            clearInterval(timer);
-                            window.location.href = 'verify.php';
-                        }
-                    }, 1000);
-
-                    </script>
-
-                <?php } else { ?>
-                    <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
-
-                    <!-- Warnung-Box für Datumsfehler -->
-                    <div id="date-warning"
-                         class="u-margin-bottom-m"
-                         style="display:none; background: #fffbeb; border-left: 4px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 8px;">
-                        <span id="date-warning-text"></span>
-                    </div>
-
-                    <!-- GUTSCHEIN EINGABE / ANZEIGE -->
-                    <?php if ($prefill) { ?>
-                        <div class="c-voucher-alert">
-                            <span style="font-size: 1.5rem;"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
-                            <div>
-                                <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
-                                <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
-                            </div>
-                        </div>
-                    <?php } elseif ($hasActiveVouchers) { ?>
-                        <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
-                        <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
-                            <span class="c-voucher-toggle" onclick="toggleVoucher()">
-                                <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                                     class="c-icon"
-                                     alt="">
-                                Sie haben einen Aktivierungscode? Dann hier klicken.
-                            </span>
-                        </div>
-
-                        <div id="voucher-container"
-                             class="u-margin-auto"
-                             style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left; max-width: 500px;">
-
-                            <!-- Formular nur für den Gutschein-Check -->
-                            <form method="GET"
-                                  action="index.php"
-                                  class="u-flex u-gap-s u-align-end">
-                                <div class="c-form-group"
-                                     style="flex-grow: 1;">
-                                    <label class="c-form-label">Code eingeben</label>
-                                    <input type="text"
-                                           name="voucher"
-                                           class="c-form-input"
-                                           placeholder="GUT-XXXX-XXXX"
-                                           style="text-transform: uppercase;"
-                                           value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
-                                </div>
-                                <button type="submit"
-                                        class="c-button--primary"
-                                        style="padding: 11px 20px; border-radius: 8px;">Einlösen</button>
-                            </form>
-                        </div>
-                    <?php } ?>
-
-                    <!-- HAUPT-FORMULAR -->
-                    <form action="index.php"
-                          method="POST"
-                          id="permitForm"
-                          class="c-form">
-                        <input type="hidden"
-                               name="csrf_token"
-                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                        <input type="hidden"
-                               name="voucher"
-                               value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ($prefill['code'] ?? '')); ?>">
-
-                        <!-- SCHRITT 1: PERSÖNLICH -->
-                        <div class="c-form-section">
-                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">1</span> Ihre
-                                Daten</h4>
-                            <div class="u-grid u-gap-m"
-                                 style="grid-template-columns: 2fr 1fr;">
-                                <div class="c-form-group">
-                                    <label class="c-form-label">Vollständiger Name</label>
-                                    <input type="text"
-                                           name="name"
-                                           class="c-form-input"
-                                           required
-                                           placeholder="Vorname Nachname"
-                                           value="<?php echo \htmlspecialchars((string) ($formData['name'] ?? $prefill['data']['name'] ?? '')); ?>"
-                                           <?php echo $isLocked('name'); ?>>
-                                </div>
-                                <div class="c-form-group">
-                                    <label class="c-form-label">Parzelle</label>
-                                    <input type="text"
-                                           name="parzelle"
-                                           id="parzelle"
-                                           class="c-form-input"
-                                           required
-                                           placeholder="Nr."
-                                           value="<?php echo \htmlspecialchars((string) ($formData['parzelle'] ?? $prefill['data']['parzelle'] ?? '')); ?>"
-                                           <?php echo $isLocked('parzelle'); ?>>
-                                </div>
-                            </div>
-                            <div class="c-form-group u-margin-top-m">
-                                <label class="c-form-label">E-Mail-Adresse</label>
-                                <input type="email"
-                                       name="email"
+                    <!-- SCHRITT 1: PERSÖNLICH -->
+                    <div class="c-form-section">
+                        <h4 class="c-form-section-title"><span class="c-form-section-title__step">1</span> Ihre Daten
+                        </h4>
+                        <div class="u-grid u-gap-m"
+                             style="grid-template-columns: 2fr 1fr;">
+                            <div class="c-form-group">
+                                <label class="c-form-label">Vollständiger Name</label>
+                                <input type="text"
+                                       name="name"
                                        class="c-form-input"
                                        required
-                                       placeholder="ihre@mail.de"
-                                       value="<?php echo \htmlspecialchars((string) ($formData['email'] ?? $prefill['data']['email'] ?? '')); ?>"
-                                       <?php echo $isLocked('email'); ?>>
-                                <small class="u-text-muted u-margin-top-xs">An diese Adresse senden wir die
-                                    Ausnahmegenehmigung.</small>
+                                       placeholder="Vorname Nachname"
+                                       value="<?php echo \htmlspecialchars((string) ($formData['name'] ?? $prefill['data']['name'] ?? '')); ?>"
+                                       <?php echo $isLocked('name'); ?>>
+                            </div>
+                            <div class="c-form-group">
+                                <label class="c-form-label">Parzelle</label>
+                                <input type="text"
+                                       name="parzelle"
+                                       id="parzelle"
+                                       class="c-form-input"
+                                       required
+                                       placeholder="Nr."
+                                       value="<?php echo \htmlspecialchars((string) ($formData['parzelle'] ?? $prefill['data']['parzelle'] ?? '')); ?>"
+                                       <?php echo $isLocked('parzelle'); ?>>
                             </div>
                         </div>
+                        <div class="c-form-group u-margin-top-m">
+                            <label class="c-form-label">E-Mail-Adresse</label>
+                            <input type="email"
+                                   name="email"
+                                   class="c-form-input"
+                                   required
+                                   placeholder="ihre@mail.de"
+                                   value="<?php echo \htmlspecialchars((string) ($formData['email'] ?? $prefill['data']['email'] ?? '')); ?>"
+                                   <?php echo $isLocked('email'); ?>>
+                            <small class="u-text-muted u-margin-top-xs">An diese Adresse senden wir die
+                                Ausnahmegenehmigung.</small>
+                        </div>
+                    </div>
 
-                        <!-- SCHRITT 2: FAHRZEUG -->
-                        <div class="c-form-section">
-                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">2</span> Fahrzeug
-                                & Zweck</h4>
-                            <div class="u-grid u-gap-m"
-                                 style="grid-template-columns: 1fr 1fr;">
-                                <div class="c-form-group">
-                                    <label class="c-form-label">Fahrzeug-Typ</label>
-                                    <select name="typ"
-                                            id="typ"
-                                            class="c-form-select"
-                                            <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
-                                        <?php foreach ($config->get('vehicle_types') as $val => $vData) {
-                                            // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
-                                            if (!($vData['active'] ?? true) && ($formData['typ'] ?? $prefill['data']['typ'] ?? '') !== $val) {
-                                                continue;
-                                            }
-                                            ?>
-                                            <option value="<?php echo $val; ?>"
-                                                    <?php echo ($formData['typ'] ?? $prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
-                                                <?php echo \htmlspecialchars($vData['label']); ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                </div>
-                                <div class="c-form-group">
-                                    <label class="c-form-label"
-                                           id="label_kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
-                                    <input type="text"
-                                           name="kennzeichen"
-                                           id="kennzeichen"
-                                           class="c-form-input"
-                                           required
-                                           maxlength="15"
-                                           pattern="[A-Za-z0-9\-\s]+"
-                                           title="Bitte geben Sie nur ein gültiges Kennzeichen ein (Buchstaben, Zahlen, Leerzeichen, Bindestrich). Sonderzeichen wie / sind nicht erlaubt."
-                                           placeholder="B-HD 123"
-                                           value="<?php echo \htmlspecialchars((string) ($formData['kennzeichen'] ?? $prefill['data']['kennzeichen'] ?? '')); ?>"
-                                           <?php echo $isLocked('kennzeichen'); ?>>
-                                </div>
-                            </div>
-
-                            <!-- Dynamisches Firmenfeld -->
-                            <div class="c-form-group u-margin-top-m u-hidden"
-                                 id="u_firma_wrapper">
-                                <label class="c-form-label">Firma / Lieferant</label>
-                                <input type="text"
-                                       name="firma"
-                                       id="u_firma"
-                                       class="c-form-input"
-                                       placeholder="Name der Firma"
-                                       value="<?php echo \htmlspecialchars((string) ($formData['firma'] ?? $prefill['data']['firma'] ?? '')); ?>"
-                                       <?php echo $isLocked('firma'); ?>>
-                            </div>
-                            <div class="c-form-group u-margin-top-m">
-                                <label class="c-form-label">Grund der Einfahrt</label>
-                                <select name="zweck"
+                    <!-- SCHRITT 2: FAHRZEUG -->
+                    <div class="c-form-section">
+                        <h4 class="c-form-section-title"><span class="c-form-section-title__step">2</span> Fahrzeug &
+                            Zweck</h4>
+                        <div class="u-grid u-gap-m"
+                             style="grid-template-columns: 1fr 1fr;">
+                            <div class="c-form-group">
+                                <label class="c-form-label">Fahrzeug-Typ</label>
+                                <select name="typ"
+                                        id="typ"
                                         class="c-form-select"
-                                        <?php echo ($prefill['data']['zweck'] ?? '') ? 'readonly' : ''; ?>>
-                                    <?php foreach ($config->get('purposes') as $val => $label) { ?>
+                                        <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
+                                    <?php foreach ($config->get('vehicle_types') as $val => $vData) {
+                                        // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
+                                        if (!($vData['active'] ?? true) && ($formData['typ'] ?? $prefill['data']['typ'] ?? '') !== $val) {
+                                            continue;
+                                        } ?>
                                         <option value="<?php echo $val; ?>"
-                                                <?php echo ($formData['zweck'] ?? $prefill['data']['zweck'] ?? '') === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                                <?php echo ($formData['typ'] ?? $prefill['data']['typ'] ?? '') === $val ? 'selected' : ''; ?>>
+                                            <?php echo \htmlspecialchars($vData['label']); ?>
+                                        </option>
                                     <?php } ?>
                                 </select>
                             </div>
-                        </div>
-
-                        <!-- SCHRITT 3: ZEITRAUM -->
-                        <div class="c-form-section">
-                            <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span>
-                                Gültigkeit</h4>
-                            <?php if (\count($publicTemplates) > 1) { ?>
-                                <!-- Mehrere Optionen: Auswahl anzeigen -->
-                                <div class="c-form-group u-margin-bottom-m">
-                                    <label class="c-form-label">Gewünschte Dauer</label>
-                                    <select name="template_key"
-                                            id="template_key"
-                                            class="c-form-select"
-                                            <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
-                                        <?php foreach ($publicTemplates as $key => $tpl) { ?>
-                                            <option value="<?php echo $key; ?>"
-                                                    <?php echo ($formData['template_key'] ?? $prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>>
-                                                <?php echo $tpl['label']; ?>
-                                            </option>
-                                        <?php } ?>
-                                    </select>
-                                </div>
-                            <?php } else { ?>
-                                <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
-                                <?php $singleKey = \array_key_first($publicTemplates); ?>
-                                <input type="hidden"
-                                       name="template_key"
-                                       id="template_key"
-                                       value="<?php echo $singleKey; ?>">
-                            <?php } ?>
-
-                            <div class="u-grid u-gap-m"
-                                 style="grid-template-columns: 1fr 1fr;">
-                                <div class="c-form-group">
-                                    <label class="c-form-label">Beginn ab</label>
-                                    <input type="date"
-                                           name="datum_von"
-                                           id="datum_von"
-                                           class="c-form-input"
-                                           required
-                                           value="<?php echo \htmlspecialchars((string) ($formData['datum_von'] ?? $prefill['data']['datum_von'] ?? \date('Y-m-d'))); ?>"
-                                           <?php echo $isLocked('datum_von'); ?>>
-                                </div>
-                                <div class="c-form-group">
-                                    <label class="c-form-label">Gültig bis</label>
-                                    <input type="date"
-                                           name="datum_bis"
-                                           id="datum_bis"
-                                           class="c-form-input"
-                                           required
-                                           value="<?php echo \htmlspecialchars((string) ($formData['datum_bis'] ?? $prefill['data']['datum_bis'] ?? '')); ?>"
-                                           <?php echo $isLocked('datum_bis'); ?>>
-                                </div>
-                            </div>
-                            <div id="dynamic-date-info"
-                                 style="display:none; margin-top: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem; line-height: 1.5;">
-                                <div id="dynamic-opening-hours"
-                                     style="margin-bottom: 8px;"></div>
-                                <div id="dynamic-holiday-notice"
-                                     style="color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px; display: none;">
-                                </div>
+                            <div class="c-form-group">
+                                <label class="c-form-label"
+                                       id="label_kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
+                                <input type="text"
+                                       name="kennzeichen"
+                                       id="kennzeichen"
+                                       class="c-form-input"
+                                       required
+                                       maxlength="15"
+                                       pattern="[A-Za-z0-9\-\s]+"
+                                       title="Bitte geben Sie nur ein gültiges Kennzeichen ein."
+                                       placeholder="B-HD 123"
+                                       value="<?php echo \htmlspecialchars((string) ($formData['kennzeichen'] ?? $prefill['data']['kennzeichen'] ?? '')); ?>"
+                                       <?php echo $isLocked('kennzeichen'); ?>>
                             </div>
                         </div>
 
-                        <!-- Preis-Anzeige mit Rabatt-Logik -->
-                        <div id="price-display"
-                             class="u-text-center u-font-bold u-margin-top-m u-margin-bottom-l"
-                             style="font-size: 1.4rem; color: var(--primary-color); background: var(--primary-soft); padding: 18px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); box-shadow: var(--shadow-sm);">
-                            Wird berechnet...
+                        <!-- Dynamisches Firmenfeld -->
+                        <div class="c-form-group u-margin-top-m u-hidden"
+                             id="u_firma_wrapper">
+                            <label class="c-form-label">Firma / Lieferant</label>
+                            <input type="text"
+                                   name="firma"
+                                   id="u_firma"
+                                   class="c-form-input"
+                                   placeholder="Name der Firma"
+                                   value="<?php echo \htmlspecialchars((string) ($formData['firma'] ?? $prefill['data']['firma'] ?? '')); ?>"
+                                   <?php echo $isLocked('firma'); ?>>
                         </div>
 
-                        <?php if (!empty($agreements)) { ?>
-                            <div class="c-form-group u-margin-bottom-l"
-                                 style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
-                                <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Rechtliches:</p>
-                                <div class="u-flex u-flex-column u-gap-s">
-                                    <?php foreach ($agreements as $key => $agree) { ?>
-                                        <div style="display: flex; gap: 12px; align-items: flex-start;">
-                                            <input type="checkbox"
-                                                   name="agreements[<?php echo $key; ?>]"
-                                                   id="agree_<?php echo $key; ?>"
-                                                   value="1"
-                                                   style="margin-top: 4px; transform: scale(1.2); cursor: pointer;"
-                                                   <?php echo $agree['required'] ? 'required' : ''; ?>
-                                                   <?php echo isset($formData['agreements'][$key]) ? 'checked' : ''; ?>>
+                        <div class="c-form-group u-margin-top-m">
+                            <label class="c-form-label">Grund der Einfahrt</label>
+                            <select name="zweck"
+                                    class="c-form-select"
+                                    <?php echo ($prefill['data']['zweck'] ?? '') ? 'readonly' : ''; ?>>
+                                <?php foreach ($config->get('purposes') as $val => $label) { ?>
+                                    <option value="<?php echo $val; ?>"
+                                            <?php echo ($formData['zweck'] ?? $prefill['data']['zweck'] ?? '') === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                    </div>
 
-                                            <label for="agree_<?php echo $key; ?>"
-                                                   style="line-height: 1.4; cursor: pointer; font-size: 0.95rem;">
-                                                <?php echo $agree['label_html']; ?>
-
-                                                <?php if ($agree['required']) { ?>
-                                                    <span style="color: var(--danger-color); font-weight: bold; margin-left: 2px;" title="Pflichtfeld">*</span>
-                                                <?php } ?>
-                                            </label>
-                                        </div>
+                    <!-- SCHRITT 3: ZEITRAUM -->
+                    <div class="c-form-section">
+                        <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Gültigkeit
+                        </h4>
+                        <?php if (\count($publicTemplates) > 1) { ?>
+                            <!-- Mehrere Optionen: Auswahl anzeigen -->
+                            <div class="c-form-group u-margin-bottom-m">
+                                <label class="c-form-label">Gewünschte Dauer</label>
+                                <select name="template_key"
+                                        id="template_key"
+                                        class="c-form-select"
+                                        <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
+                                    <?php foreach ($publicTemplates as $key => $tpl) { ?>
+                                        <option value="<?php echo $key; ?>"
+                                                <?php echo ($formData['template_key'] ?? $prefill['template_key'] ?? 'std_7') === $key ? 'selected' : ''; ?>>
+                                            <?php echo $tpl['label']; ?>
+                                        </option>
                                     <?php } ?>
-                                </div>
+                                </select>
                             </div>
+                        <?php } else { ?>
+                            <!-- Nur eine Option: Feld verstecken, Wert für JS/Backend bereitstellen -->
+                            <?php $singleKey = \array_key_first($publicTemplates); ?>
+                            <input type="hidden"
+                                   name="template_key"
+                                   id="template_key"
+                                   value="<?php echo $singleKey; ?>">
                         <?php } ?>
 
-                        <button type="submit"
-                                class="c-button--primary u-width-100 u-margin-top-l"
-                                style="font-size: 1.1rem; padding: 16px;">
-                            <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
-                        </button>
+                        <div class="u-grid u-gap-m"
+                             style="grid-template-columns: 1fr 1fr;">
+                            <div class="c-form-group">
+                                <label class="c-form-label">Beginn ab</label>
+                                <input type="date"
+                                       name="datum_von"
+                                       id="datum_von"
+                                       class="c-form-input"
+                                       required
+                                       value="<?php echo \htmlspecialchars((string) ($formData['datum_von'] ?? $prefill['data']['datum_von'] ?? \date('Y-m-d'))); ?>"
+                                       <?php echo $isLocked('datum_von'); ?>>
+                            </div>
+                            <div class="c-form-group">
+                                <label class="c-form-label">Gültig bis</label>
+                                <input type="date"
+                                       name="datum_bis"
+                                       id="datum_bis"
+                                       class="c-form-input"
+                                       required
+                                       value="<?php echo \htmlspecialchars((string) ($formData['datum_bis'] ?? $prefill['data']['datum_bis'] ?? '')); ?>"
+                                       <?php echo $isLocked('datum_bis'); ?>>
+                            </div>
+                        </div>
 
-                        <?php if (!$prefill) { ?>
-                            <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Auswahl der
-                                Zahlungsart erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
+                        <div id="dynamic-date-info"
+                             style="display:none; margin-top: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem; line-height: 1.5;">
+                            <div id="dynamic-opening-hours"
+                                 style="margin-bottom: 8px;"></div>
+                            <div id="dynamic-holiday-notice"
+                                 style="color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px; display: none;">
+                            </div>
+                        </div>
+                    </div>
 
-                            <div class="u-margin-top-m u-text-center">
-                                <a href="verify.php" class="u-text-small u-text-link" style="font-weight: 600;">
-                                    Ich habe bereits einen Bestätigungs-Code erhalten
-                                </a>
-                            </div><br>
-                        <?php } ?>
-                    </form>
-                <?php } ?>
-            </div>
+                    <!-- Preis-Anzeige mit Rabatt-Logik -->
+                    <div id="price-display"
+                         class="u-text-center u-font-bold u-margin-top-m u-margin-bottom-l"
+                         style="font-size: 1.4rem; color: var(--primary-color); background: var(--primary-soft); padding: 18px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); box-shadow: var(--shadow-sm);">
+                        Wird berechnet...
+                    </div>
 
-            <?php /*<footer class="u-margin-top-xl u-padding-top-m u-text-center" style="border-top: 1px solid var(--border-color);">
-                <p class="u-text-small u-text-muted">
-                    Bereits eine Genehmigung beantragt?<br>
-                    <a href="history" class="u-text-link" style="font-weight: 600;">
-                        <img src="<?php echo $asset->url('assets/on-scroll.webp'); ?>" class="c-icon" alt=""> Zum Genehmigungsverlauf
-                    </a>
-                </p>
-            </footer> */ ?>
+                    <?php if (!empty($agreements)) { ?>
+                        <div class="c-form-group u-margin-bottom-l"
+                             style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                            <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Rechtliches:</p>
+                            <div class="u-flex u-flex-column u-gap-s">
+                                <?php foreach ($agreements as $key => $agree) { ?>
+                                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                        <input type="checkbox"
+                                               name="agreements[<?php echo $key; ?>]"
+                                               id="agree_<?php echo $key; ?>"
+                                               value="1"
+                                               style="margin-top: 4px; transform: scale(1.2); cursor: pointer;"
+                                               <?php echo $agree['required'] ? 'required' : ''; ?>
+                                               <?php echo isset($formData['agreements'][$key]) ? 'checked' : ''; ?>>
+                                        <label for="agree_<?php echo $key; ?>"
+                                               style="line-height: 1.4; cursor: pointer; font-size: 0.95rem;">
+                                            <?php echo $agree['label_html']; ?>
+                                            <?php if ($agree['required']) { ?>
+                                                <span style="color: var(--danger-color); font-weight: bold; margin-left: 2px;" title="Pflichtfeld">*</span>
+                                            <?php } ?>
+                                        </label>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    <?php } ?>
+
+                    <button type="submit"
+                            class="c-button--primary u-width-100 u-margin-top-l"
+                            style="font-size: 1.1rem; padding: 16px;">
+                        <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
+                    </button>
+
+                    <?php if (!$prefill) { ?>
+                        <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Auswahl der Zahlungsart
+                            erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
+                        <div class="u-margin-top-m u-text-center">
+                            <a href="verify.php" class="u-text-small u-text-link" style="font-weight: 600;"> Ich habe bereits einen Bestätigungs-Code erhalten </a>
+                        </div>
+                        <br>
+                    <?php } ?>
+                </form>
+            <?php } ?>
         </div>
     </div>
+</div>
 
-    <?php include $appRoot . '/templates/components/_footer.phtml'; ?>
+<script>
+const templates = <?php echo \json_encode($tplMetadata); ?>;
+const inputVon = document.getElementById('datum_von');
+const inputBis = document.getElementById('datum_bis');
+const inputParzelle = document.getElementById('parzelle');
+const selectTpl = document.getElementById('template_key');
+const selectTyp = document.getElementById('typ');
+const firmaWrapper = document.getElementById('u_firma_wrapper');
+const inputKennzeichen = document.getElementById('kennzeichen');
+const labelKennzeichen = document.getElementById('label_kennzeichen');
+const warningBox = document.getElementById('date-warning');
+const warningText = document.getElementById('date-warning-text');
 
-    <script>
-    const templates = <?php echo \json_encode($tplMetadata); ?>;
-    const inputVon = document.getElementById('datum_von');
-    const inputBis = document.getElementById('datum_bis');
-    const inputParzelle = document.getElementById('parzelle');
-    const selectTpl = document.getElementById('template_key');
-    const selectTyp = document.getElementById('typ');
-    const firmaWrapper = document.getElementById('u_firma_wrapper');
-    const inputKennzeichen = document.getElementById('kennzeichen');
-    const labelKennzeichen = document.getElementById('label_kennzeichen');
-    const warningBox = document.getElementById('date-warning');
-    const warningText = document.getElementById('date-warning-text');
+// Gutschein aktiv wenn $prefill Daten hat
+const isVoucherActive = <?php echo $prefill ? 'true' : 'false'; ?>;
 
-    // Gutschein aktiv wenn $prefill Daten hat
-    const isVoucherActive = <?php echo $prefill ? 'true' : 'false'; ?>;
+// Heute als Basis
+const today = new window.Date(); // TODO wenn in eigener JS Datei das "window." entfernen
+const todayStr = today.toISOString().split('T')[0];
+// Erlaube keine Daten in der Vergangenheit
+if (inputVon) inputVon.min = todayStr;
 
-    // Heute als Basis
-    const today = new window.Date(); // TODO wenn in eigener JS Datei das "window." entfernen
-    const todayStr = today.toISOString().split('T')[0];
-    // Erlaube keine Daten in der Vergangenheit
-    if (inputVon) inputVon.min = todayStr;
+function toggleVoucher() {
+    const container = document.getElementById('voucher-container');
+    if (container) container.classList.toggle('is-open');
+}
 
-    function toggleVoucher() {
-        const container = document.getElementById('voucher-container');
-        if (container) container.classList.toggle('is-open');
+// Logik für Firma und Kennzeichen-Validierung
+function toggleFirmaField() {
+    if (!selectTyp) return;
+    const currentType = selectTyp.value;
+    const vCfg = window.KGA_CONFIG.vehicleConfig[currentType] || {
+        show_company: false
+    };
+    if (vCfg.show_company) {
+        firmaWrapper.classList.remove('u-hidden');
+        labelKennzeichen.innerText = "Amtl. Kennzeichen (B-ML 9876) (Optional)";
+        inputKennzeichen.required = false;
+    } else {
+        firmaWrapper.classList.add('u-hidden');
+        labelKennzeichen.innerText = "Amtl. Kennzeichen (B-ML 9876)";
+        inputKennzeichen.required = true;
+        const firmInput = document.getElementById('u_firma');
+        if (firmInput) firmInput.value = '';
     }
+}
 
-    // Logik für Firma und Kennzeichen-Validierung
-    function toggleFirmaField() {
-        if (!selectTyp) return;
-        const currentType = selectTyp.value;
-        const vCfg = window.KGA_CONFIG.vehicleConfig[currentType] || {
-            show_company: false
-        };
-        if (vCfg.show_company) {
-            firmaWrapper.classList.remove('u-hidden');
-            labelKennzeichen.innerText = "Amtl. Kennzeichen (B-ML 9876) (Optional)";
-            inputKennzeichen.required = false;
-        } else {
-            firmaWrapper.classList.add('u-hidden');
-            labelKennzeichen.innerText = "Amtl. Kennzeichen (B-ML 9876)";
-            inputKennzeichen.required = true;
-            const firmInput = document.getElementById('u_firma');
-            if (firmInput) firmInput.value = '';
+if (inputParzelle) {
+    /**
+     * Automatische Parzellen-Formatierung (0001)
+     * Wird nur ausgeführt, wenn KEIN Gutschein das Feld gesperrt hat.
+     */
+    inputParzelle.addEventListener('blur', (e) => {
+        if (e.target.value && !e.target.readOnly) {
+            e.target.value = e.target.value.toString().padStart(4, '0');
         }
-    }
+    });
+}
 
-    if (inputParzelle) {
-        /**
-         * Automatische Parzellen-Formatierung (0001)
-         * Wird nur ausgeführt, wenn KEIN Gutschein das Feld gesperrt hat.
-         */
-        inputParzelle.addEventListener('blur', (e) => {
-            if (e.target.value && !e.target.readOnly) {
-                e.target.value = e.target.value.toString().padStart(4, '0');
-            }
-        });
-    }
+if (inputKennzeichen) {
+    /**
+     * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
+     */
+    inputKennzeichen.addEventListener('blur', (e) => {
+        if (e.target.readOnly) return;
+        let val = e.target.value.toUpperCase().trim();
+        if (val.length <= 1) return;
 
-    if (inputKennzeichen) {
-        /**
-         * Intelligente Kennzeichen-Formatierung  mit Manual Override (inkl. E- und H-Unterstützung)
-         */
-        inputKennzeichen.addEventListener('blur', (e) => {
-            if (e.target.readOnly) return;
-            let val = e.target.value.toUpperCase().trim();
-            if (val.length <= 1) return;
+        val = val.replace(/[^A-ZÄÖÜ0-9\-\s]/g, '');
 
-            val = val.replace(/[^A-ZÄÖÜ0-9\-\s]/g, '');
-
-            // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
-            if (val.includes('-')) {
-                val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
-                e.target.value = val.replace(/([A-ZÄÖÜ])(\d)/g, '$1 $2').trim();
-                return;
-            }
-
-            // Automatik-Modus ohne manuellen Bindestrich
-            let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
-
-            // RegEx erweitert um [EH]? am Ende
-            const patternBerlin = /^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
-            const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
-            const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
-            const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
-
-            if (patternBerlin.test(clean)) e.target.value = clean.replace(patternBerlin, '$1-$2 $3');
-            else if (pattern32.test(clean)) e.target.value = clean.replace(pattern32, '$1-$2 $3');
-            else if (pattern12.test(clean)) e.target.value = clean.replace(pattern12, '$1-$2 $3');
-            else if (fallback.test(clean)) e.target.value = clean.replace(fallback, '$1 $2');
-            else e.target.value = val.replace(/\s+/g, ' ').trim();
-        });
-    }
-
-    // AJAX Call für die Live-Darstellung der Feiertage
-    async function fetchDateInfo() {
-        if (!inputVon || !inputBis) return;
-        try {
-            // Umgestellt auf JSON-POST
-            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                },
-                body: JSON.stringify({
-                    von: inputVon.value,
-                    bis: inputBis.value
-                })
-            });
-            const data = await res.json();
-            const container = document.getElementById('dynamic-date-info');
-            const openingEl = document.getElementById('dynamic-opening-hours');
-            const holidayEl = document.getElementById('dynamic-holiday-notice');
-
-            if (data.success) {
-                openingEl.innerHTML = data.openingHours;
-                if (data.holidayNotice) {
-                    holidayEl.innerHTML = data.holidayNotice;
-                    holidayEl.style.display = 'block';
-                } else {
-                    holidayEl.style.display = 'none';
-                }
-                container.style.display = 'block';
-            }
-        } catch (e) {
-            console.error('Fehler beim Laden der Datums-Infos', e);
+        // Wenn Nutzer ein Minus tippt -> Nur Buchstaben/Zahlen-Lücke fixen
+        if (val.includes('-')) {
+            val = val.replace(/-+/g, '-').replace(/\s+/g, ' ');
+            e.target.value = val.replace(/([A-ZÄÖÜ])(\d)/g, '$1 $2').trim();
+            return;
         }
-    }
 
-    function handleDateChange(source) {
-        if (!inputBis || !inputVon || !selectTpl) return;
-        if (source === 'bis' && inputBis.readOnly) return;
-        if (source === 'von' && inputVon.readOnly) return;
-        const config = templates[selectTpl.value];
-        if (!config) return;
+        // Automatik-Modus ohne manuellen Bindestrich
+        let clean = val.replace(/[^A-ZÄÖÜ0-9]/g, '');
 
-        const isCustom = config.days === 'custom';
-        const duration = isCustom ? 0 : parseInt(config.days);
-        const durationOffset = Math.max(0, duration - 1); // FIX: -1 Tag
+        // RegEx erweitert um [EH]? am Ende
+        const patternBerlin = /^(B)([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+        const pattern32 = /^([A-ZÄÖÜ]{3})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+        const pattern12 = /^([A-ZÄÖÜ]{1,2})([A-ZÄÖÜ]{1,2})(\d{1,4}[EH]?)$/;
+        const fallback = /^([A-ZÄÖÜ]{1,3})(\d{1,4}[EH]?)$/;
 
-        if (warningBox) warningBox.style.display = 'none';
+        if (patternBerlin.test(clean)) e.target.value = clean.replace(patternBerlin, '$1-$2 $3');
+        else if (pattern32.test(clean)) e.target.value = clean.replace(pattern32, '$1-$2 $3');
+        else if (pattern12.test(clean)) e.target.value = clean.replace(pattern12, '$1-$2 $3');
+        else if (fallback.test(clean)) e.target.value = clean.replace(fallback, '$1 $2');
+        else e.target.value = val.replace(/\s+/g, ' ').trim();
+    });
+}
 
-        if (!isCustom) {
-            // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
-            let minBisDate = new window.Date(today); // TODO wenn in eigener JS Datei das "window." entfernen
-            minBisDate.setDate(minBisDate.getDate() + durationOffset);
-            const minBisStr = minBisDate.toISOString().split('T')[0];
+// AJAX Call für die Live-Darstellung der Feiertage
+async function fetchDateInfo() {
+    if (!inputVon || !inputBis) return;
+    try {
+        // Umgestellt auf JSON-POST
+        const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_date_info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+            },
+            body: JSON.stringify({
+                von: inputVon.value,
+                bis: inputBis.value
+            })
+        });
+        const data = await res.json();
+        const container = document.getElementById('dynamic-date-info');
+        const openingEl = document.getElementById('dynamic-opening-hours');
+        const holidayEl = document.getElementById('dynamic-holiday-notice');
 
-            // Sperre im Kalender setzen
-            inputBis.min = minBisStr;
-
-            if (source === 'bis') {
-                // BIS wurde geändert -> Berechne VON (BIS - Dauer)
-                if (inputBis.value < minBisStr) {
-                    inputBis.value = minBisStr;
-                    if (warningText) {
-                        warningText.innerText = "Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.";
-                        warningBox.style.display = 'block';
-                    }
-                }
-                let d = new window.Date(inputBis.value); // TODO wenn in eigener JS Datei das "window." entfernen
-                d.setDate(d.getDate() - durationOffset);
-                inputVon.value = d.toISOString().split('T')[0];
+        if (data.success) {
+            openingEl.innerHTML = data.openingHours;
+            if (data.holidayNotice) {
+                holidayEl.innerHTML = data.holidayNotice;
+                holidayEl.style.display = 'block';
             } else {
-                // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
-                if (inputVon.value < todayStr) inputVon.value = todayStr;
-                let d = new window.Date(inputVon.value); // TODO wenn in eigener JS Datei das "window." entfernen
-                d.setDate(d.getDate() + durationOffset);
-                inputBis.value = d.toISOString().split('T')[0];
+                holidayEl.style.display = 'none';
             }
-        } else {
-            // Logik für Spezialzeitraum (Custom)
-            inputBis.min = inputVon.value;
-            if (inputBis.value < inputVon.value) inputBis.value = inputVon.value;
+            container.style.display = 'block';
         }
-        fetchDateInfo();
+    } catch (e) {
+        console.error('Fehler beim Laden der Datums-Infos', e);
     }
+}
 
-    // Preis-Update via API
-    async function updatePrice() {
-        if (!selectTpl || !selectTyp) return;
-        try {
-            // Wir suchen den Voucher-Wert. Zuerst das Textfeld, falls leer das versteckte Feld.
-            const inputField = document.querySelector('input[type="text"][name="voucher"]');
-            const hiddenField = document.querySelector('input[type="hidden"][name="voucher"]');
-            const voucher = (inputField && inputField.value) ? inputField.value : (hiddenField ? hiddenField.value :
-                '');
+function handleDateChange(source) {
+    if (!inputBis || !inputVon || !selectTpl) return;
+    if (source === 'bis' && inputBis.readOnly) return;
+    if (source === 'von' && inputVon.readOnly) return;
+    const config = templates[selectTpl.value];
+    if (!config) return;
 
-            // Auf JSON-POST umgestellt
-            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_template_price', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                },
-                body: JSON.stringify({
-                    key: selectTpl.value,
-                    typ: selectTyp.value,
-                    voucher: voucher
-                })
-            });
-            if (!res.ok) throw new Error('Server-Antwort nicht okay');
-            const data = await res.json();
-            const priceBox = document.getElementById('price-display');
-            if (!priceBox) return;
-            if (data.discountText && data.discountText !== '') {
-                priceBox.innerHTML = `
+    const isCustom = config.days === 'custom';
+    const duration = isCustom ? 0 : parseInt(config.days);
+    const durationOffset = Math.max(0, duration - 1); // FIX: -1 Tag
+
+    if (warningBox) warningBox.style.display = 'none';
+
+    if (!isCustom) {
+        // 1. Berechnung des frühestmöglichen BIS-Datums (Heute + Dauer)
+        let minBisDate = new window.Date(today); // TODO wenn in eigener JS Datei das "window." entfernen
+        minBisDate.setDate(minBisDate.getDate() + durationOffset);
+        const minBisStr = minBisDate.toISOString().split('T')[0];
+
+        // Sperre im Kalender setzen
+        inputBis.min = minBisStr;
+
+        if (source === 'bis') {
+            // BIS wurde geändert -> Berechne VON (BIS - Dauer)
+            if (inputBis.value < minBisStr) {
+                inputBis.value = minBisStr;
+                if (warningText) {
+                    warningText.innerText = "Das Datum wurde auf die Mindestdauer der Vorlage korrigiert.";
+                    warningBox.style.display = 'block';
+                }
+            }
+            let d = new window.Date(inputBis.value); // TODO wenn in eigener JS Datei das "window." entfernen
+            d.setDate(d.getDate() - durationOffset);
+            inputVon.value = d.toISOString().split('T')[0];
+        } else {
+            // VON oder Template wurde geändert -> Berechne BIS (VON + Dauer)
+            if (inputVon.value < todayStr) inputVon.value = todayStr;
+            let d = new window.Date(inputVon.value); // TODO wenn in eigener JS Datei das "window." entfernen
+            d.setDate(d.getDate() + durationOffset);
+            inputBis.value = d.toISOString().split('T')[0];
+        }
+    } else {
+        // Logik für Spezialzeitraum (Custom)
+        inputBis.min = inputVon.value;
+        if (inputBis.value < inputVon.value) inputBis.value = inputVon.value;
+    }
+    fetchDateInfo();
+}
+
+// Preis-Update via API
+async function updatePrice() {
+    if (!selectTpl || !selectTyp) return;
+    try {
+        // Wir suchen den Voucher-Wert. Zuerst das Textfeld, falls leer das versteckte Feld.
+        const inputField = document.querySelector('input[type="text"][name="voucher"]');
+        const hiddenField = document.querySelector('input[type="hidden"][name="voucher"]');
+        const voucher = (inputField && inputField.value) ? inputField.value : (hiddenField ? hiddenField.value :
+            '');
+
+        // Auf JSON-POST umgestellt
+        const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_template_price', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+            },
+            body: JSON.stringify({
+                key: selectTpl.value,
+                typ: selectTyp.value,
+                voucher: voucher
+            })
+        });
+        if (!res.ok) throw new Error('Server-Antwort nicht okay');
+        const data = await res.json();
+        const priceBox = document.getElementById('price-display');
+        if (!priceBox) return;
+
+        if (data.discountText && data.discountText !== '') {
+            priceBox.innerHTML = `
                     <div class="c-price-original">Original: ${data.original.toFixed(2).replace('.', ',')} €</div>
                     <div>Gebühr: ${data.formatted}</div>
                     <div class="c-price-discount-hint">${data.discountText} angewendet</div>
                 `;
-            } else {
-                priceBox.innerText = `Gebühr: ${data.formatted}`;
-            }
-            priceBox.style.color = data.isFree ? '#059669' : 'var(--primary-color)';
-            priceBox.style.background = data.isFree ? '#ecfdf5' : 'var(--primary-soft)';
-        } catch (error) {
-            const priceBox = document.getElementById('price-display');
-            if (priceBox) priceBox.innerText = "Gebühr: --,-- €";
+        } else {
+            priceBox.innerText = `Gebühr: ${data.formatted}`;
         }
+        priceBox.style.color = data.isFree ? '#059669' : 'var(--primary-color)';
+        priceBox.style.background = data.isFree ? '#ecfdf5' : 'var(--primary-soft)';
+    } catch (error) {
+        const priceBox = document.getElementById('price-display');
+        if (priceBox) priceBox.innerText = "Gebühr: --,-- €";
     }
+}
 
-    // Event-Listener
-    if (selectTpl) selectTpl.addEventListener('change', () => {
-        handleDateChange('template');
-        updatePrice();
-    });
-    if (inputVon) inputVon.addEventListener('change', () => {
-        handleDateChange('von');
-        updatePrice();
-    });
-    if (inputBis) inputBis.addEventListener('change', () => {
-        handleDateChange('bis');
-        updatePrice();
-    });
-    if (selectTyp) selectTyp.addEventListener('change', () => {
-        toggleFirmaField();
-        updatePrice();
-    });
-
-    // Initialisierung
+// Event-Listener
+if (selectTpl) selectTpl.addEventListener('change', () => {
+    handleDateChange('template');
+    updatePrice();
+});
+if (inputVon) inputVon.addEventListener('change', () => {
+    handleDateChange('von');
+    updatePrice();
+});
+if (inputBis) inputBis.addEventListener('change', () => {
+    handleDateChange('bis');
+    updatePrice();
+});
+if (selectTyp) selectTyp.addEventListener('change', () => {
     toggleFirmaField();
-    handleDateChange('init');
-    updatePrice(); // Direkt beim Laden aufrufen
+    updatePrice();
+});
 
-    // Falls ein Gutschein in der URL steht, aber kein $prefill aktiv ist (z.B. Fehlermeldung)
-    // öffnen wir das Eingabefeld automatisch, damit der User den Code sieht/korrigieren kann.
-    const urlParams = new window.URLSearchParams(window.location
-        .search); // TODO wenn in eigener JS Datei das "window." entfernen
-    if (urlParams.has('voucher') && !isVoucherActive) toggleVoucher();
+// Initialisierung
+toggleFirmaField();
+handleDateChange('init');
+updatePrice(); // Direkt beim Laden aufrufen
 
+// Falls ein Gutschein in der URL steht, aber kein $prefill aktiv ist (z.B. Fehlermeldung)
+// öffnen wir das Eingabefeld automatisch, damit der User den Code sieht/korrigieren kann.
+const urlParams = new window.URLSearchParams(window.location.search); // TODO wenn in JS Datei "window." entfernen
+if (urlParams.has('voucher') && !isVoucherActive) toggleVoucher();
 
-    // Sauberer Heartbeat: Sendet einen POST-Request an den dedizierten Ping-Endpunkt,
-    // inkl. Cookies, um die Session zuverlässig vor dem Timeout zu bewahren.
-    setInterval(() => {
-        fetch(window.KGA_CONFIG.baseUrl + 'api/ping', {
-            method: 'POST',
-            credentials: 'include'
-        }).catch(() => console.debug('Session Ping fehlgeschlagen'));
-    }, 3 * 60 * 1000); // Alle 3 Minuten
-
-    </script>
-</body>
-
-</html>
+</script>

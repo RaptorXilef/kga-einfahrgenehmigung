@@ -46,19 +46,15 @@ final readonly class TemplateRenderer
         $data['flashes'] ??= $this->sessionManager->getFlashes();
 
         \extract($systemVars);
+        \extract($data); // OHNE EXTR_SKIP, damit Templates lokale Variablen setzen können!
 
-        // 2. Nutzerdaten bereitstellen (EXTR_SKIP verhindert das Überschreiben der Systemvariablen!)
-        \extract($data, \EXTR_SKIP);
-
-        // 3. Rendere den eigentlichen Seiteninhalt in den Puffer
+        // 1. Content in den Puffer rendern
         \ob_start();
         include $appRoot . "/templates/pages/{$templatePath}.phtml";
         $content = \ob_get_clean();
 
-        // 4. Prüfe, ob ein Layout-Wrapper definiert ist (z.B. 'layout' => 'admin')
-        $layout = $data['layout'] ?? null;
-
-        if ($layout !== null && \file_exists($appRoot . "/templates/layouts/{$layout}.phtml")) {
+        // 2. Hat die Seite eine $layout Variable gesetzt? (z.B. $layout = 'admin';)
+        if (isset($layout) && \is_string($layout) && \file_exists($appRoot . "/templates/layouts/{$layout}.phtml")) {
             include $appRoot . "/templates/layouts/{$layout}.phtml";
         } else {
             // Fallback für alte Templates, die ihr <html> Gerüst noch selbst mitbringen

@@ -1,5 +1,9 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Entity\Permit;
+
 // SPDX-License-Identifier: LicenseRef-Proprietary
 // Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
 // Usage without explicit permission is strictly prohibited.
@@ -11,13 +15,12 @@
  * Druckansicht einer Genehmigung für den User.
  * Generiert ein optimiertes A4-Layout einer einzelnen Genehmigung direkt aus dem Dashboard heraus.
  *
- * Path: templates/pages/history_print_view.phtml
- *
- * @var \App\Core\Entity\Permit $permit   Die zu druckende Genehmigungs-Entität.
+ * @var AssetHelperInterface $asset
+ * @var ConfigInterface $config   Globale System-Konfiguration.
+ * @var Permit $permit   Die zu druckende Genehmigungs-Entität.
  * @var array $settings Einstellungen für das Layout (z.B. jahresFarbe).
- * @var \App\Contracts\Config\ConfigInterface $config   Globale System-Konfiguration.
- * @var string $appRoot  Absoluter Pfad zum Root-Verzeichnis.
  * @var array|string $opening  Formatierter Text der allgemeinen Öffnungszeiten.
+ * @var string $appRoot  Absoluter Pfad zum Root-Verzeichnis.
  */
 ?>
 

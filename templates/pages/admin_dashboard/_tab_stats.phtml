@@ -1,23 +1,25 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Core\Service\PermitService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Partial: Dashboard Tab - Statistics & Charts
  *
  * Chart.js Integration und Kennzahlen-Auswertung (Umsatz, Fahrzeuge).
  *
- * Path: templates/pages/admin_dashboard/_tab_stats.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Core\Service\AuthService $auth
- * @var \App\Infrastructure\Config\Config $config
- * @var string $filterStart
- * @var string $filterEnd
- * @var int $minArchiveYear
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
+ * @var PermitService $permitService
  * @var array $periodStats
- * @var \App\Core\Service\PermitService $permitService
- * @var array $yearlyStats
  * @var array $settings
+ * @var array $yearlyStats
+ * @var int $minArchiveYear
+ * @var string $filterEnd
+ * @var string $filterStart
  */
 
 // --- NEU: Monatliche Statistiken für den Chart berechnen ---

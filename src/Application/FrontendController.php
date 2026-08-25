@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\AdminLoginAction;
-use App\Application\Actions\SystemCronAction;
-use App\Application\Actions\SystemProcessMailQueueAction;
+use App\Application\Actions\Api\System\CronAction;
+use App\Application\Actions\Api\System\ProcessMailQueueAction;
+use App\Application\Actions\Frontend\AdminLoginAction;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
 use App\Application\Contracts\ViewActionInterface;
@@ -119,8 +119,8 @@ final readonly class FrontendController
 
         $safeDuringMaintenance = [
             AdminLoginAction::class,
-            SystemCronAction::class,
-            SystemProcessMailQueueAction::class,
+            CronAction::class,
+            ProcessMailQueueAction::class,
         ];
 
         if (\in_array($className, $safeDuringMaintenance, true)) {

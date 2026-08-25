@@ -1,5 +1,9 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Partial: Dashboard Tab - Mail Logs
  *
@@ -9,9 +13,10 @@
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Infrastructure\Config\Config $config
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
  * @var array $mailLogs
- * @var \App\Core\Service\AuthService $auth
  * @var array $settings
  */
 

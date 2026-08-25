@@ -1,18 +1,18 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+
 /**
  * Partial: Dashboard Control Bar
  *
  * Suchleiste und Zeitraum-/Typen-Filter.
  *
- * Path: templates/pages/admin_dashboard/_control_bar.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Core\Service\AuthService $auth
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
  * @var array $settings
- * @var string $filterStart
  * @var string $filterEnd
+ * @var string $filterStart
  * @var string $filterType
  */
 $filterType ??= 'all';

@@ -1,11 +1,16 @@
 <?php
+
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Storage\ImageStorageService;
+
 /**
  * Partial: Dashboard Tab - Audit Log (Nutzerprotokoll)
- * SPDX-License-Identifier: LicenseRef-Proprietary
  *
- * @var \App\Core\Service\AuthService $auth
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var ImageStorageService $imageStorage
  * @var array $settings
- * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
  */
 $auditLogs ??= [];
 $auditTotal ??= 0;

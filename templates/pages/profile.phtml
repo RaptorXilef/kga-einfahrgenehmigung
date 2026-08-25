@@ -1,5 +1,11 @@
 <?php
 
+use App\Contracts\Storage\UserRepositoryInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+use App\Infrastructure\Storage\ImageStorageService;
+
 /**
  * Page: User Profile
  *
@@ -8,18 +14,16 @@
  * Profil-Einstellungsseite des aktuell angemeldeten Administrators.
  * Erlaubt die Personalisierung des eigenen Kontos (Anzeigename, Passwort-Änderung, Avatar-WebP-Upload).
  *
- * Path: templates/pages/profile.phtml
- *
- * @var string $userId   Die aktive Benutzer-ID.
- * @var string $username Der aktuelle Anzeigename.
- * @var string $role     Der Klartext-Name der eigenen Rolle.
- * @var \App\Core\Service\AuthService $auth
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
+ * @var ImageStorageService $imageStorage
+ * @var UserRepositoryInterface $userRepository
  * @var array $settings
  * @var string $appRoot
- * @var \App\Infrastructure\Config\Config $config
- * @var \App\Contracts\Storage\UserRepositoryInterface $userRepository
- * @var \App\Infrastructure\Storage\ImageStorageService $imageStorage
- * @var \App\Contracts\System\AssetHelperInterface $asset
+ * @var string $role     Der Klartext-Name der eigenen Rolle.
+ * @var string $userId   Die aktive Benutzer-ID.
+ * @var string $username Der aktuelle Anzeigename.
  */
 
 // $userId wird nun vom Controller übergeben

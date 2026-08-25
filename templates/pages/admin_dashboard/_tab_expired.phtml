@@ -1,19 +1,20 @@
 <?php
 
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Config\Config;
+
 /**
  * Partial: Dashboard Tab - Expired Permits
  *
  * Historisches Archiv der abgelaufenen Genehmigungen im gewählten Zeitraum.
  *
- * Path: templates/pages/admin_dashboard/_tab_expired.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
- * @var \App\Core\Service\AuthService $auth
- * @var \App\Infrastructure\Config\Config $config
- * @var int $minArchiveYear
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var Config $config
  * @var array $permitGroups
  * @var array $settings
+ * @var int $minArchiveYear
  */
 $allExpired = $permitGroups['expired'] ?? [];
 
