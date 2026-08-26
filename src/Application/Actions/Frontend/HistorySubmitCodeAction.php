@@ -20,7 +20,8 @@ use App\Core\Service\MagicLinkService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/history_submit_code')]
+#[Route('GET', '/history_submit_code')]
+#[Route('POST', '/history_submit_code')]
 final readonly class HistorySubmitCodeAction implements ViewActionInterface
 {
     public function __construct(

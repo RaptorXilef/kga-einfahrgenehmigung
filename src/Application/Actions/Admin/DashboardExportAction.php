@@ -21,7 +21,8 @@ use App\Core\Service\PermitFilterService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/dashboard_export')]
+#[Route('GET', '/dashboard_export')]
+#[Route('POST', '/dashboard_export')]
 final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

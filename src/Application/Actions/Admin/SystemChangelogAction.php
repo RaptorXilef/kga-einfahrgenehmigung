@@ -17,7 +17,8 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/changelog')]
+#[Route('GET', '/changelog')]
+#[Route('POST', '/changelog')]
 final readonly class SystemChangelogAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

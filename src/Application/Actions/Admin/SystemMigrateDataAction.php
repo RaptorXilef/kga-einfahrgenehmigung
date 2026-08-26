@@ -19,7 +19,8 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/migrate_data')]
+#[Route('GET', '/migrate_data')]
+#[Route('POST', '/migrate_data')]
 final readonly class SystemMigrateDataAction implements ActionInterface
 {
     public function __construct(

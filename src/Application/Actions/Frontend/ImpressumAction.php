@@ -16,7 +16,8 @@ use App\Contracts\System\JsonHelperInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/impressum')]
+#[Route('GET', '/impressum')]
+#[Route('POST', '/impressum')]
 final readonly class ImpressumAction implements ViewActionInterface
 {
     public function __construct(

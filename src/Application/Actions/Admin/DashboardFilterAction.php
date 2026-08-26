@@ -16,7 +16,8 @@ use App\Application\Session\SessionManager;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/filter_dashboard')]
+#[Route('GET', '/filter_dashboard')]
+#[Route('POST', '/filter_dashboard')]
 final readonly class DashboardFilterAction implements ActionInterface
 {
     public function __construct(

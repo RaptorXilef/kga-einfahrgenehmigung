@@ -18,7 +18,8 @@ use App\Core\Service\AuditLoggerService;
 /**
  * TODO DOCBLOCK
  */
-#[Route('GET|POST', '/upload_role_image')]
+#[Route('GET', '/upload_role_image')]
+#[Route('POST', '/upload_role_image')]
 final readonly class RoleUploadImageAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

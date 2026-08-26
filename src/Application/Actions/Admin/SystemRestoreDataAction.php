@@ -20,7 +20,8 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/restore_data')]
+#[Route('GET', '/restore_data')]
+#[Route('POST', '/restore_data')]
 final readonly class SystemRestoreDataAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -1,12 +1,17 @@
 <?php return array (
   'exact' => 
   array (
-    'GET|POST' => 
+    'GET' => 
     array (
       '/admin_logout' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\AdminLogoutAction',
         'auth' => false,
+      ),
+      '/admin_print' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\AdminPrintAction',
+        'auth' => true,
       ),
       '/bank_import_analyze' => 
       array (
@@ -22,6 +27,11 @@
       array (
         'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
         'auth' => false,
+      ),
+      '/admin' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\DashboardRenderAction',
+        'auth' => true,
       ),
       '/create_manual' => 
       array (
@@ -42,6 +52,11 @@
       array (
         'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
         'auth' => false,
+      ),
+      '/profile' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\ProfileRenderAction',
+        'auth' => true,
       ),
       '/change_own_avatar' => 
       array (
@@ -103,6 +118,11 @@
         'class' => 'App\\Application\\Actions\\Admin\\UserDeleteAction',
         'auth' => false,
       ),
+      '/users' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\UserManagementRenderAction',
+        'auth' => true,
+      ),
       '/upload_avatar' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserUploadAvatarAction',
@@ -123,6 +143,26 @@
         'class' => 'App\\Application\\Actions\\Api\\System\\CronAction',
         'auth' => false,
       ),
+      '/api/process_mail_queue' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/admin_login' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\AdminLoginAction',
+        'auth' => false,
+      ),
+      '/checkout' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\CheckoutAction',
+        'auth' => false,
+      ),
+      '/check' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\CheckPermitAction',
+        'auth' => false,
+      ),
       '/datenschutz' => 
       array (
         'class' => 'App\\Application\\Actions\\Frontend\\DatenschutzAction',
@@ -141,6 +181,11 @@
       '/history_print' => 
       array (
         'class' => 'App\\Application\\Actions\\Frontend\\HistoryPrintAction',
+        'auth' => false,
+      ),
+      '/history' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistoryRenderAction',
         'auth' => false,
       ),
       '/history_request_link' => 
@@ -168,6 +213,11 @@
         'class' => 'App\\Application\\Actions\\Frontend\\PermitEditAction',
         'auth' => false,
       ),
+      '/' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\PermitRenderAction',
+        'auth' => false,
+      ),
       '/success' => 
       array (
         'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
@@ -184,65 +234,52 @@
         'auth' => false,
       ),
     ),
-    'GET' => 
-    array (
-      '/admin_print' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\AdminPrintAction',
-        'auth' => true,
-      ),
-      '/admin' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\DashboardRenderAction',
-        'auth' => true,
-      ),
-      '/profile' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\ProfileRenderAction',
-        'auth' => true,
-      ),
-      '/users' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\UserManagementRenderAction',
-        'auth' => true,
-      ),
-      '/api/process_mail_queue' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
-        'auth' => false,
-      ),
-      '/admin_login' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\AdminLoginAction',
-        'auth' => false,
-      ),
-      '/checkout' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\CheckoutAction',
-        'auth' => false,
-      ),
-      '/check' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\CheckPermitAction',
-        'auth' => false,
-      ),
-      '/history' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\HistoryRenderAction',
-        'auth' => false,
-      ),
-      '/' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\PermitRenderAction',
-        'auth' => false,
-      ),
-    ),
     'POST' => 
     array (
+      '/admin_logout' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\AdminLogoutAction',
+        'auth' => false,
+      ),
+      '/bank_import_analyze' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\BankImportAnalyzeAction',
+        'auth' => false,
+      ),
       '/bank_import_process' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\BankImportProcessAction',
         'auth' => true,
+      ),
+      '/dashboard_export' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\DashboardExportAction',
+        'auth' => false,
+      ),
+      '/filter_dashboard' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
+        'auth' => false,
+      ),
+      '/create_manual' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\PermitCreateManualAction',
+        'auth' => false,
+      ),
+      '/mark_as_paid' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\PermitMarkAsPaidAction',
+        'auth' => false,
+      ),
+      '/suspend_permit' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
+        'auth' => false,
+      ),
+      '/unsuspend_permit' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\PermitToggleSuspensionAction',
+        'auth' => false,
       ),
       '/change_own_password' => 
       array (
@@ -252,6 +289,11 @@
       '/change_own_username' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\ProfileUpdateUsernameAction',
+        'auth' => false,
+      ),
+      '/change_own_avatar' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\ProfileUploadAvatarAction',
         'auth' => false,
       ),
       '/delete_role' => 
@@ -269,15 +311,70 @@
         'class' => 'App\\Application\\Actions\\Admin\\RoleSaveAction',
         'auth' => true,
       ),
+      '/upload_role_image' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\RoleUploadImageAction',
+        'auth' => false,
+      ),
+      '/anonymize_archive' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemAnonymizeArchiveAction',
+        'auth' => false,
+      ),
+      '/changelog' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemChangelogAction',
+        'auth' => false,
+      ),
       '/clear_cache' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemClearCacheAction',
+        'auth' => false,
+      ),
+      '/create_backup' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
+        'auth' => false,
+      ),
+      '/force_update_check' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemForceUpdateCheckAction',
+        'auth' => false,
+      ),
+      '/migrate_data' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemMigrateDataAction',
+        'auth' => false,
+      ),
+      '/resend_mail' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
+        'auth' => false,
+      ),
+      '/restore_data' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemRestoreDataAction',
+        'auth' => false,
+      ),
+      '/run_update_migrations' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemRunUpdateMigrationsAction',
+        'auth' => false,
+      ),
+      '/truncate_target' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\SystemTruncateTargetAction',
         'auth' => false,
       ),
       '/change_user_role' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserChangeRoleAction',
         'auth' => true,
+      ),
+      '/delete_user' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\UserDeleteAction',
+        'auth' => false,
       ),
       '/rename_user' => 
       array (
@@ -293,6 +390,21 @@
       array (
         'class' => 'App\\Application\\Actions\\Admin\\UserSaveAction',
         'auth' => true,
+      ),
+      '/upload_avatar' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\UserUploadAvatarAction',
+        'auth' => false,
+      ),
+      '/create_voucher' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\VoucherCreateAction',
+        'auth' => false,
+      ),
+      '/delete_voucher' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\VoucherDeleteAction',
+        'auth' => false,
       ),
       '/activate_voucher' => 
       array (
@@ -344,6 +456,11 @@
         'class' => 'App\\Application\\Actions\\Api\\System\\CheckUpdateAction',
         'auth' => true,
       ),
+      '/cron' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\CronAction',
+        'auth' => false,
+      ),
       '/finalize_update' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\System\\FinalizeUpdateAction',
@@ -364,9 +481,69 @@
         'class' => 'App\\Application\\Actions\\Frontend\\AdminLoginAction',
         'auth' => false,
       ),
+      '/datenschutz' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\DatenschutzAction',
+        'auth' => false,
+      ),
+      '/history_cancel_permit' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistoryCancelPermitAction',
+        'auth' => false,
+      ),
+      '/history_logout' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistoryLogoutAction',
+        'auth' => false,
+      ),
+      '/history_print' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistoryPrintAction',
+        'auth' => false,
+      ),
+      '/history_request_link' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistoryRequestLinkAction',
+        'auth' => false,
+      ),
+      '/history_submit_code' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistorySubmitCodeAction',
+        'auth' => false,
+      ),
+      '/history_verify_token' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\HistoryVerifyTokenAction',
+        'auth' => false,
+      ),
+      '/impressum' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\ImpressumAction',
+        'auth' => false,
+      ),
+      '/permit_edit' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\PermitEditAction',
+        'auth' => false,
+      ),
       '/' => 
       array (
         'class' => 'App\\Application\\Actions\\Frontend\\PermitSubmitAction',
+        'auth' => false,
+      ),
+      '/success' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
+        'auth' => false,
+      ),
+      '/verify_render' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\VerificationRenderAction',
+        'auth' => false,
+      ),
+      '/verify_submit' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Frontend\\VerificationSubmitAction',
         'auth' => false,
       ),
     ),

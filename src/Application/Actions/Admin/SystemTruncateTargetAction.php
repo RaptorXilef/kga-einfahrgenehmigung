@@ -20,7 +20,8 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/truncate_target')]
+#[Route('GET', '/truncate_target')]
+#[Route('POST', '/truncate_target')]
 final readonly class SystemTruncateTargetAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

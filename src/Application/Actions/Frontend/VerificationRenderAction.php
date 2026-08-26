@@ -15,7 +15,8 @@ use App\Application\View\TemplateRenderer;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/verify_render')]
+#[Route('GET', '/verify_render')]
+#[Route('POST', '/verify_render')]
 final readonly class VerificationRenderAction implements ViewActionInterface
 {
     public function __construct(

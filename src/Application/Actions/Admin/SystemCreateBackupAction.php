@@ -20,7 +20,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/create_backup')]
+#[Route('GET', '/create_backup')]
+#[Route('POST', '/create_backup')]
 final readonly class SystemCreateBackupAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

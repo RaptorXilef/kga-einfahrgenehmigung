@@ -20,7 +20,8 @@ use App\Core\Service\VoucherService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/delete_voucher')]
+#[Route('GET', '/delete_voucher')]
+#[Route('POST', '/delete_voucher')]
 final readonly class VoucherDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

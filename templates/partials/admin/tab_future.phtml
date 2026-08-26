@@ -186,7 +186,7 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                     <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('dashboard.future.print')) { ?>
-                                                <a href="?action=print&code=<?php echo $permit->code; ?>"
+                                                <a href="admin_print?code=<?php echo $permit->code; ?>"
                                                    target="_blank"
                                                    class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"

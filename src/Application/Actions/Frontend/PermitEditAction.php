@@ -18,7 +18,8 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/permit_edit')]
+#[Route('GET', '/permit_edit')]
+#[Route('POST', '/permit_edit')]
 final readonly class PermitEditAction implements ViewActionInterface
 {
     public function __construct(

@@ -23,7 +23,8 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/success')]
+#[Route('GET', '/success')]
+#[Route('POST', '/success')]
 final readonly class SuccessAction implements ViewActionInterface
 {
     public function __construct(

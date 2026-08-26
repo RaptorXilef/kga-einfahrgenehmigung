@@ -16,7 +16,8 @@ use App\Contracts\System\JsonHelperInterface;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/datenschutz')]
+#[Route('GET', '/datenschutz')]
+#[Route('POST', '/datenschutz')]
 final readonly class DatenschutzAction implements ViewActionInterface
 {
     public function __construct(

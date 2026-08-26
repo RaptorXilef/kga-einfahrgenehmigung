@@ -19,8 +19,10 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/suspend_permit')]
-#[Route('GET|POST', '/unsuspend_permit')]
+#[Route('GET', '/suspend_permit')]
+#[Route('POST', '/suspend_permit')]
+#[Route('GET', '/unsuspend_permit')]
+#[Route('POST', '/unsuspend_permit')]
 final readonly class PermitToggleSuspensionAction implements ActionInterface
 {
     public function __construct(

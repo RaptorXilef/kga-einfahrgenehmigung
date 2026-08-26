@@ -20,7 +20,8 @@ use App\Core\Service\MagicLinkService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/history_verify_token')]
+#[Route('GET', '/history_verify_token')]
+#[Route('POST', '/history_verify_token')]
 final readonly class HistoryVerifyTokenAction implements ViewActionInterface
 {
     public function __construct(

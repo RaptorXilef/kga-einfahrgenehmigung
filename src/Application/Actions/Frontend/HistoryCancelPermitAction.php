@@ -15,7 +15,8 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\PermitService;
 use DomainException;
 
-#[Route('GET|POST', '/history_cancel_permit')]
+#[Route('GET', '/history_cancel_permit')]
+#[Route('POST', '/history_cancel_permit')]
 final readonly class HistoryCancelPermitAction implements ViewActionInterface
 {
     public function __construct(

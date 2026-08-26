@@ -16,7 +16,8 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/history_logout')]
+#[Route('GET', '/history_logout')]
+#[Route('POST', '/history_logout')]
 final readonly class HistoryLogoutAction implements ViewActionInterface
 {
     public function __construct(

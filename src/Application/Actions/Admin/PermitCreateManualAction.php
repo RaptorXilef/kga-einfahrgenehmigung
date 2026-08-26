@@ -22,7 +22,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/create_manual')]
+#[Route('GET', '/create_manual')]
+#[Route('POST', '/create_manual')]
 final readonly class PermitCreateManualAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

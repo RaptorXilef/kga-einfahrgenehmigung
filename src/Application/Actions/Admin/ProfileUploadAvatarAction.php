@@ -20,7 +20,8 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/change_own_avatar')]
+#[Route('GET', '/change_own_avatar')]
+#[Route('POST', '/change_own_avatar')]
 final readonly class ProfileUploadAvatarAction implements ActionInterface
 {
     public function __construct(

@@ -16,7 +16,8 @@ use App\Core\Service\AuthService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/admin_logout')]
+#[Route('GET', '/admin_logout')]
+#[Route('POST', '/admin_logout')]
 final readonly class AdminLogoutAction implements ActionInterface
 {
     public function __construct(

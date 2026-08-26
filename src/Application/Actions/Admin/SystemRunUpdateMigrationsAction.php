@@ -20,7 +20,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/run_update_migrations')]
+#[Route('GET', '/run_update_migrations')]
+#[Route('POST', '/run_update_migrations')]
 final readonly class SystemRunUpdateMigrationsAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

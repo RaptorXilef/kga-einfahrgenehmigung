@@ -12,7 +12,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\BankImportService;
 
-#[Route('GET|POST', '/bank_import_analyze')]
+#[Route('GET', '/bank_import_analyze')]
+#[Route('POST', '/bank_import_analyze')]
 final readonly class BankImportAnalyzeAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

@@ -18,7 +18,8 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/mark_as_paid')]
+#[Route('GET', '/mark_as_paid')]
+#[Route('POST', '/mark_as_paid')]
 final readonly class PermitMarkAsPaidAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

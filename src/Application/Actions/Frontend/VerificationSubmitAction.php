@@ -20,7 +20,8 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/verify_submit')]
+#[Route('GET', '/verify_submit')]
+#[Route('POST', '/verify_submit')]
 final readonly class VerificationSubmitAction implements ViewActionInterface
 {
     public function __construct(

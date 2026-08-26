@@ -20,7 +20,8 @@ use App\Core\Service\AuditLoggerService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/resend_mail')]
+#[Route('GET', '/resend_mail')]
+#[Route('POST', '/resend_mail')]
 final readonly class SystemResendMailAction implements ActionInterface
 {
     public function __construct(

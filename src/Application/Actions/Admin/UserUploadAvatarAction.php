@@ -15,7 +15,8 @@ use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuditLoggerService;
 
-#[Route('GET|POST', '/upload_avatar')]
+#[Route('GET', '/upload_avatar')]
+#[Route('POST', '/upload_avatar')]
 final readonly class UserUploadAvatarAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

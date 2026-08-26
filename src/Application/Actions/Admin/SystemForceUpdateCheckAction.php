@@ -20,7 +20,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/force_update_check')]
+#[Route('GET', '/force_update_check')]
+#[Route('POST', '/force_update_check')]
 final readonly class SystemForceUpdateCheckAction implements ViewActionInterface, RequiresPermissionInterface
 {
     public function __construct(

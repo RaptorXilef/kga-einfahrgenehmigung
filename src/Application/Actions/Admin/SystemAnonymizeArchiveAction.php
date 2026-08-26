@@ -19,7 +19,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/anonymize_archive')]
+#[Route('GET', '/anonymize_archive')]
+#[Route('POST', '/anonymize_archive')]
 final readonly class SystemAnonymizeArchiveAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

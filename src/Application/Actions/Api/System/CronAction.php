@@ -16,7 +16,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/cron')]
+#[Route('GET', '/cron')]
+#[Route('POST', '/cron')]
 final readonly class CronAction implements ViewActionInterface
 {
     public function __construct(

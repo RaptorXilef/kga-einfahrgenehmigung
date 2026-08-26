@@ -24,7 +24,8 @@ use DomainException;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/delete_user')]
+#[Route('GET', '/delete_user')]
+#[Route('POST', '/delete_user')]
 final readonly class UserDeleteAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(

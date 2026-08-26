@@ -23,7 +23,8 @@ use Throwable;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/create_voucher')]
+#[Route('GET', '/create_voucher')]
+#[Route('POST', '/create_voucher')]
 final readonly class VoucherCreateAction implements ActionInterface
 {
     public function __construct(

@@ -22,7 +22,8 @@ use App\Core\Service\HolidayService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/history_print')]
+#[Route('GET', '/history_print')]
+#[Route('POST', '/history_print')]
 final readonly class HistoryPrintAction implements ViewActionInterface
 {
     public function __construct(

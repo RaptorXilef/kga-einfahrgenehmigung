@@ -22,7 +22,8 @@ use App\Core\Service\PermitService;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/history_request_link')]
+#[Route('GET', '/history_request_link')]
+#[Route('POST', '/history_request_link')]
 final readonly class HistoryRequestLinkAction implements ViewActionInterface
 {
     public function __construct(
