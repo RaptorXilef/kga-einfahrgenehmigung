@@ -173,7 +173,7 @@ final class PermissionRegistry
                         'key' => 'system.permissions.view',
                         'children' => [
                             'users' => ['label' => 'Benutzerverwaltung', 'key' => 'system.permissions.users.manage'],
-                            'groups' => ['label' => 'Gruppenverwaltung', 'key' => 'system.permissions.groups.manage'],
+                            'groups' => ['label' => 'Gruppenverwaltung', 'key' => 'system.permissions.roles.manage'],
                         ],
                     ],
                     'update' => [
@@ -202,11 +202,11 @@ final class PermissionRegistry
                                     ],
                                     'groups' => [
                                         'label' => 'Aktionen Gruppen',
-                                        'key' => 'dashboard.migration.groups.view',
+                                        'key' => 'dashboard.migration.roles.view',
                                         'children' => [
-                                            'json_to_mysql' => ['label' => 'JSON->SQL', 'key' => 'dashboard.migration.groups.json_to_mysql'],
-                                            'mysql_to_json' => ['label' => 'SQL->JSON', 'key' => 'dashboard.migration.groups.mysql_to_json'],
-                                            'sync' => ['label' => 'Sync', 'key' => 'dashboard.migration.groups.sync'],
+                                            'json_to_mysql' => ['label' => 'JSON->SQL', 'key' => 'dashboard.migration.roles.json_to_mysql'],
+                                            'mysql_to_json' => ['label' => 'SQL->JSON', 'key' => 'dashboard.migration.roles.mysql_to_json'],
+                                            'sync' => ['label' => 'Sync', 'key' => 'dashboard.migration.roles.sync'],
                                         ],
                                     ],
                                     'vouchers' => [

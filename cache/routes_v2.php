@@ -23,11 +23,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
         'auth' => false,
       ),
-      '/upload_group_image' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\GroupUploadImageAction',
-        'auth' => false,
-      ),
       '/create_manual' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\PermitCreateManualAction',
@@ -51,6 +46,11 @@
       '/change_own_avatar' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\ProfileUploadAvatarAction',
+        'auth' => false,
+      ),
+      '/upload_role_image' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\RoleUploadImageAction',
         'auth' => false,
       ),
       '/anonymize_archive' => 

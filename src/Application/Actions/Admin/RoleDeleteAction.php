@@ -28,7 +28,7 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.groups.manage';
+        return 'system.permissions.roles.manage';
     }
 
     public function execute(ServerRequest $request): mixed

@@ -13,7 +13,7 @@ final class SchemaRegistry
     public static function getSchemas(): array
     {
         return [
-            'groups' => 'CREATE TABLE IF NOT EXISTS `groups` (
+            'roles' => 'CREATE TABLE IF NOT EXISTS `roles` (
                 `id` VARCHAR(50) PRIMARY KEY,
                 `name` VARCHAR(100) NOT NULL,
                 `permissions` JSON

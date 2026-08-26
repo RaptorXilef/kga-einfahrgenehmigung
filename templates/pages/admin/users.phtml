@@ -37,9 +37,9 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                              alt=""> Benutzerverwaltung
                     </button>
                 <?php } ?>
-                <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
+                <?php if ($auth->hasPermission('system.permissions.roles.manage')) { ?>
                     <button class="c-tabs__btn"
-                            data-tab-target="tab-groups">
+                            data-tab-target="tab-roles">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                              class="c-icon"
                              alt=""> Rollen & Rechte
@@ -53,8 +53,8 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                     <?php include $appRoot . '/templates/partials/admin/tab_users.phtml'; ?>
                 </div>
             <?php } ?>
-            <?php if ($auth->hasPermission('system.permissions.groups.manage')) { ?>
-                <div id="tab-groups"
+            <?php if ($auth->hasPermission('system.permissions.roles.manage')) { ?>
+                <div id="tab-roles"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_roles.phtml'; ?>
                 </div>

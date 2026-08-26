@@ -46,10 +46,10 @@ return [
             'table' => 'users',
             'file' => 'users.json',
         ],
-        'groups' => [
+        'roles' => [
             'type' => 'json',
-            'table' => 'groups',
-            'file' => 'groups.json',
+            'table' => 'roles',
+            'file' => 'roles.json',
         ],
         'vouchers' => [
             'type' => 'json',

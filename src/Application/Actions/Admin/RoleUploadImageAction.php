@@ -17,11 +17,9 @@ use App\Core\Service\AuditLoggerService;
 
 /**
  * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-#[Route('GET|POST', '/upload_group_image')]
-final readonly class GroupUploadImageAction implements ActionInterface, RequiresPermissionInterface
+#[Route('GET|POST', '/upload_role_image')]
+final readonly class RoleUploadImageAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -32,7 +30,7 @@ final readonly class GroupUploadImageAction implements ActionInterface, Requires
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.groups.manage';
+        return 'system.permissions.roles.manage';
     }
 
     /**
@@ -43,6 +41,7 @@ final readonly class GroupUploadImageAction implements ActionInterface, Requires
     public function execute(ServerRequest $request): mixed
     {
         try {
+            // Aus Kompatibilität zum HTML lesen wir weiterhin 'group_id'
             $dto = SimpleUploadImageRequest::fromRequest($request->post, 'group_id', $request->files);
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
@@ -50,9 +49,9 @@ final readonly class GroupUploadImageAction implements ActionInterface, Requires
             return new RedirectResponse('users.php');
         }
 
-        if ($this->imageStorage->uploadImage('group_images', $dto->identifier, $dto->file)) {
-            $this->auditLogger->log('GROUP_ICON_UPLOAD', "Neues Icon für Gruppe '{$dto->identifier}' hochgeladen.");
-            $this->sessionManager->addFlash('success', 'Gruppen-Icon aktualisiert.');
+        if ($this->imageStorage->uploadImage('role_images', $dto->identifier, $dto->file)) {
+            $this->auditLogger->log('ROLE_ICON_UPLOAD', "Neues Icon für Rolle '{$dto->identifier}' hochgeladen.");
+            $this->sessionManager->addFlash('success', 'Rollen-Icon aktualisiert.');
         } else {
             $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten des Bildes.');
         }

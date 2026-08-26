@@ -17,7 +17,7 @@ use App\Infrastructure\Maintenance\BackupService;
  */
 if ($auth->hasPermission('dashboard.migration.view')) {
     $targets = [
-        'groups' => ['label' => 'Benutzergruppen', 'icon' => '🛡️'],
+        'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
         'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
         'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
         'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => '📤'],

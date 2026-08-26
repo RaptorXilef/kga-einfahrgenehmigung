@@ -18,7 +18,7 @@ use App\Infrastructure\Config\Config;
  * @var array $settings
  * @var array $structure
  */
-if ($auth->hasPermission('system.permissions.groups.manage')) {
+if ($auth->hasPermission('system.permissions.roles.manage')) {
     $structure ??= $config->get('structure', []);
 
     /**
@@ -65,7 +65,7 @@ if ($auth->hasPermission('system.permissions.groups.manage')) {
             <?php }
             }
     } ?>
-    <div id="groups-tab-wrapper"
+    <div id="roles-tab-wrapper"
          class="u-flex u-flex-column u-gap-l">
         <section class="c-card"
                  style="border-top: 4px solid var(--primary-color);">
