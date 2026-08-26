@@ -68,14 +68,12 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         <div
                              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                             <form method="POST"
+                                  action="<?php echo $settings['base_url']; ?>migrate_data"
                                   onsubmit="return confirm('ALLE Datenstrukturen nach MySQL migrieren?')"
                                   style="margin: 0;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="action"
-                                       value="migrate_data">
                                 <input type="hidden"
                                        name="target"
                                        value="all">
@@ -84,20 +82,18 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                        value="json_to_mysql">
                                 <button type="submit"
                                         class="c-button c-button--primary"
-                                        style="font-size: 0.85rem; width: 100%; height: 100%; min-height: 46px;">
-                                    ALLE: JSON ➔ SQL
+                                        style="font-size: 0.85rem; width: 100%; height: 100%; min-height: 46px;"> ALLE:
+                                    JSON ➔ SQL
                                 </button>
                             </form>
 
                             <form method="POST"
+                                  action="<?php echo $settings['base_url']; ?>migrate_data"
                                   onsubmit="return confirm('ALLE Datenstrukturen nach JSON migrieren?')"
                                   style="margin: 0;">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="action"
-                                       value="migrate_data">
                                 <input type="hidden"
                                        name="target"
                                        value="all">
@@ -130,14 +126,12 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <div class="u-flex u-gap-s u-width-100">
                                     <form method="POST"
+                                          action="<?php echo $settings['base_url']; ?>migrate_data"
                                           onsubmit="return confirm('Daten nach MySQL migrieren?')"
                                           class="u-width-100">
                                         <input type="hidden"
                                                name="csrf_token"
                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                        <input type="hidden"
-                                               name="action"
-                                               value="migrate_data">
                                         <input type="hidden"
                                                name="target"
                                                value="<?php echo $key; ?>">
@@ -147,20 +141,16 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         <button type="submit"
                                                 class="c-button c-button--secondary u-width-100"
                                                 style="font-size: 0.85rem;"
-                                                <?php echo !$auth->hasPermission("dashboard.migration.{$key}.json_to_mysql") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
-                                            JSON ➔ SQL
-                                        </button>
+                                                <?php echo !$auth->hasPermission("dashboard.migration.{$key}.json_to_mysql") ? 'disabled title="Keine Berechtigung"' : ''; ?>> JSON ➔ SQL </button>
                                     </form>
 
                                     <form method="POST"
+                                          action="<?php echo $settings['base_url']; ?>migrate_data"
                                           onsubmit="return confirm('Daten nach JSON migrieren?')"
                                           class="u-width-100">
                                         <input type="hidden"
                                                name="csrf_token"
                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                        <input type="hidden"
-                                               name="action"
-                                               value="migrate_data">
                                         <input type="hidden"
                                                name="target"
                                                value="<?php echo $key; ?>">
@@ -170,20 +160,16 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         <button type="submit"
                                                 class="c-button c-button--secondary u-width-100"
                                                 style="font-size: 0.85rem;"
-                                                <?php echo !$auth->hasPermission("dashboard.migration.{$key}.mysql_to_json") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
-                                            SQL ➔ JSON
-                                        </button>
+                                                <?php echo !$auth->hasPermission("dashboard.migration.{$key}.mysql_to_json") ? 'disabled title="Keine Berechtigung"' : ''; ?>> SQL ➔ JSON </button>
                                     </form>
                                 </div>
 
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>migrate_data"
                                       class="u-width-100 u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="migrate_data">
                                     <input type="hidden"
                                            name="target"
                                            value="<?php echo $key; ?>">
@@ -196,13 +182,9 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                             <?php echo !$auth->hasPermission("dashboard.migration.{$key}.sync") ? 'disabled title="Keine Berechtigung"' : ''; ?>>
                                         <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                                              class="c-icon"
-                                             alt="Sync">
-                                        </a>
-                                        &ensp;Zusammenführen (Sync)&ensp;
-                                        <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
+                                             alt="Sync"> &ensp;Zusammenführen (Sync)&ensp; <img src="<?php echo $asset->url('assets/img/icons/status-warning.webp'); ?>"
                                              class="c-icon"
                                              alt="Gefährliche Aktion!">
-                                        </a>
                                     </button>
                                 </form>
                             </div>
@@ -212,15 +194,13 @@ if ($auth->hasPermission('dashboard.migration.view')) {
             </div>
         <?php } ?>
 
-        <!-- Löschen -->
         <?php if ($auth->hasPermission('dashboard.admin-tools.view')) { ?>
             <div class="u-margin-top-xl">
                 <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
                     <span class="u-font-xl">🛠️</span>
                     <div>
                         <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
-                        <p class="u-text-muted u-text-small u-margin-none">Cache leeren und Datenbestände
-                            zurücksetzen.
+                        <p class="u-text-muted u-text-small u-margin-none">Cache leeren und Datenbestände zurücksetzen.
                         </p>
                     </div>
                 </header>
@@ -239,20 +219,16 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände (JSON &
-                                    SQL)
-                                    im Backup-Verzeichnis.</p>
+                                    SQL) im Backup-Verzeichnis.</p>
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>create_backup"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="create_backup">
                                     <button type="submit"
                                             class="c-button c-button--success u-width-100"
-                                            style="font-size: 0.9rem;">
-                                        Backup jetzt erstellen
+                                            style="font-size: 0.9rem;"> Backup jetzt erstellen
                                     </button>
                                 </form>
                             </div>
@@ -270,20 +246,17 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in
-                                    Archiv-Einträgen, die älter als 10 Jahre sind (Aufbewahrungsfrist).</p>
+                                    Archiv-Einträgen, die älter als 10 Jahre sind.</p>
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>anonymize_archive"
                                       onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="anonymize_archive">
                                     <button type="submit"
                                             class="c-button c-button--secondary u-width-100"
-                                            style="font-size: 0.9rem;">
-                                        Jetzt prüfen & bereinigen
+                                            style="font-size: 0.9rem;"> Jetzt prüfen & bereinigen
                                     </button>
                                 </form>
                             </div>
@@ -300,22 +273,18 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                                <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac
-                                    Caches
-                                    oder kompilierte Rechte). Behebt oft Anzeige-Bugs nach Updates.</p>
+                                <p class="u-text-small u-margin-none">Löscht temporäre Dateien (wie z.B. Deptrac Caches
+                                    oder kompilierte Rechte).</p>
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>clear_cache"
                                       onsubmit="return confirm('Cache jetzt leeren?')"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="clear_cache">
                                     <button type="submit"
                                             class="c-button c-button--secondary u-width-100"
-                                            style="font-size: 0.9rem;">
-                                        Cache leeren
+                                            style="font-size: 0.9rem;"> Cache leeren
                                     </button>
                                 </form>
                             </div>
@@ -333,18 +302,14 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <p class="u-text-small u-margin-none">Leert eine komplette Tabelle oder JSON-Datei.
-                                    Es
-                                    wird automatisch ein Sicherungs-Backup erstellt.</p>
+                                    Backup wird erstellt.</p>
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>truncate_target"
                                       onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
                                       class="u-margin-top-auto u-flex u-flex-column u-gap-s">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="truncate_target">
-
                                     <select name="target"
                                             class="c-form-select"
                                             required>
@@ -353,7 +318,6 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                             <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
                                         <?php } ?>
                                     </select>
-
                                     <div class="u-flex u-gap-s">
                                         <select name="engine"
                                                 class="c-form-select"
@@ -364,8 +328,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         </select>
                                         <button type="submit"
                                                 class="c-button c-button--danger"
-                                                style="width: auto; padding: 0 16px;">
-                                            Löschen
+                                                style="width: auto; padding: 0 16px;"> Löschen
                                         </button>
                                     </div>
                                 </form>
@@ -384,19 +347,16 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                                 <p class="u-text-small u-margin-none">Löst alle ausstehenden Datenbank-Anpassungen
-                                    (00x_...php) manuell aus. Wichtig für lokale Testumgebungen ohne cURL.</p>
+                                    (00x_...php) manuell aus.</p>
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>run_update_migrations"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="run_update_migrations">
                                     <button type="submit"
                                             class="c-button c-button--secondary u-width-100"
-                                            style="font-size: 0.9rem;">
-                                        Updates ausführen
+                                            style="font-size: 0.9rem;"> Updates ausführen
                                     </button>
                                 </form>
                             </div>
@@ -416,17 +376,14 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                 <p class="u-text-small u-margin-none">Umgeht den 24h-Cache und fragt sofort live bei
                                     GitHub an, ob eine neue Version verfügbar ist.</p>
                                 <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>force_update_check"
                                       class="u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                    <input type="hidden"
-                                           name="action"
-                                           value="force_update_check">
                                     <button type="submit"
                                             class="c-button c-button--primary u-width-100"
-                                            style="font-size: 0.9rem;">
-                                        Jetzt live prüfen
+                                            style="font-size: 0.9rem;"> Jetzt live prüfen
                                     </button>
                                 </form>
                             </div>
@@ -439,7 +396,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
 
         <!-- Backups -->
         <?php // TODO PERMISSION testen
-            ?>
+                ?>
         <?php if ($auth->hasPermission('dashboard.migration.backups.view')) { ?>
             <div class="u-margin-top-xl">
                 <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
@@ -477,33 +434,28 @@ if ($auth->hasPermission('dashboard.migration.view')) {
 
                                 <div class="c-card__body u-flex u-flex-column u-gap-m"
                                      style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-
                                     <div class="u-flex u-flex-wrap u-gap-xs">
                                         <?php foreach ($files as $file) {
                                             $badgeColor = \str_contains($file, 'sql.json') ? 'var(--primary-color)' : 'var(--json-color)';
                                             $cleanName = \str_replace(['_file.json', '_sql.json'], '', $file);
                                             ?>
                                             <span class="c-badge" style="background: <?php echo $badgeColor; ?>; font-size: 0.7rem;">
-                                                <?php echo \htmlspecialchars($cleanName); ?>
-                                            </span>
+                                            <?php echo \htmlspecialchars($cleanName); ?>
+                                        </span>
                                         <?php } ?>
                                     </div>
 
                                     <?php if ($auth->hasPermission('dashboard.migration.restore.execute')) { ?>
                                         <form method="POST"
+                                              action="<?php echo $settings['base_url']; ?>restore_data"
                                               onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort mit dem alten Backup-Stand! Fortfahren?')"
                                               class="u-flex u-flex-column u-gap-s u-margin-top-auto">
-
                                             <input type="hidden"
                                                    name="csrf_token"
                                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                             <input type="hidden"
-                                                   name="action"
-                                                   value="restore_data">
-                                            <input type="hidden"
                                                    name="timestamp"
                                                    value="<?php echo $ts; ?>">
-
                                             <select name="target"
                                                     class="c-form-select"
                                                     required>
@@ -512,7 +464,6 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                                     <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
                                                 <?php } ?>
                                             </select>
-
                                             <div class="u-flex u-gap-s">
                                                 <select name="engine"
                                                         class="c-form-select"
@@ -521,11 +472,9 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                                     <option value="json">Nur JSON</option>
                                                     <option value="mysql">Nur SQL</option>
                                                 </select>
-
                                                 <button type="submit"
                                                         class="c-button c-button--danger"
-                                                        style="width: auto; padding: 0 16px; font-weight: 600;">
-                                                    Restore
+                                                        style="width: auto; padding: 0 16px; font-weight: 600;"> Restore
                                                 </button>
                                             </div>
                                         </form>
@@ -541,6 +490,5 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                 <?php } ?>
             </div>
         <?php } ?>
-
     </div>
 <?php } ?>

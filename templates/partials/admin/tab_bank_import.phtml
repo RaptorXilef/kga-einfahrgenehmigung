@@ -26,7 +26,7 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
 
             <?php if (!$headersExist) { ?>
                 <form method="POST"
-                      action="admin"
+                      action="<?php echo $settings['base_url']; ?>bank_import_analyze"
                       enctype="multipart/form-data"
                       id="bankCsvForm">
                     <input type="hidden"
@@ -53,14 +53,11 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                 </div>
 
                 <form method="POST"
-                      action="admin"
+                      action="<?php echo $settings['base_url']; ?>bank_import_process"
                       class="c-form">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <input type="hidden"
-                           name="action"
-                           value="bank_import_process">
                     <input type="hidden"
                            name="temp_file"
                            value="<?php echo \htmlspecialchars($bank_temp_file); ?>">

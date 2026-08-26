@@ -56,8 +56,8 @@ use App\Infrastructure\Config\Config;
                                 $activeVouchers = \array_filter($vouchers ?? [], function (Voucher $v): bool {
                                     return $v->status === 'aktiv' && !$v->isDepleted();
                                 });
-                if (empty($activeVouchers)) {
-                    ?>
+                                if (empty($activeVouchers)) {
+                                ?>
                                     <tr>
                                         <td colspan="3"
                                             class="u-text-center u-padding-around-l u-text-muted">
@@ -79,7 +79,7 @@ use App\Infrastructure\Config\Config;
                                         } elseif ($v->type === 'fixed') {
                                             $discountText = \number_format($v->value, 2, ',', '.') . ' € Festpreis';
                                         }
-                                        ?>
+                                    ?>
                                         <tr class="<?php echo !$isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
                                             <td>
                                                 <div class="u-text-center">
@@ -165,6 +165,7 @@ use App\Infrastructure\Config\Config;
                                                 <div class="u-flex u-gap-xs u-justify-end">
                                                     <?php if ($auth->hasPermission('dashboard.vouchers.suspend')) { ?>
                                                         <form method="POST"
+                                                              action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
                                                               style="margin:0;">
                                                             <input type="hidden"
                                                                    name="csrf_token"
@@ -173,23 +174,15 @@ use App\Infrastructure\Config\Config;
                                                                    name="code"
                                                                    value="<?php echo $vCodeStr; ?>">
                                                             <?php if ($isDeactivated) { ?>
-                                                                <input type="hidden"
-                                                                       name="action"
-                                                                       value="activate_voucher">
                                                                 <button type="submit"
                                                                         class="c-button c-button--success c-button--small"
-                                                                        title="Aktivieren"><img
-                                                                         src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
+                                                                        title="Aktivieren"><img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                          class="c-icon"
                                                                          alt=""></button>
                                                             <?php } else { ?>
-                                                                <input type="hidden"
-                                                                       name="action"
-                                                                       value="deactivate_voucher">
                                                                 <button type="submit"
                                                                         class="c-button c-button--danger c-button--small"
-                                                                        title="Sperren"><img
-                                                                         src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                                                                        title="Sperren"><img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                          class="c-icon"
                                                                          alt=""></button>
                                                             <?php } ?>
@@ -198,22 +191,19 @@ use App\Infrastructure\Config\Config;
 
                                                     <?php if ($auth->hasPermission('dashboard.vouchers.remove')) { ?>
                                                         <form method="POST"
+                                                              action="<?php echo $settings['base_url']; ?>delete_voucher"
                                                               style="margin:0;"
                                                               onsubmit="return confirm('Soll dieser Gutscheincode unwiderruflich gelöscht werden?')">
                                                             <input type="hidden"
                                                                    name="csrf_token"
                                                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                             <input type="hidden"
-                                                                   name="action"
-                                                                   value="delete_voucher">
-                                                            <input type="hidden"
                                                                    name="code"
                                                                    value="<?php echo $vCodeStr; ?>">
                                                             <button type="submit"
                                                                     class="c-button c-button--small"
                                                                     style="background: transparent; border-color: var(--danger-color);"
-                                                                    title="Löschen"><img
-                                                                     src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                                                    title="Löschen"><img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                                      class="c-icon"
                                                                      alt=""></button>
                                                         </form>
@@ -250,7 +240,7 @@ use App\Infrastructure\Config\Config;
                             </thead>
                             <tbody>
                                 <?php $archive = $voucherArchive ?? [];
-                if (empty($archive)) { ?>
+                                if (empty($archive)) { ?>
                                     <tr>
                                         <td colspan="3"
                                             class="u-text-center u-padding-around-l u-text-muted">Noch keine Einlösungen

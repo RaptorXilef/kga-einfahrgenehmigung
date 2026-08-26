@@ -211,13 +211,11 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                             <?php if ($auth->hasPermission('dashboard.future.suspend')) { ?>
                                                 <?php if ($is_suspended) { ?>
                                                     <form method="POST"
+                                                          action="<?php echo $settings['base_url']; ?>unsuspend_permit"
                                                           style="margin:0;">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                        <input type="hidden"
-                                                               name="action"
-                                                               value="unsuspend_permit">
                                                         <input type="hidden"
                                                                name="code"
                                                                value="<?php echo $permit->code; ?>">
@@ -241,13 +239,11 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                                     </button>
                                                     <form id="form_suspend_<?php echo $permit->code; ?>"
                                                           method="POST"
+                                                          action="<?php echo $settings['base_url']; ?>suspend_permit"
                                                           style="display:none;">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                        <input type="hidden"
-                                                               name="action"
-                                                               value="suspend_permit">
                                                         <input type="hidden"
                                                                name="code"
                                                                value="<?php echo $permit->code; ?>">

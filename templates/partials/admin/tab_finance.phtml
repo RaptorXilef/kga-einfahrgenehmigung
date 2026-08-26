@@ -74,14 +74,11 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                  style="overflow-x: auto;">
                 <form method="POST"
                       id="bulk-pay-form"
-                      action="admin"
+                      action="<?php echo $settings['base_url']; ?>mark_as_paid"
                       style="margin:0;">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <input type="hidden"
-                           name="action"
-                           value="mark_as_paid">
 
                     <table class="c-table js-sort-table"
                            style="table-layout: fixed; width: 100%; min-width: 1000px;">
@@ -307,14 +304,11 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                     <?php if ($hasBulkRight) { ?>
                         <form id="single_pay_<?php echo $permit->code; ?>"
                               method="POST"
-                              action="admin"
+                              action="<?php echo $settings['base_url']; ?>mark_as_paid"
                               style="display:none;">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="mark_as_paid">
                             <input type="hidden"
                                    name="code"
                                    value="<?php echo $permit->code; ?>">
@@ -323,28 +317,22 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                     <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
                         <form id="form_unsuspend_<?php echo $permit->code; ?>"
                               method="POST"
-                              action="admin"
+                              action="<?php echo $settings['base_url']; ?>unsuspend_permit"
                               style="display:none;">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="unsuspend_permit">
                             <input type="hidden"
                                    name="code"
                                    value="<?php echo $permit->code; ?>">
                         </form>
                         <form id="form_suspend_<?php echo $permit->code; ?>"
                               method="POST"
-                              action="admin"
+                              action="<?php echo $settings['base_url']; ?>suspend_permit"
                               style="display:none;">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden"
-                                   name="action"
-                                   value="suspend_permit">
                             <input type="hidden"
                                    name="code"
                                    value="<?php echo $permit->code; ?>">

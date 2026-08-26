@@ -91,7 +91,7 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
 
             <!-- Logout -->
             <form method="POST"
-                  action="admin_logout"
+                  action="<?php echo $settings['base_url']; ?>admin_logout"
                   style="display: inline; margin: 0;">
                 <input type="hidden"
                        name="csrf_token"

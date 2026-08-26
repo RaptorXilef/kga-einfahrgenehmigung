@@ -9,7 +9,6 @@ use App\Infrastructure\Config\Config;
  *
  * Manuelle Dokumenten-Ausstellung und Gutschein-Erstellung.
  *
- * 
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
@@ -790,11 +789,8 @@ $formData ??= [];
             alert('Bitte Name und Parzelle ausfüllen.');
             return;
         }
-        const hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = 'action';
-        hidden.value = actionType;
-        form.appendChild(hidden);
+        // Setze die URL als Action (z.B. base_url + 'create_manual' oder 'create_voucher')
+        form.action = window.KGA_CONFIG.baseUrl + actionType;
         form.submit();
     }
 
