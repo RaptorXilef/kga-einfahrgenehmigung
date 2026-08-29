@@ -112,7 +112,7 @@ $formData ??= [];
 
 </style>
 
-<?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
+<?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-text-center u-padding-y-l">

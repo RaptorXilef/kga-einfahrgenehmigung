@@ -203,7 +203,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Daten & Export
                     </button>
                 <?php } ?>
-                <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
+                <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-tools">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-tools.webp'); ?>"
@@ -299,7 +299,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
                 </div>
             <?php } ?>
-            <?php if ($auth->hasPermission('dashboard.generator-tools.view')) { ?>
+            <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
                 <div id="tab-tools"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
