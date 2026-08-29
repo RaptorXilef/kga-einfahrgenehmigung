@@ -11,15 +11,13 @@
  *
  * Safety First: Es ist komplett mit try...catch umschlossen. Selbst wenn dem Server Rechte fehlen sollten, bricht
  * das System-Update dadurch nicht ab.
- *
- * Path: src/Infrastructure/UpdateMigrations/001_rename_migrations_table.php
  */
 
 declare(strict_types=1);
 
 use App\Contracts\Config\ConfigInterface;
 
-return function (?\PDO $pdo, ConfigInterface $config): void {
+return static function (?\PDO $pdo, ConfigInterface $config): void {
     $cfg = $config->get('storage_config')['update_migrations'] ?? null;
     if (!$cfg) {
         return;
@@ -40,13 +38,13 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
             if ($oldTableExists && !$newTableExists) {
                 $pdo->exec("RENAME TABLE `migrations` TO `{$newTable}`");
             } elseif ($oldTableExists && $newTableExists) {
-                // Falls aus irgendeinem Grund beide existieren, löschen wir die alte leere,
-                // um künftige Verwirrung zu vermeiden (optional, aber sauber)
+                // Wenn Tabelle bereits existiert (z.B. durch Bootstrapper), Daten sicher umkopieren
+                $pdo->exec("INSERT IGNORE INTO `{$newTable}` SELECT * FROM `migrations`");
                 $pdo->exec('DROP TABLE `migrations`');
             }
         } catch (\PDOException $e) {
             // Fehler lautlos ignorieren, damit das restliche Update nicht abbricht
-            \error_log('Migration 001 (MySQL): ' . $e->getMessage());
+            throw new \RuntimeException('Migration 001 (MySQL): ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -55,12 +53,31 @@ return function (?\PDO $pdo, ConfigInterface $config): void {
         $oldJsonPath = $config->getStoragePath('migrations.json');
         $newJsonPath = $config->getStoragePath($newFile);
 
-        if (\file_exists($oldJsonPath) && !\file_exists($newJsonPath)) {
-            \rename($oldJsonPath, $newJsonPath);
-        } elseif (\file_exists($oldJsonPath) && \file_exists($newJsonPath)) {
-            \unlink($oldJsonPath); // Alte Datei aufräumen, falls beide existieren
+        if (\file_exists($oldJsonPath)) {
+            if (!\file_exists($newJsonPath)) {
+                \rename($oldJsonPath, $newJsonPath);
+            } else {
+                // Bei Datei-Kollision sicher mergen
+                $oldData = \json_decode(\file_get_contents($oldJsonPath) ?: '[]', true) ?: [];
+                $newData = \json_decode(\file_get_contents($newJsonPath) ?: '[]', true) ?: [];
+
+                $merged = \array_merge($oldData, $newData);
+                $unique = [];
+                foreach ($merged as $item) {
+                    if (isset($item['version'])) {
+                        $unique[$item['version']] = $item;
+                    }
+                }
+
+                \file_put_contents(
+                    $newJsonPath,
+                    \json_encode(\array_values($unique), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE),
+                    \LOCK_EX,
+                );
+                @\unlink($oldJsonPath);
+            }
         }
     } catch (\Throwable $e) {
-        \error_log('Migration 001 (JSON): ' . $e->getMessage());
+        throw new \RuntimeException('Migration 001 (JSON): ' . $e->getMessage(), 0, $e);
     }
 };

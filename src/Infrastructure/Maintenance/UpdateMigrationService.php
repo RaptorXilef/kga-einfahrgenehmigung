@@ -12,19 +12,18 @@ use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use Exception;
 use PDO;
 use PDOException;
+use RuntimeException;
 use Throwable;
 
 /**
  * Service zur Ausführung von Datenbank- und Struktur-Updates (Migrationen).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class UpdateMigrationService implements UpdateMigrationServiceInterface
 {
     use SafeJsonWriterTrait;
 
     public function __construct(
-        private ?PDO $pdo, // <-- FIX: "= null" entfernt
+        private ?PDO $pdo,
         private ClockInterface $clock,
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
@@ -35,6 +34,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
      * Public API: Startet die Update-Kette
      *
      * Sucht nach neuen Migrations-Skripten im Ordner und führt diese chronologisch aus.
+     * Schlägt ein Skript fehl, wird der Update-Vorgang sofort abgebrochen.
      *
      * @return array<int, string> Liste der neu ausgeführten Migrations-Versionen.
      */
@@ -81,10 +81,14 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
                     $this->markAsExecuted($version);
                     $executedNow[] = $version;
                 } else {
-                    \error_log("Migration Error: Datei {$version}.php liefert keine Closure zurück.");
+                    throw new RuntimeException("Datei {$version}.php liefert keine ausführbare Closure zurück.");
                 }
             } catch (Throwable $e) {
                 \error_log("Kritischer Fehler bei Migration {$version}: " . $e->getMessage());
+
+                // Wir werfen die Exception weiter, damit FinalizeUpdateAction den Fehler fängt
+                // und die UI den Abbruch signalisieren kann, statt fälschlicherweise "Erfolg" zu melden.
+                throw new RuntimeException("Migration '{$version}' fehlgeschlagen: " . $e->getMessage(), 0, $e);
             }
         }
 
@@ -157,6 +161,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
             'version' => $version,
             'executed_at' => $now,
         ];
+
         $this->writeJsonSafely($path, $data);
     }
 
