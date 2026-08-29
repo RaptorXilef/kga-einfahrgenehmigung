@@ -22,6 +22,7 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
     $structure ??= $config->get('structure', []);
     ?>
     <style>
+    /* UI Modi für die Berechtigungs-Matrix */
     .p-tree-wrapper.is-master-active {
         opacity: 0.4;
         pointer-events: none;
@@ -36,6 +37,7 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-left: 3px solid transparent;
     }
 
     .p-tree-node:last-child>.p-item {
@@ -87,7 +89,8 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
                             <?php } ?>
                         </div>
                         <div class="p-controls">
-                            <?php if ($key) { ?>
+                            <?php if ($key) { // Nur Schalter anzeigen, wenn ein Key existiert
+                                ?>
                                 <label class="c-switch">
                                     <input type="checkbox"
                                            name="perms[]"
@@ -248,8 +251,8 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
                             <div class="u-margin-bottom-m u-flex u-justify-between u-align-center">
                                 <h4 class="u-margin-none">Berechtigungs-Struktur</h4>
                                 <div class="u-text-muted u-text-small">
-                                    Smarte Auswahl: Abhängigkeiten werden automatisch mitgeschaltet, um inkonsistente
-                                    Rechte zu verhindern.
+                                    Abhängigkeiten werden automatisch gesetzt. Wenn ein übergeordneter Punkt aktiviert
+                                    wird, werden alle Unterpunkte mit eingeschlossen.
                                 </div>
                             </div>
 

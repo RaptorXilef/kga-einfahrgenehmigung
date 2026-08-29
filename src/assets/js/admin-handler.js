@@ -1,6 +1,11 @@
 /**
  * UI-Handler für das administrative Dashboard.
  *
+ * Steuert das Client-seitige Tab-Switching inklusive Zustandsspeicherung (localStorage),
+ * die Echtzeit-Tabellenfilterung bei Suchen, dynamische Formular-Sichtbarkeiten,
+ * den administrativen Workflow für Genehmigungssperren über Prompts sowie
+ * die Permission-Matrix und den 2-Phasen System-Update-Prozess.
+ *
  * Path: src/assets/js/admin-handler.js
  */
 class AdminDashboardHandler {
@@ -23,7 +28,7 @@ class AdminDashboardHandler {
             });
         });
 
-        // 2. Server-Side Such-Logik
+        // 2. Server-Side Such-Logik (Debounce)
         if (this.searchInput) {
             let debounceTimer;
             this.searchInput.addEventListener('input', () => {
@@ -45,12 +50,13 @@ class AdminDashboardHandler {
         if (this.templateSelect) {
             this.templateSelect.addEventListener('change', (e) => {
                 const wrapper = document.getElementById('custom_end_wrapper');
-                if (wrapper)
+                if (wrapper) {
                     wrapper.style.display = e.target.value.includes('custom') ? 'block' : 'none';
+                }
             });
         }
 
-        // 4. Delegierte Klicks
+        // 4. Delegierte Klicks (Sperren & Update)
         document.addEventListener('click', (e) => {
             const suspendBtn = e.target.closest('.js-suspend-btn');
             if (suspendBtn) {
@@ -85,32 +91,32 @@ class AdminDashboardHandler {
             }
         });
 
+        // 5. Rechte-Matrix initialisieren
         this.initPermissionMatrix();
     }
 
     /**
-     * Initialisiert die Logik für die Rollen-Matrix (TwoKinds Standard)
+     * Initialisiert die Logik für die Rollen-Matrix (Parent/Child-Abhängigkeiten)
      */
     initPermissionMatrix() {
-        // Einmaliges Setup für den Master-Toggle (Gott-Modus)
+        // Initiales Setup für den Master-Toggle (Gott-Modus)
         document.querySelectorAll('.permission-container').forEach((container) => {
             const masterCb = container.querySelector('[data-master-toggle="true"]');
             if (masterCb) this.applyMasterState(container, masterCb.checked);
         });
 
-        // Event Delegation für Checkboxen
+        // Zentrale Event-Delegation für alle Matrix-Klicks
         document.addEventListener('change', (e) => {
             if (e.target.matches('[data-perm-check="true"]')) {
                 this.handlePermissionChange(e.target);
             } else if (e.target.matches('[data-master-toggle="true"]')) {
-                const container = e.target.closest('.permission-container');
-                if (container) this.applyMasterState(container, e.target.checked);
+                this.applyMasterState(e.target.closest('.permission-container'), e.target.checked);
             }
         });
     }
 
     /**
-     * Gott-Modus (*): Graut den gesamten Baum aus und sperrt die Bedienung
+     * Steuert den "Gott-Modus" (*). Graut den Baum aus und sperrt die Bedienung.
      */
     applyMasterState(container, isMaster) {
         const treeWrapper = container.querySelector('.p-tree-wrapper');
@@ -120,13 +126,11 @@ class AdminDashboardHandler {
             treeWrapper.classList.add('is-master-active');
             treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
                 cb.disabled = true;
-                cb.parentElement.style.pointerEvents = 'none';
             });
         } else {
             treeWrapper.classList.remove('is-master-active');
             treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
                 cb.disabled = false;
-                cb.parentElement.style.pointerEvents = 'auto';
             });
         }
     }
@@ -142,56 +146,64 @@ class AdminDashboardHandler {
     }
 
     /**
-     * Die intelligente TwoKinds Logik!
+     * Verarbeitet die clevere Parent/Child Abhängigkeit (Das "TwoKinds-Modell")
+     *
+     * @param {HTMLInputElement} checkbox Die angeklickte Checkbox
      */
     handlePermissionChange(checkbox) {
         const node = checkbox.closest('.p-tree-node');
 
         if (checkbox.checked) {
-            // FALL 1: WIRD AKTIVIERT
+            // FALL 1: KNOTEN WIRD AKTIVIERT
 
-            // A) Alle Kinder dieses Knotens automatisch aktivieren
-            const childCbs = node.querySelectorAll(
-                ':scope .p-tree-node input[data-perm-check="true"]'
-            );
+            // A) TOP-DOWN: Alle Kinder dieses Knotens zwingend mit aktivieren
+            const childCbs = node.querySelectorAll('input[data-perm-check="true"]');
             childCbs.forEach((cb) => {
-                if (!cb.checked) {
+                if (!cb.checked && cb !== checkbox) {
                     cb.checked = true;
                     this.triggerHighlight(cb.closest('.p-item'), true);
                 }
             });
 
-            // B) Klettere nach oben und prüfe Väter.
-            // Ein Vater geht automatisch AN, wenn ALLE seine Kinder (Geschwister von checkbox) aktiv sind.
-            // Wir aktivieren aber auch immer stur die gesamte Vater-Kette nach oben (damit der Ast erreichbar bleibt).
+            // B) BOTTOM-UP: Klettere den Baum hoch. Wenn alle Geschwister aktiv sind, aktiviere den Vater.
             let parent = node.parentElement.closest('.p-tree-node');
             while (parent) {
-                const parentCb = parent.firstElementChild.querySelector('[data-perm-check="true"]');
-                if (parentCb && !parentCb.checked) {
-                    parentCb.checked = true;
-                    this.triggerHighlight(parentCb.closest('.p-item'), true);
+                const parentCb = parent.querySelector(
+                    ':scope > .p-item input[data-perm-check="true"]'
+                );
+                if (parentCb) {
+                    // Selektiere alle direkten Kinder dieses Vaters
+                    const siblings = parent.querySelectorAll(
+                        ':scope > .p-tree-node > .p-item input[data-perm-check="true"]'
+                    );
+                    const allChecked = Array.from(siblings).every((c) => c.checked);
+
+                    if (allChecked && !parentCb.checked) {
+                        parentCb.checked = true;
+                        this.triggerHighlight(parentCb.closest('.p-item'), true);
+                    }
                 }
                 parent = parent.parentElement.closest('.p-tree-node');
             }
         } else {
-            // FALL 2: WIRD DEAKTIVIERT
+            // FALL 2: KNOTEN WIRD DEAKTIVIERT
 
-            // A) Alle Kinder dieses Knotens automatisch mit DEAKTIVIEREN
-            const childCbs = node.querySelectorAll(
-                ':scope .p-tree-node input[data-perm-check="true"]'
-            );
+            // A) TOP-DOWN: Alle Kinder dieses Knotens zwingend mit deaktivieren
+            const childCbs = node.querySelectorAll('input[data-perm-check="true"]');
             childCbs.forEach((cb) => {
-                if (cb.checked) {
+                if (cb.checked && cb !== checkbox) {
                     cb.checked = false;
                     this.triggerHighlight(cb.closest('.p-item'), false);
                 }
             });
 
-            // B) Klettere nach oben und DEAKTIVIERE den Vater (und alle Großväter),
-            // weil wenn auch nur EIN Kind fehlt, der Vater nicht mehr "vollständig" ist.
+            // B) BOTTOM-UP: Klettere den Baum hoch und deaktiviere JEDEN Vater zwingend!
+            // Denn wenn auch nur ein Kind fehlt, besitzt der Vater nicht mehr "alle" Rechte.
             let parent = node.parentElement.closest('.p-tree-node');
             while (parent) {
-                const parentCb = parent.firstElementChild.querySelector('[data-perm-check="true"]');
+                const parentCb = parent.querySelector(
+                    ':scope > .p-item input[data-perm-check="true"]'
+                );
                 if (parentCb && parentCb.checked) {
                     parentCb.checked = false;
                     this.triggerHighlight(parentCb.closest('.p-item'), false);
@@ -216,7 +228,10 @@ class AdminDashboardHandler {
             btn.innerText = 'Phase 1/2: Lade Update herunter...';
             const res1 = await fetch('api/perform_update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
                 body: JSON.stringify({ zip_url: zipUrl }),
             });
             const data1 = await res1.json();
@@ -226,7 +241,10 @@ class AdminDashboardHandler {
             btn.innerText = 'Phase 2/2: Aktualisiere Datenbank...';
             const res2 = await fetch('api/finalize_update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
                 body: JSON.stringify({}),
             });
             const data2 = await res2.json();
@@ -248,8 +266,14 @@ class AdminDashboardHandler {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-        this.contents.forEach((c) => c.classList.remove('c-tabs__content--active'));
-        this.tabs.forEach((b) => b.classList.remove('c-tabs__btn--active'));
+
+        this.contents.forEach((c) => {
+            c.classList.remove('c-tabs__content--active');
+        });
+
+        this.tabs.forEach((b) => {
+            b.classList.remove('c-tabs__btn--active');
+        });
 
         const target = document.getElementById(tabId);
         if (target) {
@@ -268,7 +292,7 @@ class AdminDashboardHandler {
     }
 }
 
-// Initialisierung
+// Initialisierung (Sicherstellen, dass DOM bereit ist)
 const startHandler = () => {
     if (!window.adminHandlerInstance) {
         window.adminHandlerInstance = new AdminDashboardHandler();
