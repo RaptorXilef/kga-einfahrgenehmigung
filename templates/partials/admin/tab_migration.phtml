@@ -15,7 +15,7 @@ use App\Infrastructure\Maintenance\BackupService;
  * @var BackupService $backupService
  * @var array $settings
  */
-if ($auth->hasPermission('dashboard.migration.view')) {
+if ($auth->hasPermission('system.maintenance.execute')) {
     $targets = [
         'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
         'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
@@ -208,7 +208,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                 <div class="u-grid"
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
 
-                    <?php if ($auth->hasPermission('dashboard.migration.backup.execute')) { ?>
+                    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
@@ -235,7 +235,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.migration.anonymize.execute')) { ?>
+                    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
@@ -263,7 +263,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.migration.delete-cache.execute')) { ?>
+                    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
@@ -291,7 +291,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('dashboard.migration.delete-data.execute')) { ?>
+                    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
@@ -363,7 +363,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                         </div>
                     <?php } ?>
 
-                    <?php if ($auth->hasPermission('system.update.view')) { ?>
+                    <?php if ($auth->hasPermission('system.update.execute')) { ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
                             <div class="c-card__header u-flex u-align-center u-gap-s"
@@ -445,7 +445,7 @@ if ($auth->hasPermission('dashboard.migration.view')) {
                                         <?php } ?>
                                     </div>
 
-                                    <?php if ($auth->hasPermission('dashboard.migration.restore.execute')) { ?>
+                                    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                                         <form method="POST"
                                               action="<?php echo $settings['base_url']; ?>restore_data"
                                               onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Daten am Zielort mit dem alten Backup-Stand! Fortfahren?')"

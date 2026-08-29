@@ -48,9 +48,9 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
         $isUnpaid = $permit->getStatus() !== PermitStatus::Bezahlt;
         $hasRight = false;
 
-        if ($isUnpaid && $this->auth->hasPermission('dashboard.finance.suspend')) {
+        if ($isUnpaid && $this->auth->hasPermission('permits.suspend')) {
             $hasRight = true;
-        } elseif (!$isUnpaid && $this->auth->hasPermission('dashboard.active.suspend')) {
+        } elseif (!$isUnpaid && $this->auth->hasPermission('permits.suspend')) {
             $hasRight = true;
         }
 

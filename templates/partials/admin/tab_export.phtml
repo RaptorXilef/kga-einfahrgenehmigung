@@ -15,7 +15,7 @@ use App\Core\Service\AuthService;
  * @var string $filterStart
  */
 ?>
-<?php if ($auth->hasPermission('dashboard.export.view')) { ?>
+<?php if ($auth->hasPermission('finance.export')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-text-center">
@@ -30,7 +30,7 @@ use App\Core\Service\AuthService;
                 <div class="c-action-grid">
 
                     <!-- CSV Export Card -->
-                    <?php if ($auth->hasPermission('dashboard.export.csv') && $auth->hasPermission('finance.export.execute')) { ?>
+                    <?php if ($auth->hasPermission('finance.export') && $auth->hasPermission('finance.export')) { ?>
                         <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                     class="c-action-card c-action-card--csv">
                     <div class="c-action-card__icon">
@@ -44,7 +44,7 @@ use App\Core\Service\AuthService;
                     <?php } ?>
 
                     <!-- JSON Export Card -->
-                    <?php if ($auth->hasPermission('dashboard.export.json') && $auth->hasPermission('finance.export.execute')) { ?>
+                    <?php if ($auth->hasPermission('finance.export') && $auth->hasPermission('finance.export')) { ?>
                         <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                     class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>

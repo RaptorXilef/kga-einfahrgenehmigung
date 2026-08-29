@@ -90,7 +90,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             <a href="check" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: #fff; border: 1px solid var(--border-color);">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""><!-- 🔍 --> Neue Prüfung
             </a>
-            <?php if ($permit && $auth->hasPermission('check.admin.print')) { ?>
+            <?php if ($permit && $auth->hasPermission('permits.print')) { ?>
                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-tabs__btn" style="width: auto; padding: 0 15px; gap: 8px; background: var(--primary-color); color: #fff;">
                     <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt=""><!-- 🖨️ -->️ Drucken
                 </a>
@@ -125,7 +125,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                         <td class="u-font-bold">Parzelle</td>
                         <td>Nr. <?php echo \htmlspecialchars($permit->getPlotNumber()); ?></td>
                     </tr>
-                    <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                    <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                         <tr>
                             <td class="u-font-bold">E-Mail</td>
                             <td>
@@ -172,7 +172,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                             <td style="color: var(--danger-color);"><strong><?php echo $holidayNotice; ?></strong></td>
                         </tr>
                     <?php } ?>
-                    <?php if ($auth->hasPermission('privacy.finance.reveal')) { ?>
+                    <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
                         <tr>
                             <td class="u-font-bold">Gebühr (Snapshot)</td>
                             <td><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</td>
@@ -186,7 +186,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
             </div>
 
             <!-- WIEDERHERGESTELLT: MANUELLE FREISCHALTUNG -->
-            <?php if ($auth->hasPermission('dashboard.finance.mark_paid')) { ?>
+            <?php if ($auth->hasPermission('finance.mark_paid')) { ?>
                 <?php if ($permit->getStatus() !== PermitStatus::Bezahlt) { ?>
                     <footer class="u-padding-around-m u-border-top"
                             style="background: rgba(255,255,255,0.5);">

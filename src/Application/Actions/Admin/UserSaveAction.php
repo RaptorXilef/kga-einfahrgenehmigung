@@ -39,7 +39,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.users.manage';
+        return 'system.users.manage';
     }
 
     public function execute(ServerRequest $request): mixed

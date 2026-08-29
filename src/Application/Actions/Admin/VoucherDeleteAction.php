@@ -33,7 +33,7 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.vouchers.remove';
+        return 'vouchers.delete';
     }
 
     public function execute(ServerRequest $request): mixed

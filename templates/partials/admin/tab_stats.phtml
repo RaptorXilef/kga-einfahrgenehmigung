@@ -48,7 +48,7 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
 // -----------------------------------------------------------
 ?>
 
-<?php if ($auth->hasPermission('dashboard.stats.view')) { ?>
+<?php if ($auth->hasPermission('stats.view')) { ?>
     <div class="c-tab-content-container">
 
         <div class="u-flex u-align-center u-gap-s u-margin-bottom-m">
@@ -67,7 +67,7 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
             </div>
         </div>
 
-        <?php if ($auth->hasPermission('dashboard.stats.current') && $auth->hasPermission('privacy.finance.reveal')) { ?>
+        <?php if ($auth->hasPermission('stats.view') && $auth->hasPermission('privacy.finance.view')) { ?>
             <div class="u-grid u-gap-m u-margin-bottom-l"
                  style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
 
@@ -140,7 +140,7 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
             </div>
         <?php } ?>
 
-        <?php if ($auth->hasPermission('dashboard.stats.charts') && $auth->hasPermission('privacy.finance.reveal')) { ?>
+        <?php if ($auth->hasPermission('stats.charts') && $auth->hasPermission('privacy.finance.view')) { ?>
             <section class="c-card u-margin-bottom-l"
                      style="border-top-color: #6366f1;">
                 <details>
@@ -177,7 +177,7 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
             </section>
         <?php } ?>
 
-        <?php if ($auth->hasPermission('dashboard.stats.history') && $auth->hasPermission('privacy.finance.reveal')) { ?>
+        <?php if ($auth->hasPermission('stats.view') && $auth->hasPermission('privacy.finance.view')) { ?>
             <h3 class="u-margin-bottom-m"
                 style="display: flex; align-items: center; gap: 10px;">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"

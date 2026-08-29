@@ -31,7 +31,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.finance.mark_paid';
+        return 'finance.mark_paid';
     }
 
     /**

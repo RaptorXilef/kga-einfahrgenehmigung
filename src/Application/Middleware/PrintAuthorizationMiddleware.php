@@ -44,13 +44,13 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
         $isFuture = $permit->getValidFrom() > $now;
 
         $hasRight = false;
-        if ($this->auth->hasPermission('check.admin.print')) {
+        if ($this->auth->hasPermission('permits.print')) {
             $hasRight = true;
-        } elseif ($isExpired && $this->auth->hasPermission('dashboard.expired.print')) {
+        } elseif ($isExpired && $this->auth->hasPermission('permits.print')) {
             $hasRight = true;
-        } elseif ($isFuture && $this->auth->hasPermission('dashboard.future.print')) {
+        } elseif ($isFuture && $this->auth->hasPermission('permits.print')) {
             $hasRight = true;
-        } elseif (!$isExpired && !$isFuture && $this->auth->hasPermission('dashboard.active.print')) {
+        } elseif (!$isExpired && !$isFuture && $this->auth->hasPermission('permits.print')) {
             $hasRight = true;
         }
 

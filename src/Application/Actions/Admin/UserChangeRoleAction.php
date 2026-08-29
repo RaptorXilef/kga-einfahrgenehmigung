@@ -31,7 +31,7 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.users.manage';
+        return 'system.users.manage';
     }
 
     public function execute(ServerRequest $request): mixed

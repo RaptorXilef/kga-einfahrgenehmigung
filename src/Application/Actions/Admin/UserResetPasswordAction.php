@@ -28,7 +28,7 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.users.manage';
+        return 'system.users.manage';
     }
 
     /**

@@ -30,7 +30,7 @@ final readonly class SystemChangelogAction implements ViewActionInterface, Requi
 
     public function getRequiredPermission(): string
     {
-        return 'system.update.view';
+        return 'system.update.execute';
     }
 
     public function execute(ServerRequest $request): mixed

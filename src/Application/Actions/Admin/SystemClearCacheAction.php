@@ -27,7 +27,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.migration.delete-cache.execute';
+        return 'system.maintenance.execute';
     }
 
     public function execute(ServerRequest $request): mixed

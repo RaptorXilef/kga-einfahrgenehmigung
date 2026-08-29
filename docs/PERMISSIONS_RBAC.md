@@ -7,9 +7,9 @@ Das System nutzt ein modernes **Role-Based Access Control (RBAC)** Modell. Es gi
 Eine Berechtigung (Permission) ist ein eindeutiger String, der eine exakte Aktion oder Ansicht erlaubt.
 Beispiele:
 
-* `dashboard.finance.view`: Erlaubt das Sehen des Finanz-Tabs.
-* `privacy.finance.reveal`: Erlaubt das Einsehen von genauen Geldbeträgen.
-* `dashboard.finance.suspend`: Erlaubt das Sperren von Genehmigungen im Finanz-Tab.
+* `finance.view`: Erlaubt das Sehen des Finanz-Tabs.
+* `privacy.finance.view`: Erlaubt das Einsehen von genauen Geldbeträgen.
+* `permits.suspend`: Erlaubt das Sperren von Genehmigungen im Finanz-Tab.
 
 **Gruppen (Rollen):**
 Eine Gruppe (z. B. "Prüfer", "Buchhaltung", "Vorstand") ist lediglich ein Container, dem diese Permissions zugewiesen werden. Benutzer werden einer Gruppe zugeordnet und erben deren Rechte.
@@ -33,7 +33,7 @@ Im Code (PHP oder in den Templates) wird die Berechtigung über den injizierten 
 **Beispiel:** Einen Tab im Dashboard ausblenden
 
 ```php
-<?php if ($auth->hasPermission('dashboard.finance.view')): ?>
+<?php if ($auth->hasPermission('finance.view')): ?>
     <button data-tab-target="tab-finance">Finanzen</button>
 <?php endif; ?>
 ```
@@ -42,7 +42,7 @@ Im Code (PHP oder in den Templates) wird die Berechtigung über den injizierten 
 
 ```php
 <td>
-    <?php if ($auth->hasPermission('privacy.finance.reveal')): ?>
+    <?php if ($auth->hasPermission('privacy.finance.view')): ?>
         <strong><?php echo \number_format($permit->getPrice(), 2); ?> €</strong>
     <?php else: ?>
         <span class="u-text-muted">***</span>

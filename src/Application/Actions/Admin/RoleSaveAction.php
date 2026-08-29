@@ -31,7 +31,7 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.roles.manage'; // Wir lassen den Key aus Kompatibilität vorerst so
+        return 'system.roles.manage'; // Wir lassen den Key aus Kompatibilität vorerst so
     }
 
     public function execute(ServerRequest $request): mixed

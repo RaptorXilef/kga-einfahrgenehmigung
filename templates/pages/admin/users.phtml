@@ -23,13 +23,13 @@ use App\Infrastructure\Config\Config;
 $layout = 'admin';
 $pageTitle = 'Benutzer & Rechte - ' . ($settings['vereins_name'] ?? '');
 
-if ($auth->hasPermission('system.permissions.view')) { ?>
+if ($auth->hasPermission('system.manage')) { ?>
     <main class="c-tab-content-container u-padding-y-l">
         <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
         <div class="c-tabs">
             <div class="c-tabs__nav u-margin-bottom-l">
-                <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
+                <?php if ($auth->hasPermission('system.users.manage')) { ?>
                     <button class="c-tabs__btn c-tabs__btn--active"
                             data-tab-target="tab-users">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
@@ -37,7 +37,7 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                              alt=""> Benutzerverwaltung
                     </button>
                 <?php } ?>
-                <?php if ($auth->hasPermission('system.permissions.roles.manage')) { ?>
+                <?php if ($auth->hasPermission('system.roles.manage')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-roles">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
@@ -47,13 +47,13 @@ if ($auth->hasPermission('system.permissions.view')) { ?>
                 <?php } ?>
             </div>
 
-            <?php if ($auth->hasPermission('system.permissions.users.manage')) { ?>
+            <?php if ($auth->hasPermission('system.users.manage')) { ?>
                 <div id="tab-users"
                      class="c-tabs__content c-tabs__content--active">
                     <?php include $appRoot . '/templates/partials/admin/tab_users.phtml'; ?>
                 </div>
             <?php } ?>
-            <?php if ($auth->hasPermission('system.permissions.roles.manage')) { ?>
+            <?php if ($auth->hasPermission('system.roles.manage')) { ?>
                 <div id="tab-roles"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_roles.phtml'; ?>

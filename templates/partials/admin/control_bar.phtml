@@ -23,7 +23,7 @@ $currentType = $sessionFilters['type'] ?? $filterType;
 $currentQ = $sessionFilters['q'] ?? '';
 $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 ?>
-<?php if ($auth->hasPermission('dashboard.control_bar.view')) { ?>
+<?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-control-bar-wrapper">
         <section class="c-control-bar-section">
             <form method="POST"
@@ -41,7 +41,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        name="page"
                        value="1">
 
-                <?php if ($auth->hasPermission('dashboard.control_bar.future')) { ?>
+                <?php if ($auth->hasPermission('permits.view')) { ?>
                     <span class="u-text-muted u-font-bold"
                           style="font-size: 0.8rem; letter-spacing: 0.05em;">
                     <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
@@ -102,7 +102,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     </select>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('dashboard.control_bar.search')) { ?>
+                <?php if ($auth->hasPermission('permits.view')) { ?>
                     <div style="position: relative; min-width: 150px; max-width: 230px; margin-left: auto;">
                         <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
                         <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"

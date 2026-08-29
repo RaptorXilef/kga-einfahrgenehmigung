@@ -31,7 +31,7 @@ $offset = ($page - 1) * $limit;
 
 $futurePermits = \array_slice($allFuture, $offset, $limit);
 
-if ($auth->hasPermission('dashboard.future.view')) {
+if ($auth->hasPermission('permits.view')) {
     ?>
     <div class="c-tab-content-container">
         <section class="c-card">
@@ -61,7 +61,7 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                 style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
                             <th class="js-sort-header"
                                 style="width: 150px; text-align: center;">Fahrzeug</th>
-                            <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                            <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                                 <th class="js-sort-header"
                                     style="text-align: left;">Kontakt (E-Mail)</th>
                             <?php } ?>
@@ -130,7 +130,7 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                     </td>
 
                                     <!-- 3. Kontakt / E-Mail -->
-                                    <?php if ($auth->hasPermission('privacy.email.reveal')) { ?>
+                                    <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                                         <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>"
                                             style="vertical-align: middle;">
                                             <?php if ($permit->getOwnerEmail()) { ?>
@@ -185,7 +185,7 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                     <!-- 6. Aktionen -->
                                     <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
-                                            <?php if ($auth->hasPermission('dashboard.future.print')) { ?>
+                                            <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>"
                                                    target="_blank"
                                                    class="c-button c-button--secondary"
@@ -197,7 +197,7 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                         </a>
                                             <?php } ?>
 
-                                            <?php if ($auth->hasPermission('dashboard.future.details')) { ?>
+                                            <?php if ($auth->hasPermission('permits.view')) { ?>
                                                 <a href="check?code=<?php echo $permit->code; ?>"
                                                    target="_blank" class="c-button c-button--secondary"
                                                    style="width: 36px; height: 36px;"
@@ -208,7 +208,7 @@ if ($auth->hasPermission('dashboard.future.view')) {
                                         </a>
                                             <?php } ?>
 
-                                            <?php if ($auth->hasPermission('dashboard.future.suspend')) { ?>
+                                            <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                 <?php if ($is_suspended) { ?>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?>unsuspend_permit"

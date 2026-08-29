@@ -33,7 +33,7 @@ final readonly class SystemRestoreDataAction implements ActionInterface, Require
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.migration.restore.execute';
+        return 'system.maintenance.execute';
     }
 
     /**

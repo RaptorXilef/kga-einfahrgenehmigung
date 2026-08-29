@@ -299,7 +299,7 @@ $formData ??= [];
                                 Ausstellung wählen</h4>
 
                             <div class="c-generator-selector">
-                                <?php if ($auth->hasPermission('dashboard.generator-tools.direct_issue.reveal')) { ?>
+                                <?php if ($auth->hasPermission('permits.create')) { ?>
                                     <div id="btn_mode_manual"
                                          class="c-gen-mode-card"
                                          onclick="setGeneratorMode('manual')">
@@ -313,7 +313,7 @@ $formData ??= [];
                                         </div>
                                     </div>
                                 <?php } ?>
-                                <?php if ($auth->hasPermission('dashboard.generator-tools.voucher_gen.reveal')) { ?>
+                                <?php if ($auth->hasPermission('vouchers.create')) { ?>
                                     <div id="btn_mode_voucher"
                                          class="c-gen-mode-card"
                                          onclick="setGeneratorMode('voucher')">
@@ -485,7 +485,7 @@ $formData ??= [];
                         <div id="action_grid"
                              class="c-action-grid"
                              style="display:none;">
-                            <?php if ($auth->hasPermission('dashboard.generator-tools.direct_issue.execute')) { ?>
+                            <?php if ($auth->hasPermission('permits.create')) { ?>
                                 <div id="card_submit_voucher"
                                      class="c-action-card c-action-card--voucher"
                                      style="display:none;"
@@ -501,7 +501,7 @@ $formData ??= [];
                                 </div>
                             <?php } ?>
 
-                            <?php if ($auth->hasPermission('dashboard.generator-tools.voucher_gen.execute')) { ?>
+                            <?php if ($auth->hasPermission('vouchers.create')) { ?>
                                 <div id="card_submit_manual"
                                      class="c-action-card c-action-card--manual"
                                      style="display:none;"

@@ -35,7 +35,7 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
 
     public function getRequiredPermission(): string
     {
-        return 'finance.export.execute';
+        return 'finance.export';
     }
 
     public function execute(ServerRequest $request): mixed

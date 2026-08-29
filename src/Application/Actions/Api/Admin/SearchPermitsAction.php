@@ -30,7 +30,7 @@ final readonly class SearchPermitsAction implements ViewActionInterface, Require
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.control_bar.search';
+        return 'permits.view';
     }
 
     public function execute(ServerRequest $request): mixed

@@ -40,7 +40,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
 
     public function getRequiredPermission(): string
     {
-        return 'system.permissions.users.manage';
+        return 'system.users.manage';
     }
 
     /**

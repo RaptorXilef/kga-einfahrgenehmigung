@@ -29,7 +29,7 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.finance.bank_import';
+        return 'finance.bank_import';
     }
 
     public function execute(ServerRequest $request): mixed

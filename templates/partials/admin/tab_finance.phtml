@@ -39,12 +39,12 @@ $offset = ($page - 1) * $limit;
 
 $unpaidPermits = \array_slice($allUnpaid, $offset, $limit);
 
-$hasBulkRight = $auth->hasPermission('dashboard.finance.mark_paid');
-$privacyEmail = $auth->hasPermission('privacy.email.reveal');
-$privacyFinance = $auth->hasPermission('privacy.finance.reveal');
+$hasBulkRight = $auth->hasPermission('finance.mark_paid');
+$privacyEmail = $auth->hasPermission('privacy.emails.view');
+$privacyFinance = $auth->hasPermission('privacy.finance.view');
 $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRight ? 1 : 0);
 
-if ($auth->hasPermission('dashboard.finance.view')) {
+if ($auth->hasPermission('finance.view')) {
     ?>
     <div class="c-tab-content-container">
         <section class="c-card">
@@ -245,7 +245,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                         <!-- 6. Aktionen (Inkl. Auge) -->
                                         <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
                                             <div class="u-flex u-gap-xs u-justify-end">
-                                                <?php if ($auth->hasPermission('dashboard.finance.details')) { ?>
+                                                <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>"
                                                        target="_blank"
                                                        class="c-button c-button--secondary"
@@ -256,7 +256,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                                      alt="">
                                             </a>
                                                 <?php } ?>
-                                                <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
+                                                <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                     <?php if ($is_suspended) { ?>
                                                         <button type="button"
                                                                 onclick="document.getElementById('form_unsuspend_<?php echo $permit->code; ?>').submit()"
@@ -314,7 +314,7 @@ if ($auth->hasPermission('dashboard.finance.view')) {
                                    value="<?php echo $permit->code; ?>">
                         </form>
                     <?php } ?>
-                    <?php if ($auth->hasPermission('dashboard.finance.suspend')) { ?>
+                    <?php if ($auth->hasPermission('permits.suspend')) { ?>
                         <form id="form_unsuspend_<?php echo $permit->code; ?>"
                               method="POST"
                               action="<?php echo $settings['base_url']; ?>unsuspend_permit"

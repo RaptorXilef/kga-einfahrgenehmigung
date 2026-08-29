@@ -30,7 +30,7 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.vouchers.suspend';
+        return 'vouchers.suspend';
     }
 
     /**

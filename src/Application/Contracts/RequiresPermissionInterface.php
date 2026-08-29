@@ -13,7 +13,7 @@ interface RequiresPermissionInterface
 {
     /**
      * Gibt den Berechtigungs-Schlüssel zurück, der für die Ausführung dieser Action benötigt wird.
-     * Beispiel: 'dashboard.vouchers.remove'
+     * Beispiel: 'vouchers.delete'
      */
     public function getRequiredPermission(): string;
 }

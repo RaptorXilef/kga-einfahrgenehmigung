@@ -12,7 +12,7 @@ use App\Core\Service\AuthService;
  */
 $cancelledPermits ??= [];
 ?>
-<?php if ($auth->hasPermission('dashboard.cancelled.view')) { ?>
+<?php if ($auth->hasPermission('permits.view')) { ?>
 <div class="c-tab-content-container">
     <section class="c-card" style="border-top-color: var(--danger-color);">
         <header class="c-card__header u-flex u-justify-between u-align-center">

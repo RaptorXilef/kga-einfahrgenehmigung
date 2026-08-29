@@ -35,7 +35,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.generator-tools.direct_issue.execute';
+        return 'permits.create';
     }
 
     /**

@@ -32,7 +32,7 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface, Re
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.migration.anonymize.execute';
+        return 'system.maintenance.execute';
     }
 
     public function execute(ServerRequest $request): mixed

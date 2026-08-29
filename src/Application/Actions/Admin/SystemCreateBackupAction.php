@@ -33,7 +33,7 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
 
     public function getRequiredPermission(): string
     {
-        return 'dashboard.migration.backup.execute';
+        return 'system.maintenance.execute';
     }
 
     public function execute(ServerRequest $request): mixed
