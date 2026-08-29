@@ -149,6 +149,16 @@ class AdminDashboardHandler {
         const node = checkbox.closest('.p-tree-node');
         const wrapper = checkbox.closest('.p-tree-wrapper');
 
+        // UX-Fix: Wenn der Fokus-Modus an ist, wechseln wir beim Editieren in den Experten-Modus,
+        // damit abgewählte Berechtigungen nicht direkt aus dem UI verschwinden.
+        if (wrapper.classList.contains('mode-hide')) {
+            const radioGrey = document.querySelector('input[name="ui_mode_toggle"][value="grey"]');
+            if (radioGrey) {
+                radioGrey.checked = true;
+                window.updateUiMode('grey');
+            }
+        }
+
         if (checkbox.checked) {
             // Wenn ein Kind aktiviert wird -> klettere den Baum hoch und aktiviere alle Eltern
             let parent = node.parentElement.closest('.p-tree-node');

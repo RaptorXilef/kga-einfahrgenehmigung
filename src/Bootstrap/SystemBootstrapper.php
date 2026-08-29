@@ -102,9 +102,14 @@ final class SystemBootstrapper
         }
 
         $hardConfigs = [
+            $appRoot . '/config/app.php',
             $appRoot . '/config/config.php',
-            $appRoot . '/config/storage.php',
+            $appRoot . '/config/email.php',
+            $appRoot . '/config/legal.php',
+            $appRoot . '/config/payment.php',
+            $appRoot . '/config/permits.php',
             $appRoot . '/config/secrets.php',
+            $appRoot . '/config/storage.php',
             $appRoot . '/config/dev_admin.php',
             $appRoot . '/config/config.local.php',
         ];
