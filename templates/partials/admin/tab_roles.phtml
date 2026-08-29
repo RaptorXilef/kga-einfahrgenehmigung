@@ -8,6 +8,8 @@ use App\Infrastructure\Config\Config;
 /**
  * Partial: Group & Permissions Matrix
  *
+ * Dynamische Rechte-Zuweisung an Systemrollen.
+ *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
@@ -20,7 +22,6 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
     $structure ??= $config->get('structure', []);
     ?>
     <style>
-    /* UI Modi für die Berechtigungs-Matrix */
     .p-tree-wrapper.is-master-active {
         opacity: 0.4;
         pointer-events: none;
@@ -28,28 +29,31 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
         transition: all 0.3s ease;
     }
 
-    .p-tree-node.is-locked-by-parent>.p-item {
-        opacity: 0.5;
-        background-color: rgba(52, 152, 219, 0.05);
-        border-left: 3px solid var(--primary-color);
-    }
-
     .p-item {
-        transition: opacity 0.2s ease, filter 0.2s ease, background-color 0.2s;
+        transition: background-color 0.2s;
         padding: 8px 0;
         border-bottom: 1px solid #f1f5f9;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-left: 3px solid transparent;
     }
 
     .p-tree-node:last-child>.p-item {
         border-bottom: none;
     }
 
-    </style>
+    /* Kurzes Aufleuchten beim automatischen Aktivieren/Deaktivieren */
+    .p-item.is-auto-active {
+        background-color: rgba(39, 174, 96, 0.1) !important;
+        transition: background-color 0.5s;
+    }
 
+    .p-item.is-auto-inactive {
+        background-color: rgba(225, 29, 72, 0.05) !important;
+        transition: background-color 0.5s;
+    }
+
+    </style>
     <?php
         /**
          * Rekursive Funktion zum Rendern des Permission-Baums
@@ -244,8 +248,8 @@ if ($auth->hasPermission('system.permissions.roles.manage')) {
                             <div class="u-margin-bottom-m u-flex u-justify-between u-align-center">
                                 <h4 class="u-margin-none">Berechtigungs-Struktur</h4>
                                 <div class="u-text-muted u-text-small">
-                                    Smarte Auswahl: Wenn ein übergeordneter Punkt aktiviert wird, sind automatisch alle
-                                    untergeordneten Rechte vergeben.
+                                    Smarte Auswahl: Abhängigkeiten werden automatisch mitgeschaltet, um inkonsistente
+                                    Rechte zu verhindern.
                                 </div>
                             </div>
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Storage;
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
 use App\Contracts\System\JsonHelperInterface;
 use PDO;
@@ -11,7 +12,7 @@ use PDO;
 /**
  * Factory zur Erstellung der aktiven Storage-Engine.
  *
- * Wertet die Systemkonfiguration aus und initialisiert entweder das
+ * Wertet die Systemkonfiguration aus und initialisiert das
  * relationale MySQL-Backend für Hauptdaten.
  */
 final class StorageFactory
@@ -19,12 +20,15 @@ final class StorageFactory
     /**
      * Instanziiert das korrekte Storage-Backend basierend auf der Konfiguration.
      *
-     * @param PDO|null $pdo Die aktive Datenbankverbindung (optional).
+     * @param PDO|null $pdo Die aktive Datenbankverbindung.
+     * @param ConfigInterface $config Die Konfiguration.
+     * @param JsonHelperInterface $jsonHelper Der Helper.
      *
      * @return StorageInterface Das MySQL-Storage-Objekt.
      */
     public static function create(
         ?PDO $pdo,
+        ConfigInterface $config,
         JsonHelperInterface $jsonHelper,
     ): StorageInterface {
         return new MySqlStorage($pdo, $jsonHelper);
