@@ -4,12 +4,9 @@
  * Steuert das Client-seitige Tab-Switching inklusive Zustandsspeicherung (localStorage),
  * die Echtzeit-Tabellenfilterung bei Suchen, dynamische Formular-Sichtbarkeiten,
  * den administrativen Workflow für Genehmigungssperren über Prompts sowie
- * den 2-Phasen System-Update-Prozess.
- *
- * Kontext: Kernkomponente für die Interaktivität des Admin-Backends.
+ * die Permission-Matrix und den 2-Phasen System-Update-Prozess.
  *
  * Path: src/assets/js/admin-handler.js
- * Path: public/assets/js/admin-handler.min.js
  */
 class AdminDashboardHandler {
     constructor() {
@@ -67,7 +64,7 @@ class AdminDashboardHandler {
             });
         }
 
-        // 4. Sperr-Logik (Prompts) & 5. 2-Phasen Update-Logik
+        // 4. Delegierte Klicks (Sperren & Update)
         document.addEventListener('click', (e) => {
             // A) Logik für Sperr-Buttons
             const suspendBtn = e.target.closest('.js-suspend-btn');
@@ -104,38 +101,71 @@ class AdminDashboardHandler {
             }
         });
 
+        // 5. Rechte-Matrix initialisieren
         this.initPermissionMatrix();
     }
 
     /**
      * Initialisiert die Logik für die Rollen-Matrix (Parent/Child-Abhängigkeiten)
-     * und das UI-Toggling.
      */
     initPermissionMatrix() {
-        // Initiale Berechnung der aktiven Pfade für alle existierenden Bäume
-        document.querySelectorAll('.p-tree-wrapper').forEach((wrapper) => {
-            this.updateTreePaths(wrapper);
-        });
-
-        // Event Delegation für Checkboxen in der Matrix
-        document.addEventListener('change', (e) => {
-            if (e.target.matches('[data-perm-check="true"]')) {
-                this.handlePermissionChange(e.target);
-            } else if (e.target.matches('[data-master-toggle="true"]')) {
-                const wrapper = e.target.closest('form').querySelector('.p-tree-wrapper');
-                if (wrapper) {
-                    wrapper.classList.toggle('is-master-active', e.target.checked);
-                }
-            }
-        });
-
-        // Globale Funktion für den UI Toggle (wird inline via onchange aus Radiobuttons aufgerufen)
+        // UI-Modus ("hide" oder "grey") global registrieren und anwenden
         window.updateUiMode = (mode) => {
             document.querySelectorAll('.p-tree-wrapper').forEach((wrapper) => {
                 wrapper.classList.remove('mode-hide', 'mode-grey');
                 wrapper.classList.add('mode-' + mode);
             });
+            localStorage.setItem('pref_perm_ui_mode', mode);
         };
+
+        const savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
+        window.updateUiMode(savedMode);
+
+        const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
+        if (radio) radio.checked = true;
+
+        // Initiale Berechnung der aktiven Pfade & Master-Toggle
+        document.querySelectorAll('.permission-container').forEach((container) => {
+            const wrapper = container.querySelector('.p-tree-wrapper');
+            const masterCb = container.querySelector('[data-master-toggle="true"]');
+
+            if (wrapper) this.updateTreePaths(wrapper);
+            if (masterCb) this.applyMasterState(container, masterCb.checked);
+        });
+
+        // Event Delegation für Checkboxen
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('[data-perm-check="true"]')) {
+                this.handlePermissionChange(e.target);
+            } else if (e.target.matches('[data-master-toggle="true"]')) {
+                const container = e.target.closest('.permission-container');
+                if (container) this.applyMasterState(container, e.target.checked);
+            }
+        });
+    }
+
+    /**
+     * Gott-Modus (*): Graut den Baum aus und sperrt die Bedienung
+     */
+    applyMasterState(container, isMaster) {
+        const treeWrapper = container.querySelector('.p-tree-wrapper');
+        if (!treeWrapper) return;
+
+        if (isMaster) {
+            treeWrapper.classList.add('is-master-active');
+            treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
+                cb.disabled = true;
+                cb.parentElement.style.opacity = '0.5';
+                cb.parentElement.style.pointerEvents = 'none';
+            });
+        } else {
+            treeWrapper.classList.remove('is-master-active');
+            treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
+                cb.disabled = false;
+                cb.parentElement.style.opacity = '1';
+                cb.parentElement.style.pointerEvents = 'auto';
+            });
+        }
     }
 
     /**
@@ -147,11 +177,12 @@ class AdminDashboardHandler {
      */
     handlePermissionChange(checkbox) {
         const node = checkbox.closest('.p-tree-node');
-        const wrapper = checkbox.closest('.p-tree-wrapper');
+        const container = checkbox.closest('.permission-container');
+        const wrapper = container.querySelector('.p-tree-wrapper');
 
-        // UX-Fix: Wenn der Fokus-Modus an ist, wechseln wir beim Editieren in den Experten-Modus,
-        // damit abgewählte Berechtigungen nicht direkt aus dem UI verschwinden.
-        if (wrapper.classList.contains('mode-hide')) {
+        // UX-Rescue: Wenn ein User im "Fokus"-Modus (hide) etwas abwählt, wechseln wir auf
+        // "Experte" (grey), damit der abgewählte Baum nicht sofort komplett verschwindet.
+        if (wrapper && wrapper.classList.contains('mode-hide') && !checkbox.checked) {
             const radioGrey = document.querySelector('input[name="ui_mode_toggle"][value="grey"]');
             if (radioGrey) {
                 radioGrey.checked = true;
@@ -160,26 +191,55 @@ class AdminDashboardHandler {
         }
 
         if (checkbox.checked) {
-            // Wenn ein Kind aktiviert wird -> klettere den Baum hoch und aktiviere alle Eltern
+            // BOTTOM-UP: Kind aktiviert -> klettere hoch und aktiviere alle Väter
             let parent = node.parentElement.closest('.p-tree-node');
             while (parent) {
                 const parentCb = parent.firstElementChild.querySelector('[data-perm-check="true"]');
                 if (parentCb && !parentCb.checked) {
                     parentCb.checked = true;
+                    // Optisches Aufleuchten
+                    const pItem = parentCb.closest('.p-item');
+                    if (pItem) {
+                        pItem.classList.add('is-auto-active');
+                        setTimeout(() => pItem.classList.remove('is-auto-active'), 1000);
+                    }
                 }
                 parent = parent.parentElement.closest('.p-tree-node');
             }
         } else {
-            // Wenn ein Elternteil deaktiviert wird -> alle tiefen Kinder zwingend deaktivieren
+            // TOP-DOWN: Vater deaktiviert -> deaktiviere zwingend alle tiefen Kinder
             const childCbs = node.querySelectorAll('.p-tree-node [data-perm-check="true"]');
             childCbs.forEach((cb) => (cb.checked = false));
         }
 
-        // Pfade für den UI-Modus ("Fokus" / "Experte") nach der Änderung neu berechnen
-        this.updateTreePaths(wrapper);
+        // Visuelles Update für "Gesperrt"-Status und Sichtbarkeiten
+        if (container) this.refreshTreeVisually(container);
+        if (wrapper) this.updateTreePaths(wrapper);
     }
 
     /**
+     * Evaluiert, welche Knoten gesperrt (is-locked) sind, weil der Vater fehlt.
+     */
+    refreshTreeVisually(container) {
+        const nodes = container.querySelectorAll('.p-tree-node');
+        nodes.forEach((node) => {
+            const parentNode = node.parentElement.closest('.p-tree-node');
+            if (parentNode) {
+                const parentCheckbox = parentNode.querySelector(
+                    ':scope > .p-item input[data-perm-check="true"]'
+                );
+                if (parentCheckbox && !parentCheckbox.checked) {
+                    node.classList.add('is-locked');
+                } else {
+                    node.classList.remove('is-locked');
+                }
+            }
+        });
+    }
+
+    /**
+     * Fügt aktiven Pfaden die Klasse '.is-active-path' hinzu (für den Fokus-Modus)
+     *
      * Identifiziert alle aktiven Knoten und deren Eltern, um sie für den Fokus-Modus
      * sichtbar zu schalten. Verleiht den Elementen die Klasse `.is-active-path`.
      *
@@ -203,6 +263,8 @@ class AdminDashboardHandler {
     }
 
     /**
+     * Steuert den manuellen 2-Phasen Update-Prozess (falls nicht via GitHub Actions)
+     *
      * Steuert den 2-Phasen Update-Prozess via AJAX Fetch.
      * Phase 1: ZIP herunterladen und Code entpacken.
      * Phase 2: RAM mit neuem Code laden und Datenbank-Migrationen durchführen.

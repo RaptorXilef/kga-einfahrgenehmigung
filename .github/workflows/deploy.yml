@@ -1,0 +1,141 @@
+name: Deploy to LimaCity - twokinds.4lima.de
+
+on:
+  workflow_dispatch:
+#  push:
+#    tags:
+#      - 'v*' # Startet automatisch, wenn du z.B. v6.0.0 pushst
+#  push:
+#    branches:
+#      - main # Ändere dies in 'master', falls dein Hauptbranch so heißt
+
+jobs:
+  deploy:
+    name: 🚀 Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Code vom Repository holen
+        uses: actions/checkout@v7.0.1
+
+      - name: 🐘 PHP einrichten
+        uses: shivammathur/setup-php@2.37.2
+        with:
+          php-version: '8.3'
+
+      - name: 📦 Composer Abhängigkeiten installieren
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: ⚙️ Node.js einrichten
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '26' # Nutzt Node 26, wie in meiner package.json gefordert
+          cache: 'npm'       # Beschleunigt zukünftige Durchläufe
+
+      - name: 📦 NPM Abhängigkeiten installieren
+        # Nutzen install statt ci, da es fehlertoleranter bei asynchronen lock-Dateien ist
+        run: npm install --no-audit --no-fund
+
+      - name: 🛠️ Frontend Assets kompilieren & minifizieren (CSS & JS)
+        run: |
+          npm run legacy:css:build
+          npm run legacy:js:build
+
+      - name: 📝 Config-Dateien zu .default.php umbenennen
+        run: |
+          for conf in app config email legal payment permits secrets storage; do
+            if [ -f config/${conf}.php ]; then mv config/${conf}.php config/${conf}.default.php; fi
+          done
+
+      - name: 🌐 Dateien per FTP hochladen
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL }}
+          port: ${{ vars.FTP_PORT }}
+          server-dir: ${{ vars.FTP_SERVER_DIR }}
+          exclude: |
+            **/*.map
+            **/*.zip
+            **/.git*
+            **/.git*/**
+            .build/**
+            .cache/**
+            .debug/**
+            .github/**
+            .husky/**
+            .vscode/**
+            node_modules/**
+            database/migrations/000_add_user_test_column.md
+            config/backup.php
+            config/config.local.php
+            config/config.php
+            config/dev_admin.php
+            config/dev_admin.default.php
+            config/email.php
+            config/secrets.php
+            config/storage.php
+            config/neue_config.md
+            docs/**
+            logs/**
+            public/assets/documents/**
+            public/assets/img/fav/**
+            public/assets/img/logo/**
+            public/assets/img/role_images/**
+            public/assets/img/user_images/**
+            public/dev/**
+            public/dist/**
+            scripts/**
+            src/assets/**
+            tests/**
+            tools/**
+            var/backups/**
+            .env
+            .editorconfig
+            .env.example
+            .git-blame-ignore-revs
+            .gitattributes
+            .gitignore
+            .jsbeautifyrc
+            .markdownlint-cli2.jsonc
+            .markuplintrc
+            .npmrc-example
+            .php-cs-fixer.dist.php
+            .prettierrc
+            .release-it.js
+            CLA.md
+            CONTRIBUTING.md
+            README.md
+            biome.json
+            biome.template.json
+            commitlint.config.cjs
+            cspell-denglisch.txt
+            cspell-folder-names.txt
+            cspell-general.txt
+            cspell-project.txt
+            cspell-proper-names.txt
+            cspell-technical.txt
+            cspell.json
+            deptrac.yaml
+            deptrac.yaml.dist
+            infection.json5
+            package-lock.json
+            phpcs-psr12.xml
+            phpcs-slevomat-coding-standard-ruleset.xml
+            phpcs-universal.xml
+            phpcs.xml.dist
+            phpmd.xml.dist
+            phpstan-baseline.neon
+            phpstan.neon.dist
+            phpunit.xml.dist
+            rector.php
+            stylelint.config.js
+            stylelint.template.js
+            kga-einfahrgenehmigung.code-workspace
+            vite.config.js
+            vitest.config.ts
+
+      - name: 🔄 System-Update anstoßen (Cache & DB)
+        run: curl -sS "${{ vars.WEBHOOK_URL }}?token=${{ secrets.WEBHOOK_TOKEN }}"

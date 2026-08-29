@@ -150,7 +150,7 @@
     // =========================================================================
 
     // --- DIFF EDITOR ---
-    "diffEditor.ignoreTrimWhitespace": true,
+    "diffEditor.ignoreTrimWhitespace": false,
     "diffEditor.experimental.showMoves": true,
     "diffEditor.codeLens": true,
     "diffEditor.maxComputationTime": 30000,
