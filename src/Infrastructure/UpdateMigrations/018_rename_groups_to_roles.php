@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Contracts\Config\ConfigInterface;
 
 /**
- * Migration 018: Benennt 'groups' vollständig in 'roles' um (Datenbank, JSON, Ordner).
+ * Migration 019: Benennt 'groups' vollständig in 'roles' um (Datenbank, JSON, Ordner).
  */
-return static function (\PDO $pdo, ConfigInterface $config): void {
+return static function (?\PDO $pdo, ConfigInterface $config): void {
     $storageConfig = $config->get('storage_config');
     $rootPath = \rtrim((string) $config->get('root_path'), '/\\');
 
@@ -27,15 +27,17 @@ return static function (\PDO $pdo, ConfigInterface $config): void {
         \rename($oldImgPath, $newImgPath);
     }
 
-    // 3. MySQL Tabelle umbenennen (falls vorhanden)
-    try {
-        // Prüfen ob die alte Tabelle existiert
-        $result = $pdo->query("SHOW TABLES LIKE 'groups'");
-        if ($result && $result->rowCount() > 0) {
-            $pdo->exec('RENAME TABLE `groups` TO `roles`');
+    // 3. MySQL Tabelle umbenennen (falls aktiv)
+    if ($pdo !== null) {
+        try {
+            // Prüfen ob die alte Tabelle existiert
+            $result = $pdo->query("SHOW TABLES LIKE 'groups'");
+            if ($result && $result->rowCount() > 0) {
+                $pdo->exec('RENAME TABLE `groups` TO `roles`');
+            }
+        } catch (\PDOException $e) {
+            \error_log('Migration 019 (MySQL Rename): ' . $e->getMessage());
         }
-    } catch (\PDOException $e) {
-        \error_log('Migration 018 (MySQL Rename): ' . $e->getMessage());
     }
 
     // 4. Permissions-Keys in der Rollen-Tabelle anpassen (system.permissions.groups -> roles)
@@ -47,19 +49,13 @@ return static function (\PDO $pdo, ConfigInterface $config): void {
         \file_put_contents($newJsonPath, $rolesData, \LOCK_EX);
     }
 
-    // 4b. MySQL anpassen
-    try {
-        $pdo->exec("UPDATE `roles` SET `permissions` = REPLACE(`permissions`, 'system.permissions.groups.', 'system.permissions.roles.')");
-        $pdo->exec("UPDATE `roles` SET `permissions` = REPLACE(`permissions`, 'dashboard.migration.groups.', 'dashboard.migration.roles.')");
-    } catch (\PDOException $e) {
-        // Ignorieren, falls MySQL nicht genutzt wird
-    }
-
-    // 5. Admin-Benutzer aktualisieren, falls sie explizite Rechte in JSON/MySQL haben
-    $usersJsonPath = $config->getStoragePath('users.json');
-    if (\file_exists($usersJsonPath)) {
-        $usersData = \file_get_contents($usersJsonPath);
-        // Da die Nutzer intern in der PHP Klasse bereits $roleId als Eigenschaft haben,
-        // müssen wir in der JSON meist nichts ändern, da es nur Key-Value ist.
+    // 4b. MySQL anpassen (falls aktiv)
+    if ($pdo !== null) {
+        try {
+            $pdo->exec("UPDATE `roles` SET `permissions` = REPLACE(`permissions`, 'system.permissions.groups.', 'system.permissions.roles.')");
+            $pdo->exec("UPDATE `roles` SET `permissions` = REPLACE(`permissions`, 'dashboard.migration.groups.', 'dashboard.migration.roles.')");
+        } catch (\PDOException $e) {
+            // Ignorieren, falls Tabelle noch nicht existiert
+        }
     }
 };

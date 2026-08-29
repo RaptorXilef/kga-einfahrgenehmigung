@@ -10,8 +10,6 @@
  *
  * Path: src/assets/js/admin-handler.js
  * Path: public/assets/js/admin-handler.min.js
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 class AdminDashboardHandler {
     constructor() {
@@ -19,6 +17,7 @@ class AdminDashboardHandler {
         this.contents = document.querySelectorAll('.c-tabs__content');
         this.searchInput = document.getElementById('adminSearch');
         this.templateSelect = document.getElementById('manual_template_key');
+
         this.init();
         this.restoreLastTab();
     }
@@ -104,6 +103,93 @@ class AdminDashboardHandler {
                 }
             }
         });
+
+        this.initPermissionMatrix();
+    }
+
+    /**
+     * Initialisiert die Logik für die Rollen-Matrix (Parent/Child-Abhängigkeiten)
+     * und das UI-Toggling.
+     */
+    initPermissionMatrix() {
+        // Initiale Berechnung der aktiven Pfade für alle existierenden Bäume
+        document.querySelectorAll('.p-tree-wrapper').forEach((wrapper) => {
+            this.updateTreePaths(wrapper);
+        });
+
+        // Event Delegation für Checkboxen in der Matrix
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('[data-perm-check="true"]')) {
+                this.handlePermissionChange(e.target);
+            } else if (e.target.matches('[data-master-toggle="true"]')) {
+                const wrapper = e.target.closest('form').querySelector('.p-tree-wrapper');
+                if (wrapper) {
+                    wrapper.classList.toggle('is-master-active', e.target.checked);
+                }
+            }
+        });
+
+        // Globale Funktion für den UI Toggle (wird inline via onchange aus Radiobuttons aufgerufen)
+        window.updateUiMode = (mode) => {
+            document.querySelectorAll('.p-tree-wrapper').forEach((wrapper) => {
+                wrapper.classList.remove('mode-hide', 'mode-grey');
+                wrapper.classList.add('mode-' + mode);
+            });
+        };
+    }
+
+    /**
+     * Verarbeitet Abhängigkeiten, wenn eine Berechtigung angeklickt wird.
+     * Kind aktiviert -> Eltern müssen zwingend aktiviert werden.
+     * Elternteil deaktiviert -> Kinder müssen zwingend deaktiviert werden.
+     *
+     * @param {HTMLInputElement} checkbox Die angeklickte Berechtigungs-Checkbox
+     */
+    handlePermissionChange(checkbox) {
+        const node = checkbox.closest('.p-tree-node');
+        const wrapper = checkbox.closest('.p-tree-wrapper');
+
+        if (checkbox.checked) {
+            // Wenn ein Kind aktiviert wird -> klettere den Baum hoch und aktiviere alle Eltern
+            let parent = node.parentElement.closest('.p-tree-node');
+            while (parent) {
+                const parentCb = parent.firstElementChild.querySelector('[data-perm-check="true"]');
+                if (parentCb && !parentCb.checked) {
+                    parentCb.checked = true;
+                }
+                parent = parent.parentElement.closest('.p-tree-node');
+            }
+        } else {
+            // Wenn ein Elternteil deaktiviert wird -> alle tiefen Kinder zwingend deaktivieren
+            const childCbs = node.querySelectorAll('.p-tree-node [data-perm-check="true"]');
+            childCbs.forEach((cb) => (cb.checked = false));
+        }
+
+        // Pfade für den UI-Modus ("Fokus" / "Experte") nach der Änderung neu berechnen
+        this.updateTreePaths(wrapper);
+    }
+
+    /**
+     * Identifiziert alle aktiven Knoten und deren Eltern, um sie für den Fokus-Modus
+     * sichtbar zu schalten. Verleiht den Elementen die Klasse `.is-active-path`.
+     *
+     * @param {HTMLElement} wrapper Der Container des Rechtes-Baums
+     */
+    updateTreePaths(wrapper) {
+        // Zunächst alle Resetten
+        wrapper
+            .querySelectorAll('.p-tree-node')
+            .forEach((n) => n.classList.remove('is-active-path'));
+
+        // Alle momentan gecheckten Checkboxen holen
+        const checkedCbs = wrapper.querySelectorAll('[data-perm-check="true"]:checked');
+        checkedCbs.forEach((cb) => {
+            let curr = cb.closest('.p-tree-node');
+            while (curr) {
+                curr.classList.add('is-active-path');
+                curr = curr.parentElement.closest('.p-tree-node');
+            }
+        });
     }
 
     /**
@@ -179,9 +265,11 @@ class AdminDashboardHandler {
      */
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
+
         this.contents.forEach((c) => {
             c.classList.remove('c-tabs__content--active');
         });
+
         this.tabs.forEach((b) => {
             b.classList.remove('c-tabs__btn--active');
         });
