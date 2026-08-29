@@ -169,6 +169,15 @@ class AdminDashboardHandler {
     }
 
     /**
+     * Hilfsmethode für kurzes visuelles Feedback
+     */
+    triggerHighlight(element) {
+        if (!element) return;
+        element.classList.add('is-auto-active');
+        setTimeout(() => element.classList.remove('is-auto-active'), 800);
+    }
+
+    /**
      * Verarbeitet Abhängigkeiten, wenn eine Berechtigung angeklickt wird.
      * Kind aktiviert -> Eltern müssen zwingend aktiviert werden.
      * Elternteil deaktiviert -> Kinder müssen zwingend deaktiviert werden.
@@ -191,23 +200,27 @@ class AdminDashboardHandler {
         }
 
         if (checkbox.checked) {
-            // BOTTOM-UP: Kind aktiviert -> klettere hoch und aktiviere alle Väter
+            // BOTTOM-UP: Kind aktiviert -> alle Väter an
             let parent = node.parentElement.closest('.p-tree-node');
             while (parent) {
                 const parentCb = parent.firstElementChild.querySelector('[data-perm-check="true"]');
                 if (parentCb && !parentCb.checked) {
                     parentCb.checked = true;
-                    // Optisches Aufleuchten
-                    const pItem = parentCb.closest('.p-item');
-                    if (pItem) {
-                        pItem.classList.add('is-auto-active');
-                        setTimeout(() => pItem.classList.remove('is-auto-active'), 1000);
-                    }
+                    this.triggerHighlight(parentCb.closest('.p-item'));
                 }
                 parent = parent.parentElement.closest('.p-tree-node');
             }
+
+            // TOP-DOWN (Zusatz für TwoKinds-Verhalten): Vater aktiviert -> alle Kinder zwingend an
+            const childCbs = node.querySelectorAll('.p-tree-node input[data-perm-check="true"]');
+            childCbs.forEach((cb) => {
+                if (!cb.checked) {
+                    cb.checked = true;
+                    this.triggerHighlight(cb.closest('.p-item'));
+                }
+            });
         } else {
-            // TOP-DOWN: Vater deaktiviert -> deaktiviere zwingend alle tiefen Kinder
+            // TOP-DOWN: Vater deaktiviert -> alle tiefen Kinder aus
             const childCbs = node.querySelectorAll('.p-tree-node [data-perm-check="true"]');
             childCbs.forEach((cb) => (cb.checked = false));
         }

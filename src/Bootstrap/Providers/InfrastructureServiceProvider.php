@@ -29,7 +29,7 @@ use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Contracts\Storage\VerificationRepositoryInterface;
 use App\Contracts\Storage\VoucherRepositoryInterface;
-use App\Contracts\System\AssetHelperInterface; // <-- NEU
+use App\Contracts\System\AssetHelperInterface;
 use App\Contracts\System\ErrorLoggerInterface;
 use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
@@ -52,17 +52,7 @@ use App\Infrastructure\Security\RateLimiter;
 use App\Infrastructure\Storage\FileCronStateRepository;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
-use App\Infrastructure\Storage\JsonAuditLogRepository;
-use App\Infrastructure\Storage\JsonCancelledPermitRepository;
 use App\Infrastructure\Storage\JsonHelper;
-use App\Infrastructure\Storage\JsonLoginAttemptRepository;
-use App\Infrastructure\Storage\JsonMagicLinkRepository;
-use App\Infrastructure\Storage\JsonMailQueueRepository;
-use App\Infrastructure\Storage\JsonPermitArchiveRepository;
-use App\Infrastructure\Storage\JsonRoleRepository;
-use App\Infrastructure\Storage\JsonUserRepository;
-use App\Infrastructure\Storage\JsonVerificationRepository;
-use App\Infrastructure\Storage\JsonVoucherRepository;
 use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
@@ -75,7 +65,7 @@ use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
 use App\Infrastructure\Storage\StorageFactory;
 use App\Infrastructure\System\FileRouteCache;
-use App\Infrastructure\System\LocalAssetHelper; // <-- NEU
+use App\Infrastructure\System\LocalAssetHelper;
 use App\Infrastructure\System\SystemInfoService;
 use App\Infrastructure\Utils\SystemClock;
 use PDO;
@@ -123,89 +113,62 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          |--------------------------------------------------------------------------
          | 2. DATA REPOSITORIES (FACTORY PATTERN)
          |--------------------------------------------------------------------------
-         | Entscheidet zur Laufzeit anhand der Konfiguration (storage_config),
-         | ob die Daten im JSON-Flatfile oder in einer MySQL-Tabelle landen.
          */
-        $container->bind(AuditLogRepositoryInterface::class, function () use ($container): MySqlAuditLogRepository|JsonAuditLogRepository {
-            $config = $container->get(ConfigInterface::class);
+        $container->bind(AuditLogRepositoryInterface::class, fn () => new MySqlAuditLogRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
 
-            return ($config->get('storage_config')['audit_logs']['type'] ?? 'json') === 'mysql'
-                ? new MySqlAuditLogRepository($container->get(PDO::class), $config)
-                : new JsonAuditLogRepository($config, $container->get(JsonHelperInterface::class));
-        });
+        $container->bind(CancelledPermitRepositoryInterface::class, fn () => new MySqlCancelledPermitRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
-        $container->bind(CancelledPermitRepositoryInterface::class, function () use ($container): MySqlCancelledPermitRepository|JsonCancelledPermitRepository {
-            $config = $container->get(ConfigInterface::class);
+        $container->bind(RoleRepositoryInterface::class, fn () => new MySqlRoleRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
-            return ($config->get('storage_config')['permits_cancelled']['type'] ?? 'json') === 'mysql'
-                ? new MySqlCancelledPermitRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonCancelledPermitRepository($config, $container->get(JsonHelperInterface::class));
-        });
+        $container->bind(LoginAttemptRepositoryInterface::class, fn () => new MySqlLoginAttemptRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
 
-        $container->bind(RoleRepositoryInterface::class, function () use ($container): MySqlRoleRepository|JsonRoleRepository {
-            $config = $container->get(ConfigInterface::class);
-            \assert($config instanceof ConfigInterface);
+        $container->bind(MagicLinkRepositoryInterface::class, fn () => new MySqlMagicLinkRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
 
-            return ($config->get('storage_config')['roles']['type'] ?? 'json') === 'mysql'
-                ? new MySqlRoleRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonRoleRepository($config, $container->get(JsonHelperInterface::class));
-        });
+        $container->bind(MailQueueRepositoryInterface::class, fn () => new MySqlMailQueueRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
-        $container->bind(LoginAttemptRepositoryInterface::class, function () use ($container): MySqlLoginAttemptRepository|JsonLoginAttemptRepository {
-            $config = $container->get(ConfigInterface::class);
+        $container->bind(PermitArchiveRepositoryInterface::class, fn () => new MySqlPermitArchiveRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
-            return ($config->get('storage_config')['login_attempts']['type'] ?? 'json') === 'mysql'
-                ? new MySqlLoginAttemptRepository($container->get(PDO::class), $config)
-                : new JsonLoginAttemptRepository($config, $container->get(JsonHelperInterface::class));
-        });
+        $container->bind(UserRepositoryInterface::class, fn () => new MySqlUserRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
 
-        $container->bind(MagicLinkRepositoryInterface::class, function () use ($container): MySqlMagicLinkRepository|JsonMagicLinkRepository {
-            $config = $container->get(ConfigInterface::class);
+        $container->bind(VerificationRepositoryInterface::class, fn () => new MySqlVerificationRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
-            return ($config->get('storage_config')['magic_links']['type'] ?? 'json') === 'mysql'
-                ? new MySqlMagicLinkRepository($container->get(PDO::class), $config)
-                : new JsonMagicLinkRepository($config, $container->get(JsonHelperInterface::class));
-        });
-
-        $container->bind(MailQueueRepositoryInterface::class, function () use ($container): MySqlMailQueueRepository|JsonMailQueueRepository {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['mail_queue']['type'] ?? 'json') === 'mysql'
-                ? new MySqlMailQueueRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonMailQueueRepository($config, $container->get(JsonHelperInterface::class));
-        });
-
-        $container->bind(PermitArchiveRepositoryInterface::class, function () use ($container): MySqlPermitArchiveRepository|JsonPermitArchiveRepository {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['permits_archive']['type'] ?? 'json') === 'mysql'
-                ? new MySqlPermitArchiveRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonPermitArchiveRepository($config, $container->get(JsonHelperInterface::class));
-        });
-
-        $container->bind(UserRepositoryInterface::class, function () use ($container): MySqlUserRepository|JsonUserRepository {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['users']['type'] ?? 'json') === 'mysql'
-                ? new MySqlUserRepository($container->get(PDO::class), $config)
-                : new JsonUserRepository($config, $container->get(JsonHelperInterface::class));
-        });
-
-        $container->bind(VerificationRepositoryInterface::class, function () use ($container): MySqlVerificationRepository|JsonVerificationRepository {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['pending_verification']['type'] ?? 'json') === 'mysql'
-                ? new MySqlVerificationRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonVerificationRepository($config, $container->get(JsonHelperInterface::class));
-        });
-
-        $container->bind(VoucherRepositoryInterface::class, function () use ($container): MySqlVoucherRepository|JsonVoucherRepository {
-            $config = $container->get(ConfigInterface::class);
-
-            return ($config->get('storage_config')['vouchers']['type'] ?? 'json') === 'mysql'
-                ? new MySqlVoucherRepository($container->get(PDO::class), $config, $container->get(JsonHelperInterface::class))
-                : new JsonVoucherRepository($config, $container->get(JsonHelperInterface::class));
-        });
+        $container->bind(VoucherRepositoryInterface::class, fn () => new MySqlVoucherRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
 
         /*
          |--------------------------------------------------------------------------
@@ -270,7 +233,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
             return new FileRouteCache($config);
         });
 
-        // <-- NEU: Hier ist das fehlende Binding
         $container->bind(AssetHelperInterface::class, function () use ($container): LocalAssetHelper {
             $config = $container->get(ConfigInterface::class);
             \assert($config instanceof ConfigInterface);
