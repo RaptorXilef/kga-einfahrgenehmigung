@@ -96,7 +96,7 @@ class AdminDashboardHandler {
     }
 
     /**
-     * Initialisiert die Logik für die Rollen-Matrix (Parent/Child-Abhängigkeiten)
+     * Initialisiert die Logik für die Rollen-Matrix (TwoKinds Standard)
      */
     initPermissionMatrix() {
         // Initiales Setup für den Master-Toggle (Gott-Modus)
@@ -105,18 +105,24 @@ class AdminDashboardHandler {
             if (masterCb) this.applyMasterState(container, masterCb.checked);
         });
 
-        // Zentrale Event-Delegation für alle Matrix-Klicks
-        document.addEventListener('change', (e) => {
-            if (e.target.matches('[data-perm-check="true"]')) {
-                this.handlePermissionChange(e.target);
-            } else if (e.target.matches('[data-master-toggle="true"]')) {
-                this.applyMasterState(e.target.closest('.permission-container'), e.target.checked);
-            }
-        });
+        // WICHTIG: Event Delegation nur einmal registrieren (verhindert Ghost-Clicks)
+        if (!window.permissionMatrixBound) {
+            document.addEventListener('change', (e) => {
+                if (e.target.matches('[data-perm-check="true"]')) {
+                    this.handlePermissionChange(e.target);
+                } else if (e.target.matches('[data-master-toggle="true"]')) {
+                    this.applyMasterState(
+                        e.target.closest('.permission-container'),
+                        e.target.checked
+                    );
+                }
+            });
+            window.permissionMatrixBound = true;
+        }
     }
 
     /**
-     * Steuert den "Gott-Modus" (*). Graut den Baum aus und sperrt die Bedienung.
+     * Gott-Modus (*): Graut den gesamten Baum aus und sperrt die Bedienung.
      */
     applyMasterState(container, isMaster) {
         const treeWrapper = container.querySelector('.p-tree-wrapper');
@@ -126,11 +132,13 @@ class AdminDashboardHandler {
             treeWrapper.classList.add('is-master-active');
             treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
                 cb.disabled = true;
+                cb.parentElement.style.pointerEvents = 'none';
             });
         } else {
             treeWrapper.classList.remove('is-master-active');
             treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
                 cb.disabled = false;
+                cb.parentElement.style.pointerEvents = 'auto';
             });
         }
     }
@@ -145,72 +153,89 @@ class AdminDashboardHandler {
         setTimeout(() => element.classList.remove(className), 800);
     }
 
+    // --- DOM TRAVERSAL HELPER (Kugelsicher) ---
+
     /**
-     * Verarbeitet die clevere Parent/Child Abhängigkeit (Das "TwoKinds-Modell")
-     *
-     * @param {HTMLInputElement} checkbox Die angeklickte Checkbox
+     * 1. Holt die exakte Checkbox für einen spezifischen Baumknoten (nur 1. Ebene)
+     */
+    getNodeCheckbox(node) {
+        if (!node) return null;
+        const pItem = Array.from(node.children).find((el) => el.classList.contains('p-item'));
+        return pItem ? pItem.querySelector('input[data-perm-check="true"]') : null;
+    }
+
+    /**
+     * 2. Holt STRENG nur die direkten logischen Kinder-Checkboxen eines Knotens.
+     * Überspringt Kategorie-Knoten ohne eigene Checkbox intelligent.
+     */
+    getAllLogicalChildrenCheckboxes(parentNode) {
+        let cbs = [];
+
+        // Strenger Filter: Nur direkte HTML-Kinder (.p-tree-node), keine tieferen Suchen im DOM!
+        const directChildNodes = Array.from(parentNode.children).filter((child) =>
+            child.classList.contains('p-tree-node')
+        );
+
+        directChildNodes.forEach((childNode) => {
+            const cb = this.getNodeCheckbox(childNode);
+            if (cb) {
+                cbs.push(cb);
+            } else {
+                // Kategorie-Knoten (z.B. "System" ohne Checkbox) -> Wir holen dessen logische Kinder
+                cbs = cbs.concat(this.getAllLogicalChildrenCheckboxes(childNode));
+            }
+        });
+        return cbs;
+    }
+
+    /**
+     * 3. Bottom-Up: Klettert den Baum hoch und synchronisiert die Eltern-Knoten.
+     */
+    updateParents(node) {
+        let parentNode = node.parentElement ? node.parentElement.closest('.p-tree-node') : null;
+
+        while (parentNode) {
+            const parentCb = this.getNodeCheckbox(parentNode);
+
+            if (parentCb) {
+                const childrenCbs = this.getAllLogicalChildrenCheckboxes(parentNode);
+
+                if (childrenCbs.length > 0) {
+                    // Ein Elternteil ist NUR DANN aktiv, wenn WIRKLICH ALLE seine direkten Kinder aktiv sind!
+                    const allChecked = childrenCbs.every((cb) => cb.checked);
+
+                    if (parentCb.checked !== allChecked) {
+                        parentCb.checked = allChecked;
+                        this.triggerHighlight(parentCb.closest('.p-item'), allChecked);
+                    }
+                }
+            }
+
+            // Klettere eine Ebene höher
+            parentNode = parentNode.parentElement
+                ? parentNode.parentElement.closest('.p-tree-node')
+                : null;
+        }
+    }
+
+    /**
+     * 4. Die intelligente Logik - Adaptiert für n-Level Bäume!
      */
     handlePermissionChange(checkbox) {
         const node = checkbox.closest('.p-tree-node');
+        const isChecked = checkbox.checked;
 
-        if (checkbox.checked) {
-            // FALL 1: KNOTEN WIRD AKTIVIERT
-
-            // A) TOP-DOWN: Alle Kinder dieses Knotens zwingend mit aktivieren
-            const childCbs = node.querySelectorAll('input[data-perm-check="true"]');
-            childCbs.forEach((cb) => {
-                if (!cb.checked && cb !== checkbox) {
-                    cb.checked = true;
-                    this.triggerHighlight(cb.closest('.p-item'), true);
-                }
-            });
-
-            // B) BOTTOM-UP: Klettere den Baum hoch. Wenn alle Geschwister aktiv sind, aktiviere den Vater.
-            let parent = node.parentElement.closest('.p-tree-node');
-            while (parent) {
-                const parentCb = parent.querySelector(
-                    ':scope > .p-item input[data-perm-check="true"]'
-                );
-                if (parentCb) {
-                    // Selektiere alle direkten Kinder dieses Vaters
-                    const siblings = parent.querySelectorAll(
-                        ':scope > .p-tree-node > .p-item input[data-perm-check="true"]'
-                    );
-                    const allChecked = Array.from(siblings).every((c) => c.checked);
-
-                    if (allChecked && !parentCb.checked) {
-                        parentCb.checked = true;
-                        this.triggerHighlight(parentCb.closest('.p-item'), true);
-                    }
-                }
-                parent = parent.parentElement.closest('.p-tree-node');
+        // A) TOP-DOWN: Wenn dieser Knoten geklickt wurde, müssen alle darunterliegenden Kinder denselben Status annehmen.
+        const descendantCheckboxes = node.querySelectorAll('input[data-perm-check="true"]');
+        descendantCheckboxes.forEach((cb) => {
+            if (cb !== checkbox && cb.checked !== isChecked) {
+                cb.checked = isChecked;
+                this.triggerHighlight(cb.closest('.p-item'), isChecked);
             }
-        } else {
-            // FALL 2: KNOTEN WIRD DEAKTIVIERT
+        });
 
-            // A) TOP-DOWN: Alle Kinder dieses Knotens zwingend mit deaktivieren
-            const childCbs = node.querySelectorAll('input[data-perm-check="true"]');
-            childCbs.forEach((cb) => {
-                if (cb.checked && cb !== checkbox) {
-                    cb.checked = false;
-                    this.triggerHighlight(cb.closest('.p-item'), false);
-                }
-            });
-
-            // B) BOTTOM-UP: Klettere den Baum hoch und deaktiviere JEDEN Vater zwingend!
-            // Denn wenn auch nur ein Kind fehlt, besitzt der Vater nicht mehr "alle" Rechte.
-            let parent = node.parentElement.closest('.p-tree-node');
-            while (parent) {
-                const parentCb = parent.querySelector(
-                    ':scope > .p-item input[data-perm-check="true"]'
-                );
-                if (parentCb && parentCb.checked) {
-                    parentCb.checked = false;
-                    this.triggerHighlight(parentCb.closest('.p-item'), false);
-                }
-                parent = parent.parentElement.closest('.p-tree-node');
-            }
-        }
+        // B) BOTTOM-UP: Aktualisiere alle Väter nach oben hinweg, strikt nach TwoKinds-Vorbild.
+        this.updateParents(node);
     }
 
     async handleSystemUpdate(btn, zipUrl, csrfToken) {
@@ -266,11 +291,9 @@ class AdminDashboardHandler {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-
         this.contents.forEach((c) => {
             c.classList.remove('c-tabs__content--active');
         });
-
         this.tabs.forEach((b) => {
             b.classList.remove('c-tabs__btn--active');
         });
