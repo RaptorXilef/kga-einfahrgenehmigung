@@ -6,6 +6,7 @@ namespace App\Application\Actions\Admin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\SystemMaintenanceRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -16,18 +17,21 @@ use App\Core\Service\AuditLoggerService;
 
 /**
  * Action für Daten-Migrationen (Sync/Backup) zwischen Storage-Engines.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/migrate_data')]
 #[Route('POST', '/migrate_data')]
-final readonly class SystemMigrateDataAction implements ActionInterface
+final readonly class SystemMigrateDataAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
         private MigrationServiceInterface $migrationService,
         private SessionManager $sessionManager,
     ) {
+    }
+
+    public function getRequiredPermission(): string
+    {
+        return 'system.maintenance.execute';
     }
 
     /**

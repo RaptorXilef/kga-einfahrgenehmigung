@@ -10,11 +10,6 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Service\AuthService;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class MigrationPermissionMiddleware implements MiddlewareInterface
 {
     public function __construct(
@@ -25,9 +20,8 @@ final readonly class MigrationPermissionMiddleware implements MiddlewareInterfac
 
     public function process(ServerRequest $request, callable $next): mixed
     {
-        $target = $request->post['target'] ?? '';
-        $dir = $request->post['direction'] ?? '';
-        if (!$this->auth->hasPermission("dashboard.migration.{$target}.{$dir}")) {
+        // Nutzt nun sauber das globale Wartungs-Recht
+        if (!$this->auth->hasPermission('system.maintenance.execute')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung für diese Migrations-Aktion.');
 
             return new RedirectResponse('admin.php');

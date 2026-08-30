@@ -6,6 +6,7 @@ namespace App\Application\Actions\Admin;
 
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ActionInterface;
+use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\DTO\VoucherCreateRequest;
 use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
@@ -20,12 +21,10 @@ use Throwable;
 
 /**
  * Action zum Erstellen eines neuen Gutscheins.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/create_voucher')]
 #[Route('POST', '/create_voucher')]
-final readonly class VoucherCreateAction implements ActionInterface
+final readonly class VoucherCreateAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
@@ -36,6 +35,11 @@ final readonly class VoucherCreateAction implements ActionInterface
     ) {
     }
 
+    public function getRequiredPermission(): string
+    {
+        return 'vouchers.create';
+    }
+
     /**
      * Erstellt einen neuen Gutschein mit spezifischen Konditionen über VoucherService.
      *
@@ -44,7 +48,6 @@ final readonly class VoucherCreateAction implements ActionInterface
     public function execute(ServerRequest $request): mixed
     {
         try {
-            // FIX: Wir lesen das Parzellen-Limit aus der Config und geben es an das DTO weiter
             $maxPlot = (int) $this->config->get('max_plot_number', 9999);
             $dto = VoucherCreateRequest::fromArray($request->post, $maxPlot);
         } catch (ValidationException|InvalidArgumentException $e) {
@@ -52,7 +55,6 @@ final readonly class VoucherCreateAction implements ActionInterface
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
-
             $this->sessionManager->addFlash('error', $e->getMessage());
 
             return new RedirectResponse('admin.php?focus=tab-tools');
@@ -75,7 +77,6 @@ final readonly class VoucherCreateAction implements ActionInterface
 
             // LOG SCHREIBEN
             $this->auditLogger->log('VOUCHER_CREATE', "Gutscheincode '{$code}' erstellt. Grund/Notiz: {$dto->reason}");
-
             $this->sessionManager->addFlash('success', "Gutschein erstellt: <strong>$code</strong>");
 
             // Wenn erfolgreich, direkt zum Gutschein-Reiter springen
