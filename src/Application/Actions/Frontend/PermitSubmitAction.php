@@ -34,19 +34,27 @@ final readonly class PermitSubmitAction implements ViewActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
+        $ip = $request->getIp();
+
         try {
-            // 1. SPAM-SCHUTZ: Bot-Protection (Time-Check & Honeypot)
+            // 1. SPAM-SCHUTZ: Rate Limit prüfen
+            $this->botProtection->checkRateLimit($ip);
+
+            // 2. SPAM-SCHUTZ: Bot-Protection (Time-Check & Honeypot)
             $this->botProtection->verifyTimeCheck($this->sessionManager->getFormStartTime(), 3);
             $this->botProtection->verifyHoneypot((string) ($request->post['hp_contact_website'] ?? ''));
 
-            // 2. DTO Validierung (Basic Syntax Checks)
+            // 3. DTO Validierung (Basic Syntax Checks)
             $dto = PermitSubmitRequest::fromArray($request->post);
 
-            // 3. TIEFE E-MAIL-PRÜFUNG (DNS/MX & Trashmail)
+            // 4. TIEFE E-MAIL-PRÜFUNG (DNS/MX & Trashmail)
             if ($dto->email !== '') {
                 $this->emailValidation->validate($dto->email);
             }
         } catch (ValidationException|InvalidArgumentException $e) {
+            // Strike registrieren: Auch bei fehlerhaften Spam-Versuchen das Limit belasten
+            $this->botProtection->recordStrike($ip);
+
             $postData = $request->post;
             unset($postData['csrf_token']); // Sicherheits-Token nicht mitspeichern
             $this->sessionManager->setFormData($postData);
@@ -68,6 +76,8 @@ final readonly class PermitSubmitAction implements ViewActionInterface
                 $this->sessionManager->clearEditState();
                 $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
 
+                $this->botProtection->recordStrike($ip); // Erfolgreichen Antrag zählen
+
                 if ($result === 'redirect_checkout') {
                     return new RedirectResponse('checkout?token=' . $editToken);
                 }
@@ -81,6 +91,8 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
             $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
+
+            $this->botProtection->recordStrike($ip); // Erfolgreichen Antrag zählen
 
             return new RedirectResponse('?sent=1');
         } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen

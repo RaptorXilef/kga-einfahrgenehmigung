@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Service\Security;
 
+use App\Contracts\Security\RateLimiterInterface;
 use InvalidArgumentException;
 
 /**
@@ -11,8 +12,33 @@ use InvalidArgumentException;
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
-final class BotProtectionService
+final readonly class BotProtectionService
 {
+    public function __construct(
+        private RateLimiterInterface $rateLimiter,
+    ) {
+    }
+
+    /**
+     * Prüft, ob die IP-Adresse aufgrund zu vieler Anfragen blockiert ist.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function checkRateLimit(string $ip): void
+    {
+        if ($this->rateLimiter->isBlocked($ip)) {
+            throw new InvalidArgumentException('Zu viele Anträge in kurzer Zeit. Zu Ihrem Schutz wurde diese Funktion für 15 Minuten gesperrt.');
+        }
+    }
+
+    /**
+     * Zählt einen durchgeführten Antrag als "Strike" gegen das IP-Limit.
+     */
+    public function recordStrike(string $ip): void
+    {
+        $this->rateLimiter->recordFailedAttempt($ip);
+    }
+
     /**
      * Prüft, ob das Formular in unmenschlicher Geschwindigkeit (Millisekunden) ausgefüllt wurde.
      *
