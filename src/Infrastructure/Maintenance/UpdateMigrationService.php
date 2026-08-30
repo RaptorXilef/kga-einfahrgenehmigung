@@ -29,7 +29,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
 
     /**
      * Sucht nach neuen .sql-Skripten im Ordner und führt diese chronologisch aus.
-     * Schlägt ein Skript fehl, wird der Update-Vorgang sofort abgebrochen.
+     * Fängt harmlose Überschneidungs-Fehler (z.B. mit dem StorageBootstrapper) sicher ab.
      *
      * @return array<int, string> Liste der neu ausgeführten Migrations-Versionen.
      */
@@ -71,8 +71,36 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
                     throw new RuntimeException("Datei {$version}.sql ist leer oder nicht lesbar.");
                 }
 
-                // Führt alle Queries innerhalb der SQL-Datei aus
-                $this->pdo->exec($sql);
+                // --- FIX: Statements sicher trennen ---
+                // Wir trennen die SQL-Befehle am Semikolon auf.
+                // Dadurch können wir jeden Befehl einzeln ausführen und gezielt "Already exists" Fehler abfangen,
+                // die entstehen, wenn der StorageBootstrapper die Tabelle/Spalte bereits angelegt hat.
+                $statements = \array_filter(\array_map('trim', \explode(';', $sql)));
+
+                foreach ($statements as $statement) {
+                    if ($statement === '') {
+                        continue;
+                    }
+
+                    try {
+                        $this->pdo->exec($statement);
+                    } catch (PDOException $e) {
+                        $mysqlCode = $e->errorInfo[1] ?? 0;
+
+                        // Erwartete Kollisions-Fehler ignorieren:
+                        // 1050 = Table already exists
+                        // 1051 = Unknown table (z.B. beim Drop Table)
+                        // 1060 = Duplicate column name
+                        // 1061 = Duplicate key name
+                        // 1146 = Table doesn't exist (Trifft z.B. bei RENAME TABLE auf bereits gelöschte Tabellen zu)
+                        if (\in_array($mysqlCode, [1050, 1051, 1060, 1061, 1146], true)) {
+                            continue; // Harmloser Fehler bei bereits aktualisiertem Schema
+                        }
+
+                        // Echte, unerwartete Fehler werfen wir weiter
+                        throw $e;
+                    }
+                }
 
                 $this->markAsExecuted($version);
                 $executedNow[] = $version;
