@@ -38,6 +38,9 @@ final readonly class PermitRenderAction implements ViewActionInterface
             } else {
                 $successMessage = 'Bestätigung erforderlich! Wir haben Ihnen eine E-Mail gesendet. Bitte klicken Sie auf den Link darin, um Ihren Antrag zu aktivieren.';
             }
+        } else {
+            // SPAM-SCHUTZ: Zeitstempel für den Time-Check setzen, wenn das Formular frisch geladen wird
+            $this->sessionManager->setFormStartTime(\time());
         }
 
         $this->renderer->render('frontend/formular', [

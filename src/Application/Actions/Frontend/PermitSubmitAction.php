@@ -13,6 +13,8 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Service\PermitService;
+use App\Core\Service\Security\BotProtectionService;
+use App\Core\Service\Security\EmailValidationService;
 use InvalidArgumentException;
 use Throwable;
 
@@ -25,13 +27,25 @@ final readonly class PermitSubmitAction implements ViewActionInterface
     public function __construct(
         private PermitService $permitService,
         private SessionManager $sessionManager,
+        private BotProtectionService $botProtection,
+        private EmailValidationService $emailValidation,
     ) {
     }
 
     public function execute(ServerRequest $request): mixed
     {
         try {
+            // 1. SPAM-SCHUTZ: Bot-Protection (Time-Check & Honeypot)
+            $this->botProtection->verifyTimeCheck($this->sessionManager->getFormStartTime(), 3);
+            $this->botProtection->verifyHoneypot((string) ($request->post['hp_contact_website'] ?? ''));
+
+            // 2. DTO Validierung (Basic Syntax Checks)
             $dto = PermitSubmitRequest::fromArray($request->post);
+
+            // 3. TIEFE E-MAIL-PRÜFUNG (DNS/MX & Trashmail)
+            if ($dto->email !== '') {
+                $this->emailValidation->validate($dto->email);
+            }
         } catch (ValidationException|InvalidArgumentException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']); // Sicherheits-Token nicht mitspeichern
@@ -52,6 +66,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
                 $result = $this->permitService->updateVerifiedRequest($editToken, $verifiedEmail, $dto->toDomainDto());
                 $this->sessionManager->clearFormData();
                 $this->sessionManager->clearEditState();
+                $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
 
                 if ($result === 'redirect_checkout') {
                     return new RedirectResponse('checkout?token=' . $editToken);
@@ -65,6 +80,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->permitService->createPendingVerification($dto->toDomainDto());
             $this->sessionManager->clearFormData();
             $this->sessionManager->clearEditState();
+            $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
 
             return new RedirectResponse('?sent=1');
         } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen

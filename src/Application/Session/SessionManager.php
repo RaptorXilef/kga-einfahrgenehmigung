@@ -234,6 +234,21 @@ final class SessionManager implements AuthSessionInterface
         $_SESSION['csrf_token'] = \bin2hex(\random_bytes(32));
     }
 
+    public function setFormStartTime(int $timestamp): void
+    {
+        $_SESSION['form_start_time'] = $timestamp;
+    }
+
+    public function getFormStartTime(): int
+    {
+        return (int) ($_SESSION['form_start_time'] ?? 0);
+    }
+
+    public function clearFormStartTime(): void
+    {
+        unset($_SESSION['form_start_time']);
+    }
+
     /**
      * Speichert eine Flash-Message in der Session.
      * $type ist z.B. 'success', 'error', 'warning', 'info'
