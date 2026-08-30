@@ -46,7 +46,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
         if (\in_array(\trim($recipient), ['', '0'], true)) {
-            $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', clone new DateTimeImmutable(), null, $data);
+            $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', null, $data);
 
             return true;
         }
@@ -60,14 +60,14 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
         if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
-            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', clone new DateTimeImmutable(), $replyTo, $data);
+            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', $replyTo, $data);
 
             return true;
         }
 
         // 3. Versand und Logging
         $status = $this->dispatch($recipient, $subject, $body, $mailConfig, $replyTo);
-        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $status, clone new DateTimeImmutable(), $replyTo, $data);
+        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $status, $replyTo, $data);
 
         return $status;
     }
@@ -95,7 +95,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                         $log->id,
                         $log->timestamp->format('Y-m-d H:i:s'),
                         $log->recipient,
-                        $log->replyTo, // <--- NEU
+                        $log->replyTo,
                         $log->subject,
                         $log->template->value,
                         $log->status,
@@ -150,7 +150,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                 (string) $id,
                 new DateTimeImmutable($r['timestamp'] ?? 'now'),
                 $r['recipient'] ?? '',
-                $r['reply_to'],
+                $r['reply_to'] ?? null,
                 $r['subject'] ?? '',
                 new TemplateKey($r['template'] ?: 'std_7'),
                 $r['status'] ?? '',
@@ -206,7 +206,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      *
      * @return bool|string True bei SMTP-Erfolg (Code 250), andernfalls Fehlermeldung.
      */
-    private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig): bool|string
+    private function dispatch(string $recipient, string $subject, string $body, array $smtpConfig, ?string $replyTo = null): bool|string
     {
         $host = $smtpConfig['host'] ?? '';
         $port = (int) ($smtpConfig['port'] ?? 465);
@@ -265,6 +265,12 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         $headers .= "From: <$from>\r\n";
         $headers .= "To: <$recipient>\r\n";
+
+        // Reply-To Header sicher injizieren
+        if ($replyTo !== null && \filter_var($replyTo, \FILTER_VALIDATE_EMAIL)) {
+            $headers .= "Reply-To: <$replyTo>\r\n";
+        }
+
         $headers .= 'Subject: =?UTF-8?B?' . \base64_encode($subject) . "?=\r\n\r\n";
 
         \fwrite($socket, $headers . $body . "\r\n.\r\n");
@@ -317,7 +323,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      * Schreibt einen Eintrag in das E-Mail-Versandprotokoll und begrenzt die Historie (Capping).
      * Unterstützt MySQL-Einträge inklusive Tabellen-Bereinigung via Subquery oder historisierende JSON-Dateien.
      */
-    private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, array $data = []): void
+    private function logEmail(string $recipient, string $subject, TemplateKey $template, bool|string $status, ?string $replyTo = null, array $data = []): void
     {
         $statusStr = $status === true ? 'Erfolg' : 'Fehler: ' . $status;
         $maxEntries = (int) $this->config->get('mail_log_max_entries', 200);
@@ -326,7 +332,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             \uniqid('ml_'),
             new DateTimeImmutable(APP_REQUEST_TIME_STR),
             $recipient,
-            $reply_to,
+            $replyTo,
             $subject,
             $template,
             $statusStr,
