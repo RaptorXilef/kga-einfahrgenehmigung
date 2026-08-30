@@ -12,7 +12,6 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
-use App\Core\Entity\PermitStatus;
 use App\Core\Service\AuthService;
 
 /**
@@ -45,16 +44,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $isUnpaid = $permit->getStatus() !== PermitStatus::Bezahlt;
-        $hasRight = false;
-
-        if ($isUnpaid && $this->auth->hasPermission('permits.suspend')) {
-            $hasRight = true;
-        } elseif (!$isUnpaid && $this->auth->hasPermission('permits.suspend')) {
-            $hasRight = true;
-        }
-
-        if (!$hasRight) {
+        if (!$this->auth->hasPermission('permits.suspend')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Sperren.');
 
             return new RedirectResponse('admin.php');

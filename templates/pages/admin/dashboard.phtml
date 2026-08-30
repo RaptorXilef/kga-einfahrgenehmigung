@@ -37,10 +37,8 @@ use App\Infrastructure\Maintenance\MigrationService;
 
 // Aktiviere das Admin-Layout
 $layout = 'admin';
-
 $now = new \DateTimeImmutable();
 $currentVersion = 'v0.0.0';
-
 if ($auth->hasPermission('system.update.execute')) {
     // --- Aktuelle Version aus package.json auslesen ---
     $packageJsonPath = $appRoot . '/package.json';
@@ -63,9 +61,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         'type' => $tpl['type'],
         'prices' => $tpl['prices'],
     ];
-}
-?>
-
+} ?>
 <main class="c-container u-padding-y-l">
     <?php if ($auth->hasPermission('system.update.execute')) { ?>
         <div class="c-tab-content-container">
@@ -136,23 +132,26 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              class="c-icon"
                              alt="">Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
                     </button>
-                <?php } ?>
-                <?php if ($auth->hasPermission('permits.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-future">
                         <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                              class="c-icon"
                              alt="">Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
                     </button>
-                <?php } ?>
-                <?php if ($auth->hasPermission('permits.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-expired">
                         <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
                              class="c-icon"
                              alt="">Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                     </button>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-cancelled">
+                        <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                             class="c-icon"
+                             alt="">Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
+                    </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('stats.ranking')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-ranking">
@@ -161,14 +160,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Ranking
                     </button>
                 <?php } ?>
-                <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <button class="c-tabs__btn"
-                            data-tab-target="tab-cancelled">
-                        <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                             class="c-icon"
-                             alt="">Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
-                    </button>
-                <?php } ?>
+
                 <?php if ($auth->hasPermission('finance.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-finance">
@@ -181,6 +173,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     } ?>
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('stats.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-stats">
@@ -189,12 +182,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Statistiken
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('finance.bank_import')) { ?>
                     <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'c-tabs__btn--active' : ''; ?>"
                             data-tab-target="tab-bank-import">
                         🏦 Bank-Abgleich
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('finance.export')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-export">
@@ -203,6 +198,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Daten & Export
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-tools">
@@ -211,6 +207,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Werkzeuge
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('vouchers.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-vouchers">
@@ -219,6 +216,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Gutscheincodes
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('system.logs.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-logs">
@@ -226,8 +224,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              class="c-icon"
                              alt="">Mail Log
                     </button>
-                <?php } ?>
-                <?php if ($auth->hasPermission('system.logs.view')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-audit-log">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
@@ -235,6 +231,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt="">Nutzerprotokoll
                     </button>
                 <?php } ?>
+
                 <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-migration">
@@ -250,79 +247,80 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                      class="c-tabs__content c-tabs__content--active">
                     <?php include $appRoot . '/templates/partials/admin/tab_active.phtml'; ?>
                 </div>
-            <?php } ?>
-            <?php if ($auth->hasPermission('permits.view')) { ?>
                 <div id="tab-future"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_future.phtml'; ?>
                 </div>
-            <?php } ?>
-            <?php if ($auth->hasPermission('permits.view')) { ?>
                 <div id="tab-expired"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_expired.phtml'; ?>
                 </div>
+                <div id="tab-cancelled"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
+                </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('stats.ranking')) { ?>
                 <div id="tab-ranking"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_ranking.phtml'; ?>
                 </div>
             <?php } ?>
-            <?php if ($auth->hasPermission('permits.view')) { ?>
-                <div id="tab-cancelled"
-                     class="c-tabs__content">
-                    <?php include $appRoot . '/templates/partials/admin/tab_cancelled.phtml'; ?>
-                </div>
-            <?php } ?>
+
             <?php if ($auth->hasPermission('finance.view')) { ?>
                 <div id="tab-finance"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_finance.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('stats.view')) { ?>
                 <div id="tab-stats"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_stats.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('finance.bank_import')) { ?>
                 <div id="tab-bank-import"
                      class="c-tabs__content <?php echo isset($bank_headers) ? 'c-tabs__content--active' : ''; ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_bank_import.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('finance.export')) { ?>
                 <div id="tab-export"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_export.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
                 <div id="tab-tools"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_generator_tools.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('vouchers.view')) { ?>
                 <div id="tab-vouchers"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_vouchers.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('system.logs.view')) { ?>
                 <div id="tab-logs"
                      class="c-tabs__content">
                     <?php include $appRoot . '/templates/partials/admin/tab_logs.phtml'; ?>
                 </div>
-            <?php } ?>
-            <?php if ($auth->hasPermission('system.logs.view')) { ?>
                 <div id="tab-audit-log"
                      class="c-tabs__content <?php echo isset($_GET['audit_page']) ? 'c-tabs__content--active' : ''; ?>">
                     <?php include $appRoot . '/templates/partials/admin/tab_audit_log.phtml'; ?>
                 </div>
             <?php } ?>
+
             <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                 <div id="tab-migration"
                      class="c-tabs__content">

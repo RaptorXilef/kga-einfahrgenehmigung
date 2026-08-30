@@ -83,7 +83,7 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz.php';
 
         <?php
         // Bug-Report-Link nur für eingeloggte Admins mit Dashboard-Rechten sichtbar machen
-        if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('dashboard.view')) { ?>
+        if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
             <div style="margin-top: 2px;">
                 <a href="<?php echo \htmlspecialchars($issuesUrl); ?>"
                    target="_blank"
