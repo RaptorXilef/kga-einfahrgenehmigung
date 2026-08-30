@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.58.0...v0.58.1) (2026-08-30)
+
+### ⚙️ Refactoring
+
+* **architecture:** Finalize GitHub Actions update flow and remove legacy migrations ([29313f5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/29313f50128d0e370cb05a93a36d9f1c26099cb0))
+* **architecture:** Remove legacy in-app updater in favor of GitHub Actions ([cce93ed](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cce93edc2a3803d876f6066bd50104ba8baa7c6d))
+
 ## [0.58.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.57.1...v0.58.0) (2026-08-30)
 
 ### 🚀 Features
