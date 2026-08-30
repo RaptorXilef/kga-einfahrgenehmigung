@@ -38,19 +38,18 @@ final readonly class MailQueueService implements MailServiceInterface
      *
      * @return bool True bei erfolgreicher Einreihung.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null): bool
     {
-        // FIX: Den primitiven String in das erforderliche TemplateKey Value Object verpacken
         $job = new MailJob(
             \uniqid('mq_'),
             $recipient,
+            $replyTo,
             $subject,
             new TemplateKey($template),
             $data,
             0,
             new DateTimeImmutable(),
         );
-
         $this->repository->enqueue($job);
 
         return true;
@@ -68,8 +67,8 @@ final readonly class MailQueueService implements MailServiceInterface
     public function processQueue(int $limit = 5): int
     {
         // Wir übergeben eine Closure an das Repository, die den echten Mailversand triggert.
-        return $this->repository->processBatch($limit, function (string $rec, string $sub, string $tpl, array $dat): void {
-            $result = $this->realMailService->sendTemplate($rec, $sub, $tpl, $dat);
+        return $this->repository->processBatch($limit, function (string $rec, string $sub, string $tpl, array $dat, ?string $replyTo): void {
+            $result = $this->realMailService->sendTemplate($rec, $sub, $tpl, $dat, $replyTo);
             if ($result !== true) {
                 throw new Exception((string) $result);
             }

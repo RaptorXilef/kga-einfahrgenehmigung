@@ -63,6 +63,7 @@ final readonly class SystemResendMailAction implements ActionInterface
                 $log->subject,
                 $log->template->value,
                 $log->data,
+                $log->replyTo,
             );
 
             $this->auditLogger->log('SYSTEM_MAIL_RESEND', "E-Mail '{$log->subject}' an {$log->recipient} manuell erneut versendet.");

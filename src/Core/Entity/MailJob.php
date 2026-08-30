@@ -15,6 +15,7 @@ final readonly class MailJob
     public function __construct(
         public string $id,
         public string $recipient,
+        public ?string $replyTo,
         public string $subject,
         public TemplateKey $template,
         public array $data,

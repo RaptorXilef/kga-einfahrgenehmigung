@@ -42,17 +42,11 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      *
      * @return bool|string True bei Erfolg, andernfalls eine Fehlermeldung als String.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null): bool|string
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
         if (\in_array(\trim($recipient), ['', '0'], true)) {
-            $this->logEmail(
-                'System',
-                $subject,
-                clone new TemplateKey($template),
-                'Übersprungen: Kein Empfänger angegeben',
-                $data,
-            );
+            $this->logEmail('System', $subject, clone new TemplateKey($template), 'Übersprungen: Kein Empfänger angegeben', clone new DateTimeImmutable(), null, $data);
 
             return true;
         }
@@ -66,14 +60,14 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         // SMTP Versand (Logik aus deiner smtp.php, hier vereinfacht skizziert)
         // Wir nutzen hier das 'test_mode' Flag aus deiner Config
         if ($this->config->isTestMode() && ($mailConfig['test_mail_active'] ?? false) === false) {
-            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', $data);
+            $this->logEmail($recipient, $subject, clone new TemplateKey($template), 'Testmodus (kein Versand)', clone new DateTimeImmutable(), $replyTo, $data);
 
             return true;
         }
 
         // 3. Versand und Logging
-        $status = $this->dispatch($recipient, $subject, $body, $mailConfig);
-        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $status, $data);
+        $status = $this->dispatch($recipient, $subject, $body, $mailConfig, $replyTo);
+        $this->logEmail($recipient, $subject, clone new TemplateKey($template), $status, clone new DateTimeImmutable(), $replyTo, $data);
 
         return $status;
     }
@@ -89,17 +83,19 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
-
         if ($this->pdo instanceof PDO) {
             $this->pdo->beginTransaction();
 
             try {
-                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                // Spalte `reply_to` hinzugefügt!
+                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
                 foreach ($logs as $log) {
                     $stmt->execute([
                         $log->id,
                         $log->timestamp->format('Y-m-d H:i:s'),
                         $log->recipient,
+                        $log->replyTo, // <--- NEU
                         $log->subject,
                         $log->template->value,
                         $log->status,
@@ -133,6 +129,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                         (string) $r['id'],
                         new DateTimeImmutable($r['timestamp']),
                         $r['recipient'],
+                        $r['reply_to'],
                         $r['subject'],
                         new TemplateKey($r['template'] ?: 'std_7'),
                         $r['status'],
@@ -153,6 +150,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                 (string) $id,
                 new DateTimeImmutable($r['timestamp'] ?? 'now'),
                 $r['recipient'] ?? '',
+                $r['reply_to'],
                 $r['subject'] ?? '',
                 new TemplateKey($r['template'] ?: 'std_7'),
                 $r['status'] ?? '',
@@ -328,6 +326,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             \uniqid('ml_'),
             new DateTimeImmutable(APP_REQUEST_TIME_STR),
             $recipient,
+            $reply_to,
             $subject,
             $template,
             $statusStr,

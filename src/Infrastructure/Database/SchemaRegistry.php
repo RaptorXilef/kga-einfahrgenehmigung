@@ -130,6 +130,7 @@ final class SchemaRegistry
                 `id` VARCHAR(50) PRIMARY KEY,
                 `timestamp` DATETIME NOT NULL,
                 `recipient` VARCHAR(255) NOT NULL,
+                `reply_to` VARCHAR(255) DEFAULT NULL,
                 `subject` VARCHAR(255) NOT NULL,
                 `template` VARCHAR(100) NOT NULL,
                 `status` TEXT,
@@ -140,6 +141,7 @@ final class SchemaRegistry
             'mail_queue' => 'CREATE TABLE IF NOT EXISTS `mail_queue` (
                 `id` VARCHAR(50) PRIMARY KEY,
                 `recipient` VARCHAR(255) NOT NULL,
+                `reply_to` VARCHAR(255) DEFAULT NULL,
                 `subject` VARCHAR(255) NOT NULL,
                 `template` VARCHAR(100) NOT NULL,
                 `data` JSON NOT NULL,

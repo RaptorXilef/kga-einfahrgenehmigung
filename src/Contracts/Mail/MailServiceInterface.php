@@ -16,6 +16,7 @@ namespace App\Contracts\Mail;
 interface MailServiceInterface
 {
     /**
+     * ToDo DocBlock aktualisieren
      * @param string $recipient Die E-Mail-Adresse des Empfängers.
      * @param string $subject Betreffzeile der E-Mail.
      * @param string $template Pfad zum Template relativ zum Template-Ordner.
@@ -23,7 +24,7 @@ interface MailServiceInterface
      *
      * @return bool|string True bei Erfolg, Fehlermeldung als String bei Fehlern.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data): bool|string;
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null): bool|string;
 
     // TODO DOCBLOCK
     public function processQueue(int $limit = 5): int;

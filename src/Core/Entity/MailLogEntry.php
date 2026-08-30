@@ -16,6 +16,7 @@ final readonly class MailLogEntry
         public string $id,
         public DateTimeImmutable $timestamp,
         public string $recipient,
+        public ?string $replyTo,
         public string $subject,
         public TemplateKey $template,
         public string $status,

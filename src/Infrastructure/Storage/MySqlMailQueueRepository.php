@@ -98,6 +98,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     private function processSingleMailJob(array $item, callable $processor): bool
     {
         $recipient = \is_string($item['recipient'] ?? null) ? $item['recipient'] : '';
+        $replyTo = \is_string($item['reply_to'] ?? null) ? $item['reply_to'] : null;
         $subject = \is_string($item['subject'] ?? null) ? $item['subject'] : '';
         $template = \is_string($item['template'] ?? null) ? $item['template'] : '';
         $dataStr = \is_string($item['data'] ?? null) ? $item['data'] : '{}';
@@ -109,7 +110,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
         $attempts = \is_numeric($rawAttempts) ? (int) $rawAttempts : 0;
 
         try {
-            $processor($recipient, $subject, $template, $this->jsonHelper->decode($dataStr));
+            $processor($recipient, $subject, $template, $this->jsonHelper->decode($dataStr), $replyTo);
             $this->delete($idStr);
 
             return true;

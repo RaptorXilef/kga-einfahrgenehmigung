@@ -57,6 +57,8 @@ final readonly class SendPermitMailListener
 
         // --- 1. MAIL AN VORSTAND ---
         if (($mailConfig['send_board_notification'] ?? true) === true) {
+            $userEmail = $permit->getOwnerEmail() !== '' ? $permit->getOwnerEmail() : null;
+
             $this->mailService->sendTemplate(
                 recipient: $mailConfig['recipients'][$this->config->isTestMode() ? 'test' : 'live'],
                 subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
@@ -80,6 +82,7 @@ final readonly class SendPermitMailListener
                     'von_formatted' => $permit->getValidFrom()->format('d.m.Y'),
                     'zweck' => $permit->getPurpose(),
                 ],
+                replyTo: $userEmail,
             );
         }
 
