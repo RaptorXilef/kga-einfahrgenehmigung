@@ -242,6 +242,7 @@ ToDo*.md
 # TEST-FOLDER
 # ==============================================================================
 
+!database/migrations/**
 
 src/assets/img/**
 public/assets/img/role_images/*.webp
