@@ -8,5 +8,5 @@ interface UpdateMigrationServiceInterface
 {
     public function runAllPending(): array;
 
-    public function import(array $data, bool $forceSql = false): void;
+    public function import(array $data): void;
 }

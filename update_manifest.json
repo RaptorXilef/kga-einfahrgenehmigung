@@ -3,6 +3,7 @@
     "CHANGELOG.md",
     "composer.json",
     "config/",
+    "database/",
     "package.json",
     "public/",
     "README.md",

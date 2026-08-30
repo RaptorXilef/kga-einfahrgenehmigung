@@ -8,7 +8,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use Exception;
 use PDO;
 use PDOException;
@@ -16,79 +15,71 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Service zur Ausführung von Datenbank- und Struktur-Updates (Migrationen).
+ * Service zur Ausführung von Datenbank-Updates über reine SQL-Dateien.
  */
 final readonly class UpdateMigrationService implements UpdateMigrationServiceInterface
 {
-    use SafeJsonWriterTrait;
-
     public function __construct(
         private ?PDO $pdo,
         private ClockInterface $clock,
         private ConfigInterface $config,
-        private JsonHelperInterface $jsonHelper,
+        private JsonHelperInterface $jsonHelper, // Bleibt für Kompatibilität mit dem ServiceProvider erhalten
     ) {
     }
 
     /**
-     * Public API: Startet die Update-Kette
-     *
-     * Sucht nach neuen Migrations-Skripten im Ordner und führt diese chronologisch aus.
+     * Sucht nach neuen .sql-Skripten im Ordner und führt diese chronologisch aus.
      * Schlägt ein Skript fehl, wird der Update-Vorgang sofort abgebrochen.
      *
      * @return array<int, string> Liste der neu ausgeführten Migrations-Versionen.
      */
     public function runAllPending(): array
     {
-        $executed = $this->getExecutedMigrations();
+        if (!$this->pdo instanceof PDO) {
+            throw new RuntimeException('Fehler: Keine Datenbankverbindung für Migrationen vorhanden.');
+        }
 
-        // Nutze den garantierten Root-Pfad aus der Config
-        $migrationsDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/src/Infrastructure/UpdateMigrations';
+        $executed = $this->getExecutedMigrations();
+        $migrationsDir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/database/migrations';
         $executedNow = [];
 
         if (!\is_dir($migrationsDir)) {
-            \error_log('Migration Error: Ordner nicht gefunden: ' . $migrationsDir);
+            \error_log('Migration: Ordner nicht gefunden: ' . $migrationsDir);
 
             return $executedNow;
         }
 
-        // Wir erzwingen das korrekte Slashen für Windows UND Linux
-        $files = \glob($migrationsDir . \DIRECTORY_SEPARATOR . '*.php');
+        $files = \glob($migrationsDir . \DIRECTORY_SEPARATOR . '*.sql');
 
-        if ($files === false) {
+        if ($files === false || $files === []) {
             return $executedNow;
         }
 
-        \sort($files); // WICHTIG: Chronologisch sortieren (z.B. 001_update.php, 002_update.php)
+        \sort($files); // Chronologisch sortieren (z.B. 022_add_column.sql)
 
         foreach ($files as $file) {
-            $version = \basename($file, '.php');
+            $version = \basename($file, '.sql');
 
-            // Wenn diese Version noch nicht ausgeführt wurde
             if (\in_array($version, $executed, true)) {
                 continue;
             }
 
             try {
-                // Wir erwarten, dass die Datei eine anonyme Funktion (Closure) zurückgibt
-                $migrationClosure = require $file;
+                $sql = \file_get_contents($file);
 
-                if (\is_callable($migrationClosure)) {
-                    // Führe die Closure aus der Datei aus
-                    $migrationClosure($this->pdo, $this->config);
-
-                    // Erfolgreich ausgeführt -> in DB/JSON eintragen
-                    $this->markAsExecuted($version);
-                    $executedNow[] = $version;
-                } else {
-                    throw new RuntimeException("Datei {$version}.php liefert keine ausführbare Closure zurück.");
+                if ($sql === false || \trim($sql) === '') {
+                    throw new RuntimeException("Datei {$version}.sql ist leer oder nicht lesbar.");
                 }
-            } catch (Throwable $e) {
-                \error_log("Kritischer Fehler bei Migration {$version}: " . $e->getMessage());
 
-                // Wir werfen die Exception weiter, damit FinalizeUpdateAction den Fehler fängt
-                // und die UI den Abbruch signalisieren kann, statt fälschlicherweise "Erfolg" zu melden.
-                throw new RuntimeException("Migration '{$version}' fehlgeschlagen: " . $e->getMessage(), 0, $e);
+                // Führt alle Queries innerhalb der SQL-Datei aus
+                $this->pdo->exec($sql);
+
+                $this->markAsExecuted($version);
+                $executedNow[] = $version;
+            } catch (Throwable $e) {
+                \error_log("Kritischer Fehler bei SQL-Migration {$version}: " . $e->getMessage());
+
+                throw new RuntimeException("SQL-Migration '{$version}' fehlgeschlagen: " . $e->getMessage(), 0, $e);
             }
         }
 
@@ -105,30 +96,17 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     private function getExecutedMigrations(): array
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        if (!$cfg) {
+        if (!$cfg || !$this->pdo instanceof PDO) {
             return [];
         }
 
-        if ($cfg['type'] === 'mysql' && $this->pdo instanceof PDO) {
-            try {
-                $stmt = $this->pdo->query("SELECT `version` FROM `{$cfg['table']}`");
+        try {
+            $stmt = $this->pdo->query("SELECT `version` FROM `{$cfg['table']}`");
 
-                return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
-            } catch (PDOException) {
-                // Tabelle existiert ggf. bei der allerersten Installation noch nicht
-                return [];
-            }
-        }
-
-        // JSON Fallback
-        $path = $this->config->getStoragePath($cfg['file']);
-        if (!\file_exists($path)) {
+            return $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+        } catch (PDOException) {
             return [];
         }
-
-        $data = $this->jsonHelper->read($path);
-
-        return \array_column($data, 'version');
     }
 
     /**
@@ -141,52 +119,34 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
     private function markAsExecuted(string $version): void
     {
         $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
-        $now = $this->clock->now()->format('Y-m-d H:i:s');
-
-        if ($cfg['type'] === 'mysql' && $this->pdo instanceof PDO) {
-            // Hier muss zwingend eine ID übergeben werden, da MySQL sonst blockiert!
-            $stmt = $this->pdo->prepare("INSERT IGNORE INTO `{$cfg['table']}` (`id`, `version`, `executed_at`) VALUES (?, ?, ?)");
-            $stmt->execute([\uniqid('mig_', true), $version, $now]);
-
+        if (!$cfg || !$this->pdo instanceof PDO) {
             return;
         }
 
-        // JSON Speicherung
-        $path = $this->config->getStoragePath($cfg['file']);
-        // Prüfen, ob Datei existiert, bevor wir den strengen JsonHelper nutzen!
-        $data = \file_exists($path) ? $this->jsonHelper->read($path) : [];
-
-        $data[] = [
-            'id' => \uniqid('mig_', true),
-            'version' => $version,
-            'executed_at' => $now,
-        ];
-
-        $this->writeJsonSafely($path, $data);
+        $now = $this->clock->now()->format('Y-m-d H:i:s');
+        $stmt = $this->pdo->prepare("INSERT IGNORE INTO `{$cfg['table']}` (`id`, `version`, `executed_at`) VALUES (?, ?, ?)");
+        $stmt->execute([\uniqid('mig_', true), $version, $now]);
     }
 
-    public function import(array $data, bool $forceSql = false): void
+    public function import(array $data): void
     {
-        $cfg = $this->config->get('storage_config')['update_migrations'];
-        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
+        $cfg = $this->config->get('storage_config')['update_migrations'] ?? null;
+        if (!$cfg || !$this->pdo instanceof PDO) {
+            return;
+        }
 
-        if ($useSql && $this->pdo instanceof PDO) {
-            $this->pdo->beginTransaction();
+        $this->pdo->beginTransaction();
 
-            try {
-                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id, version, executed_at) VALUES (?, ?, ?)");
-                foreach ($data as $id => $item) {
-                    $stmt->execute([$id, $item['version'] ?? '', $item['executed_at'] ?? '']);
-                }
-                $this->pdo->commit();
-            } catch (Exception $e) {
-                $this->pdo->rollBack();
-
-                throw $e;
+        try {
+            $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id, version, executed_at) VALUES (?, ?, ?)");
+            foreach ($data as $id => $item) {
+                $stmt->execute([$id, $item['version'] ?? '', $item['executed_at'] ?? '']);
             }
-        } elseif (!$forceSql) {
-            $path = $this->config->getStoragePath($cfg['file']);
-            $this->writeJsonSafely($path, \array_values($data));
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+
+            throw $e;
         }
     }
 }
