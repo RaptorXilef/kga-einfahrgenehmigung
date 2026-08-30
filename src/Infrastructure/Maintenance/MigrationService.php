@@ -8,17 +8,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Infrastructure\Mail\SmtpMailService;
-use App\Infrastructure\Storage\JsonAuditLogRepository;
-use App\Infrastructure\Storage\JsonCancelledPermitRepository;
-use App\Infrastructure\Storage\JsonLoginAttemptRepository;
-use App\Infrastructure\Storage\JsonMagicLinkRepository;
-use App\Infrastructure\Storage\JsonMailQueueRepository;
-use App\Infrastructure\Storage\JsonPermitArchiveRepository;
-use App\Infrastructure\Storage\JsonRoleRepository;
-use App\Infrastructure\Storage\JsonStorage;
-use App\Infrastructure\Storage\JsonUserRepository;
-use App\Infrastructure\Storage\JsonVerificationRepository;
-use App\Infrastructure\Storage\JsonVoucherRepository;
 use App\Infrastructure\Storage\MySqlAuditLogRepository;
 use App\Infrastructure\Storage\MySqlCancelledPermitRepository;
 use App\Infrastructure\Storage\MySqlLoginAttemptRepository;
@@ -30,28 +19,18 @@ use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
-use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use App\Infrastructure\Utils\SystemClock;
 use Exception;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
 use RuntimeException;
-use Throwable;
 
 /**
- * Service für Daten-Migrationen, automatisierte Datensicherungen (Backups) und System-Recovery.
- *
- * Überträgt relationale und flache Dateistrukturen (JSON <-> MySQL) bidirektional,
- * steuert automatische Backup-Zyklen und stellt Tabellen-Schemata sowie Initialdaten (Seeding) her.
- * Kontext: Administrativer Wartungs- und Backup-Manager der Anwendung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Service für automatisierte Datensicherungen (Backups) und System-Recovery.
  */
 final readonly class MigrationService implements MigrationServiceInterface
 {
-    use SafeJsonWriterTrait;
-
     public function __construct(
         private ?PDO $pdo,
         private BackupService $backupService,
@@ -60,78 +39,11 @@ final readonly class MigrationService implements MigrationServiceInterface
     ) {
     }
 
-    // --- Public Dashboard Actions ---
-
-    /**
-     * Orchestriert eine Migrationsaktion für einen Datenbereich.
-     * Erstellt vorab zwingend ein Sicherheitsbackup und verzweigt dann in die Sub-Migrationsschritte.
-     */
     public function execute(string $target, string $action): string
     {
-        try {
-            $backupFolder = $this->backupService->createBackup($target);
-        } catch (Exception $e) {
-            return 'Abbruch: Backup konnte nicht erstellt werden (' . $e->getMessage() . ').';
-        }
-
-        if (!$this->pdo && \str_contains($action, 'mysql')) {
-            return 'Fehler: MySQL-Server ist nicht erreichbar.';
-        }
-
-        try {
-            if ($target === 'all') {
-                $targetsToMigrate = [
-                    'roles', // FIX: War früher groups
-                    'login_attempts',
-                    'magic_links',
-                    'mail_log',
-                    'mail_queue',
-                    'pending_verification',
-                    'permits',
-                    'permits_archive',
-                    'permits_cancelled',
-                    'update_migrations',
-                    'users',
-                    'verified_pending',
-                    'vouchers',
-                    'vouchers_archive',
-                    'audit_logs',
-                ];
-
-                $count = 0;
-                foreach ($targetsToMigrate as $t) {
-                    match ($action) {
-                        'json_to_mysql' => $this->migrateJsonToSql($t),
-                        'mysql_to_json' => $this->migrateSqlToJson($t),
-                        'sync' => $this->syncBoth($t),
-                        default => null,
-                    };
-                    ++$count;
-                }
-
-                return "Voll-Backup erstellt in $backupFolder. <br>Erfolg: $count Bereiche komplett migriert ($action).";
-            }
-
-            $result = match ($action) {
-                'json_to_mysql' => $this->migrateJsonToSql($target),
-                'mysql_to_json' => $this->migrateSqlToJson($target),
-                'sync' => $this->syncBoth($target),
-                default => 'Fehler: Unbekannte Aktion.'
-            };
-
-            return "Backup erstellt in $backupFolder. <br>" . $result;
-
-        } catch (Throwable $e) {
-            \error_log("Migration Error ({$target} / {$action}): " . $e->getMessage() . "\n" . $e->getTraceAsString());
-
-            return 'Kritischer Fehler bei der Migration: ' . $e->getMessage();
-        }
+        return 'Fehler: Die JSON-Synchronisation wurde entfernt. Das System nutzt nun exklusiv MySQL.';
     }
 
-    /**
-     * Stellt einen spezifischen Datenstand aus einem Backup-Ordner wieder her.
-     * Sichert den aktuellen Ist-Zustand vorab unter dem Präfix `_before_restore` ab.
-     */
     public function restore(string $timestamp, string $target, string $engine = 'all'): string
     {
         try {
@@ -146,42 +58,26 @@ final readonly class MigrationService implements MigrationServiceInterface
             return "Fehler: Keine gültige Backup-Datei für '$target' im Ordner $timestamp gefunden.";
         }
 
-        $restoredIn = [];
-
-        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof PDO) {
+        if ($this->pdo instanceof PDO) {
             $this->saveToSql($target, $data);
-            $restoredIn[] = 'MySQL';
+
+            return "Erfolg: '$target' wurde aus Backup [$timestamp] in MySQL wiederhergestellt.";
         }
 
-        if (\in_array($engine, ['all', 'json'], true)) {
-            $this->saveToJson($target, $data);
-            $restoredIn[] = 'JSON';
-        }
-
-        if ($restoredIn === []) {
-            return 'Hinweis: Es wurden keine Daten wiederhergestellt (Speicher nicht erreichbar).';
-        }
-
-        return "Erfolg: '$target' wurde aus Backup [$timestamp] in " . \implode(' & ', $restoredIn) . ' wiederhergestellt.';
+        return 'Hinweis: Es wurden keine Daten wiederhergestellt (Datenbank nicht erreichbar).';
     }
 
-    /**
-     * Leert den Deptrac-Cache und kompiliert die Session-Berechtigungen neu.
-     */
     public function clearCache(): string
     {
         $root = $this->config->get('root_path');
         $deptracCache = $root . '/.cache/deptrac/.deptrac.cache';
         if (\file_exists($deptracCache)) {
-            \unlink($deptracCache);
+            @\unlink($deptracCache);
         }
 
         return 'Erfolg: Der System-Cache wurde geleert und die Berechtigungen neu kompiliert.';
     }
 
-    /**
-     * Löscht alle Daten eines Zielbereichs (Truncate) und erstellt vorher ein Backup.
-     */
     public function truncateTarget(string $target, string $engine = 'all'): string
     {
         try {
@@ -191,213 +87,28 @@ final readonly class MigrationService implements MigrationServiceInterface
         }
 
         $cfg = $this->config->get('storage_config')[$target] ?? null;
-        if (!$cfg) {
-            return "Fehler: Unbekannter Speicherbereich '$target'.";
-        }
-
-        $clearedIn = [];
-
-        if (\in_array($engine, ['all', 'mysql'], true) && $this->pdo instanceof PDO) {
-            try {
-                $tableName = $cfg['table'];
-                $allowedTables = \array_column($this->config->get('storage_config'), 'table');
-
-                if (!\in_array($tableName, $allowedTables, true)) {
-                    throw new RuntimeException('Sicherheitsabbruch: Tabellenname nicht in Config autorisiert.');
-                }
-
-                $this->pdo->exec("TRUNCATE TABLE `$tableName`");
-                $clearedIn[] = 'MySQL';
-            } catch (PDOException $e) {
-                \error_log('Truncate Error MySQL: ' . $e->getMessage());
-            }
-        }
-
-        if (\in_array($engine, ['all', 'json'], true) && isset($cfg['file'])) {
-            $path = $this->config->getStoragePath($cfg['file']);
-            $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE;
-            $this->writeJsonSafely($path, [], $jsonFlags);
-            $clearedIn[] = 'JSON';
-        }
-
-        if ($clearedIn === []) {
-            return 'Hinweis: Es konnte nichts gelöscht werden (Speicher nicht erreichbar).';
-        }
-
-        return "Erfolg: Der Bereich '$target' wurde geleert (" .
-            \implode(' & ', $clearedIn) .
-            '). Ein Backup wurde erstellt.';
-    }
-
-    // --- Private Execution Routes ---
-
-    /**
-     * Exportiert Tabellendaten aus MySQL in eine flache JSON-Datei.
-     */
-    private function migrateSqlToJson(string $target): string
-    {
-        if ($target === 'permits') {
-            $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
-            $json = new JsonStorage($this->config->getStoragePath($file), $this->jsonHelper);
-            $sql = new MySqlStorage($this->pdo, $this->jsonHelper);
-            $count = $sql->migrateTo($json);
-
-            return "$count Genehmigungen nach JSON exportiert.";
-        }
-
-        $data = $this->loadRawSql($target);
-        if ($data === []) {
-            return "Keine Daten in MySQL-Quelle für $target gefunden.";
-        }
-
-        $this->saveToJson($target, $data);
-
-        return \count($data) . ' Datensätze von MySQL nach JSON kopiert.';
-    }
-
-    /**
-     * Importiert flache JSON-Datensätze in die relationale MySQL-Struktur.
-     */
-    private function migrateJsonToSql(string $target): string
-    {
-        if ($target === 'permits') {
-            $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
-            $json = new JsonStorage($this->config->getStoragePath($file), $this->jsonHelper);
-            $sql = new MySqlStorage($this->pdo, $this->jsonHelper);
-            $count = $json->migrateTo($sql);
-
-            return "$count Genehmigungen nach MySQL verschoben.";
-        }
-
-        $data = $this->loadRawJson($target);
-        if ($data === []) {
-            return "Keine Daten in JSON-Quelle für $target gefunden.";
-        }
-
-        $this->saveToSql($target, $data);
-
-        return \count($data) . ' Datensätze von JSON nach MySQL kopiert.';
-    }
-
-    /**
-     * Führt JSON- und MySQL-Bestände über ein rekursives Array-Merging zusammen und gleicht beide Backends an.
-     */
-    private function syncBoth(string $target): string
-    {
-        if ($target === 'permits') {
-            $file = $this->config->get('storage_config')['permits']['file'] ?? 'permits.json';
-            $json = new JsonStorage($this->config->getStoragePath($file), $this->jsonHelper);
-            $sql = new MySqlStorage($this->pdo, $this->jsonHelper);
-
-            $jsonPermits = $json->getAll();
-            $sqlPermits = $sql->getAll();
-
-            $count = 0;
-            foreach ($sqlPermits as $permit) {
-                $json->save($permit);
-                ++$count;
-            }
-
-            foreach ($jsonPermits as $permit) {
-                $sql->save($permit);
-                ++$count;
-            }
-
-            return "Erfolg: '$target' (Domain-Entitäten) synchronisiert.";
-        }
-
-        $jsonData = $this->loadRawJson($target);
-        $sqlData = $this->loadRawSql($target);
-
-        $merged = \array_replace_recursive($jsonData, $sqlData);
-
-        $this->saveToJson($target, $merged);
-        $this->saveToSql($target, $merged);
-
-        return "Erfolg: '$target' synchronisiert. Gesamtbestand: " . \count($merged);
-    }
-
-    // --- Private Raw Data Loaders ---
-
-    /**
-     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
-     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
-     */
-    private function loadRawJson(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key] ?? null;
-        if (!isset($cfg['file'])) {
-            return [];
-        }
-        $path = $this->config->getStoragePath($cfg['file']);
-
-        return $this->jsonHelper->read($path);
-    }
-
-    /**
-     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
-     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
-     */
-    private function loadRawSql(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key];
-        if (!$this->pdo instanceof PDO) {
-            return [];
+        if (!$cfg || !$this->pdo instanceof PDO) {
+            return "Fehler: Unbekannter Speicherbereich '$target' oder DB offline.";
         }
 
         try {
             $tableName = $cfg['table'];
-            $stmt = $this->pdo->query("SELECT * FROM `$tableName`");
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $allowedTables = \array_column($this->config->get('storage_config'), 'table');
 
-            if (empty($rows)) {
-                return [];
+            if (!\in_array($tableName, $allowedTables, true)) {
+                throw new RuntimeException('Sicherheitsabbruch: Tabellenname nicht in Config autorisiert.');
             }
+
+            $this->pdo->exec("TRUNCATE TABLE `$tableName`");
+
+            return "Erfolg: Die Tabelle '$tableName' wurde geleert. Ein Backup wurde erstellt.";
         } catch (PDOException $e) {
-            \error_log("Migration SQL-Load Fehler ($key): " . $e->getMessage());
+            \error_log('Truncate Error MySQL: ' . $e->getMessage());
 
-            return [];
+            return 'Fehler beim Leeren der Tabelle: ' . $e->getMessage();
         }
-
-        $res = [];
-        $idField = $this->getIdFieldForKey($key);
-
-        foreach ($rows as $r) {
-            if (isset($r['data']) && \is_string($r['data'])) {
-                $decoded = $this->jsonHelper->decode($r['data']);
-                $r['data'] = $decoded ?? [];
-            }
-            if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                $decoded = $this->jsonHelper->decode($r['permissions']);
-                $r['permissions'] = $decoded ?? [];
-            }
-
-            if (isset($r['value'])) {
-                $r['value'] = (float) $r['value'];
-            }
-            if (isset($r['uses_count'])) {
-                $r['uses_count'] = (int) $r['uses_count'];
-            }
-            if (isset($r['max_uses'])) {
-                $r['max_uses'] = (int) $r['max_uses'];
-            }
-            if (isset($r['multi_use'])) {
-                $r['multi_use'] = (bool) $r['multi_use'];
-            }
-            if (isset($r['is_suspended'])) {
-                $r['is_suspended'] = (int) $r['is_suspended'];
-            }
-
-            $res[$r[$idField]] = $r;
-        }
-
-        return $res;
     }
 
-    /**
-     * Routet Rohdaten an die zuständigen Service-Klassen zur korrekten SQL-Persistierung weiter.
-     * Nutzt einen generischen Fallback für Tabellen ohne spezifischen Service.
-     */
     private function saveToSql(string $key, array $data): void
     {
         if (!$this->pdo instanceof PDO) {
@@ -421,55 +132,6 @@ final readonly class MigrationService implements MigrationServiceInterface
             'vouchers' => (new MySqlVoucherRepository($this->pdo, $this->config, $this->jsonHelper))->saveAll($data, true),
             'vouchers_archive' => (new MySqlVoucherRepository($this->pdo, $this->config, $this->jsonHelper))->importArchive($data),
             default => throw new InvalidArgumentException("Kein SQL-Mapper für Speicherbereich '$key' definiert.")
-        };
-    }
-
-    /**
-     * Schreibt Daten-Arrays formatiert zurück in die physische JSON-Zieldatei.
-     * Robust gegen fehlende 'file'-Keys.
-     */
-    private function saveToJson(string $key, array $data): void
-    {
-        match ($key) {
-            'audit_logs' => (new JsonAuditLogRepository($this->config, $this->jsonHelper))->import($data),
-            'roles' => (new JsonRoleRepository($this->config, $this->jsonHelper))->import($data),
-            'users' => (new JsonUserRepository($this->config, $this->jsonHelper))->import($data),
-            'login_attempts' => (new JsonLoginAttemptRepository($this->config, $this->jsonHelper))->import($data),
-            'magic_links' => (new JsonMagicLinkRepository($this->config, $this->jsonHelper))->import($data),
-            'mail_log' => (new SmtpMailService($this->pdo, $this->config, $this->jsonHelper))->importLogs($data, false),
-            'mail_queue' => (new JsonMailQueueRepository($this->config, $this->jsonHelper))->import($data),
-            'pending_verification' => (new JsonVerificationRepository($this->config, $this->jsonHelper))->savePending($data, false),
-            'permits' => (new JsonStorage($this->config->getStoragePath($this->config->get('storage_config')['permits']['file'] ?? 'permits.json'), $this->jsonHelper))->import($data),
-            'permits_archive' => (new JsonPermitArchiveRepository($this->config, $this->jsonHelper))->import($data),
-            'permits_cancelled' => (new JsonCancelledPermitRepository($this->config, $this->jsonHelper))->import($data),
-            'update_migrations' => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config, $this->jsonHelper))->import($data, false),
-            'verified_pending' => (new JsonVerificationRepository($this->config, $this->jsonHelper))->saveVerified($data, false),
-            'vouchers' => (new JsonVoucherRepository($this->config, $this->jsonHelper))->saveAll($data, false),
-            'vouchers_archive' => (new JsonVoucherRepository($this->config, $this->jsonHelper))->importArchive($data),
-            default => throw new InvalidArgumentException("Kein JSON-Mapper für Speicherbereich '$key' definiert.")
-        };
-    }
-
-    /**
-     * Ermittelt den Namen der Primärschlüssel-Spalte (ID) für einen bestimmten Speicherbereich.
-     */
-    private function getIdFieldForKey(string $key): string
-    {
-        return match ($key) {
-            'audit_logs' => 'id',
-            'roles' => 'id',
-            'mail_log' => 'id',
-            'mail_queue' => 'id',
-            'update_migrations' => 'id',
-            'users' => 'id',
-            'vouchers_archive' => 'id',
-            'magic_links' => 'token',
-            'pending_verification' => 'token',
-            'verified_pending' => 'token',
-            'permits_archive' => 'code',
-            'permits_cancelled' => 'code',
-            'permits' => 'code',
-            default => 'code'
         };
     }
 }

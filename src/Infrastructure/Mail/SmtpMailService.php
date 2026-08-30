@@ -10,8 +10,6 @@ use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailLogEntry;
 use App\Core\ValueObject\TemplateKey;
-use App\Infrastructure\Storage\JsonTransactionTrait;
-use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use DateTimeImmutable;
 use Exception;
 use PDO;
@@ -19,18 +17,10 @@ use RuntimeException;
 
 /**
  * Low-Level SMTP-E-Mail-Dienst zur Direktübertragung über Sockets.
- * Baut native Netzwerkverbindungen via 'fsockopen' auf, implementiert das RFC-konforme SMTP-Protokoll
- * (EHLO, AUTH LOGIN, MAIL FROM, RCPT TO, DATA) inklusive Base64-Verschlüsselung,
- * verarbeitet PHTML-E-Mail-Templates mit String-Platzhaltern und führt Auditing-Logs im gewählten Backend.
- * Kontext: Die physische Mail-Engine der Anwendung.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
+ * Loggt versendete E-Mails exklusiv in die MySQL Datenbank.
  */
 final readonly class SmtpMailService implements MailLogInterface, MailServiceInterface
 {
-    use JsonTransactionTrait;
-    use SafeJsonWriterTrait;
-
     public function __construct(
         private ?PDO $pdo,
         private ConfigInterface $config,
@@ -99,9 +89,8 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
-        $useSql = $forceSql || (($cfg['type'] ?? 'json') === 'mysql');
 
-        if ($useSql && $this->pdo instanceof PDO) {
+        if ($this->pdo instanceof PDO) {
             $this->pdo->beginTransaction();
 
             try {
@@ -123,32 +112,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
 
                 throw $e;
             }
-
-            if ($forceSql) {
-                return;
-            } // Beenden, falls MySQL via Migration erzwungen wurde
         }
-
-        if ($forceSql) {
-            return;
-        }
-
-        $path = $this->config->getStoragePath($cfg['file']);
-        $dataToSave = [];
-
-        foreach ($logs as $log) {
-            $dataToSave[$log->id] = [
-                'id' => $log->id,
-                'timestamp' => $log->timestamp->format('Y-m-d H:i:s'),
-                'recipient' => $log->recipient,
-                'subject' => $log->subject,
-                'template' => $log->template->value,
-                'status' => $log->status,
-                'data' => $log->data,
-            ];
-        }
-
-        $this->writeJsonSafely($path, \array_values($dataToSave));
     }
 
     /**
@@ -161,36 +125,20 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
         $cfg = $this->config->get('storage_config')['mail_log'];
         $logs = [];
 
-        if ($cfg['type'] === 'mysql' && $this->pdo instanceof PDO) {
-            $rows = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC")->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($rows as $r) {
-                $logs[] = new MailLogEntry(
-                    (string) $r['id'],
-                    new DateTimeImmutable($r['timestamp']),
-                    $r['recipient'],
-                    $r['subject'],
-                    new TemplateKey($r['template'] ?: 'std_7'),
-                    $r['status'],
-                    \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
-                );
-            }
-
-            return $logs;
-        }
-
-        $path = $this->config->getStoragePath($cfg['file']);
-        if (\file_exists($path)) {
-            $data = $this->jsonHelper->read($path);
-            foreach ($data as $r) {
-                $logs[] = new MailLogEntry(
-                    (string) ($r['id'] ?? \uniqid()),
-                    new DateTimeImmutable($r['timestamp']),
-                    $r['recipient'],
-                    $r['subject'],
-                    new TemplateKey($r['template'] ?: 'std_7'),
-                    $r['status'],
-                    $r['data'] ?? [],
-                );
+        if ($this->pdo instanceof PDO) {
+            $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}` ORDER BY timestamp DESC");
+            if ($stmt) {
+                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                    $logs[] = new MailLogEntry(
+                        (string) $r['id'],
+                        new DateTimeImmutable($r['timestamp']),
+                        $r['recipient'],
+                        $r['subject'],
+                        new TemplateKey($r['template'] ?: 'std_7'),
+                        $r['status'],
+                        \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
+                    );
+                }
             }
         }
 
@@ -211,7 +159,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                 \is_string($r['data'] ?? []) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
             );
         }
-        $this->saveLogs($objects, $forceSql);
+        $this->saveLogs($objects, true);
     }
 
     // --- Private Engine ---
@@ -393,7 +341,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
             $logs = \array_slice($logs, 0, $maxEntries);
         }
 
-        $this->saveLogs($logs);
+        $this->saveLogs($logs, true);
     }
 
     /**
