@@ -128,12 +128,12 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
                     $logs[] = new MailLogEntry(
                         (string) $r['id'],
                         new DateTimeImmutable($r['timestamp']),
-                        $r['recipient'],
-                        $r['reply_to'],
-                        $r['subject'],
+                        $r['recipient'] ?? '',
+                        $r['reply_to'] ?? null, // <--- FIX: ?? null fängt fehlende Keys bei alten Daten ab
+                        $r['subject'] ?? '',
                         new TemplateKey($r['template'] ?: 'std_7'),
-                        $r['status'],
-                        \is_string($r['data']) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
+                        $r['status'] ?? '',
+                        \is_string($r['data'] ?? null) ? $this->jsonHelper->decode($r['data']) : ($r['data'] ?? []),
                     );
                 }
             }
