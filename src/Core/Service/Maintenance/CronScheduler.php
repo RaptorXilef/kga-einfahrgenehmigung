@@ -99,7 +99,7 @@ final readonly class CronScheduler
      */
     private function syncDisposableDomains(): void
     {
-        $path = $this->config->getStoragePath('disposable_domains.json');
+        $path = $this->config->getStoragePath('disposable_email.json');
 
         // Nur updaten, wenn die Datei älter als 7 Tage ist (604800 Sekunden)
         if (\file_exists($path) && (\time() - \filemtime($path)) < 604800) {

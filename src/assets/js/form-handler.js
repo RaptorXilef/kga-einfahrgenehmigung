@@ -44,6 +44,10 @@ export class PermitFormHandler {
      * @return {void}
      */
     init() {
+        // --- Smart Honeypot Injection ---
+        this.injectSmartHoneypot();
+        // ---------------------------------------------
+
         // Event-Listener registrieren
         this.typSelect?.addEventListener('change', (e) => this.toggleVehicleFields(e.target.value));
         this.kennzeichenInput?.addEventListener('blur', (e) => this.formatLicensePlate(e.target));
@@ -66,6 +70,34 @@ export class PermitFormHandler {
 
         // Initialer Preisaufruf
         this.updatePrice();
+    }
+
+    /**
+     * Injiziert das Honeypot-Feld dynamisch ins DOM.
+     * Bots, die kein JS ausführen, sehen das Feld nicht. Füllen sie es trotzdem aus
+     * (weil sie auf blauen Dunst Post-Requests feuern), schnappt die serverseitige Falle zu.
+     */
+    injectSmartHoneypot() {
+        const hpContainer = document.createElement('div');
+        hpContainer.className = 'c-form-group-hp';
+        hpContainer.setAttribute('aria-hidden', 'true');
+
+        const hpLabel = document.createElement('label');
+        hpLabel.innerText = 'Bitte lassen Sie dieses Feld leer, wenn Sie ein Mensch sind.';
+        hpLabel.htmlFor = 'hp_contact_website';
+
+        const hpInput = document.createElement('input');
+        hpInput.type = 'text';
+        hpInput.name = 'hp_contact_website';
+        hpInput.id = 'hp_contact_website';
+        hpInput.tabIndex = -1; // Verhindert, dass echte Nutzer per Tab-Taste ins Feld rutschen
+        hpInput.autocomplete = 'off';
+
+        hpContainer.appendChild(hpLabel);
+        hpContainer.appendChild(hpInput);
+
+        // Unsichtbar am Ende des Formulars (aber vor dem Submit-Button) einfügen
+        this.form.insertBefore(hpContainer, this.form.lastElementChild);
     }
 
     /**

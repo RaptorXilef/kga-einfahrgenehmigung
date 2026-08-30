@@ -6,6 +6,7 @@ namespace App\Core\Service\Security;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\JsonHelperInterface;
+use Exception;
 use InvalidArgumentException;
 
 /**
@@ -36,7 +37,7 @@ final readonly class EmailValidationService
             throw new InvalidArgumentException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
 
-        $domain = \substr(\strrchr($email, "@"), 1);
+        $domain = \substr(\strrchr($email, '@'), 1);
         if ($domain === false) {
             throw new InvalidArgumentException('E-Mail-Domain konnte nicht extrahiert werden.');
         }
@@ -62,12 +63,12 @@ final readonly class EmailValidationService
      */
     private function getDisposableDomains(): array
     {
-        $path = $this->config->getStoragePath('disposable_domains.json');
+        $path = $this->config->getStoragePath('disposable_email.json');
 
         if (\file_exists($path)) {
             try {
                 return $this->jsonHelper->read($path);
-            } catch (\Exception) {
+            } catch (Exception) {
                 // Fallback bei defekter JSON
             }
         }
