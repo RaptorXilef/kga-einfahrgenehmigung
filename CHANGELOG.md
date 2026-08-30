@@ -1,5 +1,66 @@
 # Changelog
 
+## [0.58.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.57.1...v0.58.0) (2026-08-30)
+
+### 🚀 Features
+
+* **admin:** Auto-check child permissions and remove JSON storage engines ([97ef5a2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/97ef5a2fecf63f4c46ad2dd67375d2f3fc00223e))
+* **admin:** Simplify permission tree logic ([fadea2e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fadea2e4d5d08694508313d470981e49c56bd6bc))
+* **core:** Implement Phase 1 - Advanced Config, Bootstrapping & ActionRegistry ([afa9441](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/afa9441fa8d07ba87c4f6aae916aed97d5bd1119))
+* **migrations:** make update system and table renames bulletproof ([0df8b6f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0df8b6feef5dbcf2c35e956e04a44aa62acc30d7))
+* **roles:** implement permission matrix logic and UI modes ([0d4111b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d4111b83a688a64a1b239342f5156002ce51e23))
+* **scripts:** Add raw collection script for LLM context without token optimization ([f52d7ef](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f52d7efa04c951ab1db6e3a1bfa321e49b693716))
+* **security:** Provide migration script to flatten role permission keys ([16fed67](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/16fed67412a62cf974abc53f3a714f39ed2337d8))
+
+### 🐛 Bug Fixes
+
+* **admin:** Fix hierarchical checkbox synchronization in permission matrix ([772bb17](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/772bb1782b7c63b5bb28097d5a07f00dc1d4de59))
+* **admin:** Perfect permission tree JS logic and visual states ([62ecc20](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/62ecc20744009436917915305d63fd006189c941))
+* **admin:** Perfect TwoKinds permission matrix logic and remove artifacts ([06f861d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/06f861d7bba0016a4e662b0f8536251c8fa54806))
+* **admin:** Remove legacy CSS locking classes causing ghost-graying ([b6f2bd0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b6f2bd00eac73e0edbe38c0c5fab2a28b444a4be))
+* **architecture:** Supply missing traits, update repositories and centralize routing ([21de4da](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/21de4da78f03d8077927c8873f8f1f0d02bdc3ae))
+* **architecture:** Upgrade TemplateRenderer for layouts, implement AssetHelper and fix 404s ([695743e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/695743e38d9c69c2b473412dfd213a438e92b0e8))
+* **core:** Bind AssetHelperInterface in DI Container to resolve 500 error ([31c4dee](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/31c4dee53dcfd453fbd49156cc690fe1a2af74f5))
+* **core:** Provide Sanitizer, EntityHydratorTrait and fix remaining Role bindings ([1ee9fe2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1ee9fe2c18865f152bbb6d064f361a97ddd1954b))
+* **core:** Resolve base_url slash issue, introduce AssetHelper and migrate Group to Role ([329218e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/329218ea73d40b26d121ecf851cf08b876372f89))
+* **core:** Resolve missing classes and interface methods for routing ([1d814a6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1d814a6787ef2a5afeee8d5b35e182e571e619b4))
+* **core:** Resolve Route attribute, move cache to root and clean up residual group references ([48ada61](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/48ada617e0be36cdbfc48939d5a2715e8e018c3b))
+* **frontend:** Finalize template URL sanitization and ensure `??=` operator compatibility ([beb6f51](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/beb6f51011da04516dcb4bbb111968ce2e43f90f))
+* **frontend:** Resolve missing partial includes and undefined vehicleConfig ([07a663f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/07a663fddd01c0f3649738ff3a9434a79a85d54e))
+* **infrastructure:** Resolve RouteCacheInterface error and migrate JSON configs to PHP ([d310a2a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d310a2aaf478bbdc3fedaecd8898a0b55d231c6d))
+* **mail:** Remove JSON fallback traits from SmtpMailService to fix autoloader crash ([356a5b2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/356a5b2ffc905e153cdae787473c1e7e657d6ea0))
+* **permissions:** Clean up redundant logic after permission flattening ([ccca951](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ccca95149e80a2d03758148d71f734abeb486988))
+* **permissions:** Redesign permission tree logic and resolve storage crash ([51aab1b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/51aab1bfc01c9f5e8e81bee054067afc84bff5cb))
+* **roles:** prevent permissions from vanishing on uncheck in focus mode ([d4f3faf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d4f3faf6a55a48a87ade8ca7e76ded576ce697f8))
+* **routing:** Add .htaccess for Front-Controller and update main Action routes ([0a6d8e3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0a6d8e3fca5d4ab49f090f9d3ce33ea6910809b7))
+* **routing:** Add GET handlers, restore /api/ prefixes and fix remaining RoleRepository uses ([c8f186a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c8f186af9c4a75b6a59b58da1d03bf43982648b5))
+* **routing:** Resolve 404 errors for Admin Login and API endpoints ([9829a21](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9829a2194f579f97e43d9ce865a3b716ae655609))
+* **routing:** Resolve 404 on index, add maintenance lock logic and backdoors ([79459c1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/79459c17e737ffa4de7dc6072f5c1fcc515402d4))
+* **routing:** Separate combined HTTP method attributes and update legacy print endpoints ([4afacbd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4afacbde27f65f177bdbbe7324e93860e74e0dcc))
+* **scripts:** Optimize code dump exports for processing using Markdown format ([ef3d79c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ef3d79cbd05e4093dabed36964c0469983198daf))
+* **security:** Add Sanitizer, fix container bindings and move logs to root ([3abd4d7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3abd4d702ac7ecaa9ac14b8a98dd9fc22f67590f))
+* **security:** Complete Role migration, provide missing DTOs and fix Intelephense warnings ([fe09700](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fe09700e3e9e01f649f55d8eb92e983e2d054e45))
+* **security:** Complete Role migration, provide missing DTOs and fix Intelephense warnings ([ad4abf9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ad4abf9adcbbea1a6f4b504c727eb67ee4f6588b))
+* **security:** Implement zero-trust CSP and resolve missing URL slashes ([64666a3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/64666a3030777a26930ada763cad0b80fd2668a5))
+* **security:** Migrate Group to Role in Actions, update Middlewares and Routing attributes ([cbbf0e4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cbbf0e4ff35a70a84dec7806a8ffaa5b7fc5f15d))
+* **templates:** Add explicit action targets to POST forms across admin and frontend views ([d768693](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d7686934da6453521316ea66861b352f744bbaef))
+* **ui:** Clean up redundant permission checks and logical groupings ([f76d404](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f76d404c249eb006dad2bfe9491d4bde2c0c462b))
+* **views:** Resolve getGroup() error and migrate PHTML templates to Role system ([bc05fa9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bc05fa9035cde12b5c1758c3b74311d66454feca))
+
+### ⚙️ Refactoring
+
+* **architecture:** Deprecate in-app updater in favor of GitHub Actions ([235f493](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/235f4931fe06858fc6dc0d543ce5b0f0d86e7bb4))
+* **architecture:** Restructure Action directories and implement Master-Layouts ([a83852e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a83852eda44d9034c3033fa2046ea8f067032831))
+* **core:** Modernize PHP syntax, enforce strict typing and align code style ([067ea35](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/067ea35701c044d0f5356207ce9e1ab89794ac91))
+* **security:** Complete migration from groups terminology to roles ([1dcd964](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1dcd9643b065b2496960ad870cabf20d0145f9a0))
+* **security:** Flatten permission registry and remove legacy JSON engine ([5dfc4af](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5dfc4af0c45f5c529ccaaf82ba6e5e26dae7764a))
+* **security:** Remove obsolete generator-tools view permission ([578e545](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/578e545ded796d8cd8f70195fb68cb2c583508e0))
+* **templates:** Implement TwoKinds layout architecture and reorganize views ([e12ce22](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e12ce2251a093a6f639a3871e8670e0120567f34))
+
+### 🧹 Chore / Maintenance
+
+* **migrations:** Prepare transition to pure SQL migrations ([800cd8a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/800cd8a1a6cfd021c953535f9ac4ed3bd044d48b))
+
 ## [0.57.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.57.0...v0.57.1) (2026-08-23)
 
 ### 🧹 Chore / Maintenance
