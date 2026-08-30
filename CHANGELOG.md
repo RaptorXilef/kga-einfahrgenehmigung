@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.59.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.58.1...v0.59.0) (2026-08-30)
+
+### 🚀 Features
+
+* **security:** Implement dynamic disposable email list with auto-sync ([6d3b192](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6d3b1928eaccce136fdee5507cfb9de4765fa919))
+* **security:** Implement Phase 1 native anti-bot and email validation services ([bb030c6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bb030c6f883981bc5ab10671864e2fdfbacbf823))
+* **security:** Integrate rate limiting for form submissions (Phase 2) ([8ed71d1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8ed71d1d592f23ae9c707931b9599e26137e198d))
+
+### 🐛 Bug Fixes
+
+* **mail:** Resolve Intelephense signature mismatches in SmtpMailService ([114c367](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/114c367a35b05984f77d168fa449fda8eda3790a))
+* **mail:** Resolve undefined array key 'reply_to' in loadLogs ([7715a37](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7715a371764ba499ef4740f76965a840a26a39e8))
+* **maintenance:** Make SQL migration runner robust against Bootstrapper collisions ([205ceb2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/205ceb273cce469f87d1362b79c2c0f7babb51bc))
+* **security:** Finalize anti-bot measures and add missing Reply-To header ([7e80f58](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e80f58909c47a77d2a9ad49fa26ea40364d37c7))
+
+### 🧹 Chore / Maintenance
+
+* **security:** Evaluate database vs file storage for disposable domains and init Phase 3 ([a48b1cd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a48b1cd889d9db8700959f0638e9a47d309db2c0))
+
 ## [0.58.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.58.0...v0.58.1) (2026-08-30)
 
 ### ⚙️ Refactoring
