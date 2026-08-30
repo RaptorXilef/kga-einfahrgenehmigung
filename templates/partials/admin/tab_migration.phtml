@@ -29,8 +29,7 @@ if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('
         'login_attempts' => ['label' => 'Login-Versuche', 'icon' => '🛡'],
         'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
         'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => '👁️‍🗨️'],
-    ];
-    ?>
+    ]; ?>
     <div class="c-tab-content-container">
 
         <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
@@ -175,30 +174,6 @@ if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('
                 <div class="u-grid"
                      style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
                     <div class="c-card"
-                         style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
-                        <div class="c-card__header u-flex u-align-center u-gap-s"
-                             style="padding: 1rem 1.5rem;">
-                            <h4 class="u-margin-none"
-                                style="font-size: 1.1rem;">🔄 Nach Updates suchen</h4>
-                        </div>
-                        <div class="c-card__body u-flex u-flex-column u-gap-m"
-                             style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                            <p class="u-text-small u-margin-none">Umgeht den Cache und fragt sofort live bei GitHub an,
-                                ob eine neue Version verfügbar ist.</p>
-                            <form method="POST"
-                                  action="<?php echo $settings['base_url']; ?>force_update_check"
-                                  class="u-margin-top-auto">
-                                <input type="hidden"
-                                       name="csrf_token"
-                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <button type="submit"
-                                        class="c-button c-button--primary u-width-100"
-                                        style="font-size: 0.9rem;"> Jetzt live prüfen </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="c-card"
                          style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
                         <div class="c-card__header u-flex u-align-center u-gap-s"
                              style="padding: 1rem 1.5rem;">
@@ -207,8 +182,8 @@ if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('
                         </div>
                         <div class="c-card__body u-flex u-flex-column u-gap-m"
                              style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                            <p class="u-text-small u-margin-none">Löst alle ausstehenden Tabellen-Anpassungen
-                                (00x_...php) aus.</p>
+                            <p class="u-text-small u-margin-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql)
+                                manuell aus.</p>
                             <form method="POST"
                                   action="<?php echo $settings['base_url']; ?>run_update_migrations"
                                   class="u-margin-top-auto">

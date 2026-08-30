@@ -38,22 +38,6 @@ use App\Infrastructure\Maintenance\MigrationService;
 // Aktiviere das Admin-Layout
 $layout = 'admin';
 $now = new \DateTimeImmutable();
-$currentVersion = 'v0.0.0';
-if ($auth->hasPermission('system.update.execute')) {
-    // --- Aktuelle Version aus package.json auslesen ---
-    $packageJsonPath = $appRoot . '/package.json';
-    if (\file_exists($packageJsonPath)) {
-        try {
-            $pkgData = $jsonHelper->read($packageJsonPath);
-            if (\is_array($pkgData) && isset($pkgData['version'])) {
-                $currentVersion = 'v' . $pkgData['version'];
-            }
-        } catch (\RuntimeException $e) {
-            // Ignorieren: Bleibt bei v0.0.0 und triggert das Update-Banner
-        }
-    }
-    // --- ENDE ---
-}
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
     $tplMetadata[$key] = [
@@ -63,51 +47,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     ];
 } ?>
 <main class="c-container u-padding-y-l">
-    <?php if ($auth->hasPermission('system.update.execute')) { ?>
-        <div class="c-tab-content-container">
-            <div id="github-update-banner"
-                 class="c-alert c-alert--info u-hidden u-margin-bottom-l"
-                 style="background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-wrap: wrap; gap: 15px;">
-                <div style="flex: 1 1 250px;">
-                    <h3 class="u-margin-none"
-                        style="color: #1e3a8a; font-size: 1.1rem;">🚀 System-Update verfügbar!</h3>
-                    <p class="u-margin-top-xs u-margin-bottom-none"
-                       style="color: #1e40af; font-size: 0.95rem;">
-                        Aktuell installiert: <strong><?php echo \htmlspecialchars($currentVersion); ?></strong> ➔ Neue Version:
-                        <strong id="gh-version"></strong><br>
-                        <small id="gh-notes"
-                               style="opacity: 0.8;"></small>
-                    </p>
-                    <div class="u-margin-top-s"
-                         style="font-size: 0.85rem; display: flex; gap: 15px;">
-                        <a id="gh-release-link"
-                           href="#"
-                           target="_blank"
-                           style="color: #2563eb; text-decoration: underline; font-weight: 500;">
-                            📦 Release-Notes ansehen
-                        </a>
-                        <a href="https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/CHANGELOG.md"
-                           target="_blank"
-                           style="color: #2563eb; text-decoration: underline; font-weight: 500;">
-                            📜 Changelog öffnen
-                        </a>
-                    </div>
-                </div>
-                <?php if ($auth->hasPermission('system.update.execute')) { ?>
-                    <div style="flex-shrink: 0;">
-                        <button id="gh-install-btn"
-                                class="c-button c-button--primary js-run-update-btn"
-                                data-csrf="<?php echo $_SESSION['csrf_token'] ?? ''; ?>"
-                                data-url=""
-                                style="background: #2563eb; color: #ffffff; border: none; padding: 12px 24px; white-space: nowrap; width: auto; height: auto; min-height: 40px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;">
-                            Jetzt 1-Klick Update starten
-                        </button>
-                    </div>
-                <?php } ?>
-            </div>
-        </div>
-    <?php } ?>
-
     <?php if ($auth->hasPermission('permits.view')) { ?>
         <div class="c-tab-content-container u-margin-auto">
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
@@ -330,87 +269,3 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         </div>
     </div>
 </main>
-
-<?php if ($auth->hasPermission('system.update.execute')) { ?>
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const banner = document.getElementById('github-update-banner');
-        const versionLabel = document.getElementById('gh-version');
-        const notesLabel = document.getElementById('gh-notes');
-        const installBtn = document.getElementById('gh-install-btn');
-        const releaseLink = document.getElementById('gh-release-link');
-
-        // Wir rendern dynamisch einen "Neu laden" Button neben den Install-Button
-        let checkBtn = null;
-        if (installBtn) {
-            checkBtn = document.createElement('button');
-            // Keine Standard-Klassen, sondern exakt auf das Banner abgestimmtes Design:
-            checkBtn.style.cssText =
-                'background: rgba(59, 130, 246, 0.1); color: #1e40af; border: 1px solid rgba(59, 130, 246, 0.3); padding: 8px 16px; margin-top: 10px; font-size: 0.85rem; width: 100%; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 6px;';
-
-            checkBtn.onmouseover = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.2)';
-            checkBtn.onmouseout = () => checkBtn.style.background = 'rgba(59, 130, 246, 0.1)';
-            checkBtn.innerHTML = '🔄 Auf Updates prüfen';
-
-            checkBtn.onclick = (e) => {
-                e.preventDefault();
-                checkBtn.innerText = 'Prüfe...';
-                checkBtn.disabled = true;
-                performCheck(true);
-            };
-            installBtn.parentNode.appendChild(checkBtn);
-        }
-
-        // 1. Im Hintergrund prüfen, ob ein Update da ist
-        // CSRF-Header hinzugefügt, da die API nun gehärtet ist
-        function performCheck(force = false) {
-            fetch('<?php echo $settings['base_url'] ?? '/'; ?>api/check_update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                    },
-                    body: JSON.stringify({
-                        force: force
-                    })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (checkBtn) {
-                        checkBtn.innerText = '🔄 Auf neuere Version';
-                        checkBtn.disabled = false;
-                    }
-
-                    if (data.success && data.update_available) {
-                        versionLabel.innerText = data.data.version;
-
-                        // Release Notes dynamisch verlinken
-                        releaseLink.href =
-                            'https://github.com/RaptorXilef/kga-einfahrgenehmigung/releases/tag/' + data
-                            .data.version;
-
-                        // Setze die Download-URL als Data-Attribut für den JS-Handler
-                        if (installBtn) {
-                            installBtn.setAttribute('data-url', data.data.zipball_url);
-                        }
-                        if (data.data.name) notesLabel.innerText = "Release: " + data.data.name;
-                        banner.classList.remove('u-hidden');
-                    } else if (force) {
-                        alert('Das System ist aktuell. Es wurden keine neuen Versionen gefunden.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Update-Check fehlgeschlagen:', err);
-                    if (checkBtn) {
-                        checkBtn.innerText = 'Fehler beim Prüfen';
-                        checkBtn.disabled = false;
-                    }
-                });
-        }
-
-        // Beim Laden der Seite normalen (gecachten) Check ausführen
-        performCheck(false);
-    });
-
-    </script>
-<?php } ?>

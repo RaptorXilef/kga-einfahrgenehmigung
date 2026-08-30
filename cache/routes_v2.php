@@ -83,11 +83,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
         'auth' => false,
       ),
-      '/force_update_check' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemForceUpdateCheckAction',
-        'auth' => false,
-      ),
       '/migrate_data' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemMigrateDataAction',
@@ -146,6 +141,11 @@
       '/api/process_mail_queue' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/api/system_update' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\SystemUpdateAction',
         'auth' => false,
       ),
       '/admin_login' => 
@@ -336,11 +336,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
         'auth' => false,
       ),
-      '/force_update_check' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemForceUpdateCheckAction',
-        'auth' => false,
-      ),
       '/migrate_data' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemMigrateDataAction',
@@ -451,29 +446,19 @@
         'class' => 'App\\Application\\Actions\\Api\\Shared\\GetTemplatePriceAction',
         'auth' => false,
       ),
-      '/api/check_update' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\CheckUpdateAction',
-        'auth' => true,
-      ),
       '/cron' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\System\\CronAction',
         'auth' => false,
       ),
-      '/finalize_update' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\FinalizeUpdateAction',
-        'auth' => false,
-      ),
-      '/api/perform_update' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\PerformUpdateAction',
-        'auth' => true,
-      ),
       '/api/process_mail_queue' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/api/system_update' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\SystemUpdateAction',
         'auth' => false,
       ),
       '/admin_login' => 

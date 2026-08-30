@@ -36,14 +36,12 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\System\RouteCacheInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
 use App\Contracts\System\SystemInfoInterface;
-use App\Contracts\System\SystemUpdaterInterface;
 use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Database\PdoFactory;
 use App\Infrastructure\Logging\ErrorLogger;
 use App\Infrastructure\Mail\MailQueueService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\GitHubUpdaterService;
 use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
@@ -214,7 +212,7 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(JsonHelperInterface::class, fn (): JsonHelper => new JsonHelper());
         $container->bind(StorageBootstrapperInterface::class, fn (): mixed => $container->get(StorageBootstrapper::class));
         $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
-        $container->bind(SystemUpdaterInterface::class, fn (): mixed => $container->get(GitHubUpdaterService::class));
+
         $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
 
         // Haupt-Migrations-Dienst

@@ -4,7 +4,7 @@
  * Steuert das Client-seitige Tab-Switching inklusive Zustandsspeicherung (localStorage),
  * die Echtzeit-Tabellenfilterung bei Suchen, dynamische Formular-Sichtbarkeiten,
  * den administrativen Workflow für Genehmigungssperren über Prompts sowie
- * die Permission-Matrix und den 2-Phasen System-Update-Prozess.
+ * die Permission-Matrix.
  *
  * Path: src/assets/js/admin-handler.js
  */
@@ -56,7 +56,7 @@ class AdminDashboardHandler {
             });
         }
 
-        // 4. Delegierte Klicks (Sperren & Update)
+        // 4. Delegierte Klicks (Sperren)
         document.addEventListener('click', (e) => {
             const suspendBtn = e.target.closest('.js-suspend-btn');
             if (suspendBtn) {
@@ -71,22 +71,6 @@ class AdminDashboardHandler {
                         input.value = reason;
                         form.submit();
                     }
-                }
-                return;
-            }
-
-            const updateBtn = e.target.closest('.js-run-update-btn');
-            if (updateBtn) {
-                e.preventDefault();
-                const zipUrl = updateBtn.getAttribute('data-url');
-                const csrfToken = updateBtn.getAttribute('data-csrf');
-
-                if (
-                    confirm(
-                        'Möchten Sie das Update jetzt wirklich installieren? Das System geht für kurze Zeit in den Wartungsmodus.'
-                    )
-                ) {
-                    this.handleSystemUpdate(updateBtn, zipUrl, csrfToken);
                 }
             }
         });
@@ -238,65 +222,10 @@ class AdminDashboardHandler {
         this.updateParents(node);
     }
 
-    async handleSystemUpdate(btn, zipUrl, csrfToken) {
-        if (!zipUrl || !csrfToken) {
-            alert('Fehler: Download-URL oder Sicherheits-Token fehlt.');
-            return;
-        }
-
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.style.opacity = '0.7';
-        btn.style.cursor = 'wait';
-
-        try {
-            btn.innerText = 'Phase 1/2: Lade Update herunter...';
-            const res1 = await fetch('api/perform_update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                },
-                body: JSON.stringify({ zip_url: zipUrl }),
-            });
-            const data1 = await res1.json();
-            if (!data1.success)
-                throw new Error(data1.error || 'Fehler in Phase 1 (Dateien kopieren).');
-
-            btn.innerText = 'Phase 2/2: Aktualisiere Datenbank...';
-            const res2 = await fetch('api/finalize_update', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                },
-                body: JSON.stringify({}),
-            });
-            const data2 = await res2.json();
-            if (!data2.success)
-                throw new Error(data2.error || 'Fehler in Phase 2 (Datenbank Migration).');
-
-            btn.innerText = 'Update erfolgreich!';
-            btn.style.background = 'var(--success-color, #10b981)';
-            alert(data2.message || 'Das System wurde erfolgreich aktualisiert.');
-            window.location.reload();
-        } catch (error) {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-            btn.innerHTML = originalText;
-            alert('Update fehlgeschlagen:\n' + error.message);
-        }
-    }
-
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-        this.contents.forEach((c) => {
-            c.classList.remove('c-tabs__content--active');
-        });
-        this.tabs.forEach((b) => {
-            b.classList.remove('c-tabs__btn--active');
-        });
+        this.contents.forEach((c) => c.classList.remove('c-tabs__content--active'));
+        this.tabs.forEach((b) => b.classList.remove('c-tabs__btn--active'));
 
         const target = document.getElementById(tabId);
         if (target) {
