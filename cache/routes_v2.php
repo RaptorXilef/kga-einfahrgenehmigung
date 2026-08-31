@@ -223,14 +223,9 @@
         'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
         'auth' => false,
       ),
-      '/verify_render' => 
+      '/verify' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\VerificationRenderAction',
-        'auth' => false,
-      ),
-      '/verify_submit' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\VerificationSubmitAction',
+        'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
         'auth' => false,
       ),
     ),
@@ -521,14 +516,9 @@
         'class' => 'App\\Application\\Actions\\Frontend\\SuccessAction',
         'auth' => false,
       ),
-      '/verify_render' => 
+      '/verify' => 
       array (
-        'class' => 'App\\Application\\Actions\\Frontend\\VerificationRenderAction',
-        'auth' => false,
-      ),
-      '/verify_submit' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Frontend\\VerificationSubmitAction',
+        'class' => 'App\\Application\\Actions\\Frontend\\VerificationAction',
         'auth' => false,
       ),
     ),

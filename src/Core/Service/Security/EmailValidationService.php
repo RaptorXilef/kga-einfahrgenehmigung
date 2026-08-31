@@ -37,6 +37,12 @@ final readonly class EmailValidationService
             throw new InvalidArgumentException('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
 
+        // Strikte Regex für den lokalen Teil (vor dem @) - Verhindert unübliche Sonderzeichen wie #, ! etc.
+        // Erlaubt weiterhin saubere Adressen wie test.zwei@ oder test+newsletter@
+        if (!\preg_match('/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/', $email)) {
+            throw new InvalidArgumentException('Die E-Mail-Adresse enthält ungültige Sonderzeichen.');
+        }
+
         $domain = \substr(\strrchr($email, '@'), 1);
         if ($domain === false) {
             throw new InvalidArgumentException('E-Mail-Domain konnte nicht extrahiert werden.');
@@ -51,8 +57,10 @@ final readonly class EmailValidationService
         }
 
         // 2. DNS / MX Check (Physische Existenz)
-        if (!\checkdnsrr($domainLower, 'MX') && !\checkdnsrr($domainLower, 'A')) {
-            throw new InvalidArgumentException('Die E-Mail-Domain existiert nicht oder kann keine Nachrichten empfangen.');
+        // WICHTIG: Wir prüfen absichtlich NUR auf MX. Eine Domain ohne MX-Record kann keine sauberen Mails empfangen!
+        /* && !\checkdnsrr($domainLower, 'A') */
+        if (!\checkdnsrr($domainLower, 'MX')) {
+            throw new InvalidArgumentException('Die E-Mail-Domain existiert nicht oder besitzt keinen gültigen Posteingangsserver.');
         }
     }
 
@@ -73,7 +81,7 @@ final readonly class EmailValidationService
             }
         }
 
-        // Minimaler Fallback, falls die Datei noch nicht synchronisiert wurde
+        // Minimaler Fallback
         return ['mailinator.com', '10minutemail.com', 'tempmail.com', 'trashmail.com', 'yopmail.com'];
     }
 }
