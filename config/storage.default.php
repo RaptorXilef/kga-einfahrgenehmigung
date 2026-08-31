@@ -16,12 +16,10 @@ declare(strict_types=1);
 
 return [
     'storage_path_prefix' => 'storage/',
-    'use_pseudo_cron' => true, // Wird in Phase 2 entfernt
     'archive_grace_days' => 0,
 
     'backup_settings' => [
         'enabled' => true,
-        'interval_hours' => 24, // Wird in Phase 2 entfernt
         'max_backups' => 15,
         'sub_folder' => 'backups',
     ],
