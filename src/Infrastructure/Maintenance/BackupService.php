@@ -35,8 +35,8 @@ final readonly class BackupService implements BackupServiceInterface
     // --- Public API ---
 
     /**
-     * Generiert ein synchronisiertes Datei- und Datenbank-Abbild eines Zielbereichs im Backup-Ordner.
-     * Erzeugt Zeitstempel-Ordner und exportiert JSON-formatierte Rohdaten-Dumps.
+     * Generiert ein Datenbank-Abbild eines Zielbereichs im Backup-Ordner.
+     * Erzeugt Zeitstempel-Ordner und exportiert JSON-formatierte Rohdaten-Dumps direkt aus MySQL.
      *
      * @param string $target Der zu sichernde Konfigurationsbereich.
      *
@@ -55,40 +55,11 @@ final readonly class BackupService implements BackupServiceInterface
         $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
         $storageConfig = $this->config->get('storage_config', []);
 
+        // Komplettes Backup aller Tabellen
         if (!isset($storageConfig[$target])) {
-            $keysToBackup = [
-                'permits',
-                'permits_archive',
-                'permits_cancelled',
-                'users',
-                'roles', // War früher groups
-                'vouchers',
-                'vouchers_archive',
-                'pending_verification',
-                'verified_pending',
-                'magic_links',
-                'mail_log',
-                'mail_queue',
-                'login_attempts',
-                'update_migrations',
-                'audit_logs',
-            ];
+            $keysToBackup = \array_keys($storageConfig);
 
             foreach ($keysToBackup as $key) {
-                if (!isset($storageConfig[$key])) {
-                    continue;
-                }
-
-                // JSON-Dump nur, wenn ein file-Key konfiguriert ist
-                if (isset($storageConfig[$key]['file'])) {
-                    $path = $this->config->getStoragePath($storageConfig[$key]['file']);
-                    if (\file_exists($path) && !\is_dir($path)) {
-                        $data = $this->jsonHelper->read($path);
-                        $this->writeJsonSafely($backupPath . "/{$key}_file.json", $data, $jsonFlags);
-                    }
-                }
-
-                // SQL-Dump in der globalen Schleife ergänzen! (Verhindert Datenverlust)
                 if (!($this->pdo instanceof PDO) || !isset($storageConfig[$key]['table'])) {
                     continue;
                 }
@@ -97,19 +68,13 @@ final readonly class BackupService implements BackupServiceInterface
                 if ($sqlData === []) {
                     continue;
                 }
-
                 $this->writeJsonSafely($backupPath . "/{$key}_sql.json", $sqlData, $jsonFlags);
             }
 
             return $backupPath;
         }
 
-        // Zielspezifisches Backup
-        $jsonData = $this->loadRawJson($target);
-        if ($jsonData !== []) {
-            $this->writeJsonSafely($backupPath . "/{$target}_file.json", $jsonData, $jsonFlags);
-        }
-
+        // Backup eines einzelnen Targets
         if ($this->pdo instanceof PDO) {
             $sqlData = $this->loadRawSql($target);
             if ($sqlData !== []) {
@@ -289,28 +254,6 @@ final readonly class BackupService implements BackupServiceInterface
     }
 
     // --- Private Loaders ---
-
-    /**
-     * Hilfsmethoden für reine Lese-Dumps (SRP: BackupService darf Rohdaten lesen)
-     *
-     * Liest die physischen, rohen JSON-Inhalte einer Systemkomponente aus.
-     * Robust gegen fehlende 'file'-Keys (bei reinen MySQL-Configs).
-     *
-     * @param string $key Speicher-Key aus der Konfiguration.
-     *
-     * @return array<string, mixed> Ungefiltertes Datenarray.
-     */
-    private function loadRawJson(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key] ?? null;
-        if (!isset($cfg['file'])) {
-            return [];
-        }
-
-        $path = $this->config->getStoragePath($cfg['file']);
-
-        return $this->jsonHelper->read($path);
-    }
 
     /**
      * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.

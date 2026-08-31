@@ -39,11 +39,6 @@ final readonly class MigrationService implements MigrationServiceInterface
     ) {
     }
 
-    public function execute(string $target, string $action): string
-    {
-        return 'Fehler: Die JSON-Synchronisation wurde entfernt. Das System nutzt nun exklusiv MySQL.';
-    }
-
     public function restore(string $timestamp, string $target, string $engine = 'all'): string
     {
         try {
