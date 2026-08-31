@@ -18,7 +18,6 @@ use App\Contracts\Security\RateLimiterInterface;
 use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
-use App\Contracts\Storage\CronStateRepositoryInterface;
 use App\Contracts\Storage\LockManagerInterface;
 use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Contracts\Storage\MagicLinkRepositoryInterface;
@@ -47,7 +46,6 @@ use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
 use App\Infrastructure\Payment\PayPalService;
 use App\Infrastructure\Security\RateLimiter;
-use App\Infrastructure\Storage\FileCronStateRepository;
 use App\Infrastructure\Storage\FileLockManager;
 use App\Infrastructure\Storage\ImageStorageService;
 use App\Infrastructure\Storage\JsonHelper;
@@ -206,7 +204,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          | Hardware- und System-Tools für Backups, Updates, Migrationen und I/O.
          */
         $container->bind(BackupServiceInterface::class, fn (): mixed => $container->get(BackupService::class));
-        $container->bind(CronStateRepositoryInterface::class, fn (): mixed => $container->get(FileCronStateRepository::class));
         $container->bind(ErrorLoggerInterface::class, fn (): mixed => $container->get(ErrorLogger::class));
         $container->bind(ImageStorageInterface::class, fn (): mixed => $container->get(ImageStorageService::class));
         $container->bind(JsonHelperInterface::class, fn (): JsonHelper => new JsonHelper());

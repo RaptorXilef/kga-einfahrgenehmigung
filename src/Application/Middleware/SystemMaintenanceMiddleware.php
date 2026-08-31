@@ -6,22 +6,13 @@ namespace App\Application\Middleware;
 
 use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
-use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\System\StorageBootstrapperInterface;
-use App\Core\Service\Maintenance\CronScheduler;
 use Throwable;
 
-/**
- * TODO
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 final readonly class SystemMaintenanceMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private StorageBootstrapperInterface $bootstrapper,
-        private CronScheduler $cronScheduler,
-        private BackupServiceInterface $backupService,
     ) {
     }
 
@@ -29,8 +20,6 @@ final readonly class SystemMaintenanceMiddleware implements MiddlewareInterface
     {
         try {
             $this->bootstrapper->bootstrap();
-            $this->cronScheduler->runIfNeeded();
-            $this->backupService->checkAutoBackup();
         } catch (Throwable $e) {
             \error_log('Bootstrapping Warning: ' . $e->getMessage());
         }
