@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.60.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.59.1...v0.60.0) (2026-08-31)
+
+### 🚀 Features
+
+* **cron:** Split monolithic cron into isolated microservices (Phase 3) ([5d72409](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5d724095076e05ebe452b6fc96acb74b120578eb))
+
+### ⚙️ Refactoring
+
+* **storage:** Enforce MySQL as single source of truth and remove JSON fallbacks ([894f3bc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/894f3bcda6ec1522796a26fdd4a2f1b01ba16f51))
+
+### 📚 Dokumentation
+
+* **core:** Schedule advanced payment reminders as Phase 4 and execute Phase 2 ([5b9e068](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5b9e068a1f1d14bd7457e70dc429d0a503b56347))
+
 ## [0.59.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.59.0...v0.59.1) (2026-08-31)
 
 ### 🐛 Bug Fixes
