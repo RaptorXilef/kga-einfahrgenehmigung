@@ -381,7 +381,7 @@ final readonly class PermitService
                 PermitStatus::Bezahlt,
                 $permit->isSuspended(),
                 $permit->getSuspensionReason(),
-                $permit->status->reminder_sent,
+                $permit->status->last_reminder_at,
             ),
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $neuerKommentar,
@@ -405,7 +405,7 @@ final readonly class PermitService
             $permit->owner,
             $permit->vehicle,
             $permit->validity,
-            new Status($permit->getStatus(), $status, $reason),
+            new Status($permit->getStatus(), $status, $reason, $permit->status->last_reminder_at),
             $permit->getCreatedAt(),
             $permit->interner_kommentar,
         );
@@ -702,7 +702,7 @@ final readonly class PermitService
             owner: new Owner('[ANONYMISIERT]', null, new PlotNumber(0)),
             vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('XXX-XX 9999'), '[ANONYMISIERT]'),
             validity: clone $permit->validity,
-            status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert', false),
+            status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert', null),
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $permit->interner_kommentar,
             agreements: $permit->agreements,
@@ -716,59 +716,77 @@ final readonly class PermitService
     }
 
     /**
-     * Sucht nach unbezahlten Genehmigungen, bei denen der letzte Zahlungstag erreicht wurde,
-     * setzt den reminder_sent Flag und versendet die E-Mails.
-     *
-     * @return int Anzahl der verschickten Erinnerungen
+     * Steuert den gezielten Versand einer einzelnen Zahlungserinnerung inkl. Cooldown-Check.
+     */
+    public function dispatchReminder(string $code, bool $forceManual = false): bool
+    {
+        $permit = $this->storage->findByHash($code);
+        if (!$permit instanceof Permit) {
+            return false;
+        }
+
+        if ($permit->getStatus() !== PermitStatus::Offen || $permit->isSuspended()) {
+            return false;
+        }
+
+        $now = $this->clock->now();
+        $dueDateStart = $this->calculatePaymentDueDate($permit)->setTime(0, 0, 0);
+
+        // Bei Cronjobs: Nur mahnen, wenn das Zahlungsziel wirklich erreicht ist
+        if (!$forceManual && $now < $dueDateStart) {
+            return false;
+        }
+
+        // Cooldown Check (Standard: 7 Tage)
+        $cooldownDays = (int) $this->config->get('payment_reminder_cooldown_days', 7);
+        if ($permit->status->last_reminder_at !== null) {
+            $cooldownDate = $permit->status->last_reminder_at->modify("+{$cooldownDays} days");
+            // Wenn wir uns noch im Cooldown befinden, ignorieren wir den Request (außer bei extremem $force)
+            if ($now < $cooldownDate) {
+                return false;
+            }
+        }
+
+        $updatedStatus = new Status(
+            $permit->status->current,
+            $permit->status->is_suspended,
+            $permit->status->suspension_reason,
+            $now, // Stempel setzen
+        );
+
+        $updatedPermit = new Permit(
+            $permit->code,
+            $permit->template_key,
+            $permit->owner,
+            $permit->vehicle,
+            $permit->validity,
+            $updatedStatus,
+            $permit->getCreatedAt(),
+            $permit->interner_kommentar,
+            $permit->agreements,
+            $permit->state,
+            $permit->bezahlt_am,
+        );
+
+        if ($this->storage->save($updatedPermit)) {
+            $this->eventDispatcher->dispatch(new PaymentReminderEvent($updatedPermit));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Wird vom Cronjob getriggert und geht alle durch.
      */
     public function sendPaymentReminders(): int
     {
-        $now = $this->clock->now();
         $sentCount = 0;
-
-        $allPermits = $this->storage->getAll();
-
-        foreach ($allPermits as $permit) {
-            // Nur offene Permits betrachten, die weder gesperrt sind, noch bereits eine Erinnerung bekamen
-            if ($permit->getStatus() !== PermitStatus::Offen || $permit->isSuspended() || $permit->status->reminder_sent) {
-                continue;
+        foreach ($this->storage->getAll() as $permit) {
+            if ($this->dispatchReminder($permit->code->value, false)) {
+                ++$sentCount;
             }
-
-            // Wir holen den berechneten letzten Zahlungstag und setzen ihn auf 00:00:00 Uhr
-            $dueDateStart = $this->calculatePaymentDueDate($permit)->setTime(0, 0, 0);
-
-            // Wenn "heute" der letzte Zahlungstag (oder ein Tag danach) ist: Erinnerung senden
-            if ($now < $dueDateStart) {
-                continue;
-            }
-
-            // 1. Status aktualisieren, BEVOR die Mail gesendet wird (Schützt vor Dauerschleifen bei Mail-Fehlern)
-            $updatedStatus = new Status(
-                $permit->status->current,
-                $permit->status->is_suspended,
-                $permit->status->suspension_reason,
-                true, // reminder_sent auf true
-            );
-
-            $updatedPermit = new Permit(
-                $permit->code,
-                $permit->template_key,
-                $permit->owner,
-                $permit->vehicle,
-                $permit->validity,
-                $updatedStatus,
-                $permit->getCreatedAt(),
-                $permit->interner_kommentar,
-                $permit->agreements,
-                $permit->state,
-                $permit->bezahlt_am,
-            );
-
-            $this->storage->save($updatedPermit);
-
-            // 2. Event zum E-Mail-Versand auslösen
-            $this->eventDispatcher->dispatch(new PaymentReminderEvent($updatedPermit));
-            ++$sentCount;
         }
 
         return $sentCount;

@@ -65,12 +65,12 @@ final class SchemaRegistry
                 `interner_kommentar` TEXT DEFAULT NULL,
                 `agreements` JSON DEFAULT NULL, -- Zustimmungen (DSGVO, AGB, etc.)
                 `bezahlt_am` DATETIME DEFAULT NULL,
-                `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
+                `last_reminder_at` DATETIME DEFAULT NULL,
                 PRIMARY KEY (`code`),
                 INDEX `idx_kennzeichen` (`kennzeichen`),
                 INDEX `idx_parzelle` (`parzelle`),
                 INDEX `idx_email` (`email`),
-                INDEX `idx_reminder_sent` (`reminder_sent`)
+                INDEX `idx_last_reminder_at` (`last_reminder_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 
             'permits_archive' => 'CREATE TABLE IF NOT EXISTS `permits_archive` (
@@ -94,7 +94,7 @@ final class SchemaRegistry
                 `suspension_reason` TEXT DEFAULT NULL,
                 `agreements` JSON DEFAULT NULL, -- Zustimmungen im Archiv speichern
                 `bezahlt_am` DATETIME DEFAULT NULL,
-                `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
+                `last_reminder_at` DATETIME DEFAULT NULL,
                 PRIMARY KEY (`code`),
                 INDEX `idx_kennzeichen` (`kennzeichen`),
                 INDEX `idx_anonymized` (`is_anonymized`),
@@ -122,7 +122,7 @@ final class SchemaRegistry
                 `suspension_reason` TEXT DEFAULT NULL,
                 `agreements` JSON DEFAULT NULL,
                 `bezahlt_am` DATETIME DEFAULT NULL,
-                `reminder_sent` TINYINT(1) NOT NULL DEFAULT 0,
+                `last_reminder_at` DATETIME DEFAULT NULL,
                 PRIMARY KEY (`code`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;",
 

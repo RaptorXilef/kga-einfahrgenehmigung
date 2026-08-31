@@ -65,6 +65,17 @@ if ($auth->hasPermission('finance.view')) {
                                  alt="">
                             <span id="bulkPayCount">0</span> als Bezahlt markieren
                         </button>
+
+                        <!-- Bulk Reminder Button -->
+                        <button type="submit"
+                                form="bulk-action-form"
+                                formaction="<?php echo $settings['base_url']; ?>send_reminder"
+                                id="bulkRemindBtn"
+                                class="c-button c-button--danger"
+                                style="display: none; width: auto; height: 34px; padding: 0 16px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; border: none; box-shadow: var(--shadow-sm); align-items: center; justify-content: center; gap: 6px;"
+                                onclick="return confirm('Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?');">
+                            🔔 <span id="bulkRemindCount">0</span> erinnern
+                        </button>
                     <?php } ?>
                     <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
                 </div>
@@ -73,8 +84,7 @@ if ($auth->hasPermission('finance.view')) {
             <div class="c-card__body u-padding-none"
                  style="overflow-x: auto;">
                 <form method="POST"
-                      id="bulk-pay-form"
-                      action="<?php echo $settings['base_url']; ?>mark_as_paid"
+                      id="bulk-action-form"
                       style="margin:0;">
                     <input type="hidden"
                            name="csrf_token"
@@ -124,6 +134,9 @@ if ($auth->hasPermission('finance.view')) {
                                     $diff = $now->diff($deadline);
                                     $days = (int) $diff->format('%r%a');
                                     $is_suspended = $permit->isSuspended();
+                                    $cooldownDays = (int) $config->get('payment_reminder_cooldown_days', 7);
+                                    $lastRem = $permit->status->last_reminder_at;
+                                    $isOnCooldown = $lastRem !== null && $now < $lastRem->modify("+$cooldownDays days");
                                     $vKey = $permit->getVehicleType();
                                     $vCfg = $config->get('vehicle_types')[$vKey] ?? null;
                                     $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
@@ -219,6 +232,11 @@ if ($auth->hasPermission('finance.view')) {
                                                       style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">Noch <?php echo $days; ?> Tage</span>
                                             <?php } ?>
                                             <br><small class="u-text-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
+                                            <?php if ($lastRem) { ?>
+                                                <br><small style="color: <?php echo $isOnCooldown ? 'var(--primary-color)' : 'var(--danger-color)'; ?>; font-weight: 600;">
+                                                    Erinnert: <?php echo $lastRem->format('d.m.Y'); ?>
+                                                </small>
+                                            <?php } ?>
                                         </td>
                                         <td data-sort-val="<?php echo $is_suspended ? '1' : '0'; ?>"
                                             class="u-text-center"
@@ -289,6 +307,24 @@ if ($auth->hasPermission('finance.view')) {
                                                              class="c-icon"
                                                              alt="">
                                                     </button>
+                                                <?php } ?>
+                                                <?php if ($hasBulkRight) { ?>
+                                                    <form method="POST"
+                                                          action="<?php echo $settings['base_url']; ?>send_reminder"
+                                                          style="margin:0;">
+                                                        <input type="hidden"
+                                                               name="csrf_token"
+                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                        <input type="hidden"
+                                                               name="code"
+                                                               value="<?php echo $permit->code; ?>">
+                                                        <button type="submit"
+                                                                class="c-button <?php echo $isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?>"
+                                                                style="width: 34px; height: 34px;"
+                                                                title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
+                                                            🔔
+                                                        </button>
+                                                    </form>
                                                 <?php } ?>
                                             </div>
                                         </td>
@@ -445,11 +481,18 @@ if ($auth->hasPermission('finance.view')) {
     <script>
     function updateBulkPayButton() {
         const checkboxes = document.querySelectorAll('.js-bulk-pay-cb:checked');
-        const btn = document.getElementById('bulkPayBtn');
-        const countSpan = document.getElementById('bulkPayCount');
-        if (btn && countSpan) {
-            countSpan.innerText = checkboxes.length;
-            btn.style.display = checkboxes.length > 0 ? 'inline-flex' : 'none';
+        const btnPay = document.getElementById('bulkPayBtn');
+        const btnRemind = document.getElementById('bulkRemindBtn');
+        const countSpanPay = document.getElementById('bulkPayCount');
+        const countSpanRemind = document.getElementById('bulkRemindCount');
+
+        if (btnPay && countSpanPay && btnRemind && countSpanRemind) {
+            countSpanPay.innerText = checkboxes.length;
+            countSpanRemind.innerText = checkboxes.length;
+
+            const displayStyle = checkboxes.length > 0 ? 'inline-flex' : 'none';
+            btnPay.style.display = displayStyle;
+            btnRemind.style.display = displayStyle;
         }
     }
 

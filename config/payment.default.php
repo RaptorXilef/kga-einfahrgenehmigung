@@ -12,6 +12,8 @@ return [
     'payment_due_days_before_validity' => 1,
     'payment_due_days' => 14,
     'payment_due_days_notify' => 2,
+    // Mindest-Abstand in Tagen, bevor ein Pächter erneut gemahnt werden darf
+    'payment_reminder_cooldown_days' => 7,
     'paypal' => [
         'enabled' => false,
         'sandbox' => [

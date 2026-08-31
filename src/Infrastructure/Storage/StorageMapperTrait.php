@@ -119,6 +119,16 @@ trait StorageMapperTrait
 
         $statusEnum = PermitStatus::tryFrom((string) ($item['status'] ?? 'offen')) ?? PermitStatus::Offen;
 
+        // Zeitstempel parsen
+        $lastReminderStr = $item['last_reminder_at'] ?? null;
+        $dtLastReminder = null;
+        if ($lastReminderStr && $lastReminderStr !== '0000-00-00 00:00:00' && $lastReminderStr !== 'null') {
+            try {
+                $dtLastReminder = new DateTimeImmutable($lastReminderStr);
+            } catch (Exception) {
+            }
+        }
+
         // 3. Entität hydrieren
         return new Permit(
             code: clone new PermitCode($codeStr),
@@ -143,7 +153,7 @@ trait StorageMapperTrait
                 $statusEnum,
                 $is_suspended,
                 $suspReason,
-                (bool) ($item['reminder_sent'] ?? false),
+                $dtLastReminder,
             ),
             erstellt: $dtCreated,
             interner_kommentar: $kommentar,
@@ -180,7 +190,7 @@ trait StorageMapperTrait
             'name' => $permit->getOwnerName(),
             'parzelle' => $permit->owner->parzelle->value, // Schreibt den reinen INT in die DB!
             'preis' => $permit->validity->preis->value,
-            'reminder_sent' => (int) $permit->status->reminder_sent,
+            'last_reminder_at' => $permit->status->last_reminder_at ? $permit->status->last_reminder_at->format('Y-m-d H:i:s') : null,
             'status' => $permit->getStatus()->value,
             'suspension_reason' => $permit->getSuspensionReason(),
             'template_key' => $permit->template_key->value,
