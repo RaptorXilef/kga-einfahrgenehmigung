@@ -2,12 +2,19 @@
 
 declare(strict_types=1);
 
-/** @var array<string, mixed> $formData */
+use App\Contracts\Config\ConfigInterface;
+
+/**
+ * Partial: Dashboard Tab - Bank Import
+ *
+ * @var ConfigInterface $config
+ * @var array<string, mixed> $formData
+ * @var array $settings
+ */
 $bankWizard = $formData['bank_wizard'] ?? null;
 $bank_headers = $bankWizard['headers'] ?? [];
 $bank_row_preview = $bankWizard['previewRow'] ?? [];
 $bank_temp_file = $bankWizard['tempFile'] ?? '';
-
 $headersExist = !empty($bank_headers) && \is_array($bank_headers);
 $rowPreviewExist = !empty($bank_row_preview) && \is_array($bank_row_preview);
 $guess_id = (int) ($bankWizard['guessId'] ?? 4);
@@ -23,8 +30,12 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                 zu setzen.</p>
         </header>
         <div class="c-card__body u-padding-around-l">
+            <?php
+            // Lade den aktuellen Modus aus der Config (Fallback: simple)
+            $importMode = $config->get('bank_import_mode', 'simple');
 
-            <?php if (!$headersExist) { ?>
+if (!$headersExist) {
+    ?>
                 <form method="POST"
                       action="<?php echo $settings['base_url']; ?>bank_import_analyze"
                       enctype="multipart/form-data"
@@ -32,13 +43,25 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-
                     <div class="js-avatar-dropzone js-preview-only u-text-center u-padding-around-l"
                          style="border: 3px dashed var(--border-color); border-radius: 12px; background: rgba(0,0,0,0.01); padding: 40px 20px; cursor:pointer;"
                          id="csvDropzone">
                         <span style="font-size: 3rem; display:block; margin-bottom:10px;">📄</span>
                         <strong class="js-preview-text">CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
-                        <p class="u-text-muted u-text-small">Unterstützt Standard-Bank-CSV (Semikolon-getrennt)</p>
+
+                        <!-- Modus-Indikator für die Nutzer -->
+                        <div class="u-margin-top-m u-text-muted u-text-small"
+                             style="line-height: 1.5;">
+                            Unterstützt Standard-Bank-CSV (Semikolon-getrennt).<br>
+                            <?php if ($importMode === 'simple') { ?>
+                                <span style="color: var(--success-color); font-weight: bold;">Einfacher Modus aktiv:</span>
+                                Der Daten-Abgleich und die Freischaltung starten sofort nach dem Hochladen!
+                            <?php } else { ?>
+                                <span style="color: var(--primary-color); font-weight: bold;">Kontroll-Modus aktiv:</span>
+                                Sie können die Spaltenzuordnung nach dem Hochladen noch prüfen.
+                            <?php } ?>
+                        </div>
+
                         <input type="file"
                                name="bank_csv"
                                accept=".csv,text/csv"
@@ -51,7 +74,6 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                 <div class="c-alert c-alert--info u-margin-bottom-m">
                     CSV erfolgreich eingelesen! Bitte bestätigen Sie die Spaltenzuordnung anhand der Live-Vorschau.
                 </div>
-
                 <form method="POST"
                       action="<?php echo $settings['base_url']; ?>bank_import_process"
                       class="c-form">
@@ -61,7 +83,6 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                     <input type="hidden"
                            name="temp_file"
                            value="<?php echo \htmlspecialchars($bank_temp_file); ?>">
-
                     <div class="u-grid u-gap-m"
                          style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                         <div class="c-form-group">
@@ -82,7 +103,6 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                                         style="color: var(--primary-color);">---</strong>
                             </div>
                         </div>
-
                         <div class="c-form-group">
                             <label class="c-form-label">Zahlungsbetrag (€)</label>
                             <select name="col_amount"
@@ -101,7 +121,6 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                                         style="color: #059669;">---</strong>
                             </div>
                         </div>
-
                         <div class="c-form-group">
                             <label class="c-form-label">Buchungstag / Datum</label>
                             <select name="col_date"
@@ -109,8 +128,7 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                                     data-preview-target="preview_date">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
-                                            <?php echo $idx === $guess_date ? 'selected' : ''; ?>>
-                                        Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                            <?php echo $idx === $guess_date ? 'selected' : ''; ?>> Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -121,10 +139,11 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                             </div>
                         </div>
                     </div>
-
                     <div class="u-margin-top-xl u-flex u-gap-m u-justify-between u-align-center"
                          style="border-top: 1px solid var(--border-color); padding-top: 20px; flex-wrap: wrap;">
-                        <a href="admin.php" class="c-button c-button--secondary" style="width: auto; padding: 0 20px; height: 42px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none;">
+                        <a href="admin.php"
+                           class="c-button c-button--secondary"
+                           style="width: auto; padding: 0 20px; height: 42px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none;">
                             ✕ Abbrechen
                         </a>
                         <button type="submit"
@@ -135,11 +154,9 @@ $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
                     </div>
                 </form>
             <?php } ?>
-
         </div>
     </section>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Drag & Drop Funktionalität absichern

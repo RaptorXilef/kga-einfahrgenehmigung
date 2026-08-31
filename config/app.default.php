@@ -23,6 +23,9 @@ return [
         'allowed_limits' => [10, 25, 50, 100, 250],
     ],
 
+    // NEU: Steuert das Verhalten des Bank-Abgleichs ('simple' = sofort, 'advanced' = mit manueller Spalten-Kontrolle)
+    'bank_import_mode' => 'simple',
+
     'purposes' => [
         'bau' => 'Baumaßnahmen (genehmigt)',
         'abriss' => 'Abriss',

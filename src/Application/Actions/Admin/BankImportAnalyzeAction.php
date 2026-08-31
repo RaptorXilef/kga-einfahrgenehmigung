@@ -10,6 +10,8 @@ use App\Application\Contracts\RequiresPermissionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
+use App\Contracts\Config\ConfigInterface;
+use App\Core\Service\AuditLoggerService;
 use App\Core\Service\BankImportService;
 
 #[Route('GET', '/bank_import_analyze')]
@@ -17,10 +19,11 @@ use App\Core\Service\BankImportService;
 final readonly class BankImportAnalyzeAction implements ActionInterface, RequiresPermissionInterface
 {
     public function __construct(
+        private AuditLoggerService $auditLogger,
+        private ConfigInterface $config,
         private BankImportService $importService,
         private SessionManager $sessionManager,
-    ) {
-    }
+    ) {}
 
     public function getRequiredPermission(): string
     {
@@ -52,6 +55,7 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             return new RedirectResponse('admin.php');
         }
 
+        // Heuristik: Spalten automatisch erraten
         $guessedId = 4;
         $guessedAmount = 14;
         $guessedDate = 1;
@@ -67,25 +71,75 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             if (!\str_contains($h, 'buchungstag') && !\str_contains($h, 'valuta') && !\str_contains($h, 'date')) {
                 continue;
             }
-
             $guessedDate = $index;
         }
 
-        // Korrektur: Anstatt das Dashboard isoliert und fehlerhaft zu rendern,
-        // übergeben wir den Status via Session an das ohnehin fehlerfrei ladende Dashboard.
-        $this->sessionManager->setFormData([
-            'bank_wizard' => [
-                'headers' => $headers,
-                'previewRow' => $analysis['previewRow'],
-                'tempFile' => $tempPath,
-                'guessId' => $guessedId,
-                'guessAmount' => $guessedAmount,
-                'guessDate' => $guessedDate,
-            ],
-        ]);
+        $mode = $this->config->get('bank_import_mode', 'simple');
 
-        $this->sessionManager->addFlash('success', 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.');
+        // --- ADVANCED MODUS --- (Zeigt die Spalten-Auswahl an)
+        if ($mode === 'advanced') {
+            $this->sessionManager->setFormData([
+                'bank_wizard' => [
+                    'headers' => $headers,
+                    'previewRow' => $analysis['previewRow'],
+                    'tempFile' => $tempPath,
+                    'guessId' => $guessedId,
+                    'guessAmount' => $guessedAmount,
+                    'guessDate' => $guessedDate,
+                ],
+            ]);
 
-        return new RedirectResponse('admin.php');
+            $this->sessionManager->addFlash('success', 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.');
+
+            return new RedirectResponse('admin.php');
+        }
+
+        // --- SIMPLE MODUS --- (Führt den Import direkt aus)
+        $res = $this->importService->processCsv($tempPath, $guessedId, $guessedAmount, $guessedDate);
+
+        if (\file_exists($tempPath)) {
+            @\unlink($tempPath);
+        }
+
+        if (($res['success'] ?? false) === true) {
+            $erfolgreichCount = (int) ($res['erfolgreich_count'] ?? 0);
+            $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
+            $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
+
+            $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
+            $htmlDetails = [];
+            $logDetails = [];
+
+            if (!empty($res['erfolgreich_details']) && \is_array($res['erfolgreich_details'])) {
+                $htmlDetails[] = '<div style="margin-top: 6px;">✅ <strong>Freigeschaltet:</strong> ' . \htmlspecialchars(\implode(', ', $res['erfolgreich_details'])) . '</div>';
+                $logDetails[] = 'Freigeschaltet: [' . \implode(', ', $res['erfolgreich_details']) . ']';
+            }
+            if (!empty($res['uebersprungen_details']) && \is_array($res['uebersprungen_details'])) {
+                $htmlDetails[] = '<div style="margin-top: 4px;">⏭️ <strong>Übersprungen:</strong> ' . \htmlspecialchars(\implode(', ', $res['uebersprungen_details'])) . '</div>';
+                $logDetails[] = 'Übersprungen: [' . \implode(', ', $res['uebersprungen_details']) . ']';
+            }
+            if (!empty($res['fehlerhaft_details']) && \is_array($res['fehlerhaft_details'])) {
+                $htmlDetails[] = '<div style="margin-top: 4px;">❌ <strong>Fehlerhaft:</strong> ' . \htmlspecialchars(\implode(', ', $res['fehlerhaft_details'])) . '</div>';
+                $logDetails[] = 'Fehlerhaft: [' . \implode(', ', $res['fehlerhaft_details']) . ']';
+            }
+            if (!empty($res['unlesbare_zeilen_details']) && \is_array($res['unlesbare_zeilen_details'])) {
+                $htmlDetails[] = '<div style="margin-top: 4px;">⚠️ <strong>CSV-Fehler:</strong> ' . \htmlspecialchars(\implode(', ', $res['unlesbare_zeilen_details'])) . '</div>';
+                $logDetails[] = 'CSV-Fehler: [' . \implode(', ', $res['unlesbare_zeilen_details']) . ']';
+            }
+
+            $fullMsg = $msg . \implode('', $htmlDetails);
+            $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
+            if ($logDetails !== []) {
+                $logStr .= ' | ' . \implode(' | ', $logDetails);
+            }
+
+            $this->auditLogger->log('BANK_IMPORT', $logStr);
+            $this->sessionManager->addFlash('success', $fullMsg);
+        } else {
+            $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
+        }
+
+        // Springt nach dem automatischen Import direkt ins Finanz-Tab zurück
+        return new RedirectResponse('admin.php?focus=tab-finance');
     }
 }
