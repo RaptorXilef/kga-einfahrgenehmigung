@@ -19,7 +19,6 @@ use App\Infrastructure\Storage\MySqlStorage;
 use App\Infrastructure\Storage\MySqlUserRepository;
 use App\Infrastructure\Storage\MySqlVerificationRepository;
 use App\Infrastructure\Storage\MySqlVoucherRepository;
-use App\Infrastructure\Utils\SystemClock;
 use Exception;
 use InvalidArgumentException;
 use PDO;
@@ -122,7 +121,6 @@ final readonly class MigrationService implements MigrationServiceInterface
             'permits' => (new MySqlStorage($this->pdo, $this->jsonHelper))->import($data),
             'permits_archive' => (new MySqlPermitArchiveRepository($this->pdo, $this->config, $this->jsonHelper))->import($data),
             'permits_cancelled' => (new MySqlCancelledPermitRepository($this->pdo, $this->config, $this->jsonHelper))->import($data),
-            'update_migrations' => (new UpdateMigrationService($this->pdo, new SystemClock(), $this->config, $this->jsonHelper))->import($data, true),
             'verified_pending' => (new MySqlVerificationRepository($this->pdo, $this->config, $this->jsonHelper))->saveVerified($data, true),
             'vouchers' => (new MySqlVoucherRepository($this->pdo, $this->config, $this->jsonHelper))->saveAll($data, true),
             'vouchers_archive' => (new MySqlVoucherRepository($this->pdo, $this->config, $this->jsonHelper))->importArchive($data),

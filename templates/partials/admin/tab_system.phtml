@@ -1,0 +1,219 @@
+<?php
+
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+
+/**
+ * Partial: Dashboard Tab - System Maintenance & Cronjobs
+ *
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var ConfigInterface $config
+ * @var array $settings
+ */
+$cronSecret = (string) $config->get('cron_secret', '');
+$baseUrl = \rtrim($settings['base_url'] ?? '', '/');
+
+$crons = [
+    [
+        'label' => 'Mail-Warteschlange abarbeiten',
+        'desc' => 'Versendet zwischengespeicherte Mails (falls Queue-Limit im Web erreicht wird).',
+        'url' => $baseUrl . '/api/process_mail_queue?token=' . $cronSecret,
+        'interval' => 'Alle 5 Minuten',
+        'icon' => '📧',
+    ],
+    [
+        'label' => 'Zahlungserinnerungen versenden',
+        'desc' => 'Prüft auf überfällige Anträge und versendet Mahnungen.',
+        'url' => $baseUrl . '/api/cron/reminders?token=' . $cronSecret,
+        'interval' => 'Täglich (z.B. morgens um 08:00)',
+        'icon' => '🔔',
+    ],
+    [
+        'label' => 'Archivierung & DSGVO',
+        'desc' => 'Verschiebt alte Genehmigungen ins Archiv und anonymisiert >10 Jahre alte Daten.',
+        'url' => $baseUrl . '/api/cron/archive?token=' . $cronSecret,
+        'interval' => 'Täglich (z.B. nachts um 02:00)',
+        'icon' => '🗄️',
+    ],
+    [
+        'label' => 'Auto-Backup & Rotation',
+        'desc' => 'Erstellt einen MySQL-Dump und löscht ältere Backups nach dem FIFO-Prinzip.',
+        'url' => $baseUrl . '/api/cron/backup?token=' . $cronSecret,
+        'interval' => 'Täglich (z.B. nachts um 03:00)',
+        'icon' => '📦',
+    ],
+    [
+        'label' => 'Spam-Filter synchronisieren',
+        'desc' => 'Lädt die tagesaktuellen Trashmail-Domains über GitHub in den Cache herunter.',
+        'url' => $baseUrl . '/api/cron/spam_sync?token=' . $cronSecret,
+        'interval' => 'Einmal Wöchentlich',
+        'icon' => '🛡️',
+    ],
+];
+?>
+
+<div class="c-tab-content-container">
+    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
+        <div class="u-margin-bottom-l">
+            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                <span class="u-font-xl">🛠️</span>
+                <div>
+                    <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
+                    <p class="u-text-muted u-text-small u-margin-none">Cache leeren und alte Daten anonymisieren.</p>
+                </div>
+            </header>
+            <div class="u-grid"
+                 style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                <div class="c-card"
+                     style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
+                    <div class="c-card__header u-flex u-align-center u-gap-s"
+                         style="padding: 1rem 1.5rem;">
+                        <h4 class="u-margin-none"
+                            style="font-size: 1.1rem;">🛡️ DSGVO-Anonymisierung</h4>
+                    </div>
+                    <div class="c-card__body u-flex u-flex-column u-gap-m"
+                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                        <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in Archiv-Einträgen,
+                            die älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>anonymize_archive"
+                              onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
+                              class="u-margin-top-auto">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <button type="submit"
+                                    class="c-button c-button--secondary u-width-100"
+                                    style="font-size: 0.9rem;"> Jetzt bereinigen </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="c-card"
+                     style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
+                    <div class="c-card__header u-flex u-align-center u-gap-s"
+                         style="padding: 1rem 1.5rem;">
+                        <h4 class="u-margin-none"
+                            style="font-size: 1.1rem;">🧹 System-Cache leeren</h4>
+                    </div>
+                    <div class="c-card__body u-flex u-flex-column u-gap-m"
+                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                        <p class="u-text-small u-margin-none">Löscht temporäre Dateien, Routen-Caches und kompiliert die
+                            System-Berechtigungen neu.</p>
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>clear_cache"
+                              onsubmit="return confirm('Cache jetzt leeren?')"
+                              class="u-margin-top-auto">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <button type="submit"
+                                    class="c-button c-button--secondary u-width-100"
+                                    style="font-size: 0.9rem;"> Cache leeren </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
+
+    <?php if ($auth->hasPermission('system.update.execute')) { ?>
+        <div class="u-margin-bottom-l">
+            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                <span class="u-font-xl">🔄</span>
+                <div>
+                    <h3 class="u-margin-none">System-Updates</h3>
+                    <p class="u-text-muted u-text-small u-margin-none">Verwalten Sie Datenbank-Updates und
+                        Schema-Erweiterungen.</p>
+                </div>
+            </header>
+            <div class="u-grid"
+                 style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                <div class="c-card"
+                     style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
+                    <div class="c-card__header u-flex u-align-center u-gap-s"
+                         style="padding: 1rem 1.5rem;">
+                        <h4 class="u-margin-none"
+                            style="font-size: 1.1rem;">⚡ Datenbank-Migrationen</h4>
+                    </div>
+                    <div class="c-card__body u-flex u-flex-column u-gap-m"
+                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                        <p class="u-text-small u-margin-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql Dateien)
+                            manuell aus, falls dies nicht via Console geschehen ist.</p>
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>run_update_migrations"
+                              class="u-margin-top-auto">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <button type="submit"
+                                    class="c-button c-button--primary u-width-100"
+                                    style="font-size: 0.9rem;"> Datenbank migrieren </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } ?>
+
+    <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
+        <div class="u-margin-top-xl">
+            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                <span class="u-font-xl">⏱️</span>
+                <div>
+                    <h3 class="u-margin-none">Cronjobs & Automatisierung</h3>
+                    <p class="u-text-muted u-text-small u-margin-none">Rufen Sie diese URLs über Ihren Webhoster (z.B.
+                        Strato, Ionos, oder cron-job.org) zyklisch per GET auf.</p>
+                </div>
+            </header>
+
+            <?php if ($cronSecret === '') { ?>
+                <div class="c-alert c-alert--danger u-margin-bottom-m">
+                    <strong>Achtung:</strong> Es wurde kein <code>cron_secret</code> in der Konfiguration definiert. Die
+                    Automatisierung ist dadurch nicht abgesichert und wird fehlschlagen!
+                </div>
+            <?php } ?>
+
+            <div class="u-flex u-flex-column u-gap-m">
+                <?php foreach ($crons as $cron) { ?>
+                    <div class="c-card u-margin-none"
+                         style="border-left: 4px solid var(--primary-color);">
+                        <div
+                             class="c-card__body u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
+                            <div>
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                    <span><?php echo $cron['icon']; ?></span> <?php echo $cron['label']; ?>
+                                </h4>
+                                <p class="u-text-small u-text-muted u-margin-top-xs u-margin-bottom-none"><?php echo $cron['desc']; ?></p>
+                                <div class="u-margin-top-s">
+                                    <span class="c-badge" style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
+                                        Empfohlen: <?php echo $cron['interval']; ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="u-flex u-align-center u-gap-s">
+                                <input type="text"
+                                       readonly
+                                       value="<?php echo \htmlspecialchars($cron['url']); ?>"
+                                       class="c-form-input u-text-small"
+                                       style="width: 450px; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
+                                       onclick="this.select()">
+                                <button type="button"
+                                        class="c-button c-button--secondary"
+                                        onclick="navigator.clipboard.writeText('<?php echo \htmlspecialchars($cron['url']); ?>'); alert('Kopiert!');"
+                                        title="In Zwischenablage kopieren">
+                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                                         class="c-icon"
+                                         alt="">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
+            </div>
+        </div>
+    <?php } ?>
+</div>

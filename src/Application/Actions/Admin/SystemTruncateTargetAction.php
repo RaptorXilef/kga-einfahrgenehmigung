@@ -33,7 +33,7 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
 
     public function getRequiredPermission(): string
     {
-        return 'system.maintenance.execute';
+        return 'system.backup.manage';
     }
 
     /**

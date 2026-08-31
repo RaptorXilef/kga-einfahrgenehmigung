@@ -1,0 +1,198 @@
+<?php
+
+use App\Contracts\System\AssetHelperInterface;
+use App\Core\Service\AuthService;
+use App\Infrastructure\Maintenance\BackupService;
+
+/**
+ * Partial: Dashboard Tab - Backups & Restoration
+ *
+ * @var AssetHelperInterface $asset
+ * @var AuthService $auth
+ * @var BackupService $backupService
+ * @var array $settings
+ * @var array $backups
+ */
+$targets = [
+    'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
+    'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
+    'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
+    'mail_queue' => ['label' => 'Mail-Warteschlange', 'icon' => '📤'],
+    'pending_verification' => ['label' => 'Warteraum (E-Mail)', 'icon' => '✉️'],
+    'permits' => ['label' => 'Genehmigungen', 'icon' => '📄'],
+    'permits_archive' => ['label' => 'Genehmigungs-Archiv', 'icon' => '🗄️'],
+    'permits_cancelled' => ['label' => 'Stornierte Genehmigungen', 'icon' => '🚫'],
+    'users' => ['label' => 'Benutzerkonten', 'icon' => '👥'],
+    'verified_pending' => ['label' => 'Warteraum (Zahlung)', 'icon' => '💳'],
+    'vouchers' => ['label' => 'Gutscheine', 'icon' => '🎟️'],
+    'vouchers_archive' => ['label' => 'Gutschein-Archiv', 'icon' => '📚'],
+    'login_attempts' => ['label' => 'Login-Versuche', 'icon' => '🛡'],
+    'update_migrations' => ['label' => 'Update-Migration-Verlauf', 'icon' => '♻'],
+    'audit_logs' => ['label' => 'Nutzerprotokoll (Audit)', 'icon' => '👁️‍🗨️'],
+];
+
+if ($auth->hasPermission('system.backup.manage')) {
+    ?>
+    <div class="c-tab-content-container">
+
+        <div class="u-margin-bottom-l">
+            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                <span class="u-font-xl">📦</span>
+                <div>
+                    <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
+                    <p class="u-text-muted u-text-small u-margin-none">Datenbank-Tabellen sichern oder gezielt leeren.
+                    </p>
+                </div>
+            </header>
+
+            <div class="u-grid"
+                 style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                <!-- BACKUP CREATE -->
+                <div class="c-card"
+                     style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
+                    <div class="c-card__header u-flex u-align-center u-gap-s"
+                         style="padding: 1rem 1.5rem;">
+                        <h4 class="u-margin-none"
+                            style="font-size: 1.1rem;">📥 Manuelles Voll-Backup</h4>
+                    </div>
+                    <div class="c-card__body u-flex u-flex-column u-gap-m"
+                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                        <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände der
+                            MySQL-Datenbank im Backup-Verzeichnis.</p>
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>create_backup"
+                              class="u-margin-top-auto">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <button type="submit"
+                                    class="c-button c-button--success u-width-100"
+                                    style="font-size: 0.9rem;"> Backup jetzt erstellen </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TRUNCATE TARGET -->
+                <div class="c-card"
+                     style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
+                    <div class="c-card__header u-flex u-align-center u-gap-s"
+                         style="padding: 1rem 1.5rem;">
+                        <h4 class="u-margin-none"
+                            style="font-size: 1.1rem;">🗑️ Datenbestand leeren (Truncate)</h4>
+                    </div>
+                    <div class="c-card__body u-flex u-flex-column u-gap-m"
+                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                        <p class="u-text-small u-margin-none">Leert eine Datenbank-Tabelle restlos. Ein
+                            Sicherheits-Backup wird vorab automatisch erstellt.</p>
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>truncate_target"
+                              onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
+                              class="u-margin-top-auto u-flex u-flex-column u-gap-s">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <div class="u-flex u-gap-s">
+                                <select name="target"
+                                        class="c-form-select"
+                                        required>
+                                    <option value="">Tabelle auswählen...</option>
+                                    <?php foreach ($targets as $key => $data) { ?>
+                                        <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                    <?php } ?>
+                                </select>
+                                <input type="hidden"
+                                       name="engine"
+                                       value="mysql">
+                                <button type="submit"
+                                        class="c-button c-button--danger"
+                                        style="width: auto; padding: 0 16px;"> Leeren </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESTORE SECTION -->
+        <div class="u-margin-top-xl">
+            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
+                <span class="u-font-xl">💾</span>
+                <div>
+                    <h3 class="u-margin-none">Verfügbare Backups zur Wiederherstellung</h3>
+                    <p class="u-text-muted u-text-small u-margin-none">Überschreiben Sie Live-Tabellen mit Inhalten aus
+                        diesen Snapshots.</p>
+                </div>
+            </header>
+
+            <?php if (empty($backups)) { ?>
+                <div class="c-card"
+                     style="border-top: 4px solid var(--json-color);">
+                    <div class="c-card__body u-padding-around-l u-text-center u-text-muted">
+                        <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📦</span>
+                        Es sind noch keine Backups im Verzeichnis vorhanden.
+                    </div>
+                </div>
+            <?php } else { ?>
+                <div class="u-grid"
+                     style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                    <?php foreach ($backups as $ts => $files) {
+                        $dateObj = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
+                        $formattedDate = $dateObj ? $dateObj->format('d.m.Y — H:i:s') : $ts;
+                        ?>
+                        <div class="c-card"
+                             style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
+                            <div class="c-card__header"
+                                 style="padding: 1rem 1.5rem;">
+                                <h4 class="u-margin-none"
+                                    style="font-size: 1.1rem;"><?php echo $formattedDate; ?></h4>
+                                <span class="u-text-muted u-text-small"><?php echo $ts; ?></span>
+                            </div>
+                            <div class="c-card__body u-flex u-flex-column u-gap-m"
+                                 style="padding: 1.25rem 1.5rem; flex-grow: 1;">
+                                <div class="u-flex u-flex-wrap u-gap-xs">
+                                    <?php foreach ($files as $file) {
+                                        $cleanName = \str_replace(['_file.json', '_sql.json'], '', $file);
+                                        ?>
+                                        <span class="c-badge" style="background: var(--primary-soft); color: var(--primary-color); font-size: 0.7rem;">
+                                        <?php echo \htmlspecialchars($cleanName); ?>
+                                    </span>
+                                    <?php } ?>
+                                </div>
+
+                                <form method="POST"
+                                      action="<?php echo $settings['base_url']; ?>restore_data"
+                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Tabellen mit dem alten Backup-Stand! Ein Backup des Ist-Zustands wird aber vorsichtshalber erstellt. Fortfahren?')"
+                                      class="u-flex u-flex-column u-gap-s u-margin-top-auto">
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                    <input type="hidden"
+                                           name="timestamp"
+                                           value="<?php echo $ts; ?>">
+                                    <input type="hidden"
+                                           name="engine"
+                                           value="mysql">
+
+                                    <div class="u-flex u-gap-s">
+                                        <select name="target"
+                                                class="c-form-select"
+                                                required>
+                                            <option value="">Wiederherstellen...</option>
+                                            <?php foreach ($targets as $key => $data) { ?>
+                                                <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                            <?php } ?>
+                                        </select>
+                                        <button type="submit"
+                                                class="c-button c-button--danger"
+                                                style="width: auto; padding: 0 16px; font-weight: 600;"> Restore
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php } ?>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+<?php } ?>

@@ -33,7 +33,7 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
 
     public function getRequiredPermission(): string
     {
-        return 'system.maintenance.execute';
+        return 'system.backup.manage';
     }
 
     public function execute(ServerRequest $request): mixed

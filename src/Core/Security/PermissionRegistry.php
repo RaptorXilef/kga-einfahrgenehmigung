@@ -52,7 +52,7 @@ final class PermissionRegistry
             ],
             'stats' => [
                 'label' => '📊 Statistiken',
-                'key' => 'stats.view', // Hier ist 'view' als Vater logisch (Read-Only Modul)
+                'key' => 'stats.view',
                 'children' => [
                     'charts' => ['label' => 'Wachstums-Diagramme', 'key' => 'stats.charts'],
                     'ranking' => ['label' => 'Parzellen-Ranking', 'key' => 'stats.ranking'],
@@ -72,7 +72,8 @@ final class PermissionRegistry
                     'users' => ['label' => 'Benutzer verwalten', 'key' => 'system.users.manage'],
                     'roles' => ['label' => 'Rechte-Rollen verwalten', 'key' => 'system.roles.manage'],
                     'update' => ['label' => 'System-Updates installieren', 'key' => 'system.update.execute'],
-                    'maintenance' => ['label' => 'Wartung (Cache, DSGVO, Truncate)', 'key' => 'system.maintenance.execute'],
+                    'maintenance' => ['label' => 'System-Wartung & Cronjobs', 'key' => 'system.maintenance.execute'],
+                    'backup' => ['label' => 'Backups & Wiederherstellung', 'key' => 'system.backup.manage'],
                     'logs' => ['label' => 'Audit- & E-Mail-Logs einsehen', 'key' => 'system.logs.view'],
                 ],
             ],

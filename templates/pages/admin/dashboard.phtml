@@ -173,10 +173,18 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
                 <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
                     <button class="c-tabs__btn"
-                            data-tab-target="tab-migration">
+                            data-tab-target="tab-system">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
                              class="c-icon"
-                             alt="">Migration
+                             alt=""> System
+                    </button>
+                <?php } ?>
+                <?php if ($auth->hasPermission('system.backup.manage')) { ?>
+                    <button class="c-tabs__btn"
+                            data-tab-target="tab-backup">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Backups
                     </button>
                 <?php } ?>
             </div>
@@ -260,10 +268,16 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 </div>
             <?php } ?>
 
-            <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
-                <div id="tab-migration"
+            <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
+                <div id="tab-system"
                      class="c-tabs__content">
-                    <?php include $appRoot . '/templates/partials/admin/tab_migration.phtml'; ?>
+                    <?php include $appRoot . '/templates/partials/admin/tab_system.phtml'; ?>
+                </div>
+            <?php } ?>
+            <?php if ($auth->hasPermission('system.backup.manage')) { ?>
+                <div id="tab-backup"
+                     class="c-tabs__content">
+                    <?php include $appRoot . '/templates/partials/admin/tab_backup.phtml'; ?>
                 </div>
             <?php } ?>
         </div>

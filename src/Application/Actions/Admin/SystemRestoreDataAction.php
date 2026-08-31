@@ -33,7 +33,7 @@ final readonly class SystemRestoreDataAction implements ActionInterface, Require
 
     public function getRequiredPermission(): string
     {
-        return 'system.maintenance.execute';
+        return 'system.backup.manage';
     }
 
     /**
