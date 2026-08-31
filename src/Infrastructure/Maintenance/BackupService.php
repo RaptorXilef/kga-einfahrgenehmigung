@@ -11,8 +11,6 @@ use App\Contracts\Utils\ClockInterface;
 use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use Exception;
 use PDO;
-use RuntimeException;
-use Throwable;
 
 /**
  * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
@@ -145,57 +143,14 @@ final readonly class BackupService implements BackupServiceInterface
     }
 
     /**
-     * Überwacht und steuert automatisierte Backup-Intervalle im Hintergrund.
-     * Prüft anhand eines Timestamps in storage/logs/last_auto_backup.txt, ob ein konfiguriertes Intervall abgelaufen ist,
-     * stößt die Sicherung an und rotiert alte Backups (Retention Rate) aus.
+     * Wird vom externen Cronjob getriggert. Erstellt ein Backup und rotiert alte Bestände weg.
      */
-    public function checkAutoBackup(): void
+    public function runCronBackup(): void
     {
-        $cfg = $this->config->get('backup_settings', []);
+        $this->createBackup('auto_cron_backup');
 
-        // Ist Auto-Backup überhaupt aktiviert?
-        if (!($cfg['enabled'] ?? false)) {
-            return;
-        }
-
-        // Intervall von Stunden in Sekunden umrechnen (Standard: 24h)
-        $interval = (int) ($cfg['interval_hours'] ?? 24) * 3600;
-
-        $rootPath = \rtrim((string) $this->config->get('root_path', ''), '/\\');
-        $logDir = $rootPath . '/logs';
-
-        if (!\is_dir($logDir)) {
-            @\mkdir($logDir, 0o755, true);
-        }
-
-        $stateFile = $logDir . '/last_auto_backup.txt';
-        $lastBackup = \file_exists($stateFile) ? (int) \file_get_contents($stateFile) : 0;
-
-        $now = $this->clock->now()->getTimestamp();
-
-        // Prüfen, ob das Intervall abgelaufen ist
-        // Schützt vor negativen Werten, wenn das Intervall < 10 Minuten ist.
-        // Nutzt bei kleinen Intervallen stattdessen 90% der Zeit als Schwellenwert.
-        $threshold = \max((int) ($interval * 0.9), $interval - 600);
-
-        if ($now - $lastBackup < $threshold) {
-            return;
-        }
-
-        try {
-            $this->createBackup('auto_maintenance');
-
-            // Zeitstempel aktualisieren
-            $result = \file_put_contents($stateFile, (string) $now, \LOCK_EX);
-
-            if ($result === false) {
-                throw new RuntimeException('Kritischer Schreibfehler beim Auto-Backup.');
-            }
-
-            $this->rotateBackups((int) ($cfg['max_backups'] ?? 10));
-        } catch (Throwable $e) {
-            \error_log('Auto-Backup fehlgeschlagen: ' . $e->getMessage());
-        }
+        $max = (int) ($this->config->get('backup_settings')['max_backups'] ?? 15);
+        $this->rotateBackups($max);
     }
 
     // --- Private Core ---

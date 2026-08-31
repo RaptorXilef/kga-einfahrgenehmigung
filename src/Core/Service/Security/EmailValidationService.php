@@ -65,6 +65,29 @@ final readonly class EmailValidationService
     }
 
     /**
+     * Aktualisiert die Anti-Spam-Liste automatisch von GitHub.
+     * Wird über den isolierten Cronjob angetriggert.
+     */
+    public function syncDisposableDomains(): void
+    {
+        $path = $this->config->getStoragePath('disposable_email.json');
+
+        // Nur updaten, wenn die Datei älter als 7 Tage ist (604800 Sekunden)
+        if (\file_exists($path) && (\time() - \filemtime($path)) < 604800) {
+            return;
+        }
+
+        $url = 'https://raw.githubusercontent.com/eramitgupta/disposable-email/master/disposable_email.json';
+
+        $ctx = \stream_context_create(['http' => ['timeout' => 5]]);
+        $json = @\file_get_contents($url, false, $ctx);
+
+        if ($json !== false && \json_validate($json)) {
+            @\file_put_contents($path, $json, \LOCK_EX);
+        }
+    }
+
+    /**
      * Lädt die dynamische Liste oder fällt auf einen harten Kern zurück.
      *
      * @return array<int, string>

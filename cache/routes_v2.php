@@ -83,11 +83,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
         'auth' => false,
       ),
-      '/migrate_data' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemMigrateDataAction',
-        'auth' => false,
-      ),
       '/resend_mail' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
@@ -133,14 +128,29 @@
         'class' => 'App\\Application\\Actions\\Admin\\VoucherDeleteAction',
         'auth' => false,
       ),
-      '/cron' => 
+      '/api/cron/archive' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\CronAction',
+        'class' => 'App\\Application\\Actions\\Api\\System\\ArchiveCronAction',
+        'auth' => false,
+      ),
+      '/api/cron/backup' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\BackupCronAction',
         'auth' => false,
       ),
       '/api/process_mail_queue' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/api/cron/reminders' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\RemindersCronAction',
+        'auth' => false,
+      ),
+      '/api/cron/spam_sync' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\SpamSyncCronAction',
         'auth' => false,
       ),
       '/api/system_update' => 
@@ -331,11 +341,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\SystemCreateBackupAction',
         'auth' => false,
       ),
-      '/migrate_data' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemMigrateDataAction',
-        'auth' => false,
-      ),
       '/resend_mail' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
@@ -441,14 +446,29 @@
         'class' => 'App\\Application\\Actions\\Api\\Shared\\GetTemplatePriceAction',
         'auth' => false,
       ),
-      '/cron' => 
+      '/api/cron/archive' => 
       array (
-        'class' => 'App\\Application\\Actions\\Api\\System\\CronAction',
+        'class' => 'App\\Application\\Actions\\Api\\System\\ArchiveCronAction',
+        'auth' => false,
+      ),
+      '/api/cron/backup' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\BackupCronAction',
         'auth' => false,
       ),
       '/api/process_mail_queue' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\System\\ProcessMailQueueAction',
+        'auth' => false,
+      ),
+      '/api/cron/reminders' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\RemindersCronAction',
+        'auth' => false,
+      ),
+      '/api/cron/spam_sync' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\System\\SpamSyncCronAction',
         'auth' => false,
       ),
       '/api/system_update' => 

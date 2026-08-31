@@ -17,5 +17,5 @@ interface BackupServiceInterface
 
     public function getBackupData(string $timestamp, string $target): ?array;
 
-    public function checkAutoBackup(): void;
+    public function runCronBackup(): void;
 }
