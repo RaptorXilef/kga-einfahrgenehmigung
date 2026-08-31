@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.61.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.60.0...v0.61.0) (2026-08-31)
+
+### 🚀 Features
+
+* **admin:** Separate system maintenance and backup tools into dedicated tabs ([403c019](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/403c0194bdcd783ec90ae76f39cf58822aca17eb))
+* **finance:** Implement intelligent payment reminder system with cooldowns (Phase 4) ([f4ab27c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f4ab27cbe889d551e258d88e5dbc182b3943c48a))
+* **finance:** Implement simple mode for automated CSV bank imports ([7381279](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7381279d967f279a168c9938b1a1d079c480c5b0))
+
+### 🧹 Chore / Maintenance
+
+* **config:** Finalize configuration files for pure MySQL and cron architecture ([8f4cadb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8f4cadba51e8cd80f8a2f4013e1790abf1eca9cf))
+
 ## [0.60.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.59.1...v0.60.0) (2026-08-31)
 
 ### 🚀 Features
