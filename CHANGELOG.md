@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.59.0...v0.59.1) (2026-08-31)
+
+### 🐛 Bug Fixes
+
+* **core:** Resolve routing cache issue and broken alert partial includes ([33601d0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/33601d0e909b0e287b566ec4614842547e9a74c8))
+* **frontend:** Resolve 404 error on verify route and harden email validation ([a572b69](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a572b69a3f02cab367b1335cdead0f79541d2e85))
+
 ## [0.59.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.58.1...v0.59.0) (2026-08-30)
 
 ### 🚀 Features
