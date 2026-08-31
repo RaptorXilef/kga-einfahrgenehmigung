@@ -40,7 +40,7 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
         </header>
 
         <div class="c-card__body u-padding-around-l">
-            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+            <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
             <?php if ($step === 1) { ?>
                 <!-- SCHRITT 1: E-Mail anfordern (Standardansicht) -->

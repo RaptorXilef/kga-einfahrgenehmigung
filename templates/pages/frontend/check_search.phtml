@@ -18,20 +18,19 @@ use App\Infrastructure\Config\Config;
  * @var string|null $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
 $layout = 'public';
-$pageTitle = 'Genehmigung prüfen';
-?>
-
+$pageTitle = 'Genehmigung prüfen'; ?>
 <div class="c-tab-content-container u-padding-y-xl">
     <div class="c-card u-margin-auto"
          style="max-width: 500px;">
         <header class="c-card__header u-text-center u-padding-around-l">
             <h2 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
                      class="c-icon"
-                     alt=""><!-- 🔍 --> Manuelle Prüfung</h2>
+                     alt=""> Manuelle Prüfung</h2>
             <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
         </header>
         <div class="c-card__body u-padding-around-l">
-            <?php require __DIR__ . '/../../components/_alerts.phtml'; ?>
+
+            <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
             <form action="check.php"
                   method="GET"

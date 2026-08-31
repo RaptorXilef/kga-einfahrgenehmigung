@@ -11,6 +11,7 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Maintenance\MigrationServiceInterface;
+use App\Contracts\System\RouteCacheInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 
@@ -21,6 +22,7 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
         private AuditLoggerService $auditLogger,
         private AuthService $auth,
         private MigrationServiceInterface $migrationService,
+        private RouteCacheInterface $routeCache,
         private SessionManager $sessionManager,
     ) {
     }
@@ -32,13 +34,17 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
 
     public function execute(ServerRequest $request): mixed
     {
-        $msg = $this->migrationService->clearCache();
+        // 1. Architektur-Cache leeren
+        $this->migrationService->clearCache();
 
-        // FIX: getRole() statt getGroup()
+        // 2. Routen-Cache (cache/routes_v2.php) komplett löschen!
+        $this->routeCache->clearAll();
+
+        // 3. Berechtigungen der aktuellen Session neu kompilieren
         $this->auth->refreshSessionPermissions($this->auth->getRole());
 
-        $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache wurde manuell geleert.');
-        $this->sessionManager->addFlash('success', $msg);
+        $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache und Routen-Cache wurden manuell geleert.');
+        $this->sessionManager->addFlash('success', 'Erfolg: Cache und Routen wurden erfolgreich geleert.');
 
         return new RedirectResponse('admin.php');
     }

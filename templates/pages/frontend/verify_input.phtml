@@ -18,9 +18,7 @@ use App\Infrastructure\Config\Config;
  * @var string $appRoot
  */
 $layout = 'public';
-$pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? '');
-?>
-
+$pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? ''); ?>
 <div class="c-tab-content-container u-padding-y-xl">
     <div class="c-card u-margin-auto"
          style="max-width: 450px; border-top: 5px solid var(--primary-color);">
@@ -33,9 +31,9 @@ $pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? '');
             <p class="u-text-muted u-margin-top-s">Geben Sie den 6-stelligen Bestätigungscode aus Ihrer E-Mail ein, um
                 den Antrag abzuschließen.</p>
         </header>
-
         <div class="c-card__body u-padding-around-l">
-            <?php require __DIR__ . '/../components/_alerts.phtml'; ?>
+
+            <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
             <form method="POST"
                   action="verify.php"
