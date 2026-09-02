@@ -9,8 +9,6 @@ use App\Core\Entity\MagicLink;
 /**
  * Interface für das Speicher-Repository von Magic-Links.
  * Handhabt die temporären Tokens für passwortlose E-Mail-Logins.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface MagicLinkRepositoryInterface
 {

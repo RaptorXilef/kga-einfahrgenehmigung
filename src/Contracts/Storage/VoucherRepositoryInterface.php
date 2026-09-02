@@ -9,8 +9,6 @@ use App\Core\Entity\Voucher;
 /**
  * Interface für das Speicher-Repository von Gutscheinen.
  * Verwaltet aktive Gutscheincodes sowie das Historien-Archiv bereits eingelöster Codes.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface VoucherRepositoryInterface
 {

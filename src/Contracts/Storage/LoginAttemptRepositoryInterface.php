@@ -6,11 +6,6 @@ namespace App\Contracts\Storage;
 
 use App\Core\Entity\LoginAttempt;
 
-/**
- * TODO
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 interface LoginAttemptRepositoryInterface
 {
     public function findByIp(string $ip): ?LoginAttempt;

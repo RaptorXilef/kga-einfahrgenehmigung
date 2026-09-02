@@ -9,8 +9,6 @@ use App\Core\Entity\VerificationRequest;
 /**
  * Interface für das Speicher-Repository des Double-Opt-In Warteraums.
  * Trennt unbestätigte E-Mails von verifizierten, aber noch unbezahlten Anträgen.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface VerificationRepositoryInterface
 {

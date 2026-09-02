@@ -9,8 +9,6 @@ use App\Core\Entity\MailJob;
 /**
  * Interface für das Speicher-Repository der E-Mail-Warteschlange.
  * Verwaltet das Einreihen und die Batch-Verarbeitung von E-Mails zur Entlastung des Requests.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 interface MailQueueRepositoryInterface
 {
@@ -25,6 +23,4 @@ interface MailQueueRepositoryInterface
      * @return int Anzahl der erfolgreich versendeten E-Mails.
      */
     public function processBatch(int $limit, callable $processor): int;
-
-    public function import(array $data): void;
 }
