@@ -11,31 +11,21 @@ use App\Application\Http\ServerRequest;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Storage\StorageInterface;
-use App\Contracts\System\JsonHelperInterface;
+use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Core\Service\PermitService;
 
-/**
- * TODO DOCBLOCK
- */
 #[Route('GET', '/history')]
 final readonly class HistoryRenderAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private JsonHelperInterface $jsonHelper,
+        private PermitArchiveRepositoryInterface $archiveRepository, // NEU INJIZIERT
         private PermitService $permitService,
         private SessionManager $sessionManager,
-        private StorageInterface $storage,
         private TemplateRenderer $renderer,
     ) {
     }
 
-    // TODO DOCBLOCK
-    /**
-     * Bereitet die Benutzeroberfläche (Login oder Datenliste) vor und lädt optionale Archivdaten.
-     * Kombiniert Live-Daten mit historischen JSON-Jahresarchiven bei Bedarf.
-     */
     public function execute(ServerRequest $request): mixed
     {
         $dto = ViewRenderRequest::fromArray($request->get);
@@ -51,20 +41,14 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         }
 
         $permits = $this->permitService->getHistoryByEmail($emailInSession);
-
         $loadedYear = $dto->loadArchive;
-        if ($loadedYear > 0) {
-            $arcCfg = $this->config->get('storage_config')['permits_archive'];
-            $yearFile = \str_replace('{YEAR}', (string) $loadedYear, $arcCfg['file_pattern'] ?? $arcCfg['file']);
-            $archivePath = $this->config->getStoragePath($yearFile);
 
-            if (\file_exists($archivePath)) {
-                $archiveData = $this->jsonHelper->read($archivePath);
-                foreach ($archiveData as $item) {
-                    if (\strtolower((string) $item['email']) !== \strtolower($emailInSession)) {
-                        continue;
-                    }
-                    $permits[] = $this->storage->mapToEntity($item);
+        // --- FIX: Wir laden das Archiv nun sauber aus MySQL statt JSON! ---
+        if ($loadedYear > 0) {
+            $archivedPermits = $this->archiveRepository->getArchivedPermits($loadedYear);
+            foreach ($archivedPermits as $p) {
+                if (\strtolower($p->getOwnerEmail()) === \strtolower($emailInSession)) {
+                    $permits[] = $p;
                 }
             }
         }
@@ -73,7 +57,6 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 
         $overdueLevels = [];
         foreach ($permits as $permit) {
-            // Use extracted primitive value for array keys
             $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 

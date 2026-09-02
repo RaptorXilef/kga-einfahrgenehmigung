@@ -416,18 +416,12 @@ final readonly class PermitService
     public function searchAndPaginate(string $query, string $tab, string $templateType, int $page, int $limit): array
     {
         $allActive = $this->storage->getAll();
-
         $archived = [];
-        if (\in_array($tab, ['all', 'archive'], true)) {
-            $arcCfg = $this->config->get('storage_config')['permits_archive'];
-            $archivePath = $this->config->getStoragePath($arcCfg['file'] ?? 'permits_archive.json');
 
-            if (\file_exists($archivePath)) {
-                $rawArchive = $this->jsonHelper->read($archivePath);
-                foreach ($rawArchive as $item) {
-                    $archived[] = $this->storage->mapToEntity($item);
-                }
-            }
+        // --- FIX: JSON Logik restlos entfernt! MySQL macht das jetzt! ---
+        if (\in_array($tab, ['all', 'archive'], true)) {
+            // Holt einfach alle ab dem Jahr 1970
+            $archived = $this->archiveRepository->getArchivedPermits(1970);
         }
 
         $combined = \array_merge($allActive, $archived);
