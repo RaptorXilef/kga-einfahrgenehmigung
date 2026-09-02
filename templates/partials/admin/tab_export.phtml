@@ -30,7 +30,6 @@ use App\Core\Service\AuthService;
 
                     <!-- CSV Export Card (Transaktionen) -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
-                       target="_blank"
                        class="c-action-card c-action-card--csv">
                         <div class="c-action-card__icon">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
@@ -45,7 +44,6 @@ use App\Core\Service\AuthService;
 
                     <!-- CSV Export Card (Statistiken) -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv_stats&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
-                       target="_blank"
                        class="c-action-card c-action-card--csv">
                         <div class="c-action-card__icon">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
@@ -60,7 +58,6 @@ use App\Core\Service\AuthService;
 
                     <!-- JSON Export Card -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
-                       target="_blank"
                        class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>
                         <div>
