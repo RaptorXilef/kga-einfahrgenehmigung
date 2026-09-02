@@ -22,6 +22,16 @@ return [
         'enabled' => true,
         'max_backups' => 15,
         'sub_folder' => 'backups',
+        'zip_password' => '', // Optional: AES-256 Passwort für das ZIP-Archiv
+        'ftp' => [
+            'enabled' => false, // Auf true setzen für Offsite-Backups
+            'host' => 'ftp.dein-backup-server.de',
+            'port' => 21,
+            'user' => 'backup_user',
+            'pass' => 'geheim123',
+            'path' => '/kga_backups/', // Zielordner auf dem FTP
+            'ssl' => true, // Empfohlen (FTPS)
+        ],
     ],
 
     'storage_config' => [

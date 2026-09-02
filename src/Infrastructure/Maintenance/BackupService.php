@@ -6,11 +6,13 @@ namespace App\Infrastructure\Maintenance;
 
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
-use App\Contracts\System\JsonHelperInterface;
 use App\Contracts\Utils\ClockInterface;
-use App\Infrastructure\Storage\SafeJsonWriterTrait;
 use Exception;
+use Override;
 use PDO;
+use RuntimeException;
+use Throwable;
+use ZipArchive;
 
 /**
  * Service für die Erstellung, Verwaltung und Wiederherstellung von System-Backups.
@@ -20,247 +22,291 @@ use PDO;
  */
 final readonly class BackupService implements BackupServiceInterface
 {
-    use SafeJsonWriterTrait;
+    private string $backupDir;
 
     public function __construct(
-        private ?PDO $pdo,
-        private ClockInterface $clock,
+        private PDO $pdo,
         private ConfigInterface $config,
-        private JsonHelperInterface $jsonHelper,
+        private ClockInterface $clock,
     ) {
+        $root = $this->config->get('root_path', '');
+        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backups';
+        $this->backupDir = \rtrim($root, '/\\') . '/storage/' . $subFolder;
+
+        if (!\is_dir($this->backupDir)) {
+            \mkdir($this->backupDir, 0o755, true);
+        }
+
+        $htaccessPath = $this->backupDir . '/.htaccess';
+        if (!\file_exists($htaccessPath)) {
+            \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
+        }
     }
 
-    // --- Public API ---
-
-    /**
-     * Generiert ein Datenbank-Abbild eines Zielbereichs im Backup-Ordner.
-     * Erzeugt Zeitstempel-Ordner und exportiert JSON-formatierte Rohdaten-Dumps direkt aus MySQL.
-     *
-     * @param string $target Der zu sichernde Konfigurationsbereich.
-     *
-     * @return string Relativer Pfad zum erstellten Backup-Ordner.
-     */
-    public function createBackup(string $target): string
-    {
-        $timestamp = $this->clock->now()->format('Ymd-His');
-        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
-        $backupPath = $this->config->getStoragePath($subFolder . '/' . $timestamp);
-
-        if (!\is_dir($backupPath)) {
-            \mkdir($backupPath, 0o755, true);
-        }
-
-        $jsonFlags = \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES;
-        $storageConfig = $this->config->get('storage_config', []);
-
-        // Komplettes Backup aller Tabellen
-        if (!isset($storageConfig[$target])) {
-            $keysToBackup = \array_keys($storageConfig);
-
-            foreach ($keysToBackup as $key) {
-                if (!($this->pdo instanceof PDO) || !isset($storageConfig[$key]['table'])) {
-                    continue;
-                }
-
-                $sqlData = $this->loadRawSql($key);
-                if ($sqlData === []) {
-                    continue;
-                }
-                $this->writeJsonSafely($backupPath . "/{$key}_sql.json", $sqlData, $jsonFlags);
-            }
-
-            return $backupPath;
-        }
-
-        // Backup eines einzelnen Targets
-        if ($this->pdo instanceof PDO) {
-            $sqlData = $this->loadRawSql($target);
-            if ($sqlData !== []) {
-                $this->writeJsonSafely($backupPath . "/{$target}_sql.json", $sqlData, $jsonFlags);
-            }
-        }
-
-        return $backupPath;
-    }
-
-    /**
-     * Scannt das Backup-Verzeichnis und listet alle verfügbaren Backup-Stände und deren Dateiinhalte auf.
-     * Listet alle verfügbaren Backup-Ordner sortiert nach Datum (neuere zuerst).
-     *
-     * @return array<string, array<int, string>> Absteigend sortiertes Array (neueste zuerst) von Datei-Listen.
-     */
-    public function listBackups(): array
-    {
-        $subFolder = $this->config->get('backup_settings')['sub_folder'] ?? 'backup';
-        $backupPath = $this->config->getStoragePath($subFolder);
-
-        if (!\is_dir($backupPath)) {
-            return [];
-        }
-
-        $folders = \array_diff(\scandir($backupPath) ?: [], ['.', '..']);
-        $result = [];
-
-        foreach ($folders as $folder) {
-            $fullPath = $backupPath . '/' . $folder;
-            if (!\is_dir($fullPath)) {
-                continue;
-            }
-
-            $files = \array_diff(\scandir($fullPath) ?: [], ['.', '..']);
-            $result[$folder] = \array_values($files);
-        }
-
-        \krsort($result);
-
-        return $result;
-    }
-
-    /**
-     * Ruft die Daten eines spezifischen Backups ab.
-     *
-     * @param string $timestamp Der Zeitstempel (Ordnername) des Backups.
-     * @param string $target Der Schlüssel des Speicherbereichs.
-     *
-     * @return array|null Die Backup-Daten oder null, wenn nicht gefunden.
-     */
+    #[Override]
     public function getBackupData(string $timestamp, string $target): ?array
     {
-        $safeTimestamp = \basename($timestamp);
-        $safeTarget = \basename($target);
-        $backupBase = $this->config->getStoragePath('backup/' . $safeTimestamp);
-
-        $backupFile = $backupBase . "/{$safeTarget}_file.json";
-        if (!\file_exists($backupFile)) {
-            $backupFile = $backupBase . "/{$safeTarget}_sql.json";
-        }
-
-        if (!\file_exists($backupFile)) {
-            return null;
-        }
-
-        return $this->jsonHelper->read($backupFile);
+        throw new Exception('Not implemented');
     }
 
-    /**
-     * Wird vom externen Cronjob getriggert. Erstellt ein Backup und rotiert alte Bestände weg.
-     */
     public function runCronBackup(): void
     {
-        $this->createBackup('auto_cron_backup');
-
-        $max = (int) ($this->config->get('backup_settings')['max_backups'] ?? 15);
-        $this->rotateBackups($max);
+        $this->createBackup('all');
     }
 
-    // --- Private Core ---
-
-    /**
-     * Rotiert Backup-Ordner basierend auf der maximal zulässigen Anzahl im System (FIFO-Verfahren).
-     *
-     * @param int $max Die Obergrenze für aufzubewahrende Backups (z.B. 10).
-     */
-    private function rotateBackups(int $max): void
+    public function createBackup(string $target = 'all'): string
     {
-        $backupPath = $this->config->getStoragePath('backup');
-        if (!\is_dir($backupPath)) {
-            return;
-        }
+        $storageConfig = $this->config->get('storage_config', []);
+        $tablesToBackup = [];
 
-        $folders = \array_diff(\scandir($backupPath) ?: [], ['.', '..']);
-        $fullPaths = [];
-
-        foreach ($folders as $f) {
-            if (!\is_dir($backupPath . '/' . $f)) {
-                continue;
+        if ($target === 'all') {
+            foreach ($storageConfig as $cfg) {
+                if (isset($cfg['table'])) {
+                    $tablesToBackup[] = $cfg['table'];
+                }
             }
-            $fullPaths[$f] = $backupPath . '/' . $f;
+        } elseif (isset($storageConfig[$target]['table'])) {
+            $tablesToBackup[] = $storageConfig[$target]['table'];
+        } else {
+            throw new RuntimeException("Unbekanntes Backup-Ziel: {$target}");
         }
 
-        \ksort($fullPaths);
+        $backupData = [
+            'timestamp' => $this->clock->nowAsString(),
+            'target' => $target,
+            'tables' => [],
+        ];
 
-        if (\count($fullPaths) <= $max) {
-            return;
+        foreach ($tablesToBackup as $table) {
+            $stmt = $this->pdo->query("SELECT * FROM `$table`");
+            if ($stmt !== false) {
+                $backupData['tables'][$table] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
         }
 
-        $toDelete = \array_slice($fullPaths, 0, \count($fullPaths) - $max);
-        foreach ($toDelete as $dir) {
-            $this->recursiveDelete($dir);
+        $json = \json_encode($backupData, \JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            throw new RuntimeException('JSON encode Fehler beim Backup.');
         }
+
+        $filename = 'backup_' . $this->clock->now()->format('Ymd_His') . '_' . $target . '.zip';
+        $filepath = $this->backupDir . '/' . $filename;
+
+        $zip = new ZipArchive();
+        if ($zip->open($filepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new RuntimeException("Konnte ZIP-Datei nicht erstellen: $filepath");
+        }
+
+        $zip->addFromString('data.json', $json);
+        $zip->setArchiveComment(\json_encode(['target' => $target, 'tables' => \array_keys($backupData['tables'])]));
+
+        $backupCfg = $this->config->get('backup_settings', []);
+        if (!empty($backupCfg['zip_password'])) {
+            $zip->setPassword($backupCfg['zip_password']);
+            $zip->setEncryptionName('data.json', ZipArchive::EM_AES_256);
+        }
+        $zip->close();
+
+        // FTP Offsite Backup
+        if (($backupCfg['ftp']['enabled'] ?? false) === true) {
+            $this->uploadToFtp($filepath, $filename, $backupCfg['ftp']);
+        }
+
+        $this->rotateBackups((int) ($backupCfg['max_backups'] ?? 15));
+
+        return $filename;
     }
 
-    /**
-     * Löscht Verzeichnisstrukturen inklusive aller enthaltenen Dateien rekursiv vom Datenträger.
-     *
-     * @param string $dir Absoluter Pfad zum Ziel-Verzeichnis.
-     */
-    private function recursiveDelete(string $dir): void
+    public function restoreBackup(string $filename, int $mode, string $target = 'all'): void
     {
-        if (!\is_dir($dir)) {
-            return;
+        $filepath = $this->backupDir . '/' . \basename($filename);
+        if (!\file_exists($filepath)) {
+            throw new RuntimeException('Backup-Datei nicht gefunden.');
         }
 
-        $files = \array_diff(\scandir($dir) ?: [], ['.', '..']);
-        foreach ($files as $file) {
-            \is_dir("$dir/$file") ? $this->recursiveDelete("$dir/$file") : \unlink("$dir/$file");
+        $zip = new ZipArchive();
+        if ($zip->open($filepath) !== true) {
+            throw new RuntimeException('Konnte ZIP-Backup nicht öffnen.');
         }
 
-        \rmdir($dir);
-    }
-
-    // --- Private Loaders ---
-
-    /**
-     * Liest zeilenbasierte Rohdaten direkt aus einer MySQL-Tabelle aus und normalisiert JSON-Felder.
-     * Schützt vor "Undefined array key"-Warnings durch Validierung der Primärschlüssel.
-     *
-     * @param string $key Tabellen-Key aus der storage_config.
-     *
-     * @return array<string, mixed> Indiziertes Zeilen-Array, gemappt nach Primärschlüssel.
-     */
-    private function loadRawSql(string $key): array
-    {
-        $cfg = $this->config->get('storage_config')[$key] ?? null;
-        if (!$cfg || !$this->pdo instanceof PDO) {
-            return [];
+        $backupCfg = $this->config->get('backup_settings', []);
+        if (!empty($backupCfg['zip_password'])) {
+            $zip->setPassword($backupCfg['zip_password']);
         }
+
+        $json = $zip->getFromName('data.json');
+        $zip->close();
+
+        if ($json === false) {
+            throw new RuntimeException('Fehler beim Entschlüsseln. Falsches Passwort?');
+        }
+
+        $data = \json_decode($json, true);
+        if (!isset($data['tables']) || !\is_array($data['tables'])) {
+            throw new RuntimeException('Ungültiges Backup-Format.');
+        }
+
+        $storageConfig = $this->config->get('storage_config', []);
+        $targetTable = $target !== 'all' && isset($storageConfig[$target]['table']) ? $storageConfig[$target]['table'] : null;
+
+        $this->pdo->beginTransaction();
 
         try {
-            $tableName = $cfg['table'];
-            $stmt = $this->pdo->query("SELECT * FROM `$tableName`");
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->pdo->exec('SET FOREIGN_KEY_CHECKS=0');
 
-            $res = [];
-            $idField = match ($key) {
-                // ID-Tabellen (alphabetisch sortiert)
-                'mail_log' => 'id',
-                'mail_queue' => 'id',
-                'roles' => 'id',
-                'users' => 'id',
-                'vouchers_archive' => 'id',
-
-                // Token-Tabellen (alphabetisch sortiert)
-                'magic_links' => 'token',
-                'pending_verification' => 'token',
-                'verified_pending' => 'token',
-
-                // default
-                default => 'code'
-            };
-
-            foreach ($rows as $r) {
-                if (isset($r['data']) && \is_string($r['data'])) {
-                    $r['data'] = $this->jsonHelper->decode($r['data']) ?? [];
+            foreach ($data['tables'] as $table => $rows) {
+                if ($targetTable !== null && $table !== $targetTable) {
+                    continue;
                 }
-                if (isset($r['permissions']) && \is_string($r['permissions'])) {
-                    $r['permissions'] = $this->jsonHelper->decode($r['permissions']) ?? [];
-                }
-                $res[$r[$idField]] = $r;
+                $this->restoreTableData($table, $rows, $mode);
             }
 
-            return $res;
-        } catch (Exception) {
+            $this->pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            $this->pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+
+            throw clone $e;
+        }
+    }
+
+    private function restoreTableData(string $table, array $rows, int $mode): void
+    {
+        if (empty($rows)) {
+            if ($mode === 2) {
+                $this->pdo->exec("TRUNCATE TABLE `$table`");
+            }
+
+            return;
+        }
+
+        $primaryKeys = $this->getPrimaryKeys($table);
+
+        if ($mode === 2) {
+            if (\count($primaryKeys) === 1) {
+                $pk = $primaryKeys[0];
+                $keptIds = \array_column($rows, $pk);
+                if (!empty($keptIds)) {
+                    $in = \str_repeat('?,', \count($keptIds) - 1) . '?';
+                    $stmt = $this->pdo->prepare("DELETE FROM `$table` WHERE `$pk` NOT IN ($in)");
+                    $stmt->execute($keptIds);
+                } else {
+                    $this->pdo->exec("TRUNCATE TABLE `$table`");
+                }
+            } else {
+                $this->pdo->exec("TRUNCATE TABLE `$table`"); // Fallback falls kein eindeutiger PK
+            }
+        }
+
+        $columns = \array_keys($rows[0]);
+        $colNames = \implode(', ', \array_map(fn ($col) => "`$col`", $columns));
+        $placeholders = \implode(', ', \array_map(fn ($col) => ":$col", $columns));
+
+        if ($mode === 3) {
+            $sql = "INSERT IGNORE INTO `$table` ($colNames) VALUES ($placeholders)";
+        } else {
+            $updateCols = \implode(', ', \array_map(fn ($col) => "`$col` = VALUES(`$col`)", $columns));
+            $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $updateCols";
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($rows as $row) {
+            $stmt->execute($row);
+        }
+    }
+
+    private function getPrimaryKeys(string $table): array
+    {
+        $stmt = $this->pdo->query("SHOW KEYS FROM `$table` WHERE Key_name = 'PRIMARY'");
+
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+    }
+
+    public function listBackups(): array
+    {
+        if (!\is_dir($this->backupDir)) {
             return [];
         }
+
+        $files = \array_diff(\scandir($this->backupDir), ['.', '..', '.htaccess']);
+        $backups = [];
+
+        foreach ($files as $file) {
+            if (!\str_ends_with($file, '.zip')) {
+                continue;
+            }
+            $path = $this->backupDir . '/' . $file;
+
+            $zip = new ZipArchive();
+            $meta = [];
+            if ($zip->open($path) === true) {
+                $comment = $zip->getArchiveComment();
+                if ($comment) {
+                    $meta = \json_decode($comment, true) ?? [];
+                }
+                $zip->close();
+            }
+
+            $backups[] = [
+                'filename' => $file,
+                'size' => \filesize($path),
+                'date' => \filemtime($path),
+                'target' => $meta['target'] ?? 'Unbekannt',
+                'tables' => $meta['tables'] ?? [],
+            ];
+        }
+
+        \usort($backups, fn ($a, $b) => $b['date'] <=> $a['date']);
+
+        return $backups;
+    }
+
+    private function rotateBackups(int $max): void
+    {
+        $backups = $this->listBackups();
+        if (\count($backups) <= $max) {
+            return;
+        }
+
+        $toDelete = \array_slice($backups, $max);
+        foreach ($toDelete as $b) {
+            @\unlink($this->backupDir . '/' . $b['filename']);
+        }
+    }
+
+    private function uploadToFtp(string $filepath, string $filename, array $ftpCfg): void
+    {
+        if (!\function_exists('ftp_connect')) {
+            \error_log('FTP Upload übersprungen: PHP FTP-Erweiterung fehlt.');
+
+            return;
+        }
+
+        $timeout = 60;
+        $connId = ($ftpCfg['ssl'] ?? false)
+            ? @\ftp_ssl_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout)
+            : @\ftp_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout);
+
+        if (!$connId || !@\ftp_login($connId, $ftpCfg['user'], $ftpCfg['pass'])) {
+            \error_log('Off-Site Backup fehlgeschlagen: FTP Login-Fehler.');
+
+            return;
+        }
+
+        \ftp_pasv($connId, true);
+
+        $path = \rtrim($ftpCfg['path'] ?? '', '/\\') . '/';
+        foreach (\explode('/', \trim($path, '/')) as $part) {
+            if ($part !== '' && !@\ftp_chdir($connId, $part)) {
+                \ftp_mkdir($connId, $part);
+                \ftp_chdir($connId, $part);
+            }
+        }
+
+        if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {
+            \error_log('Off-Site Backup fehlgeschlagen: Upload verweigert.');
+        }
+        \ftp_close($connId);
     }
 }

@@ -142,7 +142,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'auditPage' => $auditPage,
             'auditTotal' => $auditData['total'],
             'auth' => $this->auth,
-            'backups' => $this->backupService->listBackups(),
+            'backups' => $this->auth->hasPermission('system.backup.manage') ? $this->backupService->listBackups() : [],
             'cancelledPermits' => $cancelledPermits,
             'currentPage' => $dto->page,
             'filterEnd' => $dto->end,

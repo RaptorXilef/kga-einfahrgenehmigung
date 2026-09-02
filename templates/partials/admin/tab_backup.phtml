@@ -14,6 +14,7 @@ use App\Infrastructure\Maintenance\BackupService;
  * @var array $backups
  */
 $targets = [
+    'all' => ['label' => 'Komplette Datenbank (Alle)', 'icon' => '📦'],
     'roles' => ['label' => 'Rechte-Rollen', 'icon' => '🛡️'],
     'magic_links' => ['label' => 'Login-Tokens', 'icon' => '🔗'],
     'mail_log' => ['label' => 'E-Mail Protokolle', 'icon' => '📧'],
@@ -32,58 +33,66 @@ $targets = [
 ];
 
 if ($auth->hasPermission('system.backup.manage')) {
+    $ftpEnabled = $config->get('backup_settings')['ftp']['enabled'] ?? false;
     ?>
     <div class="c-tab-content-container">
 
         <div class="u-margin-bottom-l">
-            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-font-xl">📦</span>
-                <div>
-                    <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
-                    <p class="u-text-muted u-text-small u-margin-none">Datenbank-Tabellen sichern oder gezielt leeren.
-                    </p>
+            <header class="u-margin-bottom-m u-flex u-align-center u-justify-between u-flex-wrap gap-10">
+                <div class="u-flex u-align-center u-gap-s">
+                    <span class="u-font-xl">📦</span>
+                    <div>
+                        <h3 class="u-margin-none">Manuelle Sicherung & Resets</h3>
+                        <p class="u-text-muted u-text-small u-margin-none">Datenbank-Tabellen komprimiert sichern.</p>
+                    </div>
                 </div>
+                <?php if ($ftpEnabled) { ?>
+                    <span class="c-badge c-badge--success" title="Backups werden zusätzlich auf einen externen Server gespiegelt."><i class="fa-solid fa-cloud-arrow-up"></i> FTP Offsite-Backup aktiv</span>
+                <?php } else { ?>
+                    <span class="c-badge" style="background: var(--bg-light); color: var(--text-muted);"><i class="fa-solid fa-hard-drive"></i> Nur lokale Backups</span>
+                <?php } ?>
             </header>
 
             <div class="u-grid"
                  style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                <!-- BACKUP CREATE -->
                 <div class="c-card"
                      style="margin-bottom: 0; border-top: 4px solid var(--success-color); display: flex; flex-direction: column;">
                     <div class="c-card__header u-flex u-align-center u-gap-s"
                          style="padding: 1rem 1.5rem;">
                         <h4 class="u-margin-none"
-                            style="font-size: 1.1rem;">📥 Manuelles Voll-Backup</h4>
+                            style="font-size: 1.1rem;">📥 Backup anfertigen</h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m"
                          style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                        <p class="u-text-small u-margin-none">Sichert sofort alle aktuellen Datenstände der
-                            MySQL-Datenbank im Backup-Verzeichnis.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>create_backup"
-                              class="u-margin-top-auto">
+                              class="u-margin-top-auto u-flex u-flex-column u-gap-s">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <select name="target"
+                                    class="c-form-select"
+                                    required>
+                                <?php foreach ($targets as $key => $data) { ?>
+                                    <option value="<?php echo $key; ?>"><?php echo $data['icon'] . ' ' . $data['label']; ?></option>
+                                <?php } ?>
+                            </select>
                             <button type="submit"
                                     class="c-button c-button--success u-width-100"
-                                    style="font-size: 0.9rem;"> Backup jetzt erstellen </button>
+                                    style="font-size: 0.9rem;"> ZIP-Archiv erstellen </button>
                         </form>
                     </div>
                 </div>
 
-                <!-- TRUNCATE TARGET -->
                 <div class="c-card"
                      style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
                     <div class="c-card__header u-flex u-align-center u-gap-s"
                          style="padding: 1rem 1.5rem;">
                         <h4 class="u-margin-none"
-                            style="font-size: 1.1rem;">🗑️ Datenbestand leeren (Truncate)</h4>
+                            style="font-size: 1.1rem;">🗑️ Tabelle leeren (Truncate)</h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m"
                          style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                        <p class="u-text-small u-margin-none">Leert eine Datenbank-Tabelle restlos. Ein
-                            Sicherheits-Backup wird vorab automatisch erstellt.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>truncate_target"
                               onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
@@ -91,99 +100,136 @@ if ($auth->hasPermission('system.backup.manage')) {
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <div class="u-flex u-gap-s">
-                                <select name="target"
-                                        class="c-form-select"
-                                        required>
-                                    <option value="">Tabelle auswählen...</option>
-                                    <?php foreach ($targets as $key => $data) { ?>
-                                        <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
-                                    <?php } ?>
-                                </select>
-                                <input type="hidden"
-                                       name="engine"
-                                       value="mysql">
-                                <button type="submit"
-                                        class="c-button c-button--danger"
-                                        style="width: auto; padding: 0 16px;"> Leeren </button>
-                            </div>
+                            <select name="target"
+                                    class="c-form-select"
+                                    required>
+                                <option value="">Tabelle auswählen...</option>
+                                <?php foreach ($targets as $key => $data) {
+                                    if ($key === 'all') {
+                                        continue;
+                                    } ?>
+                                    <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                <?php } ?>
+                            </select>
+                            <button type="submit"
+                                    class="c-button c-button--danger u-width-100"> Endgültig Leeren </button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- RESTORE SECTION -->
         <div class="u-margin-top-xl">
             <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
                 <span class="u-font-xl">💾</span>
                 <div>
                     <h3 class="u-margin-none">Verfügbare Backups zur Wiederherstellung</h3>
-                    <p class="u-text-muted u-text-small u-margin-none">Überschreiben Sie Live-Tabellen mit Inhalten aus
-                        diesen Snapshots.</p>
+                    <p class="u-text-muted u-text-small u-margin-none">Überschreiben oder ergänzen Sie Live-Tabellen mit
+                        Inhalten aus diesen Snapshots.</p>
                 </div>
             </header>
 
             <?php if (empty($backups)) { ?>
                 <div class="c-card"
-                     style="border-top: 4px solid var(--json-color);">
+                     style="border-top: 4px solid var(--primary-color);">
                     <div class="c-card__body u-padding-around-l u-text-center u-text-muted">
                         <span style="font-size: 2rem; display: block; margin-bottom: 10px;">📦</span>
-                        Es sind noch keine Backups im Verzeichnis vorhanden.
+                        Es sind noch keine ZIP-Archive vorhanden.
                     </div>
                 </div>
             <?php } else { ?>
                 <div class="u-grid"
-                     style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                    <?php foreach ($backups as $ts => $files) {
-                        $dateObj = \DateTimeImmutable::createFromFormat('Ymd-His', $ts);
-                        $formattedDate = $dateObj ? $dateObj->format('d.m.Y — H:i:s') : $ts;
+                     style="grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem;">
+                    <?php foreach ($backups as $b) {
+                        $formattedDate = \date('d.m.Y — H:i:s', $b['date']);
+                        $sizeMb = \round($b['size'] / 1024 / 1024, 2);
                         ?>
                         <div class="c-card"
                              style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
-                            <div class="c-card__header"
-                                 style="padding: 1rem 1.5rem;">
-                                <h4 class="u-margin-none"
-                                    style="font-size: 1.1rem;"><?php echo $formattedDate; ?></h4>
-                                <span class="u-text-muted u-text-small"><?php echo $ts; ?></span>
+                            <div class="c-card__header u-flex u-justify-between u-align-center"
+                                 style="padding: 1rem 1.5rem; background: var(--bg-light);">
+                                <div>
+                                    <h4 class="u-margin-none"
+                                        style="font-size: 1.1rem;"><?php echo $formattedDate; ?></h4>
+                                    <span class="u-text-muted u-text-small"><?php echo \htmlspecialchars($b['filename']); ?> (<?php echo $sizeMb; ?> MB)</span>
+                                </div>
+                                <span class="c-badge" style="background: var(--primary-soft); color: var(--primary-color);">
+                                <?php echo $b['target'] === 'all' ? 'Voll-Backup' : 'Tabelle: ' . \htmlspecialchars($b['target']); ?>
+                            </span>
                             </div>
                             <div class="c-card__body u-flex u-flex-column u-gap-m"
                                  style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                                <div class="u-flex u-flex-wrap u-gap-xs">
-                                    <?php foreach ($files as $file) {
-                                        $cleanName = \str_replace(['_file.json', '_sql.json'], '', $file);
-                                        ?>
-                                        <span class="c-badge" style="background: var(--primary-soft); color: var(--primary-color); font-size: 0.7rem;">
-                                        <?php echo \htmlspecialchars($cleanName); ?>
+                                <div class="u-flex u-flex-wrap u-gap-xs mb-15">
+                                    <?php foreach ($b['tables'] as $tbl) { ?>
+                                        <span class="c-badge" style="background: var(--bg-even); border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.7rem;">
+                                        <?php echo \htmlspecialchars($tbl); ?>
                                     </span>
                                     <?php } ?>
                                 </div>
 
                                 <form method="POST"
                                       action="<?php echo $settings['base_url']; ?>restore_data"
-                                      onsubmit="return confirm('ACHTUNG: Dies überschreibt Ihre aktuellen Tabellen mit dem alten Backup-Stand! Ein Backup des Ist-Zustands wird aber vorsichtshalber erstellt. Fortfahren?')"
                                       class="u-flex u-flex-column u-gap-s u-margin-top-auto">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                     <input type="hidden"
-                                           name="timestamp"
-                                           value="<?php echo $ts; ?>">
-                                    <input type="hidden"
-                                           name="engine"
-                                           value="mysql">
+                                           name="filename"
+                                           value="<?php echo \htmlspecialchars($b['filename']); ?>">
+
+                                    <div class="p-10 bg-even border-light border-radius-4 mb-10">
+                                        <p class="m-0 mb-10 font-bold font-small">Wiederherstellungs-Modus:</p>
+
+                                        <label class="d-flex align-start gap-10 mb-10 cursor-pointer">
+                                            <input type="radio"
+                                                   name="mode"
+                                                   value="1"
+                                                   checked
+                                                   style="margin-top: 2px;">
+                                            <div>
+                                                <strong class="font-small text-color">1. Migrieren
+                                                    (Empfohlen)</strong><br>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">Aktualisiert Geändertes & füllt Lücken. Vorhandenes bleibt.</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="d-flex align-start gap-10 mb-10 cursor-pointer">
+                                            <input type="radio"
+                                                   name="mode"
+                                                   value="2"
+                                                   style="margin-top: 2px;">
+                                            <div>
+                                                <strong class="font-small text-danger">2. Exakte Kopie
+                                                    (Gefährlich)</strong><br>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">Löscht alle neueren Daten, die im Backup nicht existieren!</span>
+                                            </div>
+                                        </label>
+
+                                        <label class="d-flex align-start gap-10 cursor-pointer">
+                                            <input type="radio"
+                                                   name="mode"
+                                                   value="3"
+                                                   style="margin-top: 2px;">
+                                            <div>
+                                                <strong class="font-small text-color">3. Nur fehlende
+                                                    ergänzen</strong><br>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">Fügt nur hinzu, was komplett fehlt.</span>
+                                            </div>
+                                        </label>
+                                    </div>
 
                                     <div class="u-flex u-gap-s">
                                         <select name="target"
-                                                class="c-form-select"
+                                                class="c-form-select flex-1"
                                                 required>
-                                            <option value="">Wiederherstellen...</option>
-                                            <?php foreach ($targets as $key => $data) { ?>
-                                                <option value="<?php echo $key; ?>"><?php echo $data['label']; ?></option>
+                                            <option value="all">Alle enthaltenen Tabellen</option>
+                                            <?php foreach ($b['tables'] as $tbl) { ?>
+                                                <option value="<?php echo \htmlspecialchars($tbl); ?>">Nur Tabelle: <?php echo \htmlspecialchars($tbl); ?></option>
                                             <?php } ?>
                                         </select>
                                         <button type="submit"
                                                 class="c-button c-button--danger"
+                                                onclick="return confirm('Wiederherstellung im gewählten Modus starten? Ein Sicherheits-Backup des aktuellen Zustands wird automatisch angefertigt.')"
                                                 style="width: auto; padding: 0 16px; font-weight: 600;"> Restore
                                         </button>
                                     </div>
