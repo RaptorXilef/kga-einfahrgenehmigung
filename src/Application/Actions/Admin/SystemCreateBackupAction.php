@@ -15,10 +15,7 @@ use App\Core\Service\AuditLoggerService;
 use Throwable;
 
 /**
- * TODO DOCBLOCK
  * Action zum erstellen eines Backups
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/create_backup')]
 #[Route('POST', '/create_backup')]
@@ -39,15 +36,21 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
     public function execute(ServerRequest $request): mixed
     {
         try {
-            $folder = $this->backupService->createBackup('manual_trigger');
-            $this->auditLogger->log('SYSTEM_BACKUP_CREATE', 'Ein manuelles Voll-Backup wurde erstellt (Ordner: ' . \basename($folder) . ').');
-            $this->sessionManager->addFlash('success', "Erfolg: Vollständiges Backup erstellt in Ordner '" . \basename($folder) . "'.");
+            // Das Ziel wird jetzt dynamisch aus dem Dropdown ausgelesen (Fallback auf 'all')
+            $target = \trim((string) ($request->post['target'] ?? 'all'));
 
-            return new RedirectResponse('admin.php');
+            $file = $this->backupService->createBackup($target);
+
+            $this->auditLogger->log('SYSTEM_BACKUP_CREATE', "Ein manuelles Backup (Ziel: {$target}) wurde erstellt (Archiv: " . \basename($file) . ').');
+
+            $this->sessionManager->addFlash('success', "Erfolg: Backup ({$target}) erstellt in Archiv '" . \basename($file) . "'.");
+
+            // Leitet direkt wieder auf das Backups-Tab um
+            return new RedirectResponse('admin.php?focus=tab-backup');
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', 'Fehler beim Backup: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php?focus=tab-backup');
         }
     }
 }
