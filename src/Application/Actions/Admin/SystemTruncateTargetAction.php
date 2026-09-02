@@ -51,7 +51,7 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
             $dto = SystemMaintenanceRequest::forTruncate($request->post);
             $target = $dto->target;
 
-            // 1. ZWANGS-VOLL-BACKUP (Dein Wunsch!)
+            // 1. ZWANGS-VOLL-BACKUP
             $this->backupService->createBackup('all');
 
             // 2. Tabellen-Namen sicher aus der Config ermitteln
