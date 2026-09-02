@@ -7,8 +7,6 @@ namespace App\Infrastructure\Maintenance;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\BackupServiceInterface;
 use App\Contracts\Utils\ClockInterface;
-use Exception;
-use Override;
 use PDO;
 use RuntimeException;
 use Throwable;
@@ -41,12 +39,6 @@ final readonly class BackupService implements BackupServiceInterface
         if (!\file_exists($htaccessPath)) {
             \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
         }
-    }
-
-    #[Override]
-    public function getBackupData(string $timestamp, string $target): ?array
-    {
-        throw new Exception('Not implemented');
     }
 
     public function runCronBackup(): void
