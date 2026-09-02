@@ -1,5 +1,6 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Core\Service\AuthService;
 use App\Infrastructure\Maintenance\BackupService;
@@ -10,6 +11,7 @@ use App\Infrastructure\Maintenance\BackupService;
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var BackupService $backupService
+ * @var ConfigInterface $config
  * @var array $settings
  * @var array $backups
  */

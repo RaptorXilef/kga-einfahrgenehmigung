@@ -11,11 +11,11 @@ namespace App\Contracts\Storage;
  */
 interface BackupServiceInterface
 {
-    public function createBackup(string $target): string;
+    public function runCronBackup(): void;
+
+    public function createBackup(string $target = 'all'): string;
+
+    public function restoreBackup(string $filename, int $mode, string $target = 'all'): void;
 
     public function listBackups(): array;
-
-    public function getBackupData(string $timestamp, string $target): ?array;
-
-    public function runCronBackup(): void;
 }
