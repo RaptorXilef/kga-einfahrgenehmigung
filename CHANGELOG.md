@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.62.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.61.0...v0.62.0) (2026-09-02)
+
+### 🚀 Features
+
+* **finance:** Add dedicated CSV export for aggregated financial statistics ([8169101](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8169101f7adc08ac04a5e5f0f812ebd3ca7ea073))
+* **finance:** Overhaul data export for accounting software and statistics ([0fe3cf7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0fe3cf7f76ccd07ae2b25fbaa47a3e00d6f5a0fe))
+* **maintenance:** Port advanced Backup & Restore architecture from TwoKinds to KGA ([328179e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/328179e68fb9c96712c451c58bc5b52cdd43c430))
+
+### 🐛 Bug Fixes
+
+* **backup:** Resolve "unknown target" error in manual backup creation ([f074603](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f0746034ea0459925a9cce104750ac405be601da))
+* **core:** Remove fatal JSON fallbacks and obsolete migration logic ([dd1c52e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dd1c52e9ae6c112a0ead40cf745cd3e826367b99))
+* **core:** Resolve abstract method fatal errors by removing import() from interfaces ([7e27c69](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e27c6902305c9c028a1dfc905d3d455eea454a4))
+* **core:** Resolve Intelephense undefined method errors for BackupService and Config ([d533f0c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d533f0c1d2539346e36888a24544ceada50daa53))
+* **finance:** Correct file extension and handle German umlauts in export filenames ([b83805d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b83805db8f46f17d449dd528ec5a7c729e3a4c77))
+* **storage:** Implement getArchivedPermits in MySqlPermitArchiveRepository ([05d5b52](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/05d5b5258074baf290f4e53157799d2953457099))
+* **storage:** Remove obsolete getBackupData method from BackupService ([488d23d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/488d23d30ed74bdea68072c82d324d465cf12321))
+* **ui:** Route export buttons correctly to the dashboard_export endpoint ([ef3aac4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ef3aac44465023946e6f277edc708815d414fcc4))
+
+### ⚙️ Refactoring
+
+* **maintenance:** Execute ultimate cleanup of legacy migration code ([fa7228e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fa7228e7643a6f0fcf794e12f21f4f62e2702561))
+
 ## [0.61.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.60.0...v0.61.0) (2026-08-31)
 
 ### 🚀 Features
