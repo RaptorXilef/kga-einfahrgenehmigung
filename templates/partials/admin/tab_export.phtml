@@ -29,7 +29,8 @@ use App\Core\Service\AuthService;
                 <div class="c-action-grid">
 
                 <!-- CSV Export Card -->
-                    <a href="?export=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                       target="_blank"
                        class="c-action-card c-action-card--csv">
                         <div class="c-action-card__icon">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
@@ -38,17 +39,18 @@ use App\Core\Service\AuthService;
                         </div>
                         <div>
                             <span class="c-action-card__title">Excel / CSV</span>
-                            <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Berichte.</span>
+                            <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Kassensoftware.</span>
                         </div>
                     </a>
 
                     <!-- JSON Export Card -->
-                    <a href="?export=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                    <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                       target="_blank"
                        class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>
                         <div>
-                            <span class="c-action-card__title">JSON Daten</span>
-                            <span class="c-action-card__desc">Für technischen Datenimport und Backups.</span>
+                            <span class="c-action-card__title">JSON Statistik</span>
+                            <span class="c-action-card__desc">Erweiterte Systemstatistiken und Transaktionen.</span>
                         </div>
                     </a>
                 </div>

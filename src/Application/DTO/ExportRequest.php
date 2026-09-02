@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\DTO;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
+use App\Application\Http\ServerRequest;
+
 final readonly class ExportRequest
 {
     private function __construct(
@@ -18,10 +15,13 @@ final readonly class ExportRequest
     ) {
     }
 
-    public static function fromArray(array $get, array $sessionFilters = []): self
+    public static function fromRequest(ServerRequest $request, array $sessionFilters = []): self
     {
-        $start = (string) ($get['start'] ?? 'all');
-        $end = (string) ($get['end'] ?? 'all');
+        // Dynamisch auslesen, egal ob <form method="POST"> oder <a href="?export="> genutzt wird
+        $input = $request->getMethod() === 'POST' ? $request->post : $request->get;
+
+        $start = (string) ($input['start'] ?? 'all');
+        $end = (string) ($input['end'] ?? 'all');
 
         if ($start === 'all') {
             $start = $sessionFilters['start'] ?? \date('Y-01-01');
@@ -31,10 +31,9 @@ final readonly class ExportRequest
             $end = $sessionFilters['end'] ?? \date('Y-12-31');
         }
 
-        return new self(
-            (string) ($get['export'] ?? 'csv'),
-            $start,
-            $end,
-        );
+        // Unterstützt den Key "format" oder "export"
+        $format = (string) ($input['format'] ?? $input['export'] ?? 'csv');
+
+        return new self($format, $start, $end);
     }
 }

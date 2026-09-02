@@ -16,11 +16,6 @@ use App\Core\Service\AuditLoggerService;
 use App\Core\Service\ExportService;
 use App\Core\Service\PermitFilterService;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/dashboard_export')]
 #[Route('POST', '/dashboard_export')]
 final readonly class DashboardExportAction implements ViewActionInterface, RequiresPermissionInterface
@@ -41,7 +36,8 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
     public function execute(ServerRequest $request): mixed
     {
         $sessionFilters = $this->sessionManager->getAdminFilters();
-        $dto = ExportRequest::fromArray($request->get, $sessionFilters);
+        // Übergibt nun den gesamten Request, damit POST-Werte gelesen werden
+        $dto = ExportRequest::fromRequest($request, $sessionFilters);
 
         $start = $dto->start;
         $end = $dto->end;
