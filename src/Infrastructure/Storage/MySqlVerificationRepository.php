@@ -51,18 +51,6 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
         $this->saveSql('verified_pending', $data);
     }
 
-    public function import(array $data): void
-    {
-        $objects = [];
-        foreach ($data as $token => $row) {
-            $exp = $row['expires'] ?? 'now';
-            $dt = \is_numeric($exp) ? (new DateTimeImmutable())->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
-            $payload = \is_string($row['data'] ?? []) ? $this->jsonHelper->decode($row['data']) : ($row['data'] ?? []);
-            $objects[$token] = new VerificationRequest((string) $token, $dt, $payload);
-        }
-        $this->saveSql('pending_verification', $objects); // Import geht primär auf pending (für Migration)
-    }
-
     private function loadSql(string $targetKey): array
     {
         $cfg = $this->config->get('storage_config')[$targetKey];

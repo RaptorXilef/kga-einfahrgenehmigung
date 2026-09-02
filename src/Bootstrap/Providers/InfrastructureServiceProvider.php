@@ -10,7 +10,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\DependencyInjection\ContainerInterface;
 use App\Contracts\Mail\MailLogInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\Payment\PaymentProviderInterface;
 use App\Contracts\Security\AuthSessionInterface;
@@ -41,7 +40,6 @@ use App\Infrastructure\Logging\ErrorLogger;
 use App\Infrastructure\Mail\MailQueueService;
 use App\Infrastructure\Mail\SmtpMailService;
 use App\Infrastructure\Maintenance\BackupService;
-use App\Infrastructure\Maintenance\MigrationService;
 use App\Infrastructure\Maintenance\StorageBootstrapper;
 use App\Infrastructure\Maintenance\UpdateMigrationService;
 use App\Infrastructure\Payment\PayPalService;
@@ -211,14 +209,6 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
         $container->bind(SystemInfoInterface::class, fn (): mixed => $container->get(SystemInfoService::class));
 
         $container->bind(UpdateMigrationServiceInterface::class, fn (): mixed => $container->get(UpdateMigrationService::class));
-
-        // Haupt-Migrations-Dienst
-        $container->bind(MigrationServiceInterface::class, fn (): MigrationService => new MigrationService(
-            $container->get(PDO::class),
-            $container->get(BackupServiceInterface::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
 
         // Route Cache Binding für die ActionRegistry
         $container->bind(RouteCacheInterface::class, function () use ($container): FileRouteCache {

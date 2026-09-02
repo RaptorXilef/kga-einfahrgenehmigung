@@ -75,18 +75,4 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
             throw $e;
         }
     }
-
-    public function import(array $data): void
-    {
-        $objects = [];
-        foreach ($data as $id => $row) {
-            $objects[$id] = new User(
-                (string) $id,
-                $row['username'] ?? '',
-                $row['role_id'] ?? $row['group'] ?? 'guest',
-                $row['pass'] ?? '',
-            );
-        }
-        $this->saveAll($objects);
-    }
 }

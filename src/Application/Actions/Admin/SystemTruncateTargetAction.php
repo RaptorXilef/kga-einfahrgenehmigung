@@ -12,13 +12,14 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Maintenance\MigrationServiceInterface;
+use App\Contracts\Config\ConfigInterface;
+use App\Contracts\Storage\BackupServiceInterface;
 use App\Core\Service\AuditLoggerService;
+use PDO;
+use Throwable;
 
 /**
  * Action zum rigorosen Löschen aller Daten eines bestimmten Speicher-Ziels.
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/truncate_target')]
 #[Route('POST', '/truncate_target')]
@@ -26,7 +27,9 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
 {
     public function __construct(
         private AuditLoggerService $auditLogger,
-        private MigrationServiceInterface $migrationService,
+        private BackupServiceInterface $backupService,
+        private ConfigInterface $config,
+        private PDO $pdo,
         private SessionManager $sessionManager,
     ) {
     }
@@ -46,16 +49,43 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
     {
         try {
             $dto = SystemMaintenanceRequest::forTruncate($request->post);
+            $target = $dto->target;
+
+            // 1. ZWANGS-VOLL-BACKUP (Dein Wunsch!)
+            $this->backupService->createBackup('all');
+
+            // 2. Tabellen-Namen sicher aus der Config ermitteln
+            $cfg = $this->config->get('storage_config')[$target] ?? null;
+            if (!$cfg) {
+                $this->sessionManager->addFlash('error', "Fehler: Unbekannter Speicherbereich '$target'.");
+
+                return new RedirectResponse('admin.php?focus=tab-backup');
+            }
+
+            $tableName = $cfg['table'];
+            $allowedTables = \array_column($this->config->get('storage_config'), 'table');
+
+            if (!\in_array($tableName, $allowedTables, true)) {
+                $this->sessionManager->addFlash('error', 'Sicherheitsabbruch: Tabellenname nicht autorisiert.');
+
+                return new RedirectResponse('admin.php?focus=tab-backup');
+            }
+
+            // 3. Tabelle restlos leeren
+            $this->pdo->exec("TRUNCATE TABLE `$tableName`");
+
+            $this->auditLogger->log('SYSTEM_TRUNCATE', "Sicherheitslöschung (TRUNCATE) durchgeführt. Tabelle: {$tableName}.");
+            $this->sessionManager->addFlash('success', "Erfolg: Die Tabelle '{$tableName}' wurde restlos geleert. Ein Voll-Backup wurde vorab erstellt.");
+
+            return new RedirectResponse('admin.php?focus=tab-backup');
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin.php?focus=tab-backup');
+        } catch (Throwable $e) {
+            $this->sessionManager->addFlash('error', 'Fehler beim Leeren der Tabelle: ' . $e->getMessage());
+
+            return new RedirectResponse('admin.php?focus=tab-backup');
         }
-
-        $msg = $this->migrationService->truncateTarget($dto->target, $dto->engine);
-        $this->auditLogger->log('SYSTEM_TRUNCATE', "Sicherheitslöschung (TRUNCATE) durchgeführt. Ziel: {$dto->target}, Engine: {$dto->engine}.");
-        $this->sessionManager->addFlash('success', $msg);
-
-        return new RedirectResponse('admin.php');
     }
 }

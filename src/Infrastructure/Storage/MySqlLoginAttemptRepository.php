@@ -9,7 +9,6 @@ use App\Contracts\Storage\LoginAttemptRepositoryInterface;
 use App\Core\Entity\LoginAttempt;
 use App\Core\ValueObject\IpAddress;
 use DateTimeImmutable;
-use Exception;
 use PDO;
 
 /**
@@ -67,37 +66,5 @@ final readonly class MySqlLoginAttemptRepository implements LoginAttemptReposito
     {
         $table = $this->config->get('storage_config')['login_attempts']['table'];
         $this->pdo->prepare("DELETE FROM `{$table}` WHERE last_attempt < DATE_SUB(NOW(), INTERVAL ? MINUTE)")->execute([$minutes]);
-    }
-
-    public function import(array $data): void
-    {
-        $table = $this->config->get('storage_config')['login_attempts']['table'];
-        $this->pdo->beginTransaction();
-
-        try {
-            $sql = null;
-            $stmt = null;
-
-            foreach ($data as $ip => $item) {
-                $mapped = [
-                    'ip_address' => $ip,
-                    'attempts' => (int) ($item['attempts'] ?? 0),
-                    'last_attempt' => $item['last_attempt'] ?? 'now',
-                ];
-
-                if ($sql === null) {
-                    $sql = $this->buildReplaceSql($table, $mapped);
-                    $stmt = $this->pdo->prepare($sql);
-                }
-
-                $stmt->execute($mapped);
-            }
-
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-
-            throw $e;
-        }
     }
 }

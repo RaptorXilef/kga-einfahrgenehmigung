@@ -8,7 +8,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\CancelledPermitRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\Permit;
-use Exception;
 use PDO;
 
 final readonly class MySqlCancelledPermitRepository implements CancelledPermitRepositoryInterface
@@ -50,40 +49,5 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
         $stmt = $this->pdo->query("SELECT * FROM `{$table}` ORDER BY erstellt DESC");
 
         return \array_map($this->mapToEntity(...), $stmt->fetchAll(PDO::FETCH_ASSOC));
-    }
-
-    public function import(array $data): void
-    {
-        $objects = [];
-        foreach ($data as $key => $item) {
-            if (!isset($item['code'])) {
-                $item['code'] = $key;
-            }
-            $objects[] = $this->mapToEntity($item);
-        }
-
-        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
-        $this->pdo->beginTransaction();
-
-        try {
-            $sql = null;
-            $stmt = null;
-            foreach ($objects as $permit) {
-                $item = $this->flattenEntity($permit);
-                $item['is_anonymized'] = 1;
-                $item['agreements'] ??= '{}';
-
-                if ($sql === null) {
-                    $sql = $this->buildReplaceSql($table, $item);
-                    $stmt = $this->pdo->prepare($sql);
-                }
-                $stmt->execute($item);
-            }
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-
-            throw $e;
-        }
     }
 }

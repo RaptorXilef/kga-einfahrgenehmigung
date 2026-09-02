@@ -9,7 +9,6 @@ use App\Application\Contracts\ActionInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
-use App\Contracts\Maintenance\MigrationServiceInterface;
 use App\Contracts\Maintenance\UpdateMigrationServiceInterface;
 use App\Contracts\System\RouteCacheInterface;
 use Throwable;
@@ -21,7 +20,6 @@ final readonly class SystemUpdateAction implements ActionInterface
     public function __construct(
         private ConfigInterface $config,
         private RouteCacheInterface $routeCache,
-        private MigrationServiceInterface $migrationService,
         private UpdateMigrationServiceInterface $updateMigrationService,
     ) {
     }
@@ -41,7 +39,6 @@ final readonly class SystemUpdateAction implements ActionInterface
         try {
             // 1. Cache leeren (Routen & System)
             $this->routeCache->clearAll();
-            $this->migrationService->clearCache();
 
             // 2. Datenbank-Migrationen ausführen (z.B. 018_rename...)
             $migrationsApplied = $this->updateMigrationService->runAllPending();

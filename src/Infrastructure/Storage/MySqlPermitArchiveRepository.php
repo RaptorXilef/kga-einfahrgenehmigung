@@ -7,6 +7,8 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
+use Exception;
+use Override;
 use PDO;
 
 /**
@@ -24,6 +26,12 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
+    }
+
+    #[Override]
+    public function getArchivedPermits(int $minYear): array
+    {
+        throw new Exception('Not implemented');
     }
 
     public function isCodeInArchive(string $code): bool
@@ -64,26 +72,5 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
         $stmt->execute([$cutoffDate]);
 
         return $stmt->rowCount();
-    }
-
-    public function import(array $data): void
-    {
-        $objects = [];
-        foreach ($data as $key => $item) {
-            if (!isset($item['code'])) {
-                $item['code'] = $key;
-            }
-            $objects[] = $this->mapToEntity($item);
-        }
-        $this->archivePermits(0, $objects);
-    }
-
-    public function getArchivedPermits(int $minYear): array
-    {
-        $table = $this->config->get('storage_config')['permits_archive']['table'];
-        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE YEAR(erstellt) >= ? OR YEAR(von) >= ?");
-        $stmt->execute([$minYear, $minYear]);
-
-        return \array_map($this->mapToEntity(...), $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 }

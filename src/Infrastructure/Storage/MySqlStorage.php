@@ -214,14 +214,4 @@ final readonly class MySqlStorage implements StorageInterface
 
         return $count;
     }
-
-    public function import(array $data): void
-    {
-        foreach ($data as $key => $item) {
-            if (!isset($item['code'])) {
-                $item['code'] = $key;
-            }
-            $this->save($this->mapToEntity($item));
-        }
-    }
 }

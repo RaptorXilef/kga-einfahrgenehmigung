@@ -9,7 +9,6 @@ use App\Contracts\Storage\AuditLogRepositoryInterface;
 use App\Core\Entity\AuditLog;
 use App\Core\ValueObject\IpAddress;
 use DateTimeImmutable;
-use Exception;
 use PDO;
 
 final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterface
@@ -77,41 +76,5 @@ final readonly class MySqlAuditLogRepository implements AuditLogRepositoryInterf
         }
 
         return ['items' => $items, 'total' => $total];
-    }
-
-    public function import(array $data): void
-    {
-        $table = $this->config->get('storage_config')['audit_logs']['table'] ?? 'audit_logs';
-        $this->pdo->beginTransaction();
-
-        try {
-            $sql = null;
-            $stmt = null;
-
-            foreach ($data as $id => $item) {
-                $mapped = [
-                    'id' => $id,
-                    'user_id' => $item['user_id'] ?? '',
-                    'username' => $item['username'] ?? '',
-                    'action' => $item['action'] ?? '',
-                    'details' => $item['details'] ?? '',
-                    'ip_address' => $item['ip_address'] ?? '0.0.0.0',
-                    'created_at' => $item['created_at'] ?? '',
-                ];
-
-                if ($sql === null) {
-                    $sql = $this->buildReplaceSql($table, $mapped);
-                    $stmt = $this->pdo->prepare($sql);
-                }
-
-                $stmt->execute($mapped);
-            }
-
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-
-            throw $e;
-        }
     }
 }

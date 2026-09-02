@@ -8,7 +8,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\MailQueueRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
 use App\Core\Entity\MailJob;
-use Exception;
 use PDO;
 use Throwable;
 
@@ -133,45 +132,6 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
                 ->execute([$origAttempts, $idStr]);
 
             return false;
-        }
-    }
-
-    public function import(array $data): void
-    {
-        $table = $this->config->get('storage_config')['mail_queue']['table'];
-
-        $this->pdo->beginTransaction();
-
-        try {
-            $sql = null;
-            $stmt = null;
-
-            foreach ($data as $id => $item) {
-                $payload = $item['data'] ?? [];
-                $mapped = [
-                    'id' => $id,
-                    'recipient' => $item['recipient'] ?? '',
-                    'subject' => $item['subject'] ?? '',
-                    'template' => $item['template'] ?? '',
-                    'data' => \is_array($payload) ? \json_encode($payload, \JSON_UNESCAPED_UNICODE) : $payload,
-                    'attempts' => (int) ($item['attempts'] ?? 0),
-                    'priority' => (int) ($item['priority'] ?? 10),
-                    'created_at' => $item['created_at'] ?? '',
-                ];
-
-                if ($sql === null) {
-                    $sql = $this->buildReplaceSql($table, $mapped);
-                    $stmt = $this->pdo->prepare($sql);
-                }
-
-                $stmt->execute($mapped);
-            }
-
-            $this->pdo->commit();
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-
-            throw $e;
         }
     }
 

@@ -28,6 +28,4 @@ interface MagicLinkRepositoryInterface
      * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      */
     public function saveAll(array $links, bool $forceSql = false): void;
-
-    public function import(array $data): void;
 }

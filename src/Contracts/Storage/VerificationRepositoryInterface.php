@@ -43,6 +43,4 @@ interface VerificationRepositoryInterface
      * @param bool $forceSql Erzwingt das Speichern in MySQL (ignoriert JSON).
      */
     public function saveVerified(array $data, bool $forceSql = false): void;
-
-    public function import(array $data): void;
 }

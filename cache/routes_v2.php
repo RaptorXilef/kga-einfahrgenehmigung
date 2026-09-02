@@ -88,11 +88,6 @@
         'class' => 'App\\Application\\Actions\\Admin\\SystemResendMailAction',
         'auth' => false,
       ),
-      '/restore_data' => 
-      array (
-        'class' => 'App\\Application\\Actions\\Admin\\SystemRestoreDataAction',
-        'auth' => false,
-      ),
       '/run_update_migrations' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\SystemRunUpdateMigrationsAction',
@@ -274,6 +269,11 @@
       '/mark_as_paid' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\PermitMarkAsPaidAction',
+        'auth' => false,
+      ),
+      '/send_reminder' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\PermitSendReminderAction',
         'auth' => false,
       ),
       '/suspend_permit' => 

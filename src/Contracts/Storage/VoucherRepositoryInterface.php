@@ -42,8 +42,4 @@ interface VoucherRepositoryInterface
      * @param array<string, mixed> $archiveEntry Der hinzuzufügende Datensatz.
      */
     public function appendToArchive(array $archiveEntry): void;
-
-    public function import(array $data): void;
-
-    public function importArchive(array $data): void;
 }

@@ -82,21 +82,4 @@ final readonly class MySqlMagicLinkRepository implements MagicLinkRepositoryInte
             throw $e;
         }
     }
-
-    public function import(array $data): void
-    {
-        $objects = [];
-        foreach ($data as $token => $row) {
-            $exp = $row['expires'] ?? 'now';
-            $dt = \is_numeric($exp) ? (new DateTimeImmutable())->setTimestamp((int) $exp) : new DateTimeImmutable($exp);
-
-            $objects[$token] = new MagicLink(
-                (string) $token,
-                new EmailAddress($row['email'] ?? 'invalid@example.com'),
-                $row['code'] ?? '',
-                $dt,
-            );
-        }
-        $this->saveAll($objects, true);
-    }
 }

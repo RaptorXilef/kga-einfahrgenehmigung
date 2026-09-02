@@ -20,6 +20,4 @@ interface LoginAttemptRepositoryInterface
     public function deleteByIp(string $ip): void;
 
     public function deleteOlderThan(int $minutes): void;
-
-    public function import(array $data): void;
 }
