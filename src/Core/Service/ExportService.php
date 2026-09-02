@@ -222,10 +222,23 @@ final readonly class ExportService
 
     public function generateFilename(string $format, string $start, string $end): string
     {
-        $slug = \strtolower((string) \preg_replace('/[^A-Za-z0-9]/', '_', (string) $this->config->get('vereins_name', 'export')));
+        $clubName = (string) $this->config->get('vereins_name', 'export');
+
+        // 1. Umlaute korrekt übersetzen
+        $clubName = \mb_strtolower($clubName, 'UTF-8');
+        $clubName = \str_replace(['ä', 'ö', 'ü', 'ß'], ['ae', 'oe', 'ue', 'ss'], $clubName);
+
+        // 2. Alle restlichen Sonderzeichen in Unterstriche umwandeln und aufräumen
+        $slug = \preg_replace('/[^a-z0-9]+/', '_', $clubName);
+        $slug = \trim((string) $slug, '_');
+
         $timestamp = \date('Ymd_Hi');
 
-        return "{$slug}_finanzexport_{$start}_bis_{$end}_{$timestamp}.{$format}";
+        // 3. Dynamische Endung und Typ-Zuweisung
+        $extension = $format === 'csv_stats' ? 'csv' : $format;
+        $type = $format === 'csv_stats' ? 'statistik' : 'finanzexport';
+
+        return "{$slug}_{$type}_{$start}_bis_{$end}_{$timestamp}.{$extension}";
     }
 
     /**

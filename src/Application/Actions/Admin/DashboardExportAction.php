@@ -57,10 +57,7 @@ final readonly class DashboardExportAction implements ViewActionInterface, Requi
         }
 
         if ($dto->format === 'csv_stats') {
-            // Passe den Dateinamen leicht an, um ihn von den Transaktionen zu unterscheiden
-            $statsFilename = \str_replace('finanzexport', 'statistik', $filename);
-
-            return new FileDownloadResponse($this->exportService->generateStatsCsv($filtered), $statsFilename, 'text/csv; charset=utf-8');
+            return new FileDownloadResponse($this->exportService->generateStatsCsv($filtered), $filename, 'text/csv; charset=utf-8');
         }
 
         return new EmptyResponse(400);
