@@ -73,6 +73,78 @@ final readonly class ExportService
     }
 
     /**
+     * Generiert eine aggregierte Statistik-Zusammenfassung als CSV.
+     *
+     * @param Permit[] $filteredPermits
+     */
+    public function generateStatsCsv(array $filteredPermits): string
+    {
+        $output = \fopen('php://temp', 'r+');
+        if (!$output) {
+            return '';
+        }
+
+        \fwrite($output, "\xEF\xBB\xBF");
+
+        $stats = [
+            'gesamtzahl_antraege' => \count($filteredPermits),
+            'bezahlt' => 0,
+            'offen' => 0,
+            'storniert' => 0,
+            'erwarteter_umsatz_eur' => 0.0,
+            'bezahlter_umsatz_eur' => 0.0,
+            'offener_umsatz_eur' => 0.0,
+            'vorlagen' => [],
+        ];
+
+        foreach ($filteredPermits as $p) {
+            $status = $p->getStatus()->value;
+            $price = $p->getPrice();
+            $tpl = $p->template_key->value;
+
+            if ($status === PermitStatus::Bezahlt->value) {
+                ++$stats['bezahlt'];
+                $stats['bezahlter_umsatz_eur'] += $price;
+            } elseif ($status === PermitStatus::Offen->value) {
+                ++$stats['offen'];
+                $stats['offener_umsatz_eur'] += $price;
+            } elseif ($status === PermitStatus::Storniert->value) {
+                ++$stats['storniert'];
+            }
+
+            if ($status !== PermitStatus::Storniert->value) {
+                $stats['erwarteter_umsatz_eur'] += $price;
+            }
+
+            if (!isset($stats['vorlagen'][$tpl])) {
+                $stats['vorlagen'][$tpl] = 0;
+            }
+            ++$stats['vorlagen'][$tpl];
+        }
+
+        // CSV Tabellen-Format: Metrik -> Wert
+        \fputcsv($output, ['Metrik', 'Wert'], ';', '"', '\\');
+        \fputcsv($output, ['Gesamtzahl Anträge', $stats['gesamtzahl_antraege']], ';', '"', '\\');
+        \fputcsv($output, ['Status: Bezahlt', $stats['bezahlt']], ';', '"', '\\');
+        \fputcsv($output, ['Status: Offen', $stats['offen']], ';', '"', '\\');
+        \fputcsv($output, ['Status: Storniert', $stats['storniert']], ';', '"', '\\');
+        \fputcsv($output, ['Erwarteter Umsatz (EUR)', \number_format($stats['erwarteter_umsatz_eur'], 2, ',', '')], ';', '"', '\\');
+        \fputcsv($output, ['Bezahlter Umsatz (EUR)', \number_format($stats['bezahlter_umsatz_eur'], 2, ',', '')], ';', '"', '\\');
+        \fputcsv($output, ['Offener Umsatz (EUR)', \number_format($stats['offener_umsatz_eur'], 2, ',', '')], ';', '"', '\\');
+
+        // Dynamische Vorlagen anhängen
+        foreach ($stats['vorlagen'] as $tpl => $count) {
+            \fputcsv($output, ['Nutzung Vorlage: ' . $tpl, $count], ';', '"', '\\');
+        }
+
+        \rewind($output);
+        $csvContent = \stream_get_contents($output);
+        \fclose($output);
+
+        return (string) $csvContent;
+    }
+
+    /**
      * Generiert ein reichhaltiges JSON inkl. detaillierter Buchhaltungs-Statistiken.
      *
      * @param Permit[] $filteredPermits

@@ -28,7 +28,7 @@ use App\Core\Service\AuthService;
                 <!-- Modernes Action-Grid für Export -->
                 <div class="c-action-grid">
 
-                <!-- CSV Export Card -->
+                    <!-- CSV Export Card (Transaktionen) -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                        target="_blank"
                        class="c-action-card c-action-card--csv">
@@ -38,8 +38,23 @@ use App\Core\Service\AuthService;
                                  alt="">
                         </div>
                         <div>
-                            <span class="c-action-card__title">Excel / CSV</span>
+                            <span class="c-action-card__title">Excel / CSV Buchhaltung</span>
                             <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Kassensoftware.</span>
+                        </div>
+                    </a>
+
+                    <!-- CSV Export Card (Statistiken) -->
+                    <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv_stats&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
+                       target="_blank"
+                       class="c-action-card c-action-card--csv">
+                        <div class="c-action-card__icon">
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
+                                 class="c-icon"
+                                 alt="Statistik">
+                        </div>
+                        <div>
+                            <span class="c-action-card__title">CSV Statistiken</span>
+                            <span class="c-action-card__desc">Aggregierte Summen, Umsätze und Vorlagen-Nutzung.</span>
                         </div>
                     </a>
 
@@ -49,8 +64,8 @@ use App\Core\Service\AuthService;
                        class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>
                         <div>
-                            <span class="c-action-card__title">JSON Statistik</span>
-                            <span class="c-action-card__desc">Erweiterte Systemstatistiken und Transaktionen.</span>
+                            <span class="c-action-card__title">JSON RAW-Daten</span>
+                            <span class="c-action-card__desc">Für technischen Datenimport und externe Backups.</span>
                         </div>
                     </a>
                 </div>
