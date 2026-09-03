@@ -28,7 +28,7 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
 
         $stmt = $this->pdo->query("SELECT * FROM `{$cfg['table']}`");
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            // Mapping für Legacy Spaltennamen ('group' -> 'roleId', 'pass' -> 'passwordHash')
+            // Mapping nutzt nun primär 'role_id' mit Fallback auf 'group' falls die Migration noch nicht lief
             $users[$row['id']] = $this->hydrateEntity(User::class, $row, [
                 'roleId' => $row['role_id'] ?? $row['group'] ?? 'guest',
                 'passwordHash' => $row['pass'] ?? $row['password_hash'] ?? '',
@@ -53,10 +53,11 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
             $stmt = null;
 
             foreach ($users as $id => $user) {
+                // Verwendet ab sofort die saubere und korrekte Spalte 'role_id'
                 $data = [
                     'id' => $id,
                     'username' => $user->username,
-                    'role_id' => $user->roleId, // FIX: Hier wurde fälschlicherweise noch ->groupId aufgerufen
+                    'role_id' => $user->roleId,
                     'pass' => $user->passwordHash,
                 ];
 

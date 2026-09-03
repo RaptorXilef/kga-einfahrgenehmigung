@@ -22,7 +22,7 @@ final class SchemaRegistry
             'users' => 'CREATE TABLE IF NOT EXISTS `users` (
                 `id` VARCHAR(50) PRIMARY KEY,
                 `username` VARCHAR(50) NOT NULL,
-                `group` VARCHAR(50) NOT NULL,
+                `role_id` VARCHAR(50) NOT NULL,
                 `pass` VARCHAR(255) NOT NULL,
                 UNIQUE KEY `idx_username` (`username`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',

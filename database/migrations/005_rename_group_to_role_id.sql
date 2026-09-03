@@ -1,0 +1,1 @@
+ALTER TABLE `users` CHANGE COLUMN `group` `role_id` VARCHAR(50) NOT NULL;
