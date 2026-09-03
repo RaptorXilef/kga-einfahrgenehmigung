@@ -13,80 +13,136 @@ ServerSignature Off
 # Max Upload Size - 10MB
 LimitRequestBody 10485760
 
-# --- BLOCK 1: Security Hardening ---
+# --- BLOCK 1: Security Hardening (Apache-Level) ---
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK) [NC]
     RewriteRule .* - [F]
 </IfModule>
 
+# Sperre direkten Zugriff auf sensible Dateitypen
 <FilesMatch "(^\.htaccess|php\.ini|licence\.txt|readme\.html|composer\.|package\.|^\.env|\.sql$|\.log$|\.bak$)$">
     Require all denied
 </FilesMatch>
 
+# Schutz vor Skript-Ausführung in Asset-Ordnern (falls jemand eine .php hochlädt)
 <IfModule mod_rewrite.c>
     RewriteCond %{REQUEST_URI} ^.*/(assets|data|cache|vendor|node_modules|\.git)/.*\.php$ [NC]
     RewriteRule .* - [F,L]
 </IfModule>
 
-# --- BLOCK 2: MIME & Komprimierung ---
+# --- BLOCK 2: Bot-Firewall ---
+<IfModule mod_setenvif.c>
+    SetEnvIfNoCase User-Agent (GPTBot|CCBot|ChatGPT-User|PerplexityBot|Amazonbot|ClaudeBot|Omigili|ImagesiftBot|CriteoBot|Pinterestbot|AhrefsBot|SemrushBot|DotBot|Bytespider) bad_bot
+    <RequireAll>
+        Require all granted
+        Require not env bad_bot
+    </RequireAll>
+</IfModule>
+
+# --- BLOCK 3: MIME & Komprimierung (Brotli / GZIP) ---
 <IfModule mod_mime.c>
     AddType image/webp .webp
+    AddType image/avif .avif
+    AddType font/woff2 .woff2
+    AddType application/javascript .mjs
     AddType "application/json; charset=utf-8" .json
 </IfModule>
 
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json image/svg+xml
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/ld+json application/xml font/woff font/woff2 image/svg+xml application/manifest+json
 </IfModule>
 
-# --- BLOCK 3: Aggressives Caching für statische Assets ---
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/ld+json application/xml image/svg+xml
+</IfModule>
+
+# Pre-Compressed Assets ausliefern
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP:Accept-Encoding} br
+    RewriteCond %{REQUEST_FILENAME}.br -f
+    RewriteRule ^(.*)$ $1.br [L]
+
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{REQUEST_FILENAME}.gz -f
+    RewriteRule ^(.*)$ $1.gz [L]
+</IfModule>
+
+<FilesMatch "\.(js\.br|css\.br|mjs\.br)$">
+    Header set Content-Encoding br
+    Header append Vary Accept-Encoding
+</FilesMatch>
+
+# --- BLOCK 4: Aggressives Caching für statische Assets ---
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresDefault "access plus 1 month"
+
     ExpiresByType image/jpg "access plus 1 year"
     ExpiresByType image/jpeg "access plus 1 year"
     ExpiresByType image/png "access plus 1 year"
     ExpiresByType image/gif "access plus 1 year"
     ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/avif "access plus 1 year"
+
     ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+
     ExpiresByType text/css "access plus 1 month"
     ExpiresByType application/javascript "access plus 1 month"
 </IfModule>
 
 <IfModule mod_headers.c>
-    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ttf|woff|woff2|ico)$">
+    # Bilder und Fonts ändern sich nie (immutable) -> 1 Jahr Cache
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|avif|svg|ttf|woff|woff2|ico)$">
         Header set Cache-Control "max-age=31536000, public, no-transform, immutable"
         Header set Timing-Allow-Origin "*"
     </FilesMatch>
-    <FilesMatch "\.(css|js|json)$">
+
+    # CSS und JS ändern sich ggf. -> 1 Monat Cache
+    <FilesMatch "\.(css|js|mjs|json)$">
         Header set Cache-Control "max-age=2592000, public, no-transform"
     </FilesMatch>
+
+    # PHP-Header (für dynamisches HTML) werden von SecurityHeadersMiddleware gesetzt!
 </IfModule>
 
-# --- BLOCK 4: URL-Hygiene & Front-Controller Routing ---
+# --- BLOCK 5: URL-Hygiene, SEO & Front-Controller Routing ---
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # 4.1: HTTPS & WWW-Zwang (SEO Canonical)
+    # 5.1: HTTPS & WWW-Zwang (SEO Canonical)
     RewriteCond %{HTTPS} off [OR]
     RewriteCond %{HTTP_HOST} ^www\. [NC]
     RewriteCond %{HTTP_HOST} ^(?:www\.)?(.+)$ [NC]
+    # Ausgenommen localhost/local dev
     RewriteCond %{HTTP_HOST} !\.local$ [NC]
     RewriteCond %{HTTP_HOST} !^localhost$ [NC]
     RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L,NE]
 
-    # 4.2: Trailing Slashes von Ordnern entfernen
+    # ========================================================
+    # 5.2: SEO REDIRECTS (301)
+    # ========================================================
+
+    # Entfernt explizite /index.php Aufrufe aus der URL (Duplicate Content Schutz)
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.php[\s?] [NC]
+    RewriteRule ^index\.php$ / [R=301,L]
+
+    # Trailing Slashes von Ordnern entfernen (z.B. /ordner/ -> /ordner)
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)/$ /$1 [R=301,L]
 
-    # 4.3: Globale .php Entfernung (301 Redirect für den Rest)
+    # 5.3: Globale .php Entfernung (SEO: 301 Redirect für den Rest)
+    # Fängt alles ab, was noch eine .php Endung hat, aber keine API ist
     RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
     RewriteCond %{REQUEST_URI} !^/index\.php$ [NC]
     RewriteCond %{REQUEST_URI} !^/api/ [NC]
     RewriteRule ^ /%1 [R=301,L,NE]
 
-    # 4.4: THE FRONT CONTROLLER
+    # 5.4: THE FRONT CONTROLLER (Das Herzstück der Architektur)
+    # Wenn die Datei physisch existiert (Bilder, CSS, JS), direkt ausliefern (Fast-Exit)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+    # Alles andere geht transparent an die index.php
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
