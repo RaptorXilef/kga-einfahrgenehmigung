@@ -73,9 +73,9 @@ $now = new \DateTimeImmutable('today');
         <div class="c-card__body u-padding-none"
              style="overflow-x: auto;">
 
-            <!-- FIX: Tabelle existiert immer, Empty-Message wird als TR > TD eingebunden -->
+            <!-- FIX: table-layout: fixed; hinzugefügt, damit die Spaltenbreiten strikt eingehalten werden -->
             <table class="c-table js-sort-table"
-                   style="width: 100%; min-width: 950px;">
+                   style="table-layout: fixed; width: 100%; min-width: 950px;">
                 <thead>
                     <tr style="background: #f8fafc;">
                         <th class="js-sort-header"
@@ -121,15 +121,16 @@ $now = new \DateTimeImmutable('today');
                             // 2. Finanz-Berechnungen
                             $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
                             $statusText = \strtoupper($permit->getStatus()->value);
-                            $statusClass = 'warning'; // default Orange
+
+                            // FIX: Offene Zahlungen immer rot/rosa, bezahlte immer hellgrün
+                            $statusClass = 'danger'; // Default für alles was offen ist = Rot/Rosa
 
                             if ($isPaid) {
-                                $statusClass = 'success';
+                                $statusClass = 'success'; // Grün
                             } else {
-                                // Überfälligkeit checken via Service
+                                // Überfälligkeit checken via Service (für den korrekten Text)
                                 $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
                                 if ($overdueLevel === 2) {
-                                    $statusClass = 'danger'; // Rot
                                     $statusText = 'ZAHLUNG ÜBERFÄLLIG';
                                 } elseif ($overdueLevel === 1) {
                                     $statusText = 'MAHNFRIST';
@@ -226,8 +227,9 @@ $now = new \DateTimeImmutable('today');
                                         <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Status / Prüfseite öffnen">
                                             <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
                                         </a>
-                                        <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--primary" style="width: auto; padding: 0 12px; gap: 6px; height: 36px; font-size: 0.8rem;" title="Dokument anzeigen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt=""> Dokument </a>
+                                        <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Dokument anzeigen">
+                                            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
