@@ -32,7 +32,8 @@ use App\Core\Entity\Permit;
 <head>
     <meta charset="UTF-8">
     <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
-    <?php include_once $appRoot . '/templates/components/_favicon.phtml'; ?>
+    <!-- FIX: Korrekter Pfad zum Favicon Partial -->
+    <?php include_once $appRoot . '/templates/partials/frontend/favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
 
@@ -143,7 +144,9 @@ use App\Core\Entity\Permit;
 
 <body>
     <div class="print-toolbar u-no-print">
-        <button type="button" onclick="window.close()" class="c-button c-button--secondary">✕ Druckansicht schließen</button>
+        <button type="button"
+                onclick="window.close()"
+                class="c-button c-button--secondary">✕ Druckansicht schließen</button>
         <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button onclick="window.print()"
                 class="c-button c-button--primary"><img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
@@ -173,14 +176,14 @@ use App\Core\Entity\Permit;
         'config' => $config,
     ];
 
-// Variablen in den lokalen Scope extrahieren
-// TODO Prüfen ob lieber ohne EXTR_SKIP
-\extract($data, \EXTR_SKIP);
+    // Variablen in den lokalen Scope extrahieren
+    // TODO Prüfen ob lieber ohne EXTR_SKIP
+    \extract($data, \EXTR_SKIP);
 
-// Das Sub-Template einbinden
-include $appRoot . '/templates/emails/permit_a4_document.phtml';
-// include $appRoot . '/templates/components/_footer.phtml';
-?>
+    // Das Sub-Template einbinden
+    include $appRoot . '/templates/emails/permit_a4_document.phtml';
+    // include $appRoot . '/templates/components/_footer.phtml';
+    ?>
 </body>
 
 </html>
