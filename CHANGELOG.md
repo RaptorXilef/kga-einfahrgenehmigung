@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.65.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.64.1...v0.65.0) (2026-09-03)
+
+### 🚀 Features
+
+* **security:** Add server-side date validation to block retroactive bot submissions ([0b3dcb7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0b3dcb777808bfaccee7c13f677160b35131dbda))
+* **security:** Enforce space character in name field to prevent single-word bot submissions ([49f2d1d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/49f2d1d26392cd3907b0426f24f9470ec7a40682))
+* **security:** Implement custom email blacklist and enforce verified pending cleanup ([e90e340](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e90e340983924abf1f2a71f4790341e09b203334))
+
 ## [0.64.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.64.0...v0.64.1) (2026-09-03)
 
 ### 🐛 Bug Fixes
