@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application;
 
-use App\Application\Actions\Api\System\CronAction;
+use App\Application\Actions\Api\System\ArchiveCronAction;
+use App\Application\Actions\Api\System\BackupCronAction;
 use App\Application\Actions\Api\System\ProcessMailQueueAction;
+use App\Application\Actions\Api\System\RemindersCronAction;
+use App\Application\Actions\Api\System\SpamSyncCronAction;
 use App\Application\Actions\Frontend\AdminLoginAction;
 use App\Application\Contracts\ActionInterface;
 use App\Application\Contracts\ResponseInterface;
@@ -36,6 +39,12 @@ final readonly class FrontendController
     public function handleRequest(ServerRequest $request): ?ResponseInterface
     {
         $relativePath = $this->resolveRelativePath($request);
+
+        // FIX: Ermöglicht den manuellen Aufruf der /maintenance URL
+        if ($relativePath === '/maintenance') {
+            return $this->sendMaintenanceResponse('ManualAccess');
+        }
+
         $routeMatch = $this->resolveRoute($request, $relativePath);
 
         $request = $routeMatch['request'];
@@ -86,7 +95,6 @@ final readonly class FrontendController
 
         // Fallback, wenn Route nicht gefunden
         if ($matched === null) {
-            // Entweder du hast eine 404 Action, oder wir geben hier null zurück und handeln es in der Pipeline
             return [
                 'request' => $request,
                 'class' => '',
@@ -119,8 +127,11 @@ final readonly class FrontendController
 
         $safeDuringMaintenance = [
             AdminLoginAction::class,
-            CronAction::class,
+            ArchiveCronAction::class,
+            BackupCronAction::class,
             ProcessMailQueueAction::class,
+            RemindersCronAction::class,
+            SpamSyncCronAction::class,
         ];
 
         if (\in_array($className, $safeDuringMaintenance, true)) {
