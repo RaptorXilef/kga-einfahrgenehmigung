@@ -10,7 +10,8 @@ use App\Infrastructure\Config\Config;
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
- * @var array $settings
+ * @var array<string, mixed> $settings
+ * @var array<int, \App\Core\Entity\Permit> $allPermits
  */
 $allowedTemplates = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
@@ -21,6 +22,19 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
 $hasAnyTemplate = !empty($allowedTemplates);
 $reasons = $config->get('internal_reasons', ['Barzahlung vor Ort', 'Vorstandsbeschluss']);
+$standardPurposes = $config->get('purposes', []);
+
+// Extrahiere alle bisher genutzten EIGENEN Gründe aus der Datenbank (für Auto-Complete)
+$customPurposes = [];
+if (isset($allPermits) && \is_array($allPermits)) {
+    foreach ($allPermits as $p) {
+        $z = $p->getPurpose();
+        if ($z !== '' && !\in_array($z, $standardPurposes, true)) {
+            $customPurposes[$z] = $z;
+        }
+    }
+    \ksort($customPurposes);
+}
 
 // Vorbereitung für JavaScript Preiskalkulation
 $tplMetadata = [];
@@ -186,22 +200,39 @@ window.KGA_CONFIG = {
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">E-Mail (Optional)</label>
+                                    <label class="c-form-label">E-Mail (Für PDF-Versand)</label>
                                     <input type="email"
                                            name="email"
                                            class="c-form-input"
                                            placeholder="mail@example.com">
-                                    <small class="u-text-muted u-margin-top-xs"
-                                           style="display:block;">Wird für PDF-Versand benötigt.</small>
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Einfahrts-Grund *</label>
+                                    <label class="c-form-label u-flex u-justify-between u-align-center">
+                                        <span>Einfahrts-Grund *</span>
+                                        <span class="u-text-link u-cursor-pointer" id="toggle_zweck_btn" onclick="toggleZweckMode()">
+                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" alt=""> Manuell
+                                        </span>
+                                    </label>
                                     <select name="zweck"
+                                            id="zweck_select"
                                             class="c-form-select">
-                                        <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
+                                        <?php foreach ($standardPurposes as $val => $label) { ?>
                                             <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
                                         <?php } ?>
                                     </select>
+
+                                    <!-- Manuelles Feld (inkl. Auto-Complete Historie) -->
+                                    <input type="text"
+                                           name="_unused_zweck"
+                                           id="zweck_manual"
+                                           class="c-form-input u-hidden"
+                                           placeholder="Eigener Grund..."
+                                           list="custom_purposes_list">
+                                    <datalist id="custom_purposes_list">
+                                        <?php foreach ($customPurposes as $cp) { ?>
+                                            <option value="<?php echo \htmlspecialchars($cp); ?>"></option>
+                                        <?php } ?>
+                                    </datalist>
                                 </div>
                             </div>
 
@@ -225,7 +256,8 @@ window.KGA_CONFIG = {
 
                                 <div class="u-flex u-justify-between u-align-center u-border-top u-padding-top-m">
                                     <div>
-                                        <label class="u-flex u-align-center u-gap-s u-cursor-pointer">
+                                        <label class="u-flex u-align-center u-gap-s u-cursor-pointer"
+                                               title="Soll dem Pächter eine PDF zugestellt werden?">
                                             <input type="checkbox"
                                                    name="send_email"
                                                    value="1"
@@ -306,13 +338,13 @@ window.KGA_CONFIG = {
                             </div>
 
                             <div class="c-form-group u-margin-bottom-m">
-                                <label class="c-form-label">Interne Notiz / Grund *</label>
+                                <label class="c-form-label">Interne Notiz / Grund * (Doppelklick öffnet Schnellauswahl)</label>
                                 <input type="text"
                                        name="reason"
                                        list="reason_presets"
                                        class="c-form-input"
                                        required
-                                       placeholder="z.B. Vorstandsbeschluss">
+                                       placeholder="z.B. Entschädigung oder Vorstandsbeschluss">
                                 <datalist id="reason_presets">
                                     <?php foreach ($reasons as $r) {
                                         echo "<option value='" . \htmlspecialchars($r) . "'>";
@@ -343,7 +375,7 @@ window.KGA_CONFIG = {
                                      style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px;">
                                 <summary
                                          style="cursor: pointer; font-weight: 600; color: var(--primary-color); outline: none;">
-                                    ➕ Optionale Vorgaben für Pächter (Vorbefüllung)
+                                    ➕ Vorgaben für Pächter (Vorbefüllung)
                                 </summary>
                                 <div class="u-margin-top-m u-border-top u-padding-top-m">
                                     <p class="u-text-muted u-text-small u-margin-top-none u-margin-bottom-m">Daten, die
@@ -373,6 +405,7 @@ window.KGA_CONFIG = {
                                          style="grid-template-columns: 1fr 1fr;">
                                         <div class="c-form-group">
                                             <label class="c-form-label">Gültig von</label>
+                                            <!-- Wichtig: Keine id="datum_von" vergeben, sonst stört es form-handler.js! -->
                                             <input type="date"
                                                    name="datum_von"
                                                    class="c-form-input">
@@ -431,7 +464,7 @@ window.KGA_CONFIG = {
                                             <select name="zweck"
                                                     class="c-form-select">
                                                 <option value="">-- Nicht vorgeben --</option>
-                                                <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
+                                                <?php foreach ($standardPurposes as $val => $label) { ?>
                                                     <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
                                                 <?php } ?>
                                             </select>
@@ -499,6 +532,33 @@ function updateAdminVoucherUI() {
     const wrap = document.getElementById('v_val_wrap');
     wrap.style.display = type === 'free' ? 'none' : 'block';
 }
+
+// Wechselt zwischen Dropdown (Standard-Gründe) und Textfeld (Eigener Grund)
+function toggleZweckMode() {
+    const select = document.getElementById('zweck_select');
+    const manual = document.getElementById('zweck_manual');
+    const btn = document.getElementById('toggle_zweck_btn');
+
+    if (select.classList.contains('u-hidden')) {
+        // Dropdown anzeigen
+        select.classList.remove('u-hidden');
+        select.name = 'zweck';
+        manual.classList.add('u-hidden');
+        manual.name = '_unused_zweck';
+        btn.innerHTML =
+            `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-crayon.webp" class="c-icon" alt=""> Manuell`;
+    } else {
+        // Textfeld anzeigen
+        select.classList.add('u-hidden');
+        select.name = '_unused_zweck';
+        manual.classList.remove('u-hidden');
+        manual.name = 'zweck';
+        btn.innerHTML =
+            `<img src="${window.KGA_CONFIG.baseUrl}assets/img/icons/icon-open-file-folder.webp" class="c-icon" alt=""> Aus Liste`;
+        manual.focus();
+    }
+}
+window.toggleZweckMode = toggleZweckMode;
 
 </script>
 

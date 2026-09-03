@@ -288,9 +288,14 @@ final readonly class PermitService
 
         $preisVO = new Price($preis);
 
+        // --- Eigene Zwecke erlauben ---
+        $purposes = (array) $this->config->get('purposes', []);
+        $zweckRaw = (string) $data->zweck;
+        // Wenn der Key in den Vorgaben existiert, nimm das Label. Ansonsten nimm den rohen Text.
+        $zweck = $purposes[$zweckRaw] ?? ($zweckRaw !== '' ? \strip_tags($zweckRaw) : 'Privat');
+
         do {
             $randomId = $this->generateV4Suffix();
-
             $displayPlate = $data->kennzeichen->value;
             $identifierPlate = \str_replace(' ', '-', $displayPlate);
             $platePart = $identifierPlate !== '' ? $identifierPlate : \strtoupper($typ);
@@ -309,9 +314,6 @@ final readonly class PermitService
                 $fullIdentifier = $randomId;
             }
         } while (!$this->isCodeGloballyUnique($fullIdentifier));
-
-        $purposes = (array) $this->config->get('purposes', []);
-        $zweck = (string) ($purposes[$data->zweck] ?? 'Privat');
 
         $permit = new Permit(
             code: new PermitCode($fullIdentifier),
