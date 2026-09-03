@@ -55,6 +55,16 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
     <?php include $appRoot . '/templates/partials/admin/drag_drop_avatar.phtml'; ?>
     <?php include $appRoot . '/templates/partials/frontend/footer.phtml'; ?>
 
+    <!-- SCHWEBENDER AKTUALISIEREN BUTTON (Bleibt immer sichtbar unten rechts) -->
+    <button onclick="window.location.href = window.location.origin + window.location.pathname + window.location.search; return false;"
+            class="c-fab-refresh"
+            title="Aktuelle Daten neu laden (Filter bleiben erhalten)">
+        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+             class="c-icon"
+             alt="">
+        <span>Aktualisieren</span>
+    </button>
+
     <script type="module"
             src="<?php echo $asset->url('assets/js/admin-handler.js'); ?>"></script>
     <script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>

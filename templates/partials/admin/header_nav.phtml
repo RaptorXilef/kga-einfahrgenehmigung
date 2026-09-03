@@ -82,19 +82,6 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                      style="width:16px;"
                      alt=""> Check
             </a>
-
-            <!-- NEU: Aktualisieren Button -->
-            <!-- Nutzt die sichere JS-Methode um die Seite inkl. aktiver Parameter (?page=2) frisch vom Server zu laden ohne POST Resubmission -->
-            <a href="#"
-               onclick="window.location.href = window.location.origin + window.location.pathname + window.location.search; return false;"
-               class="c-tabs__btn"
-               style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;"
-               title="Aktuelle Daten neu laden (Filter bleiben erhalten)">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                     class="c-icon"
-                     style="width:16px;"
-                     alt=""> Aktualisieren
-            </a>
         </div>
         <div style="display: flex; align-items: center; gap: 15px;">
             <div title="Automatische Abmeldung bei Inaktivität"

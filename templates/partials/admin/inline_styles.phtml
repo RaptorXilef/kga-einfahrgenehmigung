@@ -1059,4 +1059,38 @@ input:checked+.c-switch-slider:before {
     letter-spacing: 0.5px;
 }
 
+/* --- SCHWEBENDER AKTUALISIEREN BUTTON (FAB) --- */
+.c-fab-refresh {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 0 20px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+    cursor: pointer;
+    z-index: 9000;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.c-fab-refresh:hover {
+    transform: translateY(-3px);
+    background: #2980b9;
+    box-shadow: 0 15px 30px rgba(52, 152, 219, 0.5);
+}
+
+.c-fab-refresh .c-icon {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
 </style>

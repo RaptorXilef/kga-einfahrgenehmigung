@@ -36,7 +36,7 @@ if (isset($allPermits) && \is_array($allPermits)) {
     \ksort($customPurposes);
 }
 
-// Vorbereitung für JavaScript Preiskalkulation
+// Vorbereitung für JavaScript Preiskalkulation & Datums-Sync
 $tplMetadata = [];
 foreach ($config->get('permit_templates', []) as $key => $tpl) {
     $tplMetadata[$key] = [
@@ -96,7 +96,6 @@ window.KGA_CONFIG = {
                     </header>
                     <div class="c-card__body u-padding-around-m">
 
-                        <!-- WICHTIG: Die ID 'permitForm' ist der Trigger für form-handler.js! -->
                         <form id="permitForm"
                               method="POST"
                               action="<?php echo $settings['base_url']; ?>create_manual">
@@ -242,7 +241,6 @@ window.KGA_CONFIG = {
                             <div
                                  style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 20px;">
 
-                                <!-- HIER IST DER FIX: Die Elemente sind nun UNTEREINANDER gestapelt! -->
                                 <div class="c-form-group u-margin-bottom-m">
                                     <label class="c-form-label u-flex u-justify-between u-align-center">
                                         <span>Sonderpreis (€)</span>
@@ -275,7 +273,6 @@ window.KGA_CONFIG = {
                                         </div>
                                     </label>
                                 </div>
-                                <!-- ENDE FIX -->
 
                                 <div class="u-flex u-justify-between u-align-center u-border-top u-padding-top-m">
                                     <div>
@@ -327,7 +324,9 @@ window.KGA_CONFIG = {
 
                             <div class="c-form-group u-margin-bottom-m">
                                 <label class="c-form-label">Gültig für Vorlage *</label>
+                                <!-- FIX: ID v_template_key hinzugefügt für das Admin-JS Sync-Script -->
                                 <select name="template_key"
+                                        id="v_template_key"
                                         class="c-form-select">
                                     <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                         <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
@@ -361,7 +360,8 @@ window.KGA_CONFIG = {
                             </div>
 
                             <div class="c-form-group u-margin-bottom-m">
-                                <label class="c-form-label">Interne Notiz / Grund * (Doppelklick öffnet Schnellauswahl)</label>
+                                <label class="c-form-label">Interne Notiz / Grund * (Doppelklick öffnet
+                                    Schnellauswahl)</label>
                                 <input type="text"
                                        name="reason"
                                        list="reason_presets"
@@ -428,14 +428,16 @@ window.KGA_CONFIG = {
                                          style="grid-template-columns: 1fr 1fr;">
                                         <div class="c-form-group">
                                             <label class="c-form-label">Gültig von</label>
-                                            <!-- Wichtig: Keine id="datum_von" vergeben, sonst stört es form-handler.js! -->
+                                            <!-- FIX: IDs für das Admin-JS Sync-Script hinzugefügt -->
                                             <input type="date"
+                                                   id="v_datum_von"
                                                    name="datum_von"
                                                    class="c-form-input">
                                         </div>
                                         <div class="c-form-group">
                                             <label class="c-form-label">Gültig bis</label>
                                             <input type="date"
+                                                   id="v_datum_bis"
                                                    name="datum_bis"
                                                    class="c-form-input">
                                         </div>
@@ -583,15 +585,134 @@ function toggleZweckMode() {
 }
 window.toggleZweckMode = toggleZweckMode;
 
-</script>
 
-<script type="module">
-// Dynamischer Import verhindert Intelephense "Class not imported" Fehler!
-// Die JS-Klasse wird im Laufzeit-Umfeld geladen und ans Formular gebunden.
-import('<?php echo $asset->url('assets/js/form-handler.js'); ?>').then((module) => {
-    if (document.getElementById('permitForm') && !window.adminPermitForm) {
-        window.adminPermitForm = new module.PermitFormHandler();
+// --- FIX: DECOUPLED ADMIN JAVASCRIPT ---
+// Dies ersetzt das fehleranfällige form-handler.js aus dem Frontend
+// und bietet stattdessen exakte Datums-Synchronisation und Preis-Updates für das Backend an.
+document.addEventListener('DOMContentLoaded', () => {
+    const templates = <?php echo \json_encode($tplMetadata); ?>;
+
+    // 1. Funktion zur Synchronisation der Start- und Enddaten
+    function bindDateSync(tplId, vonId, bisId) {
+        const tplEl = document.getElementById(tplId);
+        const vonEl = document.getElementById(vonId);
+        const bisEl = document.getElementById(bisId);
+
+        if (!tplEl || !vonEl || !bisEl) return;
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        vonEl.min = todayStr; // Verhindert Daten in der Vergangenheit
+
+        function updateDates(source) {
+            // Korrigiere Startdatum, falls es in der Vergangenheit liegt
+            if (source === 'von' && vonEl.value < todayStr) vonEl.value = todayStr;
+
+            const config = templates[tplEl.value];
+            if (!config) return;
+
+            const isCustom = config.days === 'custom';
+            const duration = isCustom ? 0 : parseInt(config.days);
+            const durationOffset = Math.max(0, duration - 1);
+
+            if (!isCustom) {
+                // Min-Wert für Bis-Feld berechnen (Heute + Dauer)
+                let minBisDate = new Date();
+                minBisDate.setDate(minBisDate.getDate() + durationOffset);
+                const minBisStr = minBisDate.toISOString().split('T')[0];
+                bisEl.min = minBisStr;
+
+                if (source === 'bis') {
+                    if (bisEl.value < minBisStr) bisEl.value = minBisStr;
+                    let d = new Date(bisEl.value);
+                    d.setDate(d.getDate() - durationOffset);
+                    vonEl.value = d.toISOString().split('T')[0];
+                } else {
+                    if (!vonEl.value || vonEl.value < todayStr) vonEl.value = todayStr;
+                    let d = new Date(vonEl.value);
+                    d.setDate(d.getDate() + durationOffset);
+                    bisEl.value = d.toISOString().split('T')[0];
+                }
+            } else {
+                bisEl.min = vonEl.value;
+                if (bisEl.value < vonEl.value) bisEl.value = vonEl.value;
+            }
+        }
+
+        tplEl.addEventListener('change', () => updateDates('template'));
+        vonEl.addEventListener('change', () => updateDates('von'));
+        bisEl.addEventListener('change', () => updateDates('bis'));
+
+        // Initiale Berechnung beim Laden der Seite
+        updateDates('init');
     }
-}).catch(err => console.error("Konnte form-handler.js nicht laden:", err));
+
+    // Binde beide Formulare (Manuell & Gutschein)
+    bindDateSync('template_key', 'datum_von', 'datum_bis');
+    bindDateSync('v_template_key', 'v_datum_von', 'v_datum_bis');
+
+    // 2. Preisberechnung (Live-Update via API) für das manuelle Formular
+    async function updateAdminPrice() {
+        const tpl = document.getElementById('template_key')?.value;
+        const typ = document.getElementById('typ')?.value;
+        const priceDisplay = document.getElementById('price-display');
+
+        if (!tpl || !typ || !priceDisplay) return;
+
+        try {
+            const res = await fetch(window.KGA_CONFIG.baseUrl + 'api/get_template_price', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.KGA_CONFIG.csrfToken
+                },
+                body: JSON.stringify({
+                    key: tpl,
+                    typ: typ,
+                    voucher: ''
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                priceDisplay.innerText = data.formatted;
+            }
+        } catch (e) {
+            console.error('Preiskalkulation fehlgeschlagen:', e);
+        }
+    }
+
+    document.getElementById('template_key')?.addEventListener('change', updateAdminPrice);
+    document.getElementById('typ')?.addEventListener('change', updateAdminPrice);
+
+    // 3. Firmenfeld umschalten
+    function toggleAdminFirma() {
+        const typ = document.getElementById('typ')?.value;
+        const firmaWrapper = document.getElementById('group_firma');
+        const kennzeichenLabel = document.getElementById('label_kennzeichen');
+        const kennzeichenInput = document.getElementById('kennzeichen');
+
+        if (!typ || !firmaWrapper) return;
+
+        const cfg = window.KGA_CONFIG.vehicleConfig[typ] || {
+            show_company: false
+        };
+        if (cfg.show_company) {
+            firmaWrapper.classList.remove('u-hidden');
+            if (kennzeichenLabel) kennzeichenLabel.innerText = "Amtl. Kennzeichen (Optional)";
+            if (kennzeichenInput) kennzeichenInput.required = false;
+        } else {
+            firmaWrapper.classList.add('u-hidden');
+            if (kennzeichenLabel) kennzeichenLabel.innerText = "Amtl. Kennzeichen *";
+            if (kennzeichenInput) kennzeichenInput.required = true;
+            const firmaInput = firmaWrapper.querySelector('input');
+            if (firmaInput) firmaInput.value = '';
+        }
+    }
+
+    document.getElementById('typ')?.addEventListener('change', toggleAdminFirma);
+
+    // Alles initial triggern
+    updateAdminPrice();
+    toggleAdminFirma();
+});
 
 </script>
