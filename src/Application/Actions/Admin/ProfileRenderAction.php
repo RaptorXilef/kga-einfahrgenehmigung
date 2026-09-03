@@ -8,6 +8,8 @@ use App\Application\Attribute\RequiresAuth;
 use App\Application\Attribute\Route;
 use App\Application\Contracts\ViewActionInterface;
 use App\Application\Http\ServerRequest;
+use App\Application\Response\RedirectResponse;
+use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Storage\RoleRepositoryInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
@@ -22,6 +24,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
         private AuthService $auth,
         private RoleRepositoryInterface $roleRepository,
         private ImageStorageInterface $imageStorage,
+        private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -30,6 +33,14 @@ final readonly class ProfileRenderAction implements ViewActionInterface
     public function execute(ServerRequest $request): mixed
     {
         $userId = $this->auth->getUserId();
+
+        // Virtuelle System-Konten (Backdoor, Superadmin) dürfen kein Profil bearbeiten!
+        if (\str_starts_with($userId, 'sys_')) {
+            $this->sessionManager->addFlash('info', 'System-Accounts können nicht über das Frontend bearbeitet werden.');
+
+            return new RedirectResponse('admin.php');
+        }
+
         $users = $this->userRepository->loadAll();
         $roles = $this->roleRepository->loadAll();
 

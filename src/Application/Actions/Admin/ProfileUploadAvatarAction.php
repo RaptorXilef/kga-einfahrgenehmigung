@@ -34,6 +34,14 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
 
     public function execute(ServerRequest $request): mixed
     {
+        $userId = $this->auth->getUserId();
+
+        if (\str_starts_with($userId, 'sys_')) {
+            $this->sessionManager->addFlash('error', 'System-Accounts können nicht bearbeitet werden.');
+
+            return new RedirectResponse('admin.php');
+        }
+
         try {
             $dto = ProfileUploadAvatarRequest::fromFiles($request->files);
         } catch (ValidationException $e) {
@@ -41,8 +49,6 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
 
             return new RedirectResponse('profile.php');
         }
-
-        $userId = $this->auth->getUserId();
 
         if ($this->imageStorage->uploadImage('user_images', $userId, $dto->file)) {
             $this->auditLogger->log('PROFILE_AVATAR_UPLOAD', 'Eigenes Profilbild aktualisiert.');

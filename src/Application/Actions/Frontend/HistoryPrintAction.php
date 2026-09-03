@@ -15,6 +15,7 @@ use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
+use App\Core\Security\Sanitizer;
 use App\Core\Service\HolidayService;
 
 /**
@@ -50,7 +51,9 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
         $permit = $this->storage->findByHash($code);
-        if ($permit instanceof Permit && \strtolower($permit->getOwnerEmail()) === \strtolower($emailInSession)) {
+
+        // Vergleicht die E-Mails via Normalisierung (+ Aliase) für höchste Zuverlässigkeit
+        if ($permit instanceof Permit && Sanitizer::normalizeEmail($permit->getOwnerEmail()) === Sanitizer::normalizeEmail($emailInSession)) {
             $this->renderer->render('frontend/history_print_view', [
                 'holidayNotice' => HolidayHtmlPresenter::formatHolidayNotice(
                     $this->holidayService->getHolidaysInRange($permit->getValidFrom(), $permit->getValidUntil()),

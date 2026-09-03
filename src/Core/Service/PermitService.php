@@ -27,6 +27,7 @@ use App\Core\Event\PermitCancelledEvent;
 use App\Core\Event\PermitCreatedEvent;
 use App\Core\Event\VerificationRequestedEvent;
 use App\Core\Exception\PermitCollisionException;
+use App\Core\Security\Sanitizer;
 use App\Core\Utils\DateRangeHelper;
 use App\Core\ValueObject\LicensePlate;
 use App\Core\ValueObject\PermitCode;
@@ -123,7 +124,8 @@ final readonly class PermitService
 
         $oldData = $this->getVerifiedRequest($token);
 
-        if ($oldData === null || \strtolower($newData['email']) !== \strtolower(\trim($sessionEmail))) {
+        // Verwende den Sanitizer, um Alias-E-Mails (+xyz) für den Sicherheitscheck zu harmonisieren
+        if ($oldData === null || Sanitizer::normalizeEmail($newData['email']) !== Sanitizer::normalizeEmail($sessionEmail)) {
             $this->createPendingVerification($newData);
 
             return 'redirect_verify';
@@ -488,8 +490,11 @@ final readonly class PermitService
     public function getHistoryByEmail(string $email): array
     {
         $all = $this->storage->getAll();
+        $normalizedSearch = Sanitizer::normalizeEmail($email);
 
-        return \array_filter($all, fn (Permit $permit): bool => \strtolower($permit->getOwnerEmail()) === \strtolower($email));
+        return \array_filter($all, function (Permit $permit) use ($normalizedSearch): bool {
+            return Sanitizer::normalizeEmail($permit->getOwnerEmail()) === $normalizedSearch;
+        });
     }
 
     public function getVerifiedRequest(string $token): ?array
@@ -591,8 +596,8 @@ final readonly class PermitService
 
                 throw new PermitCollisionException(
                     "Kollision: Für Parzelle {$plotFormatted} existiert bereits eine Genehmigung vom " .
-                    $permit->getValidFrom()->format('d.m.Y') . ' bis ' .
-                    $permit->getValidUntil()->format('d.m.Y') . '.',
+                        $permit->getValidFrom()->format('d.m.Y') . ' bis ' .
+                        $permit->getValidUntil()->format('d.m.Y') . '.',
                 );
             }
         }
@@ -609,7 +614,7 @@ final readonly class PermitService
 
                 throw new PermitCollisionException(
                     "Hinweis: Für Parzelle {$plotFormatted} läuft bereits eine Anfrage für diesen Zeitraum. " .
-                    'Bitte wählen Sie andere Daten.',
+                        'Bitte wählen Sie andere Daten.',
                 );
             }
         }
@@ -672,8 +677,8 @@ final readonly class PermitService
             throw new DomainException('Genehmigung nicht gefunden.');
         }
 
-        // 2. Sicherheits-Check: Gehört das Permit zur E-Mail der Session?
-        if (\strtolower($permit->getOwnerEmail()) !== \strtolower(\trim($email))) {
+        // 2. Sicherheits-Check: Gehört das Permit zur E-Mail der Session (inkl. Normalisierung für Aliase)?
+        if (Sanitizer::normalizeEmail($permit->getOwnerEmail()) !== Sanitizer::normalizeEmail($email)) {
             throw new DomainException('Keine Berechtigung für diese Genehmigung.');
         }
 

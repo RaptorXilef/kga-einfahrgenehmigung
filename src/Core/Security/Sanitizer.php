@@ -32,6 +32,37 @@ final class Sanitizer
     }
 
     /**
+     * Normalisiert eine E-Mail-Adresse für den Abgleich (z.B. History-Gruppierung).
+     * Ignoriert "+"-Alias-Erweiterungen und Gmail-Punkte.
+     */
+    public static function normalizeEmail(mixed $input): string
+    {
+        $email = \strtolower(self::email($input));
+        $parts = \explode('@', $email);
+
+        if (\count($parts) !== 2) {
+            return $email;
+        }
+
+        $local = $parts[0];
+        $domain = $parts[1];
+
+        // 1. Alles ab einem "+" (Alias) entfernen
+        $plusPos = \strpos($local, '+');
+        if ($plusPos !== false) {
+            $local = \substr($local, 0, $plusPos);
+        }
+
+        // 2. Google-Mail spezifische Dot-Ignorance & Domain-Zusammenfassung
+        if ($domain === 'gmail.com' || $domain === 'googlemail.com') {
+            $local = \str_replace('.', '', $local);
+            $domain = 'gmail.com';
+        }
+
+        return $local . '@' . $domain;
+    }
+
+    /**
      * Erlaubt Formatierungen für WYSIWYG-Editoren, blockiert aber <script>, <iframe> etc.
      */
     public static function html(mixed $input): string

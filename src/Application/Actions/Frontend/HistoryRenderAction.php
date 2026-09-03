@@ -12,6 +12,7 @@ use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
+use App\Core\Security\Sanitizer;
 use App\Core\Service\PermitService;
 
 #[Route('GET', '/history')]
@@ -19,7 +20,7 @@ final readonly class HistoryRenderAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private PermitArchiveRepositoryInterface $archiveRepository, // NEU INJIZIERT
+        private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitService $permitService,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
@@ -43,11 +44,12 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         $permits = $this->permitService->getHistoryByEmail($emailInSession);
         $loadedYear = $dto->loadArchive;
 
-        // --- FIX: Wir laden das Archiv nun sauber aus MySQL statt JSON! ---
         if ($loadedYear > 0) {
             $archivedPermits = $this->archiveRepository->getArchivedPermits($loadedYear);
+            $normalizedSessionEmail = Sanitizer::normalizeEmail($emailInSession);
+
             foreach ($archivedPermits as $p) {
-                if (\strtolower($p->getOwnerEmail()) !== \strtolower($emailInSession)) {
+                if (Sanitizer::normalizeEmail($p->getOwnerEmail()) !== $normalizedSessionEmail) {
                     continue;
                 }
 
