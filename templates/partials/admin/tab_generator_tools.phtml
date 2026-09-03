@@ -34,19 +34,22 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
 <!-- KGA JAVASCRIPT CONFIGURATION FÜR FORM-HANDLER -->
 <script>
-    window.KGA_CONFIG = {
-        baseUrl: "<?php echo $settings['base_url']; ?>",
-        csrfToken: "<?php echo $_SESSION['csrf_token'] ?? ''; ?>",
-        vehicleConfig: <?php echo \json_encode($config->get('vehicle_types', [])); ?>
-    };
+window.KGA_CONFIG = {
+    baseUrl: "<?php echo $settings['base_url']; ?>",
+    csrfToken: "<?php echo $_SESSION['csrf_token'] ?? ''; ?>",
+    vehicleConfig: <?php echo \json_encode($config->get('vehicle_types', [])); ?>
+};
+
 </script>
 
 <div class="c-tab-content-container">
     <?php if (!$hasAnyTemplate) { ?>
-        <div class="c-card u-text-center u-padding-around-xl" style="border-top: 4px solid var(--danger-color);">
+        <div class="c-card u-text-center u-padding-around-xl"
+             style="border-top: 4px solid var(--danger-color);">
             <div style="font-size: 3rem; margin-bottom: 1rem;">🚫</div>
             <h3 class="u-margin-none">Keine Berechtigung</h3>
-            <p class="u-text-muted" style="max-width: 400px; margin: 10px auto;">
+            <p class="u-text-muted"
+               style="max-width: 400px; margin: 10px auto;">
                 Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
                 Bitte wenden Sie sich an den System-Administrator.
             </p>
@@ -54,31 +57,48 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php } else { ?>
 
         <!-- SAUBERE TRENNUNG IN ZWEI KARTEN -->
-        <div class="u-grid" style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; align-items: start;">
+        <div class="u-grid"
+             style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; align-items: start;">
 
             <!-- ========================================== -->
             <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN   -->
             <!-- ========================================== -->
             <?php if ($auth->hasPermission('permits.create')) { ?>
-                <section class="c-card" style="margin-bottom: 0; border-top: 4px solid var(--success-color);">
-                    <header class="c-card__header u-padding-around-m" style="background: var(--bg-light);">
-                        <h3 class="u-margin-none u-flex u-align-center u-gap-s" style="font-size: 1.1rem;">
-                            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>" class="c-icon" alt="" style="width: 24px;">
+                <section class="c-card"
+                         style="margin-bottom: 0; border-top: 4px solid var(--success-color);">
+                    <header class="c-card__header u-padding-around-m"
+                            style="background: var(--bg-light);">
+                        <h3 class="u-margin-none u-flex u-align-center u-gap-s"
+                            style="font-size: 1.1rem;">
+                            <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
+                                 class="c-icon"
+                                 alt=""
+                                 style="width: 24px;">
                             Genehmigung ausstellen
                         </h3>
-                        <p class="u-text-muted u-text-small u-margin-none u-margin-top-xs">Direkter Systemeintrag (ohne Online-Zahlung).</p>
+                        <p class="u-text-muted u-text-small u-margin-none u-margin-top-xs">Direkter Systemeintrag (ohne
+                            Online-Zahlung).</p>
                     </header>
                     <div class="c-card__body u-padding-around-m">
 
                         <!-- WICHTIG: Die ID 'permitForm' ist der Trigger für form-handler.js! -->
-                        <form id="permitForm" method="POST" action="<?php echo $settings['base_url']; ?>create_manual">
-                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                            <input type="hidden" name="voucher" value=""> <!-- Dummy für API -->
+                        <form id="permitForm"
+                              method="POST"
+                              action="<?php echo $settings['base_url']; ?>create_manual">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <input type="hidden"
+                                   name="voucher"
+                                   value=""> <!-- Dummy für API -->
 
-                            <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
+                            <div class="u-grid u-gap-m u-margin-bottom-m"
+                                 style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Gültig für Vorlage</label>
-                                    <select name="template_key" id="template_key" class="c-form-select">
+                                    <select name="template_key"
+                                            id="template_key"
+                                            class="c-form-select">
                                         <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                             <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
                                         <?php } ?>
@@ -86,7 +106,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Fahrzeugtyp</label>
-                                    <select name="typ" id="typ" class="c-form-select">
+                                    <select name="typ"
+                                            id="typ"
+                                            class="c-form-select">
                                         <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                             if (!($vData['active'] ?? true)) {
                                                 continue;
@@ -97,47 +119,82 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
                             </div>
 
-                            <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
+                            <div class="u-grid u-gap-m u-margin-bottom-m"
+                                 style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Gültig von</label>
-                                    <input type="date" name="datum_von" id="datum_von" class="c-form-input" required value="<?php echo \date('Y-m-d'); ?>">
+                                    <input type="date"
+                                           name="datum_von"
+                                           id="datum_von"
+                                           class="c-form-input"
+                                           required
+                                           value="<?php echo \date('Y-m-d'); ?>">
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Gültig bis</label>
-                                    <input type="date" name="datum_bis" id="datum_bis" class="c-form-input" required>
+                                    <input type="date"
+                                           name="datum_bis"
+                                           id="datum_bis"
+                                           class="c-form-input"
+                                           required>
                                 </div>
                             </div>
 
-                            <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 2fr 1fr;">
+                            <div class="u-grid u-gap-m u-margin-bottom-m"
+                                 style="grid-template-columns: 2fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Pächter Name</label>
-                                    <input type="text" name="name" class="c-form-input" required placeholder="Vorname Nachname">
+                                    <input type="text"
+                                           name="name"
+                                           class="c-form-input"
+                                           required
+                                           placeholder="Vorname Nachname">
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Parzelle</label>
-                                    <input type="text" name="parzelle" id="parzelle" class="c-form-input" required placeholder="0001">
+                                    <input type="text"
+                                           name="parzelle"
+                                           id="parzelle"
+                                           class="c-form-input"
+                                           required
+                                           placeholder="0001">
                                 </div>
                             </div>
 
                             <div class="c-form-group u-margin-bottom-m">
-                                <label class="c-form-label" id="label_kennzeichen">Amtl. Kennzeichen</label>
-                                <input type="text" name="kennzeichen" id="kennzeichen" class="c-form-input" required placeholder="B-XX 123">
+                                <label class="c-form-label"
+                                       id="label_kennzeichen">Amtl. Kennzeichen</label>
+                                <input type="text"
+                                       name="kennzeichen"
+                                       id="kennzeichen"
+                                       class="c-form-input"
+                                       required
+                                       placeholder="B-XX 123">
                             </div>
 
                             <!-- Die u-hidden Klasse wird vom JS dynamisch getoggelt -->
-                            <div class="c-form-group u-margin-bottom-m u-hidden" id="group_firma">
+                            <div class="c-form-group u-margin-bottom-m u-hidden"
+                                 id="group_firma">
                                 <label class="c-form-label">Firma / Lieferant (Optional)</label>
-                                <input type="text" name="firma" class="c-form-input" placeholder="Firmenname">
+                                <input type="text"
+                                       name="firma"
+                                       class="c-form-input"
+                                       placeholder="Firmenname">
                             </div>
 
-                            <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
+                            <div class="u-grid u-gap-m u-margin-bottom-m"
+                                 style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">E-Mail (Für PDF-Versand)</label>
-                                    <input type="email" name="email" class="c-form-input" placeholder="mail@example.com">
+                                    <input type="email"
+                                           name="email"
+                                           class="c-form-input"
+                                           placeholder="mail@example.com">
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Einfahrts-Grund</label>
-                                    <select name="zweck" class="c-form-select">
+                                    <select name="zweck"
+                                            class="c-form-select">
                                         <?php foreach ($config->get('purposes', []) as $val => $label) { ?>
                                             <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
                                         <?php } ?>
@@ -146,22 +203,36 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </div>
 
                             <!-- Preis-Override & Submit -->
-                            <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 20px;">
+                            <div
+                                 style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 20px;">
                                 <div class="c-form-group u-margin-bottom-m">
                                     <label class="c-form-label u-flex u-justify-between u-align-center">
                                         Sonderpreis (€)
                                         <span id="price-display" style="color: var(--primary-color); font-weight: bold; font-family: monospace; font-size: 1.1rem;">0,00 €</span>
                                     </label>
-                                    <input type="number" step="0.01" name="preis" class="c-form-input" placeholder="Leer lassen für berechneten Tarif">
-                                    <small class="u-text-muted u-margin-top-xs" style="display:block;">Nur ausfüllen, wenn der reguläre Preis überschrieben werden soll.</small>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="preis"
+                                           class="c-form-input"
+                                           placeholder="Leer lassen für berechneten Tarif">
+                                    <small class="u-text-muted u-margin-top-xs"
+                                           style="display:block;">Nur ausfüllen, wenn der reguläre Preis überschrieben
+                                        werden soll.</small>
                                 </div>
 
                                 <div class="u-flex u-justify-between u-align-center u-border-top u-padding-top-m">
                                     <label class="u-flex u-align-center u-gap-s u-cursor-pointer">
-                                        <input type="checkbox" name="send_email" value="1" checked style="transform: scale(1.2);">
-                                        <strong class="u-font-bold u-text-small" style="color: var(--text-main);">PDF senden</strong>
+                                        <input type="checkbox"
+                                               name="send_email"
+                                               value="1"
+                                               checked
+                                               style="transform: scale(1.2);">
+                                        <strong class="u-font-bold u-text-small"
+                                                style="color: var(--text-main);">PDF senden</strong>
                                     </label>
-                                    <button type="submit" class="c-button c-button--success" style="width: auto; padding: 0 20px; font-weight: 600;">Ausstellen</button>
+                                    <button type="submit"
+                                            class="c-button c-button--success"
+                                            style="width: auto; padding: 0 20px; font-weight: 600;">Ausstellen</button>
                                 </div>
                             </div>
                         </form>
@@ -173,45 +244,71 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <!-- KARTE 2: GUTSCHEIN GENERIEREN              -->
             <!-- ========================================== -->
             <?php if ($auth->hasPermission('vouchers.create')) { ?>
-                <section class="c-card" style="margin-bottom: 0; border-top: 4px solid var(--voucher-color);">
-                    <header class="c-card__header u-padding-around-m" style="background: var(--bg-light);">
-                        <h3 class="u-margin-none u-flex u-align-center u-gap-s" style="font-size: 1.1rem;">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt="" style="width: 24px;">
+                <section class="c-card"
+                         style="margin-bottom: 0; border-top: 4px solid var(--voucher-color);">
+                    <header class="c-card__header u-padding-around-m"
+                            style="background: var(--bg-light);">
+                        <h3 class="u-margin-none u-flex u-align-center u-gap-s"
+                            style="font-size: 1.1rem;">
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                                 class="c-icon"
+                                 alt=""
+                                 style="width: 24px;">
                             Gutscheincode generieren
                         </h3>
-                        <p class="u-text-muted u-text-small u-margin-none u-margin-top-xs">Erstellt Rabattcodes für die Online-Kasse.</p>
+                        <p class="u-text-muted u-text-small u-margin-none u-margin-top-xs">Erstellt Rabattcodes für die
+                            Online-Kasse.</p>
                     </header>
                     <div class="c-card__body u-padding-around-m">
-                        <form method="POST" action="<?php echo $settings['base_url']; ?>create_voucher">
-                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                        <form method="POST"
+                              action="<?php echo $settings['base_url']; ?>create_voucher">
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                             <div class="c-form-group u-margin-bottom-m">
                                 <label class="c-form-label">Gültig für Vorlage</label>
-                                <select name="template_key" class="c-form-select">
+                                <select name="template_key"
+                                        class="c-form-select">
                                     <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                         <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
                                     <?php } ?>
                                 </select>
                             </div>
 
-                            <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
+                            <div class="u-grid u-gap-m u-margin-bottom-m"
+                                 style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Rabatt-Art</label>
-                                    <select name="voucher_discount_type" id="v_type" class="c-form-select" onchange="document.getElementById('v_val_wrap').style.display = this.value === 'free' ? 'none' : 'block';">
+                                    <select name="voucher_discount_type"
+                                            id="v_type"
+                                            class="c-form-select"
+                                            onchange="document.getElementById('v_val_wrap').style.display = this.value === 'free' ? 'none' : 'block';">
                                         <option value="free">100% Kostenlos</option>
                                         <option value="percent">Prozentual (%)</option>
                                         <option value="fixed">Festbetrag (€)</option>
                                     </select>
                                 </div>
-                                <div class="c-form-group" id="v_val_wrap" style="display: none;">
+                                <div class="c-form-group"
+                                     id="v_val_wrap"
+                                     style="display: none;">
                                     <label class="c-form-label">Wert (Zahl)</label>
-                                    <input type="number" step="0.01" name="voucher_discount_value" class="c-form-input" value="0.00">
+                                    <input type="number"
+                                           step="0.01"
+                                           name="voucher_discount_value"
+                                           class="c-form-input"
+                                           value="0.00">
                                 </div>
                             </div>
 
                             <div class="c-form-group u-margin-bottom-m">
                                 <label class="c-form-label">Interne Notiz / Grund</label>
-                                <input type="text" name="reason" list="reason_presets" class="c-form-input" required placeholder="z.B. Vorstandsbeschluss">
+                                <input type="text"
+                                       name="reason"
+                                       list="reason_presets"
+                                       class="c-form-input"
+                                       required
+                                       placeholder="z.B. Vorstandsbeschluss">
                                 <datalist id="reason_presets">
                                     <?php foreach ($reasons as $r) {
                                         echo "<option value='" . \htmlspecialchars($r) . "'>";
@@ -219,31 +316,53 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </datalist>
                             </div>
 
-                            <div class="u-grid u-gap-m u-margin-bottom-m" style="grid-template-columns: 1fr 1fr;">
+                            <div class="u-grid u-gap-m u-margin-bottom-m"
+                                 style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Eigener Code (Optional)</label>
-                                    <input type="text" name="voucher_custom_code" class="c-form-input" placeholder="Z.B. EXTRA26" style="text-transform: uppercase;">
+                                    <input type="text"
+                                           name="voucher_custom_code"
+                                           class="c-form-input"
+                                           placeholder="Z.B. EXTRA26"
+                                           style="text-transform: uppercase;">
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label">Ablaufdatum</label>
-                                    <input type="datetime-local" name="voucher_expires_at" class="c-form-input">
+                                    <input type="datetime-local"
+                                           name="voucher_expires_at"
+                                           class="c-form-input">
                                 </div>
                             </div>
 
-                            <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 20px;">
+                            <div
+                                 style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 20px;">
                                 <div class="c-form-group u-margin-bottom-s">
                                     <label class="u-flex u-align-center u-gap-s u-cursor-pointer">
-                                        <input type="checkbox" name="voucher_multi_use" id="v_multi" style="transform: scale(1.2);" onchange="document.getElementById('v_max_wrap').style.display = this.checked ? 'block' : 'none';">
-                                        <strong class="u-font-bold u-text-small" style="color: var(--text-main);">Mehrfach einlösbar?</strong>
+                                        <input type="checkbox"
+                                               name="voucher_multi_use"
+                                               id="v_multi"
+                                               style="transform: scale(1.2);"
+                                               onchange="document.getElementById('v_max_wrap').style.display = this.checked ? 'block' : 'none';">
+                                        <strong class="u-font-bold u-text-small"
+                                                style="color: var(--text-main);">Mehrfach einlösbar?</strong>
                                     </label>
                                 </div>
-                                <div class="c-form-group" id="v_max_wrap" style="display: none;">
+                                <div class="c-form-group"
+                                     id="v_max_wrap"
+                                     style="display: none;">
                                     <label class="c-form-label u-text-muted">Maximale Nutzungen</label>
-                                    <input type="number" name="voucher_max_uses" class="c-form-input" value="10" min="1" style="max-width: 150px;">
+                                    <input type="number"
+                                           name="voucher_max_uses"
+                                           class="c-form-input"
+                                           value="10"
+                                           min="1"
+                                           style="max-width: 150px;">
                                 </div>
 
                                 <div class="u-flex u-justify-end u-border-top u-padding-top-m u-margin-top-m">
-                                    <button type="submit" class="c-button" style="width: auto; padding: 0 20px; font-weight: 600; background: var(--voucher-color); color: white; border: none;">
+                                    <button type="submit"
+                                            class="c-button"
+                                            style="width: auto; padding: 0 20px; font-weight: 600; background: var(--voucher-color); color: white; border: none;">
                                         <i class="fa-solid fa-ticket"></i> Code Generieren
                                     </button>
                                 </div>
@@ -258,14 +377,17 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 </div>
 
 <script type="module">
-    // Wir laden die JS-Klasse dynamisch in den Adminbereich, die auch das Frontend nutzt!
-    // Dadurch gelten für die linke Karte ("Genehmigung ausstellen") 100% die identischen Validierungs-Regeln.
-    import { PermitFormHandler } from '<?php echo $asset->url('assets/js/form-handler.js'); ?>';
+// Wir laden die JS-Klasse dynamisch in den Adminbereich, die auch das Frontend nutzt!
+// Dadurch gelten für die linke Karte ("Genehmigung ausstellen") 100% die identischen Validierungs-Regeln.
+import {
+    PermitFormHandler
+} from '<?php echo $asset->url('assets/js/form-handler.js'); ?>';
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Initialisiert den Handler für das Formular (greift über die ID 'permitForm')
-        if (document.getElementById('permitForm') && !window.adminPermitForm) {
-            window.adminPermitForm = new PermitFormHandler();
-        }
-    });
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialisiert den Handler für das Formular (greift über die ID 'permitForm')
+    if (document.getElementById('permitForm') && !window.adminPermitForm) {
+        window.adminPermitForm = new PermitFormHandler();
+    }
+});
+
 </script>
