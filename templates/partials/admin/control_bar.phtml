@@ -26,7 +26,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-control-bar-wrapper">
         <section class="c-control-bar-section">
+
+            <!-- FIX: action Attribut hinzugefügt, damit der POST an die korrekte Route geht! -->
             <form method="POST"
+                  action="<?php echo $settings['base_url']; ?>filter_dashboard"
                   id="dashboardFilterForm"
                   class="u-flex u-align-center u-gap-s u-flex-wrap u-width-100 u-justify-center"
                   style="margin: 0; background: transparent;">
@@ -34,9 +37,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <input type="hidden"
-                       name="action"
-                       value="filter_dashboard">
+                <!-- Veraltetes Legacy action Feld entfernt -->
                 <input type="hidden"
                        name="page"
                        value="1">
@@ -44,11 +45,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 <?php if ($auth->hasPermission('permits.view')) { ?>
                     <span class="u-text-muted u-font-bold"
                           style="font-size: 0.8rem; letter-spacing: 0.05em;">
-                    <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
-                         class="c-icon"
-                         alt="">
+                        <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
+                             class="c-icon"
+                             alt="">
                         ZEITRAUM:
-                </span>
+                    </span>
                     <input type="date"
                            id="filter_start"
                            name="start"
@@ -105,10 +106,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 <?php if ($auth->hasPermission('permits.view')) { ?>
                     <div style="position: relative; min-width: 150px; max-width: 230px; margin-left: auto;">
                         <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
-                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
-                             class="c-icon"
-                             alt="">
-                    </span>
+                            <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                                 class="c-icon"
+                                 alt="">
+                        </span>
                         <!-- name="q" und value aus PHP für Server-Side Search -->
                         <input type="text"
                                id="adminSearch"

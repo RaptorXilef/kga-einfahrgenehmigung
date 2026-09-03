@@ -43,6 +43,7 @@ final readonly class DashboardFilterAction implements ActionInterface
 
         $this->sessionManager->addFlash('success', 'Filter angewendet.');
 
-        return new RedirectResponse('admin.php');
+        // FIX: Sauberer Redirect auf die Route /admin ohne .php Endung
+        return new RedirectResponse('admin');
     }
 }

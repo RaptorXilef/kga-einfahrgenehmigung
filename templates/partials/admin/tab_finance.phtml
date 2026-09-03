@@ -52,8 +52,10 @@ if ($auth->hasPermission('finance.view')) {
                 <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
+                        <!-- FIX: form Attribut auf bulk-action-form korrigiert und formaction ergänzt -->
                         <button type="submit"
-                                form="bulk-pay-form"
+                                form="bulk-action-form"
+                                formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
                                 id="bulkPayBtn"
                                 class="c-button c-button--success"
                                 style="display: none; width: auto; height: 34px; padding: 0 16px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; border: none; box-shadow: var(--shadow-sm); align-items: center; justify-content: center; gap: 6px;"
