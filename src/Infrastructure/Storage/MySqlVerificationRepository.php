@@ -43,7 +43,12 @@ final readonly class MySqlVerificationRepository implements VerificationReposito
 
     public function loadVerified(): array
     {
-        return $this->loadSql('verified_pending');
+        $data = $this->loadSql('verified_pending');
+        $now = new DateTimeImmutable();
+
+        // FIX: Auch hier die abgelaufenen Einträge herausfiltern (Passive Garbage Collection),
+        // damit sie beim nächsten Speichervorgang aus der Datenbank gewischt werden!
+        return \array_filter($data, fn (VerificationRequest $req): bool => !$req->isExpired($now));
     }
 
     public function saveVerified(array $data, bool $forceSql = false): void

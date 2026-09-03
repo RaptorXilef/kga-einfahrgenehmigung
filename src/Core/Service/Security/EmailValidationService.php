@@ -50,10 +50,10 @@ final readonly class EmailValidationService
 
         $domainLower = \strtolower($domain);
 
-        // 1. Blacklist Check (Trash-Mails) aus tagesaktueller JSON
+        // 1. Blacklist Check (Trash-Mails + Custom Blacklist)
         $disposableDomains = $this->getDisposableDomains();
         if (\in_array($domainLower, $disposableDomains, true)) {
-            throw new InvalidArgumentException('Wegwerf-E-Mail-Adressen sind aus Sicherheitsgründen nicht gestattet.');
+            throw new InvalidArgumentException('Diese E-Mail-Adresse wird vom System aus Sicherheitsgründen nicht akzeptiert (Spam-Schutz).');
         }
 
         // 2. DNS / MX Check (Physische Existenz)
@@ -90,23 +90,44 @@ final readonly class EmailValidationService
     }
 
     /**
-     * Lädt die dynamische Liste oder fällt auf einen harten Kern zurück.
+     * Lädt die dynamische Liste, verknüpft sie mit der eigenen Custom-Blacklist
+     * oder fällt auf einen harten Kern zurück.
      *
      * @return array<int, string>
      */
     private function getDisposableDomains(): array
     {
         $path = $this->config->getStoragePath('disposable_email.json');
+        $customPath = $this->config->getStoragePath('settings/custom_email_blacklist.json');
 
+        $domains = [];
+
+        // 1. Die öffentliche Liste laden
         if (\file_exists($path)) {
             try {
-                return $this->jsonHelper->read($path);
+                $domains = $this->jsonHelper->read($path);
             } catch (Exception) {
                 // Fallback bei defekter JSON
             }
         }
 
-        // Minimaler Fallback
-        return ['mailinator.com', '10minutemail.com', 'tempmail.com', 'trashmail.com', 'yopmail.com'];
+        if (empty($domains)) {
+            $domains = ['mailinator.com', '10minutemail.com', 'tempmail.com', 'trashmail.com', 'yopmail.com'];
+        }
+
+        // 2. Die manuelle, vereinsspezifische Blacklist laden und anfügen
+        if (\file_exists($customPath)) {
+            try {
+                $customDomains = $this->jsonHelper->read($customPath);
+                if (\is_array($customDomains)) {
+                    $domains = \array_merge($domains, $customDomains);
+                }
+            } catch (Exception) {
+                // Bei Fehlern einfach ignorieren
+            }
+        }
+
+        // 3. Alle Domains in Kleinschreibung umwandeln für absolut sicheren Abgleich
+        return \array_map('strtolower', $domains);
     }
 }
