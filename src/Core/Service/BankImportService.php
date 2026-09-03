@@ -160,7 +160,6 @@ final readonly class BankImportService
                 $formatierterTag = $this->parseDate($datumRaw);
                 $grund = 'Automatisch via Bank-Import freigeschaltet (Summe der Zahlungen: ' . $istFormatted . ')';
 
-                // Permit erwartet `$permit->code` als String (ValueObject wurde hier schon dekonstruiert oder ist String, wir sichern uns mit ->value ab falls nötig, im Rector-Code war es String)
                 $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
 
                 if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
@@ -207,7 +206,7 @@ final readonly class BankImportService
      */
     private function writeLog(string $message): void
     {
-        $logDir = $this->config->getStoragePath('logs');
+        $logDir = \rtrim((string) $this->config->get('root_path', ''), '/\\') . '/logs';
         if (!\is_dir($logDir)) {
             @\mkdir($logDir, 0o755, true);
         }
