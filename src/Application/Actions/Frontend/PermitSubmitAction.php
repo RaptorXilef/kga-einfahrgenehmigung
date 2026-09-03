@@ -11,7 +11,6 @@ use App\Application\Exception\ValidationException;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Mail\MailServiceInterface;
 use App\Core\Exception\PermitCollisionException;
 use App\Core\Service\PermitService;
 use App\Core\Service\Security\BotProtectionService;
@@ -30,7 +29,6 @@ final readonly class PermitSubmitAction implements ViewActionInterface
         private SessionManager $sessionManager,
         private BotProtectionService $botProtection,
         private EmailValidationService $emailValidation,
-        private MailServiceInterface $mailService,
     ) {
     }
 
@@ -79,7 +77,6 @@ final readonly class PermitSubmitAction implements ViewActionInterface
                 $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
 
                 $this->botProtection->recordStrike($ip); // Erfolgreichen Antrag zählen
-                $this->dispatchMailsImmediately();
 
                 if ($result === 'redirect_checkout') {
                     return new RedirectResponse('checkout?token=' . $editToken);
@@ -96,7 +93,6 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->clearFormStartTime(); // Timer zurücksetzen
 
             $this->botProtection->recordStrike($ip); // Erfolgreichen Antrag zählen
-            $this->dispatchMailsImmediately();
 
             return new RedirectResponse('?sent=1');
         } catch (PermitCollisionException $exception) { // Zuerst die Kollision fangen
@@ -121,20 +117,6 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
 
             return new RedirectResponse('index.php');
-        }
-    }
-
-    /**
-     * Versucht die E-Mail-Warteschlange sofort abzuarbeiten (als UX-Beschleuniger).
-     * Schlägt dies fehl (z.B. temporärer SMTP Timeout), verbleiben die Mails
-     * sicher in der Queue und werden vom Hintergrund-CronJob abgeholt.
-     */
-    private function dispatchMailsImmediately(): void
-    {
-        try {
-            $this->mailService->processQueue(5);
-        } catch (Throwable $e) {
-            \error_log('Immediate Mail Dispatch Error: ' . $e->getMessage());
         }
     }
 }
