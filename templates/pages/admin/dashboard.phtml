@@ -6,7 +6,6 @@ use App\Contracts\System\JsonHelperInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitService;
 use App\Core\Service\VoucherService;
-use App\Infrastructure\Maintenance\MigrationService;
 
 /**
  * Page: Main Admin Dashboard Wrapper
@@ -19,7 +18,6 @@ use App\Infrastructure\Maintenance\MigrationService;
  * @var AuthService $auth Service für die Rechteprüfung im Template.
  * @var ConfigInterface $config Anwendungs-Konfiguration.
  * @var JsonHelperInterface $jsonHelper Hilfsklasse für JSON-Operationen.
- * @var MigrationService $migrationService Migrations- & Backup-Manager.
  * @var PermitService $permitService Zentraler Genehmigungs-Dienst.
  * @var VoucherService $voucherService Dienst zur Validierung/Verwaltung von Gutscheinen.
  * @var array $mailLogs Die chronologischen E-Mail-Versandprotokolle.
