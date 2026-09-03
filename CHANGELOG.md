@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.64.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.64.0...v0.64.1) (2026-09-03)
+
+### 🐛 Bug Fixes
+
+* **frontend:** Resolve empty legal pages and fix URL routing fatal errors ([829131b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/829131bba78099d3fda4608737ca329d43b51e03))
+* **frontend:** Resolve maintenance fatal error, empty legal pages, and middleware routing ([485b92b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/485b92bd3728043a4b2e6327b4da924cfa589352))
+* **frontend:** Resolve ParseError in HistoryCancelPermitAction ([1a893af](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1a893affd0742f036d6ef80a90d1f5619f89f64d))
+* **frontend:** Update active tab logic in header and resolve maintenance 404 errors ([aa819ed](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/aa819ede9963c6faf71889c240c4b1eac5f6b20c))
+
 ## [0.64.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.63.0...v0.64.0) (2026-09-03)
 
 ### 🚀 Features
