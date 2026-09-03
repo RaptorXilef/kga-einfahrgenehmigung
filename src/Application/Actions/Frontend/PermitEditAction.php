@@ -32,11 +32,13 @@ final readonly class PermitEditAction implements ViewActionInterface
     {
         $dto = SimpleTokenRequest::fromArray($request->get);
         $tempData = $this->permitService->getVerifiedRequest($dto->token);
+
         if ($tempData !== null) {
             $this->sessionManager->setFormData($tempData);
             $this->sessionManager->setEditState($tempData['email'] ?? '', $dto->token);
         }
 
-        return new RedirectResponse('index.php');
+        // FIX: Sicherer relativer Redirect zur Startseite inkl. visuellem Hinweis-Parameter
+        return new RedirectResponse('./?edit=1');
     }
 }

@@ -38,7 +38,7 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                     <a href="profile"
                        style="text-decoration: none; color: inherit;"
                        title="Zum Profil">
-                    <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                        <?php echo \htmlspecialchars($auth->getUsername()); ?>
                     </a>
                 </span>
                 <div class="c-group-badge">
@@ -55,32 +55,45 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                 <a href="users"
                    class="c-tabs__btn"
                    style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
-                     class="c-icon"
-                     style="width:16px;"
-                     alt=""> Benutzer-Rechteverwaltung
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                         class="c-icon"
+                         style="width:16px;"
+                         alt=""> Rechteverwaltung
                 </a>
             <?php } ?>
 
-            <!-- User-Management über Permission absichern -->
+            <!-- Dashboard über Permission absichern -->
             <?php if ($auth->hasPermission('admin.access')) { ?>
                 <a href="admin"
                    class="c-tabs__btn"
                    style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
-                     class="c-icon"
-                     style="width:16px;"
-                     alt=""> Dashboard
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
+                         class="c-icon"
+                         style="width:16px;"
+                         alt=""> Dashboard
                 </a>
             <?php } ?>
             <a href="check"
                class="c-tabs__btn"
                style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;"
                target="_blank">
-            <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
-                 class="c-icon"
-                 style="width:16px;"
-                 alt=""> Check
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                     class="c-icon"
+                     style="width:16px;"
+                     alt=""> Check
+            </a>
+
+            <!-- NEU: Aktualisieren Button -->
+            <!-- Nutzt die sichere JS-Methode um die Seite inkl. aktiver Parameter (?page=2) frisch vom Server zu laden ohne POST Resubmission -->
+            <a href="#"
+               onclick="window.location.href = window.location.origin + window.location.pathname + window.location.search; return false;"
+               class="c-tabs__btn"
+               style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;"
+               title="Aktuelle Daten neu laden (Filter bleiben erhalten)">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                     class="c-icon"
+                     style="width:16px;"
+                     alt=""> Aktualisieren
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 15px;">

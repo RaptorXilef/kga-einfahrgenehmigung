@@ -121,7 +121,9 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
             <div class="u-flex u-gap-m u-flex-wrap u-justify-center"
                  style="align-items: stretch;">
-                <a href="index.php?edit=1&token=<?php echo $token; ?>"
+
+                <!-- FIX: Der Link zeigt jetzt korrekt auf die permit_edit Action! -->
+                <a href="permit_edit?token=<?php echo $token; ?>"
                    class="c-button c-button--secondary"
                    style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0;">
                     📝 Daten korrigieren
