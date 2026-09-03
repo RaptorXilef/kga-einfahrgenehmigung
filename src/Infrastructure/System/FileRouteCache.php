@@ -56,17 +56,21 @@ final readonly class FileRouteCache implements RouteCacheInterface
     public function clearOld(): void
     {
         $oldCache = $this->getOldCacheFilePath();
-        if (\file_exists($oldCache)) {
-            @\unlink($oldCache);
+        if (!\file_exists($oldCache)) {
+            return;
         }
+
+        @\unlink($oldCache);
     }
 
     public function clearAll(): void
     {
         $this->clearOld();
         $cacheFileV2 = $this->getCacheFilePath();
-        if (\file_exists($cacheFileV2)) {
-            @\unlink($cacheFileV2);
+        if (!\file_exists($cacheFileV2)) {
+            return;
         }
+
+        @\unlink($cacheFileV2);
     }
 }

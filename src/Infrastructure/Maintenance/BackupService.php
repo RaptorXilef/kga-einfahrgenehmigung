@@ -36,9 +36,11 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $htaccessPath = $this->backupDir . '/.htaccess';
-        if (!\file_exists($htaccessPath)) {
-            \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
+        if (\file_exists($htaccessPath)) {
+            return;
         }
+
+        \file_put_contents($htaccessPath, "Order allow,deny\nDeny from all\n");
     }
 
     public function runCronBackup(): void
@@ -53,9 +55,11 @@ final readonly class BackupService implements BackupServiceInterface
 
         if ($target === 'all') {
             foreach ($storageConfig as $cfg) {
-                if (isset($cfg['table'])) {
-                    $tablesToBackup[] = $cfg['table'];
+                if (!isset($cfg['table'])) {
+                    continue;
                 }
+
+                $tablesToBackup[] = $cfg['table'];
             }
         } elseif (isset($storageConfig[$target]['table'])) {
             $tablesToBackup[] = $storageConfig[$target]['table'];
@@ -71,9 +75,11 @@ final readonly class BackupService implements BackupServiceInterface
 
         foreach ($tablesToBackup as $table) {
             $stmt = $this->pdo->query("SELECT * FROM `$table`");
-            if ($stmt !== false) {
-                $backupData['tables'][$table] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if ($stmt === false) {
+                continue;
             }
+
+            $backupData['tables'][$table] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         $json = \json_encode($backupData, \JSON_UNESCAPED_UNICODE);
@@ -165,7 +171,7 @@ final readonly class BackupService implements BackupServiceInterface
 
     private function restoreTableData(string $table, array $rows, int $mode): void
     {
-        if (empty($rows)) {
+        if ($rows === []) {
             if ($mode === 2) {
                 $this->pdo->exec("TRUNCATE TABLE `$table`");
             }
@@ -179,7 +185,7 @@ final readonly class BackupService implements BackupServiceInterface
             if (\count($primaryKeys) === 1) {
                 $pk = $primaryKeys[0];
                 $keptIds = \array_column($rows, $pk);
-                if (!empty($keptIds)) {
+                if ($keptIds !== []) {
                     $in = \str_repeat('?,', \count($keptIds) - 1) . '?';
                     $stmt = $this->pdo->prepare("DELETE FROM `$table` WHERE `$pk` NOT IN ($in)");
                     $stmt->execute($keptIds);
@@ -192,13 +198,13 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $columns = \array_keys($rows[0]);
-        $colNames = \implode(', ', \array_map(fn ($col) => "`$col`", $columns));
-        $placeholders = \implode(', ', \array_map(fn ($col) => ":$col", $columns));
+        $colNames = \implode(', ', \array_map(fn (int|string $col): string => "`$col`", $columns));
+        $placeholders = \implode(', ', \array_map(fn (int|string $col): string => ":$col", $columns));
 
         if ($mode === 3) {
             $sql = "INSERT IGNORE INTO `$table` ($colNames) VALUES ($placeholders)";
         } else {
-            $updateCols = \implode(', ', \array_map(fn ($col) => "`$col` = VALUES(`$col`)", $columns));
+            $updateCols = \implode(', ', \array_map(fn (int|string $col): string => "`$col` = VALUES(`$col`)", $columns));
             $sql = "INSERT INTO `$table` ($colNames) VALUES ($placeholders) ON DUPLICATE KEY UPDATE $updateCols";
         }
 
@@ -249,7 +255,7 @@ final readonly class BackupService implements BackupServiceInterface
             ];
         }
 
-        \usort($backups, fn ($a, $b) => $b['date'] <=> $a['date']);
+        \usort($backups, fn (array $a, array $b): int => $b['date'] <=> $a['date']);
 
         return $backups;
     }
@@ -276,7 +282,7 @@ final readonly class BackupService implements BackupServiceInterface
         }
 
         $timeout = 60;
-        $connId = ($ftpCfg['ssl'] ?? false)
+        $connId = $ftpCfg['ssl'] ?? false
             ? @\ftp_ssl_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout)
             : @\ftp_connect($ftpCfg['host'], (int) $ftpCfg['port'], $timeout);
 
@@ -290,10 +296,12 @@ final readonly class BackupService implements BackupServiceInterface
 
         $path = \rtrim($ftpCfg['path'] ?? '', '/\\') . '/';
         foreach (\explode('/', \trim($path, '/')) as $part) {
-            if ($part !== '' && !@\ftp_chdir($connId, $part)) {
-                \ftp_mkdir($connId, $part);
-                \ftp_chdir($connId, $part);
+            if ($part === '' || @\ftp_chdir($connId, $part)) {
+                continue;
             }
+
+            \ftp_mkdir($connId, $part);
+            \ftp_chdir($connId, $part);
         }
 
         if (!@\ftp_put($connId, $filename, $filepath, \FTP_BINARY)) {

@@ -75,7 +75,7 @@ final readonly class UpdateMigrationService implements UpdateMigrationServiceInt
                 // Wir trennen die SQL-Befehle am Semikolon auf.
                 // Dadurch können wir jeden Befehl einzeln ausführen und gezielt "Already exists" Fehler abfangen,
                 // die entstehen, wenn der StorageBootstrapper die Tabelle/Spalte bereits angelegt hat.
-                $statements = \array_filter(\array_map('trim', \explode(';', $sql)));
+                $statements = \array_filter(\array_map(trim(...), \explode(';', $sql)));
 
                 foreach ($statements as $statement) {
                     if ($statement === '') {

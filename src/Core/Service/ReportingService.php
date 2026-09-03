@@ -121,14 +121,12 @@ final readonly class ReportingService
             }
 
             // Initialisiere Parzelle im Ranking, falls noch nicht vorhanden
-            if (!isset($stats['plots'][$pNum])) {
-                $stats['plots'][$pNum] = [
-                    'count' => 0,
-                    'revenue' => 0.0,
-                    'email' => '',
-                    'name' => '',
-                ];
-            }
+            $stats['plots'][$pNum] ??= [
+                'count' => 0,
+                'revenue' => 0.0,
+                'email' => '',
+                'name' => '',
+            ];
 
             // Daten aggregieren
             ++$stats['plots'][$pNum]['count'];

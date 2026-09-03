@@ -1,5 +1,6 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace App\Application\Routing;
 
@@ -39,6 +40,7 @@ final class ActionRegistry
                 /** @var array{exact: array<string, array<string, array{class: string, auth: bool}>>, dynamic: array<string, array<string, array{class: string, auth: bool}>>} $cachedArr */
                 $cachedArr = $cached;
                 $this->routes = $cachedArr;
+
                 return;
             }
         }
@@ -97,6 +99,7 @@ final class ActionRegistry
             $replaced = \preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<\1>[^/]+)', $path);
             $regex = \is_string($replaced) ? $replaced : '';
             $this->routes['dynamic'][$method]['#^' . $regex . '$#'] = ['class' => $className, 'auth' => $requiresAuth];
+
             return;
         }
 
@@ -108,7 +111,8 @@ final class ActionRegistry
      */
     public function match(string $method, string $path): ?array
     {
-        if (isset($this->routes['exact'][$method])
+        if (
+            isset($this->routes['exact'][$method])
             && \is_array($this->routes['exact'][$method])
             && isset($this->routes['exact'][$method][$path])
         ) {

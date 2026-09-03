@@ -17,6 +17,7 @@ interface MailServiceInterface
 {
     /**
      * ToDo DocBlock aktualisieren
+     *
      * @param string $recipient Die E-Mail-Adresse des Empfängers.
      * @param string $subject Betreffzeile der E-Mail.
      * @param string $template Pfad zum Template relativ zum Template-Ordner.

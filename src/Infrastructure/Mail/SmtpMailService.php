@@ -83,31 +83,33 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
     public function saveLogs(array $logs, bool $forceSql = false): void
     {
         $cfg = $this->config->get('storage_config')['mail_log'];
-        if ($this->pdo instanceof PDO) {
-            $this->pdo->beginTransaction();
+        if (!$this->pdo instanceof PDO) {
+            return;
+        }
 
-            try {
-                // Spalte `reply_to` hinzugefügt!
-                $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $this->pdo->beginTransaction();
 
-                foreach ($logs as $log) {
-                    $stmt->execute([
-                        $log->id,
-                        $log->timestamp->format('Y-m-d H:i:s'),
-                        $log->recipient,
-                        $log->replyTo,
-                        $log->subject,
-                        $log->template->value,
-                        $log->status,
-                        \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
-                    ]);
-                }
-                $this->pdo->commit();
-            } catch (Exception $e) {
-                $this->pdo->rollBack();
+        try {
+            // Spalte `reply_to` hinzugefügt!
+            $stmt = $this->pdo->prepare("REPLACE INTO `{$cfg['table']}` (id,timestamp,recipient,reply_to,subject,template,status,data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
-                throw $e;
+            foreach ($logs as $log) {
+                $stmt->execute([
+                    $log->id,
+                    $log->timestamp->format('Y-m-d H:i:s'),
+                    $log->recipient,
+                    $log->replyTo,
+                    $log->subject,
+                    $log->template->value,
+                    $log->status,
+                    \json_encode($log->data, \JSON_UNESCAPED_UNICODE),
+                ]);
             }
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+
+            throw $e;
         }
     }
 

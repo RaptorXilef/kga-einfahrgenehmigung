@@ -39,7 +39,8 @@ final class RequireLoginMiddleware implements MiddlewareInterface
                 return new RedirectResponse($this->fallbackUrl);
             }
 
-            if ($this->renderer instanceof TemplateRenderer
+            if (
+                $this->renderer instanceof TemplateRenderer
                 && $this->roleRepository instanceof RoleRepositoryInterface
                 && $this->userRepository instanceof UserRepositoryInterface
             ) {

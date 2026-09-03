@@ -80,7 +80,6 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 
             return new RedirectResponse('users.php');
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

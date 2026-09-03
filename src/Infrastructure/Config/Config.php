@@ -55,7 +55,7 @@ final readonly class Config implements ConfigInterface
     {
         $vConfigRaw = $this->get('vehicle_types', []);
         $vConfig = \is_array($vConfigRaw) ? $vConfigRaw : [];
-        $defaultType = empty($vConfig) ? 'pkw' : (string) \array_key_first($vConfig);
+        $defaultType = $vConfig === [] ? 'pkw' : (string) \array_key_first($vConfig);
 
         $pricesRaw = $this->get('prices', []);
         $prices = \is_array($pricesRaw) ? $pricesRaw : [];

@@ -290,7 +290,7 @@ final readonly class PermitService
 
         // --- Eigene Zwecke erlauben ---
         $purposes = (array) $this->config->get('purposes', []);
-        $zweckRaw = (string) $data->zweck;
+        $zweckRaw = $data->zweck;
         // Wenn der Key in den Vorgaben existiert, nimm das Label. Ansonsten nimm den rohen Text.
         $zweck = $purposes[$zweckRaw] ?? ($zweckRaw !== '' ? \strip_tags($zweckRaw) : 'Privat');
 
@@ -698,7 +698,7 @@ final readonly class PermitService
             owner: new Owner('[ANONYMISIERT]', null, new PlotNumber(0)),
             vehicle: new Vehicle($permit->getVehicleType(), new LicensePlate('XXX-XX 9999'), '[ANONYMISIERT]'),
             validity: clone $permit->validity,
-            status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert', null),
+            status: new Status(PermitStatus::Storniert, false, 'Durch Pächter storniert'),
             erstellt: $permit->getCreatedAt(),
             interner_kommentar: $permit->interner_kommentar,
             agreements: $permit->agreements,
@@ -735,7 +735,7 @@ final readonly class PermitService
 
         // Cooldown Check (Standard: 7 Tage)
         $cooldownDays = (int) $this->config->get('payment_reminder_cooldown_days', 7);
-        if ($permit->status->last_reminder_at !== null) {
+        if ($permit->status->last_reminder_at instanceof DateTimeImmutable) {
             $cooldownDate = $permit->status->last_reminder_at->modify("+{$cooldownDays} days");
             // Wenn wir uns noch im Cooldown befinden, ignorieren wir den Request (außer bei extremem $force)
             if ($now < $cooldownDate) {
@@ -780,9 +780,11 @@ final readonly class PermitService
     {
         $sentCount = 0;
         foreach ($this->storage->getAll() as $permit) {
-            if ($this->dispatchReminder($permit->code->value, false)) {
-                ++$sentCount;
+            if (!$this->dispatchReminder($permit->code->value, false)) {
+                continue;
             }
+
+            ++$sentCount;
         }
 
         return $sentCount;

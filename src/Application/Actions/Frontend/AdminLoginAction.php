@@ -69,7 +69,6 @@ final readonly class AdminLoginAction implements ActionInterface
             $this->renderForm('Benutzername oder Passwort ist falsch.');
 
             return null;
-
         } catch (RuntimeException $e) {
             $this->rescueFormData($request);
             $this->renderForm($e->getMessage());

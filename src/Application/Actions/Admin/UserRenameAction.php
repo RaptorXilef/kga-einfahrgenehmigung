@@ -67,7 +67,6 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('users.php');
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 

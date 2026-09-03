@@ -123,9 +123,7 @@ final readonly class BankImportService
 
             foreach ($matches[1] as $permitId) {
                 $permitIdStr = $permitId;
-                if (!isset($aggregierteZahlungen[$permitIdStr])) {
-                    $aggregierteZahlungen[$permitIdStr] = 0.0;
-                }
+                $aggregierteZahlungen[$permitIdStr] ??= 0.0;
                 $aggregierteZahlungen[$permitIdStr] += $ueberwiesenerBetrag;
                 $letztesDatumPerPermit[$permitIdStr] = $datumRaw;
             }

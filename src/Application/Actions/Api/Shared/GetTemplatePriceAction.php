@@ -77,7 +77,6 @@ final readonly class GetTemplatePriceAction implements ViewActionInterface
                 'original' => $originalPrice,
                 'price' => $finalPrice,
             ]);
-
         } catch (Throwable $e) {
             return JsonResponse::sendPayload([
                 'error' => $e->getMessage(),

@@ -12,6 +12,7 @@ use App\Application\Response\RedirectResponse;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\StorageInterface;
+use App\Core\Entity\Permit;
 use App\Core\Entity\PermitStatus;
 use App\Core\Service\BankQrGenerator;
 use App\Core\Service\PermitService;
@@ -48,7 +49,7 @@ final readonly class SuccessAction implements ViewActionInterface
         $method = $dto->method;
 
         $permit = $this->storage->findByHash($code);
-        if (!$permit) {
+        if (!$permit instanceof Permit) {
             return new RedirectResponse('index.php');
         }
 

@@ -46,9 +46,11 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
 
         $successCount = 0;
         foreach ($codes as $code) {
-            if ($this->permitService->dispatchReminder($code, true)) {
-                ++$successCount;
+            if (!$this->permitService->dispatchReminder($code, true)) {
+                continue;
             }
+
+            ++$successCount;
         }
 
         if ($successCount > 0) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Entity;
 
+use App\Core\ValueObject\EmailAddress;
 use App\Core\ValueObject\PermitCode;
 use App\Core\ValueObject\TemplateKey;
 use DateTimeImmutable;
@@ -98,7 +99,7 @@ final readonly class Permit
 
     public function getOwnerEmail(): string
     {
-        return $this->owner->email ? $this->owner->email->value : '';
+        return $this->owner->email instanceof EmailAddress ? $this->owner->email->value : '';
     }
 
     public function getPlotNumber(): string
@@ -161,7 +162,7 @@ final readonly class Permit
             return true;
         }
 
-        $emailStr = $this->owner->email ? $this->owner->email->value : '';
+        $emailStr = $this->owner->email instanceof EmailAddress ? $this->owner->email->value : '';
 
         // Suche nutzt das formatierte "0036" Format, damit Suchen nach "0036" klappen.
         $searchString = \strtolower(

@@ -116,9 +116,7 @@ final readonly class ExportService
                 $stats['erwarteter_umsatz_eur'] += $price;
             }
 
-            if (!isset($stats['vorlagen'][$tpl])) {
-                $stats['vorlagen'][$tpl] = 0;
-            }
+            $stats['vorlagen'][$tpl] ??= 0;
             ++$stats['vorlagen'][$tpl];
         }
 
@@ -189,9 +187,7 @@ final readonly class ExportService
             }
 
             // 2. Beliebtheit der Vorlagen zählen
-            if (!isset($stats['vorlagen_nutzung'][$tpl])) {
-                $stats['vorlagen_nutzung'][$tpl] = 0;
-            }
+            $stats['vorlagen_nutzung'][$tpl] ??= 0;
             ++$stats['vorlagen_nutzung'][$tpl];
 
             // 3. Flache Transaktionsdaten (Bypass der Value Objects für sauberes JSON)

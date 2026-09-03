@@ -11,6 +11,7 @@ final class LocalAssetHelper implements AssetHelperInterface
 {
     /**
      * RAM-Cache für den aktuellen Request, um Festplattenzugriffe (I/O) zu minimieren.
+     *
      * @var array<string, string>
      */
     private array $mtimeCache = [];

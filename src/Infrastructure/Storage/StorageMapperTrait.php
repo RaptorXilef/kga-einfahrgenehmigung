@@ -178,10 +178,10 @@ trait StorageMapperTrait
     {
         return [
             'agreements' => \is_array($permit->agreements) ? \json_encode($permit->agreements, \JSON_UNESCAPED_UNICODE) : '{}',
-            'bezahlt_am' => $permit->bezahlt_am ? $permit->bezahlt_am->format('Y-m-d H:i:s') : null,
+            'bezahlt_am' => $permit->bezahlt_am instanceof DateTimeImmutable ? $permit->bezahlt_am->format('Y-m-d H:i:s') : null,
             'bis' => $permit->getValidUntil()->format('Y-m-d'),
             'code' => $permit->code->value,
-            'email' => $permit->owner->email ? $permit->owner->email->value : '',
+            'email' => $permit->owner->email instanceof EmailAddress ? $permit->owner->email->value : '',
             'erstellt' => $permit->getCreatedAt()->format('Y-m-d H:i:s'),
             'firma' => $permit->getCompany(),
             'interner_kommentar' => $permit->interner_kommentar,
@@ -190,7 +190,7 @@ trait StorageMapperTrait
             'name' => $permit->getOwnerName(),
             'parzelle' => $permit->owner->parzelle->value, // Schreibt den reinen INT in die DB!
             'preis' => $permit->validity->preis->value,
-            'last_reminder_at' => $permit->status->last_reminder_at ? $permit->status->last_reminder_at->format('Y-m-d H:i:s') : null,
+            'last_reminder_at' => $permit->status->last_reminder_at instanceof DateTimeImmutable ? $permit->status->last_reminder_at->format('Y-m-d H:i:s') : null,
             'status' => $permit->getStatus()->value,
             'suspension_reason' => $permit->getSuspensionReason(),
             'template_key' => $permit->template_key->value,

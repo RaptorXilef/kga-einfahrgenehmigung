@@ -108,57 +108,57 @@ final class InfrastructureServiceProvider implements ServiceProviderInterface
          | 2. DATA REPOSITORIES (FACTORY PATTERN)
          |--------------------------------------------------------------------------
          */
-        $container->bind(AuditLogRepositoryInterface::class, fn () => new MySqlAuditLogRepository(
+        $container->bind(AuditLogRepositoryInterface::class, fn (): MySqlAuditLogRepository => new MySqlAuditLogRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
         ));
 
-        $container->bind(CancelledPermitRepositoryInterface::class, fn () => new MySqlCancelledPermitRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-            $container->get(JsonHelperInterface::class),
-        ));
-
-        $container->bind(RoleRepositoryInterface::class, fn () => new MySqlRoleRepository(
+        $container->bind(CancelledPermitRepositoryInterface::class, fn (): MySqlCancelledPermitRepository => new MySqlCancelledPermitRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
 
-        $container->bind(LoginAttemptRepositoryInterface::class, fn () => new MySqlLoginAttemptRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-
-        $container->bind(MagicLinkRepositoryInterface::class, fn () => new MySqlMagicLinkRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-
-        $container->bind(MailQueueRepositoryInterface::class, fn () => new MySqlMailQueueRepository(
+        $container->bind(RoleRepositoryInterface::class, fn (): MySqlRoleRepository => new MySqlRoleRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
 
-        $container->bind(PermitArchiveRepositoryInterface::class, fn () => new MySqlPermitArchiveRepository(
+        $container->bind(LoginAttemptRepositoryInterface::class, fn (): MySqlLoginAttemptRepository => new MySqlLoginAttemptRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
+
+        $container->bind(MagicLinkRepositoryInterface::class, fn (): MySqlMagicLinkRepository => new MySqlMagicLinkRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
+
+        $container->bind(MailQueueRepositoryInterface::class, fn (): MySqlMailQueueRepository => new MySqlMailQueueRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
 
-        $container->bind(UserRepositoryInterface::class, fn () => new MySqlUserRepository(
-            $container->get(PDO::class),
-            $container->get(ConfigInterface::class),
-        ));
-
-        $container->bind(VerificationRepositoryInterface::class, fn () => new MySqlVerificationRepository(
+        $container->bind(PermitArchiveRepositoryInterface::class, fn (): MySqlPermitArchiveRepository => new MySqlPermitArchiveRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),
         ));
 
-        $container->bind(VoucherRepositoryInterface::class, fn () => new MySqlVoucherRepository(
+        $container->bind(UserRepositoryInterface::class, fn (): MySqlUserRepository => new MySqlUserRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+        ));
+
+        $container->bind(VerificationRepositoryInterface::class, fn (): MySqlVerificationRepository => new MySqlVerificationRepository(
+            $container->get(PDO::class),
+            $container->get(ConfigInterface::class),
+            $container->get(JsonHelperInterface::class),
+        ));
+
+        $container->bind(VoucherRepositoryInterface::class, fn (): MySqlVoucherRepository => new MySqlVoucherRepository(
             $container->get(PDO::class),
             $container->get(ConfigInterface::class),
             $container->get(JsonHelperInterface::class),

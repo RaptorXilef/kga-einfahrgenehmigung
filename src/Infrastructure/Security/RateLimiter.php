@@ -42,7 +42,7 @@ final readonly class RateLimiter implements RateLimiterInterface
     public function isBlocked(string $ip): bool
     {
         $attempt = $this->repository->findByIp($ip);
-        if (!$attempt) {
+        if (!$attempt instanceof LoginAttempt) {
             return false;
         }
 
@@ -69,7 +69,7 @@ final readonly class RateLimiter implements RateLimiterInterface
         $this->repository->deleteOlderThan(self::LOCKOUT_MINUTES);
 
         $attempt = $this->repository->findByIp($ip);
-        $attempts = $attempt ? $attempt->attempts + 1 : 1;
+        $attempts = $attempt instanceof LoginAttempt ? $attempt->attempts + 1 : 1;
 
         // Vorbereitung: Wenn die IP unbekannt ist (z.B. bei CLI Scripts), nutzen wir 0.0.0.0
         $safeIp = $ip === 'unknown' || $ip === '' ? '0.0.0.0' : $ip;

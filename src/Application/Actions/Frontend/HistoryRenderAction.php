@@ -47,9 +47,11 @@ final readonly class HistoryRenderAction implements ViewActionInterface
         if ($loadedYear > 0) {
             $archivedPermits = $this->archiveRepository->getArchivedPermits($loadedYear);
             foreach ($archivedPermits as $p) {
-                if (\strtolower($p->getOwnerEmail()) === \strtolower($emailInSession)) {
-                    $permits[] = $p;
+                if (\strtolower($p->getOwnerEmail()) !== \strtolower($emailInSession)) {
+                    continue;
                 }
+
+                $permits[] = $p;
             }
         }
 

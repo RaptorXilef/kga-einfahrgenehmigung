@@ -23,7 +23,8 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         private ConfigInterface $config,
         private BankImportService $importService,
         private SessionManager $sessionManager,
-    ) {}
+    ) {
+    }
 
     public function getRequiredPermission(): string
     {

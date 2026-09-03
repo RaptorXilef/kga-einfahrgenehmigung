@@ -63,7 +63,6 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
             return new RedirectResponse('profile.php');
-
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
