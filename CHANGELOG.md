@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.63.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.62.0...v0.63.0) (2026-09-03)
+
+### 🚀 Features
+
+* **admin:** Finalize Generator & Export architecture with full data coverage ([27b41a5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/27b41a593efc95e629d2b24f6a1f8c47a59a0e14))
+* **admin:** Support custom permit purposes and resolve strict linter warnings ([e59f265](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e59f265e96984709566023261be758f6489c2ca8))
+* **finance:** Automatically approve free permits and implement manual payment toggle ([32ffb60](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/32ffb6018c4e278ec9996de066421be17a745bde))
+
+### 🐛 Bug Fixes
+
+* **ui:** Remove target="_blank" from export links to prevent browser tab flashing ([5ee99bc](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5ee99bc51760c9a38c9805e924f2470155ee6659))
+* **ui:** Resolve cramped layout in manual permit generator ([1ce3c83](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1ce3c83a9b2f0f2be51eda9607d8bbd3b8ca365d))
+* **ui:** Restore exact KGA utility classes for generator tools to fix broken layout ([a46126a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a46126ac28ab31721fee48cd94a4c5191b0c65c1))
+* **ui:** Restore exact KGA utility classes for generator tools to fix broken layout ([dbc9f43](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dbc9f4373989f071544258ed4bd0538c9038aa67))
+
+### 💎 Styling
+
+* **quality:** apply automated code styling, rector modernization, and formatting fixes ([63665df](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/63665df49981e6d13226e8cd97be7d7628503885))
+
+### 🧹 Chore / Maintenance
+
+* **deps:** bump fast-uri in the npm_and_yarn group across 1 directory ([35af901](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/35af901d8dc3f3b99047271becb43380178da01c))
+
 ## [0.62.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.61.0...v0.62.0) (2026-09-02)
 
 ### 🚀 Features
