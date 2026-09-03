@@ -12,10 +12,12 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Contracts\Event\EventDispatcherInterface;
+use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Event\MagicLinkRequestedEvent;
 use App\Core\Service\MagicLinkService;
 use App\Core\Service\PermitService;
+use Throwable;
 
 /**
  * Action für die Anforderung eines Magic-Links zur Historie.
@@ -32,6 +34,7 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         private PermitService $permitService,
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
+        private MailServiceInterface $mailService,
     ) {
     }
 
@@ -57,10 +60,24 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
                 $data['token'],
                 $data['code'],
             ));
+            $this->dispatchMailsImmediately();
         }
 
         $this->sessionManager->addFlash('success', 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.');
 
         return new RedirectResponse('history.php?sent=1');
+    }
+
+    /**
+     * Versucht die Magic-Link E-Mail sofort ohne Umweg über den CronJob zu versenden,
+     * um dem Pächter direkt den Zugang zu ermöglichen.
+     */
+    private function dispatchMailsImmediately(): void
+    {
+        try {
+            $this->mailService->processQueue(5);
+        } catch (Throwable $e) {
+            \error_log('Immediate Mail Dispatch Error: ' . $e->getMessage());
+        }
     }
 }

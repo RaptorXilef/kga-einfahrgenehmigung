@@ -10,9 +10,11 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\TemplateRenderer;
+use App\Contracts\Mail\MailServiceInterface;
 use App\Contracts\Security\RateLimiterInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\PermitService;
+use Throwable;
 
 /**
  * Kombinierte Action für das Rendern der Eingabemaske und die Verarbeitung
@@ -29,6 +31,7 @@ final readonly class VerificationAction implements ViewActionInterface
         private RateLimiterInterface $rateLimiter,
         private SessionManager $sessionManager,
         private TemplateRenderer $renderer,
+        private MailServiceInterface $mailService,
     ) {
     }
 
@@ -62,11 +65,14 @@ final readonly class VerificationAction implements ViewActionInterface
 
         // Fall B: Antrag war kostenlos (oder 100% Gutschein) und wurde sofort aktiv
         if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
+            $this->dispatchMailsImmediately();
+
             return new RedirectResponse('check.php?code=' . $result['finalised']->code->value . '&verified=1');
         }
 
         // Fall C: Antrag ist bestätigt und bereit zur Zahlung (Checkout)
         if (\is_array($result)) {
+            $this->dispatchMailsImmediately();
             $redirectToken = $result['actual_token'] ?? $token;
 
             return new RedirectResponse('checkout.php?token=' . $redirectToken . '&verified=1');
@@ -76,5 +82,17 @@ final readonly class VerificationAction implements ViewActionInterface
         $this->sessionManager->addFlash('error', 'Fehler bei der Verifizierung.');
 
         return new RedirectResponse('verify.php?error=1');
+    }
+
+    /**
+     * Versucht die generierten Bestätigungs-/Genehmigungs-Mails sofort zu versenden.
+     */
+    private function dispatchMailsImmediately(): void
+    {
+        try {
+            $this->mailService->processQueue(5);
+        } catch (Throwable $e) {
+            \error_log('Immediate Mail Dispatch Error: ' . $e->getMessage());
+        }
     }
 }
