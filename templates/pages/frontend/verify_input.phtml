@@ -35,8 +35,9 @@ $pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? ''); ?>
 
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
+            <!-- FIX: 'action' ist nun 'verify' statt 'verify.php', was einen fehlerhaften GET-Redirect von Apache verhindert -->
             <form method="POST"
-                  action="verify.php"
+                  action="verify"
                   class="c-form u-text-center">
                 <input type="hidden"
                        name="csrf_token"

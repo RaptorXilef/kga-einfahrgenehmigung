@@ -200,7 +200,7 @@ select[readonly] {
                     <div class="u-margin-top-xl"
                          style="font-size: 0.95rem; opacity: 0.8; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 30px; width: 100%;">
                         <p>Sie werden in
-                            <span id="countdown" style="font-weight: 800; font-size: 1.3rem; color: var(--primary-color);">30</span>
+                            <span id="countdown" style="font-weight: 800; font-size: 1.3rem; color: var(--primary-color);">60</span>
                             Sekunden zur Code-Eingabe weitergeleitet...
                         </p>
                         <a href="verify.php" class="c-button c-button--success c-button--wide u-margin-top-m"> Jetzt direkt zur Eingabe </a>
@@ -208,8 +208,8 @@ select[readonly] {
                 </div>
 
                 <script>
-                // 30 Sekunden Countdown
-                let seconds = 30; // redirect Zeit
+                // 60 Sekunden Countdown
+                let seconds = 60; // redirect Zeit
                 const display = document.getElementById('countdown');
                 const timer = setInterval(() => {
                     seconds--;
@@ -248,7 +248,7 @@ select[readonly] {
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
                                  alt="">
-                                Sie haben einen Aktivierungscode? Dann hier klicken.
+                            Sie haben einen Aktivierungscode? Dann hier klicken.
                         </span>
                     </div>
 

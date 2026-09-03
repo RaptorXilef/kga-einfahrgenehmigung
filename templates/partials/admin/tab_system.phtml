@@ -180,8 +180,7 @@ $crons = [
                 <?php foreach ($crons as $cron) { ?>
                     <div class="c-card u-margin-none"
                          style="border-left: 4px solid var(--primary-color);">
-                        <div
-                             class="c-card__body u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
+                        <div class="c-card__body u-padding-around-m u-flex u-flex-column u-gap-m">
                             <div>
                                 <h4 class="u-margin-none"
                                     style="font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
@@ -194,12 +193,14 @@ $crons = [
                                     </span>
                                 </div>
                             </div>
-                            <div class="u-flex u-align-center u-gap-s">
+
+                            <!-- Das URL-Feld mit Buttons ist jetzt blockartig und passt sich zu 100% einheitlich an! -->
+                            <div class="u-flex u-align-center u-gap-s u-width-100">
                                 <input type="text"
                                        readonly
                                        value="<?php echo \htmlspecialchars($cron['url']); ?>"
                                        class="c-form-input u-text-small"
-                                       style="width: 400px; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
+                                       style="flex: 1; min-width: 0; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
                                        onclick="this.select()">
                                 <button type="button"
                                         class="c-button c-button--secondary"

@@ -57,15 +57,15 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
 
             // Priority ist jetzt in der Datenbank vorhanden!
             $updateSql = 'UPDATE `' . $table . '` SET attempts = attempts + 100 ' .
-            "WHERE attempts < 3 {$templateFilterSql} " .
-            "ORDER BY priority DESC, created_at ASC LIMIT {$limit}";
+                "WHERE attempts < 3 {$templateFilterSql} " .
+                "ORDER BY priority DESC, created_at ASC LIMIT {$limit}";
 
             $stmtUpdate = $this->pdo->prepare($updateSql);
             $stmtUpdate->execute($params);
 
             $selectSql = 'SELECT * FROM `' . $table . '` ' .
-            "WHERE attempts >= 100 {$templateFilterSql} " .
-            'ORDER BY priority DESC, created_at ASC';
+                "WHERE attempts >= 100 {$templateFilterSql} " .
+                'ORDER BY priority DESC, created_at ASC';
 
             $stmtSelect = $this->pdo->prepare($selectSql);
             $stmtSelect->execute($params);
@@ -131,7 +131,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
 
             $table = $this->config->get('storage_config')['mail_queue']['table'];
             $this->pdo->prepare('UPDATE `' . $table . '` SET attempts = ? WHERE id = ?')
-            ->execute([$origAttempts, $idStr]);
+                ->execute([$origAttempts, $idStr]);
 
             return false;
         }
