@@ -9,9 +9,15 @@ return [
             'link' => 'assets/documents/datenschutz.pdf',
             'required' => true,
         ],
+
         'ordnung' => [
             'label' => 'Ich habe [Abschnitt VI der Vereinsordnung] zur Kenntnis genommen.',
             'link' => 'assets/documents/Ordnung_KGA.pdf',
+            'required' => true,
+        ],
+        'agb' => [
+            'label' => 'Ich willige in die [AGB] ein.',
+            'link' => 'assets/documents/agb.pdf',
             'required' => true,
         ],
         'newsletter' => [

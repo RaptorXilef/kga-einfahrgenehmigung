@@ -118,3 +118,27 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz.php';
 // COOKIE-BANNER EINBINDEN
 include $appRoot . '/templates/partials/frontend/consent_banner.phtml';
 ?>
+
+<script>
+// --- SMART MAIL TRIGGER ---
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const now = window.Date.now();
+        const lastRun = window.localStorage.getItem('kga_mail_trigger') || 0;
+
+        // Türsteher 1: Nur anstupsen, wenn der letzte Trigger älter als 30 Sekunden ist!
+        if (now - lastRun > 30000 && window.KGA_CONFIG && window.KGA_CONFIG.baseUrl) {
+            window.localStorage.setItem('kga_mail_trigger', now.toString());
+
+            const fd = new window.FormData(); // TODO window. entfernen falls in separater JS Datei
+            fd.append('csrf_token', window.KGA_CONFIG.csrfToken);
+
+            fetch(window.KGA_CONFIG.baseUrl + 'api/process_mail_queue', {
+                method: 'POST',
+                body: fd
+            }).catch(() => {});
+        }
+    }, 500);
+});
+
+</script>

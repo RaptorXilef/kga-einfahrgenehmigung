@@ -208,15 +208,6 @@ select[readonly] {
                 </div>
 
                 <script>
-                // Mail-Versand im Hintergrund anstupsen
-                // Wir rufen die API auf, die die Queue abarbeitet
-                // Der User merkt davon nichts, aber der Server fängt an zu senden
-                fetch('api/process_mail_queue', {
-                    headers: {
-                        'X-CSRF-Token': window.KGA_CONFIG.csrfToken
-                    }
-                }).then(() => console.log('Mail-Versand gestartet'));
-
                 // 30 Sekunden Countdown
                 let seconds = 30; // redirect Zeit
                 const display = document.getElementById('countdown');

@@ -10,53 +10,70 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
+use App\Contracts\Storage\MailQueueRepositoryInterface;
 
 /**
- * Action zum manuellen Anstoßen der Mail-Warteschlange.
- * Oder zum anstoßen per cronjob
+ * Action zum Abarbeiten der E-Mail-Warteschlange.
+ *
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 #[Route('GET', '/api/process_mail_queue')]
 #[Route('POST', '/api/process_mail_queue')]
 final readonly class ProcessMailQueueAction implements ViewActionInterface
 {
     public function __construct(
-        private MailServiceInterface $mailService,
         private ConfigInterface $config,
+        private MailQueueRepositoryInterface $queue,
+        private MailServiceInterface $mailService,
     ) {
     }
 
     public function execute(ServerRequest $request): mixed
     {
-        // 1. Sicherheit: Entweder valider CSRF-Token (vom Admin-Dashboard) ODER valider Cron-Token (von extern)
-        $isCron = false;
-        $providedToken = $request->get['token'] ?? '';
-        $expectedCronToken = (string) $this->config->get('cron_secret', '');
+        $cronSecret = (string) $this->config->get('cron_secret', '');
+        $token = $request->get['token'] ?? '';
 
-        if ($providedToken === $expectedCronToken && $expectedCronToken !== '') {
-            $isCron = true;
+        $isCron = $request->getMethod() === 'GET' && $token !== '' && $token === $cronSecret;
+        $isFrontend = $request->getMethod() === 'POST';
+
+        if (!$isCron && !$isFrontend) {
+            return JsonResponse::error('Unautorisierter Zugriff.', 401);
         }
 
-        // Wenn weder Cron-Token gültig, noch ein valider Admin-Post-Request (CSRF wird durch Middleware geprüft)
-        if (!$isCron && $request->getMethod() !== 'POST') {
-            return JsonResponse::error('Unautorisiert.', 403);
-        }
+        // --- TÜRSTEHER 2: Das File-Lock ---
+        // Verhindert Race-Conditions und Serverüberlastung durch parallele Aufrufe.
+        $lockFile = \sys_get_temp_dir() . '/kga_mail_queue.lock';
+        $lockHandle = \fopen($lockFile, 'w+');
 
-        if (\method_exists($this->mailService, 'processQueue')) {
-            // Limits dynamisch aus der Konfiguration laden
-            $cronLimit = (int) $this->config->get('mail_queue_limit_cron', 50);
-            $adminLimit = (int) $this->config->get('mail_queue_limit_admin', 10);
-
-            $limit = $isCron ? $cronLimit : $adminLimit;
-
-            $sent = $this->mailService->processQueue($limit);
-
+        // Versuche eine exklusive Sperre zu setzen (ohne zu warten = LOCK_NB)
+        if (!$lockHandle || !\flock($lockHandle, \LOCK_EX | \LOCK_NB)) {
             return JsonResponse::success([
-                'status' => 'processed',
-                'sent_count' => $sent,
-                'mode' => $isCron ? 'cron' : 'admin_trigger',
+                'status' => 'skipped',
+                'message' => 'Ein anderer Prozess arbeitet die Queue bereits ab.',
             ]);
         }
 
-        return JsonResponse::success(['status' => 'skipped_no_queue']);
+        try {
+            $limit = $isCron ? 20 : 3;
+
+            $processed = $this->queue->processBatch($limit, function ($job) {
+                return $this->mailService->sendMail(
+                    $job->recipient,
+                    $job->subject,
+                    $job->template,
+                    $job->payload,
+                );
+            });
+
+            return JsonResponse::success([
+                'status' => 'ok',
+                'processed' => $processed,
+                'trigger' => $isCron ? 'cron' : 'frontend',
+            ]);
+        } finally {
+            // Die Sperre MUSS zwingend wieder aufgehoben werden, egal was passiert
+            \flock($lockHandle, \LOCK_UN);
+            \fclose($lockHandle);
+        }
     }
 }
