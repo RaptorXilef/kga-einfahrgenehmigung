@@ -10,7 +10,6 @@ use App\Application\Http\ServerRequest;
 use App\Application\Response\JsonResponse;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Mail\MailServiceInterface;
-use App\Contracts\Storage\MailQueueRepositoryInterface;
 
 /**
  * Action zum Abarbeiten der E-Mail-Warteschlange.
@@ -23,7 +22,6 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
 {
     public function __construct(
         private ConfigInterface $config,
-        private MailQueueRepositoryInterface $queue,
         private MailServiceInterface $mailService,
     ) {
     }
@@ -40,7 +38,7 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
             return JsonResponse::error('Unautorisierter Zugriff.', 401);
         }
 
-        // --- TÜRSTEHER 2: Das File-Lock ---
+        // --- TÜRSTEHER: Das File-Lock ---
         // Verhindert Race-Conditions und Serverüberlastung durch parallele Aufrufe via API/Cron.
         $lockFile = \sys_get_temp_dir() . '/kga_mail_queue.lock';
         $lockHandle = \fopen($lockFile, 'w+');
@@ -54,20 +52,11 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
         }
 
         try {
+            // Cron arbeitet 20 Mails ab, der manuelle Admin-Button im Frontend nur 3
             $limit = $isCron ? 20 : 3;
 
-            $processed = $this->queue->processBatch($limit, function ($job) {
-                // FIX: Signatur an MailServiceInterface::sendTemplate anpassen!
-                $result = $this->mailService->sendTemplate(
-                    $job->recipient,
-                    $job->subject,
-                    $job->template->value, // Enum in String wandeln
-                    $job->data,            // Eigenschaft heißt 'data', nicht 'payload'
-                    $job->replyTo,
-                );
-
-                return $result === true;
-            });
+            // FIX: Einfach die saubere Service-Methode aufrufen, statt eigene Closures zu bauen!
+            $processed = $this->mailService->processQueue($limit);
 
             return JsonResponse::success([
                 'status' => 'ok',
