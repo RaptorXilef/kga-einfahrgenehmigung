@@ -31,6 +31,9 @@ final readonly class PermitCreateManualRequest
         if ($name === '') {
             throw ValidationException::withMessage('Fehler: Der Name darf nicht leer sein.');
         }
+        if (!\str_contains($name, ' ')) {
+            throw ValidationException::withMessage('Fehler: Bitte geben Sie Vor- und Nachname ein.');
+        }
         if ($parzelle === '') {
             throw ValidationException::withMessage('Fehler: Die Parzelle darf nicht leer sein.');
         }

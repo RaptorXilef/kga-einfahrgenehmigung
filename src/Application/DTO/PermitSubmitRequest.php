@@ -46,6 +46,12 @@ final readonly class PermitSubmitRequest
         if ($name === '') {
             throw ValidationException::withMessage('Bitte geben Sie einen Namen ein.');
         }
+
+        // NEU: Bot-Abwehr - Erzwinge Vor- und Nachname (mindestens ein Leerzeichen)
+        if (!\str_contains($name, ' ')) {
+            throw ValidationException::withMessage('Bitte geben Sie Ihren Vor- und Nachnamen ein.');
+        }
+
         if ($email !== '' && !\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw ValidationException::withMessage('Die eingegebene E-Mail-Adresse ist ungültig.');
         }
