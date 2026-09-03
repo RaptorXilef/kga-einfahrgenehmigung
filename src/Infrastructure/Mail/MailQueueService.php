@@ -13,7 +13,7 @@ use Exception;
 
 /**
  * Service für die asynchrone E-Mail-Verarbeitung über eine Warteschlange.
- * Speichert ausgehende E-Mails zunächst im Repository und verarbeitet sie gestaffelt.
+ * Speichert ausgehende E-Mails zunächst im Repository und verarbeitet sie gestaffelt nach Priorität.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -29,16 +29,18 @@ final readonly class MailQueueService implements MailServiceInterface
     /**
      * Schritt 1: Mail in die Warteschlange einreihen
      *
-     * Reiht eine neue E-Mail in die Warteschlange ein.
+     * Reiht eine neue E-Mail mit der definierten Priorität in die Warteschlange ein.
      *
      * @param string $recipient Die E-Mail-Adresse des Empfängers.
      * @param string $subject Der Betreff der E-Mail.
      * @param string $template Der Schlüssel/Name des zu verwendenden E-Mail-Templates.
      * @param array<string, mixed> $data Die dynamischen Daten für das Template.
+     * @param string|null $replyTo Optionale Antwort-Adresse.
+     * @param int $priority Wichtigkeit des Jobs.
      *
      * @return bool True bei erfolgreicher Einreihung.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null): bool
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool
     {
         $job = new MailJob(
             \uniqid('mq_'),
@@ -49,6 +51,7 @@ final readonly class MailQueueService implements MailServiceInterface
             $data,
             0,
             new DateTimeImmutable(),
+            $priority,
         );
         $this->repository->enqueue($job);
 
@@ -68,7 +71,7 @@ final readonly class MailQueueService implements MailServiceInterface
     {
         // Wir übergeben eine Closure an das Repository, die den echten Mailversand triggert.
         return $this->repository->processBatch($limit, function (string $rec, string $sub, string $tpl, array $dat, ?string $replyTo): void {
-            $result = $this->realMailService->sendTemplate($rec, $sub, $tpl, $dat, $replyTo);
+            $result = $this->realMailService->sendTemplate($rec, $sub, $tpl, $dat, $replyTo, 50); // SMTPService ignoriert priority
             if ($result !== true) {
                 throw new Exception((string) $result);
             }

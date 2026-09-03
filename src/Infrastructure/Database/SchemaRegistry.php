@@ -145,6 +145,7 @@ final class SchemaRegistry
                 `subject` VARCHAR(255) NOT NULL,
                 `template` VARCHAR(100) NOT NULL,
                 `data` JSON NOT NULL,
+                `priority` INT NOT NULL DEFAULT 50,
                 `attempts` INT DEFAULT 0,
                 `created_at` DATETIME NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',

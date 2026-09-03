@@ -42,7 +42,7 @@ final readonly class SmtpMailService implements MailLogInterface, MailServiceInt
      *
      * @return bool|string True bei Erfolg, andernfalls eine Fehlermeldung als String.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null): bool|string
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool|string
     {
         // Absicherung: Wenn kein Empfänger da ist, gar nicht erst versuchen zu senden
         if (\in_array(\trim($recipient), ['', '0'], true)) {

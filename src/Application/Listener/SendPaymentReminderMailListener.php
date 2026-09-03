@@ -57,6 +57,8 @@ final readonly class SendPaymentReminderMailListener
                 'usage' => $usage,
                 'vereinsName' => $this->config->get('vereins_name'),
             ],
+            null,
+            10, // Niedrigste Priorität für Erinnerungen
         );
     }
 }

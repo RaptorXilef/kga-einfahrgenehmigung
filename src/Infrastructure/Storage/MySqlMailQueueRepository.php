@@ -26,6 +26,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     public function enqueue(MailJob $job): void
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
+        // Priority wird automatisch aus dem Objekt durch die HydratorTrait entnommen!
         $data = $this->extractEntity($job, [
             'template' => $job->template->value,
         ]);
@@ -54,16 +55,17 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
         try {
             $table = $this->config->get('storage_config')['mail_queue']['table'];
 
+            // Priority ist jetzt in der Datenbank vorhanden!
             $updateSql = 'UPDATE `' . $table . '` SET attempts = attempts + 100 ' .
-                "WHERE attempts < 3 {$templateFilterSql} " .
-                "ORDER BY priority DESC, created_at ASC LIMIT {$limit}";
+            "WHERE attempts < 3 {$templateFilterSql} " .
+            "ORDER BY priority DESC, created_at ASC LIMIT {$limit}";
 
             $stmtUpdate = $this->pdo->prepare($updateSql);
             $stmtUpdate->execute($params);
 
             $selectSql = 'SELECT * FROM `' . $table . '` ' .
-                "WHERE attempts >= 100 {$templateFilterSql} " .
-                'ORDER BY priority DESC, created_at ASC';
+            "WHERE attempts >= 100 {$templateFilterSql} " .
+            'ORDER BY priority DESC, created_at ASC';
 
             $stmtSelect = $this->pdo->prepare($selectSql);
             $stmtSelect->execute($params);
@@ -129,7 +131,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
 
             $table = $this->config->get('storage_config')['mail_queue']['table'];
             $this->pdo->prepare('UPDATE `' . $table . '` SET attempts = ? WHERE id = ?')
-                ->execute([$origAttempts, $idStr]);
+            ->execute([$origAttempts, $idStr]);
 
             return false;
         }
@@ -138,7 +140,7 @@ final readonly class MySqlMailQueueRepository implements MailQueueRepositoryInte
     public function findAllQueue(): array
     {
         $table = $this->config->get('storage_config')['mail_queue']['table'];
-        $stmt = $this->pdo->query('SELECT * FROM `' . $table . '` ORDER BY created_at DESC');
+        $stmt = $this->pdo->query('SELECT * FROM `' . $table . '` ORDER BY priority DESC, created_at ASC');
 
         if ($stmt === false) {
             return [];

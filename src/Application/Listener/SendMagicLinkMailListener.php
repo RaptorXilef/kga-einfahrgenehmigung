@@ -36,6 +36,8 @@ final readonly class SendMagicLinkMailListener
                 'link' => $link,
                 'vereinsName' => $this->config->get('vereins_name'),
             ],
+            null,
+            100, // Hohe Priorität für Logins
         );
     }
 }

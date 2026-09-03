@@ -21,6 +21,7 @@ final readonly class MailJob
         public array $data,
         public int $attempts,
         public DateTimeImmutable $createdAt,
+        public int $priority = 50,
     ) {
     }
 }

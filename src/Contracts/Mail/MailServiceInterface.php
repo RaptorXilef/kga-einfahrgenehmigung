@@ -16,16 +16,18 @@ namespace App\Contracts\Mail;
 interface MailServiceInterface
 {
     /**
-     * ToDo DocBlock aktualisieren
+     * Reiht eine E-Mail in die Warteschlange ein oder versendet sie direkt.
      *
      * @param string $recipient Die E-Mail-Adresse des Empfängers.
      * @param string $subject Betreffzeile der E-Mail.
      * @param string $template Pfad zum Template relativ zum Template-Ordner.
      * @param array<string, mixed> $data Platzhalter- und Payload-Daten für das Template.
+     * @param string|null $replyTo Optionale Antwortadresse.
+     * @param int $priority Wichtigkeit (100 = Hoch/Login, 50 = Normal, 10 = Niedrig/Erinnerung).
      *
      * @return bool|string True bei Erfolg, Fehlermeldung als String bei Fehlern.
      */
-    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null): bool|string;
+    public function sendTemplate(string $recipient, string $subject, string $template, array $data, ?string $replyTo = null, int $priority = 50): bool|string;
 
     // TODO DOCBLOCK
     public function processQueue(int $limit = 5): int;

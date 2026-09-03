@@ -1,0 +1,1 @@
+ALTER TABLE `mail_queue` ADD COLUMN `priority` INT NOT NULL DEFAULT 50 AFTER `data`;
