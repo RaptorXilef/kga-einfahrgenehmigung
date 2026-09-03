@@ -42,8 +42,9 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
             return;
         }
 
-        $scriptName = $request->server['SCRIPT_NAME'] ?? '';
-        if (\str_contains($scriptName, '/api/') || \str_contains($scriptName, 'cron.php') || \str_contains($scriptName, 'process_mail_queue.php')) {
+        // FIX: Wir nutzen den aktuellen Pfad anstelle des Scriptnamens
+        $path = $request->getPath();
+        if (\str_contains($path, '/api/') || \str_contains($path, 'cron') || \str_contains($path, 'process_mail_queue')) {
             return;
         }
 
@@ -81,8 +82,11 @@ final readonly class AnalyticsMiddleware implements MiddlewareInterface
             ? \rtrim($this->config->getBaseUrl(), '/')
             : 'https://' . ($request->server['SERVER_NAME'] ?? 'localhost');
 
-        $pageLocation = $baseUrl . ($request->server['REQUEST_URI'] ?? '');
-        $pageTitle = \ucfirst(\basename($scriptName, '.php'));
+        $pageLocation = $baseUrl . $path;
+
+        // Titel dynamisch anhand des Pfads bauen
+        $cleanPath = \trim($path, '/');
+        $pageTitle = $cleanPath === '' ? 'Home' : \ucfirst($cleanPath);
 
         $payload = [
             'client_id' => $this->sessionManager->getAnalyticsId(),

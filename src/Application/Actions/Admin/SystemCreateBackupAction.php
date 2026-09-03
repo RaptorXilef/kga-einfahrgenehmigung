@@ -46,11 +46,11 @@ final readonly class SystemCreateBackupAction implements ActionInterface, Requir
             $this->sessionManager->addFlash('success', "Erfolg: Backup ({$target}) erstellt in Archiv '" . \basename($file) . "'.");
 
             // Leitet direkt wieder auf das Backups-Tab um
-            return new RedirectResponse('admin.php?focus=tab-backup');
+            return new RedirectResponse('admin?focus=tab-backup');
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', 'Fehler beim Backup: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-backup');
+            return new RedirectResponse('admin?focus=tab-backup');
         }
     }
 }

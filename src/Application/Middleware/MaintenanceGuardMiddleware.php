@@ -26,8 +26,9 @@ final readonly class MaintenanceGuardMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $currentScript = \basename((string) ($request->server['SCRIPT_NAME'] ?? ''));
-        if ($currentScript === 'maintenance.php') {
+        // FIX: Nutzt nun den Pfad anstelle von SCRIPT_NAME
+        $path = $request->getPath();
+        if ($path === '/maintenance') {
             return $next($request);
         }
 
@@ -38,8 +39,8 @@ final readonly class MaintenanceGuardMiddleware implements MiddlewareInterface
         if ($adminMaintenance) {
             $shouldShowMaintenance = true;
         } elseif ($publicMaintenance) {
-            $allowedAdminScripts = ['admin.php', 'users.php'];
-            if (!\in_array($currentScript, $allowedAdminScripts, true) && !\str_contains((string) ($request->server['SCRIPT_NAME'] ?? ''), '/api/')) {
+            $allowedAdminScripts = ['/admin', '/users', '/profile'];
+            if (!\in_array($path, $allowedAdminScripts, true) && !\str_contains($path, '/api/')) {
                 $shouldShowMaintenance = true;
             }
         }

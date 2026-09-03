@@ -6,10 +6,10 @@
  */
 
 // Lade die Consent-Konfiguration (Fallback auf root_path, falls $appRoot nicht existiert)
-$root              = $appRoot ?? \dirname(__DIR__, 2);
+$root = $appRoot ?? \dirname(__DIR__, 2);
 $consentConfigPath = $root . '/config/consent.php';
 
-if (! \file_exists($consentConfigPath)) {
+if (!\file_exists($consentConfigPath)) {
     return;
 }
 $consentConfig = include $consentConfigPath;
@@ -35,9 +35,9 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
                 </p>
 
                 <div style="margin-top: 10px; font-size: 0.85rem;">
-                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>datenschutz.php"
+                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>datenschutz"
                        style="color: var(--primary-color); text-decoration: underline; margin-right: 15px;"><?php echo \htmlspecialchars($consentConfig['texts']['link_datenschutz']); ?></a>
-                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>impressum.php"
+                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>impressum"
                        style="color: var(--primary-color); text-decoration: underline;"><?php echo \htmlspecialchars($consentConfig['texts']['link_impressum']); ?></a>
                 </div>
 

@@ -38,14 +38,14 @@ final readonly class RoleRenameAction implements ActionInterface, RequiresPermis
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $roles = $this->roleRepository->loadAll();
         if (!isset($roles[$dto->roleId])) {
             $this->sessionManager->addFlash('error', 'Fehler: Rolle nicht gefunden.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $r = $roles[$dto->roleId];
@@ -57,6 +57,6 @@ final readonly class RoleRenameAction implements ActionInterface, RequiresPermis
         $this->auditLogger->log('ROLE_RENAME', "Rolle '{$oldName}' wurde umbenannt in '{$dto->newRoleName}'.");
         $this->sessionManager->addFlash('success', "Rolle wurde in '{$dto->newRoleName}' umbenannt.");
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

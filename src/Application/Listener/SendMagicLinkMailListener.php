@@ -23,7 +23,7 @@ final readonly class SendMagicLinkMailListener
 
     public function handle(MagicLinkRequestedEvent $event): void
     {
-        $link = $this->config->getBaseUrl() . 'history.php?token=' . $event->token;
+        $link = $this->config->getBaseUrl() . 'history?token=' . $event->token;
 
         $this->mailService->sendTemplate(
             $event->email,

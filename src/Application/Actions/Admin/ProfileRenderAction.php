@@ -38,7 +38,7 @@ final readonly class ProfileRenderAction implements ViewActionInterface
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('info', 'System-Accounts können nicht über das Frontend bearbeitet werden.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $users = $this->userRepository->loadAll();

@@ -33,12 +33,12 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history');
         }
 
         $email = (string) $this->sessionManager->getHistoryEmail();
         if ($email === '') {
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history');
         }
 
         try {
@@ -48,11 +48,11 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
 
             $this->sessionManager->addFlash('success', 'Genehmigung wurde erfolgreich storniert.');
 
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history
         }
     }
 }

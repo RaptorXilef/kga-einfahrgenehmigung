@@ -47,12 +47,12 @@ final readonly class SystemAnonymizeArchiveAction implements ActionInterface, Re
                 $this->sessionManager->addFlash('success', "Erfolg: Es wurden $count alte Archiv-Einträge DSGVO-konform anonymisiert.");
             }
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         } catch (Throwable $e) {
             \error_log('DSGVO Anonymize Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Fehler bei der Anonymisierung: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
     }
 }

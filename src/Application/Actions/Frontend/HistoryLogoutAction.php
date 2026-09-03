@@ -38,6 +38,6 @@ final readonly class HistoryLogoutAction implements ViewActionInterface
 
         $this->sessionManager->clearHistoryEmail();
 
-        return new RedirectResponse('history.php');
+        return new RedirectResponse('history');
     }
 }

@@ -53,7 +53,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         try {
@@ -75,16 +75,16 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
 
                 $this->sessionManager->addFlash('success', "Benutzer '$name' wurde entfernt.");
 
-                return new RedirectResponse('users.php');
+                return new RedirectResponse('users');
             }
 
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
     }
 }

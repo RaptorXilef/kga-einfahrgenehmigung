@@ -42,13 +42,13 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
         if ($userId === '') {
             $this->sessionManager->addFlash('error', 'Fehler: Kein Benutzer ausgewählt.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         if ($roleId === '') {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Rolle ausgewählt.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $users = $this->userRepository->loadAll();
@@ -76,11 +76,11 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
 
             $this->sessionManager->addFlash('success', "Rolle für '{$u->username}' geändert.");
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

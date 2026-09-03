@@ -45,7 +45,7 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $this->voucherService->toggleStatus($dto->code, $dto->targetStatus);
@@ -58,6 +58,6 @@ final readonly class VoucherToggleAction implements ActionInterface, RequiresPer
         $msg = 'Gutschein wurde ' . ($dto->targetStatus === 'aktiv' ? 'reaktiviert.' : 'gesperrt.');
         $this->sessionManager->addFlash('success', $msg);
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

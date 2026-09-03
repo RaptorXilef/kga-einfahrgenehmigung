@@ -42,7 +42,7 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history');
         }
 
         $permits = $this->permitService->getHistoryByEmail($dto->email);
@@ -61,6 +61,6 @@ final readonly class HistoryRequestLinkAction implements ViewActionInterface
 
         $this->sessionManager->addFlash('success', 'Falls Genehmigungen zu dieser E-Mail existieren, wurde ein Code gesendet.');
 
-        return new RedirectResponse('history.php?sent=1');
+        return new RedirectResponse('history?sent=1');
     }
 }

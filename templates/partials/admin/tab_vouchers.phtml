@@ -67,7 +67,7 @@ use App\Infrastructure\Config\Config;
                                     <?php foreach ($vouchers as $v) {
                                         // FIX: Explizit ->value nutzen für Array-Zugriffe und Ausgaben
                                         $vCodeStr = $v->code->value;
-                                        $url = $config->getBaseUrl() . 'index.php?voucher=' . $vCodeStr;
+                                        $url = $config->getBaseUrl() . 'index?voucher=' . $vCodeStr;
                                         $isValid = $voucherValidities[$vCodeStr] ?? false;
                                         $isDeactivated = $v->isDeactivated();
                                         $isExpired = $v->isExpired(new \DateTimeImmutable());

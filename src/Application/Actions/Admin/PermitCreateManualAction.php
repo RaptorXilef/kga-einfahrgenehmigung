@@ -57,7 +57,7 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
 
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-tools');
+            return new RedirectResponse('admin?focus=tab-tools');
         }
 
         try {
@@ -69,21 +69,21 @@ final readonly class PermitCreateManualAction implements ActionInterface, Requir
             $this->sessionManager->addFlash('success', 'Manuelle Genehmigung wurde erfolgreich erstellt.');
 
             // Wenn erfolgreich, schicken wir den User auf den Aktive-Reiter
-            return new RedirectResponse('admin.php?focus=tab-active');
+            return new RedirectResponse('admin?focus=tab-active');
         } catch (InvalidArgumentException $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-tools');
+            return new RedirectResponse('admin?focus=tab-tools');
         } catch (Throwable $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Kritischer Fehler: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-tools');
+            return new RedirectResponse('admin?focus=tab-tools');
         }
     }
 }

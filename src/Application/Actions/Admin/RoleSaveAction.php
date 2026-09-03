@@ -43,7 +43,7 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
         if ($name === '') {
             $this->sessionManager->addFlash('error', 'Fehler: Der Rollenname darf nicht leer sein.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $roles = $this->roleRepository->loadAll();
@@ -71,12 +71,12 @@ final readonly class RoleSaveAction implements ActionInterface, RequiresPermissi
             $this->auditLogger->log('ROLE_UPDATE', "Rechte-Matrix für Rolle '{$name}' (ID: {$id}) aktualisiert.");
             $this->sessionManager->addFlash('success', "Rechte für Rolle '{$name}' erfolgreich aktualisiert.");
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $this->auditLogger->log('ROLE_CREATE', "Neue Rechte-Rolle '{$name}' (ID: {$id}) erstellt.");
         $this->sessionManager->addFlash('success', "Neue Rolle '{$name}' wurde erstellt.");
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

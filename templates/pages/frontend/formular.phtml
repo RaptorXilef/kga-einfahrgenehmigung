@@ -203,7 +203,7 @@ select[readonly] {
                             <span id="countdown" style="font-weight: 800; font-size: 1.3rem; color: var(--primary-color);">60</span>
                             Sekunden zur Code-Eingabe weitergeleitet...
                         </p>
-                        <a href="verify.php" class="c-button c-button--success c-button--wide u-margin-top-m"> Jetzt direkt zur Eingabe </a>
+                        <a href="verify" class="c-button c-button--success c-button--wide u-margin-top-m"> Jetzt direkt zur Eingabe </a>
                     </div>
                 </div>
 
@@ -216,7 +216,7 @@ select[readonly] {
                     if (display) display.innerText = seconds;
                     if (seconds <= 0) {
                         clearInterval(timer);
-                        window.location.href = 'verify.php';
+                        window.location.href = 'verify';
                     }
                 }, 1000);
 
@@ -258,7 +258,7 @@ select[readonly] {
 
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"
-                              action="index.php"
+                              action="index"
                               class="u-flex u-gap-s u-align-end">
                             <div class="c-form-group"
                                  style="flex-grow: 1;">
@@ -278,7 +278,7 @@ select[readonly] {
                 <?php } ?>
 
                 <!-- HAUPT-FORMULAR -->
-                <form action="index.php"
+                <form action="index"
                       method="POST"
                       id="permitForm"
                       class="c-form">
@@ -505,7 +505,7 @@ select[readonly] {
                         <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Auswahl der Zahlungsart
                             erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
                         <div class="u-margin-top-m u-text-center">
-                            <a href="verify.php" class="u-text-small u-text-link" style="font-weight: 600;"> Ich habe bereits einen Bestätigungs-Code erhalten </a>
+                            <a href="verify" class="u-text-small u-text-link" style="font-weight: 600;"> Ich habe bereits einen Bestätigungs-Code erhalten </a>
                         </div>
                         <br>
                     <?php } ?>

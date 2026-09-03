@@ -41,7 +41,7 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
         if (!$this->auth->hasPermission('permits.print')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Drucken dieser Genehmigung.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         return $next($request);

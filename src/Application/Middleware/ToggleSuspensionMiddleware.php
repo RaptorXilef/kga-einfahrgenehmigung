@@ -47,7 +47,7 @@ final readonly class ToggleSuspensionMiddleware implements MiddlewareInterface
         if (!$this->auth->hasPermission('permits.suspend')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung zum Sperren.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         return $next($request);

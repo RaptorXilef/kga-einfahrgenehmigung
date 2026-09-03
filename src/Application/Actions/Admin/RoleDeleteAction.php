@@ -38,20 +38,20 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
         if ($id === '') {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Rollen-ID übermittelt.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         if ($id === 'admin') {
             $this->sessionManager->addFlash('error', 'Fehler: Die Admin-Rolle kann nicht gelöscht werden.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $roles = $this->roleRepository->loadAll();
         if (!isset($roles[$id])) {
             $this->sessionManager->addFlash('error', 'Fehler: Rolle nicht gefunden.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $roleName = $roles[$id]->name;
@@ -61,6 +61,6 @@ final readonly class RoleDeleteAction implements ActionInterface, RequiresPermis
         $this->auditLogger->log('ROLE_DELETE', "Rechte-Rolle '{$roleName}' (ID: {$id}) wurde gelöscht.");
         $this->sessionManager->addFlash('success', 'Rolle gelöscht. (Zugeordnete Benutzer fallen auf Standard-Rechte zurück).');
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

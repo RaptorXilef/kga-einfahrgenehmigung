@@ -41,6 +41,6 @@ final readonly class SystemClearCacheAction implements ActionInterface, Requires
         $this->auditLogger->log('SYSTEM_CACHE_CLEAR', 'Der System-Cache und Routen-Cache wurden manuell geleert.');
         $this->sessionManager->addFlash('success', 'Erfolg: Cache und Routen wurden erfolgreich geleert.');
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

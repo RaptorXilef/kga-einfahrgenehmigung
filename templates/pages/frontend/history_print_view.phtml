@@ -170,7 +170,7 @@ use App\Core\Entity\Permit;
         'holidayNotice' => $holidayNotice ?? '',
         'terminkalenderUrl' => $settings['terminkalender_url'],
         'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
-        'checkUrl' => $settings['base_url'] . 'check.php?code=' . $permit->code,
+        'checkUrl' => $settings['base_url'] . 'check?code=' . $permit->code,
         'config' => $config,
     ];
 

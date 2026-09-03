@@ -31,6 +31,6 @@ final readonly class AdminLogoutAction implements ActionInterface
         $this->auditLogger->log('LOGOUT', 'Abmeldung aus dem System.');
         $this->auth->logout();
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

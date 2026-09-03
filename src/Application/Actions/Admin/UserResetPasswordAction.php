@@ -41,7 +41,7 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $users = $this->userRepository->loadAll();
@@ -54,11 +54,11 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
             $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$u->username}' (ID: {$u->id}) manuell zurückgesetzt.");
             $this->sessionManager->addFlash('success', 'Passwort wurde zurückgesetzt.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

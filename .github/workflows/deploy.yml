@@ -1,4 +1,4 @@
-name: Deploy to LimaCity - twokinds.4lima.de
+name: Deploy to LimaCity - kgama.4lima.de
 
 on:
   workflow_dispatch:

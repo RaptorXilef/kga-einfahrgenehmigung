@@ -49,7 +49,7 @@ final readonly class SystemRestoreDataAction implements ActionInterface, Require
         if ($filename === '' || $target === '' || !\in_array($mode, [1, 2, 3], true)) {
             $this->sessionManager->addFlash('error', 'Ungültige Wiederherstellungs-Parameter.');
 
-            return new RedirectResponse('admin.php?focus=tab-backup');
+            return new RedirectResponse('admin?focus=tab-backup');
         }
 
         try {
@@ -65,6 +65,6 @@ final readonly class SystemRestoreDataAction implements ActionInterface, Require
             $this->sessionManager->addFlash('error', 'Fehler bei der Wiederherstellung: ' . $e->getMessage());
         }
 
-        return new RedirectResponse('admin.php?focus=tab-backup');
+        return new RedirectResponse('admin?focus=tab-backup');
     }
 }

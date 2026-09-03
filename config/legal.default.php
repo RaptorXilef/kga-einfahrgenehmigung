@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'agreements' => [
+    /*'agreements' => [
         'datenschutz' => [
             'label' => 'Ich willige in die Datenverarbeitung gemäß [Datenschutzerklärung] ein.',
             'link' => 'assets/documents/datenschutz.pdf',
@@ -25,7 +25,7 @@ return [
             'link' => null,
             'required' => false,
         ],
-    ],
+    ],*/
 
     'consent' => [
         'enabled' => true,

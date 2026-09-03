@@ -48,12 +48,12 @@ final readonly class SystemRunUpdateMigrationsAction implements ActionInterface,
                 $this->sessionManager->addFlash('success', 'Erfolg: Folgende Datenbank-Skripte wurden ausgeführt: ' . \implode(', ', $executed));
             }
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         } catch (Throwable $e) {
             \error_log('Manual Update Migration Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Fehler bei der Ausführung: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
     }
 }

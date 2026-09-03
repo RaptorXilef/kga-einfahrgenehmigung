@@ -43,7 +43,7 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         if ($this->voucherService->deleteVoucher($dto->identifier)) {
@@ -53,6 +53,6 @@ final readonly class VoucherDeleteAction implements ActionInterface, RequiresPer
             $this->sessionManager->addFlash('error', "Fehler: Gutschein '{$dto->identifier}' nicht gefunden.");
         }
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

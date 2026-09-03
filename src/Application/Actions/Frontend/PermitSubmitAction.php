@@ -60,7 +60,7 @@ final readonly class PermitSubmitAction implements ViewActionInterface
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('index');
         }
 
         // Wenn die Validierung klappt, speichern wir das formal saubere DTO
@@ -106,17 +106,17 @@ final readonly class PermitSubmitAction implements ViewActionInterface
                     'Genehmigung vor. Falls Sie den Status prüfen möchten, nutzen Sie bitte den Genehmigungs-"Verlauf".',
             );
 
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('index');
         } catch (InvalidArgumentException $exception) {
             // Validerungsmeldungen aus der Domain-Schicht (Value Objects) dem Nutzer anzeigen
             $this->sessionManager->addFlash('error', $exception->getMessage());
 
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('index');
         } catch (Throwable $exception) {
             \error_log('Permit Creation Error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString());
             $this->sessionManager->addFlash('error', 'Ein unerwarteter Systemfehler ist aufgetreten. Bitte versuchen Sie es erneut.');
 
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('index');
         }
     }
 }

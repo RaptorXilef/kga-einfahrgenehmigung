@@ -87,11 +87,11 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
             }
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
     }
 }

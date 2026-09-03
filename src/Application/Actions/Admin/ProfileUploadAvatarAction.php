@@ -39,7 +39,7 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('error', 'System-Accounts können nicht bearbeitet werden.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         try {
@@ -47,7 +47,7 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         }
 
         if ($this->imageStorage->uploadImage('user_images', $userId, $dto->file)) {
@@ -57,6 +57,6 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
             $this->sessionManager->addFlash('error', 'Fehler bei der Bildverarbeitung.');
         }
 
-        return new RedirectResponse('profile.php');
+        return new RedirectResponse('profile');
     }
 }

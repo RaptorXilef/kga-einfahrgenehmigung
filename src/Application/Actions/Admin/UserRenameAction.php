@@ -44,7 +44,7 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         try {
@@ -61,16 +61,16 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
                 $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
                 $this->sessionManager->addFlash('success', 'Login-Name aktualisiert.');
 
-                return new RedirectResponse('users.php');
+                return new RedirectResponse('users');
             }
 
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
     }
 }

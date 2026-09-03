@@ -64,7 +64,7 @@ final readonly class SendPermitMailListener
                 subject: "[{$permitCodeStr}] - {$zeitraum} - {$permit->getOwnerName()}",
                 template: 'board_notification',
                 data: [
-                    'adminLink' => $this->config->getBaseUrl() . "check.php?code={$permitCodeStr}&token={$token}",
+                    'adminLink' => $this->config->getBaseUrl() . "check?code={$permitCodeStr}&token={$token}",
                     'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
                     'email' => $permit->getOwnerEmail() ?: 'Keine angegeben',
                     'firma' => $permit->getCompany() ?? '',
@@ -126,7 +126,7 @@ final readonly class SendPermitMailListener
             'permit_a4_document',
             [
                 'bis_formatted' => $permit->getValidUntil()->format('d.m.Y'),
-                'checkUrl' => \urlencode($this->config->getBaseUrl() . 'check.php?code=' . $permitCodeStr),
+                'checkUrl' => \urlencode($this->config->getBaseUrl() . 'check?code=' . $permitCodeStr),
                 'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
                 'firma' => $permit->getCompany() ?? '',
                 'fullIdentifier' => $permitCodeStr,

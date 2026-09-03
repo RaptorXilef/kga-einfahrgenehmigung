@@ -44,7 +44,7 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         if ($this->permitService->toggleSuspension($dto->code, $dto->isSuspended, $dto->reason)) {
@@ -56,11 +56,11 @@ final readonly class PermitToggleSuspensionAction implements ActionInterface
 
             $this->sessionManager->addFlash('success', $msg);
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $this->sessionManager->addFlash('error', 'Fehler: Genehmigung nicht gefunden.');
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

@@ -59,7 +59,7 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
             if (!$cfg) {
                 $this->sessionManager->addFlash('error', "Fehler: Unbekannter Speicherbereich '$target'.");
 
-                return new RedirectResponse('admin.php?focus=tab-backup');
+                return new RedirectResponse('admin?focus=tab-backup');
             }
 
             $tableName = $cfg['table'];
@@ -68,7 +68,7 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
             if (!\in_array($tableName, $allowedTables, true)) {
                 $this->sessionManager->addFlash('error', 'Sicherheitsabbruch: Tabellenname nicht autorisiert.');
 
-                return new RedirectResponse('admin.php?focus=tab-backup');
+                return new RedirectResponse('admin?focus=tab-backup');
             }
 
             // 3. Tabelle restlos leeren
@@ -77,15 +77,15 @@ final readonly class SystemTruncateTargetAction implements ActionInterface, Requ
             $this->auditLogger->log('SYSTEM_TRUNCATE', "Sicherheitslöschung (TRUNCATE) durchgeführt. Tabelle: {$tableName}.");
             $this->sessionManager->addFlash('success', "Erfolg: Die Tabelle '{$tableName}' wurde restlos geleert. Ein Voll-Backup wurde vorab erstellt.");
 
-            return new RedirectResponse('admin.php?focus=tab-backup');
+            return new RedirectResponse('admin?focus=tab-backup');
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-backup');
+            return new RedirectResponse('admin?focus=tab-backup');
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', 'Fehler beim Leeren der Tabelle: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-backup');
+            return new RedirectResponse('admin?focus=tab-backup');
         }
     }
 }

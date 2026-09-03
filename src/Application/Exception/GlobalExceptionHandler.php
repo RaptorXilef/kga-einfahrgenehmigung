@@ -121,7 +121,7 @@ final readonly class GlobalExceptionHandler
     <div class="error-card">
         <h1>🛑 <?php echo $errorTitle; ?></h1>
         <p><?php echo $errorMessage; ?></p>
-        <a href="index.php" class="btn">Zur Startseite</a>
+        <a href="index" class="btn">Zur Startseite</a>
     </div>
 </body>
 </html>

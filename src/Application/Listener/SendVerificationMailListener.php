@@ -32,7 +32,7 @@ final readonly class SendVerificationMailListener
                 'code' => $event->shortCode,
                 'name' => (string) $event->data['name'],
                 'vereinsName' => $this->config->get('vereins_name'),
-                'verifyUrl' => $this->config->getBaseUrl() . 'verify.php?token=' . $event->token,
+                'verifyUrl' => $this->config->getBaseUrl() . 'verify?token=' . $event->token,
             ],
             null,
             100, // Hohe Priorität für Verifizierungen

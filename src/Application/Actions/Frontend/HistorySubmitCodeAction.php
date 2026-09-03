@@ -39,7 +39,7 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history.php?sent=1');
+            return new RedirectResponse('history?sent=1');
         }
 
         $verifiedEmail = $this->magicLinkService->verifyAny($dto->loginCode);
@@ -51,12 +51,12 @@ final readonly class HistorySubmitCodeAction implements ViewActionInterface
 
             $this->auditLogger->log('USER_HISTORY_LOGIN', "Pächter (Email: {$verifiedEmail}) hat sich im Genehmigungsverlauf eingeloggt.");
 
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history');
         }
 
         $this->rateLimiter->recordFailedAttempt($dto->ip);
         $this->sessionManager->addFlash('error', 'Der Code ist ungültig oder abgelaufen.');
 
-        return new RedirectResponse('history.php?sent=1');
+        return new RedirectResponse('history?sent=1');
     }
 }

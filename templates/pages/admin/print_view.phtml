@@ -172,18 +172,18 @@ use App\Core\Entity\Permit;
         'holidayNotice' => $holidayNotice ?? '',
         'terminkalenderUrl' => $settings['terminkalender_url'],
         'erstellt' => $permit->getCreatedAt()->format('d.m.Y H:i'),
-        'checkUrl' => $settings['base_url'] . 'check.php?code=' . $permit->code,
+        'checkUrl' => $settings['base_url'] . 'check?code=' . $permit->code,
         'config' => $config,
     ];
 
-    // Variablen in den lokalen Scope extrahieren
-    // TODO Prüfen ob lieber ohne EXTR_SKIP
-    \extract($data, \EXTR_SKIP);
+// Variablen in den lokalen Scope extrahieren
+// TODO Prüfen ob lieber ohne EXTR_SKIP
+\extract($data, \EXTR_SKIP);
 
-    // Das Sub-Template einbinden
-    include $appRoot . '/templates/emails/permit_a4_document.phtml';
-    // include $appRoot . '/templates/components/_footer.phtml';
-    ?>
+// Das Sub-Template einbinden
+include $appRoot . '/templates/emails/permit_a4_document.phtml';
+// include $appRoot . '/templates/components/_footer.phtml';
+?>
 </body>
 
 </html>

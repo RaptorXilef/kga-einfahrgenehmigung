@@ -53,7 +53,7 @@ final class RequireLoginMiddleware implements MiddlewareInterface
                 return null;
             }
 
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('index');
         }
 
         return $next($request);

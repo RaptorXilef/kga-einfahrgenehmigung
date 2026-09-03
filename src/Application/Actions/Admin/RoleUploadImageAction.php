@@ -47,7 +47,7 @@ final readonly class RoleUploadImageAction implements ActionInterface, RequiresP
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         if ($this->imageStorage->uploadImage('role_images', $dto->identifier, $dto->file)) {
@@ -57,6 +57,6 @@ final readonly class RoleUploadImageAction implements ActionInterface, RequiresP
             $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten des Bildes.');
         }
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

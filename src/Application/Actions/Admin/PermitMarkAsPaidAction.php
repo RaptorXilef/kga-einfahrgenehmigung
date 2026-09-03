@@ -53,7 +53,7 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
         if (empty($codes)) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Genehmigungen ausgewählt.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $successCount = 0;
@@ -80,6 +80,6 @@ final readonly class PermitMarkAsPaidAction implements ActionInterface, Requires
             $this->sessionManager->addFlash('error', 'Fehler: Keine der gewählten Genehmigungen konnte aktualisiert werden.');
         }
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

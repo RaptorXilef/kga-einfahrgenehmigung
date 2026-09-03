@@ -41,7 +41,7 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
         if (empty($codes)) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Genehmigungen ausgewählt.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $successCount = 0;
@@ -60,6 +60,6 @@ final readonly class PermitSendReminderAction implements ActionInterface, Requir
             $this->sessionManager->addFlash('warning', 'Keine Erinnerungen versendet (evtl. bereits bezahlt, Cooldown-Schutz aktiv oder gesperrt).');
         }
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

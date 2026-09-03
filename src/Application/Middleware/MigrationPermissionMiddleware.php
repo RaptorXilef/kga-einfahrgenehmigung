@@ -24,7 +24,7 @@ final readonly class MigrationPermissionMiddleware implements MiddlewareInterfac
         if (!$this->auth->hasPermission('system.maintenance.execute')) {
             $this->sessionManager->addFlash('error', 'Fehler: Keine Berechtigung für diese Migrations-Aktion.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         return $next($request);

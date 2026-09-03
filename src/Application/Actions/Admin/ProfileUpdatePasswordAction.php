@@ -37,7 +37,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('error', 'System-Accounts können nicht bearbeitet werden.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         try {
@@ -45,7 +45,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         }
 
         try {
@@ -63,16 +63,16 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
                 $this->auditLogger->log('PROFILE_PASSWORD_CHANGE', 'Eigenes Kennwort wurde geändert.');
                 $this->sessionManager->addFlash('success', 'Erfolg: Ihr Passwort wurde geändert.');
 
-                return new RedirectResponse('profile.php');
+                return new RedirectResponse('profile');
             }
 
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         }
     }
 }

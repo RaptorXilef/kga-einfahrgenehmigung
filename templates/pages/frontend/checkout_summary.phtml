@@ -175,7 +175,7 @@ function finalizeWire() {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                window.location.href = 'success.php?code=' + data.code + '&method=wire';
+                window.location.href = 'success?code=' + data.code + '&method=wire';
             } else {
                 alert('Fehler beim Abschluss: ' + data.error);
             }
@@ -232,7 +232,7 @@ function finalizeWire() {
                     })
                     .then(function(details) {
                         if (details.success) {
-                            window.location.href = 'success.php?code=' + appToken +
+                            window.location.href = 'success?code=' + appToken +
                                 '&method=paypal';
                         } else {
                             alert('Zahlungsverifizierung fehlgeschlagen: ' + details.error);

@@ -37,7 +37,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         if (\str_starts_with($userId, 'sys_')) {
             $this->sessionManager->addFlash('error', 'System-Accounts können nicht bearbeitet werden.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         try {
@@ -45,7 +45,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         }
 
         try {
@@ -63,16 +63,16 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
                 $this->auditLogger->log('PROFILE_USERNAME_CHANGE', "Eigenes Login/Anzeigename geändert (von '{$oldName}' zu '{$dto->newUsername}').");
                 $this->sessionManager->addFlash('success', 'Erfolg: Ihr Anzeigename wurde aktualisiert.');
 
-                return new RedirectResponse('profile.php');
+                return new RedirectResponse('profile');
             }
 
             $this->sessionManager->addFlash('error', 'Fehler: Benutzer nicht gefunden.');
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('profile.php');
+            return new RedirectResponse('profile');
         }
     }
 }

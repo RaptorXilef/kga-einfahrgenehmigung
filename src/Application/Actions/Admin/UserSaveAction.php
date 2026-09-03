@@ -49,7 +49,7 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         try {
@@ -79,11 +79,11 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             $this->auditLogger->log('USER_CREATE', "Neues Benutzerkonto '{$dto->username}' (ID: {$newId}, Rolle: {$roleName}) erstellt.");
             $this->sessionManager->addFlash('success', "Benutzer '{$dto->username}' erfolgreich erstellt.");
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
     }
 }

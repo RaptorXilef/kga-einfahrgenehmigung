@@ -50,7 +50,7 @@ final readonly class SuccessAction implements ViewActionInterface
 
         $permit = $this->storage->findByHash($code);
         if (!$permit instanceof Permit) {
-            return new RedirectResponse('index.php');
+            return new RedirectResponse('index');
         }
 
         $epcData = '';

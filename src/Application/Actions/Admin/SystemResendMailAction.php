@@ -42,7 +42,7 @@ final readonly class SystemResendMailAction implements ActionInterface
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $logs = $this->mailLog->loadLogs();
@@ -55,7 +55,7 @@ final readonly class SystemResendMailAction implements ActionInterface
             if ($log->data === []) {
                 $this->sessionManager->addFlash('error', 'Fehler: Alter Log-Eintrag (Keine Rohdaten für Neuversand vorhanden).');
 
-                return new RedirectResponse('admin.php');
+                return new RedirectResponse('admin');
             }
 
             $this->mailService->sendTemplate(
@@ -70,11 +70,11 @@ final readonly class SystemResendMailAction implements ActionInterface
             $this->auditLogger->log('SYSTEM_MAIL_RESEND', "E-Mail '{$log->subject}' an {$log->recipient} manuell erneut versendet.");
             $this->sessionManager->addFlash('success', "E-Mail an {$log->recipient} wurde erfolgreich erneut versendet.");
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $this->sessionManager->addFlash('error', 'Fehler: Log-Eintrag nicht gefunden.');
 
-        return new RedirectResponse('admin.php');
+        return new RedirectResponse('admin');
     }
 }

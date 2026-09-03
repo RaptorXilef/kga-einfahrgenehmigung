@@ -38,7 +38,7 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
         } catch (ValidationException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('users.php');
+            return new RedirectResponse('users');
         }
 
         if ($this->imageStorage->uploadImage('user_images', $dto->identifier, $dto->file)) {
@@ -48,6 +48,6 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
             $this->sessionManager->addFlash('error', 'Fehler beim Verarbeiten.');
         }
 
-        return new RedirectResponse('users.php');
+        return new RedirectResponse('users');
     }
 }

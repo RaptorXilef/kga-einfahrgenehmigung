@@ -57,7 +57,7 @@ final readonly class VoucherCreateAction implements ActionInterface, RequiresPer
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-tools');
+            return new RedirectResponse('admin?focus=tab-tools');
         }
 
         try {
@@ -80,14 +80,14 @@ final readonly class VoucherCreateAction implements ActionInterface, RequiresPer
             $this->sessionManager->addFlash('success', "Gutschein erstellt: <strong>$code</strong>");
 
             // Wenn erfolgreich, direkt zum Gutschein-Reiter springen
-            return new RedirectResponse('admin.php?focus=tab-vouchers');
+            return new RedirectResponse('admin?focus=tab-vouchers');
         } catch (Throwable $e) {
             $postData = $request->post;
             unset($postData['csrf_token']);
             $this->sessionManager->setFormData($postData);
             $this->sessionManager->addFlash('error', 'Fehler: ' . $e->getMessage());
 
-            return new RedirectResponse('admin.php?focus=tab-tools');
+            return new RedirectResponse('admin?focus=tab-tools');
         }
     }
 }

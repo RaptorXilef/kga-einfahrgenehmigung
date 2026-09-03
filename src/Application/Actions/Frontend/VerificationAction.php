@@ -55,26 +55,26 @@ final readonly class VerificationAction implements ViewActionInterface
             $this->rateLimiter->recordFailedAttempt($ip);
             $this->sessionManager->addFlash('error', 'Code ungültig oder abgelaufen.');
 
-            return new RedirectResponse('verify.php?error=1');
+            return new RedirectResponse('verify?error=1');
         }
 
         $this->rateLimiter->clearAttempts($ip);
 
         // Fall B: Antrag war kostenlos (oder 100% Gutschein) und wurde sofort aktiv
         if (isset($result['finalised']) && $result['finalised'] instanceof Permit) {
-            return new RedirectResponse('check.php?code=' . $result['finalised']->code->value . '&verified=1');
+            return new RedirectResponse('check?code=' . $result['finalised']->code->value . '&verified=1');
         }
 
         // Fall C: Antrag ist bestätigt und bereit zur Zahlung (Checkout)
         if (\is_array($result)) {
             $redirectToken = $result['actual_token'] ?? $token;
 
-            return new RedirectResponse('checkout.php?token=' . $redirectToken . '&verified=1');
+            return new RedirectResponse('checkout?token=' . $redirectToken . '&verified=1');
         }
 
         // Sicherheits-Fallback
         $this->sessionManager->addFlash('error', 'Fehler bei der Verifizierung.');
 
-        return new RedirectResponse('verify.php?error=1');
+        return new RedirectResponse('verify?error=1');
     }
 }

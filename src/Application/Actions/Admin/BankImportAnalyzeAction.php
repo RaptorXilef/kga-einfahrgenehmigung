@@ -37,14 +37,14 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         if (!$file || (isset($file['error']) && $file['error'] !== 0)) {
             $this->sessionManager->addFlash('error', 'Fehler beim Datei-Upload.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $tempPath = \sys_get_temp_dir() . '/kga_bank_' . \uniqid('', true) . '.csv';
         if (!\move_uploaded_file($file['tmp_name'], $tempPath)) {
             $this->sessionManager->addFlash('error', 'Datei konnte nicht verarbeitet werden.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         $analysis = $this->importService->analyzeCsv($tempPath);
@@ -53,7 +53,7 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         if (empty($headers)) {
             $this->sessionManager->addFlash('error', 'Die CSV-Datei ist leer oder konnte nicht gelesen werden.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         // Heuristik: Spalten automatisch erraten
@@ -92,7 +92,7 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
 
             $this->sessionManager->addFlash('success', 'CSV erfolgreich analysiert. Bitte bestätigen Sie die Spaltenzuordnung.');
 
-            return new RedirectResponse('admin.php');
+            return new RedirectResponse('admin');
         }
 
         // --- SIMPLE MODUS --- (Führt den Import direkt aus)
@@ -141,6 +141,6 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
         }
 
         // Springt nach dem automatischen Import direkt ins Finanz-Tab zurück
-        return new RedirectResponse('admin.php?focus=tab-finance');
+        return new RedirectResponse('admin?focus=tab-finance');
     }
 }

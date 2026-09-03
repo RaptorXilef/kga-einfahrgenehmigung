@@ -44,7 +44,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         try {
             $dto = SimpleCodeRequest::fromArray($request->get);
         } catch (ValidationException) {
-            return new RedirectResponse('history.php');
+            return new RedirectResponse('history');
         }
 
         $code = $dto->code;
@@ -67,6 +67,6 @@ final readonly class HistoryPrintAction implements ViewActionInterface
             return null;
         }
 
-        return new RedirectResponse('history.php');
+        return new RedirectResponse('history');
     }
 }
