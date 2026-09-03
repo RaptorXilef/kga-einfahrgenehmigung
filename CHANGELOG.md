@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.64.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.63.0...v0.64.0) (2026-09-03)
+
+### 🚀 Features
+
+* **admin:** Add manual trigger buttons for all system cronjobs ([7e9a7d7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e9a7d7bb601b20e82dcddeac2c726ae5b1c3751))
+* **frontend:** Add robust session timer, cancelled price column and email word-break ([56edd06](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/56edd06a3bf1809ba68b3e61170a66e97b351253))
+* **mail:** Implement priority queue system and fix frontend UX bugs ([dde938c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dde938ce56e338f173549bab9e7aac87694736f8))
+* **mail:** Implement priority queue system for email dispatch ([916c18d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/916c18dc7103e2d75a1b39324a18c0212d97f7dc))
+
+### 🐛 Bug Fixes
+
+* **admin:** Resolve 404 errors on form submissions by adding explicit action routes ([a78b959](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a78b959a8e1041964da5842912b4dfa33133a761))
+* **admin:** Resolve profile form actions, add floating refresh button, and fix date sync ([7964bea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7964bea8ba0b3ac238953a623cee658c4b31b016))
+* **app:** Remove Pseudo-Cron leftovers and implement immediate mail dispatch ([6a98351](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6a983513c0063b53934cccb4f5bd59942ef62468))
+* **core:** Correct log path for BankImportService and clarify cronjob usage ([000b63c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/000b63c3abc89fc2ffe195e6bf76c3cae0f19b92))
+* **core:** Resolve profile security loophole, table layout bugs and implement email aliasing ([a553f6b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a553f6b4074fdd5b1e04515cd19ab365e7d2e333))
+* **core:** Resolve TypeError in PermitFilterService by accessing TemplateKey value ([b0324c3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b0324c37b26e27cb05d429aa2983fcf6b48e1bc3))
+* **frontend:** Enforce fixed table layout and update payment status badge colors ([2c9990f](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2c9990f8d47dcce10ab735e8f570f49d2eea65de))
+* **frontend:** Resolve data prefill bug on edit and add admin refresh button ([c2d1401](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c2d14017b56fab47979f1fc3a573dcc4c49fdaa6))
+* **infrastructure:** Rename legacy group column to role_id in users table ([9898494](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9898494841ea89c2c765e6de106387c2bf802dda))
+* **mail:** implement global asynchronous mail queue trigger ([a918132](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a9181324a950d0b7b826959e23412441198f9915))
+* **mail:** Resolve silent crash in ProcessMailQueueAction caused by closure signature mismatch ([ba540b2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ba540b21369c5e206a0dd11a5617504025f4ae25))
+* **mail:** Resolve undefined sendMail method and fix SQL order clause ([eddd63d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/eddd63dbaa7e51406cd39b5cbe9b52e77a11842c))
+* **ui:** Resolve empty/white filter reset button in audit log tab ([3568fd8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3568fd8bf68c45dfd4f30ba8b55f3ef89e9023d7))
+* **ui:** Resolve missing favicon path in print views and fix state toggle bugs ([dae920c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dae920c5c0ffe101396039ee71184266a7c3b187))
+* **ui:** Resolve solid white box issue on floating refresh button icon ([38bd5f5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/38bd5f5e592ce7e3856c6e82e234cbf0f232d223))
+
+### ⚙️ Refactoring
+
+* **mail:** Remove synchronous mail dispatch workaround in favor of pure cron queue ([e2a4090](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e2a4090bfef6021fa7dc3a172ca00d68621ca6df))
+
 ## [0.63.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.62.0...v0.63.0) (2026-09-03)
 
 ### 🚀 Features
