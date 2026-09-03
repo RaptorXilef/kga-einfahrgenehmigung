@@ -41,7 +41,7 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
         }
 
         // --- TÜRSTEHER 2: Das File-Lock ---
-        // Verhindert Race-Conditions und Serverüberlastung durch parallele Aufrufe.
+        // Verhindert Race-Conditions und Serverüberlastung durch parallele Aufrufe via API/Cron.
         $lockFile = \sys_get_temp_dir() . '/kga_mail_queue.lock';
         $lockHandle = \fopen($lockFile, 'w+');
 
@@ -57,12 +57,16 @@ final readonly class ProcessMailQueueAction implements ViewActionInterface
             $limit = $isCron ? 20 : 3;
 
             $processed = $this->queue->processBatch($limit, function ($job) {
-                return $this->mailService->sendMail(
+                // FIX: Signatur an MailServiceInterface::sendTemplate anpassen!
+                $result = $this->mailService->sendTemplate(
                     $job->recipient,
                     $job->subject,
-                    $job->template,
-                    $job->payload,
+                    $job->template->value, // Enum in String wandeln
+                    $job->data,            // Eigenschaft heißt 'data', nicht 'payload'
+                    $job->replyTo,
                 );
+
+                return $result === true;
             });
 
             return JsonResponse::success([
