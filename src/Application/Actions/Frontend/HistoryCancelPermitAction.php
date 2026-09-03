@@ -52,7 +52,7 @@ final readonly class HistoryCancelPermitAction implements ViewActionInterface
         } catch (DomainException $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('history
+            return new RedirectResponse('history');
         }
     }
 }
