@@ -34,7 +34,8 @@ final readonly class PermitFilterService
             }
 
             if ($filterType !== 'all') {
-                $tplType = $permitTemplates[$permit->template_key]['type'] ?? 'standard';
+                // FIX: Expliziter Zugriff auf ->value, da $permit->template_key ein Objekt ist!
+                $tplType = $permitTemplates[$permit->template_key->value]['type'] ?? 'standard';
                 if ($tplType !== $filterType) {
                     return false;
                 }
