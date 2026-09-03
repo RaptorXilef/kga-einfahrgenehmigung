@@ -58,9 +58,9 @@ if ($auth->hasPermission('system.logs.view')) {
                         durch eingeloggte Nutzer.</p>
                 </div>
 
-                <!-- FIX: Explizite action URL hinzugefügt um 404 bei GET zu verhindern -->
+                <!-- FIX: action URL auf ? gesetzt, damit auf der aktuellen Seite geblieben wird -->
                 <form method="GET"
-                      action="<?php echo $settings['base_url']; ?>admin"
+                      action="?"
                       class="u-flex u-align-center u-gap-s"
                       style="margin: 0;">
                     <span class="u-text-small u-font-bold u-text-muted">FILTER:</span>
@@ -74,10 +74,11 @@ if ($auth->hasPermission('system.logs.view')) {
                         <?php } ?>
                     </select>
                     <?php if ($auditFilter !== '') { ?>
-                        <a href="admin"
+                        <!-- FIX: &times; Entität genutzt und explizit rot gestyled, damit das X immer sichtbar ist -->
+                        <a href="?"
                            class="c-button c-button--secondary"
-                           style="width: 34px; height: 34px;"
-                           title="Filter löschen">
+                           style="width: 34px; height: 34px; font-size: 1.4rem; font-weight: bold; color: var(--danger-color); text-decoration: none; line-height: 1;"
+                           title="Filter löschen">&times;
                         </a>
                     <?php } ?>
                 </form>
