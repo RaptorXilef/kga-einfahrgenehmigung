@@ -20,7 +20,7 @@ $crons = [
         'label' => 'Mail-Warteschlange abarbeiten',
         'desc' => 'Versendet zwischengespeicherte Mails (falls Queue-Limit im Web erreicht wird).',
         'url' => $baseUrl . '/api/process_mail_queue?token=' . $cronSecret,
-        'interval' => 'Alle 5 Minuten',
+        'interval' => 'Alle 1 - 5 Minuten',
         'icon' => '📧',
     ],
     [
@@ -199,7 +199,7 @@ $crons = [
                                        readonly
                                        value="<?php echo \htmlspecialchars($cron['url']); ?>"
                                        class="c-form-input u-text-small"
-                                       style="width: 450px; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
+                                       style="width: 400px; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
                                        onclick="this.select()">
                                 <button type="button"
                                         class="c-button c-button--secondary"
@@ -209,6 +209,13 @@ $crons = [
                                          class="c-icon"
                                          alt="">
                                 </button>
+                                <button type="button"
+                                        class="c-button c-button--primary"
+                                        style="width: auto; padding: 0 15px; font-size: 0.85rem; font-weight: 600;"
+                                        onclick="executeCron('<?php echo \htmlspecialchars($cron['url']); ?>')"
+                                        title="Jetzt manuell ausführen">
+                                    ▶ Ausführen
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -217,3 +224,37 @@ $crons = [
         </div>
     <?php } ?>
 </div>
+
+<script>
+function executeCron(url) {
+    if (!confirm('Möchten Sie diesen System-Task jetzt manuell ausführen? Dies kann einen Moment dauern.')) {
+        return;
+    }
+
+    // APIs verlangen zur Authentifizierung zwingend GET mit Token in der URL!
+    fetch(url, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(data => {
+            let msg = data.message || 'Ausführung abgeschlossen.';
+
+            // Zusätzliche Metriken anzeigen falls vorhanden
+            if (data.processed !== undefined) msg += '\nVerarbeitet: ' + data.processed;
+            if (data.sent_emails !== undefined) msg += '\nGesendet: ' + data.sent_emails;
+            if (data.archived !== undefined) msg += '\nArchiviert: ' + data.archived;
+            if (data.anonymized !== undefined) msg += '\nAnonymisiert: ' + data.anonymized;
+
+            if (data.success || data.status === 'ok') {
+                alert('✅ Erfolgreich:\n\n' + msg);
+            } else {
+                alert('❌ Fehler:\n\n' + (data.error || msg));
+            }
+        })
+        .catch(err => {
+            alert('❌ Netzwerk- oder Serverfehler bei der Ausführung. Bitte prüfen Sie die PHP Logs.');
+            console.error(err);
+        });
+}
+
+</script>
