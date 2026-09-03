@@ -141,9 +141,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php if ($auth->hasPermission('permits.create') || $auth->hasPermission('vouchers.create')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-tools">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-tools.webp'); ?>"
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-create-permit-voucher.webp'); ?>"
                              class="c-icon"
-                             alt="">Werkzeuge
+                             alt="">Ausstellung
                     </button>
                 <?php } ?>
 
