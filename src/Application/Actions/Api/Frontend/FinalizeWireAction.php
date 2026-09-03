@@ -15,7 +15,7 @@ use App\Core\Service\PermitService;
 use Throwable;
 
 /**
- * Action zum finalisieren eines Antrags via klassischer Banküberweisung.
+ * Action zum finalisieren eines Antrags via klassischer Banküberweisung oder Kostenlos-Abschluss.
  *
  * SPDX-License-Identifier: LicenseRef-Proprietary
  */
@@ -36,13 +36,24 @@ final readonly class FinalizeWireAction implements ViewActionInterface
         }
 
         try {
+            // FIX: Preis des Antrags prüfen, um intelligent den Status zu setzen
+            $tempRequest = $this->permitService->getVerifiedRequest($dto->identifier);
+            if ($tempRequest === null) {
+                return JsonResponse::error('Sitzung abgelaufen oder nicht gefunden.');
+            }
+
+            $price = (float) ($tempRequest['preis'] ?? 0.0);
+
+            // Wenn der Betrag 0 ist, ist die Genehmigung sofort bezahlt/gültig!
+            $targetStatus = $price <= 0.0 ? PermitStatus::Bezahlt : PermitStatus::Offen;
+            $comment = $price <= 0.0 ? 'Kostenlos / Gebührenfrei' : 'Zahlung per Überweisung gewählt';
+
             $permit = $this->permitService->finaliseRequest(
                 $dto->identifier,
-                PermitStatus::Offen,
-                'Zahlung per Überweisung gewählt',
+                $targetStatus,
+                $comment,
             );
 
-            // Explicitly extract the string value, otherwise json_encode transforms the VO into an object
             return JsonResponse::success(['code' => $permit->code->value]);
         } catch (Throwable $e) {
             return JsonResponse::error($e->getMessage());

@@ -20,7 +20,6 @@ final readonly class PermitCreateManualRequest
     ) {
     }
 
-    // TODO DOCBLOCK
     public static function fromArray(array $post): self
     {
         $sanitized = \array_map(fn ($value): mixed => \is_string($value) ? \trim(\strip_tags($value)) : $value, $post);
@@ -39,7 +38,11 @@ final readonly class PermitCreateManualRequest
             throw ValidationException::withMessage('Fehler: Der Preis darf nicht negativ sein.');
         }
 
-        $sanitized['manual_price'] = $preis; // Wichtig für PermitService
+        $sanitized['manual_price'] = $preis;
+
+        // Dynamisch vom UI: Checkbox "Sofort als Bezahlt markieren" prüfen
+        $isPaid = isset($post['mark_as_paid']);
+        $sanitized['status'] = $isPaid ? 'bezahlt' : 'offen';
 
         return new self(PermitFormData::fromArray($sanitized), isset($post['send_email']));
     }
