@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.65.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.65.0...v0.65.1) (2026-09-04)
+
+### 🐛 Bug Fixes
+
+* **storage:** Allow Check and Print actions to resolve archived and cancelled permits ([74f4e4c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/74f4e4cc11fe0b631a9b2ff796e2f3237b867534))
+
 ## [0.65.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.64.1...v0.65.0) (2026-09-03)
 
 ### 🚀 Features
