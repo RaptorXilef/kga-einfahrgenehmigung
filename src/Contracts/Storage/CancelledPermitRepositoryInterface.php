@@ -8,6 +8,8 @@ use App\Core\Entity\Permit;
 
 interface CancelledPermitRepositoryInterface
 {
+    public function findByHash(string $hash): ?Permit;
+
     public function saveCancelled(Permit $permit): void;
 
     public function isCodeCancelled(string $code): bool;

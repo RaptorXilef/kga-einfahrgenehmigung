@@ -13,10 +13,10 @@ use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
-use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Security\Sanitizer;
 use App\Core\Service\HolidayService;
+use App\Core\Service\PermitService;
 
 /**
  * TODO DOCBLOCK
@@ -29,8 +29,8 @@ final readonly class HistoryPrintAction implements ViewActionInterface
 {
     public function __construct(
         private HolidayService $holidayService,
+        private PermitService $permitService,
         private SessionManager $sessionManager,
-        private StorageInterface $storage,
         private TemplateRenderer $renderer,
     ) {
     }
@@ -50,7 +50,7 @@ final readonly class HistoryPrintAction implements ViewActionInterface
         $code = $dto->code;
         $emailInSession = (string) $this->sessionManager->getHistoryEmail();
 
-        $permit = $this->storage->findByHash($code);
+        $permit = $this->permitService->resolvePermit($code);
 
         // Vergleicht die E-Mails via Normalisierung (+ Aliase) für höchste Zuverlässigkeit
         if ($permit instanceof Permit && Sanitizer::normalizeEmail($permit->getOwnerEmail()) === Sanitizer::normalizeEmail($emailInSession)) {

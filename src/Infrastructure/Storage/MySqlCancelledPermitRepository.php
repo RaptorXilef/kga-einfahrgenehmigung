@@ -22,6 +22,29 @@ final readonly class MySqlCancelledPermitRepository implements CancelledPermitRe
     ) {
     }
 
+    public function findByHash(string $hash): ?Permit
+    {
+        $hash = \strtoupper(\trim($hash));
+        $table = $this->config->get('storage_config')['permits_cancelled']['table'];
+
+        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code = ?");
+        $stmt->execute([$hash]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            return $this->mapToEntity($row);
+        }
+
+        $searchParts = \explode('-', $hash);
+        $searchId = \end($searchParts);
+
+        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code LIKE ? OR code = ?");
+        $stmt->execute(['%-' . $searchId, $searchId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $this->mapToEntity($row) : null;
+    }
+
     public function saveCancelled(Permit $permit): void
     {
         $table = $this->config->get('storage_config')['permits_cancelled']['table'];

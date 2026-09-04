@@ -59,6 +59,28 @@ final readonly class PermitService
     ) {
     }
 
+    /**
+     * Löst einen Code schichtenübergreifend auf.
+     * Sucht chronologisch in Aktiv -> Archiv -> Storniert.
+     */
+    public function resolvePermit(string $code): ?Permit
+    {
+        // 1. Suche in aktiven Genehmigungen
+        $permit = $this->storage->findByHash($code);
+        if ($permit instanceof Permit) {
+            return $permit;
+        }
+
+        // 2. Suche im Archiv
+        $permit = $this->archiveRepository->findByHash($code);
+        if ($permit instanceof Permit) {
+            return $permit;
+        }
+
+        // 3. Suche in Stornierungen
+        return $this->cancelledRepository->findByHash($code);
+    }
+
     public function createPendingVerification(array $data): string
     {
         // 1. PlotNumber strikt instanziieren

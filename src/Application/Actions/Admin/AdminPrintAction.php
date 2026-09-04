@@ -13,12 +13,12 @@ use App\Application\Http\ServerRequest;
 use App\Application\View\HolidayHtmlPresenter;
 use App\Application\View\TemplateRenderer;
 use App\Contracts\Storage\RoleRepositoryInterface;
-use App\Contracts\Storage\StorageInterface;
 use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
+use App\Core\Service\PermitService;
 
 #[Route('GET', '/admin_print')]
 #[RequiresAuth]
@@ -29,7 +29,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
         private AuthService $auth,
         private RoleRepositoryInterface $roleRepository,
         private HolidayService $holidayService,
-        private StorageInterface $storage,
+        private PermitService $permitService,
         private TemplateRenderer $renderer,
         private UserRepositoryInterface $userRepository,
     ) {
@@ -44,7 +44,7 @@ final readonly class AdminPrintAction implements ViewActionInterface
         }
 
         $code = $dto->code;
-        $permit = $this->storage->findByHash($code);
+        $permit = $this->permitService->resolvePermit($code);
 
         if (!$permit instanceof Permit) {
             return null;

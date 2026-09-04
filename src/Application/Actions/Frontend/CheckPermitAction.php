@@ -19,6 +19,7 @@ use App\Contracts\Storage\UserRepositoryInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
 use App\Core\Service\HolidayService;
+use App\Core\Service\PermitService;
 use DateTimeImmutable;
 
 /**
@@ -33,6 +34,7 @@ final readonly class CheckPermitAction implements ViewActionInterface
         private ConfigInterface $config,
         private RoleRepositoryInterface $roleRepository,
         private HolidayService $holidayService,
+        private PermitService $permitService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
         private TemplateRenderer $renderer,
@@ -53,10 +55,10 @@ final readonly class CheckPermitAction implements ViewActionInterface
         $code = $dto->code;
         $now = new DateTimeImmutable();
 
-        // 1. Suche in echten Permits (zuerst via Code/Hash)
-        $permit = $this->storage->findByHash($code);
+        // 1. Suche in ALLEN Permits (Aktiv, Archiviert, Storniert)
+        $permit = $this->permitService->resolvePermit($code);
 
-        // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen
+        // Wenn über den Code nichts gefunden wurde, versuche es als Kennzeichen (hier macht nur die Live-Tabelle Sinn!)
         if (!$permit instanceof Permit) {
             $permit = $this->storage->findByLicensePlate($code);
         }

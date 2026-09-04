@@ -15,6 +15,15 @@ use App\Core\Entity\Permit;
 interface PermitArchiveRepositoryInterface
 {
     /**
+     * Sucht eine archivierte Genehmigung anhand ihres eindeutigen Hashes / Codes.
+     *
+     * @param string $hash Der Code der gesuchten Genehmigung.
+     *
+     * @return Permit|null Die gefundene Entität oder null bei Nichtexistenz.
+     */
+    public function findByHash(string $hash): ?Permit;
+
+    /**
      * Prüft, ob eine Genehmigung anhand ihres Codes bereits im Archiv existiert.
      *
      * @param string $code Der zu prüfende Code.

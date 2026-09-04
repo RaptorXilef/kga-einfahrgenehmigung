@@ -8,9 +8,9 @@ use App\Application\Contracts\MiddlewareInterface;
 use App\Application\Http\ServerRequest;
 use App\Application\Response\RedirectResponse;
 use App\Application\Session\SessionManager;
-use App\Contracts\Storage\StorageInterface;
 use App\Core\Entity\Permit;
 use App\Core\Service\AuthService;
+use App\Core\Service\PermitService;
 
 /**
  * Guard für die Druck-Berechtigung.
@@ -21,8 +21,8 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
 {
     public function __construct(
         private AuthService $auth,
+        private PermitService $permitService,
         private SessionManager $sessionManager,
-        private StorageInterface $storage,
     ) {
     }
 
@@ -33,7 +33,7 @@ final readonly class PrintAuthorizationMiddleware implements MiddlewareInterface
             return $next($request);
         }
 
-        $permit = $this->storage->findByHash($code);
+        $permit = $this->permitService->resolvePermit($code);
         if (!$permit instanceof Permit) {
             return $next($request);
         }

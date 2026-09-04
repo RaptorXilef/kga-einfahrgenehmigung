@@ -7,6 +7,7 @@ namespace App\Infrastructure\Storage;
 use App\Contracts\Config\ConfigInterface;
 use App\Contracts\Storage\PermitArchiveRepositoryInterface;
 use App\Contracts\System\JsonHelperInterface;
+use App\Core\Entity\Permit;
 use PDO;
 
 final readonly class MySqlPermitArchiveRepository implements PermitArchiveRepositoryInterface
@@ -19,6 +20,31 @@ final readonly class MySqlPermitArchiveRepository implements PermitArchiveReposi
         private ConfigInterface $config,
         private JsonHelperInterface $jsonHelper,
     ) {
+    }
+
+    public function findByHash(string $hash): ?Permit
+    {
+        $hash = \strtoupper(\trim($hash));
+        $table = $this->config->get('storage_config')['permits_archive']['table'];
+
+        // 1. Direkter Match
+        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code = ?");
+        $stmt->execute([$hash]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            return $this->mapToEntity($row);
+        }
+
+        // 2. Fallback: Suche nach der extrahierten ID am Ende des Codes (wie im Main Storage)
+        $searchParts = \explode('-', $hash);
+        $searchId = \end($searchParts);
+
+        $stmt = $this->pdo->prepare("SELECT * FROM `{$table}` WHERE code LIKE ? OR code = ?");
+        $stmt->execute(['%-' . $searchId, $searchId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ? $this->mapToEntity($row) : null;
     }
 
     public function isCodeInArchive(string $code): bool
