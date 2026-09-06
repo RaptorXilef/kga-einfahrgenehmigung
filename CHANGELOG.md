@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.67.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.0...v0.67.1) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* **frontend:** Fix cron execution bug and mitigate XSS risks ([c584db6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c584db6dc4d6433c37302e5170a66d87c8f44af5))
+* **frontend:** Harden API robustness, fix external dependencies and optimize battery usage ([d944092](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d944092b34a39ff2384db606c220b278e3a0da52))
+* **frontend:** Resolve linter bugs and harden localStorage access ([6bfb990](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6bfb99047718aea67369278e7d9b1f0575bd835f))
+* **frontend:** Resolve linter warnings and improve DOM performance ([f8a6fbd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f8a6fbd35fc0a63ee6a322e2392853fd61075f2b))
+* **frontend:** Resolve missing DOMPurify dependency and optimize memory management ([615de27](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/615de272072e1cc20d414df7344ac6de7ee67bf6))
+* **frontend:** Secure HTML injection and optimize table sorting ([9fd81eb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9fd81eb85897e51dcc2c4579007c963d21872826))
+
+### 📚 Dokumentation
+
+* **releases:** add user-friendly release notes markdown files for versions v0.2.0 to v0.67.0 ([818bf6b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/818bf6b0b558a0f664fe70eb9d9b80e50b02fbd0))
+
 ## [0.67.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.66.0...v0.67.0) (2026-09-06)
 
 ### 🚀 Features
