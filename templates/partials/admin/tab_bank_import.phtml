@@ -74,6 +74,14 @@ if (!$headersExist) {
                 <div class="c-alert c-alert--info u-margin-bottom-m">
                     CSV erfolgreich eingelesen! Bitte bestätigen Sie die Spaltenzuordnung anhand der Live-Vorschau.
                 </div>
+
+                <!-- JSON Daten Container für das BankImport.js Modul -->
+                <script type="application/json"
+                        id="bank-preview-data">
+                <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>
+
+                </script>
+
                 <form method="POST"
                       action="<?php echo $settings['base_url']; ?>bank_import_process"
                       class="c-form">
@@ -157,51 +165,3 @@ if (!$headersExist) {
         </div>
     </section>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Drag & Drop Funktionalität absichern
-    const zone = document.getElementById('csvDropzone');
-    const input = document.getElementById('bankCsvInput');
-    if (zone && input) {
-        zone.addEventListener('click', () => input.click());
-        zone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            zone.style.borderColor = 'var(--primary-color)';
-        });
-        zone.addEventListener('dragleave', () => {
-            zone.style.borderColor = 'var(--border-color)';
-        });
-        zone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (e.dataTransfer.files.length > 0) {
-                input.files = e.dataTransfer.files;
-                document.getElementById('bankCsvForm').submit();
-            }
-        });
-    }
-
-    // 2. Dynamische Live-Vorschau der selektierten Spaltenwerte
-    <?php if ($rowPreviewExist) { ?>
-        const rowData = <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>;
-
-        function updatePreview(selectElement) {
-            const selectedIndex = parseInt(selectElement.value);
-            const targetId = selectElement.getAttribute('data-preview-target');
-            const targetDisplay = document.getElementById(targetId);
-
-            if (targetDisplay) {
-                const value = (rowData[selectedIndex] !== undefined && rowData[selectedIndex] !== '') ?
-                    rowData[selectedIndex] :
-                    '[LEER]';
-                targetDisplay.innerText = value;
-            }
-        }
-
-        document.querySelectorAll('.js-bank-selector').forEach(select => {
-            select.addEventListener('change', (e) => updatePreview(e.target));
-            updatePreview(select); // Initiale Vorschau laden
-        });
-    <?php } ?>
-});
-
-</script>

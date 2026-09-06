@@ -22,8 +22,8 @@ use App\Infrastructure\Config\Config;
  * @var string $filterStart
  */
 
-// --- NEU: Monatliche Statistiken für den Chart berechnen ---
-$allPermitsForStats = $allPermits ?? []; // Nutzt nun die aus dem Controller übergebene Variable
+// --- Monatliche Statistiken für den Chart berechnen ---
+$allPermitsForStats = $allPermits ?? [];
 $monthlyStats = [];
 foreach ($allPermitsForStats as $permit) {
     $mKey = $permit->getCreatedAt()->format('m.Y'); // z.B. "05.2024" für schöne Anzeige
@@ -45,6 +45,16 @@ foreach ($allPermitsForStats as $permit) {
 $monthLabels = \array_keys($monthlyStats);
 $monthRevenue = \array_map(fn ($d) => $d['revenue'], $monthlyStats);
 $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
+
+// Payload für JS aufbereiten
+$chartDataPayload = [
+    'yearLabels' => \array_reverse(\array_keys($yearlyStats)),
+    'yearRevenue' => \array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats)),
+    'yearCounts' => \array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats)),
+    'monthLabels' => \array_values($monthLabels),
+    'monthRevenue' => \array_values($monthRevenue),
+    'monthCounts' => \array_values($monthCounts),
+];
 // -----------------------------------------------------------
 ?>
 
@@ -141,6 +151,13 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
         <?php } ?>
 
         <?php if ($auth->hasPermission('stats.charts') && $auth->hasPermission('privacy.finance.view')) { ?>
+            <!-- JSON Daten Container für das DashboardStats.js Modul -->
+            <script type="application/json"
+                    id="chart-data">
+            <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE); ?>
+
+            </script>
+
             <section class="c-card u-margin-bottom-l"
                      style="border-top-color: #6366f1;">
                 <details>
@@ -204,7 +221,6 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
                             </span>
                         </div>
                     </summary>
-                    <!-- [Kacheln für das Jahr bleiben unverändert...] -->
                     <div class="u-grid u-gap-m u-padding-around-m"
                          style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; margin-top: -5px;">
                         <div class="c-card u-margin-none"
@@ -294,10 +310,10 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
                 <a href="<?php echo $loadUrl; ?>"
                    class="c-button c-button--secondary"
                    style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
-                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                    class="c-icon"
-                    alt="">
-                &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                         class="c-icon"
+                         alt="">
+                    &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
                 </a>
             </div>
 
@@ -305,143 +321,5 @@ $monthCounts = \array_map(fn ($d) => $d['count'], $monthlyStats);
 
     </div>
 
-    <?php /* <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> */ ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const ctx = document.getElementById('yearlyStatsChart');
-        if (!ctx) return;
-
-        // --- Daten aus PHP generieren ---
-
-        // Paket 1: Jahresdaten (wie bisher)
-        const yearLabels = <?php echo \json_encode(\array_reverse(\array_keys($yearlyStats))); ?>;
-        const yearRevenue = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['paid'] + $d['unpaid'], $yearlyStats))); ?>;
-        const yearCounts = <?php echo \json_encode(\array_reverse(\array_map(fn ($d) => $d['count'], $yearlyStats))); ?>;
-
-        // Paket 2: Monatsdaten (NEU)
-        const monthLabels = <?php echo \json_encode(\array_values($monthLabels)); ?>;
-        const monthRevenue = <?php echo \json_encode(\array_values($monthRevenue)); ?>;
-        const monthCounts = <?php echo \json_encode(\array_values($monthCounts)); ?>;
-
-        // Chart initialisieren (Standardmäßig Monatlich)
-        let currentChart = new window.Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: monthLabels,
-                datasets: [{
-                        label: 'Umsatz Soll (€)',
-                        data: monthRevenue,
-                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                        borderColor: '#3498db',
-                        borderWidth: 2,
-                        borderRadius: 5,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Anzahl Genehmigungen',
-                        data: monthCounts,
-                        borderColor: '#6366f1',
-                        backgroundColor: '#6366f1',
-                        borderWidth: 3,
-                        type: 'line',
-                        tension: 0.3,
-                        pointRadius: 5,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.datasetIndex === 0) {
-                                    label += new window.Intl.NumberFormat('de-DE', {
-                                        style: 'currency',
-                                        currency: 'EUR'
-                                    }).format(context.raw);
-                                } else {
-                                    label += context.raw + ' Stück';
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        grid: {
-                            color: '#f1f5f9'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Euro (€)',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        grid: {
-                            drawOnChartArea: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Menge',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // --- Toggle Logik (Monatlich / Jährlich) ---
-        const btnMonth = document.getElementById('chartToggleMonth');
-        const btnYear = document.getElementById('chartToggleYear');
-
-        btnMonth.addEventListener('click', (e) => {
-            e.preventDefault();
-            // UI anpassen
-            btnMonth.classList.replace('c-button--secondary', 'c-button--primary');
-            btnYear.classList.replace('c-button--primary', 'c-button--secondary');
-
-            // Chart-Daten austauschen & updaten
-            currentChart.data.labels = monthLabels;
-            currentChart.data.datasets[0].data = monthRevenue;
-            currentChart.data.datasets[1].data = monthCounts;
-            currentChart.update();
-        });
-
-        btnYear.addEventListener('click', (e) => {
-            e.preventDefault();
-            // UI anpassen
-            btnYear.classList.replace('c-button--secondary', 'c-button--primary');
-            btnMonth.classList.replace('c-button--primary', 'c-button--secondary');
-
-            // Chart-Daten austauschen & updaten
-            currentChart.data.labels = yearLabels;
-            currentChart.data.datasets[0].data = yearRevenue;
-            currentChart.data.datasets[1].data = yearCounts;
-            currentChart.update();
-        });
-    });
-
-    </script>
 <?php } ?>
