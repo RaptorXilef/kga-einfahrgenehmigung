@@ -48,7 +48,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitFilterService $filterService,
         private PermitService $permitService,
-        private ReleaseNotesService $releaseNotesService, // <--- NEUER SERVICE
+        private ReleaseNotesService $releaseNotesService,
         private ReportingService $reportingService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
@@ -137,6 +137,8 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         // --- Release Notes Logik ---
         $unreadReleaseNotes = [];
+        $allReleaseNotes = $this->releaseNotesService->getAllNotes();
+
         $userId = $this->auth->getUserId();
         // Virtuelle Accounts (Backdoor) sehen den Dialog nicht dauerhaft
         if (!\str_starts_with($userId, 'sys_')) {
@@ -150,6 +152,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $this->renderer->render('admin/dashboard', [
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits' => $allHistoricalAndActive,
+            'allReleaseNotes' => $allReleaseNotes, // <--- NEU
             'auditFilter' => $auditFilter,
             'auditLogs' => $auditData['items'],
             'auditPage' => $auditPage,
@@ -172,7 +175,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'periodStats' => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
             'permitGroups' => $permitGroups,
             'structure' => $this->config->get('structure', []),
-            'unreadReleaseNotes' => $unreadReleaseNotes, // <--- Übergabe ans Frontend
+            'unreadReleaseNotes' => $unreadReleaseNotes,
             'userRepository' => $this->userRepository,
             'voucherArchive' => $this->voucherRepository->loadArchive(),
             'vouchers' => $vouchers,

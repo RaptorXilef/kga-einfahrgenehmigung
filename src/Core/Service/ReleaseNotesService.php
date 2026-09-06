@@ -18,12 +18,29 @@ final readonly class ReleaseNotesService
     }
 
     /**
-     * Liest alle Markdown-Dateien aus `/release_notes` und gibt jene zurück,
-     * die neuer sind als die vom Nutzer zuletzt bestätigte Version.
+     * Liest ALLE Markdown-Dateien aus `/release_notes` aus (für die Historie).
+     *
+     * @return array<int, array{version: string, content: string, clean_version: string}>
+     */
+    public function getAllNotes(): array
+    {
+        return $this->parseNotesFromDir(null);
+    }
+
+    /**
+     * Liest nur jene Dateien aus, die neuer sind als die vom Nutzer zuletzt bestätigte Version.
      *
      * @return array<int, array{version: string, content: string, clean_version: string}>
      */
     public function getUnreadNotes(string $lastSeenVersion): array
+    {
+        return $this->parseNotesFromDir($lastSeenVersion);
+    }
+
+    /**
+     * Private Kern-Logik für das Einlesen und Vergleichen.
+     */
+    private function parseNotesFromDir(?string $lastSeenVersion): array
     {
         $dir = \rtrim((string) $this->config->get('root_path'), '/\\') . '/release_notes';
         if (!\is_dir($dir)) {
@@ -36,14 +53,14 @@ final readonly class ReleaseNotesService
         }
 
         $notes = [];
-        $cleanUserVer = \ltrim($lastSeenVersion, 'vV');
+        $cleanUserVer = $lastSeenVersion !== null ? \ltrim($lastSeenVersion, 'vV') : null;
 
         foreach ($files as $file) {
             $ver = \basename($file, '.md');
             $cleanFileVer = \ltrim($ver, 'vV');
 
-            // Wenn die Datei-Version neuer ist als die vom Nutzer bestätigte Version
-            if (\version_compare($cleanFileVer, $cleanUserVer, '>')) {
+            // Wenn kein Limit gesetzt ist (alle laden) ODER die Datei neuer ist
+            if ($cleanUserVer === null || \version_compare($cleanFileVer, $cleanUserVer, '>')) {
                 $notes[] = [
                     'version' => $ver,
                     'content' => \file_get_contents($file) ?: '',

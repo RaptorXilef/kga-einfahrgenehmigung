@@ -28,6 +28,7 @@ use App\Core\Service\VoucherService;
  * @var array<string, array<string, mixed>> $yearlyStats Historische Jahres-Statistiken (Umsatz, Fahrzeugtypen).
  * @var array<string, mixed> $periodStats Detaillierte Umsatz- & Plot-Statistiken des Filterzeitraums.
  * @var array $unreadReleaseNotes Die vom User ungelesenen Markdown Release-Notes.
+ * @var array $allReleaseNotes Alle Markdown Release-Notes.
  * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis.
  * @var string $filterEnd Aktives Filter-Enddatum (Y-m-d).
  * @var string $filterStart Aktives Filter-Startdatum (Y-m-d).
@@ -52,8 +53,17 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         </div>
     <?php } ?>
 
-    <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
-        <h1 class="u-margin-none">Dashboard & Statistiken</h1>
+    <!-- NEU: Das Dashboard Header Layout hat nun Platz für den manuellen What's New Button -->
+    <div class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
+        <h1 class="u-margin-none"
+            style="text-align: left;">Dashboard & Statistiken</h1>
+        <?php if (!empty($allReleaseNotes)) { ?>
+            <button type="button"
+                    class="c-button c-button--secondary js-show-all-release-notes"
+                    style="width: auto; padding: 0 15px; height: 38px; font-size: 0.85rem; font-weight: 700; border-radius: 20px; color: var(--primary-color); border-color: var(--primary-soft); background: #fff; margin: 0;">
+                🎁 Was ist neu?
+            </button>
+        <?php } ?>
     </div>
 
     <?php if ($auth->hasPermission('permits.view')) { ?>
@@ -283,27 +293,24 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </div>
 </main>
 
-<!-- RELEASE NOTES MODAL (Gesteuert durch ReleaseNotes.js ESM) -->
-<?php if (!empty($unreadReleaseNotes)) {
-    $latestVersion = $unreadReleaseNotes[0]['version'];
-    ?>
+<!-- RELEASE NOTES MODAL BASE (Gesteuert durch ReleaseNotes.js) -->
+<?php if (!empty($allReleaseNotes)) { ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/10.0.0/marked.min.js"></script>
 
     <div id="release-notes-modal"
-         style="position: fixed; inset: 0; background: rgba(15,23,42,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 20px;">
+         style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 20px;">
         <div class="c-card"
              style="width: 100%; max-width: 950px; max-height: 85vh; display: flex; flex-direction: column; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-flex u-justify-between u-align-center"
                     style="background: #f8fafc; padding: 15px 20px;">
-                <h3 class="u-margin-none u-flex u-align-center u-gap-s">
+                <h3 class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
                     🚀 Neu seit Ihrem letzten Login
                 </h3>
                 <div class="u-flex u-align-center u-gap-s">
-                    <span class="c-badge c-badge--success" style="padding: 6px 12px; font-size: 0.8rem;">Updates verfügbar</span>
+                    <span class="c-badge c-badge--success js-release-notes-badge" style="padding: 6px 12px; font-size: 0.8rem; display: none;">Updates verfügbar</span>
                     <button type="button"
                             class="c-button c-button--danger js-close-release-notes"
-                            data-version="<?php echo \htmlspecialchars($latestVersion); ?>"
                             style="width: 32px; height: 32px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; line-height: 1;"
                             title="Schließen & Gelesen">
                         &times;
@@ -318,7 +325,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     style="background: #f8fafc;">
                 <button type="button"
                         class="c-button c-button--primary u-width-100 js-close-release-notes"
-                        data-version="<?php echo \htmlspecialchars($latestVersion); ?>"
                         style="padding: 14px; max-width: 400px; font-size: 1.05rem;">
                     ✓ Alles klar, verstanden!
                 </button>
@@ -327,8 +333,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </div>
 
     <script type="application/json"
-            id="release-notes-data">
+            id="release-notes-unread-data">
     <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE); ?>
+
+    </script>
+    <script type="application/json"
+            id="release-notes-all-data">
+    <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE); ?>
 
     </script>
 <?php } ?>
