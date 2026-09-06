@@ -5,11 +5,15 @@ import { notifier } from '../core/Notifier.js';
  * Modulares Management des Antragsformulars (Frontend & Admin).
  * Übernimmt dynamische Sichtbarkeiten, API-Preis-Berechnung, Feiertagsprüfung
  * und Datums-Synchronisation (Start-/Enddatum).
- * Scope-basiert: Kann mehrfach pro Seite (z.B. Admin-Tools) instanziiert werden.
+ * Scope-basiert: Kann mehrfach pro Seite instanziiert werden.
  */
 export class PermitForm {
     constructor(container) {
         this.container = container;
+
+        // Async Request Guards (Race Condition Protection)
+        this.dateFetchId = 0;
+        this.priceFetchId = 0;
 
         // Formularfelder dynamisch aus dem Container fischen (Unterstützt Frontend & Admin)
         this.tplSelect = this.container.querySelector('[name="template_key"]');
@@ -255,10 +259,16 @@ export class PermitForm {
     async fetchDateInfo() {
         if (!this.vonInput || !this.bisInput || !this.openingEl) return;
 
+        // FIX: Race Condition Guard. Zähler erhöhen und aktuellen Wert sichern
+        const currentFetchId = ++this.dateFetchId;
+
         const res = await api.post('api/get_date_info', {
             von: this.vonInput.value,
             bis: this.bisInput.value,
         });
+
+        // FIX: Wenn der Request veraltet ist (weil in der Zwischenzeit ein neuer gestartet wurde), abbruch!
+        if (currentFetchId !== this.dateFetchId) return;
 
         if (res.success) {
             // FIX: "Fail-Safe" statt "Fail-Open". Wenn DOMPurify fehlt, blockieren wir HTML.
@@ -288,11 +298,17 @@ export class PermitForm {
 
         const voucherCode = this.voucherInput ? this.voucherInput.value : '';
 
+        // FIX: Race Condition Guard
+        const currentFetchId = ++this.priceFetchId;
+
         const res = await api.post('api/get_template_price', {
             key: this.tplSelect.value,
             typ: this.typSelect.value,
             voucher: voucherCode,
         });
+
+        // FIX: Stale Request ignorieren
+        if (currentFetchId !== this.priceFetchId) return;
 
         if (res.success) {
             // FIX: "Fail-Safe" Sicherheitsmechanismus

@@ -32,6 +32,9 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/partials/frontend/base_styles.phtml'; ?>
 
+    <!-- FIX: DOMPurify global für Fail-Safe in Formularen laden -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
     <script>
     window.KGA_CONFIG = {
         baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',

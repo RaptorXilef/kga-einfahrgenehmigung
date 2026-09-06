@@ -13,6 +13,7 @@ export class DragDropZone {
         this.isPreviewOnly = this.zone.classList.contains('js-preview-only');
         // Steuert, ob nach einem Preview direkt abgesendet werden soll
         this.isAutoSubmit = this.zone.classList.contains('js-auto-submit');
+        this.currentPreviewUrl = null; // Speicher-Referenz für Garbage Collection
 
         if (this.input) {
             this.init();
@@ -35,7 +36,7 @@ export class DragDropZone {
         // Visuelles Feedback beim Drüberziehen
         ['dragenter', 'dragover'].forEach((eventName) => {
             this.zone.addEventListener(
-                eventName,
+                'dragover',
                 () => this.zone.classList.add('is-dragover'),
                 false
             );
@@ -81,33 +82,36 @@ export class DragDropZone {
         }
 
         if (this.isPreviewOnly) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = this.zone.querySelector('.js-preview-img');
-                const txt = this.zone.querySelector('.js-preview-text');
+            const img = this.zone.querySelector('.js-preview-img');
+            const txt = this.zone.querySelector('.js-preview-text');
 
-                if (img && file.type.startsWith('image/')) {
-                    img.src = e.target.result;
-                    img.classList.remove('u-hidden');
+            if (img && file.type.startsWith('image/')) {
+                // FIX: Alte URL aus Speicher löschen (Garbage Collection)
+                if (this.currentPreviewUrl) {
+                    URL.revokeObjectURL(this.currentPreviewUrl);
                 }
-                if (txt) {
-                    // Für Dateien wie CSVs ändern wir einfach den Text
-                    txt.innerText = `Ausgewählt: ${file.name}`;
-                    txt.style.fontSize = '1.2rem';
-                    txt.style.opacity = '1';
-                    txt.style.color = 'var(--primary-color)';
-                }
+                // FIX: Performante ObjectURL statt Thread-blockierendem Base64 Reader nutzen
+                this.currentPreviewUrl = URL.createObjectURL(file);
+                img.src = this.currentPreviewUrl;
+                img.classList.remove('u-hidden');
+            }
 
-                // Wenn es eine Auto-Submit Zone ist (z.B. Bank CSV), direkt hochladen!
-                if (this.isAutoSubmit && this.form) {
-                    if (typeof this.form.requestSubmit === 'function') {
-                        this.form.requestSubmit();
-                    } else {
-                        this.form.submit();
-                    }
+            if (txt) {
+                // Für Dateien wie CSVs ändern wir einfach den Text
+                txt.innerText = `Ausgewählt: ${file.name}`;
+                txt.style.fontSize = '1.2rem';
+                txt.style.opacity = '1';
+                txt.style.color = 'var(--primary-color)';
+            }
+
+            // Wenn es eine Auto-Submit Zone ist (z.B. Bank CSV), direkt hochladen!
+            if (this.isAutoSubmit && this.form) {
+                if (typeof this.form.requestSubmit === 'function') {
+                    this.form.requestSubmit();
+                } else {
+                    this.form.submit();
                 }
-            };
-            reader.readAsDataURL(file);
+            }
 
             // Direktes Speichern (Klassischer Avatar-Upload in Profil/Benutzer)
         } else if (this.form) {
