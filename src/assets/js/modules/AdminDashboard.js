@@ -53,6 +53,10 @@ export class AdminDashboard {
             if (suspendBtn) {
                 e.preventDefault();
                 const code = suspendBtn.dataset.code;
+
+                // Architektonische Notiz: prompt() blockiert den Main-Thread.
+                // Für diese kritische Admin-Aktion (Sperren) ist das beabsichtigt,
+                // um weitere Interaktionen zu verhindern, bis der Admin entschieden hat.
                 const reason = prompt(`Grund für die Sperre von ${code}?`);
 
                 if (reason && reason.trim() !== '') {

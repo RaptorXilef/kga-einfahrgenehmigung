@@ -16,17 +16,20 @@ class NotifierService {
         const toast = document.createElement('div');
         toast.className = 'c-toast';
 
-        // Styling je nach Typ
-        if (type === 'success') {
-            toast.style.background = '#10b981'; // Grün
-            toast.innerHTML = `<img src="${this.baseUrl}assets/img/icons/status-success.webp" class="c-icon" style="width:16px; filter: brightness(0) invert(1);"> ${message}`;
-        } else if (type === 'error') {
-            toast.style.background = '#e11d48'; // Rot
-            toast.innerHTML = `<img src="${this.baseUrl}assets/img/icons/status-denied.webp" class="c-icon" style="width:16px; filter: brightness(0) invert(1);"> ${message}`;
+        // HTML-Gerüst ohne die eigentliche Message
+        const iconName = type === 'success' ? 'status-success.webp' : 'status-denied.webp';
+        const bgColor = type === 'success' ? '#10b981' : type === 'error' ? '#e11d48' : '#1e293b';
+
+        toast.style.background = bgColor;
+
+        if (type === 'success' || type === 'error') {
+            toast.innerHTML = `<img src="${this.baseUrl}assets/img/icons/${iconName}" class="c-icon" style="width:16px; filter: brightness(0) invert(1);"> <span class="js-toast-msg"></span>`;
         } else {
-            toast.style.background = '#1e293b'; // Standard Dark
-            toast.innerHTML = message;
+            toast.innerHTML = `<span class="js-toast-msg"></span>`;
         }
+
+        // Sicheres Einfügen der Nachricht als Text!
+        toast.querySelector('.js-toast-msg').textContent = message;
 
         document.body.appendChild(toast);
 

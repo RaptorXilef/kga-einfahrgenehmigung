@@ -1,3 +1,5 @@
+import { notifier } from '../core/Notifier.js';
+
 /**
  * Modul zur Ausführung manueller System-Tasks (Cronjobs).
  * Ersetzt die alte executeCron() Inline-Funktion in tab_system.phtml.
@@ -20,6 +22,8 @@ export class SystemTools {
     }
 
     async executeCron(url) {
+        // Das confirm() lassen wir bewusst stehen, da es kritische Aktionen
+        // sicher blockiert, bis der Nutzer zustimmt.
         if (
             !confirm(
                 'Möchten Sie diesen System-Task jetzt manuell ausführen? Dies kann einen Moment dauern.'
@@ -42,13 +46,14 @@ export class SystemTools {
             if (data.anonymized !== undefined) msg += '\nAnonymisiert: ' + data.anonymized;
 
             if (data.success || data.status === 'ok') {
-                alert(`✅ Erfolgreich:\n\n${msg}`);
+                notifier.show(`Erfolgreich:\n\n${msg}`, 'success');
             } else {
-                alert(`❌ Fehler:\n\n${data.error || msg}`);
+                notifier.show(`Fehler:\n\n${data.error || msg}`, 'error');
             }
         } catch (err) {
-            alert(
-                '❌ Netzwerk- oder Serverfehler bei der Ausführung. Bitte prüfen Sie die PHP Logs.'
+            notifier.show(
+                'Netzwerk- oder Serverfehler bei der Ausführung. Bitte prüfen Sie die PHP Logs.',
+                'error'
             );
             console.error('[SystemTools]', err);
         }
