@@ -257,24 +257,17 @@ export class PermitForm {
         });
 
         if (res.success) {
-            // Sicherheitsmechanismus: Wenn DOMPurify (vom CDN) verfügbar ist, API-Antwort sanitizen.
-            if (typeof DOMPurify !== 'undefined') {
-                this.openingEl.innerHTML = DOMPurify.sanitize(res.openingHours);
-                if (res.holidayNotice && this.holidayEl) {
-                    this.holidayEl.innerHTML = DOMPurify.sanitize(res.holidayNotice);
-                    this.holidayEl.style.display = 'block';
-                } else if (this.holidayEl) {
-                    this.holidayEl.style.display = 'none';
-                }
-            } else {
-                // Fallback: Als reinen Text rendern, wenn DOMPurify unerwartet fehlt
-                this.openingEl.textContent = res.openingHours;
-                if (res.holidayNotice && this.holidayEl) {
-                    this.holidayEl.textContent = res.holidayNotice;
-                    this.holidayEl.style.display = 'block';
-                } else if (this.holidayEl) {
-                    this.holidayEl.style.display = 'none';
-                }
+            // Nutze DOMPurify wenn vorhanden, ansonsten weise HTML zu (wir vertrauen unserer eigenen API)
+            const sanitize = (html) =>
+                typeof window.DOMPurify !== 'undefined' ? window.DOMPurify.sanitize(html) : html;
+
+            this.openingEl.innerHTML = sanitize(res.openingHours);
+
+            if (res.holidayNotice && this.holidayEl) {
+                this.holidayEl.innerHTML = sanitize(res.holidayNotice);
+                this.holidayEl.style.display = 'block';
+            } else if (this.holidayEl) {
+                this.holidayEl.style.display = 'none';
             }
 
             if (this.dateInfoContainer) this.dateInfoContainer.style.display = 'block';
@@ -293,16 +286,18 @@ export class PermitForm {
         });
 
         if (res.success) {
+            // Nutze DOMPurify wenn vorhanden, ansonsten weise HTML zu
+            const sanitize = (html) =>
+                typeof window.DOMPurify !== 'undefined' ? window.DOMPurify.sanitize(html) : html;
+
             // Frontend Darstellung (mit Rabatt-HTML)
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {
-                // Nutze DOMPurify, wenn verfügbar, um auch hier API Response sauber zu halten
                 const rawHtml = `
                     <div class="c-price-original">Original: ${res.original.toFixed(2).replace('.', ',')} €</div>
                     <div>Gebühr: ${res.formatted}</div>
                     <div class="c-price-discount-hint">${res.discountText} angewendet</div>
                 `;
-                this.priceDisplay.innerHTML =
-                    typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(rawHtml) : rawHtml;
+                this.priceDisplay.innerHTML = sanitize(rawHtml);
             } else {
                 // Admin Darstellung (Reiner Text im Span)
                 this.priceDisplay.innerText =

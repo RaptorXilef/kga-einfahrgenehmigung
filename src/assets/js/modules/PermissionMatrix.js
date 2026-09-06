@@ -1,7 +1,7 @@
 /**
  * Logik-Controller für die Rechteverwaltung (Rollen & Permissions).
  * Kapselt das UI-Toggle, den Master-Switch (Gott-Modus) und die
- * Top-Down/Bottom-Up Auswahl des Rechte-Baumes.
+ * robuste Top-Down/Bottom-Up Auswahl des Rechte-Baumes.
  */
 export class PermissionMatrix {
     constructor(container) {
@@ -20,9 +20,8 @@ export class PermissionMatrix {
         // B. Initialen Zustand der Matrizen (Master/Locks) berechnen
         const permissionContainers = this.container.querySelectorAll('.permission-container');
         permissionContainers.forEach((wrapper) => {
-            const masterCb = wrapper.querySelector('input[data-master-toggle]');
+            const masterCb = wrapper.querySelector('input[data-master-toggle="true"]');
             if (masterCb) this.applyMasterState(wrapper, masterCb.checked);
-            this.refreshTreeVisually(wrapper);
         });
 
         // C. Event-Delegation für Checkboxen
@@ -33,13 +32,13 @@ export class PermissionMatrix {
             }
 
             // 2. MASTER TOGGLE (Gott Modus)
-            if (e.target.dataset.masterToggle) {
+            if (e.target.matches('[data-master-toggle="true"]')) {
                 this.applyMasterState(e.target.closest('.permission-container'), e.target.checked);
             }
 
-            // 3. SMART TREE Logik (Einzelne Rechte)
-            if (e.target.dataset.permCheck) {
-                this.handleTreeLogic(e.target);
+            // 3. SMART TREE Logik (Einzelne Rechte - TwoKinds-Style)
+            if (e.target.matches('[data-perm-check="true"]')) {
+                this.handlePermissionChange(e.target);
             }
         });
 
@@ -56,83 +55,118 @@ export class PermissionMatrix {
         localStorage.setItem('pref_perm_ui_mode', mode);
     }
 
-    applyMasterState(wrapper, isMaster) {
-        const treeWrapper = wrapper.querySelector('.p-tree-wrapper');
+    applyMasterState(container, isMaster) {
+        const treeWrapper = container.querySelector('.p-tree-wrapper');
         if (!treeWrapper) return;
 
         if (isMaster) {
             treeWrapper.classList.add('is-master-active');
-            treeWrapper.querySelectorAll('input[data-perm-check]').forEach((cb) => {
+            treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
                 cb.disabled = true;
-                if (cb.parentElement) {
-                    cb.parentElement.style.opacity = '0.5';
-                    cb.parentElement.style.pointerEvents = 'none';
-                }
+                if (cb.parentElement) cb.parentElement.style.pointerEvents = 'none';
             });
         } else {
             treeWrapper.classList.remove('is-master-active');
-            treeWrapper.querySelectorAll('input[data-perm-check]').forEach((cb) => {
+            treeWrapper.querySelectorAll('input[data-perm-check="true"]').forEach((cb) => {
                 cb.disabled = false;
-                if (cb.parentElement) {
-                    cb.parentElement.style.opacity = '1';
-                    cb.parentElement.style.pointerEvents = 'auto';
-                }
+                if (cb.parentElement) cb.parentElement.style.pointerEvents = 'auto';
             });
         }
     }
 
-    refreshTreeVisually(wrapper) {
-        const nodes = wrapper.querySelectorAll('.p-tree-node');
-        nodes.forEach((node) => {
-            const key = node.dataset.key;
-            if (!key) return;
-
-            const parentNode = node.parentElement.closest('.p-tree-node');
-            if (parentNode) {
-                const parentCheckbox = parentNode.querySelector(
-                    ':scope > .p-item input[data-perm-check]'
-                );
-                if (parentCheckbox && !parentCheckbox.checked) {
-                    node.classList.add('is-locked');
-                } else {
-                    node.classList.remove('is-locked');
-                }
-            }
-        });
+    /**
+     * Hilfsmethode für kurzes visuelles Feedback (Grün für An, Rot für Aus)
+     */
+    triggerHighlight(element, isActive) {
+        if (!element) return;
+        const className = isActive ? 'is-auto-active' : 'is-auto-inactive';
+        element.classList.add(className);
+        setTimeout(() => element.classList.remove(className), 800);
     }
 
-    handleTreeLogic(checkbox) {
-        const wrapper = checkbox.closest('.permission-container');
+    // --- DOM TRAVERSAL HELPER (Kugelsicher) ---
 
-        if (checkbox.checked) {
-            // Bottom-Up Aktivierung: Väter aktivieren, wenn Kind aktiviert wird
-            let parentNode = checkbox.closest('.p-tree-node').parentElement.closest('.p-tree-node');
-            while (parentNode) {
-                const parentCheckbox = parentNode.querySelector(
-                    ':scope > .p-item input[data-perm-check]'
-                );
-                if (parentCheckbox && !parentCheckbox.checked) {
-                    parentCheckbox.checked = true;
+    /**
+     * 1. Holt die exakte Checkbox für einen spezifischen Baumknoten (nur 1. Ebene)
+     */
+    getNodeCheckbox(node) {
+        if (!node) return null;
+        const pItem = Array.from(node.children).find((el) => el.classList.contains('p-item'));
+        return pItem ? pItem.querySelector('input[data-perm-check="true"]') : null;
+    }
 
-                    const pItem = parentCheckbox.closest('.p-item');
-                    if (pItem) {
-                        pItem.classList.add('is-auto-active');
-                        setTimeout(() => pItem.classList.remove('is-auto-active'), 1000);
+    /**
+     * 2. Holt STRENG nur die direkten logischen Kinder-Checkboxen eines Knotens.
+     * Überspringt Kategorie-Knoten ohne eigene Checkbox intelligent.
+     */
+    getAllLogicalChildrenCheckboxes(parentNode) {
+        let cbs = [];
+
+        // Strenger Filter: Nur direkte HTML-Kinder (.p-tree-node), keine tieferen Suchen im DOM!
+        const directChildNodes = Array.from(parentNode.children).filter((child) =>
+            child.classList.contains('p-tree-node')
+        );
+
+        directChildNodes.forEach((childNode) => {
+            const cb = this.getNodeCheckbox(childNode);
+            if (cb) {
+                cbs.push(cb);
+            } else {
+                // Kategorie-Knoten (z.B. "System" ohne Checkbox) -> Wir holen dessen logische Kinder
+                cbs = cbs.concat(this.getAllLogicalChildrenCheckboxes(childNode));
+            }
+        });
+        return cbs;
+    }
+
+    /**
+     * 3. Bottom-Up: Klettert den Baum hoch und synchronisiert die Eltern-Knoten.
+     */
+    updateParents(node) {
+        let parentNode = node.parentElement ? node.parentElement.closest('.p-tree-node') : null;
+
+        while (parentNode) {
+            const parentCb = this.getNodeCheckbox(parentNode);
+
+            if (parentCb) {
+                const childrenCbs = this.getAllLogicalChildrenCheckboxes(parentNode);
+
+                if (childrenCbs.length > 0) {
+                    // Ein Elternteil ist NUR DANN aktiv, wenn WIRKLICH ALLE seine direkten Kinder aktiv sind!
+                    const allChecked = childrenCbs.every((cb) => cb.checked);
+
+                    if (parentCb.checked !== allChecked) {
+                        parentCb.checked = allChecked;
+                        this.triggerHighlight(parentCb.closest('.p-item'), allChecked);
                     }
                 }
-                parentNode = parentNode.parentElement.closest('.p-tree-node');
             }
-        } else {
-            // Top-Down Deaktivierung: Kinder deaktivieren, wenn Vater deaktiviert wird
-            const currentNode = checkbox.closest('.p-tree-node');
-            if (currentNode) {
-                currentNode
-                    .querySelectorAll('input[data-perm-check]')
-                    .forEach((child) => (child.checked = false));
-            }
-        }
 
-        this.refreshTreeVisually(wrapper);
+            // Klettere eine Ebene höher
+            parentNode = parentNode.parentElement
+                ? parentNode.parentElement.closest('.p-tree-node')
+                : null;
+        }
+    }
+
+    /**
+     * 4. Die intelligente Logik - Adaptiert für n-Level Bäume!
+     */
+    handlePermissionChange(checkbox) {
+        const node = checkbox.closest('.p-tree-node');
+        const isChecked = checkbox.checked;
+
+        // A) TOP-DOWN: Wenn dieser Knoten geklickt wurde, müssen alle darunterliegenden Kinder denselben Status annehmen.
+        const descendantCheckboxes = node.querySelectorAll('input[data-perm-check="true"]');
+        descendantCheckboxes.forEach((cb) => {
+            if (cb !== checkbox && cb.checked !== isChecked) {
+                cb.checked = isChecked;
+                this.triggerHighlight(cb.closest('.p-item'), isChecked);
+            }
+        });
+
+        // B) BOTTOM-UP: Aktualisiere alle Väter nach oben hinweg, strikt nach TwoKinds-Vorbild.
+        this.updateParents(node);
     }
 
     handleUrlFocus() {
