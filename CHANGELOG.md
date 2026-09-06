@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.67.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.66.0...v0.67.0) (2026-09-06)
+
+### 🚀 Features
+
+* **admin:** Implement user-facing release notes modal with database tracking ([d3c7b52](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d3c7b52bd23720167ce7f96f404658b4a8e1e102))
+* **frontend:** Add manual trigger for Release Notes modal and separate read/unread logic ([96460a0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/96460a0e505aa0e5a4e58a752322c52df148d85b))
+* **frontend:** Extract ReleaseNotes to ESM module and enhance UI ([c10106c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c10106c39b8b5614871fc0e969d99875ad1e9d82))
+
+### 🐛 Bug Fixes
+
+* **frontend:** Relocate "Was ist neu?" button to top navigation bar to fix layout breaking ([55c18fd](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/55c18fdfed4a37c69cb26de7b055e4b8670495ac))
+
 ## [0.66.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.65.1...v0.66.0) (2026-09-06)
 
 ### 🚀 Features
