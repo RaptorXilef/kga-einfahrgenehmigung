@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.67.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.1...v0.67.2) (2026-09-06)
+
+### 🐛 Bug Fixes
+
+* **frontend:** Eliminate memory leaks, fix GA4 scope and resolve sorting bugs ([fd4b999](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fd4b9999a393ade91a4ad276d8ee8b869c223e0a))
+* **frontend:** Eliminate O(n log n) DOM traversal bottleneck and fix numeric sort logic ([ec1b1cf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ec1b1cfbf381b0df57d03390c983c3fb78048244))
+* **frontend:** Fix delayed ReferenceError, remove dead code and add idempotent mounting ([eac1416](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/eac14167f1b9d3a81579fc0a5af7d73dde8821f6))
+* **frontend:** Fix silent API failures, typos, and legacy inline JS ([1f89a95](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1f89a952d88996e1590ba708a6c2d75f5b43778f))
+* **frontend:** Patch XSS hole in ReleaseNotes and optimize DOM mutations ([c1f37cf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c1f37cf2f113b4a5d10372e9fd801e7377bbe701))
+* **frontend:** Prevent DOM injection crashes and fix UI rendering glitches ([e3cd413](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e3cd413539ac268dd80158ef00a3657df38b4de2))
+* **frontend:** Prevent UI state corruption and harden HTTP status checks ([caccf25](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/caccf25c2c47e0981acdcbafbea25151b032d6c3))
+* **frontend:** Release UI lock on silent clipboard failures ([467a33d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/467a33ddf462b161deb73503a616dea6993ce4b3))
+* **frontend:** Resolve timezone offset bugs and redesign honeypot architecture ([3bcb9b0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3bcb9b08ef86e3dc433e1c70db50b7eff581c51a))
+* **frontend:** Secure exception reflection, fix timezone shift, and prevent null pointer crashes ([421ad87](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/421ad8706b9864a24adb9aa8bced6c57021a6035))
+* **frontend:** Secure JSON parsing and expand local storage safeguards ([9cc05f0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9cc05f0c2f29a34352c8e2e1231695548ab711b6))
+* repair deploy.yml ([3bdfc67](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3bdfc67ff4831b3e56422860a0d521fd5aca1cb6))
+
 ## [0.67.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.0...v0.67.1) (2026-09-06)
 
 ### 🐛 Bug Fixes
