@@ -92,7 +92,7 @@ export class DragDropZone {
                 }
                 if (txt) {
                     // Für Dateien wie CSVs ändern wir einfach den Text
-                    txt.innerText = 'Ausgewählt: ' + file.name;
+                    txt.innerText = `Ausgewählt: ${file.name}`;
                     txt.style.fontSize = '1.2rem';
                     txt.style.opacity = '1';
                     txt.style.color = 'var(--primary-color)';

@@ -99,7 +99,7 @@ export class ConsentBanner {
         window.dataLayer = window.dataLayer || [];
         // LINTER-FIX: Google Analytics Tag MUSS zwingend das klassische `arguments` Array pushen, um zu funktionieren.
         function gtag() {
-            // biome-ignore lint/style/noArguments: Google Analytics requires the exact arguments object
+            // biome-ignore lint/complexity/noArguments: Google Analytics requires the exact arguments object
             window.dataLayer.push(arguments);
         }
         gtag('js', new Date());

@@ -261,9 +261,7 @@ export class PermitForm {
         });
 
         if (res.success) {
-            // Korrekte Darstellung von HTML (TextContent -> innerHTML)
-            const sanitize = (html) =>
-                typeof window.DOMPurify !== 'undefined' ? window.DOMPurify.sanitize(html) : html;
+            const sanitize = (html) => window.DOMPurify?.sanitize(html) ?? html;
 
             this.openingEl.innerHTML = sanitize(res.openingHours);
 
@@ -291,8 +289,7 @@ export class PermitForm {
 
         if (res.success) {
             // Nutze DOMPurify wenn vorhanden, ansonsten weise HTML zu
-            const sanitize = (html) =>
-                typeof window.DOMPurify !== 'undefined' ? window.DOMPurify.sanitize(html) : html;
+            const sanitize = (html) => window.DOMPurify?.sanitize(html) ?? html;
 
             // Frontend Darstellung (mit Rabatt-HTML)
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {
@@ -317,7 +314,7 @@ export class PermitForm {
     validateBerlinRestrictions() {
         const dateInputs = [this.vonInput, this.bisInput];
         dateInputs.forEach((input) => {
-            if (!input || !input.value) return;
+            if (!input?.value) return;
             const date = new Date(input.value);
             if (Number.isNaN(date.getTime())) return;
 

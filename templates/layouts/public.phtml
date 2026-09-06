@@ -1,5 +1,6 @@
 <?php
 
+use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 
 /**
@@ -8,6 +9,7 @@ use App\Contracts\System\AssetHelperInterface;
  * Rahmen für alle öffentlichen Pächter-Seiten (Antrag, Verlauf, Impressum etc.).
  *
  * @var AssetHelperInterface $asset
+ * @var ConfigInterface $config
  * @var array $settings
  * @var string $appRoot
  * @var string $content  Der fertig gerenderte Inhalt der Unterseite.
