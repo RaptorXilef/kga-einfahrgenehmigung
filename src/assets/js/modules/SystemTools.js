@@ -36,6 +36,12 @@ export class SystemTools {
             // Cron-URLs erfordern zwingend GET und haben eigene Tokens,
             // daher nutzen wir hier nativ fetch anstatt der KGA-API.
             const response = await fetch(url, { method: 'GET' });
+
+            // Strikter HTTP Status Guard vor dem JSON Parsing (verhindert irreführende SyntaxErrors)
+            if (!response.ok) {
+                throw new Error(`HTTP Error: Der Server antwortete mit Status ${response.status}`);
+            }
+
             const data = await response.json();
 
             let msg = data.message || 'Ausführung abgeschlossen.';

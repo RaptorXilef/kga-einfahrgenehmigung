@@ -59,12 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // FIX: Akku- und Netzwerk-Schonung. Nur pingen, wenn Tab aktiv ist!
+    // Akku- und Netzwerk-Schonung. Nur pingen, wenn Tab aktiv ist!
     if (document.body.classList.contains('l-public-body')) {
         setInterval(
             () => {
                 if (document.visibilityState === 'visible') {
-                    api.post('api/ping').catch(() => {});
+                    // Redundanten catch() Block entfernt, da api.post nicht rejected
+                    api.post('api/ping');
                 }
             },
             3 * 60 * 1000

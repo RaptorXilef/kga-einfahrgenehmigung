@@ -89,11 +89,15 @@ export class VoucherManager {
         if (!this.modal) return;
         this.modal.style.display = 'none';
         this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
-        // FIX: Loader-Style sicherheitshalber resetten
+        // Loader-Style sicherheitshalber resetten
         this.modalLoader.style.color = '';
     }
 
     async copyLink(url, element) {
+        // Lock-State verhindert permanente Zerstörung des Button-Texts durch Spam-Klicks
+        if (element.dataset.isCopying) return;
+        element.dataset.isCopying = 'true';
+
         const originalHtml = element.innerHTML;
 
         const successAction = () => {
@@ -105,6 +109,7 @@ export class VoucherManager {
             setTimeout(() => {
                 element.innerHTML = originalHtml;
                 element.style.color = '';
+                delete element.dataset.isCopying; // Lock wieder freigeben
             }, 2000);
         };
 
@@ -142,6 +147,8 @@ export class VoucherManager {
         } catch (err) {
             console.error('[VoucherManager] Fallback-Kopieren fehlgeschlagen', err);
             notifier.show('Fehler beim Kopieren des Links.', 'error');
+            // Bei Fehler auch das Lock freigeben
+            delete this.dataset?.isCopying;
         }
 
         document.body.removeChild(textArea);
