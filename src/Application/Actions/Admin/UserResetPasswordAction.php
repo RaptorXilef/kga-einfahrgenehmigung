@@ -47,8 +47,7 @@ final readonly class UserResetPasswordAction implements ActionInterface, Require
         $users = $this->userRepository->loadAll();
         if (isset($users[$dto->userId])) {
             $u = $users[$dto->userId];
-            // FIX: u->roleId statt u->groupId
-            $users[$dto->userId] = new User($u->id, $u->username, $u->roleId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT));
+            $users[$dto->userId] = new User($u->id, $u->username, $u->roleId, \password_hash($dto->newPassword, \PASSWORD_DEFAULT), $u->lastSeenChangelog);
             $this->userRepository->saveAll($users);
 
             $this->auditLogger->log('USER_RESET_PASSWORD', "Kennwort für Benutzer '{$u->username}' (ID: {$u->id}) manuell zurückgesetzt.");

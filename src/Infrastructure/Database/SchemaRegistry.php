@@ -24,6 +24,7 @@ final class SchemaRegistry
                 `username` VARCHAR(50) NOT NULL,
                 `role_id` VARCHAR(50) NOT NULL,
                 `pass` VARCHAR(255) NOT NULL,
+                `last_seen_changelog` VARCHAR(50) NOT NULL DEFAULT \'v0.0.0\',
                 UNIQUE KEY `idx_username` (`username`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;',
 

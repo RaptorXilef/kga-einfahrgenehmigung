@@ -37,6 +37,7 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
     public function execute(ServerRequest $request): mixed
     {
         $userId = Sanitizer::string($request->post['user_id'] ?? '');
+        // TODO später zu role ändern
         $roleId = Sanitizer::string($request->post['group'] ?? ''); // Behält aus UI-Gründen den Post-Key "group"
 
         if ($userId === '') {
@@ -56,12 +57,12 @@ final readonly class UserChangeRoleAction implements ActionInterface, RequiresPe
             $u = $users[$userId];
             $oldRole = $u->roleId;
 
-            // User Entity via Konstruktor neu aufbauen
             $users[$userId] = new User(
                 $u->id,
                 $u->username,
                 $roleId,
                 $u->passwordHash,
+                $u->lastSeenChangelog,
             );
             $this->userRepository->saveAll($users);
 

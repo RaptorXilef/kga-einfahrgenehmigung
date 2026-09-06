@@ -411,6 +411,11 @@
         'class' => 'App\\Application\\Actions\\Admin\\VoucherToggleAction',
         'auth' => true,
       ),
+      '/api/mark_changelog_read' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Api\\Admin\\MarkChangelogReadAction',
+        'auth' => true,
+      ),
       '/api/search_permits' => 
       array (
         'class' => 'App\\Application\\Actions\\Api\\Admin\\SearchPermitsAction',

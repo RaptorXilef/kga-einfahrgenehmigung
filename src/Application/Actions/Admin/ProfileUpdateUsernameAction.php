@@ -55,8 +55,7 @@ final readonly class ProfileUpdateUsernameAction implements ActionInterface
             if (isset($users[$userId])) {
                 $u = $users[$userId];
                 $oldName = $u->username;
-                // FIX: u->roleId statt u->groupId
-                $users[$userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash);
+                $users[$userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash, $u->lastSeenChangelog);
                 $this->userRepository->saveAll($users);
 
                 $this->sessionManager->updateAdminUsername($dto->newUsername);

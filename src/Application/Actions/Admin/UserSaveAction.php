@@ -63,8 +63,9 @@ final readonly class UserSaveAction implements ActionInterface, RequiresPermissi
             $users[$newId] = new User(
                 $newId,
                 $dto->username,
-                $dto->group, // Das DTO liest den POST Key "group", übergibt ihn aber an Role
+                $dto->group,
                 \password_hash($dto->password, \PASSWORD_DEFAULT),
+                'v0.0.0',
             );
 
             $this->userRepository->saveAll($users);

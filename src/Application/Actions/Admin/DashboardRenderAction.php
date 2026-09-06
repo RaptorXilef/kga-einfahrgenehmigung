@@ -25,6 +25,7 @@ use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuthService;
 use App\Core\Service\PermitFilterService;
 use App\Core\Service\PermitService;
+use App\Core\Service\ReleaseNotesService;
 use App\Core\Service\ReportingService;
 use App\Core\Service\VoucherService;
 
@@ -47,6 +48,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         private PermitArchiveRepositoryInterface $archiveRepository,
         private PermitFilterService $filterService,
         private PermitService $permitService,
+        private ReleaseNotesService $releaseNotesService, // <--- NEUER SERVICE
         private ReportingService $reportingService,
         private SessionManager $sessionManager,
         private StorageInterface $storage,
@@ -133,6 +135,17 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $formData = $this->sessionManager->getFormData() ?? [];
         $this->sessionManager->clearFormData();
 
+        // --- Release Notes Logik ---
+        $unreadReleaseNotes = [];
+        $userId = $this->auth->getUserId();
+        // Virtuelle Accounts (Backdoor) sehen den Dialog nicht dauerhaft
+        if (!\str_starts_with($userId, 'sys_')) {
+            $user = $this->userRepository->loadAll()[$userId] ?? null;
+            if ($user) {
+                $unreadReleaseNotes = $this->releaseNotesService->getUnreadNotes($user->lastSeenChangelog);
+            }
+        }
+
         // 6. View rendern
         $this->renderer->render('admin/dashboard', [
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
@@ -159,6 +172,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'periodStats' => $this->reportingService->calculateDetailedStats($filteredHistoricalAndActive),
             'permitGroups' => $permitGroups,
             'structure' => $this->config->get('structure', []),
+            'unreadReleaseNotes' => $unreadReleaseNotes, // <--- Übergabe ans Frontend
             'userRepository' => $this->userRepository,
             'voucherArchive' => $this->voucherRepository->loadArchive(),
             'vouchers' => $vouchers,

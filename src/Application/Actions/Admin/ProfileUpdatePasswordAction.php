@@ -55,8 +55,7 @@ final readonly class ProfileUpdatePasswordAction implements ActionInterface
             if (isset($users[$userId])) {
                 $u = $users[$userId];
                 $newHash = \password_hash($dto->newPassword, \PASSWORD_DEFAULT);
-                // FIX: u->roleId statt u->groupId
-                $users[$userId] = new User($u->id, $u->username, $u->roleId, $newHash);
+                $users[$userId] = new User($u->id, $u->username, $u->roleId, $newHash, $u->lastSeenChangelog);
                 $this->userRepository->saveAll($users);
 
                 $this->sessionManager->setAuthSession($userId, $u->roleId, $u->username, $newHash);

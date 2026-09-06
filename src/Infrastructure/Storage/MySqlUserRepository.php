@@ -32,6 +32,7 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
             $users[$row['id']] = $this->hydrateEntity(User::class, $row, [
                 'roleId' => $row['role_id'] ?? $row['group'] ?? 'guest',
                 'passwordHash' => $row['pass'] ?? $row['password_hash'] ?? '',
+                'lastSeenChangelog' => $row['last_seen_changelog'] ?? 'v0.0.0',
             ]);
         }
 
@@ -59,6 +60,7 @@ final readonly class MySqlUserRepository implements UserRepositoryInterface
                     'username' => $user->username,
                     'role_id' => $user->roleId,
                     'pass' => $user->passwordHash,
+                    'last_seen_changelog' => $user->lastSeenChangelog,
                 ];
 
                 if ($sql === null) {

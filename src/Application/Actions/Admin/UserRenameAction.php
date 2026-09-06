@@ -54,8 +54,7 @@ final readonly class UserRenameAction implements ActionInterface, RequiresPermis
             if (isset($users[$dto->userId])) {
                 $u = $users[$dto->userId];
                 $oldName = $u->username;
-                // FIX: u->roleId statt u->groupId
-                $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash);
+                $users[$dto->userId] = new User($u->id, $dto->newUsername, $u->roleId, $u->passwordHash, $u->lastSeenChangelog);
                 $this->userRepository->saveAll($users);
 
                 $this->auditLogger->log('USER_RENAME', "Benutzer-Anzeigename von '{$oldName}' in '{$dto->newUsername}' (ID: {$dto->userId}) geändert.");
