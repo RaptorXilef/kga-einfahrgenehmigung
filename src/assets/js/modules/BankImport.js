@@ -8,7 +8,14 @@ export class BankImport {
 
         // JSON-Daten aus dem HTML-Template sicher auslesen
         const dataScript = this.container.querySelector('#bank-preview-data');
-        this.rowData = dataScript ? JSON.parse(dataScript.textContent || '[]') : [];
+
+        // Defensive Error Boundary bei fehlerhaftem JSON vom Backend
+        try {
+            this.rowData = dataScript ? JSON.parse(dataScript.textContent || '[]') : [];
+        } catch (error) {
+            console.error('[BankImport] Fataler Fehler beim Parsen der Vorschau-Daten.', error);
+            this.rowData = [];
+        }
 
         if (this.selectors.length > 0 && this.rowData.length > 0) {
             this.init();

@@ -11,11 +11,11 @@ export class PermissionMatrix {
 
     init() {
         // A. UI Modus (Fokus/Experte) wiederherstellen
-        // FIX: Try/Catch für localStorage, um Abstürze in Safari-Private-Mode zu verhindern
+        // ry/Catch für localStorage, um Abstürze in Safari-Private-Mode zu verhindern
         let savedMode = 'hide';
         try {
             savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
-        } catch (e) {
+        } catch {
             console.warn('[PermissionMatrix] LocalStorage blockiert.');
         }
 
@@ -59,10 +59,10 @@ export class PermissionMatrix {
             w.classList.remove('mode-hide', 'mode-grey');
             w.classList.add(`mode-${mode}`);
         });
-        // FIX: Abfangen der SecurityError Exception
+        // Abfangen der SecurityError Exception
         try {
             localStorage.setItem('pref_perm_ui_mode', mode);
-        } catch (e) {
+        } catch {
             // Ignore
         }
     }

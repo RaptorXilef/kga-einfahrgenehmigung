@@ -41,20 +41,18 @@ export class SessionTimer {
         this.init();
     }
 
-    // FIX: LocalStorage sicher auslesen
     getStoredActivity() {
         try {
             return parseInt(localStorage.getItem('kga_last_activity') || '0', 10);
-        } catch (e) {
+        } catch {
             return 0; // Rückfallwert bei blockiertem LocalStorage
         }
     }
 
-    // FIX: LocalStorage sicher schreiben
     setStoredActivity(timestamp) {
         try {
             localStorage.setItem('kga_last_activity', timestamp.toString());
-        } catch (e) {
+        } catch {
             // Ignorieren, da Fallback auf Instanz-Speicher `this.lastActivity` greift
         }
     }

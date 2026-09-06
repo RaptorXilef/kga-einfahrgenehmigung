@@ -54,10 +54,13 @@ export class TableSorter {
             }
         });
 
+        // FIX: DocumentFragment verhindert 1000x Reflows/Repaints beim Rendern!
+        const fragment = document.createDocumentFragment();
+
         if (nextSort === 'none') {
             // 3. Klick: Originalzustand wiederherstellen
             this.originalRows.forEach((row) => {
-                this.tbody.appendChild(row);
+                fragment.appendChild(row);
             });
         } else {
             // 1. oder 2. Klick: Sortieren
@@ -106,8 +109,11 @@ export class TableSorter {
 
             // Sortierte Zeilen neu ins DOM einfügen
             rows.forEach((row) => {
-                this.tbody.appendChild(row);
+                fragment.appendChild(row);
             });
         }
+
+        // FIX: Mit nur einem einzigen DOM-Insert die gesamte Tabelle neu rendern
+        this.tbody.appendChild(fragment);
     }
 }
