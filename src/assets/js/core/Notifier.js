@@ -36,7 +36,10 @@ class NotifierService {
         }
 
         // Sicheres Einfügen der Nachricht als Text!
-        toast.querySelector('.js-toast-msg').textContent = message;
+        // FIX: 'white-space: pre-line' ermöglicht saubere Zeilenumbrüche bei \n trotz textContent
+        const msgContainer = toast.querySelector('.js-toast-msg');
+        msgContainer.style.whiteSpace = 'pre-line';
+        msgContainer.textContent = message;
 
         document.body.appendChild(toast);
 

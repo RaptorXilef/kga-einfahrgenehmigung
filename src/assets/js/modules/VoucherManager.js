@@ -78,6 +78,8 @@ export class VoucherManager {
 
         // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
         this.modalImg.onerror = () => {
+            // "Broken Image" Icon des Browsers ausblenden, um das UI sauber zu halten
+            this.modalImg.style.display = 'none';
             this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
             this.modalLoader.style.color = 'var(--danger-color)';
         };
@@ -148,7 +150,7 @@ export class VoucherManager {
             console.error('[VoucherManager] Fallback-Kopieren fehlgeschlagen', err);
             notifier.show('Fehler beim Kopieren des Links.', 'error');
             // Bei Fehler auch das Lock freigeben
-            delete this.dataset?.isCopying;
+            delete element.dataset.isCopying;
         }
 
         document.body.removeChild(textArea);

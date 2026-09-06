@@ -137,7 +137,17 @@ export class AdminDashboard {
             // Ignore
         }
 
-        const targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
+        // Schutz vor manipulierten Storage-Strings, die den Sektorenbau (DOMException) zum Absturz bringen!
+        let targetBtn = null;
+        try {
+            targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
+        } catch {
+            console.warn(
+                '[AdminDashboard] Ungültiger Tab-String im LocalStorage, falle auf Standard zurück.'
+            );
+            targetBtn = document.querySelector('[data-tab-target="tab-active"]');
+        }
+
         if (targetBtn) {
             this.switchTab(lastTab, targetBtn);
         }
