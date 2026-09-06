@@ -41,14 +41,14 @@ export class CheckoutPayment {
         if (data.success) {
             window.location.href = `success?code=${data.code}&method=wire`;
         } else {
-            alert('Fehler beim Abschluss: ' + data.error);
+            alert(`Fehler beim Abschluss: ${data.error}`);
         }
     }
 
     initPayPal() {
         paypal
             .Buttons({
-                createOrder: async (data, actions) => {
+                createOrder: async () => {
                     const params = new URLSearchParams();
                     params.append('token', this.paymentData.token);
                     params.append('csrf_token', this.paymentData.csrfToken);
@@ -57,11 +57,11 @@ export class CheckoutPayment {
                     if (orderData.success) {
                         return orderData.id;
                     } else {
-                        alert('PayPal-Sitzungsfehler: ' + orderData.error);
+                        alert(`PayPal-Sitzungsfehler: ${orderData.error}`);
                         throw new Error(orderData.error);
                     }
                 },
-                onApprove: async (data, actions) => {
+                onApprove: async (data) => {
                     const details = await api.post('api/capture', {
                         orderID: data.orderID,
                         token: this.paymentData.token,
@@ -70,7 +70,7 @@ export class CheckoutPayment {
                     if (details.success) {
                         window.location.href = `success?code=${this.paymentData.token}&method=paypal`;
                     } else {
-                        alert('Zahlungsverifizierung fehlgeschlagen: ' + details.error);
+                        alert(`Zahlungsverifizierung fehlgeschlagen: ${details.error}`);
                     }
                 },
                 onError: (err) => {

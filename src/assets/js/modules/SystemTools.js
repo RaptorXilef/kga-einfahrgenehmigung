@@ -40,10 +40,10 @@ export class SystemTools {
 
             let msg = data.message || 'Ausführung abgeschlossen.';
 
-            if (data.processed !== undefined) msg += '\nVerarbeitet: ' + data.processed;
-            if (data.sent_emails !== undefined) msg += '\nGesendet: ' + data.sent_emails;
-            if (data.archived !== undefined) msg += '\nArchiviert: ' + data.archived;
-            if (data.anonymized !== undefined) msg += '\nAnonymisiert: ' + data.anonymized;
+            if (data.processed !== undefined) msg += `\nVerarbeitet: ${data.processed}`;
+            if (data.sent_emails !== undefined) msg += `\nGesendet: ${data.sent_emails}`;
+            if (data.archived !== undefined) msg += `\nArchiviert: ${data.archived}`;
+            if (data.anonymized !== undefined) msg += `\nAnonymisiert: ${data.anonymized}`;
 
             if (data.success || data.status === 'ok') {
                 notifier.show(`Erfolgreich:\n\n${msg}`, 'success');

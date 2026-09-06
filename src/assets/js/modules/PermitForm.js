@@ -88,7 +88,7 @@ export class PermitForm {
         // Admin: Zweck Toggle (Dropdown vs Text)
         this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode());
 
-        // FIX: Gutschein-Toggle (Die Elemente liegen in der public View außerhalb des form-Tags!)
+        // Frontend: Gutschein-Toggle (Die Elemente liegen in der public View außerhalb des form-Tags!)
         const voucherToggle = document.querySelector('.c-voucher-toggle');
         const voucherWrap = document.querySelector('#voucher-container');
 
@@ -212,7 +212,7 @@ export class PermitForm {
         }
 
         const isCustom = config.days === 'custom';
-        const duration = isCustom ? 0 : parseInt(config.days);
+        const duration = isCustom ? 0 : parseInt(config.days, 10);
         const durationOffset = Math.max(0, duration - 1);
 
         if (this.warningBox) this.warningBox.style.display = 'none';
@@ -261,24 +261,17 @@ export class PermitForm {
         });
 
         if (res.success) {
-            // Sicherheitsmechanismus: Wenn DOMPurify (vom CDN) verfügbar ist, API-Antwort sanitizen.
-            if (typeof DOMPurify !== 'undefined') {
-                this.openingEl.innerHTML = DOMPurify.sanitize(res.openingHours);
-                if (res.holidayNotice && this.holidayEl) {
-                    this.holidayEl.innerHTML = DOMPurify.sanitize(res.holidayNotice);
-                    this.holidayEl.style.display = 'block';
-                } else if (this.holidayEl) {
-                    this.holidayEl.style.display = 'none';
-                }
-            } else {
-                // Fallback: Als reinen Text rendern, wenn DOMPurify unerwartet fehlt
-                this.openingEl.textContent = res.openingHours;
-                if (res.holidayNotice && this.holidayEl) {
-                    this.holidayEl.textContent = res.holidayNotice;
-                    this.holidayEl.style.display = 'block';
-                } else if (this.holidayEl) {
-                    this.holidayEl.style.display = 'none';
-                }
+            // Korrekte Darstellung von HTML (TextContent -> innerHTML)
+            const sanitize = (html) =>
+                typeof window.DOMPurify !== 'undefined' ? window.DOMPurify.sanitize(html) : html;
+
+            this.openingEl.innerHTML = sanitize(res.openingHours);
+
+            if (res.holidayNotice && this.holidayEl) {
+                this.holidayEl.innerHTML = sanitize(res.holidayNotice);
+                this.holidayEl.style.display = 'block';
+            } else if (this.holidayEl) {
+                this.holidayEl.style.display = 'none';
             }
 
             if (this.dateInfoContainer) this.dateInfoContainer.style.display = 'block';

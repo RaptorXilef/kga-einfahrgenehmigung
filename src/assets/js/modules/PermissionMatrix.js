@@ -50,7 +50,7 @@ export class PermissionMatrix {
         const wrappers = this.container.querySelectorAll('.p-tree-wrapper');
         wrappers.forEach((w) => {
             w.classList.remove('mode-hide', 'mode-grey');
-            w.classList.add('mode-' + mode);
+            w.classList.add(`mode-${mode}`);
         });
         localStorage.setItem('pref_perm_ui_mode', mode);
     }
@@ -174,7 +174,7 @@ export class PermissionMatrix {
         const focusId = urlParams.get('focus');
 
         if (focusId) {
-            const targetCard = document.getElementById('card-' + focusId);
+            const targetCard = document.getElementById(`card-${focusId}`);
 
             if (targetCard) {
                 // Tab-Wechsel falls nötig
@@ -184,12 +184,12 @@ export class PermissionMatrix {
                         `[data-tab-target="${parentTabContent.id}"]`
                     );
                     if (tabBtn) {
-                        document
-                            .querySelectorAll('.c-tabs__btn')
-                            .forEach((b) => b.classList.remove('c-tabs__btn--active'));
-                        document
-                            .querySelectorAll('.c-tabs__content')
-                            .forEach((c) => c.classList.remove('c-tabs__content--active'));
+                        document.querySelectorAll('.c-tabs__btn').forEach((b) => {
+                            b.classList.remove('c-tabs__btn--active');
+                        });
+                        document.querySelectorAll('.c-tabs__content').forEach((c) => {
+                            c.classList.remove('c-tabs__content--active');
+                        });
 
                         tabBtn.classList.add('c-tabs__btn--active');
                         parentTabContent.classList.add('c-tabs__content--active');

@@ -61,7 +61,7 @@ export class DashboardStats {
                                         currency: 'EUR',
                                     }).format(context.raw);
                                 } else {
-                                    label += context.raw + ' Stück';
+                                    label += `${context.raw} Stück`;
                                 }
                                 return label;
                             },

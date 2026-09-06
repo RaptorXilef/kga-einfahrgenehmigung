@@ -53,10 +53,10 @@ export class SessionTimer {
         this.interval = setInterval(() => this.tick(), 1000);
         this.updateDisplay(this.maxIdleMs);
 
-        // Event Listener für Benutzeraktivität (Ressourcenschonend)
-        ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) =>
-            document.addEventListener(evt, this.boundResetIdleTime, { passive: true })
-        );
+        // LINTER-FIX: Block-Statements verhindern implizite Returns in Iterables
+        ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) => {
+            document.addEventListener(evt, this.boundResetIdleTime, { passive: true });
+        });
 
         document.addEventListener('visibilitychange', this.boundVisibilityChange);
         window.addEventListener('storage', this.boundStorageChange);
@@ -69,9 +69,10 @@ export class SessionTimer {
     destroy() {
         clearInterval(this.interval);
 
-        ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) =>
-            document.removeEventListener(evt, this.boundResetIdleTime)
-        );
+        // LINTER-FIX: Block-Statements verhindern implizite Returns in Iterables
+        ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) => {
+            document.removeEventListener(evt, this.boundResetIdleTime);
+        });
 
         document.removeEventListener('visibilitychange', this.boundVisibilityChange);
         window.removeEventListener('storage', this.boundStorageChange);

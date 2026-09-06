@@ -82,7 +82,9 @@ export class AdminDashboard {
 
         if (this.bulkToggleAll) {
             this.bulkToggleAll.addEventListener('change', (e) => {
-                this.bulkCheckboxes.forEach((cb) => (cb.checked = e.target.checked));
+                this.bulkCheckboxes.forEach((cb) => {
+                    cb.checked = e.target.checked;
+                });
                 this.updateBulkPayButton();
             });
         }
@@ -106,8 +108,12 @@ export class AdminDashboard {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
-        this.contents.forEach((c) => c.classList.remove('c-tabs__content--active'));
-        this.tabs.forEach((b) => b.classList.remove('c-tabs__btn--active'));
+        this.contents.forEach((c) => {
+            c.classList.remove('c-tabs__content--active');
+        });
+        this.tabs.forEach((b) => {
+            b.classList.remove('c-tabs__btn--active');
+        });
 
         const target = document.getElementById(tabId);
         if (target) {

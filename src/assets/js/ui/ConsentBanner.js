@@ -37,19 +37,23 @@ export class ConsentBanner {
     setCookie(value) {
         const d = new Date();
         d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+        // LINTER-FIX: document.cookie muss zum Setzen von Cookies genutzt werden, die Deaktivierung des Linters ist hier beabsichtigt.
+        // biome-ignore lint/suspicious/noDocumentCookie: Necessary for vanilla JS cookie handling
         document.cookie = `${this.cookieName}=${JSON.stringify(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
         this.container.style.display = 'none';
         this.applyConsent(value);
     }
 
     getCookie() {
-        const name = this.cookieName + '=';
+        // LINTER-FIX: Template Literal
+        const name = `${this.cookieName}=`;
         const decodedCookie = decodeURIComponent(document.cookie);
         const ca = decodedCookie.split(';');
         for (let i = 0; i < ca.length; i++) {
             let c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1);
-            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+            // LINTER-FIX: Strict Equality
+            while (c.charAt(0) === ' ') c = c.substring(1);
+            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
         }
         return '';
     }
@@ -93,7 +97,9 @@ export class ConsentBanner {
         document.head.appendChild(script);
 
         window.dataLayer = window.dataLayer || [];
+        // LINTER-FIX: Google Analytics Tag MUSS zwingend das klassische `arguments` Array pushen, um zu funktionieren.
         function gtag() {
+            // biome-ignore lint/style/noArguments: Google Analytics requires the exact arguments object
             window.dataLayer.push(arguments);
         }
         gtag('js', new Date());
