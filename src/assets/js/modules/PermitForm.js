@@ -54,10 +54,8 @@ export class PermitForm {
     }
 
     init() {
-        // Honeypot nur im Frontend-Formular injizieren
-        if (this.container.id === 'permitForm' && !window.location.pathname.includes('/admin')) {
-            this.injectSmartHoneypot();
-        }
+        // ACHTUNG: Die JS-basierte injectSmartHoneypot() Methode wurde komplett entfernt.
+        // Der Honeypot muss serverseitig (PHTML) gerendert werden, um Bots ohne JS zu fangen!
 
         // Basis-Event-Listener
         this.typSelect?.addEventListener('change', () => {
@@ -111,37 +109,21 @@ export class PermitForm {
         this.updateAdminVoucherUI();
     }
 
-    enforceMinDates() {
-        if (!this.vonInput) return;
-        const todayStr = new Date().toISOString().split('T')[0];
-        this.vonInput.min = todayStr;
+    /**
+     * FIX: Wandelt ein lokales Date-Objekt sicher in einen YYYY-MM-DD String um,
+     * OHNE auf UTC zurückzugreifen (Verhindert Timezone Off-by-One Bugs).
+     */
+    getLocalIsoDate(dateObj = new Date()) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     }
 
-    injectSmartHoneypot() {
-        const hpContainer = document.createElement('div');
-        hpContainer.className = 'c-form-group-hp';
-        hpContainer.setAttribute('aria-hidden', 'true');
-
-        const hpLabel = document.createElement('label');
-        hpLabel.innerText = 'Bitte lassen Sie dieses Feld leer, wenn Sie ein Mensch sind.';
-        hpLabel.htmlFor = 'hp_contact_website';
-
-        const hpInput = document.createElement('input');
-        hpInput.type = 'text';
-        hpInput.name = 'hp_contact_website';
-        hpInput.id = 'hp_contact_website';
-        hpInput.tabIndex = -1;
-        hpInput.autocomplete = 'off';
-
-        hpContainer.appendChild(hpLabel);
-        hpContainer.appendChild(hpInput);
-
-        const submitBtn = this.container.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            this.container.insertBefore(hpContainer, submitBtn);
-        } else {
-            this.container.appendChild(hpContainer);
-        }
+    enforceMinDates() {
+        if (!this.vonInput) return;
+        const todayStr = this.getLocalIsoDate();
+        this.vonInput.min = todayStr;
     }
 
     toggleVehicleFields() {
@@ -210,7 +192,7 @@ export class PermitForm {
         const config = this.templates[this.tplSelect.value];
         if (!config) return;
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = this.getLocalIsoDate();
         if (source === 'von' && this.vonInput.value < todayStr) {
             this.vonInput.value = todayStr;
         }
@@ -222,9 +204,10 @@ export class PermitForm {
         if (this.warningBox) this.warningBox.style.display = 'none';
 
         if (!isCustom) {
+            // Min-Datum für das Bis-Feld basierend auf dem aktuellen Tag berechnen
             const minBisDate = new Date();
             minBisDate.setDate(minBisDate.getDate() + durationOffset);
-            const minBisStr = minBisDate.toISOString().split('T')[0];
+            const minBisStr = this.getLocalIsoDate(minBisDate);
             this.bisInput.min = minBisStr;
 
             if (source === 'bis') {
@@ -236,15 +219,20 @@ export class PermitForm {
                         this.warningBox.style.display = 'block';
                     }
                 }
-                const d = new Date(this.bisInput.value);
-                d.setDate(d.getDate() - durationOffset);
-                this.vonInput.value = d.toISOString().split('T')[0];
+                // Strikte lokale Datums-Berechnung anhand der String-Bestandteile
+                const [y, m, d] = this.bisInput.value.split('-').map(Number);
+                const dateObj = new Date(y, m - 1, d); // Monat ist 0-basiert
+                dateObj.setDate(dateObj.getDate() - durationOffset);
+                this.vonInput.value = this.getLocalIsoDate(dateObj);
             } else {
-                if (!this.vonInput.value || this.vonInput.value < todayStr)
+                if (!this.vonInput.value || this.vonInput.value < todayStr) {
                     this.vonInput.value = todayStr;
-                const d = new Date(this.vonInput.value);
-                d.setDate(d.getDate() + durationOffset);
-                this.bisInput.value = d.toISOString().split('T')[0];
+                }
+                // Strikte lokale Datums-Berechnung
+                const [y, m, d] = this.vonInput.value.split('-').map(Number);
+                const dateObj = new Date(y, m - 1, d);
+                dateObj.setDate(dateObj.getDate() + durationOffset);
+                this.bisInput.value = this.getLocalIsoDate(dateObj);
             }
         } else {
             this.bisInput.min = this.vonInput.value;
@@ -259,7 +247,7 @@ export class PermitForm {
     async fetchDateInfo() {
         if (!this.vonInput || !this.bisInput || !this.openingEl) return;
 
-        // FIX: Race Condition Guard. Zähler erhöhen und aktuellen Wert sichern
+        // Race Condition Guard. Zähler erhöhen und aktuellen Wert sichern
         const currentFetchId = ++this.dateFetchId;
 
         const res = await api.post('api/get_date_info', {
@@ -267,11 +255,11 @@ export class PermitForm {
             bis: this.bisInput.value,
         });
 
-        // FIX: Wenn der Request veraltet ist (weil in der Zwischenzeit ein neuer gestartet wurde), abbruch!
+        // Wenn der Request veraltet ist (weil in der Zwischenzeit ein neuer gestartet wurde), abbruch!
         if (currentFetchId !== this.dateFetchId) return;
 
         if (res.success) {
-            // FIX: "Fail-Safe" statt "Fail-Open". Wenn DOMPurify fehlt, blockieren wir HTML.
+            // "Fail-Safe" statt "Fail-Open". Wenn DOMPurify fehlt, blockieren wir HTML.
             const sanitize = (html) => {
                 if (typeof window.DOMPurify !== 'undefined') return window.DOMPurify.sanitize(html);
                 console.warn(
@@ -297,8 +285,6 @@ export class PermitForm {
         if (!this.tplSelect || !this.typSelect || !this.priceDisplay) return;
 
         const voucherCode = this.voucherInput ? this.voucherInput.value : '';
-
-        // FIX: Race Condition Guard
         const currentFetchId = ++this.priceFetchId;
 
         const res = await api.post('api/get_template_price', {
@@ -307,11 +293,11 @@ export class PermitForm {
             voucher: voucherCode,
         });
 
-        // FIX: Stale Request ignorieren
+        // Stale Request ignorieren
         if (currentFetchId !== this.priceFetchId) return;
 
         if (res.success) {
-            // FIX: "Fail-Safe" Sicherheitsmechanismus
+            // "Fail-Safe" Sicherheitsmechanismus
             const sanitize = (html) => {
                 if (typeof window.DOMPurify !== 'undefined') return window.DOMPurify.sanitize(html);
                 console.warn(
