@@ -5,20 +5,24 @@
  * Path: src/assets/js/app.js
  */
 
-import { mountSingle } from './core/Bootstrapper.js';
+import { mount, mountSingle } from './core/Bootstrapper.js';
+import { PermitForm } from './modules/PermitForm.js';
 import { SessionTimer } from './ui/SessionTimer.js';
 
-// Weitere Imports folgen in den nächsten Phasen (z.B. PermitForm, TableSorter, etc.)
+// Stelle sicher, dass Metadaten im DOMContentLoaded rechtzeitig global verfügbar sind.
+// Die Templates rendern das Array json_encode($tplMetadata) aus der Konfiguration.
+if (typeof window.KGA_TEMPLATES === 'undefined') {
+    // Fallback falls PHP es nicht rendert (Wird in PHTML eingebaut)
+    window.KGA_TEMPLATES = {};
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Session Timer mounten (falls das Element #ui-session-timer existiert)
-    // Dieses Element gibt es in der history_list.phtml und im admin/header_nav.phtml
+    // 1. Session Timer mounten
     mountSingle('#ui-session-timer', SessionTimer);
 
-    // 2. Platz für künftige Mounts
-    // mountSingle('#permitForm', PermitForm);
-    // mount('.js-password-toggle', PasswordToggle);
-    // ...
+    // 2. Formularkomponenten mounten
+    // Sucht das Frontend-Formular, das Manuelle-Admin Formular und das Gutschein-Formular.
+    mount('#permitForm, form[action*="create_voucher"]', PermitForm);
 
-    console.info('[KGA App] Core Architektur erfolgreich hochgefahren.');
+    console.info('[KGA App] Core Architektur (Phase 2) erfolgreich hochgefahren.');
 });
