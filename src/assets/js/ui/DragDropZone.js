@@ -11,7 +11,7 @@ export class DragDropZone {
         this.input = this.zone.querySelector('input[type="file"]');
         this.form = this.zone.closest('form') || this.zone.querySelector('form');
         this.isPreviewOnly = this.zone.classList.contains('js-preview-only');
-        // NEU: Steuert, ob nach einem Preview direkt abgesendet werden soll
+        // Steuert, ob nach einem Preview direkt abgesendet werden soll
         this.isAutoSubmit = this.zone.classList.contains('js-auto-submit');
 
         if (this.input) {
@@ -98,17 +98,25 @@ export class DragDropZone {
                     txt.style.color = 'var(--primary-color)';
                 }
 
-                // NEU: Wenn es eine Auto-Submit Zone ist (z.B. Bank CSV), direkt hochladen!
+                // Wenn es eine Auto-Submit Zone ist (z.B. Bank CSV), direkt hochladen!
                 if (this.isAutoSubmit && this.form) {
-                    this.form.submit();
+                    if (typeof this.form.requestSubmit === 'function') {
+                        this.form.requestSubmit();
+                    } else {
+                        this.form.submit();
+                    }
                 }
             };
             reader.readAsDataURL(file);
 
-            // Bei reinem Preview (z.B. in der Benutzererstellung) stoppen wir hier.
+            // Direktes Speichern (Klassischer Avatar-Upload in Profil/Benutzer)
         } else if (this.form) {
-            // Direkt speichern (Klassischer Avatar-Upload)
-            this.form.submit();
+            // requestSubmit feuert das native Submit-Event im Gegensatz zu .submit()
+            if (typeof this.form.requestSubmit === 'function') {
+                this.form.requestSubmit();
+            } else {
+                this.form.submit();
+            }
         }
     }
 }

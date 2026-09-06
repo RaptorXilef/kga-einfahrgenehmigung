@@ -167,7 +167,6 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                            name="avatar"
                                            class="u-hidden"
                                            id="file-<?php echo \md5($userId); ?>"
-                                           onchange="this.form.submit()"
                                            accept="image/*">
                                     <button type="button"
                                             onclick="document.getElementById('file-<?php echo \md5($userId); ?>').click()"
@@ -244,7 +243,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                     </select>
                                     <p class="u-text-muted u-text-small"
                                        style="margin-top: 5px;">
-                                       ℹ️ Änderungen an der Rolle wirken sich sofort auf die Berechtigungen aus.
+                                        ℹ️ Änderungen an der Rolle wirken sich sofort auf die Berechtigungen aus.
                                     </p>
                                 </form>
                             </div>

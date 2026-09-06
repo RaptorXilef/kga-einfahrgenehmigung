@@ -88,12 +88,16 @@ export class PermitForm {
         // Admin: Zweck Toggle (Dropdown vs Text)
         this.toggleZweckBtn?.addEventListener('click', () => this.toggleZweckMode());
 
-        // Frontend: Gutschein-Toggle (falls vorhanden)
-        const voucherToggle = this.container.querySelector('.c-voucher-toggle');
-        voucherToggle?.addEventListener('click', () => {
-            const wrap = this.container.querySelector('#voucher-container');
-            if (wrap) wrap.classList.toggle('is-open');
-        });
+        // FIX: Gutschein-Toggle (Die Elemente liegen in der public View außerhalb des form-Tags!)
+        const voucherToggle = document.querySelector('.c-voucher-toggle');
+        const voucherWrap = document.querySelector('#voucher-container');
+
+        if (voucherToggle && voucherWrap && !voucherToggle.dataset.bound) {
+            voucherToggle.dataset.bound = 'true'; // Doppeltes Binden verhindern
+            voucherToggle.addEventListener('click', () => {
+                voucherWrap.classList.toggle('is-open');
+            });
+        }
 
         // Initiale Aufrufe, um das UI beim Laden glattzuziehen
         this.enforceMinDates();
@@ -257,17 +261,24 @@ export class PermitForm {
         });
 
         if (res.success) {
-            // Nutze DOMPurify wenn vorhanden, ansonsten weise HTML zu (wir vertrauen unserer eigenen API)
-            const sanitize = (html) =>
-                typeof window.DOMPurify !== 'undefined' ? window.DOMPurify.sanitize(html) : html;
-
-            this.openingEl.innerHTML = sanitize(res.openingHours);
-
-            if (res.holidayNotice && this.holidayEl) {
-                this.holidayEl.innerHTML = sanitize(res.holidayNotice);
-                this.holidayEl.style.display = 'block';
-            } else if (this.holidayEl) {
-                this.holidayEl.style.display = 'none';
+            // Sicherheitsmechanismus: Wenn DOMPurify (vom CDN) verfügbar ist, API-Antwort sanitizen.
+            if (typeof DOMPurify !== 'undefined') {
+                this.openingEl.innerHTML = DOMPurify.sanitize(res.openingHours);
+                if (res.holidayNotice && this.holidayEl) {
+                    this.holidayEl.innerHTML = DOMPurify.sanitize(res.holidayNotice);
+                    this.holidayEl.style.display = 'block';
+                } else if (this.holidayEl) {
+                    this.holidayEl.style.display = 'none';
+                }
+            } else {
+                // Fallback: Als reinen Text rendern, wenn DOMPurify unerwartet fehlt
+                this.openingEl.textContent = res.openingHours;
+                if (res.holidayNotice && this.holidayEl) {
+                    this.holidayEl.textContent = res.holidayNotice;
+                    this.holidayEl.style.display = 'block';
+                } else if (this.holidayEl) {
+                    this.holidayEl.style.display = 'none';
+                }
             }
 
             if (this.dateInfoContainer) this.dateInfoContainer.style.display = 'block';
