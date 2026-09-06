@@ -39,7 +39,7 @@ jobs:
       - name: 🛠️ Frontend Assets kompilieren & minifizieren (CSS & JS)
         run: |
           npm run legacy:css:build
-          npm run legacy:js:build
+          npm run legacy:js:build2
 
       - name: 📝 Config-Dateien zu .default.php umbenennen
         run: |
