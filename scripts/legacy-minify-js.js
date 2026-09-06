@@ -3,6 +3,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { minify } from 'terser';
 
+// PROJEKTUNABHÄNGIGE KONFIGURATION
+// Keine Hardcoded-Unterordner mehr. Das Skript spiegelt die gesamte Struktur 1:1.
+const config = {
+    srcDir: 'src/assets/js',
+    destDir: 'public/assets/js',
+};
+
 /**
  * Asynchrone Hilfsfunktion: Findet alle JS-Dateien rekursiv in einem Verzeichnis
  * @param {string} dir Das zu durchsuchende Verzeichnis
@@ -26,40 +33,12 @@ async function walkDir(dir, fileList = []) {
     return fileList;
 }
 
-const config = [
-    // Unsere neuen ES6-Module (Inklusive aller Unterordner wie core/, ui/ etc.)
-    {
-        srcBase: 'src/assets/js/admin',
-        destBase: 'public/assets/js/admin',
-        isModule: true,
-    },
-    // Der Frontend-Modul-Ordner
-    {
-        srcBase: 'src/assets/js/frontend',
-        destBase: 'public/assets/js/frontend',
-        isModule: true,
-    },
-    // Der übergreifende Shared-Ordner
-    {
-        srcBase: 'src/assets/js/shared',
-        destBase: 'public/assets/js/shared',
-        isModule: true,
-    },
-    {
-        srcBase: 'src/assets/js',
-        destBase: 'public/assets/js',
-        isModule: false,
-        // Schließt alle drei Modul-Ordner aus der globalen Verarbeitung aus
-        excludeDirs: ['src/assets/js/admin', 'src/assets/js/frontend', 'src/assets/js/shared'],
-    },
-];
-
 /**
  * Der eigentliche Minification-Worker
  */
-async function processFile(file, entry) {
-    const relativePath = path.relative(entry.srcBase, file);
-    const outputFilePath = path.join(entry.destBase, relativePath);
+async function processFile(file, srcDir, destDir) {
+    const relativePath = path.relative(srcDir, file);
+    const outputFilePath = path.join(destDir, relativePath);
     const outputDir = path.dirname(outputFilePath);
 
     // Ziel-Ordner asynchron anlegen
@@ -68,12 +47,12 @@ async function processFile(file, entry) {
     const mapName = `${path.basename(outputFilePath)}.map`;
 
     try {
-        // 1. Datei asynchron einlesen
         const code = await fs.readFile(file, 'utf8');
 
-        // 2. Im RAM über Terser API minifizieren (Macht npx & execSync obsolet!)
+        // Wir können module: true global setzen, da alle Dateien (selbst app.js)
+        // im modernen ES-Module Scope laufen. Das hilft Terser beim perfekten Mangle.
         const result = await minify(code, {
-            module: entry.isModule,
+            module: true,
             compress: true,
             mangle: true,
             sourceMap: {
@@ -82,7 +61,7 @@ async function processFile(file, entry) {
             },
         });
 
-        // 3. Datei und Source-Map asynchron schreiben
+        // Datei und Source-Map schreiben
         await fs.writeFile(outputFilePath, result.code);
         if (result.map) {
             await fs.writeFile(`${outputFilePath}.map`, result.map);
@@ -98,42 +77,23 @@ async function runBuilder() {
     console.log('🚀 Starte JS-Minifizierung (Nativ, Asynchron & Parallel)...');
     console.time('⏱️ Build-Dauer');
 
-    // NEU: Den alten public-Ordner VOR dem Build restlos löschen!
-    const targetDir = 'public/assets/js';
-    if (existsSync(targetDir)) {
-        console.log(`🧹 Leere Zielverzeichnis: ${targetDir} ...`);
-        await fs.rm(targetDir, { recursive: true, force: true });
+    // Den alten public-Ordner VOR dem Build restlos löschen
+    if (existsSync(config.destDir)) {
+        console.log(`🧹 Leere Zielverzeichnis: ${config.destDir} ...`);
+        await fs.rm(config.destDir, { recursive: true, force: true });
     }
 
-    const tasks = []; // Hier sammeln wir alle Verarbeitungs-Aufträge
-
-    for (const entry of config) {
-        if (!existsSync(entry.srcBase)) {
-            console.warn(`⚠️ Warnung: Quellverzeichnis ${entry.srcBase} nicht gefunden.`);
-            continue;
-        }
-
-        const allFiles = await walkDir(entry.srcBase);
-
-        for (const file of allFiles) {
-            let isExcluded = false;
-            if (entry.excludeDirs) {
-                for (const exDir of entry.excludeDirs) {
-                    // FIX: path.sep zwingt das Script, nur Verzeichnisse und keine gleichnamigen Dateien auszulassen
-                    const excludePath = path.normalize(exDir) + path.sep;
-                    if (file.startsWith(excludePath)) {
-                        isExcluded = true;
-                        break;
-                    }
-                }
-            }
-            if (isExcluded) continue;
-            // Wir fügen den Vorgang als unerfülltes Promise in unsere Task-Liste ein
-            tasks.push(processFile(file, entry));
-        }
+    if (!existsSync(config.srcDir)) {
+        console.error(`⚠️ Abbruch: Quellverzeichnis ${config.srcDir} nicht gefunden.`);
+        return;
     }
 
-    // MAGIE: Wir führen alle gesammelten Tasks GLEICHZEITIG aus!
+    const allFiles = await walkDir(config.srcDir);
+
+    // Wir mappen das Array der Dateipfade direkt auf ein Array von Promises
+    const tasks = allFiles.map((file) => processFile(file, config.srcDir, config.destDir));
+
+    // Alle Tasks GLEICHZEITIG ausführen
     await Promise.all(tasks);
 
     console.log(`🎉 Erfolgreich ${tasks.length} Dateien verarbeitet.`);
