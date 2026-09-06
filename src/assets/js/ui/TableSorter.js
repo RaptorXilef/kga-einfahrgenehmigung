@@ -75,38 +75,38 @@ export class TableSorter {
             }
 
             rows.sort((a, b) => {
-                const cellA = a.querySelectorAll('td')[columnIndex];
-                const cellB = b.querySelectorAll('td')[columnIndex];
+                // O(1) Property Access anstelle von extrem teurem O(n) DOM Query!
+                const cellA = a.children[columnIndex];
+                const cellB = b.children[columnIndex];
 
                 if (!cellA || !cellB) return 0;
 
-                // Wir nutzen das data-sort-val Attribut, falls vorhanden
-                let valA = cellA.getAttribute('data-sort-val');
-                let valB = cellB.getAttribute('data-sort-val');
+                // Null-Coalescing: Bevorzuge data-sort-val (z.B. für ISO-Datum), sonst den sichtbaren Text
+                let valA = cellA.getAttribute('data-sort-val') ?? cellA.innerText.trim();
+                let valB = cellB.getAttribute('data-sort-val') ?? cellB.innerText.trim();
 
-                if (valA === null) valA = cellA.innerText.trim();
-                if (valB === null) valB = cellB.innerText.trim();
+                // String-Erkennung. Ein String ist nur eine Zahl, wenn er keine normalen Buchstaben enthält
+                const isLikelyNumber = (str) => /^[-0-9., €]+$/.test(str.trim());
 
-                // Deutsches Zahlenformat (z.B. "15,00 €") korrekt für isFinite vorbereiten
-                const parseGermanNumber = (str) => {
-                    if (!str) return NaN;
-                    const cleanStr = str.replace(/[^0-9,-]+/g, '').replace(',', '.');
-                    return cleanStr === '' ? NaN : Number(cleanStr);
-                };
+                let numA = NaN;
+                let numB = NaN;
 
-                const numA = parseGermanNumber(valA);
-                const numB = parseGermanNumber(valB);
+                if (isLikelyNumber(valA)) {
+                    const cleanStr = valA.replace(/[^0-9,-]+/g, '').replace(',', '.');
+                    if (cleanStr !== '') numA = Number(cleanStr);
+                }
 
-                if (
-                    valA.trim() !== '' &&
-                    valB.trim() !== '' &&
-                    Number.isFinite(numA) &&
-                    Number.isFinite(numB)
-                ) {
+                if (isLikelyNumber(valB)) {
+                    const cleanStr = valB.replace(/[^0-9,-]+/g, '').replace(',', '.');
+                    if (cleanStr !== '') numB = Number(cleanStr);
+                }
+
+                // Wenn beide Werte saubere Zahlen sind, numerisch sortieren
+                if (Number.isFinite(numA) && Number.isFinite(numB)) {
                     return nextSort === 'asc' ? numA - numB : numB - numA;
                 }
 
-                // String Sortierung (Case Insensitive)
+                // Fallback: String Sortierung (Case Insensitive)
                 valA = valA.toLowerCase();
                 valB = valB.toLowerCase();
 
