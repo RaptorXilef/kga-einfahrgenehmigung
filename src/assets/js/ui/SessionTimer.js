@@ -187,12 +187,17 @@ export class SessionTimer {
         // Fallback: Sicheres Logout via unsichtbarem Form-POST, um CSRF-Checks zu umgehen/zu nutzen
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = window.KGA_CONFIG.baseUrl + this.logoutEndpoint;
+
+        // Optional Chaining schützt vor TypeError bei fehlender Global-Config
+        const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+        const csrfToken = window.KGA_CONFIG?.csrfToken || '';
+
+        form.action = baseUrl + this.logoutEndpoint;
 
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
         csrfInput.name = 'csrf_token';
-        csrfInput.value = window.KGA_CONFIG.csrfToken;
+        csrfInput.value = csrfToken;
 
         form.appendChild(csrfInput);
         document.body.appendChild(form);

@@ -66,9 +66,9 @@ unset($_SESSION['form_data']);
                                value="<?php echo \htmlspecialchars($formData['pass'] ?? ''); ?>"
                                required
                                style="padding-right: 40px; width: 100%;">
+                        <!-- FIX: Fehlerhaften Legacy Inline-Handler onclick="togglePassword(event)" entfernt -->
                         <button type="button"
                                 tabindex="-1"
-                                onclick="togglePassword(event)"
                                 style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0; outline: none; opacity: 0.5;">
                             <img src="<?php echo $asset->url('assets/img/icons/action-view-pw.webp'); ?>"
                                  class="c-icon"

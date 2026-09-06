@@ -54,9 +54,6 @@ export class PermitForm {
     }
 
     init() {
-        // ACHTUNG: Die JS-basierte injectSmartHoneypot() Methode wurde komplett entfernt.
-        // Der Honeypot muss serverseitig (PHTML) gerendert werden, um Bots ohne JS zu fangen!
-
         // Basis-Event-Listener
         this.typSelect?.addEventListener('change', () => {
             this.toggleVehicleFields();
@@ -278,6 +275,15 @@ export class PermitForm {
             }
 
             if (this.dateInfoContainer) this.dateInfoContainer.style.display = 'block';
+        } else {
+            // Silent-Failure beheben und UI bei Netzwerkfehler zurücksetzen
+            this.openingEl.innerHTML =
+                '<span class="u-text-muted">Zeitraum konnte aufgrund eines Netzwerkfehlers nicht geprüft werden.</span>';
+            if (this.holidayEl) this.holidayEl.style.display = 'none';
+            notifier.show(
+                'Netzwerkfehler: Einfahrtszeiten konnten nicht abgefragt werden.',
+                'error'
+            );
         }
     }
 
@@ -307,6 +313,7 @@ export class PermitForm {
             };
 
             // Frontend Darstellung (mit Rabatt-HTML)
+            // FIX: Typo korrigiert (this.priceDisplay.tagName statt res.tagName)
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {
                 const rawHtml = `
                     <div class="c-price-original">Original: ${res.original.toFixed(2).replace('.', ',')} €</div>
@@ -317,12 +324,26 @@ export class PermitForm {
             } else {
                 // Admin Darstellung (Reiner Text im Span)
                 this.priceDisplay.innerText =
-                    res.tagName === 'SPAN' ? res.formatted : `Gebühr: ${res.formatted}`;
+                    this.priceDisplay.tagName === 'SPAN'
+                        ? res.formatted
+                        : `Gebühr: ${res.formatted}`;
                 if (res.discountText) this.priceDisplay.title = res.discountText;
             }
 
             this.priceDisplay.style.color = res.isFree ? '#059669' : 'var(--primary-color)';
             this.priceDisplay.style.background = res.isFree ? '#ecfdf5' : 'var(--primary-soft)';
+        } else {
+            // Silent-Failure beheben und UI Error-State setzen
+            this.priceDisplay.innerText =
+                this.priceDisplay.tagName === 'SPAN'
+                    ? 'Fehler'
+                    : 'Gebühr: Berechnung fehlgeschlagen';
+            this.priceDisplay.style.color = 'var(--danger-color)';
+            this.priceDisplay.style.background = 'var(--danger-soft, #fee2e2)';
+            notifier.show(
+                'Preis konnte aufgrund eines Netzwerkfehlers nicht berechnet werden.',
+                'error'
+            );
         }
     }
 
