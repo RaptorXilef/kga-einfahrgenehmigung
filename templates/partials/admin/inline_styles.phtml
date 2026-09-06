@@ -1060,7 +1060,6 @@ input:checked+.c-switch-slider:before {
 }
 
 /* --- SCHWEBENDER AKTUALISIEREN BUTTON (FAB) --- */
-/* FIX: Button-Hintergrund auf weiß gesetzt, um Invert-Filter-Bugs mit WebP Icons zu vermeiden */
 .c-fab-refresh {
     position: fixed;
     bottom: 30px;
@@ -1086,6 +1085,46 @@ input:checked+.c-switch-slider:before {
     transform: translateY(-3px);
     background: var(--primary-soft);
     box-shadow: 0 15px 30px rgba(52, 152, 219, 0.4);
+}
+
+/* --- RELEASE NOTES MARKDOWN --- */
+.rn-markdown h1 {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-soft);
+    padding-bottom: 5px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+.rn-markdown h1:first-child {
+    margin-top: 0;
+}
+
+.rn-markdown h2 {
+    font-size: 1.1rem;
+    color: #1e293b;
+    margin-top: 15px;
+}
+
+.rn-markdown ul {
+    padding-left: 20px;
+    line-height: 1.6;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.rn-markdown li {
+    margin-bottom: 8px;
+}
+
+.rn-markdown strong {
+    color: #0f172a;
+}
+
+.rn-markdown p {
+    margin-top: 0;
+    margin-bottom: 15px;
 }
 
 </style>

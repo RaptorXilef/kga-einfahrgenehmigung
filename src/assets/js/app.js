@@ -14,6 +14,7 @@ import { CheckoutPayment } from './modules/CheckoutPayment.js';
 import { DashboardStats } from './modules/DashboardStats.js';
 import { PermissionMatrix } from './modules/PermissionMatrix.js';
 import { PermitForm } from './modules/PermitForm.js';
+import { ReleaseNotes } from './modules/ReleaseNotes.js';
 import { SystemTools } from './modules/SystemTools.js';
 import { VoucherManager } from './modules/VoucherManager.js';
 import { ConsentBanner } from './ui/ConsentBanner.js';
@@ -43,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mountSingle('#tab-vouchers', VoucherManager);
     mountSingle('.js-checkout-payment', CheckoutPayment);
     mountSingle('.js-changelog-renderer', ChangelogRenderer);
+    mountSingle('#release-notes-modal', ReleaseNotes);
 
     // Die Rechteverwaltung mountet sich auf das Element, das Admin-Tab-Users umschließt
     mountSingle('.l-admin', PermissionMatrix);

@@ -170,7 +170,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </button>
                 <?php } ?>
 
-                <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
+                <?php if ($auth->hasPermission('system.maintenance.execute') || $auth->hasPermission('system.update.execute')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-system">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
@@ -283,7 +283,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </div>
 </main>
 
-<!-- NEU: RELEASE NOTES MODAL -->
+<!-- RELEASE NOTES MODAL (Gesteuert durch ReleaseNotes.js ESM) -->
 <?php if (!empty($unreadReleaseNotes)) {
     $latestVersion = $unreadReleaseNotes[0]['version'];
     ?>
@@ -291,24 +291,35 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/10.0.0/marked.min.js"></script>
 
     <div id="release-notes-modal"
-         style="position: fixed; inset: 0; background: rgba(15,23,42,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+         style="position: fixed; inset: 0; background: rgba(15,23,42,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 20px;">
         <div class="c-card"
-             style="width: 100%; max-width: 650px; max-height: 85vh; display: flex; flex-direction: column; border-top: 5px solid var(--primary-color);">
+             style="width: 100%; max-width: 950px; max-height: 85vh; display: flex; flex-direction: column; border-top: 5px solid var(--primary-color);">
             <header class="c-card__header u-flex u-justify-between u-align-center"
-                    style="background: #f8fafc;">
-                <h3 class="u-margin-none">🚀 Neu seit Ihrem letzten Login</h3>
-                <span class="c-badge c-badge--success">Updates</span>
+                    style="background: #f8fafc; padding: 15px 20px;">
+                <h3 class="u-margin-none u-flex u-align-center u-gap-s">
+                    🚀 Neu seit Ihrem letzten Login
+                </h3>
+                <div class="u-flex u-align-center u-gap-s">
+                    <span class="c-badge c-badge--success" style="padding: 6px 12px; font-size: 0.8rem;">Updates verfügbar</span>
+                    <button type="button"
+                            class="c-button c-button--danger js-close-release-notes"
+                            data-version="<?php echo \htmlspecialchars($latestVersion); ?>"
+                            style="width: 32px; height: 32px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; line-height: 1;"
+                            title="Schließen & Gelesen">
+                        &times;
+                    </button>
+                </div>
             </header>
             <div class="c-card__body"
-                 style="overflow-y: auto; padding: 1.5rem; background: #fff;">
+                 style="overflow-y: auto; padding: 2rem; background: #fff;">
                 <div id="release-notes-content"></div>
             </div>
             <footer class="u-padding-around-m u-border-top u-text-center"
                     style="background: #f8fafc;">
                 <button type="button"
-                        class="c-button c-button--primary u-width-100"
-                        onclick="markReleaseNotesRead('<?php echo \htmlspecialchars($latestVersion); ?>')"
-                        style="padding: 14px;">
+                        class="c-button c-button--primary u-width-100 js-close-release-notes"
+                        data-version="<?php echo \htmlspecialchars($latestVersion); ?>"
+                        style="padding: 14px; max-width: 400px; font-size: 1.05rem;">
                     ✓ Alles klar, verstanden!
                 </button>
             </footer>
@@ -318,76 +329,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <script type="application/json"
             id="release-notes-data">
     <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE); ?>
-
-    </script>
-
-    <style>
-    .rn-markdown h1 {
-        font-size: 1.4rem;
-        color: var(--primary-color);
-        border-bottom: 2px solid var(--primary-soft);
-        padding-bottom: 5px;
-        margin-top: 25px;
-        margin-bottom: 15px;
-    }
-
-    .rn-markdown h1:first-child {
-        margin-top: 0;
-    }
-
-    .rn-markdown h2 {
-        font-size: 1.1rem;
-        color: #1e293b;
-        margin-top: 15px;
-    }
-
-    .rn-markdown ul {
-        padding-left: 20px;
-        line-height: 1.6;
-    }
-
-    .rn-markdown li {
-        margin-bottom: 8px;
-    }
-
-    .rn-markdown strong {
-        color: #0f172a;
-    }
-
-    </style>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const rawData = document.getElementById('release-notes-data').textContent;
-        const notes = JSON.parse(rawData);
-        const container = document.getElementById('release-notes-content');
-
-        let html = '';
-        notes.forEach(note => {
-            html += `<div class="rn-markdown u-margin-bottom-l">`;
-            html += `<h1>Version ${note.version}</h1>`;
-            html += window.DOMPurify.sanitize(window.marked.parse(note.content));
-            html += `</div>`;
-        });
-        container.innerHTML = html;
-    });
-
-    window.markReleaseNotesRead = async function(version) {
-        document.getElementById('release-notes-modal').style.display = 'none';
-
-        const formData = new FormData();
-        formData.append('version', version);
-        formData.append('csrf_token', window.KGA_CONFIG.csrfToken);
-
-        try {
-            await fetch(window.KGA_CONFIG.baseUrl + 'api/mark_changelog_read', {
-                method: 'POST',
-                body: formData
-            });
-        } catch (e) {
-            console.error('Konnte Changelog nicht als gelesen markieren', e);
-        }
-    };
 
     </script>
 <?php } ?>
