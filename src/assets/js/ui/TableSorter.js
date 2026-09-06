@@ -87,9 +87,15 @@ export class TableSorter {
                 if (valA === null) valA = cellA.innerText.trim();
                 if (valB === null) valB = cellB.innerText.trim();
 
-                // Erkennung von Zahlen (z.B. für Preise)
-                const numA = Number(valA);
-                const numB = Number(valB);
+                // Deutsches Zahlenformat (z.B. "15,00 €") korrekt für isFinite vorbereiten
+                const parseGermanNumber = (str) => {
+                    if (!str) return NaN;
+                    const cleanStr = str.replace(/[^0-9,-]+/g, '').replace(',', '.');
+                    return cleanStr === '' ? NaN : Number(cleanStr);
+                };
+
+                const numA = parseGermanNumber(valA);
+                const numB = parseGermanNumber(valB);
 
                 if (
                     valA.trim() !== '' &&

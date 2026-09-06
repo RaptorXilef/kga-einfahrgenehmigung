@@ -61,9 +61,13 @@ export class ConsentBanner {
     setCookie(value) {
         const d = new Date();
         d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+        // Secure Flag dynamisch anfügen, wenn HTTPS aktiv ist (Man-in-the-Middle Schutz)
+        const secureFlag = window.isSecureContext ? ';Secure' : '';
+
         try {
             // biome-ignore lint/suspicious/noDocumentCookie: Necessary for vanilla JS cookie handling
-            document.cookie = `${this.cookieName}=${JSON.stringify(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+            document.cookie = `${this.cookieName}=${JSON.stringify(value)};expires=${d.toUTCString()};path=/;SameSite=Lax${secureFlag}`;
         } catch {
             console.warn('[ConsentBanner] Speichern von Cookies blockiert.');
         }
@@ -126,11 +130,14 @@ export class ConsentBanner {
         document.head.appendChild(script);
 
         window.dataLayer = window.dataLayer || [];
-        function gtag() {
+
+        // Die gtag Funktion MUSS zwingend im globalen (window) Scope liegen!
+        window.gtag = function gtag() {
             // biome-ignore lint/complexity/noArguments: Google Analytics requires the exact arguments object
             window.dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-        gtag('config', this.gaId, { anonymize_ip: true });
+        };
+
+        window.gtag('js', new Date());
+        window.gtag('config', this.gaId, { anonymize_ip: true });
     }
 }

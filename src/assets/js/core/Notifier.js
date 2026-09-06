@@ -6,9 +6,16 @@
 class NotifierService {
     constructor() {
         this.baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+        // Speichere Timer-IDs, um Memory Leaks durch Zombie-Closures zu verhindern
+        this.hideTimeout = null;
+        this.removeTimeout = null;
     }
 
     show(message, type = 'success') {
+        // Alte Timer stoppen!
+        if (this.hideTimeout) clearTimeout(this.hideTimeout);
+        if (this.removeTimeout) clearTimeout(this.removeTimeout);
+
         // Alte Toasts entfernen, falls noch sichtbar
         const existingToast = document.querySelector('.c-toast');
         if (existingToast) existingToast.remove();
@@ -34,9 +41,9 @@ class NotifierService {
         document.body.appendChild(toast);
 
         // Slide-Out Animation nach 3 Sekunden
-        setTimeout(() => {
+        this.hideTimeout = setTimeout(() => {
             toast.classList.add('c-toast--hide');
-            setTimeout(() => toast.remove(), 500);
+            this.removeTimeout = setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
 }
