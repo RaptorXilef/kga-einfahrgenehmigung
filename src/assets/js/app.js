@@ -6,9 +6,11 @@
  */
 
 import { mount, mountSingle } from './core/Bootstrapper.js';
+import { PermissionMatrix } from './modules/PermissionMatrix.js';
 import { PermitForm } from './modules/PermitForm.js';
 import { SystemTools } from './modules/SystemTools.js';
 import { VoucherManager } from './modules/VoucherManager.js';
+import { DragDropZone } from './ui/DragDropZone.js';
 import { PasswordToggle } from './ui/PasswordToggle.js';
 import { SessionTimer } from './ui/SessionTimer.js';
 
@@ -20,14 +22,18 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Core / UI Components
+    // 1. Core / UI mounten
     mountSingle('#ui-session-timer', SessionTimer);
     mount('.js-password-toggle', PasswordToggle);
+    mount('.js-avatar-dropzone', DragDropZone);
 
-    // 2. Modul-Initialisierungen
+    // 2. Komplexe Module mounten
     mount('#permitForm, form[action*="create_voucher"]', PermitForm);
     mountSingle('#tab-system', SystemTools);
     mountSingle('#tab-vouchers', VoucherManager);
 
-    console.info('[KGA App] Core Architektur (Phase 3) erfolgreich hochgefahren.');
+    // Die Rechteverwaltung mountet sich auf das Element, das Admin-Tab-Users umschließt
+    mountSingle('.l-admin', PermissionMatrix);
+
+    console.info('[KGA App] Core Architektur (Phase 4) erfolgreich hochgefahren.');
 });

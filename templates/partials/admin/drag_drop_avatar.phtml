@@ -3,7 +3,8 @@
 /**
  * Component: Drag & Drop Avatar Upload
  *
- * Stellt CSS und JS für interaktive Bild-Uploads (Dropzones mit Preview) bereit.
+ * Stellt CSS und HTML für interaktive Bild-Uploads (Dropzones mit Preview) bereit.
+ * Die JavaScript-Logik wird global über ESM (DragDropZone.js) angesteuert.
  */
 ?>
 
@@ -53,65 +54,3 @@
 }
 
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.js-avatar-dropzone').forEach(zone => {
-
-        // Standard-Browser-Aktionen (wie Bild öffnen) verhindern
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            zone.addEventListener(eventName, e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-
-        // Visuelles Feedback beim Drüberziehen
-        ['dragenter', 'dragover'].forEach(eventName => {
-            zone.addEventListener(eventName, () => zone.classList.add('is-dragover'), false);
-        });
-
-        // Visuelles Feedback entfernen, wenn man die Zone verlässt
-        ['dragleave', 'drop'].forEach(eventName => {
-            zone.addEventListener(eventName, () => zone.classList.remove('is-dragover'), false);
-        });
-
-        const inp = zone.querySelector('input[type="file"]'),
-            frm = zone.closest('form') || zone.querySelector('form');
-
-        const handleFile = f => {
-            if (!f || !f.type.startsWith('image/')) return alert('Bitte nur Bilder hochladen!');
-            if (zone.classList.contains('js-preview-only')) {
-                const r = new window
-            .FileReader(); // TODO Wenn in eigener JS Datei, das "window." wieder entfernen.
-                r.onload = e => {
-                    const img = zone.querySelector('.js-preview-img'),
-                        txt = zone.querySelector('.js-preview-text');
-                    if (img) {
-                        img.src = e.target.result;
-                        img.classList.remove('u-hidden');
-                    }
-                    if (txt) {
-                        txt.classList.add('u-hidden');
-                    }
-                };
-                r.readAsDataURL(f);
-            } else if (frm) frm.submit();
-        };
-
-        // Die Magie beim Loslassen (Drop)
-        zone.addEventListener('drop', e => {
-            if (e.dataTransfer.files.length > 0) {
-                inp.files = e.dataTransfer.files;
-                handleFile(inp.files[0]);
-            }
-        });
-        if (inp) inp.addEventListener('change', e => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
-        });
-        if (zone.classList.contains('js-preview-only')) zone.addEventListener('click', () => inp
-            .click());
-    });
-});
-
-</script>
