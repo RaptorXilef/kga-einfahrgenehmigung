@@ -351,7 +351,11 @@ export class PermitForm {
         const dateInputs = [this.vonInput, this.bisInput];
         dateInputs.forEach((input) => {
             if (!input?.value) return;
-            const date = new Date(input.value);
+
+            // FIX: Verhindert Timezone-Shift (Off-by-One Day) durch striktes, lokales Parsing der String-Bestandteile
+            const [y, m, d] = input.value.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+
             if (Number.isNaN(date.getTime())) return;
 
             if (this.isRestrictedDay(date)) {

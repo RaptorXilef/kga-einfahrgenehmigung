@@ -100,6 +100,9 @@ export class DashboardStats {
         if (this.btnMonth && this.btnYear) {
             this.btnMonth.addEventListener('click', (e) => {
                 e.preventDefault();
+                // FIX: Early Exit Guard verhindert TypeErrors bei defektem oder leerem JSON
+                if (!this.currentChart || !this.chartData) return;
+
                 this.btnMonth.classList.replace('c-button--secondary', 'c-button--primary');
                 this.btnYear.classList.replace('c-button--primary', 'c-button--secondary');
 
@@ -111,6 +114,9 @@ export class DashboardStats {
 
             this.btnYear.addEventListener('click', (e) => {
                 e.preventDefault();
+                // FIX: Early Exit Guard
+                if (!this.currentChart || !this.chartData) return;
+
                 this.btnYear.classList.replace('c-button--secondary', 'c-button--primary');
                 this.btnMonth.classList.replace('c-button--primary', 'c-button--secondary');
 
