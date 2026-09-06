@@ -56,7 +56,8 @@ unset($_SESSION['form_data']);
                 </div>
                 <div class="c-form-group u-margin-top-m">
                     <label class="c-form-label">Passwort</label>
-                    <div style="position: relative; display: flex; align-items: center;">
+                    <div class="js-password-toggle"
+                         style="position: relative; display: flex; align-items: center;">
                         <input type="password"
                                name="pass"
                                id="login_pass"
@@ -94,19 +95,3 @@ unset($_SESSION['form_data']);
         </div>
     </div>
 </div>
-
-<script>
-// Auge-Icon Toggle-Funktion
-function togglePassword(event) {
-    const input = document.getElementById('login_pass');
-    const btn = event.currentTarget;
-    if (input.type === 'password') {
-        input.type = 'text';
-        btn.style.opacity = '1';
-    } else {
-        input.type = 'password';
-        btn.style.opacity = '0.5';
-    }
-}
-
-</script>

@@ -47,16 +47,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 }
 ?>
 
-<!-- KGA JAVASCRIPT CONFIGURATION FÜR FORM-HANDLER -->
-<script>
-window.KGA_CONFIG = {
-    baseUrl: "<?php echo $settings['base_url']; ?>",
-    csrfToken: "<?php echo $_SESSION['csrf_token'] ?? ''; ?>",
-    vehicleConfig: <?php echo \json_encode($config->get('vehicle_types', [])); ?>
-};
-
-</script>
-
 <div class="c-tab-content-container">
     <?php if (!$hasAnyTemplate) { ?>
         <div class="c-card u-text-center u-padding-around-xl"

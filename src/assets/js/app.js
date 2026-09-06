@@ -7,6 +7,9 @@
 
 import { mount, mountSingle } from './core/Bootstrapper.js';
 import { PermitForm } from './modules/PermitForm.js';
+import { SystemTools } from './modules/SystemTools.js';
+import { VoucherManager } from './modules/VoucherManager.js';
+import { PasswordToggle } from './ui/PasswordToggle.js';
 import { SessionTimer } from './ui/SessionTimer.js';
 
 // Stelle sicher, dass Metadaten im DOMContentLoaded rechtzeitig global verfügbar sind.
@@ -17,12 +20,14 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Session Timer mounten
+    // 1. Core / UI Components
     mountSingle('#ui-session-timer', SessionTimer);
+    mount('.js-password-toggle', PasswordToggle);
 
-    // 2. Formularkomponenten mounten
-    // Sucht das Frontend-Formular, das Manuelle-Admin Formular und das Gutschein-Formular.
+    // 2. Modul-Initialisierungen
     mount('#permitForm, form[action*="create_voucher"]', PermitForm);
+    mountSingle('#tab-system', SystemTools);
+    mountSingle('#tab-vouchers', VoucherManager);
 
-    console.info('[KGA App] Core Architektur (Phase 2) erfolgreich hochgefahren.');
+    console.info('[KGA App] Core Architektur (Phase 3) erfolgreich hochgefahren.');
 });
