@@ -5,6 +5,7 @@ import { notifier } from '../core/Notifier.js';
  * Übernimmt die Erstellung von QR-Codes via API und das plattformübergreifende Kopieren von Links.
  */
 export class VoucherManager {
+    // ... [Konstruktor und init bleiben unverändert] ...
     constructor(container) {
         this.container = container;
         this.qrButtons = this.container.querySelectorAll('.js-show-qr');
@@ -56,6 +57,8 @@ export class VoucherManager {
         this.modalCode.innerText = code;
         this.modalImg.style.display = 'none';
         this.modalLoader.style.display = 'block';
+        // FIX: Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
+        this.modalLoader.innerText = 'Wird generiert...';
         this.modal.style.display = 'flex';
 
         // Die QR-Code API url-encoded aufrufen
@@ -67,6 +70,13 @@ export class VoucherManager {
             this.modalLoader.style.display = 'none';
             this.modalImg.style.display = 'block';
         };
+
+        // FIX: Fehlerbehandlung, falls die externe API offline oder geblockt ist!
+        this.modalImg.onerror = () => {
+            this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
+            this.modalLoader.style.color = 'var(--danger-color)';
+        };
+
         this.modalImg.src = qrUrl;
     }
 
@@ -74,8 +84,11 @@ export class VoucherManager {
         if (!this.modal) return;
         this.modal.style.display = 'none';
         this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
+        // FIX: Loader-Style sicherheitshalber resetten
+        this.modalLoader.style.color = '';
     }
 
+    // ... [copyLink und fallbackCopyText bleiben unverändert] ...
     async copyLink(url, element) {
         const originalHtml = element.innerHTML;
 

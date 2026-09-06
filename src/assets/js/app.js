@@ -59,8 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // FIX: Akku- und Netzwerk-Schonung. Nur pingen, wenn Tab aktiv ist!
     if (document.body.classList.contains('l-public-body')) {
-        setInterval(() => api.post('api/ping').catch(() => {}), 3 * 60 * 1000);
+        setInterval(
+            () => {
+                if (document.visibilityState === 'visible') {
+                    api.post('api/ping').catch(() => {});
+                }
+            },
+            3 * 60 * 1000
+        );
     }
 
     console.info('[KGA App] Core Architektur (Finale Phase) erfolgreich hochgefahren.');

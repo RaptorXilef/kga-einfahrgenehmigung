@@ -6,7 +6,15 @@
  */
 
 export function mount(selector, ComponentClass, ...args) {
-    const elements = document.querySelectorAll(selector);
+    let elements = [];
+    try {
+        // FIX: DOM-Zugriff gegen DOMException (SyntaxError) absichern
+        elements = document.querySelectorAll(selector);
+    } catch (error) {
+        console.error(`[Bootstrapper] Ungültiger Selektor blockiert: ${selector}`, error);
+        return [];
+    }
+
     if (elements.length === 0) return [];
 
     const instances = [];
@@ -24,14 +32,21 @@ export function mount(selector, ComponentClass, ...args) {
 }
 
 export function mountSingle(selector, ComponentClass, ...args) {
-    const el = document.querySelector(selector);
+    let el = null;
+    try {
+        el = document.querySelector(selector);
+    } catch (error) {
+        console.error(`[Bootstrapper] Ungültiger Singleton-Selektor blockiert: ${selector}`, error);
+        return null;
+    }
+
     if (!el) return null;
 
     try {
         return new ComponentClass(el, ...args);
     } catch (error) {
         console.error(
-            `[Bootstrapper] Kritischer Fehler beim Mounten des Singletons ${ComponentClass.name} an ${selector}:`,
+            `[Bootstrapper] Kritischer Fehler beim Mounten des Singletons ${ComponentClass.name} an${selector}:`,
             error
         );
         return null;
