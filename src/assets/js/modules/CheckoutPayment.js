@@ -1,4 +1,5 @@
 import { api } from '../core/Api.js';
+import { notifier } from '../core/Notifier.js';
 
 /**
  * Steuert die Auslösung von Überweisungen und integriert die externen PayPal-Buttons.
@@ -17,9 +18,12 @@ export class CheckoutPayment {
 
     init() {
         this.wireBtns.forEach((btn) => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                this.finalizeWire();
+                // FIX: Lock State verhindert doppelte POST-Requests bei ungeduldigen Klicks
+                if (btn.disabled) return;
+                btn.disabled = true;
+                await this.finalizeWire(btn);
             });
         });
 
@@ -32,7 +36,7 @@ export class CheckoutPayment {
         }
     }
 
-    async finalizeWire() {
+    async finalizeWire(btn) {
         const params = new URLSearchParams();
         params.append('token', this.paymentData.token);
         params.append('csrf_token', this.paymentData.csrfToken);
@@ -41,7 +45,9 @@ export class CheckoutPayment {
         if (data.success) {
             window.location.href = `success?code=${data.code}&method=wire`;
         } else {
-            alert(`Fehler beim Abschluss: ${data.error}`);
+            // FIX: Native alerts ausgetauscht
+            notifier.show(`Fehler beim Abschluss: ${data.error}`, 'error');
+            if (btn) btn.disabled = false; // Lock aufheben bei Fehler
         }
     }
 
@@ -57,7 +63,8 @@ export class CheckoutPayment {
                     if (orderData.success) {
                         return orderData.id;
                     } else {
-                        alert(`PayPal-Sitzungsfehler: ${orderData.error}`);
+                        // FIX: Native alerts ausgetauscht
+                        notifier.show(`PayPal-Sitzungsfehler: ${orderData.error}`, 'error');
                         throw new Error(orderData.error);
                     }
                 },
@@ -70,12 +77,20 @@ export class CheckoutPayment {
                     if (details.success) {
                         window.location.href = `success?code=${this.paymentData.token}&method=paypal`;
                     } else {
-                        alert(`Zahlungsverifizierung fehlgeschlagen: ${details.error}`);
+                        // FIX: Native alerts ausgetauscht
+                        notifier.show(
+                            `Zahlungsverifizierung fehlgeschlagen: ${details.error}`,
+                            'error'
+                        );
                     }
                 },
                 onError: (err) => {
                     console.error('PayPal-Fehlerkanal:', err);
-                    alert('Ein kritischer Fehler ist bei der Zahlungsabwicklung aufgetreten.');
+                    // FIX: Native alerts ausgetauscht
+                    notifier.show(
+                        'Ein kritischer Fehler ist bei der Zahlungsabwicklung aufgetreten.',
+                        'error'
+                    );
                 },
             })
             .render('#paypal-button-container');

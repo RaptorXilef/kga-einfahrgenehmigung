@@ -13,7 +13,7 @@ export class SystemTools {
     init() {
         // Event-Delegation für alle Cron-Buttons im Container
         this.container.addEventListener('click', (e) => {
-            const btn = e.target.closest('.js-cron-execute');
+            const btn = e.target.closest('.js-cron-btn');
             if (btn) {
                 e.preventDefault();
                 this.executeCron(btn.dataset.url);

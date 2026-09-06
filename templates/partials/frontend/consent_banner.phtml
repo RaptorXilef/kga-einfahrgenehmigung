@@ -33,7 +33,7 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
         <?php echo \json_encode([
             'gaId' => $gaId,
             'texts' => $consentConfig['texts'],
-        ]); ?>
+        ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
         </script>
 

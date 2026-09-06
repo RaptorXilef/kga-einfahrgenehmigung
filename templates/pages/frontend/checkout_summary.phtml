@@ -35,7 +35,7 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
         'token' => $token,
         'csrfToken' => $_SESSION['csrf_token'] ?? '',
         'isPayPalEnabled' => $isPayPalEnabled,
-    ]); ?>
+    ], \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
 

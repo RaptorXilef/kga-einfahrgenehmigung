@@ -325,12 +325,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
     <script type="application/json"
             id="release-notes-unread-data">
-    <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE); ?>
+    <?php echo \json_encode($unreadReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
     <script type="application/json"
             id="release-notes-all-data">
-    <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE); ?>
+    <?php echo \json_encode($allReleaseNotes, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
     </script>
 <?php } ?>

@@ -77,9 +77,10 @@ if (!$headersExist) {
                 </div>
 
                 <!-- JSON Daten Container für das BankImport.js Modul -->
+                <!-- JSON Daten Container für das BankImport.js Modul -->
                 <script type="application/json"
                         id="bank-preview-data">
-                <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE) ?: '[]'; ?>
+                <?php echo \json_encode($bank_row_preview, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT) ?: '[]'; ?>
 
                 </script>
 

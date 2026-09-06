@@ -154,7 +154,7 @@ $chartDataPayload = [
             <!-- JSON Daten Container für das DashboardStats.js Modul -->
             <script type="application/json"
                     id="chart-data">
-            <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE); ?>
+            <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
             </script>
 
@@ -206,7 +206,8 @@ $chartDataPayload = [
 
             <?php foreach ($yearlyStats as $year => $data) { ?>
                 <details class="u-margin-bottom-s">
-                    <summary style="background: var(--bg-light); padding: 15px 20px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
+                    <summary
+                             style="background: var(--bg-light); padding: 15px 20px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
                         <span style="font-size: 1.1rem;">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>"
                                  class="c-icon"
@@ -257,7 +258,8 @@ $chartDataPayload = [
                                     <?php echo $data['count']; ?>
                                 </div>
 
-                                <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
+                                <div
+                                     style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
                                     <?php
                         $vConfig = $config->get('vehicle_types', []);
                 $typeItems = [];
