@@ -16,8 +16,18 @@ export class ReleaseNotes {
         const unreadScript = document.getElementById('release-notes-unread-data');
         const allScript = document.getElementById('release-notes-all-data');
 
-        this.unreadNotes = unreadScript ? JSON.parse(unreadScript.textContent || '[]') : [];
-        this.allNotes = allScript ? JSON.parse(allScript.textContent || '[]') : [];
+        // Defensive Error Boundaries bei JSON Injektion
+        try {
+            this.unreadNotes = unreadScript ? JSON.parse(unreadScript.textContent || '[]') : [];
+        } catch {
+            this.unreadNotes = [];
+        }
+
+        try {
+            this.allNotes = allScript ? JSON.parse(allScript.textContent || '[]') : [];
+        } catch {
+            this.allNotes = [];
+        }
 
         // Button zum manuellen Öffnen (z.B. im Dashboard Header)
         this.triggerBtns = document.querySelectorAll('.js-show-all-release-notes');

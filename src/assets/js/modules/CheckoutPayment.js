@@ -11,7 +11,13 @@ export class CheckoutPayment {
         this.paypalContainer = this.container.querySelector('#paypal-button-container');
 
         const dataScript = this.container.querySelector('#payment-data');
-        this.paymentData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
+
+        // Defensive Error Boundary bei JSON Injektion
+        try {
+            this.paymentData = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
+        } catch {
+            this.paymentData = {};
+        }
 
         this.init();
     }
@@ -20,7 +26,7 @@ export class CheckoutPayment {
         this.wireBtns.forEach((btn) => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                // FIX: Lock State verhindert doppelte POST-Requests bei ungeduldigen Klicks
+                // Lock State verhindert doppelte POST-Requests bei ungeduldigen Klicks
                 if (btn.disabled) return;
                 btn.disabled = true;
                 await this.finalizeWire(btn);
@@ -45,7 +51,6 @@ export class CheckoutPayment {
         if (data.success) {
             window.location.href = `success?code=${data.code}&method=wire`;
         } else {
-            // FIX: Native alerts ausgetauscht
             notifier.show(`Fehler beim Abschluss: ${data.error}`, 'error');
             if (btn) btn.disabled = false; // Lock aufheben bei Fehler
         }
@@ -63,7 +68,6 @@ export class CheckoutPayment {
                     if (orderData.success) {
                         return orderData.id;
                     } else {
-                        // FIX: Native alerts ausgetauscht
                         notifier.show(`PayPal-Sitzungsfehler: ${orderData.error}`, 'error');
                         throw new Error(orderData.error);
                     }
@@ -77,7 +81,6 @@ export class CheckoutPayment {
                     if (details.success) {
                         window.location.href = `success?code=${this.paymentData.token}&method=paypal`;
                     } else {
-                        // FIX: Native alerts ausgetauscht
                         notifier.show(
                             `Zahlungsverifizierung fehlgeschlagen: ${details.error}`,
                             'error'
@@ -86,7 +89,6 @@ export class CheckoutPayment {
                 },
                 onError: (err) => {
                     console.error('PayPal-Fehlerkanal:', err);
-                    // FIX: Native alerts ausgetauscht
                     notifier.show(
                         'Ein kritischer Fehler ist bei der Zahlungsabwicklung aufgetreten.',
                         'error'

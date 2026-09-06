@@ -9,7 +9,13 @@ export class DashboardStats {
         this.btnYear = this.container.querySelector('#chartToggleYear');
 
         const dataScript = this.container.querySelector('#chart-data');
-        this.chartData = dataScript ? JSON.parse(dataScript.textContent || '{}') : null;
+
+        // Defensive Error Boundary bei JSON Injektion
+        try {
+            this.chartData = dataScript ? JSON.parse(dataScript.textContent || '{}') : null;
+        } catch {
+            this.chartData = null;
+        }
 
         if (this.canvas && this.chartData && typeof window.Chart !== 'undefined') {
             this.init();
@@ -17,7 +23,7 @@ export class DashboardStats {
     }
 
     init() {
-        // FIX: Aktive Chart-Instanz zwingend zerstören, um Ghosting/Memory Leaks bei Neuladen zu verhindern
+        // Aktive Chart-Instanz zwingend zerstören, um Ghosting/Memory Leaks bei Neuladen zu verhindern
         if (this.currentChart instanceof window.Chart) {
             this.currentChart.destroy();
         }

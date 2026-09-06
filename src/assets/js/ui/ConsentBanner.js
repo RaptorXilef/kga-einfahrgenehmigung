@@ -5,8 +5,13 @@ export class ConsentBanner {
     constructor(container) {
         this.container = container;
 
-        const dataScript = this.container.querySelector('#consent-config');
-        this.config = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
+        // Defensive Error Boundary für JSON Konfiguration
+        try {
+            const dataScript = this.container.querySelector('#consent-config');
+            this.config = dataScript ? JSON.parse(dataScript.textContent || '{}') : {};
+        } catch {
+            this.config = {};
+        }
 
         this.cookieName = 'kga_cookie_consent';
         this.gaId = this.config.gaId || '';
@@ -22,13 +27,19 @@ export class ConsentBanner {
     }
 
     init() {
-        if (!this.getCookie()) {
+        // Schutz gegen manipulierte (SyntaxError) oder blockierte (SecurityError) Cookies
+        try {
+            const cookieVal = this.getCookie();
+            if (!cookieVal) {
+                this.container.style.display = 'block';
+            } else {
+                this.applyConsent(JSON.parse(cookieVal));
+            }
+        } catch {
             this.container.style.display = 'block';
-        } else {
-            this.applyConsent(JSON.parse(this.getCookie()));
         }
 
-        // FIX: Event-Prevention hinzufügen, um unbeabsichtigte Form-Submits zu blockieren
+        // Event-Prevention hinzufügen, um unbeabsichtigte Form-Submits zu blockieren
         this.btnAcceptAll?.addEventListener('click', (e) => {
             e.preventDefault();
             this.acceptAll();
@@ -50,22 +61,30 @@ export class ConsentBanner {
     setCookie(value) {
         const d = new Date();
         d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-        // biome-ignore lint/suspicious/noDocumentCookie: Necessary for vanilla JS cookie handling
-        document.cookie = `${this.cookieName}=${JSON.stringify(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+        try {
+            // biome-ignore lint/suspicious/noDocumentCookie: Necessary for vanilla JS cookie handling
+            document.cookie = `${this.cookieName}=${JSON.stringify(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+        } catch {
+            console.warn('[ConsentBanner] Speichern von Cookies blockiert.');
+        }
         this.container.style.display = 'none';
         this.applyConsent(value);
     }
 
     getCookie() {
-        const name = `${this.cookieName}=`;
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1);
-            if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+        try {
+            const name = `${this.cookieName}=`;
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1);
+                if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+            }
+            return '';
+        } catch {
+            return '';
         }
-        return '';
     }
 
     acceptAll() {

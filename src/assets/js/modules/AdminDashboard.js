@@ -71,7 +71,7 @@ export class AdminDashboard {
         });
     }
 
-    // Neu: Behandelt die Checkbox-Logik im Finanz-Tab
+    // Behandelt die Checkbox-Logik im Finanz-Tab
     initFinanceBulk() {
         this.bulkCheckboxes = this.container.querySelectorAll('.js-bulk-pay-cb');
         this.bulkToggleAll = this.container.querySelector('.js-bulk-pay-toggle-all');
@@ -119,12 +119,24 @@ export class AdminDashboard {
         if (target) {
             target.classList.add('c-tabs__content--active');
             activeBtn.classList.add('c-tabs__btn--active');
-            localStorage.setItem('lastAdminTab', tabId);
+            // Absicherung gegen blockierten localStorage (SecurityError)
+            try {
+                localStorage.setItem('lastAdminTab', tabId);
+            } catch {
+                // Ignore
+            }
         }
     }
 
     restoreLastTab() {
-        const lastTab = localStorage.getItem('lastAdminTab') || 'tab-active';
+        let lastTab = 'tab-active';
+        // Absicherung gegen blockierten localStorage
+        try {
+            lastTab = localStorage.getItem('lastAdminTab') || 'tab-active';
+        } catch {
+            // Ignore
+        }
+
         const targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
         if (targetBtn) {
             this.switchTab(lastTab, targetBtn);
