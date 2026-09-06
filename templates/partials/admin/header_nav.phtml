@@ -119,11 +119,3 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
         </div>
     </div>
 </div>
-
-<script type="module">
-import {
-    SessionTimer
-} from '<?php echo $asset->url('assets/js/session-timer.js'); ?>';
-new SessionTimer('admin_logout');
-
-</script>
