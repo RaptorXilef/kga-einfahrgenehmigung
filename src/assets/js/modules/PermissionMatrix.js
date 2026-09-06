@@ -11,7 +11,14 @@ export class PermissionMatrix {
 
     init() {
         // A. UI Modus (Fokus/Experte) wiederherstellen
-        const savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
+        // FIX: Try/Catch für localStorage, um Abstürze in Safari-Private-Mode zu verhindern
+        let savedMode = 'hide';
+        try {
+            savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
+        } catch (e) {
+            console.warn('[PermissionMatrix] LocalStorage blockiert.');
+        }
+
         this.updateUiMode(savedMode);
 
         const radio = document.querySelector(`input[name="ui_mode_toggle"][value="${savedMode}"]`);
@@ -52,7 +59,12 @@ export class PermissionMatrix {
             w.classList.remove('mode-hide', 'mode-grey');
             w.classList.add(`mode-${mode}`);
         });
-        localStorage.setItem('pref_perm_ui_mode', mode);
+        // FIX: Abfangen der SecurityError Exception
+        try {
+            localStorage.setItem('pref_perm_ui_mode', mode);
+        } catch (e) {
+            // Ignore
+        }
     }
 
     applyMasterState(container, isMaster) {

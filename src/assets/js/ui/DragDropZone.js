@@ -36,7 +36,7 @@ export class DragDropZone {
         // Visuelles Feedback beim Drüberziehen
         ['dragenter', 'dragover'].forEach((eventName) => {
             this.zone.addEventListener(
-                'dragover',
+                eventName,
                 () => this.zone.classList.add('is-dragover'),
                 false
             );
@@ -86,11 +86,9 @@ export class DragDropZone {
             const txt = this.zone.querySelector('.js-preview-text');
 
             if (img && file.type.startsWith('image/')) {
-                // FIX: Alte URL aus Speicher löschen (Garbage Collection)
                 if (this.currentPreviewUrl) {
                     URL.revokeObjectURL(this.currentPreviewUrl);
                 }
-                // FIX: Performante ObjectURL statt Thread-blockierendem Base64 Reader nutzen
                 this.currentPreviewUrl = URL.createObjectURL(file);
                 img.src = this.currentPreviewUrl;
                 img.classList.remove('u-hidden');

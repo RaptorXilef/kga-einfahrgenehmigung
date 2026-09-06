@@ -28,16 +28,28 @@ export class ConsentBanner {
             this.applyConsent(JSON.parse(this.getCookie()));
         }
 
-        this.btnAcceptAll?.addEventListener('click', () => this.acceptAll());
-        this.btnAcceptEssential?.addEventListener('click', () => this.acceptEssential());
-        this.btnSaveSelection?.addEventListener('click', () => this.saveSelection());
-        this.btnToggleDetails?.addEventListener('click', () => this.toggleDetails());
+        // FIX: Event-Prevention hinzufügen, um unbeabsichtigte Form-Submits zu blockieren
+        this.btnAcceptAll?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.acceptAll();
+        });
+        this.btnAcceptEssential?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.acceptEssential();
+        });
+        this.btnSaveSelection?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.saveSelection();
+        });
+        this.btnToggleDetails?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggleDetails();
+        });
     }
 
     setCookie(value) {
         const d = new Date();
         d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-        // LINTER-FIX: document.cookie muss zum Setzen von Cookies genutzt werden, die Deaktivierung des Linters ist hier beabsichtigt.
         // biome-ignore lint/suspicious/noDocumentCookie: Necessary for vanilla JS cookie handling
         document.cookie = `${this.cookieName}=${JSON.stringify(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
         this.container.style.display = 'none';
@@ -45,13 +57,11 @@ export class ConsentBanner {
     }
 
     getCookie() {
-        // LINTER-FIX: Template Literal
         const name = `${this.cookieName}=`;
         const decodedCookie = decodeURIComponent(document.cookie);
         const ca = decodedCookie.split(';');
         for (let i = 0; i < ca.length; i++) {
             let c = ca[i];
-            // LINTER-FIX: Strict Equality
             while (c.charAt(0) === ' ') c = c.substring(1);
             if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
         }
@@ -97,7 +107,6 @@ export class ConsentBanner {
         document.head.appendChild(script);
 
         window.dataLayer = window.dataLayer || [];
-        // LINTER-FIX: Google Analytics Tag MUSS zwingend das klassische `arguments` Array pushen, um zu funktionieren.
         function gtag() {
             // biome-ignore lint/complexity/noArguments: Google Analytics requires the exact arguments object
             window.dataLayer.push(arguments);

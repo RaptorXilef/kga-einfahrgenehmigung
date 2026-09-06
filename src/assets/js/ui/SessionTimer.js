@@ -41,24 +41,42 @@ export class SessionTimer {
         this.init();
     }
 
+    // FIX: LocalStorage sicher auslesen
+    getStoredActivity() {
+        try {
+            return parseInt(localStorage.getItem('kga_last_activity') || '0', 10);
+        } catch (e) {
+            return 0; // Rückfallwert bei blockiertem LocalStorage
+        }
+    }
+
+    // FIX: LocalStorage sicher schreiben
+    setStoredActivity(timestamp) {
+        try {
+            localStorage.setItem('kga_last_activity', timestamp.toString());
+        } catch (e) {
+            // Ignorieren, da Fallback auf Instanz-Speicher `this.lastActivity` greift
+        }
+    }
+
     init() {
-        const storedActivity = parseInt(localStorage.getItem('kga_last_activity') || '0', 10);
+        const storedActivity = this.getStoredActivity();
         if (storedActivity > this.lastActivity) {
             this.lastActivity = storedActivity;
         } else {
-            localStorage.setItem('kga_last_activity', this.lastActivity.toString());
+            this.setStoredActivity(this.lastActivity);
         }
 
         // Intervall starten
         this.interval = setInterval(() => this.tick(), 1000);
         this.updateDisplay(this.maxIdleMs);
 
-        // LINTER-FIX: Block-Statements verhindern implizite Returns in Iterables
         ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) => {
             document.addEventListener(evt, this.boundResetIdleTime, { passive: true });
         });
 
         document.addEventListener('visibilitychange', this.boundVisibilityChange);
+        // HINWEIS: Das Storage-Event wirft bei blockierten Cookies selbst keine Exception.
         window.addEventListener('storage', this.boundStorageChange);
 
         if (this.btnStay) this.btnStay.addEventListener('click', this.boundStayLoggedIn);
@@ -69,7 +87,6 @@ export class SessionTimer {
     destroy() {
         clearInterval(this.interval);
 
-        // LINTER-FIX: Block-Statements verhindern implizite Returns in Iterables
         ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) => {
             document.removeEventListener(evt, this.boundResetIdleTime);
         });
@@ -82,7 +99,7 @@ export class SessionTimer {
     }
 
     syncWithStorage() {
-        const stored = parseInt(localStorage.getItem('kga_last_activity') || '0', 10);
+        const stored = this.getStoredActivity();
         if (stored > this.lastActivity) {
             this.lastActivity = stored;
             if (this.isWarningActive) {
@@ -106,7 +123,7 @@ export class SessionTimer {
         if (this.isWarningActive) return; // Wenn Warnung an ist, muss Button geklickt werden
 
         this.lastActivity = Date.now();
-        localStorage.setItem('kga_last_activity', this.lastActivity.toString());
+        this.setStoredActivity(this.lastActivity);
         this.updateDisplay(this.maxIdleMs);
     }
 
@@ -153,7 +170,7 @@ export class SessionTimer {
 
             if (result.success) {
                 this.lastActivity = Date.now();
-                localStorage.setItem('kga_last_activity', this.lastActivity.toString());
+                this.setStoredActivity(this.lastActivity);
                 this.isWarningActive = false;
 
                 if (this.modal) this.modal.style.display = 'none';
