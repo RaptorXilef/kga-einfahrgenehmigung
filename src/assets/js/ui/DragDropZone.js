@@ -3,7 +3,7 @@ import { notifier } from '../core/Notifier.js';
 /**
  * Universelle UI-Komponente für Datei-Uploads per Drag & Drop.
  * Unterstützt direkte Formular-Submits (z.B. Profilbilder) sowie reine
- * lokale Vorschauen (z.B. Bank-CSV-Import).
+ * lokale Vorschauen (z.B. Formular-Avatare) oder Preview + Auto-Submit (Bank CSV).
  */
 export class DragDropZone {
     constructor(zone) {
@@ -11,6 +11,8 @@ export class DragDropZone {
         this.input = this.zone.querySelector('input[type="file"]');
         this.form = this.zone.closest('form') || this.zone.querySelector('form');
         this.isPreviewOnly = this.zone.classList.contains('js-preview-only');
+        // NEU: Steuert, ob nach einem Preview direkt abgesendet werden soll
+        this.isAutoSubmit = this.zone.classList.contains('js-auto-submit');
 
         if (this.input) {
             this.init();
@@ -95,13 +97,17 @@ export class DragDropZone {
                     txt.style.opacity = '1';
                     txt.style.color = 'var(--primary-color)';
                 }
+
+                // NEU: Wenn es eine Auto-Submit Zone ist (z.B. Bank CSV), direkt hochladen!
+                if (this.isAutoSubmit && this.form) {
+                    this.form.submit();
+                }
             };
             reader.readAsDataURL(file);
 
-            // Bei Preview (z.B. CSV-Bank-Import) triggern wir den Submit oft via onchange im Input
-            // oder via separatem Button, daher machen wir hier kein automatisches frm.submit()
+            // Bei reinem Preview (z.B. in der Benutzererstellung) stoppen wir hier.
         } else if (this.form) {
-            // Direkt speichern
+            // Direkt speichern (Klassischer Avatar-Upload)
             this.form.submit();
         }
     }

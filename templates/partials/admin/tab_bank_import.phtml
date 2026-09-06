@@ -43,7 +43,8 @@ if (!$headersExist) {
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <div class="js-avatar-dropzone js-preview-only u-text-center u-padding-around-l"
+                    <!-- FIX: js-auto-submit Klasse hinzugefügt, damit das ESM-Modul den Submit übernimmt! -->
+                    <div class="js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l"
                          style="border: 3px dashed var(--border-color); border-radius: 12px; background: rgba(0,0,0,0.01); padding: 40px 20px; cursor:pointer;"
                          id="csvDropzone">
                         <span style="font-size: 3rem; display:block; margin-bottom:10px;">📄</span>
@@ -62,12 +63,12 @@ if (!$headersExist) {
                             <?php } ?>
                         </div>
 
+                        <!-- FIX: Veraltetes und bei Drop fehlerhaftes onchange="..." Attribut entfernt -->
                         <input type="file"
                                name="bank_csv"
                                accept=".csv,text/csv"
                                class="u-hidden"
-                               id="bankCsvInput"
-                               onchange="document.getElementById('bankCsvForm').submit()">
+                               id="bankCsvInput">
                     </div>
                 </form>
             <?php } else { ?>
