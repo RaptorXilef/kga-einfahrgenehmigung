@@ -1,9 +1,7 @@
 import { debounce } from '../utils/Utils.js';
 
 /**
- * Controller für globale Admin-Dashboard Funktionen:
- * Tab-Navigation (inkl. Audit-Log Redirect), Such-Debounce,
- * die Genehmigungs-Sperre (Prompt) und Finance Bulk-Aktionen.
+ * Controller für globale Admin-Dashboard Funktionen.
  */
 export class AdminDashboard {
     constructor(container) {
@@ -108,6 +106,11 @@ export class AdminDashboard {
 
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
+
+        // Early Exit Guard verhindert, dass bestehende Tabs resettet werden, wenn das Ziel nicht existiert
+        const target = document.getElementById(tabId);
+        if (!target) return;
+
         this.contents.forEach((c) => {
             c.classList.remove('c-tabs__content--active');
         });
@@ -115,16 +118,13 @@ export class AdminDashboard {
             b.classList.remove('c-tabs__btn--active');
         });
 
-        const target = document.getElementById(tabId);
-        if (target) {
-            target.classList.add('c-tabs__content--active');
-            activeBtn.classList.add('c-tabs__btn--active');
-            // Absicherung gegen blockierten localStorage (SecurityError)
-            try {
-                localStorage.setItem('lastAdminTab', tabId);
-            } catch {
-                // Ignore
-            }
+        target.classList.add('c-tabs__content--active');
+        activeBtn.classList.add('c-tabs__btn--active');
+        // Absicherung gegen blockierten localStorage (SecurityError)
+        try {
+            localStorage.setItem('lastAdminTab', tabId);
+        } catch {
+            // Ignore
         }
     }
 

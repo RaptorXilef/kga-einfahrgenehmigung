@@ -90,9 +90,15 @@ export class ReleaseNotes {
                     '<div class="u-text-center u-text-muted u-padding-around-l">Keine Einträge vorhanden.</div>';
             } else {
                 notesArray.forEach((note) => {
+                    // Auch die interpolierte Version muss zwingend durch den Sanitizer!
+                    const safeVersion = window.DOMPurify.sanitize(note.version);
+                    const safeContent = window.DOMPurify.sanitize(
+                        window.marked.parse(note.content)
+                    );
+
                     html += `<div class="rn-markdown u-margin-bottom-l">`;
-                    html += `<h1>Version ${note.version}</h1>`;
-                    html += window.DOMPurify.sanitize(window.marked.parse(note.content));
+                    html += `<h1>Version ${safeVersion}</h1>`;
+                    html += safeContent;
                     html += `</div>`;
                 });
             }

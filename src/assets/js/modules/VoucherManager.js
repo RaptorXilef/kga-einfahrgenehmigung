@@ -5,7 +5,6 @@ import { notifier } from '../core/Notifier.js';
  * Übernimmt die Erstellung von QR-Codes via API und das plattformübergreifende Kopieren von Links.
  */
 export class VoucherManager {
-    // ... [Konstruktor und init bleiben unverändert] ...
     constructor(container) {
         this.container = container;
         this.qrButtons = this.container.querySelectorAll('.js-show-qr');
@@ -57,12 +56,18 @@ export class VoucherManager {
         this.modalCode.innerText = code;
         this.modalImg.style.display = 'none';
         this.modalLoader.style.display = 'block';
-        // FIX: Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
+        // Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
         this.modalLoader.innerText = 'Wird generiert...';
         this.modal.style.display = 'flex';
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
+
+        // TODO ARCHITEKTUR NOTIZ (Kritisch):
+        // Das Senden von Gutschein-URLs an api.qrserver.com speichert diese Klartext-URLs
+        // in fremden Server-Logs. Dies ist ein massives Sicherheits- und Datenschutzrisiko!
+        // Lösung für das Backend-Team: Ersetzt diese URL durch einen lokalen PHP-Endpoint, z.B.:
+        // const qrUrl = `${window.KGA_CONFIG.baseUrl}api/generate_qr?data=${encodedUrl}`;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
 
         // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
@@ -71,7 +76,7 @@ export class VoucherManager {
             this.modalImg.style.display = 'block';
         };
 
-        // FIX: Fehlerbehandlung, falls die externe API offline oder geblockt ist!
+        // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
         this.modalImg.onerror = () => {
             this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
             this.modalLoader.style.color = 'var(--danger-color)';
@@ -88,7 +93,6 @@ export class VoucherManager {
         this.modalLoader.style.color = '';
     }
 
-    // ... [copyLink und fallbackCopyText bleiben unverändert] ...
     async copyLink(url, element) {
         const originalHtml = element.innerHTML;
 

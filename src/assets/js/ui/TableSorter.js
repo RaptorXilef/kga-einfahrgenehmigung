@@ -25,9 +25,11 @@ export class TableSorter {
             th.style.userSelect = 'none';
             th.title = 'Klicken zum Sortieren';
 
-            // Icon hinzufügen
-            th.innerHTML +=
-                ' <span class="sort-icon" style="opacity:0.3; font-size:1em; margin-left: 4px; display:inline-block; vertical-align:middle;">⇅</span>';
+            // Non-destruktiver Insert verhindert das Löschen von Child-Event-Listenern
+            th.insertAdjacentHTML(
+                'beforeend',
+                ' <span class="sort-icon" style="opacity:0.3; font-size:1em; margin-left: 4px; display:inline-block; vertical-align:middle;">⇅</span>'
+            );
 
             th.addEventListener('click', () => this.sortTable(th, index));
         });
@@ -54,7 +56,7 @@ export class TableSorter {
             }
         });
 
-        // FIX: DocumentFragment verhindert 1000x Reflows/Repaints beim Rendern!
+        // DocumentFragment verhindert 1000x Reflows/Repaints beim Rendern!
         const fragment = document.createDocumentFragment();
 
         if (nextSort === 'none') {
@@ -113,7 +115,7 @@ export class TableSorter {
             });
         }
 
-        // FIX: Mit nur einem einzigen DOM-Insert die gesamte Tabelle neu rendern
+        // Mit nur einem einzigen DOM-Insert die gesamte Tabelle neu rendern
         this.tbody.appendChild(fragment);
     }
 }
