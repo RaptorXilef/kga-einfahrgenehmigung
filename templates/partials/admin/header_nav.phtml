@@ -15,6 +15,7 @@ use App\Infrastructure\Storage\ImageStorageService;
  * @var ImageStorageService $imageStorage
  * @var RoleRepositoryInterface $roleRepository
  * @var array $settings
+ * @var array $allReleaseNotes
  */
 $roleId = $auth->getRole();
 $roleName = $roleId;
@@ -26,7 +27,7 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
 <nav
      style="background: var(--bg-light); border-bottom: 1px solid var(--border-color); padding: 10px 0; margin-bottom: 2rem; position: relative; z-index: 100;">
     <div class="c-tab-content-container"
-         style="display: flex; justify-content: space-between; align-items: center;">
+         style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
 
         <!-- User Info & Group -->
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
@@ -83,7 +84,21 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                      alt=""> Check
             </a>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
+
+        <!-- Rechtsbündige Tools (Timer, What's New, Logout) -->
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+
+            <!-- Der "Was ist neu" Button (Nur sichtbar wenn wir auf der Dashboard Action sind und Notes existieren) -->
+            <?php if (!empty($allReleaseNotes)) { ?>
+                <button type="button"
+                        class="js-show-all-release-notes"
+                        style="background: var(--primary-soft); color: var(--primary-color); border: 1px solid rgba(52, 152, 219, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;"
+                        onmouseover="this.style.background='var(--primary-color)'; this.style.color='#fff';"
+                        onmouseout="this.style.background='var(--primary-soft)'; this.style.color='var(--primary-color)';">
+                    🎁 Was ist neu?
+                </button>
+            <?php } ?>
+
             <div title="Automatische Abmeldung bei Inaktivität"
                  style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
                 ⏳ <span id="ui-session-timer">20:00</span>

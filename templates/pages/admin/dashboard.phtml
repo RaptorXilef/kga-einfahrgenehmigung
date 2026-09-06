@@ -53,17 +53,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
         </div>
     <?php } ?>
 
-    <!-- NEU: Das Dashboard Header Layout hat nun Platz für den manuellen What's New Button -->
-    <div class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
-        <h1 class="u-margin-none"
-            style="text-align: left;">Dashboard & Statistiken</h1>
-        <?php if (!empty($allReleaseNotes)) { ?>
-            <button type="button"
-                    class="c-button c-button--secondary js-show-all-release-notes"
-                    style="width: auto; padding: 0 15px; height: 38px; font-size: 0.85rem; font-weight: 700; border-radius: 20px; color: var(--primary-color); border-color: var(--primary-soft); background: #fff; margin: 0;">
-                🎁 Was ist neu?
-            </button>
-        <?php } ?>
+    <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
+        <h1 class="u-margin-none">Dashboard & Statistiken</h1>
     </div>
 
     <?php if ($auth->hasPermission('permits.view')) { ?>
