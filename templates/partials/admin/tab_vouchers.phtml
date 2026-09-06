@@ -13,8 +13,6 @@ use App\Infrastructure\Config\Config;
  *
  * Path: templates/pages/admin_dashboard/_tab_vouchers.phtml
  *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
@@ -65,7 +63,6 @@ use App\Infrastructure\Config\Config;
                                     </tr>
                                 <?php } else { ?>
                                     <?php foreach ($vouchers as $v) {
-                                        // FIX: Explizit ->value nutzen für Array-Zugriffe und Ausgaben
                                         $vCodeStr = $v->code->value;
                                         $url = $config->getBaseUrl() . 'index?voucher=' . $vCodeStr;
                                         $isValid = $voucherValidities[$vCodeStr] ?? false;
@@ -83,10 +80,11 @@ use App\Infrastructure\Config\Config;
                                             <td>
                                                 <div class="u-text-center">
                                                     <button type="button"
-                                                            class="c-button c-button--secondary"
+                                                            class="c-button c-button--secondary js-show-qr"
                                                             style="padding: 4px 8px; font-size: 0.75rem;"
                                                             title="QR-Code anzeigen"
-                                                            onclick="showVoucherQr('<?php echo \htmlspecialchars($vCodeStr); ?>', '<?php echo \htmlspecialchars($url); ?>')">
+                                                            data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
+                                                            data-url="<?php echo \htmlspecialchars($url); ?>">
                                                         <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
                                                              class="c-icon"
                                                              alt=""
@@ -150,9 +148,9 @@ use App\Infrastructure\Config\Config;
                                                 </div>
 
                                                 <div class="u-margin-top-s">
-                                                    <span class="u-text-link"
+                                                    <span class="u-text-link js-copy-link"
                                                           style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
-                                                          onclick="copyVoucherLink('<?php echo $url; ?>', this)">
+                                                          data-url="<?php echo $url; ?>">
                                                         Link kopieren
                                                         <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
                                                              class="c-icon"
@@ -295,10 +293,9 @@ use App\Infrastructure\Config\Config;
             </div>
 
             <button type="button"
-                    class="c-button c-button--primary u-width-100 u-margin-top-m"
-                    onclick="closeVoucherQr()"
-                    style="padding: 12px;">Schließen</button>
+                    class="c-button c-button--primary u-width-100 u-margin-top-m js-close-modal"
+                    style="padding: 12px;">Schließen
+            </button>
         </div>
     </div>
-
 <?php } ?>

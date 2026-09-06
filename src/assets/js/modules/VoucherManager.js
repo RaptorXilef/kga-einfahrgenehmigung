@@ -1,111 +1,132 @@
 import { notifier } from '../core/Notifier.js';
 
 /**
- * Verwaltet die Gutschein-Ansicht im Admin-Bereich.
- * Übernimmt das QR-Code-Modal und das Kopieren von Links in die Zwischenablage.
- * Ersetzt die alten inline Funktionen in tab_vouchers.phtml.
+ * Modulares Management für die Gutschein-Ansicht im Admin-Dashboard.
+ * Übernimmt die Erstellung von QR-Codes via API und das plattformübergreifende Kopieren von Links.
  */
 export class VoucherManager {
     constructor(container) {
         this.container = container;
+        this.qrButtons = this.container.querySelectorAll('.js-show-qr');
+        this.copyButtons = this.container.querySelectorAll('.js-copy-link');
+
+        // Modal-Elemente auflösen
         this.modal = document.getElementById('qrModal');
-        this.img = document.getElementById('qrModalImg');
-        this.loader = document.getElementById('qrModalLoader');
-        this.codeDisplay = document.getElementById('qrModalCode');
+        this.modalImg = document.getElementById('qrModalImg');
+        this.modalLoader = document.getElementById('qrModalLoader');
+        this.modalCode = document.getElementById('qrModalCode');
+        this.closeBtn = this.modal?.querySelector('.js-close-modal');
 
         this.init();
     }
 
     init() {
-        // Event-Delegation für die Tabelle (Buttons)
-        this.container.addEventListener('click', (e) => {
-            const qrBtn = e.target.closest('.js-show-qr');
-            const copyBtn = e.target.closest('.js-copy-link');
-
-            if (qrBtn) {
+        this.qrButtons.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.showQr(qrBtn.dataset.code, qrBtn.dataset.url);
-            }
-
-            if (copyBtn) {
-                e.preventDefault();
-                this.copyLink(copyBtn.dataset.url, copyBtn);
-            }
+                this.showQr(btn.dataset.code, btn.dataset.url);
+            });
         });
 
-        // Schließen-Events für das Modal
+        this.copyButtons.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.copyLink(btn.dataset.url, btn);
+            });
+        });
+
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.closeQr();
+            });
+        }
+
         if (this.modal) {
             this.modal.addEventListener('click', (e) => {
+                // Nur schließen, wenn man auf den abgedunkelten Hintergrund klickt
                 if (e.target === this.modal) this.closeQr();
             });
-            const closeBtn = this.modal.querySelector('.js-close-modal');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => this.closeQr());
-            }
         }
     }
 
     showQr(code, url) {
-        if (!this.modal || !this.img || !this.loader || !this.codeDisplay) return;
+        if (!this.modal) return;
 
-        this.codeDisplay.innerText = code;
-        this.img.style.display = 'none';
-        this.loader.style.display = 'block';
+        this.modalCode.innerText = code;
+        this.modalImg.style.display = 'none';
+        this.modalLoader.style.display = 'block';
         this.modal.style.display = 'flex';
 
+        // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
-        this.img.onload = () => {
-            this.loader.style.display = 'none';
-            this.img.style.display = 'block';
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
+
+        // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
+        this.modalImg.onload = () => {
+            this.modalLoader.style.display = 'none';
+            this.modalImg.style.display = 'block';
         };
-        this.img.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodedUrl}`;
+        this.modalImg.src = qrUrl;
     }
 
     closeQr() {
-        if (!this.modal || !this.img) return;
+        if (!this.modal) return;
         this.modal.style.display = 'none';
-        this.img.src = '';
+        this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
     }
 
     async copyLink(url, element) {
-        const originalText = element.innerText;
-        const showSuccess = () => {
+        const originalHtml = element.innerHTML;
+
+        const successAction = () => {
             element.innerText = 'Kopiert! ✓';
             element.style.color = 'var(--success-color)';
-            notifier.show('Gutschein-Link kopiert!');
+            notifier.show('Gutschein-Link in die Zwischenablage kopiert!', 'success');
+
+            // Reset nach 2 Sekunden
             setTimeout(() => {
-                element.innerText = originalText;
-                element.style.color = 'var(--primary-color)';
+                element.innerHTML = originalHtml;
+                element.style.color = '';
             }, 2000);
         };
 
+        // 1. Moderne Clipboard API bevorzugen
         if (navigator.clipboard && window.isSecureContext) {
             try {
                 await navigator.clipboard.writeText(url);
-                showSuccess();
+                successAction();
             } catch (err) {
-                this.fallbackCopyText(url, showSuccess);
+                console.error('[VoucherManager] API-Clipboard fehlgeschlagen:', err);
+                this.fallbackCopyText(url, successAction);
             }
         } else {
-            this.fallbackCopyText(url, showSuccess);
+            // 2. Legacy Fallback (z.B. für ungesicherte lokale Umgebungen)
+            this.fallbackCopyText(url, successAction);
         }
     }
 
     fallbackCopyText(text, callback) {
         const textArea = document.createElement('textarea');
         textArea.value = text;
+
+        // Außerhalb des sichtbaren Bereichs positionieren
         textArea.style.position = 'fixed';
         textArea.style.left = '-9999px';
         textArea.style.top = '0';
+
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
 
         try {
-            if (document.execCommand('copy')) callback();
+            const successful = document.execCommand('copy');
+            if (successful) callback();
         } catch (err) {
-            console.error('Fallback Kopieren fehlgeschlagen', err);
+            console.error('[VoucherManager] Fallback-Kopieren fehlgeschlagen', err);
+            notifier.show('Fehler beim Kopieren des Links.', 'error');
         }
+
         document.body.removeChild(textArea);
     }
 }

@@ -203,17 +203,17 @@ $crons = [
                                        style="flex: 1; min-width: 0; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
                                        onclick="this.select()">
                                 <button type="button"
-                                        class="c-button c-button--secondary"
-                                        onclick="navigator.clipboard.writeText('<?php echo \htmlspecialchars($cron['url']); ?>'); alert('Kopiert!');"
+                                        class="c-button c-button--secondary js-copy-btn"
+                                        data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
                                         title="In Zwischenablage kopieren">
                                     <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
                                          class="c-icon"
                                          alt="">
                                 </button>
                                 <button type="button"
-                                        class="c-button c-button--primary"
+                                        class="c-button c-button--primary js-cron-btn"
+                                        data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
                                         style="width: auto; padding: 0 15px; font-size: 0.85rem; font-weight: 600;"
-                                        onclick="executeCron('<?php echo \htmlspecialchars($cron['url']); ?>')"
                                         title="Jetzt manuell ausführen">
                                     ▶ Ausführen
                                 </button>
