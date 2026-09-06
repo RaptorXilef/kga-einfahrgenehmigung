@@ -265,12 +265,29 @@ if ($currentArchiveYear !== $lastYear) { ?>
                     id="modal-session-countdown"
                     style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
             abgemeldet.</p>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
+            <!-- Button 1: Bleiben -->
             <button id="btn-session-stay"
                     class="c-button c-button--primary"
                     style="background: var(--success-color); border: 2px solid var(--success-color); font-size: 0.85rem; width: 100%; padding: 12px 0;">
-                Angemeldet bleiben
+                Bleiben
             </button>
+
+            <!-- Button 2: Abmelden (Sicheres Formular) -->
+            <form method="POST"
+                  action="history_logout"
+                  style="margin: 0; width: 100%;">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                <button type="submit"
+                        class="c-button c-button--danger"
+                        style="font-size: 0.85rem; width: 100%; padding: 12px 0; border: 2px solid var(--danger-color);">
+                    Abmelden
+                </button>
+            </form>
         </div>
+
     </div>
 </div>
