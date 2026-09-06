@@ -261,7 +261,14 @@ export class PermitForm {
         });
 
         if (res.success) {
-            const sanitize = (html) => window.DOMPurify?.sanitize(html) ?? html;
+            // FIX: "Fail-Safe" statt "Fail-Open". Wenn DOMPurify fehlt, blockieren wir HTML.
+            const sanitize = (html) => {
+                if (typeof window.DOMPurify !== 'undefined') return window.DOMPurify.sanitize(html);
+                console.warn(
+                    '[Security] DOMPurify fehlt. HTML-Injektion sicherheitshalber blockiert.'
+                );
+                return '⚠️ Anzeige aus Sicherheitsgründen blockiert.';
+            };
 
             this.openingEl.innerHTML = sanitize(res.openingHours);
 
@@ -288,8 +295,14 @@ export class PermitForm {
         });
 
         if (res.success) {
-            // Nutze DOMPurify wenn vorhanden, ansonsten weise HTML zu
-            const sanitize = (html) => window.DOMPurify?.sanitize(html) ?? html;
+            // FIX: "Fail-Safe" Sicherheitsmechanismus
+            const sanitize = (html) => {
+                if (typeof window.DOMPurify !== 'undefined') return window.DOMPurify.sanitize(html);
+                console.warn(
+                    '[Security] DOMPurify fehlt. HTML-Injektion sicherheitshalber blockiert.'
+                );
+                return '⚠️ Anzeige aus Sicherheitsgründen blockiert.';
+            };
 
             // Frontend Darstellung (mit Rabatt-HTML)
             if (this.priceDisplay.tagName !== 'SPAN' && res.discountText) {

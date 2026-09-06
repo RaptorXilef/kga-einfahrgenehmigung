@@ -85,11 +85,13 @@ export class TableSorter {
                 // Erkennung von Zahlen (z.B. für Preise)
                 const numA = parseFloat(valA);
                 const numB = parseFloat(valB);
+
+                // FIX: Regex komplett entfernt. isFinite ist drastisch schneller in der N log N Iteration!
                 if (
                     !Number.isNaN(numA) &&
                     !Number.isNaN(numB) &&
-                    valA.match(/^-?\d+(\.\d+)?$/) &&
-                    valB.match(/^-?\d+(\.\d+)?$/)
+                    isFinite(valA) &&
+                    isFinite(valB)
                 ) {
                     return nextSort === 'asc' ? numA - numB : numB - numA;
                 }

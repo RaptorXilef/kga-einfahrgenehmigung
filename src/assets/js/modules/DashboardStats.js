@@ -17,6 +17,11 @@ export class DashboardStats {
     }
 
     init() {
+        // FIX: Aktive Chart-Instanz zwingend zerstören, um Ghosting/Memory Leaks bei Neuladen zu verhindern
+        if (this.currentChart instanceof window.Chart) {
+            this.currentChart.destroy();
+        }
+
         // Chart initialisieren (Standardmäßig Monatlich)
         this.currentChart = new window.Chart(this.canvas, {
             type: 'bar',
