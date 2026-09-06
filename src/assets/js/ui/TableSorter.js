@@ -13,6 +13,10 @@ export class TableSorter {
     }
 
     init() {
+        // FIX: Idempotentes Mounting - Schützt vor doppelter Event-Bindung bei AJAX Tab-Wechseln
+        if (this.table.dataset.sorterBound === 'true') return;
+        this.table.dataset.sorterBound = 'true';
+
         // Wenn die Tabelle leer ist (Meldung über colspan), nicht sortieren
         if (!this.tbody || this.headers.length === 0 || this.tbody.querySelector('td[colspan]'))
             return;

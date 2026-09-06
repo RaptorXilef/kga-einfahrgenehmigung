@@ -122,15 +122,17 @@ export class VoucherManager {
                 successAction();
             } catch (err) {
                 console.error('[VoucherManager] API-Clipboard fehlgeschlagen:', err);
-                this.fallbackCopyText(url, successAction);
+                // FIX: Element durchreichen, um ReferenceError zu vermeiden
+                this.fallbackCopyText(url, element, successAction);
             }
         } else {
             // 2. Legacy Fallback (z.B. für ungesicherte lokale Umgebungen)
-            this.fallbackCopyText(url, successAction);
+            this.fallbackCopyText(url, element, successAction);
         }
     }
 
-    fallbackCopyText(text, callback) {
+    // FIX: Element Parameter in der Methodensignatur ergänzt
+    fallbackCopyText(text, element, callback) {
         const textArea = document.createElement('textarea');
         textArea.value = text;
 
@@ -150,7 +152,8 @@ export class VoucherManager {
             console.error('[VoucherManager] Fallback-Kopieren fehlgeschlagen', err);
             notifier.show('Fehler beim Kopieren des Links.', 'error');
             // Bei Fehler auch das Lock freigeben
-            delete element.dataset.isCopying;
+            // FIX: Sicherer Zugriff, da element nun bekannt ist
+            if (element) delete element.dataset.isCopying;
         }
 
         document.body.removeChild(textArea);
