@@ -147,7 +147,13 @@ export class VoucherManager {
 
         try {
             const successful = document.execCommand('copy');
-            if (successful) callback();
+            if (successful) {
+                callback();
+            } else {
+                // FIX: Silent-Failures abfangen und Lock freigeben
+                notifier.show('Fehler: Browser blockiert die Zwischenablage.', 'error');
+                if (element) delete element.dataset.isCopying;
+            }
         } catch (err) {
             console.error('[VoucherManager] Fallback-Kopieren fehlgeschlagen', err);
             notifier.show('Fehler beim Kopieren des Links.', 'error');
