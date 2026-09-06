@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.66.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.65.1...v0.66.0) (2026-09-06)
+
+### 🚀 Features
+
+* **frontend:** Implement ESM cache-busting in build script and remove legacy SessionTimer import ([54d7fcf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/54d7fcf7cd7ef9a607f4d248ab0d6466f198db10))
+* **js:** Implement core ESM infrastructure and bootstrapper ([b3d5375](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b3d5375db410e4fcbf025b9e92e45741c4ad0aa0))
+
+### 🐛 Bug Fixes
+
+* **frontend:** Add missing logout buttons to session timer modals ([2e6bfc3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2e6bfc33a3e5ffefc88e785cdc715a2c10abaab0))
+* **frontend:** Apply critical XSS fixes and replace native UI alerts ([e7e1c39](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e7e1c399860b904525f7760d1b94add8deea6104))
+* **frontend:** Remove legacy SessionTimer import and prepare cache-busting ([271a95e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/271a95e5d57741f7cd1c87ae7f1b26e344e0e6d9))
+* **frontend:** Resolve avatar drag & drop submission and remove obsolete inline voucher toggle ([d6cbd0c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d6cbd0c2396bcfe074e5cacffe245d8ec99ea28d))
+* **frontend:** Resolve HTML rendering in PermitForm and fix all Biome linter warnings ([970936a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/970936a7f19f15a4e9bd634fb4269d262cf60371))
+* **frontend:** Resolve HTML rendering in PermitForm and restore robust permission matrix ([cabb9d0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/cabb9d0b67e112e71f9c381305bb3b2f28597012))
+* **frontend:** Resolve remaining Biome linter warnings and Intelephense error ([6a5df27](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6a5df2798d4ce9ee3966f30eb40085c8447091de))
+* **frontend:** Restore automatic CSV processing on drag & drop for Bank Import ([0e4aa88](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0e4aa88fd815683f7238e6c6778274416f0de046))
+
+### ⚙️ Refactoring
+
+* **build:** Simplify and generalize JS minification script ([e703662](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e7036625feb64dc8136749b04830bc2f91e969ac))
+* **js, phtml:** finalize ESM migration and remove all remaining inline scripts ([a0be603](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a0be603b6db8ce48269839261317057ac15f3a31))
+* **js:** Consolidate permit form logic into unified ESM module ([a92f4d7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a92f4d72dd8547aa3934ea4a6e54ef51e3603d7c))
+* **js:** Extract inline scripts into modular UI and Core components ([f213b76](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f213b7612c332a2909b3baeef92e1e26955fe91b))
+* **ui:** decouple JS logic from system and voucher tabs ([127f384](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/127f384917f6e4ea5b50757832189c33d61355ef))
+* **ui:** extract chart stats, bank import and dashboard navigation into ESM modules ([eef5bf6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/eef5bf6b1c662345422220e23e0de62e98b5b753))
+* **ui:** extract password toggle and system tools into ESM modules ([341a406](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/341a4061620f95c963472f1487d0945b4ec48a15))
+
 ## [0.65.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.65.0...v0.65.1) (2026-09-04)
 
 ### 🐛 Bug Fixes
