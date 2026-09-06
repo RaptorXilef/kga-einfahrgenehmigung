@@ -128,7 +128,7 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 
 </style>
 
-<div class="c-tab-content-container u-padding-y-xl"
+<div class="c-tab-content-container u-padding-y-xl js-changelog-renderer"
      style="max-width: 850px;">
     <div class="c-card"
          style="border-top: 5px solid var(--primary-color);">
@@ -155,28 +155,9 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
             </div>
         </div>
     </div>
+
+    <!-- Das rohe Markdown wird hier übergeben -->
+    <script type="text/markdown"
+            id="raw-markdown"
+            style="display:none;"><?php echo \htmlspecialchars($markdownContent); ?></script>
 </div>
-
-<!-- Das rohe Markdown wird hier unsichtbar übergeben -->
-<script type="text/markdown"
-        id="raw-markdown"
-        style="display:none;"><?php echo \htmlspecialchars($markdownContent); ?></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const rawMarkdown = document.getElementById('raw-markdown').textContent;
-    const contentArea = document.getElementById('content-area');
-
-    if (rawMarkdown.trim() === 'Kein Changelog gefunden.') {
-        contentArea.innerHTML =
-            '<div class="u-text-muted u-text-center u-padding-y-l u-font-bold">Keine CHANGELOG.md im System gefunden.</div>';
-        return;
-    }
-
-    // Markdown in HTML übersetzen
-    const html = marked.parse(rawMarkdown);
-    // HTML aus Sicherheitsgründen bereinigen und einfügen
-    contentArea.innerHTML = DOMPurify.sanitize(html);
-});
-
-</script>

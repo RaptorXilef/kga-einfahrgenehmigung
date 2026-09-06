@@ -302,6 +302,7 @@ export class PermitForm {
     validateBerlinRestrictions() {
         this.dateInputs.forEach((input) => {
             if (!input || !input.value) return;
+            // window.Date entfernt
             const date = new Date(input.value);
             if (Number.isNaN(date.getTime())) return;
 

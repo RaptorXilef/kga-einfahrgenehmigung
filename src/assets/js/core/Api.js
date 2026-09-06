@@ -43,11 +43,11 @@ class ApiService {
         };
 
         // Wenn FormData übergeben wird, fügen wir den Token sicherheitshalber auch dort ein
-        if (body instanceof window.FormData) {
+        if (body instanceof FormData) {
             if (!body.has('csrf_token')) {
                 body.append('csrf_token', this.csrfToken);
             }
-        } else if (body !== null && !(body instanceof window.URLSearchParams)) {
+        } else if (body !== null && !(body instanceof URLSearchParams)) {
             // Wenn es ein normales Objekt ist, senden wir es als JSON
             headers['Content-Type'] = 'application/json';
             if (typeof body === 'object') {

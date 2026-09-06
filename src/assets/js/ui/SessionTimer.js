@@ -4,8 +4,8 @@ import { throttle } from '../utils/Utils.js';
 
 /**
  * Robustes Session-Timer Modul (ES6).
- * Nutzt das API-Singleton für Ping/Logout und Date.now() für exaktes Timing,
- * unabhängig vom Browser-Throttling in inaktiven Hintergrund-Tabs.
+ * Nutzt das API-Singleton für Ping/Logout und Date.now() für exaktes Timing.
+ * Mit Garbage Collection Method (destroy) für Single-Page-Apps.
  */
 export class SessionTimer {
     constructor(rootElement) {
@@ -13,7 +13,7 @@ export class SessionTimer {
 
         // Konstanten
         this.maxIdleMs = 20 * 60 * 1000; // 20 Minuten
-        this.warningMs = 3 * 60 * 1000; // 3 Minuten (Warnung ab Minute 17)
+        this.warningMs = 3 * 60 * 1000; // 3 Minuten Warn-Zeitraum
         this.lastActivity = Date.now();
         this.isWarningActive = false;
 
@@ -26,6 +26,17 @@ export class SessionTimer {
         // Bestimme Logout-Route dynamisch (Admin vs History)
         this.isHistoryMode = window.location.pathname.includes('/history');
         this.logoutEndpoint = this.isHistoryMode ? 'history_logout' : 'admin_logout';
+
+        // Stabile Referenzen für EventListener abspeichern (Garbage Collection fähig)
+        this.boundResetIdleTime = throttle(() => this.resetIdleTime(), 5000);
+        this.boundVisibilityChange = () => {
+            if (document.visibilityState === 'visible') this.syncWithStorage();
+        };
+        this.boundStorageChange = (e) => {
+            if (e.key === 'kga_last_activity') this.syncWithStorage();
+        };
+        this.boundStayLoggedIn = () => this.stayLoggedIn();
+        this.boundLogoutNow = () => this.logoutNow();
 
         this.init();
     }
@@ -42,34 +53,31 @@ export class SessionTimer {
         this.interval = setInterval(() => this.tick(), 1000);
         this.updateDisplay(this.maxIdleMs);
 
-        // Throttle für Reset, damit wir nicht bei jeder Mausbewegung den Storage feuern
-        this.throttledReset = throttle(() => this.resetIdleTime(), 5000);
-
         // Event Listener für Benutzeraktivität (Ressourcenschonend)
         ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) =>
-            document.addEventListener(evt, this.throttledReset, { passive: true })
+            document.addEventListener(evt, this.boundResetIdleTime, { passive: true })
         );
 
-        // Springt sofort an, wenn der Tab wieder in den Fokus rückt (Background-Throttling Fix)
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                this.syncWithStorage();
-            }
-        });
+        document.addEventListener('visibilitychange', this.boundVisibilityChange);
+        window.addEventListener('storage', this.boundStorageChange);
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'kga_last_activity') {
-                this.syncWithStorage();
-            }
-        });
+        if (this.btnStay) this.btnStay.addEventListener('click', this.boundStayLoggedIn);
+        if (this.btnLogout) this.btnLogout.addEventListener('click', this.boundLogoutNow);
+    }
 
-        // Modal Buttons binden
-        if (this.btnStay) {
-            this.btnStay.addEventListener('click', () => this.stayLoggedIn());
-        }
-        if (this.btnLogout) {
-            this.btnLogout.addEventListener('click', () => this.logoutNow());
-        }
+    // Garbage Collection Methode (Wichtig, falls die Komponente jemals unmounted wird)
+    destroy() {
+        clearInterval(this.interval);
+
+        ['click', 'keyup', 'scroll', 'touchstart'].forEach((evt) =>
+            document.removeEventListener(evt, this.boundResetIdleTime)
+        );
+
+        document.removeEventListener('visibilitychange', this.boundVisibilityChange);
+        window.removeEventListener('storage', this.boundStorageChange);
+
+        if (this.btnStay) this.btnStay.removeEventListener('click', this.boundStayLoggedIn);
+        if (this.btnLogout) this.btnLogout.removeEventListener('click', this.boundLogoutNow);
     }
 
     syncWithStorage() {
@@ -132,7 +140,7 @@ export class SessionTimer {
 
         // Zwangs-Logout
         if (remainingMs <= 0) {
-            clearInterval(this.interval);
+            this.destroy(); // Sauberes Aufräumen vor dem Logout
             this.logoutNow();
         }
     }

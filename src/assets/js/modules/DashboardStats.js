@@ -56,7 +56,7 @@ export class DashboardStats {
                                 let label = context.dataset.label || '';
                                 if (label) label += ': ';
                                 if (context.datasetIndex === 0) {
-                                    label += new window.Intl.NumberFormat('de-DE', {
+                                    label += new Intl.NumberFormat('de-DE', {
                                         style: 'currency',
                                         currency: 'EUR',
                                     }).format(context.raw);

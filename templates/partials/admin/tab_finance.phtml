@@ -52,7 +52,6 @@ if ($auth->hasPermission('finance.view')) {
                 <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
-                        <!-- FIX: form Attribut auf bulk-action-form korrigiert und formaction ergänzt -->
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
@@ -98,7 +97,7 @@ if ($auth->hasPermission('finance.view')) {
                                 <?php if ($hasBulkRight) { ?>
                                     <th style="width: 50px; text-align: center;">
                                         <input type="checkbox"
-                                               onchange="toggleAllBulkPay(this)"
+                                               class="js-bulk-pay-toggle-all"
                                                style="transform: scale(1.3); cursor: pointer;"
                                                title="Alle auswählen">
                                     </th>
@@ -152,7 +151,6 @@ if ($auth->hasPermission('finance.view')) {
                                                            name="codes[]"
                                                            value="<?php echo $permit->code; ?>"
                                                            class="js-bulk-pay-cb"
-                                                           onchange="updateBulkPayButton()"
                                                            style="transform: scale(1.3); cursor: pointer;">
                                                 <?php } else { ?>
                                                     <span title="Gesperrt"
@@ -486,30 +484,4 @@ if ($auth->hasPermission('finance.view')) {
             </div>
         </section>
     </div>
-    <script>
-    function updateBulkPayButton() {
-        const checkboxes = document.querySelectorAll('.js-bulk-pay-cb:checked');
-        const btnPay = document.getElementById('bulkPayBtn');
-        const btnRemind = document.getElementById('bulkRemindBtn');
-        const countSpanPay = document.getElementById('bulkPayCount');
-        const countSpanRemind = document.getElementById('bulkRemindCount');
-
-        if (btnPay && countSpanPay && btnRemind && countSpanRemind) {
-            countSpanPay.innerText = checkboxes.length;
-            countSpanRemind.innerText = checkboxes.length;
-
-            const displayStyle = checkboxes.length > 0 ? 'inline-flex' : 'none';
-            btnPay.style.display = displayStyle;
-            btnRemind.style.display = displayStyle;
-        }
-    }
-
-    function toggleAllBulkPay(source) {
-        document.querySelectorAll('.js-bulk-pay-cb').forEach(cb => {
-            cb.checked = source.checked;
-        });
-        updateBulkPayButton();
-    }
-
-    </script>
 <?php } ?>

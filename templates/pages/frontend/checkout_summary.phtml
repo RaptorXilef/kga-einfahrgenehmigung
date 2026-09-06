@@ -26,8 +26,19 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
     <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($paypalConfig[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"></script>
 <?php } ?>
 
-<div class="c-tab-content-container u-padding-y-xl"
+<div class="c-tab-content-container u-padding-y-xl js-checkout-payment"
      style="max-width: 650px;">
+
+    <script type="application/json"
+            id="payment-data">
+    <?php echo \json_encode([
+        'token' => $token,
+        'csrfToken' => $_SESSION['csrf_token'] ?? '',
+        'isPayPalEnabled' => $isPayPalEnabled,
+    ]); ?>
+
+    </script>
+
     <div class="u-text-center u-margin-bottom-l">
         <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
              alt="Erfolg"
@@ -43,15 +54,13 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
         <div class="c-card__body u-padding-around-xl">
             <h3 class="u-margin-top-none u-margin-bottom-m u-text-muted"
                 style="text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px;"> Zusammenfassung Ihrer
-                Daten
-            </h3>
+                Daten </h3>
 
             <div
                  style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 25px 30px; margin-bottom: 20px;">
                 <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.95rem;">
                     <tr>
-                        <td style="padding: 12px 15px 12px 0; color: var(--text-muted); width: 35%;">Antragsteller:
-                        </td>
+                        <td style="padding: 12px 15px 12px 0; color: var(--text-muted); width: 35%;">Antragsteller:</td>
                         <td style="padding: 12px 0; font-weight: 600;"><?php echo \htmlspecialchars($tempData['name'] ?? ''); ?></td>
                     </tr>
                     <tr style="border-top: 1px solid #e2e8f0;">
@@ -73,12 +82,10 @@ echo \htmlspecialchars($settings['vehicle_types'][$vKey]['label'] ?? $vKey); ?><
                             style="padding: 12px 0; font-weight: 700; text-transform: uppercase; font-family: monospace; font-size: 1.05rem;">
                             <?php echo \htmlspecialchars($tempData['kennzeichen'] ?? ''); ?></td>
                     </tr>
-                    <?php if (!empty($tempData['firma'])) { ?>
-                        <tr style="border-top: 1px solid #e2e8f0;">
+                    <?php if (!empty($tempData['firma'])) { ?><tr style="border-top: 1px solid #e2e8f0;">
                             <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Firma / Lieferant:</td>
                             <td style="padding: 12px 0; font-weight: 600;"><?php echo \htmlspecialchars($tempData['firma']); ?></td>
-                        </tr>
-                    <?php } ?>
+                        </tr><?php } ?>
                     <tr style="border-top: 1px solid #e2e8f0;">
                         <td style="padding: 12px 15px 12px 0; color: var(--text-muted);">Grund der Einfahrt:</td>
                         <td style="padding: 12px 0; font-weight: 600;"><?php $zKey = $tempData['zweck'] ?? '';
@@ -121,23 +128,18 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
 
             <div class="u-flex u-gap-m u-flex-wrap u-justify-center"
                  style="align-items: stretch;">
-
-                <!-- FIX: Der Link zeigt jetzt korrekt auf die permit_edit Action! -->
                 <a href="permit_edit?token=<?php echo $token; ?>"
                    class="c-button c-button--secondary"
                    style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0;">
                     📝 Daten korrigieren
                 </a>
-
                 <?php if ((float) ($tempData['preis'] ?? 0) <= 0.0) { ?>
-                    <button onclick="finalizeWire()"
-                            class="c-button c-button--success"
+                    <button class="c-button c-button--success js-finalize-wire"
                             style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0; padding: 0 15px;">
                         ✅ Kostenlos abschließen
                     </button>
                 <?php } else { ?>
-                    <button onclick="finalizeWire()"
-                            class="c-button c-button--primary"
+                    <button class="c-button c-button--primary js-finalize-wire"
                             style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 48px; margin: 0; padding: 0 15px;">
                         Bestellen & per Überweisung zahlen
                     </button>
@@ -153,98 +155,3 @@ echo \htmlspecialchars($settings['purposes'][$zKey] ?? $zKey); ?></td>
         </div>
     </div>
 </div>
-
-<script>
-const csrfToken = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
-const appToken = '<?php echo $token; ?>';
-
-function finalizeWire() {
-    // Token sicher in den POST-Body packen statt in die URL
-    const params = new window.URLSearchParams(); // TODO window. entfernen wenn in JS-Datei
-    params.append('token', appToken);
-    params.append('csrf_token', csrfToken);
-
-    fetch('<?php echo $settings['base_url']; ?>api/finalize_wire', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRF-Token': csrfToken
-            },
-            body: params
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = 'success?code=' + data.code + '&method=wire';
-            } else {
-                alert('Fehler beim Abschluss: ' + data.error);
-            }
-        })
-        .catch(err => {
-            alert('Ein Netzwerkfehler ist aufgetreten.');
-            console.error(err);
-        });
-}
-
-// PayPal JS Integration (Aktiviert sich nur bei kostenpflichtigen Anträgen UND wenn in Config enabled)
-<?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
-    if (typeof paypal !== 'undefined') {
-        paypal.Buttons({
-            createOrder: function(data, actions) {
-                const params = new window.URLSearchParams(); // TODO window. entfernen wenn in JS-Datei
-                params.append('token', appToken);
-                params.append('csrf_token', csrfToken);
-
-                return fetch('<?php echo $settings['base_url']; ?>api/create_order_for_token', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-CSRF-Token': csrfToken
-                        },
-                        body: params
-                    })
-                    .then(function(res) {
-                        return res.json();
-                    })
-                    .then(function(orderData) {
-                        if (orderData.success) {
-                            return orderData.id;
-                        } else {
-                            alert('PayPal-Sitzungsfehler: ' + orderData.error);
-                            throw new Error(orderData.error);
-                        }
-                    });
-            },
-            onApprove: function(data, actions) {
-                return fetch('<?php echo $settings['base_url']; ?>api/capture', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken
-                        },
-                        body: JSON.stringify({
-                            orderID: data.orderID,
-                            token: appToken
-                        })
-                    })
-                    .then(function(res) {
-                        return res.json();
-                    })
-                    .then(function(details) {
-                        if (details.success) {
-                            window.location.href = 'success?code=' + appToken +
-                                '&method=paypal';
-                        } else {
-                            alert('Zahlungsverifizierung fehlgeschlagen: ' + details.error);
-                        }
-                    });
-            },
-            onError: function(err) {
-                console.error('PayPal-Fehlerkanal:', err);
-                alert('Ein kritischer Fehler ist bei der Zahlungsabwicklung aufgetreten.');
-            }
-        }).render('#paypal-button-container');
-    }
-<?php } ?>
-
-</script>

@@ -2,7 +2,8 @@ import { debounce } from '../utils/Utils.js';
 
 /**
  * Controller für globale Admin-Dashboard Funktionen:
- * Tab-Navigation, Such-Debounce und die Genehmigungs-Sperre (Prompt).
+ * Tab-Navigation (inkl. Audit-Log Redirect), Such-Debounce,
+ * die Genehmigungs-Sperre (Prompt) und Finance Bulk-Aktionen.
  */
 export class AdminDashboard {
     constructor(container) {
@@ -13,6 +14,8 @@ export class AdminDashboard {
 
         this.init();
         this.restoreLastTab();
+        this.handleUrlParams();
+        this.initFinanceBulk();
     }
 
     init() {
@@ -64,6 +67,39 @@ export class AdminDashboard {
         });
     }
 
+    // Neu: Behandelt die Checkbox-Logik im Finanz-Tab
+    initFinanceBulk() {
+        this.bulkCheckboxes = this.container.querySelectorAll('.js-bulk-pay-cb');
+        this.bulkToggleAll = this.container.querySelector('.js-bulk-pay-toggle-all');
+        this.btnPay = document.getElementById('bulkPayBtn');
+        this.btnRemind = document.getElementById('bulkRemindBtn');
+        this.countSpanPay = document.getElementById('bulkPayCount');
+        this.countSpanRemind = document.getElementById('bulkRemindCount');
+
+        if (this.bulkToggleAll) {
+            this.bulkToggleAll.addEventListener('change', (e) => {
+                this.bulkCheckboxes.forEach((cb) => (cb.checked = e.target.checked));
+                this.updateBulkPayButton();
+            });
+        }
+
+        this.bulkCheckboxes.forEach((cb) => {
+            cb.addEventListener('change', () => this.updateBulkPayButton());
+        });
+    }
+
+    updateBulkPayButton() {
+        const checkedCount = Array.from(this.bulkCheckboxes).filter((cb) => cb.checked).length;
+        if (this.btnPay && this.btnRemind) {
+            if (this.countSpanPay) this.countSpanPay.innerText = checkedCount;
+            if (this.countSpanRemind) this.countSpanRemind.innerText = checkedCount;
+
+            const displayStyle = checkedCount > 0 ? 'inline-flex' : 'none';
+            this.btnPay.style.display = displayStyle;
+            this.btnRemind.style.display = displayStyle;
+        }
+    }
+
     switchTab(tabId, activeBtn) {
         if (!tabId || !activeBtn) return;
         this.contents.forEach((c) => c.classList.remove('c-tabs__content--active'));
@@ -82,6 +118,14 @@ export class AdminDashboard {
         const targetBtn = document.querySelector(`[data-tab-target="${lastTab}"]`);
         if (targetBtn) {
             this.switchTab(lastTab, targetBtn);
+        }
+    }
+
+    handleUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('audit_page') || urlParams.has('audit_filter')) {
+            const auditBtn = this.container.querySelector('[data-tab-target="tab-audit-log"]');
+            if (auditBtn) this.switchTab('tab-audit-log', auditBtn);
         }
     }
 }

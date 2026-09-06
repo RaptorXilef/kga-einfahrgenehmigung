@@ -67,7 +67,6 @@ $now = new \DateTimeImmutable('today');
         <div class="c-card__body u-padding-none"
              style="overflow-x: auto;">
 
-            <!-- FIX: table-layout: fixed; hinzugefügt, damit die Spaltenbreiten strikt eingehalten werden -->
             <table class="c-table js-sort-table"
                    style="table-layout: fixed; width: 100%; min-width: 950px;">
                 <thead>
@@ -115,8 +114,6 @@ $now = new \DateTimeImmutable('today');
                             // 2. Finanz-Berechnungen
                             $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
                             $statusText = \strtoupper($permit->getStatus()->value);
-
-                            // FIX: Offene Zahlungen immer rot/rosa, bezahlte immer hellgrün
                             $statusClass = 'danger'; // Default für alles was offen ist = Rot/Rosa
 
                             if ($isPaid) {
@@ -151,7 +148,7 @@ $now = new \DateTimeImmutable('today');
                                         </code>
                                         <div>
                                             <span style="font-size: 0.7rem; background: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;"> PARZELLE <?php echo $permit->getPlotNumber(); ?>
-                                            </span>
+                                        </span>
                                         </div>
                                     </div>
                                 </td>
@@ -214,7 +211,7 @@ $now = new \DateTimeImmutable('today');
                                                         title="Antrag stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                          class="c-icon"
-                                                         alt=""> <!--Stornieren-->
+                                                         alt="">
                                                 </button>
                                             </form>
                                         <?php } ?>
@@ -277,13 +274,3 @@ if ($currentArchiveYear !== $lastYear) { ?>
         </div>
     </div>
 </div>
-
-<script type="module">
-import {
-    SessionTimer
-} from '<?php echo $asset->url('assets/js/session-timer.js'); ?>';
-new SessionTimer('history_logout');
-
-</script>
-
-<script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>

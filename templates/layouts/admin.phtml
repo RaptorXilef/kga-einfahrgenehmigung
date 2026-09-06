@@ -65,9 +65,9 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
         <span>Aktualisieren</span>
     </button>
 
+    <!-- EINZIGER ZENTRALER JAVASCRIPT-LADER -->
     <script type="module"
-            src="<?php echo $asset->url('assets/js/admin-handler.js'); ?>"></script>
-    <script src="<?php echo $asset->url('assets/js/table-sorter.js'); ?>"></script>
+            src="<?php echo $asset->url('assets/js/app.js'); ?>"></script>
 </body>
 
 </html>

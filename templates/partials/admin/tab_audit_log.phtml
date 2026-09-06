@@ -35,7 +35,7 @@ $filterOptions = [
     'USER_RENAME' => 'Benutzer umbenannt',
     'USER_CHANGE_GROUP' => 'Rechte geändert',
     'USER_DELETE' => 'Benutzer gelöscht',
-    'GROUP_CREATE' => 'Rollenmatrix erstellt', // <-- Neu hinzugefügt für Konsistenz
+    'GROUP_CREATE' => 'Rollenmatrix erstellt',
     'GROUP_UPDATE' => 'Rollenmatrix bearbeitet',
     'GROUP_DELETE' => 'Rollenmatrix gelöscht',
     'SYSTEM_BACKUP_CREATE' => 'Backup ausgelöst',
@@ -53,12 +53,12 @@ if ($auth->hasPermission('system.logs.view')) {
                     <h3 class="u-margin-none">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                              class="c-icon"
-                             alt=""> Administrator-Aktivitäten</h3>
+                             alt=""> Administrator-Aktivitäten
+                    </h3>
                     <p class="u-text-muted u-text-small u-margin-none">Protokolliert sicherheitsrelevante Änderungen
                         durch eingeloggte Nutzer.</p>
                 </div>
 
-                <!-- FIX: action URL auf ? gesetzt, damit auf der aktuellen Seite geblieben wird -->
                 <form method="GET"
                       action="?"
                       class="u-flex u-align-center u-gap-s"
@@ -74,7 +74,6 @@ if ($auth->hasPermission('system.logs.view')) {
                         <?php } ?>
                     </select>
                     <?php if ($auditFilter !== '') { ?>
-                        <!-- FIX: &times; Entität genutzt und explizit rot gestyled, damit das X immer sichtbar ist -->
                         <a href="?"
                            class="c-button c-button--secondary"
                            style="width: 34px; height: 34px; font-size: 1.4rem; font-weight: bold; color: var(--danger-color); text-decoration: none; line-height: 1;"
@@ -179,20 +178,4 @@ if ($auth->hasPermission('system.logs.view')) {
             </div>
         </section>
     </div>
-
-    <script>
-    // Tab automatisch aktivieren, wenn Paginierung oder Filter im Audit-Log genutzt wird
-    document.addEventListener('DOMContentLoaded', () => {
-        // FIX: window.URLSearchParams verhindert falsche Linter-Warnungen
-        const urlParams = new window.URLSearchParams(window.location
-        .search); // TODO .window von window.URLSearchParams entfernen, wenn in JS-Datei
-        if (urlParams.has('audit_page') || urlParams.has('audit_filter')) {
-            const auditBtn = document.querySelector('[data-tab-target="tab-audit-log"]');
-            if (auditBtn && window.adminHandlerInstance) {
-                window.adminHandlerInstance.switchTab('tab-audit-log', auditBtn);
-            }
-        }
-    });
-
-    </script>
 <?php } ?>

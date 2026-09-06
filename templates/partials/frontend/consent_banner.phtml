@@ -24,8 +24,19 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
 ?>
 
 <div id="kga-consent-banner"
+     class="js-consent-banner"
      style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid var(--border-color); padding: 20px; z-index: 99999; box-shadow: 0 -5px 25px rgba(0,0,0,0.05);">
     <div style="max-width: 800px; margin: 0 auto;">
+
+        <script type="application/json"
+                id="consent-config">
+        <?php echo \json_encode([
+            'gaId' => $gaId,
+            'texts' => $consentConfig['texts'],
+        ]); ?>
+
+        </script>
+
         <div
              style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 300px;">
@@ -42,6 +53,7 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
                 </div>
 
                 <div id="kga-consent-details"
+                     class="js-consent-details"
                      style="display: none; margin-top: 20px; border-top: 1px solid var(--border-soft); padding-top: 15px;">
                     <?php foreach ($consentConfig['groups'] as $group) { ?>
                         <div style="margin-bottom: 15px;">
@@ -62,20 +74,20 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 10px; min-width: 220px;">
-                <button onclick="kgaConsent.acceptAll()"
+                <button class="js-accept-all"
                         style="background: var(--primary-color); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_all']); ?>
                 </button>
-                <button onclick="kgaConsent.acceptEssential()"
+                <button class="js-accept-essential"
                         style="background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_essential']); ?>
                 </button>
-                <button onclick="kgaConsent.toggleDetails()"
+                <button class="js-toggle-details"
                         id="btn-toggle-details"
                         style="background: transparent; color: var(--text-muted); border: none; padding: 8px; font-size: 0.85rem; cursor: pointer; text-decoration: underline;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['show_details']); ?>
                 </button>
-                <button onclick="kgaConsent.saveSelection()"
+                <button class="js-save-selection"
                         id="btn-save-selection"
                         style="display: none; background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['save_selection']); ?>
@@ -84,117 +96,3 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
         </div>
     </div>
 </div>
-
-<script>
-const kgaConsent = {
-    cookieName: 'kga_cookie_consent',
-    // Hier wird nun die dynamisch ermittelte $gaId eingetragen
-    gaId: '<?php echo \htmlspecialchars($gaId); ?>',
-
-    init: function() {
-        if (!this.getCookie()) {
-            document.getElementById('kga-consent-banner').style.display = 'block';
-        } else {
-            this.applyConsent(JSON.parse(this.getCookie()));
-        }
-    },
-
-    setCookie: function(value) {
-        // Gültigkeit: 1 Jahr (365 Tage)
-        const d = new window.Date(); // TODO wenn in eigener JS Datei das "window." entfernen
-        d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
-        document.cookie = this.cookieName + "=" + JSON.stringify(value) + ";expires=" + d.toUTCString() +
-            ";path=/;SameSite=Lax";
-        document.getElementById('kga-consent-banner').style.display = 'none';
-        this.applyConsent(value);
-    },
-
-    getCookie: function() {
-        const name = this.cookieName + "=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-        }
-        return "";
-    },
-
-    acceptAll: function() {
-        this.setCookie({
-            essential: true,
-            analytics: true
-        });
-    },
-
-    acceptEssential: function() {
-        this.setCookie({
-            essential: true,
-            analytics: false
-        });
-    },
-
-    saveSelection: function() {
-        const analyticsChecked = document.getElementById('consent-chk-analytics').checked;
-        this.setCookie({
-            essential: true,
-            analytics: analyticsChecked
-        });
-    },
-
-    toggleDetails: function() {
-        const details = document.getElementById('kga-consent-details');
-        const btnSave = document.getElementById('btn-save-selection');
-        const btnToggle = document.getElementById('btn-toggle-details');
-
-        if (details.style.display === 'none') {
-            details.style.display = 'block';
-            btnSave.style.display = 'block';
-            btnToggle.innerText = '<?php echo \htmlspecialchars($consentConfig['texts']['hide_details']); ?>';
-        } else {
-            details.style.display = 'none';
-            btnSave.style.display = 'none';
-            btnToggle.innerText = '<?php echo \htmlspecialchars($consentConfig['texts']['show_details']); ?>';
-        }
-    },
-
-    applyConsent: function(consentObj) {
-        // Wenn Analytics zugestimmt wurde UND eine ID konfiguriert ist, lade das GA-Script
-        if (consentObj.analytics && this.gaId && this.gaId !== '') {
-            this.loadGoogleAnalytics();
-        }
-    },
-
-    loadGoogleAnalytics: function() {
-        // Verhindert doppeltes Laden
-        if (document.getElementById('ga-script')) return;
-
-        const script = document.createElement('script');
-        script.id = 'ga-script';
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + this.gaId;
-        script.async = true;
-        document.head.appendChild(script);
-
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new window.Date()); // TODO wenn in eigener JS Datei das "window." entfernen
-
-        // IP-Anonymisierung ist in GA4 Standard, aber zur Sicherheit konfigurieren wir es strikt
-        gtag('config', this.gaId, {
-            'anonymize_ip': true
-        });
-    }
-};
-
-// Start Banner Logic on Load
-document.addEventListener('DOMContentLoaded', function() {
-    kgaConsent.init();
-});
-
-</script>
