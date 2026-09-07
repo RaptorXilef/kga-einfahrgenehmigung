@@ -33,7 +33,12 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
     <?php include $appRoot . '/templates/partials/frontend/base_styles.phtml'; ?>
 
     <!-- FIX: DOMPurify global für Fail-Safe in Formularen laden -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <!-- https://cdnjs.com/libraries/dompurify -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
+            integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
 
     <script>
     window.KGA_CONFIG = {

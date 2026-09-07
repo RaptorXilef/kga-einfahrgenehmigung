@@ -25,8 +25,19 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 ?>
 
 <!-- DOMPurify (Sicherheit) + Marked.js (Markdown Parser) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/10.0.0/marked.min.js"></script>
+<!-- https://cdnjs.com/libraries/dompurify -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
+        integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer">
+</script>
+<?php /* <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/10.0.0/marked.min.js"></script> */ ?>
+<!-- https://cdnjs.com/libraries/marked/15.0.12 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
+        integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer">
+</script>
 
 <style>
 /* Eigenes Design für das gerenderte Markdown */
