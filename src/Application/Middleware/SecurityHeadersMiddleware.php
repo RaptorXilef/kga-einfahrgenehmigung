@@ -10,7 +10,7 @@ use App\Application\Session\SessionManager;
 
 /**
  * Global Security Headers.
- * Implementiert Zero-Trust CSP, HSTS und Permissions-Policies zum Schutz vor XSS und Clickjacking.
+ * Implementiert Zero-Trust CSP (Nonce-basiert), HSTS und Permissions-Policies zum Schutz vor XSS.
  */
 final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
 {
@@ -23,6 +23,11 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         ServerRequest $request,
         callable $next,
     ): mixed {
+        // FIX: Generiere einen kryptografisch sicheren, einmaligen Nonce pro Request für die CSP
+        if (!\defined('CSP_NONCE')) {
+            \define('CSP_NONCE', \base64_encode(\random_bytes(16)));
+        }
+
         if (!\headers_sent()) {
             // Verhindert das Caching der HTML-Seite durch den Browser. Zwingend nötig für korrekte
             // CSRF-Tokens und damit der Browser immer die neusten ?v= Datei-Versionen für CSS/JS lädt!
@@ -59,14 +64,15 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
 
     private function buildCspHeader(bool $isLocal): string
     {
-        // Hochlesbare CSP Definition (Konsolidiert aus Public & Admin)
+        // Hochsichere CSP Definition (Strict Nonce-Based)
         $csp = [
             'default-src' => ["'self'"],
             'upgrade-insecure-requests' => [],
             'script-src' => [
                 "'self'",
-                "'unsafe-inline'", // Wichtig für KGA Inline-Scripte
-                "'unsafe-eval'",   // Nötig für Chart.js
+                "'nonce-" . CSP_NONCE . "'", // FIX: Erlaubt nur von uns signierte Skripte
+                // "'unsafe-inline'",         // ARCHITEKTUR: Abgeschaltet! Maximale XSS-Sicherheit.
+                "'unsafe-eval'",              // Nötig für Chart.js
                 'https://cdnjs.cloudflare.com',
                 'https://www.paypal.com',
                 'https://www.sandbox.paypal.com',
@@ -74,7 +80,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
             ],
             'style-src' => [
                 "'self'",
-                "'unsafe-inline'",
+                "'unsafe-inline'", // Bleibt aktiv, bis alle Inline-Styles ins SCSS gewandert sind
                 'https://cdnjs.cloudflare.com',
             ],
             'font-src' => [

@@ -11,7 +11,6 @@ use App\Contracts\System\ImageStorageInterface;
 use App\Contracts\System\JsonHelperInterface;
 
 /**
- * TODO DOCBLOCK
  * Zentraler Service für das Rendering von PHTML-Templates.
  * Sammelt globale System-Variablen und injiziert sie sicher in den View-Scope.
  */
@@ -26,7 +25,6 @@ final readonly class TemplateRenderer
     ) {
     }
 
-    // TODO DOCBLOCK
     public function render(string $templatePath, array $data = []): void
     {
         $appRoot = \rtrim((string) $this->config->get('root_path'), '/\\');
@@ -39,6 +37,8 @@ final readonly class TemplateRenderer
             'jsonHelper' => $this->jsonHelper,
             'asset' => $this->assetHelper, // AssetHelper injiziert!
             'settings' => $this->getGlobalSettings(),
+            // FIX: Den CSP Nonce für alle Templates verfügbar machen
+            'cspNonce' => \defined('CSP_NONCE') ? CSP_NONCE : '',
         ];
 
         // Lade alle Flashes automatisch in die View-Daten!

@@ -32,7 +32,15 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
     <?php include $appRoot . '/templates/partials/admin/inline_styles.phtml'; ?>
 
-    <script>
+    <!-- FIX: ESM Module Preloading zur Verhinderung von Network Waterfalls -->
+    <link rel="modulepreload"
+          href="<?php echo $asset->url('assets/js/core/Bootstrapper.js'); ?>">
+    <link rel="modulepreload"
+          href="<?php echo $asset->url('assets/js/core/Api.js'); ?>">
+    <link rel="modulepreload"
+          href="<?php echo $asset->url('assets/js/core/Notifier.js'); ?>">
+
+    <script nonce="<?php echo $cspNonce; ?>">
     window.KGA_CONFIG = {
         baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
         <?php if (isset($config)) { ?>
@@ -67,7 +75,8 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
 
     <!-- EINZIGER ZENTRALER JAVASCRIPT-LADER -->
     <script type="module"
-            src="<?php echo $asset->url('assets/js/app.js'); ?>"></script>
+            src="<?php echo $asset->url('assets/js/app.js'); ?>"
+            nonce="<?php echo $cspNonce; ?>"></script>
 </body>
 
 </html>

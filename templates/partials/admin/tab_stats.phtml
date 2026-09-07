@@ -153,7 +153,8 @@ $chartDataPayload = [
         <?php if ($auth->hasPermission('stats.charts') && $auth->hasPermission('privacy.finance.view')) { ?>
             <!-- JSON Daten Container für das DashboardStats.js Modul -->
             <script type="application/json"
-                    id="chart-data">
+                    id="chart-data"
+                    nonce="<?php echo $cspNonce; ?>">
             <?php echo \json_encode($chartDataPayload, \JSON_UNESCAPED_UNICODE | \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT); ?>
 
             </script>
@@ -328,6 +329,7 @@ $chartDataPayload = [
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"
             integrity="sha512-WoViKhKD4qI2WruSZqv9+kvM4WfFhUMQCLN4QlDTt5aU56fLQy2gYoxWIqlEnXqJy/+Ac5q/hk1oWfqnMDhwMA=="
             crossorigin="anonymous"
-            referrerpolicy="no-referrer">
+            referrerpolicy="no-referrer"
+            nonce="<?php echo $cspNonce; ?>">
     </script>
 <?php } ?>

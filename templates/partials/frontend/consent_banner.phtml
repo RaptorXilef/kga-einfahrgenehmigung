@@ -29,7 +29,8 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
     <div style="max-width: 800px; margin: 0 auto;">
 
         <script type="application/json"
-                id="consent-config">
+                id="consent-config"
+                nonce="<?php echo $cspNonce; ?>">
         <?php echo \json_encode([
             'gaId' => $gaId,
             'texts' => $consentConfig['texts'],

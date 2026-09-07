@@ -207,7 +207,7 @@ select[readonly] {
                     </div>
                 </div>
 
-                <script>
+                <script nonce="<?php echo $cspNonce; ?>">
                 // 60 Sekunden Countdown
                 let seconds = 60; // redirect Zeit
                 const display = document.getElementById('countdown');
@@ -527,7 +527,7 @@ select[readonly] {
     </div>
 </div>
 
-<script>
+<script nonce="<?php echo $cspNonce; ?>">
 window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
 
 </script>

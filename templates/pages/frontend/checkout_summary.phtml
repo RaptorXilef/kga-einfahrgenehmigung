@@ -23,14 +23,16 @@ $isPayPalEnabled = ($paypalConfig['enabled'] ?? false) === true;
 ?>
 
 <?php if ($isPayPalEnabled && (float) ($tempData['preis'] ?? 0) > 0.0) { ?>
-    <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($paypalConfig[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=<?php echo \urlencode($paypalConfig[$config->isTestMode() ? 'sandbox' : 'live']['client_id'] ?? ''); ?>&currency=EUR&intent=capture"
+            nonce="<?php echo $cspNonce; ?>"></script>
 <?php } ?>
 
 <div class="c-tab-content-container u-padding-y-xl js-checkout-payment"
      style="max-width: 650px;">
 
     <script type="application/json"
-            id="payment-data">
+            id="payment-data"
+            nonce="<?php echo $cspNonce; ?>">
     <?php echo \json_encode([
         'token' => $token,
         'csrfToken' => $_SESSION['csrf_token'] ?? '',

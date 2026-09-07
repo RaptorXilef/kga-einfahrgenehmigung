@@ -8,7 +8,6 @@
 export function mount(selector, ComponentClass, ...args) {
     let elements = [];
     try {
-        // FIX: DOM-Zugriff gegen DOMException (SyntaxError) absichern
         elements = document.querySelectorAll(selector);
     } catch (error) {
         console.error(`[Bootstrapper] Ungültiger Selektor blockiert: ${selector}`, error);
@@ -46,9 +45,66 @@ export function mountSingle(selector, ComponentClass, ...args) {
         return new ComponentClass(el, ...args);
     } catch (error) {
         console.error(
-            `[Bootstrapper] Kritischer Fehler beim Mounten des Singletons ${ComponentClass.name} an${selector}:`,
+            `[Bootstrapper] Kritischer Fehler beim Mounten des Singletons ${ComponentClass.name} an ${selector}:`,
             error
         );
         return null;
     }
+}
+
+// FIX: Native Dynamic Imports für massiv reduzierten Initial-Payload
+export function lazyMount(selector, importPromise, className, ...args) {
+    let elements = [];
+    try {
+        elements = document.querySelectorAll(selector);
+    } catch (error) {
+        return [];
+    }
+
+    if (elements.length === 0) return [];
+
+    importPromise()
+        .then((module) => {
+            const ComponentClass = module[className];
+            for (const el of elements) {
+                try {
+                    new ComponentClass(el, ...args);
+                } catch (error) {
+                    console.error(
+                        `[Bootstrapper] Fehler beim asynchronen Mounten von ${className}:`,
+                        error
+                    );
+                }
+            }
+        })
+        .catch((err) =>
+            console.error(`[Bootstrapper] Netzwerk-Fehler beim Laden von ${className}:`, err)
+        );
+}
+
+export function lazyMountSingle(selector, importPromise, className, ...args) {
+    let el = null;
+    try {
+        el = document.querySelector(selector);
+    } catch (error) {
+        return null;
+    }
+
+    if (!el) return null;
+
+    importPromise()
+        .then((module) => {
+            const ComponentClass = module[className];
+            try {
+                new ComponentClass(el, ...args);
+            } catch (error) {
+                console.error(
+                    `[Bootstrapper] Fehler beim asynchronen Mounten von ${className}:`,
+                    error
+                );
+            }
+        })
+        .catch((err) =>
+            console.error(`[Bootstrapper] Netzwerk-Fehler beim Laden von ${className}:`, err)
+        );
 }

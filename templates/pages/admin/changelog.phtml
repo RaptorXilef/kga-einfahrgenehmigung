@@ -29,14 +29,16 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.4.15/purify.min.js"
         integrity="sha512-jeyPlk6E7VcWU2QTRw5UAe4iKLrWOJkyLc4GkOAOey1tOeTyxfTzrCY7p84VSer8/lRON5p236RGVeTErze9fA=="
         crossorigin="anonymous"
-        referrerpolicy="no-referrer">
+        referrerpolicy="no-referrer"
+        nonce="<?php echo $cspNonce; ?>">
 </script>
 <?php /* <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/10.0.0/marked.min.js"></script> */ ?>
 <!-- https://cdnjs.com/libraries/marked/15.0.12 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"
         integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg=="
         crossorigin="anonymous"
-        referrerpolicy="no-referrer">
+        referrerpolicy="no-referrer"
+        nonce="<?php echo $cspNonce; ?>">
 </script>
 
 <style>
@@ -170,5 +172,6 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
     <!-- Das rohe Markdown wird hier übergeben -->
     <script type="text/markdown"
             id="raw-markdown"
+            nonce="<?php echo $cspNonce; ?>"
             style="display:none;"><?php echo \htmlspecialchars($markdownContent); ?></script>
 </div>
