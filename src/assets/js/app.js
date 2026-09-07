@@ -8,7 +8,6 @@
 import { api } from './core/Api.js';
 import { lazyMount, lazyMountSingle, mount, mountSingle } from './core/Bootstrapper.js';
 import { ConsentBanner } from './ui/ConsentBanner.js';
-// Kritische Core-UI Komponenten laden wir weiterhin synchron (UX-Priorität)
 import { PasswordToggle } from './ui/PasswordToggle.js';
 import { SessionTimer } from './ui/SessionTimer.js';
 
@@ -20,16 +19,77 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Core / UI mounten (Synchron)
+    // --- 1. GLOBAL UNOBTRUSIVE UI BEHAVIORS (CSP-COMPLIANT) ---
+    document.body.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) {
+            e.preventDefault();
+        }
+    });
+
+    document.body.addEventListener('click', (e) => {
+        // Klick-Bestätigungen für Buttons
+        const confirmBtn = e.target.closest('[data-confirm-click]');
+        if (confirmBtn && !window.confirm(confirmBtn.dataset.confirmClick)) {
+            e.preventDefault();
+            return;
+        }
+
+        // Remote Form Submit (Löst ein Formular anhand seiner ID aus)
+        const submitBtn = e.target.closest('.js-submit-form');
+        if (submitBtn) {
+            e.preventDefault();
+            const targetId = submitBtn.dataset.target;
+            const form = document.getElementById(targetId);
+            if (form) form.requestSubmit();
+        }
+
+        // Click-Weiterleitung (z.B. für versteckte File-Inputs)
+        const triggerBtn = e.target.closest('.js-trigger-click');
+        if (triggerBtn) {
+            e.preventDefault();
+            const target = document.getElementById(triggerBtn.dataset.target);
+            if (target) target.click();
+        }
+
+        // Text-Feld bei Klick markieren
+        if (e.target.classList.contains('js-select-on-click')) {
+            e.target.select();
+        }
+
+        // Accordion-Karten einklappen (Admin-Rollen)
+        const toggleBtn = e.target.closest('.js-toggle-parent');
+        if (toggleBtn) {
+            toggleBtn.parentElement.parentElement.classList.toggle('is-closed');
+        }
+
+        // Globaler Reload-Button
+        const refreshBtn = e.target.closest('.c-fab-refresh');
+        if (refreshBtn) {
+            e.preventDefault();
+            window.location.href =
+                window.location.origin + window.location.pathname + window.location.search;
+        }
+    });
+
+    // Auto-Submit für Select-Boxen (Admin Dashboard Filter)
+    document.body.addEventListener('change', (e) => {
+        if (e.target.classList.contains('js-auto-submit-select')) {
+            e.target.closest('form').requestSubmit();
+        }
+    });
+    // ----------------------------------------------------------
+
+    // 2. Core / UI mounten (Synchron)
     mountSingle('#ui-session-timer', SessionTimer);
     mount('.js-password-toggle', PasswordToggle);
     mountSingle('#kga-consent-banner', ConsentBanner);
 
-    // 2. Komplexe UI-Elemente Lazy Loaden (Nur wenn sie im DOM existieren)
+    // 3. Komplexe UI-Elemente Lazy Loaden (Nur wenn sie im DOM existieren)
     lazyMount('.js-avatar-dropzone', () => import('./ui/DragDropZone.js'), 'DragDropZone');
     lazyMount('.js-sort-table', () => import('./ui/TableSorter.js'), 'TableSorter');
 
-    // 3. Schwere Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
+    // 4. Schwere Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
     lazyMount(
         '#permitForm, form[action*="create_voucher"]',
         () => import('./modules/PermitForm.js'),

@@ -69,10 +69,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
                         TYP:
                     </span>
+                    <!-- FIX: onchange="this.form.submit()" durch Klasse js-auto-submit-select ersetzt -->
                     <select name="type"
-                            class="c-control-bar-input"
-                            style="width: auto !important; cursor: pointer;"
-                            onchange="this.form.submit()">
+                            class="c-control-bar-input js-auto-submit-select"
+                            style="width: auto !important; cursor: pointer;">
                         <option value="all"
                                 <?php echo $currentType === 'all' ? 'selected' : ''; ?>>
                             Alle Genehmigungen
@@ -91,10 +91,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
                         PRO SEITE:
                     </span>
+                    <!-- FIX: onchange="this.form.submit()" durch Klasse js-auto-submit-select ersetzt -->
                     <select name="limit"
-                            class="c-control-bar-input"
-                            style="width: auto !important; cursor: pointer;"
-                            onchange="this.form.submit()">
+                            class="c-control-bar-input js-auto-submit-select"
+                            style="width: auto !important; cursor: pointer;">
                         <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
                             <option value="<?php echo $l; ?>"
                                     <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?>

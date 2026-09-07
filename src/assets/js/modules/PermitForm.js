@@ -49,11 +49,21 @@ export class PermitForm {
         // Config sicher abrufen
         this.config = window.KGA_CONFIG || { vehicleConfig: {} };
         this.templates = window.KGA_TEMPLATES || {}; // Metadaten müssen vom PHP in window.KGA_TEMPLATES geschrieben werden!
+        // FIX: Neue UI-Elemente für das Gutschein-Formular aus dem DOM holen
+        this.voucherMultiCb = this.container.querySelector('#v_multi');
+        this.voucherMaxWrap = this.container.querySelector('#v_max_wrap');
 
         this.init();
     }
 
     init() {
+        // FIX: Den toten onchange HTML-Handler in sauberes JS überführt
+        this.voucherMultiCb?.addEventListener('change', (e) => {
+            if (this.voucherMaxWrap) {
+                this.voucherMaxWrap.style.display = e.target.checked ? 'block' : 'none';
+            }
+        });
+
         // Basis-Event-Listener
         this.typSelect?.addEventListener('change', () => {
             this.toggleVehicleFields();

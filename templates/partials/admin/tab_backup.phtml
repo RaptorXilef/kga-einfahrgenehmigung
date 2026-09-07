@@ -97,8 +97,9 @@ if ($auth->hasPermission('system.backup.manage')) {
                          style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>truncate_target"
-                              onsubmit="return confirm('WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?')"
+                              data-confirm="WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?"
                               class="u-margin-top-auto u-flex u-flex-column u-gap-s">
+                            <!-- FIX: onsubmit="..." entfernt -->
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -231,9 +232,10 @@ if ($auth->hasPermission('system.backup.manage')) {
                                         </select>
                                         <button type="submit"
                                                 class="c-button c-button--danger"
-                                                onclick="return confirm('Wiederherstellung im gewählten Modus starten? Ein Sicherheits-Backup des aktuellen Zustands wird automatisch angefertigt.')"
+                                                data-confirm-click="Wiederherstellung im gewählten Modus starten? Ein Sicherheits-Backup des aktuellen Zustands wird automatisch angefertigt."
                                                 style="width: auto; padding: 0 16px; font-weight: 600;"> Restore
                                         </button>
+                                        <!-- FIX: onclick="return confirm(...)" entfernt -->
                                     </div>
                                 </form>
                             </div>

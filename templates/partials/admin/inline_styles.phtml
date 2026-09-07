@@ -1127,4 +1127,25 @@ input:checked+.c-switch-slider:before {
     margin-bottom: 15px;
 }
 
+/* NEU: CSP-konformer CSS-Hover für den "Was ist Neu" Button (ersetzt onmouseover) */
+.js-show-all-release-notes {
+    background: var(--primary-soft);
+    color: var(--primary-color);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.js-show-all-release-notes:hover {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+}
+
 </style>

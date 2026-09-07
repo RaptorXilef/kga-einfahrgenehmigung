@@ -70,14 +70,15 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                                id="avatar-input"
                                class="u-hidden"
                                accept="image/*">
+                        <!-- FIX: onclick="document.getElementById('...').click()" ersetzt -->
                         <button type="button"
-                                onclick="document.getElementById('avatar-input').click()"
-                                class="c-button--primary u-width-100"
+                                class="c-button--primary u-width-100 js-trigger-click"
+                                data-target="avatar-input"
                                 style="font-size: 0.8rem; height: 36px;">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
                                  class="c-icon"
                                  style="width:14px;">
-                            Bild ändern
+                                Bild ändern
                         </button>
                     </form>
                     <div class="u-margin-top-l u-padding-top-m u-border-top">

@@ -96,17 +96,12 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
 
         <div
              style="margin-top: 10px; font-size: 0.8rem; display: flex; gap: 12px; justify-content: center; align-items: center;">
-            <a href="<?php echo \htmlspecialchars($impressumUrl); ?>"
-               style="color: var(--text-muted); text-decoration: none; font-weight: 500;"
-               onmouseover="this.style.textDecoration='underline'; this.style.color='var(--primary-color)';"
-               onmouseout="this.style.textDecoration='none'; this.style.color='var(--text-muted)';">
+            <!-- FIX: onmouseover entfernt, Klasse .c-footer-link hinzugefügt -->
+            <a href="<?php echo \htmlspecialchars($impressumUrl); ?>" class="c-footer-link">
                 Impressum
             </a>
             <span style="color: var(--border-color); font-size: 0.75rem;">&bull;</span>
-            <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>"
-               style="color: var(--text-muted); text-decoration: none; font-weight: 500;"
-               onmouseover="this.style.textDecoration='underline'; this.style.color='var(--primary-color)';"
-               onmouseout="this.style.textDecoration='none'; this.style.color='var(--text-muted)';">
+            <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>" class="c-footer-link">
                 Datenschutzerklärung
             </a>
         </div>

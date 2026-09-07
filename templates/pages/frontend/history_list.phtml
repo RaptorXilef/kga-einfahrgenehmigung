@@ -195,10 +195,11 @@ $now = new \DateTimeImmutable('today');
                                     <div class="u-flex u-gap-xs u-justify-end">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
+                                            <!-- FIX: onsubmit="..." durch data-confirm="..." ersetzt -->
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>history_cancel_permit"
                                                   style="margin: 0;"
-                                                  onsubmit="return confirm('Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet.');">
+                                                  data-confirm="Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet.">
                                                 <input type="hidden"
                                                        name="csrf_token"
                                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">

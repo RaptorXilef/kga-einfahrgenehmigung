@@ -200,8 +200,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 <div class="c-form-group">
                                     <label class="c-form-label u-flex u-justify-between u-align-center">
                                         <span>Einfahrts-Grund *</span>
-                                        <span class="u-text-link u-cursor-pointer" id="toggle_zweck_btn" onclick="toggleZweckMode()">
-                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>" class="c-icon" alt=""> Manuell
+                                        <!-- FIX: onclick="toggleZweckMode()" restlos entfernt. Wird per JS an die ID #toggle_zweck_btn gebunden -->
+                                        <span class="u-text-link u-cursor-pointer"
+                                              id="toggle_zweck_btn">
+                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>"
+                                                 class="c-icon"
+                                                 alt=""> Manuell
                                         </span>
                                     </label>
                                     <select name="zweck"
@@ -328,10 +332,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
                                     <label class="c-form-label">Rabatt-Art *</label>
+                                    <!-- FIX: onchange="updateAdminVoucherUI()" restlos entfernt! Wird in PermitForm.js behandelt -->
                                     <select name="voucher_discount_type"
                                             id="v_type"
-                                            class="c-form-select"
-                                            onchange="updateAdminVoucherUI()">
+                                            class="c-form-select">
                                         <option value="free">100% Kostenlos</option>
                                         <option value="percent">Prozentual (%)</option>
                                         <option value="fixed">Festbetrag (€)</option>
@@ -501,11 +505,11 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                  style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px;">
                                 <div class="c-form-group u-margin-bottom-s">
                                     <label class="u-flex u-align-center u-gap-s u-cursor-pointer">
+                                        <!-- FIX: onchange="..." restlos entfernt! Wird in PermitForm.js behandelt -->
                                         <input type="checkbox"
                                                name="voucher_multi_use"
                                                id="v_multi"
-                                               style="transform: scale(1.2);"
-                                               onchange="document.getElementById('v_max_wrap').style.display = this.checked ? 'block' : 'none';">
+                                               style="transform: scale(1.2);">
                                         <strong class="text-color font-small">Mehrfach einlösbar?</strong>
                                     </label>
                                 </div>
@@ -541,5 +545,6 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 </div>
 
 <script>
-    window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
+window.KGA_TEMPLATES = <?php echo \json_encode($tplMetadata); ?>;
+
 </script>

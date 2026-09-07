@@ -191,10 +191,11 @@ use App\Infrastructure\Config\Config;
                                                     <?php } ?>
 
                                                     <?php if ($auth->hasPermission('vouchers.delete')) { ?>
+                                                        <!-- FIX: onsubmit="..." entfernt -->
                                                         <form method="POST"
                                                               action="<?php echo $settings['base_url']; ?>delete_voucher"
                                                               style="margin:0;"
-                                                              onsubmit="return confirm('Soll dieser Gutscheincode unwiderruflich gelöscht werden?')">
+                                                              data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
                                                             <input type="hidden"
                                                                    name="csrf_token"
                                                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">

@@ -90,11 +90,9 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
 
             <!-- Der "Was ist neu" Button (Nur sichtbar wenn wir auf der Dashboard Action sind und Notes existieren) -->
             <?php if (!empty($allReleaseNotes)) { ?>
+                <!-- FIX: onmouseover="..." und onmouseout="..." komplett gelöscht. Styling passiert jetzt in inline_styles.phtml! -->
                 <button type="button"
-                        class="js-show-all-release-notes"
-                        style="background: var(--primary-soft); color: var(--primary-color); border: 1px solid rgba(52, 152, 219, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s;"
-                        onmouseover="this.style.background='var(--primary-color)'; this.style.color='#fff';"
-                        onmouseout="this.style.background='var(--primary-soft)'; this.style.color='var(--primary-color)';">
+                        class="js-show-all-release-notes">
                     🎁 Was ist neu?
                 </button>
             <?php } ?>
