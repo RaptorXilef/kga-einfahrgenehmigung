@@ -84,7 +84,7 @@ final readonly class BankImportService
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
-        $methodenPerPermit = []; // NEU: Merkt sich die Suchmethode pro Code für das Audit-Log
+        $methodenPerPermit = []; // Merkt sich die Suchmethode pro Code für das Audit-Log
 
         // Wir sammeln jetzt detailliert die Codes anstatt nur hochzuzählen
         $erfolgreichDetails = [];
@@ -101,9 +101,13 @@ final readonly class BankImportService
             $c = $permit->code->value;
             $allCodes[$c] = true;
             if (!$permit->isPaid()) {
-                $unpaidCodes[$c] = true;
+                // Merkt sich direkt den Namen für das Logging
+                $unpaidCodes[$c] = $permit->getOwnerName();
             }
         }
+
+        // Tracking: Alle unbezahlten Codes, um später zu sehen, welche in der CSV fehlten
+        $missingUnpaidCodes = $unpaidCodes;
 
         while (($row = \fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
             ++$rowNumber;
@@ -131,7 +135,7 @@ final readonly class BankImportService
             $matchMethodsMap = [];
 
             // 1. Hauptverarbeitung: Suche aktiv nach unbezahlten IDs
-            foreach ($unpaidCodes as $unpaidCode => $true) {
+            foreach ($unpaidCodes as $unpaidCode => $ownerName) {
                 if (\str_contains($zweckUpper, $unpaidCode)) {
                     $gefundeneCodes[] = $unpaidCode;
                     $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
@@ -183,9 +187,18 @@ final readonly class BankImportService
 
                 // Speichere die Erkennungsmethode für diesen spezifischen Code
                 $methodenPerPermit[$permitIdStr] = $matchMethodsMap[$permitIdStr] ?? 'Unbekannt';
+
+                // Wir haben ihn in der CSV gefunden, also entfernen wir ihn von der Missing-Liste!
+                unset($missingUnpaidCodes[$permitIdStr]);
             }
         }
         \fclose($handle);
+
+        // Alles was jetzt noch in der $missingUnpaidCodes Liste ist, wurde vom Pächter noch nicht überwiesen.
+        foreach ($missingUnpaidCodes as $missingCode => $ownerName) {
+            $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
+            $uebersprungenDetails[] = "{$missingCode} (Nicht in CSV - {$ownerName})";
+        }
 
         $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
 
