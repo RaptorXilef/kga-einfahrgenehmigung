@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.67.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.2...v0.67.3) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **frontend:** Eliminate all CSP violations and implement global unobtrusive UI behaviors ([05817b6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/05817b6f638426ebf81df810049b167d2687a3cc))
+* **frontend:** Eliminate all residual CSP violations ([ea32b92](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ea32b92ce805393fdade789d7ae0569933ff65ac))
+* **frontend:** Secure exception reflection, fix timezone shift, and prevent null pointer crashes ([02eb667](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/02eb6672d9f081e16f0b43fe06beec1f80eb2d2f))
+
+### ⚙️ Refactoring
+
+* **frontend:** Implement lazy loading, SRI security, and strict CSP nonces ([c93de6b](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c93de6b93e56e4ec8cb1a47bc0509199f860a6aa))
+
 ## [0.67.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.1...v0.67.2) (2026-09-06)
 
 ### 🐛 Bug Fixes
