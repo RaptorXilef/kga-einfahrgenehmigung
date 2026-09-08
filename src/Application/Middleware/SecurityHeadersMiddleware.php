@@ -101,6 +101,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
                 'https://*.google-analytics.com',
                 'https://www.paypal.com',
                 'https://www.sandbox.paypal.com',
+                'https://cdnjs.cloudflare.com',
             ],
             'frame-src' => [
                 "'self'",
