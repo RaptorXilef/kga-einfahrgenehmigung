@@ -47,7 +47,7 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
                 $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
 
-                // Kennzeichen- und Sammelüberweisungen aus dem Service in die Session schieben
+                // Sammelüberweisungen aus dem Service in die Session schieben
                 $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
                 if (!empty($res['sammel_transfers'])) {
                     $sammelList = [];
@@ -137,11 +137,13 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $this->sessionManager->addFlash('error', (string) ($res['message'] ?? 'Fehler bei der CSV-Verarbeitung.'));
             }
 
-            return new RedirectResponse('admin');
+            // Direkt zum Finanzen-Tab springen
+            return new RedirectResponse('admin?focus=tab-finance');
         } catch (Throwable $e) {
             $this->sessionManager->addFlash('error', $e->getMessage());
 
-            return new RedirectResponse('admin');
+            // Bei Fehler auch dorthin zurückspringen, wo der User gestartet ist
+            return new RedirectResponse('admin?focus=tab-finance');
         }
     }
 }

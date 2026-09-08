@@ -174,17 +174,21 @@ final readonly class BankImportService
             $cleanAmount = \str_replace(',', '.', $cleanAmount);
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
-            // 3. Fallback: Kennzeichen-Suche (Wenn ID vergessen wurde)
+            // Deterministische ID generieren, um Doppeleinträge in der Aufgabenliste bei mehrmaligem CSV-Upload zu verhindern
+            $anomalyId = 'sam_' . \md5($datumRaw . $betragRaw . $verwendungszweck);
+
+            // 3. Fallback: Kennzeichen-Suche (Wenn ID komplett vergessen wurde)
             $gefundeneKennzeichen = [];
             if (empty($gefundeneCodes)) {
-                $zweckNormalized = (string) \preg_replace('/[^A-Z0-9]/', '', $zweckUpper);
+                // Modifikator /u für Unicode (Umlaute Ä,Ö,Ü) zwingend erforderlich
+                $zweckNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', $zweckUpper);
                 foreach ($unpaidPlates as $unpaidCode => $plate) {
                     if (empty($plate)) {
                         continue;
                     }
 
-                    $plateNormalized = (string) \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
-                    // Nur nach Kennzeichen mit mindestens 4 Zeichen suchen, um False-Positives (z.B. "B1") in Rechnungsnummern zu vermeiden
+                    $plateNormalized = (string) \preg_replace('/[^A-ZÄÖÜ0-9]/u', '', \strtoupper($plate));
+                    // Nur nach Kennzeichen mit mindestens 4 Zeichen suchen, um False-Positives in Rechnungsnummern zu vermeiden
                     if (\strlen($plateNormalized) >= 4 && \str_contains($zweckNormalized, $plateNormalized)) {
                         $gefundeneKennzeichen[$unpaidCode] = $plate;
                     }
@@ -205,32 +209,34 @@ final readonly class BankImportService
                 $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.", $runLogs);
 
                 $sammelTransfers[] = [
-                    'id' => \uniqid('sam_', true),
+                    'id' => $anomalyId,
                     'date' => $this->parseDate($datumRaw),
                     'amount' => $ueberwiesenerBetrag,
                     'purpose' => $verwendungszweck,
                     'codes' => $matchedCodes,
-                    'type' => 'kennzeichen', // Neuer Typ für das UI
+                    'type' => 'kennzeichen', // Typ für das UI-Badge
                 ];
 
+                // Wir haben die Codes gefunden (nur ohne ID), also von der Vermisst-Liste löschen
                 foreach ($matchedCodes as $c) {
                     unset($missingUnpaidCodes[$c]);
                 }
 
+                // Zuweisung abbrechen, da die Freischaltung im Dashboard manuell erfolgen muss
                 continue;
             }
 
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
             $matchMethodsForLine = \array_values(\array_unique($matchMethodsForLine));
 
-            // SECURITY GUARD: Sammelüberweisungen für das Dashboard aufbereiten
+            // SECURITY GUARD: Sammelüberweisungen für das Dashboard aufbereiten (Verhindert Exploit)
             if (\count($gefundeneCodes) > 1) {
                 $codesStr = \implode(', ', $gefundeneCodes);
                 $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
 
                 // Wir speichern das komplette Paket für das Session-Dashboard!
                 $sammelTransfers[] = [
-                    'id' => \uniqid('sam_', true),
+                    'id' => $anomalyId,
                     'date' => $this->parseDate($datumRaw),
                     'amount' => $ueberwiesenerBetrag,
                     'purpose' => $verwendungszweck,
@@ -243,7 +249,7 @@ final readonly class BankImportService
                     unset($missingUnpaidCodes[$c]);
                 }
 
-                // WICHTIG: Schleife hier abbrechen, damit die Zahlungen NICHT automatisiert verbucht werden!
+                // Zuweisung abbrechen, da die Freischaltung manuell erfolgen muss
                 continue;
             }
 
@@ -372,7 +378,7 @@ final readonly class BankImportService
             'erfolgreich_details' => $erfolgreichDetails,
             'uebersprungen_details' => $uebersprungenDetails,
             'fehlerhaft_details' => $fehlerhaftDetails,
-            'sammel_transfers' => $sammelTransfers,
+            'sammel_transfers' => $sammelTransfers, // Wird an Controller weitergereicht
         ];
     }
 

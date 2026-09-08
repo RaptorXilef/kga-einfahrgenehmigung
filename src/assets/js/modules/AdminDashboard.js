@@ -155,9 +155,19 @@ export class AdminDashboard {
 
     handleUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
+
+        // Audit Logs (Alte Logik)
         if (urlParams.has('audit_page') || urlParams.has('audit_filter')) {
             const auditBtn = this.container.querySelector('[data-tab-target="tab-audit-log"]');
             if (auditBtn) this.switchTab('tab-audit-log', auditBtn);
+        }
+
+        // NEU: Globale Focus-Steuerung für Tabs
+        // Zwingt das UI, einen bestimmten Tab zu öffnen (überschreibt den LocalStorage)
+        const focusId = urlParams.get('focus');
+        if (focusId && focusId.startsWith('tab-')) {
+            const btn = this.container.querySelector(`[data-tab-target="${focusId}"]`);
+            if (btn) this.switchTab(focusId, btn);
         }
     }
 }
