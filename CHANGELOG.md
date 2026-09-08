@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.67.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.3...v0.67.4) (2026-09-08)
+
+### 🐛 Bug Fixes
+
+* **finance:** Append code detection method to audit log output ([e969c26](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e969c2644e918639772de5f18ea64b58b3253904))
+* **finance:** Enhance bank import code recognition and add archive feature ([3d4eb1c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3d4eb1c482b479f716a6ffced013495c29726456))
+* **finance:** Enhance bank import logging for code detection methods ([b1b9d8c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b1b9d8ce29480577d140ad0556ab969c2503d455))
+* **finance:** Format nested lists for bank import UI flash messages ([5b4e3b2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5b4e3b213e1946d2109f0c9515eb5670e8c6de03))
+* **finance:** Improve UI formatting and decouple technical logs ([4de5067](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/4de5067183c21d7382f0768cbec077867796f5da))
+* **finance:** Log explicitly which unpaid codes were missing from the CSV ([ae5528d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ae5528d855712522e188808f69a26b608f394787))
+* **finance:** Perfect UI formatting for bank import flashes ([b969c1e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b969c1e0f5665a5e6adcb24617f92303c9fd2104))
+
+### 📚 Dokumentation
+
+* **changelog:** Add update notes for performance, security, and stability upgrades ([73b77a5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/73b77a5351a99e0304167f80036cbb537568cbb0))
+* **release:** Add release notes for version 0.67.4 ([d3bcbea](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/d3bcbeab39a96e299fe419ec3c89dc6f8ffc00c3))
+
 ## [0.67.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.2...v0.67.3) (2026-09-08)
 
 ### 🐛 Bug Fixes
