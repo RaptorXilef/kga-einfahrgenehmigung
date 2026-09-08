@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.68.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.4...v0.68.0) (2026-09-08)
+
+### 🚀 Features
+
+* **finance:** Add fallback detection for missing codes via license plate ([fd3dcc4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fd3dcc4c45e00e7b79d7c46b50ccb7cc388da6f9))
+* **finance:** Persist collective transfers for manual resolution in dashboard ([be1a4f4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/be1a4f4c5dfd8f21a5385ca191e849c7dcbf9faf))
+
+### 🐛 Bug Fixes
+
+* **finance:** Prevent duplicate amount assignment exploit in bank import ([5fcd457](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5fcd4575c382678bf10ec74a4e00891408e1c409))
+* **finance:** Prevent duplicate tasks and auto-switch to finance tab ([dfce759](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dfce759d27e736ea5ba67f1381f31ac25f7c9b4e))
+* **frontend:** Resolve HTML accessibility and autocomplete warnings ([f125af0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f125af01868fec8a446fdd1ac62e21bbed246fe8))
+* **frontend:** Use optional chaining for URL focus parameter ([8eedd75](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8eedd750173d3761ade31cfdb24c9ba2bf805204))
+* **infrastructure:** Allow cdnjs source maps in CSP connect-src ([5c5903d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5c5903d5475f371d73b5435fa0a4e6e8e9194515))
+
 ## [0.67.4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.3...v0.67.4) (2026-09-08)
 
 ### 🐛 Bug Fixes
