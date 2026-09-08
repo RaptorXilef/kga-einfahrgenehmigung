@@ -165,7 +165,7 @@ export class AdminDashboard {
         // NEU: Globale Focus-Steuerung für Tabs
         // Zwingt das UI, einen bestimmten Tab zu öffnen (überschreibt den LocalStorage)
         const focusId = urlParams.get('focus');
-        if (focusId && focusId.startsWith('tab-')) {
+        if (focusId?.startsWith('tab-')) {
             const btn = this.container.querySelector(`[data-tab-target="${focusId}"]`);
             if (btn) this.switchTab(focusId, btn);
         }

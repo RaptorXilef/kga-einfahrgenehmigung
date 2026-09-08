@@ -261,6 +261,11 @@
         'class' => 'App\\Application\\Actions\\Admin\\DashboardFilterAction',
         'auth' => false,
       ),
+      '/dismiss_transfer' => 
+      array (
+        'class' => 'App\\Application\\Actions\\Admin\\DismissTransferAction',
+        'auth' => false,
+      ),
       '/create_manual' => 
       array (
         'class' => 'App\\Application\\Actions\\Admin\\PermitCreateManualAction',
