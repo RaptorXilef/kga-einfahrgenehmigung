@@ -86,10 +86,13 @@ final readonly class BankImportService
         $letztesDatumPerPermit = [];
         $methodenPerPermit = []; // Merkt sich die Suchmethode pro Code für das Audit-Log
 
-        // Wir sammeln jetzt detailliert die Codes anstatt nur hochzuzählen
+        // Kategorisierte Arrays für die nutzerfreundliche Frontend-Ausgabe
         $erfolgreichDetails = [];
-        $uebersprungenDetails = [];
-        $fehlerhaftDetails = [];
+        $skippedNotInCsv = [];
+        $skippedAlreadyPaid = [];
+        $skippedNotInDb = [];
+        $fehlerhaftPartial = [];
+        $fehlerhaftStorage = [];
         $unlesbareZeilenDetails = [];
 
         $rowNumber = 1;
@@ -195,9 +198,10 @@ final readonly class BankImportService
         \fclose($handle);
 
         // Alles was jetzt noch in der $missingUnpaidCodes Liste ist, wurde vom Pächter noch nicht überwiesen.
+        // FEHLENDE CODES LOGGEN
         foreach ($missingUnpaidCodes as $missingCode => $ownerName) {
             $this->writeLog("[Code {$missingCode}] Fehlt in CSV: Unbezahlte Genehmigung für '{$ownerName}' wurde nicht gefunden.", $runLogs);
-            $uebersprungenDetails[] = "{$missingCode} (Nicht in CSV - {$ownerName})";
+            $skippedNotInCsv[] = "{$missingCode} ({$ownerName})";
         }
 
         $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
@@ -207,16 +211,16 @@ final readonly class BankImportService
             $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.", $runLogs);
-                $uebersprungenDetails[] = "{$permitId} (Nicht in DB | {$method})";
+                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
+                $skippedNotInDb[] = $permitId;
                 continue;
             }
 
             $ownerName = $permit->getOwnerName();
 
             if ($permit->isPaid()) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.", $runLogs);
-                $uebersprungenDetails[] = "{$permitId} (Bereits bezahlt - {$ownerName} | {$method})";
+                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
+                $skippedAlreadyPaid[] = "{$permitId} ({$ownerName})";
                 continue;
             }
 
@@ -234,27 +238,49 @@ final readonly class BankImportService
                 $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
 
                 if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
-                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.", $runLogs);
-                    $erfolgreichDetails[] = "{$permitId} ({$istFormatted} - {$ownerName} | {$method})";
+                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
+                    $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } else {
-                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.", $runLogs);
-                    $fehlerhaftDetails[] = "{$permitId} (Speicherfehler - {$ownerName} | {$method})";
+                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
+                    $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
             } else {
-                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)", $runLogs);
-                $fehlerhaftDetails[] = "{$permitId} ({$istFormatted} statt {$sollFormatted} - {$ownerName} | {$method})";
+                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
+                $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
             }
         }
 
-        // Duplikate entfernen, falls ein Code mehrfach aufgeschlagen ist
+        // Bündelung für das Frontend (Lesbare Listen statt Chaos)
         $erfolgreichDetails = \array_values(\array_unique($erfolgreichDetails));
-        $uebersprungenDetails = \array_values(\array_unique($uebersprungenDetails));
-        $fehlerhaftDetails = \array_values(\array_unique($fehlerhaftDetails));
+        $skippedNotInCsv = \array_values(\array_unique($skippedNotInCsv));
+        $skippedAlreadyPaid = \array_values(\array_unique($skippedAlreadyPaid));
+        $skippedNotInDb = \array_values(\array_unique($skippedNotInDb));
+        $fehlerhaftPartial = \array_values(\array_unique($fehlerhaftPartial));
+        $fehlerhaftStorage = \array_values(\array_unique($fehlerhaftStorage));
         $unlesbareZeilenDetails = \array_values(\array_unique($unlesbareZeilenDetails));
 
+        $uebersprungenDetails = [];
+        if (!empty($skippedNotInCsv)) {
+            $uebersprungenDetails[] = 'Fehlt auf Auszug (in CSV): ' . \implode(', ', $skippedNotInCsv);
+        }
+        if (!empty($skippedAlreadyPaid)) {
+            $uebersprungenDetails[] = 'Bereits verbucht: ' . \implode(', ', $skippedAlreadyPaid);
+        }
+        if (!empty($skippedNotInDb)) {
+            $uebersprungenDetails[] = 'Unbekannter Code in CSV (Tippfehler?): ' . \implode(', ', $skippedNotInDb);
+        }
+
+        $fehlerhaftDetails = [];
+        if (!empty($fehlerhaftPartial)) {
+            $fehlerhaftDetails[] = 'Zu geringer Betrag: ' . \implode(', ', $fehlerhaftPartial);
+        }
+        if (!empty($fehlerhaftStorage)) {
+            $fehlerhaftDetails[] = 'Speicherfehler: ' . \implode(', ', $fehlerhaftStorage);
+        }
+
         $erfCount = \count($erfolgreichDetails);
-        $uebCount = \count($uebersprungenDetails);
-        $fehlCount = \count($fehlerhaftDetails) + \count($unlesbareZeilenDetails);
+        $uebCount = \count($skippedNotInCsv) + \count($skippedAlreadyPaid) + \count($skippedNotInDb);
+        $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails);
 
         $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 

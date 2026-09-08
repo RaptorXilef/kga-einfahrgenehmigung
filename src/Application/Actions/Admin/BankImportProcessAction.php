@@ -51,28 +51,37 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $htmlDetails = [];
                 $logDetails = [];
 
-                // 1. Erfolgreich freigeschaltete Genehmigungen
+                // Formatiert Arrays mit Kategorien sauber als HTML-Aufzählungen für das UI
+                $formatList = function (array $items): string {
+                    if (\count($items) === 1) {
+                        return ' ' . \htmlspecialchars($items[0]);
+                    }
+                    $safeItems = \array_map('htmlspecialchars', $items);
+
+                    return '<br>&nbsp;&nbsp;&bull; ' . \implode('<br>&nbsp;&nbsp;&bull; ', $safeItems);
+                };
+
                 if (!empty($res['erfolgreich_details']) && \is_array($res['erfolgreich_details'])) {
                     $htmlDetails[] = '<div style="margin-top: 6px;">✅ <strong>Freigeschaltet:</strong> ' . \htmlspecialchars(\implode(', ', $res['erfolgreich_details'])) . '</div>';
-                    $logDetails[] = 'Freigeschaltet: [' . \implode(', ', $res['erfolgreich_details']) . ']';
+                    $logDetails[] = 'Freigeschaltet: [' . \implode(' | ', $res['erfolgreich_details']) . ']';
                 }
 
                 // 2. Übersprungene Datensätze
                 if (!empty($res['uebersprungen_details']) && \is_array($res['uebersprungen_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 4px;">⏭️ <strong>Übersprungen:</strong> ' . \htmlspecialchars(\implode(', ', $res['uebersprungen_details'])) . '</div>';
-                    $logDetails[] = 'Übersprungen: [' . \implode(', ', $res['uebersprungen_details']) . ']';
+                    $htmlDetails[] = '<div style="margin-top: 4px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                    $logDetails[] = 'Übersprungen: [' . \implode(' | ', $res['uebersprungen_details']) . ']';
                 }
 
                 // 3. Fehlerhafte Datensätze
                 if (!empty($res['fehlerhaft_details']) && \is_array($res['fehlerhaft_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 4px;">❌ <strong>Fehlerhaft:</strong> ' . \htmlspecialchars(\implode(', ', $res['fehlerhaft_details'])) . '</div>';
-                    $logDetails[] = 'Fehlerhaft: [' . \implode(', ', $res['fehlerhaft_details']) . ']';
+                    $htmlDetails[] = '<div style="margin-top: 4px;">❌ <strong>Fehlerhaft:</strong>' . $formatList($res['fehlerhaft_details']) . '</div>';
+                    $logDetails[] = 'Fehlerhaft: [' . \implode(' | ', $res['fehlerhaft_details']) . ']';
                 }
 
                 // 4. Formatierungsfehler in der CSV
                 if (!empty($res['unlesbare_zeilen_details']) && \is_array($res['unlesbare_zeilen_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 4px;">⚠️ <strong>CSV-Fehler:</strong> ' . \htmlspecialchars(\implode(', ', $res['unlesbare_zeilen_details'])) . '</div>';
-                    $logDetails[] = 'CSV-Fehler: [' . \implode(', ', $res['unlesbare_zeilen_details']) . ']';
+                    $htmlDetails[] = '<div style="margin-top: 4px;">⚠️ <strong>CSV-Fehler:</strong>' . $formatList($res['unlesbare_zeilen_details']) . '</div>';
+                    $logDetails[] = 'CSV-Fehler: [' . \implode(' | ', $res['unlesbare_zeilen_details']) . ']';
                 }
 
                 $fullMsg = $msg . \implode('', $htmlDetails);
