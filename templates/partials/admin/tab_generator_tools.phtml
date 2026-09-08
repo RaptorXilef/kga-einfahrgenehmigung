@@ -100,20 +100,24 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Gültig für Vorlage *</label>
+                                    <label class="c-form-label"
+                                           for="template_key">Gültig für Vorlage *</label>
                                     <select name="template_key"
                                             id="template_key"
-                                            class="c-form-select">
+                                            class="c-form-select"
+                                            autocomplete="off">
                                         <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                             <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
                                         <?php } ?>
                                     </select>
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Fahrzeugtyp *</label>
+                                    <label class="c-form-label"
+                                           for="typ">Fahrzeugtyp *</label>
                                     <select name="typ"
                                             id="typ"
-                                            class="c-form-select">
+                                            class="c-form-select"
+                                            autocomplete="off">
                                         <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                             if (!($vData['active'] ?? true)) {
                                                 continue;
@@ -127,90 +131,109 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Gültig von *</label>
+                                    <label class="c-form-label"
+                                           for="datum_von">Gültig von *</label>
                                     <input type="date"
                                            name="datum_von"
                                            id="datum_von"
                                            class="c-form-input"
                                            required
-                                           value="<?php echo \date('Y-m-d'); ?>">
+                                           value="<?php echo \date('Y-m-d'); ?>"
+                                           autocomplete="off">
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Gültig bis *</label>
+                                    <label class="c-form-label"
+                                           for="datum_bis">Gültig bis *</label>
                                     <input type="date"
                                            name="datum_bis"
                                            id="datum_bis"
                                            class="c-form-input"
-                                           required>
+                                           required
+                                           autocomplete="off">
                                 </div>
                             </div>
 
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 2fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Pächter Name *</label>
+                                    <label class="c-form-label"
+                                           for="owner_name">Pächter Name *</label>
                                     <input type="text"
+                                           id="owner_name"
                                            name="name"
                                            class="c-form-input"
                                            required
-                                           placeholder="Vorname Nachname">
+                                           placeholder="Vorname Nachname"
+                                           autocomplete="off">
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Parzelle *</label>
+                                    <label class="c-form-label"
+                                           for="parzelle">Parzelle *</label>
                                     <input type="text"
                                            name="parzelle"
                                            id="parzelle"
                                            class="c-form-input"
                                            required
-                                           placeholder="0001">
+                                           placeholder="0001"
+                                           autocomplete="off">
                                 </div>
                             </div>
 
                             <div class="c-form-group u-margin-bottom-m">
                                 <label class="c-form-label"
-                                       id="label_kennzeichen">Amtl. Kennzeichen *</label>
+                                       id="label_kennzeichen"
+                                       for="kennzeichen">Amtl. Kennzeichen *</label>
                                 <input type="text"
                                        name="kennzeichen"
                                        id="kennzeichen"
                                        class="c-form-input"
                                        required
-                                       placeholder="B-XX 123">
+                                       placeholder="B-XX 123"
+                                       autocomplete="off">
                             </div>
 
                             <!-- Die u-hidden Klasse wird vom JS dynamisch getoggelt -->
                             <div class="c-form-group u-margin-bottom-m u-hidden"
                                  id="group_firma">
-                                <label class="c-form-label">Firma / Lieferant (Optional)</label>
+                                <label class="c-form-label"
+                                       for="firma">Firma / Lieferant (Optional)</label>
                                 <input type="text"
+                                       id="firma"
                                        name="firma"
                                        class="c-form-input"
-                                       placeholder="Firmenname">
+                                       placeholder="Firmenname"
+                                       autocomplete="off">
                             </div>
 
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">E-Mail (Optional)</label>
+                                    <label class="c-form-label"
+                                           for="email">E-Mail (Optional)</label>
                                     <input type="email"
+                                           id="email"
                                            name="email"
                                            class="c-form-input"
-                                           placeholder="mail@example.com">
+                                           placeholder="mail@example.com"
+                                           autocomplete="off">
                                     <small class="u-text-muted u-margin-top-xs"
                                            style="display:block;">Wird für PDF-Versand benötigt.</small>
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label u-flex u-justify-between u-align-center">
+                                    <label class="c-form-label u-flex u-justify-between u-align-center"
+                                           for="zweck_select">
                                         <span>Einfahrts-Grund *</span>
                                         <span class="u-text-link u-cursor-pointer"
-                                              id="toggle_zweck_btn">
-                                            <img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>"
-                                                 class="c-icon"
-                                                 alt=""> Manuell
-                                        </span>
+id="toggle_zweck_btn">
+<img src="<?php echo $asset->url('assets/img/icons/icon-crayon.webp'); ?>"
+class="c-icon"
+alt=""> Manuell
+</span>
                                     </label>
                                     <select name="zweck"
                                             id="zweck_select"
-                                            class="c-form-select">
+                                            class="c-form-select"
+                                            autocomplete="off">
                                         <?php foreach ($standardPurposes as $val => $label) { ?>
                                             <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
                                         <?php } ?>
@@ -222,7 +245,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            id="zweck_manual"
                                            class="c-form-input u-hidden"
                                            placeholder="Eigener Grund..."
-                                           list="custom_purposes_list">
+                                           list="custom_purposes_list"
+                                           aria-label="Eigener Grund"
+                                           autocomplete="off">
                                     <datalist id="custom_purposes_list">
                                         <?php foreach ($customPurposes as $cp) { ?>
                                             <option value="<?php echo \htmlspecialchars($cp); ?>"></option>
@@ -236,15 +261,18 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                  style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-top: 20px;">
 
                                 <div class="c-form-group u-margin-bottom-m">
-                                    <label class="c-form-label u-flex u-justify-between u-align-center">
+                                    <label class="c-form-label u-flex u-justify-between u-align-center"
+                                           for="preis_override">
                                         <span>Sonderpreis (€)</span>
                                         <span id="price-display" style="color: var(--primary-color); font-weight: bold; font-family: monospace; font-size: 1.05rem; background: var(--primary-soft); padding: 4px 10px; border-radius: 6px;">0,00 €</span>
                                     </label>
                                     <input type="number"
+                                           id="preis_override"
                                            step="0.01"
                                            name="preis"
                                            class="c-form-input"
-                                           placeholder="Leer lassen für Standard">
+                                           placeholder="Leer lassen für Standard"
+                                           autocomplete="off">
                                     <small class="u-text-muted u-margin-top-xs"
                                            style="display:block;">Nur ausfüllen für Preis-Abweichungen.</small>
                                 </div>
@@ -299,14 +327,15 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <section class="c-card flex-1 min-w-350"
                          style="margin-bottom: 0; border-top: 4px solid var(--voucher-color);">
                     <header class="c-card__header bg-even">
-                        <h3 class="u-margin-none d-flex align-center gap-10">
+                        <h3 class="u-margin-none u-flex u-align-center u-gap-s">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
                                  alt=""
                                  style="width: 24px;">
                             Gutscheincode generieren
                         </h3>
-                        <p class="u-text-muted u-text-small u-margin-none mt-5">Erstellt Rabattcodes für das öffentliche
+                        <p class="u-text-muted u-text-small u-margin-none u-margin-top-xs">Erstellt Rabattcodes für das
+                            öffentliche
                             Portal.</p>
                     </header>
                     <div class="c-card__body">
@@ -317,11 +346,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                             <div class="c-form-group u-margin-bottom-m">
-                                <label class="c-form-label">Gültig für Vorlage *</label>
+                                <label class="c-form-label"
+                                       for="v_template_key">Gültig für Vorlage *</label>
                                 <!-- FIX: ID v_template_key hinzugefügt für das Admin-JS Sync-Script -->
                                 <select name="template_key"
                                         id="v_template_key"
-                                        class="c-form-select">
+                                        class="c-form-select"
+                                        autocomplete="off">
                                     <?php foreach ($allowedTemplates as $key => $tpl) { ?>
                                         <option value="<?php echo $key; ?>"><?php echo \htmlspecialchars($tpl['label']); ?></option>
                                     <?php } ?>
@@ -331,10 +362,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Rabatt-Art *</label>
+                                    <label class="c-form-label"
+                                           for="v_type">Rabatt-Art *</label>
                                     <select name="voucher_discount_type"
                                             id="v_type"
-                                            class="c-form-select">
+                                            class="c-form-select"
+                                            autocomplete="off">
                                         <option value="free">100% Kostenlos</option>
                                         <option value="percent">Prozentual (%)</option>
                                         <option value="fixed">Festbetrag (€)</option>
@@ -343,24 +376,30 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 <div class="c-form-group"
                                      id="v_val_wrap"
                                      style="display: none;">
-                                    <label class="c-form-label">Wert (Zahl) *</label>
+                                    <label class="c-form-label"
+                                           for="v_val">Wert (Zahl) *</label>
                                     <input type="number"
+                                           id="v_val"
                                            step="0.01"
                                            name="voucher_discount_value"
                                            class="c-form-input"
-                                           value="0.00">
+                                           value="0.00"
+                                           autocomplete="off">
                                 </div>
                             </div>
 
                             <div class="c-form-group u-margin-bottom-m">
-                                <label class="c-form-label">Interne Notiz / Grund * (Doppelklick öffnet
+                                <label class="c-form-label"
+                                       for="v_reason">Interne Notiz / Grund * (Doppelklick öffnet
                                     Schnellauswahl)</label>
                                 <input type="text"
+                                       id="v_reason"
                                        name="reason"
                                        list="reason_presets"
                                        class="c-form-input"
                                        required
-                                       placeholder="z.B. Ersatz oder Sommerfest">
+                                       placeholder="z.B. Ersatz oder Sommerfest"
+                                       autocomplete="off">
                                 <datalist id="reason_presets">
                                     <?php foreach ($reasons as $r) {
                                         echo "<option value='" . \htmlspecialchars($r) . "'>";
@@ -371,18 +410,24 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             <div class="u-grid u-gap-m u-margin-bottom-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Eigener Code (Optional)</label>
+                                    <label class="c-form-label"
+                                           for="v_custom_code">Eigener Code (Optional)</label>
                                     <input type="text"
+                                           id="v_custom_code"
                                            name="voucher_custom_code"
                                            class="c-form-input"
                                            placeholder="Z.B. EXTRA26"
-                                           style="text-transform: uppercase;">
+                                           style="text-transform: uppercase;"
+                                           autocomplete="off">
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Ablaufdatum (Optional)</label>
+                                    <label class="c-form-label"
+                                           for="v_expires_at">Ablaufdatum (Optional)</label>
                                     <input type="datetime-local"
+                                           id="v_expires_at"
                                            name="voucher_expires_at"
-                                           class="c-form-input">
+                                           class="c-form-input"
+                                           autocomplete="off">
                                 </div>
                             </div>
 
@@ -420,54 +465,70 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <div class="u-grid u-gap-m u-margin-bottom-m"
                                          style="grid-template-columns: 1fr 1fr;">
                                         <div class="c-form-group">
-                                            <label class="c-form-label">Gültig von</label>
+                                            <label class="c-form-label"
+                                                   for="v_datum_von">Gültig von</label>
                                             <!-- FIX: IDs für das Admin-JS Sync-Script hinzugefügt -->
                                             <input type="date"
                                                    id="v_datum_von"
                                                    name="datum_von"
-                                                   class="c-form-input">
+                                                   class="c-form-input"
+                                                   autocomplete="off">
                                         </div>
                                         <div class="c-form-group">
-                                            <label class="c-form-label">Gültig bis</label>
+                                            <label class="c-form-label"
+                                                   for="v_datum_bis">Gültig bis</label>
                                             <input type="date"
                                                    id="v_datum_bis"
                                                    name="datum_bis"
-                                                   class="c-form-input">
+                                                   class="c-form-input"
+                                                   autocomplete="off">
                                         </div>
                                     </div>
 
                                     <div class="u-grid u-gap-m u-margin-bottom-m"
                                          style="grid-template-columns: 2fr 1fr;">
                                         <div class="c-form-group">
-                                            <label class="c-form-label">Pächter Name</label>
+                                            <label class="c-form-label"
+                                                   for="v_name">Pächter Name</label>
                                             <input type="text"
+                                                   id="v_name"
                                                    name="name"
                                                    class="c-form-input"
-                                                   placeholder="Vorname Nachname">
+                                                   placeholder="Vorname Nachname"
+                                                   autocomplete="off">
                                         </div>
                                         <div class="c-form-group">
-                                            <label class="c-form-label">Parzelle</label>
+                                            <label class="c-form-label"
+                                                   for="v_parzelle">Parzelle</label>
                                             <input type="text"
+                                                   id="v_parzelle"
                                                    name="parzelle"
                                                    class="c-form-input"
-                                                   placeholder="0001">
+                                                   placeholder="0001"
+                                                   autocomplete="off">
                                         </div>
                                     </div>
 
                                     <div class="c-form-group u-margin-bottom-m">
-                                        <label class="c-form-label">Amtl. Kennzeichen</label>
+                                        <label class="c-form-label"
+                                               for="v_kennzeichen">Amtl. Kennzeichen</label>
                                         <input type="text"
+                                               id="v_kennzeichen"
                                                name="kennzeichen"
                                                class="c-form-input"
-                                               placeholder="B-XX 123">
+                                               placeholder="B-XX 123"
+                                               autocomplete="off">
                                     </div>
 
                                     <div class="u-grid u-gap-m u-margin-bottom-m"
                                          style="grid-template-columns: 1fr 1fr;">
                                         <div class="c-form-group">
-                                            <label class="c-form-label">Fahrzeugtyp</label>
-                                            <select name="typ"
-                                                    class="c-form-select">
+                                            <label class="c-form-label"
+                                                   for="v_typ">Fahrzeugtyp</label>
+                                            <select id="v_typ"
+                                                    name="typ"
+                                                    class="c-form-select"
+                                                    autocomplete="off">
                                                 <option value="">-- Nicht vorgeben --</option>
                                                 <?php foreach ($config->get('vehicle_types', []) as $val => $vData) {
                                                     if (!($vData['active'] ?? true)) {
@@ -478,9 +539,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                             </select>
                                         </div>
                                         <div class="c-form-group">
-                                            <label class="c-form-label">Einfahrts-Grund</label>
-                                            <select name="zweck"
-                                                    class="c-form-select">
+                                            <label class="c-form-label"
+                                                   for="v_zweck">Einfahrts-Grund</label>
+                                            <select id="v_zweck"
+                                                    name="zweck"
+                                                    class="c-form-select"
+                                                    autocomplete="off">
                                                 <option value="">-- Nicht vorgeben --</option>
                                                 <?php foreach ($standardPurposes as $val => $label) { ?>
                                                     <option value="<?php echo $val; ?>"><?php echo \htmlspecialchars($label); ?></option>
@@ -490,11 +554,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     </div>
 
                                     <div class="c-form-group">
-                                        <label class="c-form-label">Firma / Lieferant</label>
+                                        <label class="c-form-label"
+                                               for="v_firma">Firma / Lieferant</label>
                                         <input type="text"
+                                               id="v_firma"
                                                name="firma"
                                                class="c-form-input"
-                                               placeholder="Firmenname">
+                                               placeholder="Firmenname"
+                                               autocomplete="off">
                                     </div>
                                 </div>
                             </details>
@@ -508,19 +575,23 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                                name="voucher_multi_use"
                                                id="v_multi"
                                                style="transform: scale(1.2);">
-                                        <strong class="text-color font-small">Mehrfach einlösbar?</strong>
+                                        <strong class="u-font-bold u-text-small"
+                                                style="color: var(--text-main);">Mehrfach einlösbar?</strong>
                                     </label>
                                 </div>
                                 <div class="c-form-group"
                                      id="v_max_wrap"
                                      style="display: none;">
-                                    <label class="c-form-label u-text-muted">Maximale Nutzungen *</label>
+                                    <label class="c-form-label u-text-muted"
+                                           for="v_max_uses">Maximale Nutzungen *</label>
                                     <input type="number"
+                                           id="v_max_uses"
                                            name="voucher_max_uses"
                                            class="c-form-input"
                                            value="10"
                                            min="1"
-                                           style="max-width: 150px;">
+                                           style="max-width: 150px;"
+                                           autocomplete="off">
                                 </div>
 
                                 <div
@@ -529,7 +600,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <button type="submit"
                                             class="c-button"
                                             style="width: auto; padding: 0 20px; font-weight: 600; background: var(--voucher-color); color: white; border: none;">
-                                        <i class="fa-solid fa-ticket"></i> Code Generieren
+                                        <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                                             class="c-icon"
+                                             alt=""
+                                             style="filter: brightness(0) invert(1);"> Code Generieren
                                     </button>
                                 </div>
                             </div>

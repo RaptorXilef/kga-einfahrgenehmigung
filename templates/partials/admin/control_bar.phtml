@@ -40,35 +40,42 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        value="1">
 
                 <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <span class="u-text-muted u-font-bold"
-                          style="font-size: 0.8rem; letter-spacing: 0.05em;">
+                    <label for="filter_start"
+                           class="u-text-muted u-font-bold"
+                           style="font-size: 0.8rem; letter-spacing: 0.05em; display:flex; align-items:center; gap:5px; cursor:pointer;">
                         <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                              class="c-icon"
                              alt="">
                         ZEITRAUM:
-                    </span>
+                    </label>
                     <input type="date"
                            id="filter_start"
                            name="start"
                            value="<?php echo \htmlspecialchars($currentStart); ?>"
-                           class="c-control-bar-input">
-                    <span class="u-text-muted"
-                          style="font-size: 0.75rem; font-weight: 800;">
+                           class="c-control-bar-input"
+                           autocomplete="off">
+                    <label for="filter_end"
+                           class="u-text-muted"
+                           style="font-size: 0.75rem; font-weight: 800; cursor:pointer;">
                         BIS
-                    </span>
+                    </label>
                     <input type="date"
                            id="filter_end"
                            name="end"
                            value="<?php echo \htmlspecialchars($currentEnd); ?>"
-                           class="c-control-bar-input">
+                           class="c-control-bar-input"
+                           autocomplete="off">
 
-                    <span class="u-text-muted u-font-bold"
-                          style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
+                    <label for="filter_type"
+                           class="u-text-muted u-font-bold"
+                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px; cursor:pointer;">
                         TYP:
-                    </span>
+                    </label>
                     <select name="type"
+                            id="filter_type"
                             class="c-control-bar-input js-auto-submit-select"
-                            style="width: auto !important; cursor: pointer;">
+                            style="width: auto !important; cursor: pointer;"
+                            autocomplete="off">
                         <option value="all"
                                 <?php echo $currentType === 'all' ? 'selected' : ''; ?>>
                             Alle Genehmigungen
@@ -83,13 +90,16 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                         </option>
                     </select>
 
-                    <span class="u-text-muted u-font-bold"
-                          style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
+                    <label for="filter_limit"
+                           class="u-text-muted u-font-bold"
+                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px; cursor:pointer;">
                         PRO SEITE:
-                    </span>
+                    </label>
                     <select name="limit"
+                            id="filter_limit"
                             class="c-control-bar-input js-auto-submit-select"
-                            style="width: auto !important; cursor: pointer;">
+                            style="width: auto !important; cursor: pointer;"
+                            autocomplete="off">
                         <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
                             <option value="<?php echo $l; ?>"
                                     <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?>
@@ -109,6 +119,8 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                         <input type="text"
                                id="adminSearch"
                                name="q"
+                               aria-label="Schnellsuche"
+                               autocomplete="off"
                                value="<?php echo \htmlspecialchars($currentQ); ?>"
                                placeholder="Schnellsuche..."
                                title="Suchen Sie nach Namen, KFZ oder SmartCode"

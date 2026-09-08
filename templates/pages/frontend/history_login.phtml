@@ -52,13 +52,16 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <div class="c-form-group">
-                        <label class="c-form-label">E-Mail-Adresse</label>
+                        <label class="c-form-label"
+                               for="history_email">E-Mail-Adresse</label>
                         <input type="email"
+                               id="history_email"
                                name="email"
                                class="c-form-input"
                                placeholder="ihre@mail.de"
                                required
-                               autofocus>
+                               autofocus
+                               autocomplete="email">
                     </div>
                     <button type="submit"
                             name="request_link"
@@ -82,14 +85,17 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <div class="c-form-group">
-                        <label class="c-form-label u-justify-center">6-stelligen Login-Code eingeben</label>
+                        <label class="c-form-label u-justify-center"
+                               for="login_code">6-stelligen Login-Code eingeben</label>
                         <input type="text"
+                               id="login_code"
                                name="login_code"
                                class="c-form-input u-text-center u-font-xl"
                                placeholder="______"
                                required
                                autofocus
                                maxlength="6"
+                               autocomplete="one-time-code"
                                style="letter-spacing: 8px; font-family: monospace; height: 60px; text-transform: uppercase;">
                     </div>
                     <button type="submit"
@@ -102,7 +108,7 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                 <div style="margin: 20px 0 0 0; text-align: center;">
                     <a href="<?php echo $settings['base_url']; ?>history"
                        style="color: var(--text-muted); text-decoration: underline; font-size: 0.85rem;">
-                       &larr; E-Mail erneut eingeben / zurück
+                        &larr; E-Mail erneut eingeben / zurück
                     </a>
                 </div>
             <?php } ?>

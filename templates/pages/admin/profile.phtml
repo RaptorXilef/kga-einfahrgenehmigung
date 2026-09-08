@@ -38,7 +38,7 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                     <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                          class="c-icon"
                          alt="">
-                        Mein Profil
+                    Mein Profil
                 </h1>
                 <p class="u-text-muted">Verwalten Sie Ihre persönlichen Einstellungen und Sicherheit.</p>
             </div>
@@ -107,12 +107,15 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <div class="c-form-group">
-                                <label class="c-form-label">Anzeigename / Login</label>
+                                <label class="c-form-label"
+                                       for="profile_username">Anzeigename / Login</label>
                                 <input type="text"
+                                       id="profile_username"
                                        name="new_username"
                                        class="c-form-input"
                                        value="<?php echo \htmlspecialchars($username); ?>"
-                                       required>
+                                       required
+                                       autocomplete="username">
                             </div>
                             <div class="u-flex u-align-end">
                                 <button type="submit"
@@ -137,33 +140,42 @@ $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-defau
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <div class="c-form-group">
-                                <label class="c-form-label">Aktuelles Passwort</label>
+                                <label class="c-form-label"
+                                       for="old_password">Aktuelles Passwort</label>
                                 <input type="password"
+                                       id="old_password"
                                        name="old_password"
                                        class="c-form-input"
                                        required
-                                       placeholder="••••••••">
+                                       placeholder="••••••••"
+                                       autocomplete="current-password">
                             </div>
                             <hr style="border: none; border-top: 1px solid #e2e8f0;">
                             <div class="u-grid u-gap-m"
                                  style="grid-template-columns: 1fr 1fr;">
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Neues Passwort</label>
+                                    <label class="c-form-label"
+                                           for="new_password">Neues Passwort</label>
                                     <input type="password"
+                                           id="new_password"
                                            name="new_password"
                                            class="c-form-input"
                                            required
                                            minlength="8"
-                                           placeholder="Mind. 8 Zeichen">
+                                           placeholder="Mind. 8 Zeichen"
+                                           autocomplete="new-password">
                                 </div>
                                 <div class="c-form-group">
-                                    <label class="c-form-label">Wiederholen</label>
+                                    <label class="c-form-label"
+                                           for="confirm_password">Wiederholen</label>
                                     <input type="password"
+                                           id="confirm_password"
                                            name="confirm_password"
                                            class="c-form-input"
                                            required
                                            minlength="8"
-                                           placeholder="Bestätigen">
+                                           placeholder="Bestätigen"
+                                           autocomplete="new-password">
                                 </div>
                             </div>
                             <button type="submit"

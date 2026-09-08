@@ -13,16 +13,16 @@ use App\Contracts\System\AssetHelperInterface;
  * falls ein Tarif kostenpflichtig ist und unterstützt Vorbefüllungen durch Gutscheincodes.
  *
  * @var AssetHelperInterface $asset
- * @var ConfigInterface $config Anwendungs-Konfigurationsinstanz.
+ * @var ConfigInterface $config  Anwendungs-Konfigurationsinstanz.
  * @var array $formData  Temporär gespeicherte Formulardaten (Sticky Forms).
  * @var array $settings  Enthält gefilterte Templates.
- * @var array|null $prefill   Gutschein-Stammdaten.
- * @var bool $hasActiveVouchers True, falls einlösbare Gutscheine existieren.
- * @var bool $success   True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
- * @var string $appRoot   System-Root-Pfad.
+ * @var array|null $prefill  Gutschein-Stammdaten.
+ * @var bool $hasActiveVouchers  True, falls einlösbare Gutscheine existieren.
+ * @var bool $success  True, wenn der Vorab-Antrag erfolgreich ausgelöst wurde.
+ * @var string $appRoot  System-Root-Pfad.
  * @var string $cspNonce
- * @var string $message   Erfolgs- oder Fehlermeldungen nach dem Absenden.
- * @var string $token             Das Sitzungs-Token für Korrekturen.
+ * @var string $message  Erfolgs- oder Fehlermeldungen nach dem Absenden.
+ * @var string $token  Das Sitzungs-Token für Korrekturen.
  */
 $layout = 'public';
 $pageTitle = 'Antrag - ' . ($settings['vereins_name'] ?? '');
@@ -263,12 +263,15 @@ select[readonly] {
                               class="u-flex u-gap-s u-align-end">
                             <div class="c-form-group"
                                  style="flex-grow: 1;">
-                                <label class="c-form-label">Code eingeben</label>
+                                <label class="c-form-label"
+                                       for="voucher_input">Code eingeben</label>
                                 <input type="text"
+                                       id="voucher_input"
                                        name="voucher"
                                        class="c-form-input"
                                        placeholder="GUT-XXXX-XXXX"
                                        style="text-transform: uppercase;"
+                                       autocomplete="off"
                                        value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
                             </div>
                             <button type="submit"
@@ -297,34 +300,42 @@ select[readonly] {
                         <div class="u-grid u-gap-m"
                              style="grid-template-columns: 2fr 1fr;">
                             <div class="c-form-group">
-                                <label class="c-form-label">Vollständiger Name</label>
+                                <label class="c-form-label"
+                                       for="name">Vollständiger Name</label>
                                 <input type="text"
+                                       id="name"
                                        name="name"
                                        class="c-form-input"
                                        required
                                        placeholder="Vorname Nachname"
+                                       autocomplete="name"
                                        value="<?php echo \htmlspecialchars((string) ($formData['name'] ?? $prefill['data']['name'] ?? '')); ?>"
                                        <?php echo $isLocked('name'); ?>>
                             </div>
                             <div class="c-form-group">
-                                <label class="c-form-label">Parzelle</label>
+                                <label class="c-form-label"
+                                       for="parzelle">Parzelle</label>
                                 <input type="text"
                                        name="parzelle"
                                        id="parzelle"
                                        class="c-form-input"
                                        required
                                        placeholder="Nr."
+                                       autocomplete="off"
                                        value="<?php echo \htmlspecialchars((string) ($formData['parzelle'] ?? $prefill['data']['parzelle'] ?? '')); ?>"
                                        <?php echo $isLocked('parzelle'); ?>>
                             </div>
                         </div>
                         <div class="c-form-group u-margin-top-m">
-                            <label class="c-form-label">E-Mail-Adresse</label>
+                            <label class="c-form-label"
+                                   for="email">E-Mail-Adresse</label>
                             <input type="email"
+                                   id="email"
                                    name="email"
                                    class="c-form-input"
                                    required
                                    placeholder="ihre@mail.de"
+                                   autocomplete="email"
                                    value="<?php echo \htmlspecialchars((string) ($formData['email'] ?? $prefill['data']['email'] ?? '')); ?>"
                                    <?php echo $isLocked('email'); ?>>
                             <small class="u-text-muted u-margin-top-xs">An diese Adresse senden wir die
@@ -339,10 +350,12 @@ select[readonly] {
                         <div class="u-grid u-gap-m"
                              style="grid-template-columns: 1fr 1fr;">
                             <div class="c-form-group">
-                                <label class="c-form-label">Fahrzeug-Typ</label>
+                                <label class="c-form-label"
+                                       for="typ">Fahrzeug-Typ</label>
                                 <select name="typ"
                                         id="typ"
                                         class="c-form-select"
+                                        autocomplete="off"
                                         <?php echo ($prefill['data']['typ'] ?? '') ? 'readonly' : ''; ?>>
                                     <?php foreach ($config->get('vehicle_types') as $val => $vData) {
                                         // Pächter sehen NUR aktive Typen, außer er wird vom Gutschein/Session verlangt
@@ -358,7 +371,8 @@ select[readonly] {
                             </div>
                             <div class="c-form-group">
                                 <label class="c-form-label"
-                                       id="label_kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
+                                       id="label_kennzeichen"
+                                       for="kennzeichen">Amtl. Kennzeichen (B-ML 9876)</label>
                                 <input type="text"
                                        name="kennzeichen"
                                        id="kennzeichen"
@@ -368,6 +382,7 @@ select[readonly] {
                                        pattern="[A-Za-z0-9\-\s]+"
                                        title="Bitte geben Sie nur ein gültiges Kennzeichen ein."
                                        placeholder="B-HD 123"
+                                       autocomplete="off"
                                        value="<?php echo \htmlspecialchars((string) ($formData['kennzeichen'] ?? $prefill['data']['kennzeichen'] ?? '')); ?>"
                                        <?php echo $isLocked('kennzeichen'); ?>>
                             </div>
@@ -376,20 +391,25 @@ select[readonly] {
                         <!-- Dynamisches Firmenfeld -->
                         <div class="c-form-group u-margin-top-m u-hidden"
                              id="u_firma_wrapper">
-                            <label class="c-form-label">Firma / Lieferant</label>
+                            <label class="c-form-label"
+                                   for="u_firma">Firma / Lieferant</label>
                             <input type="text"
                                    name="firma"
                                    id="u_firma"
                                    class="c-form-input"
                                    placeholder="Name der Firma"
+                                   autocomplete="organization"
                                    value="<?php echo \htmlspecialchars((string) ($formData['firma'] ?? $prefill['data']['firma'] ?? '')); ?>"
                                    <?php echo $isLocked('firma'); ?>>
                         </div>
 
                         <div class="c-form-group u-margin-top-m">
-                            <label class="c-form-label">Grund der Einfahrt</label>
+                            <label class="c-form-label"
+                                   for="zweck">Grund der Einfahrt</label>
                             <select name="zweck"
+                                    id="zweck"
                                     class="c-form-select"
+                                    autocomplete="off"
                                     <?php echo ($prefill['data']['zweck'] ?? '') ? 'readonly' : ''; ?>>
                                 <?php foreach ($config->get('purposes') as $val => $label) { ?>
                                     <option value="<?php echo $val; ?>"
@@ -406,10 +426,12 @@ select[readonly] {
                         <?php if (\count($publicTemplates) > 1) { ?>
                             <!-- Mehrere Optionen: Auswahl anzeigen -->
                             <div class="c-form-group u-margin-bottom-m">
-                                <label class="c-form-label">Gewünschte Dauer</label>
+                                <label class="c-form-label"
+                                       for="template_key">Gewünschte Dauer</label>
                                 <select name="template_key"
                                         id="template_key"
                                         class="c-form-select"
+                                        autocomplete="off"
                                         <?php echo ($prefill['template_key'] ?? '') ? 'readonly' : ''; ?>>
                                     <?php foreach ($publicTemplates as $key => $tpl) { ?>
                                         <option value="<?php echo $key; ?>"
@@ -431,22 +453,26 @@ select[readonly] {
                         <div class="u-grid u-gap-m"
                              style="grid-template-columns: 1fr 1fr;">
                             <div class="c-form-group">
-                                <label class="c-form-label">Beginn ab</label>
+                                <label class="c-form-label"
+                                       for="datum_von">Beginn ab</label>
                                 <input type="date"
                                        name="datum_von"
                                        id="datum_von"
                                        class="c-form-input"
                                        required
+                                       autocomplete="off"
                                        value="<?php echo \htmlspecialchars((string) ($formData['datum_von'] ?? $prefill['data']['datum_von'] ?? \date('Y-m-d'))); ?>"
                                        <?php echo $isLocked('datum_von'); ?>>
                             </div>
                             <div class="c-form-group">
-                                <label class="c-form-label">Gültig bis</label>
+                                <label class="c-form-label"
+                                       for="datum_bis">Gültig bis</label>
                                 <input type="date"
                                        name="datum_bis"
                                        id="datum_bis"
                                        class="c-form-input"
                                        required
+                                       autocomplete="off"
                                        value="<?php echo \htmlspecialchars((string) ($formData['datum_bis'] ?? $prefill['data']['datum_bis'] ?? '')); ?>"
                                        <?php echo $isLocked('datum_bis'); ?>>
                             </div>
@@ -505,7 +531,7 @@ select[readonly] {
                                name="hp_contact_website"
                                id="hp_contact_website"
                                tabindex="-1"
-                               autocomplete="off">
+                               autocomplete="off"><?php // TODO Prüfen, ob bei HoneyPod erlaubt?>
                     </div>
 
                     <button type="submit"

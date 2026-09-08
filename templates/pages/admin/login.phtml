@@ -41,22 +41,27 @@ unset($_SESSION['form_data']);
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
             <form method="POST"
+                  action="<?php echo $settings['base_url']; ?>admin_login"
                   class="c-form">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <div class="c-form-group">
-                    <label class="c-form-label">Benutzername</label>
+                    <label class="c-form-label"
+                           for="login_user">Benutzername</label>
                     <input type="text"
+                           id="login_user"
                            name="user"
                            class="c-form-input"
                            placeholder="z.B. vorstand"
                            value="<?php echo \htmlspecialchars($formData['user'] ?? ''); ?>"
                            required
-                           autofocus>
+                           autofocus
+                           autocomplete="username">
                 </div>
                 <div class="c-form-group u-margin-top-m">
-                    <label class="c-form-label">Passwort</label>
+                    <label class="c-form-label"
+                           for="login_pass">Passwort</label>
                     <div class="js-password-toggle"
                          style="position: relative; display: flex; align-items: center;">
                         <input type="password"
@@ -66,6 +71,7 @@ unset($_SESSION['form_data']);
                                placeholder="••••••••"
                                value="<?php echo \htmlspecialchars($formData['pass'] ?? ''); ?>"
                                required
+                               autocomplete="current-password"
                                style="padding-right: 40px; width: 100%;">
                         <button type="button"
                                 tabindex="-1"

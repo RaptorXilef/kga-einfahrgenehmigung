@@ -127,17 +127,23 @@ if ($auth->hasPermission('system.roles.manage')) {
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <div class="c-form-group">
-                        <label class="c-form-label">Anzeigename</label>
+                        <label class="c-form-label"
+                               for="group_name">Anzeigename</label>
                         <input type="text"
+                               id="group_name"
                                name="group_name"
                                class="c-form-input"
                                required
-                               placeholder="z.B. Vorstand">
+                               placeholder="z.B. Vorstand"
+                               autocomplete="off">
                     </div>
                     <div class="c-form-group">
-                        <label class="c-form-label">Rechte kopieren von...</label>
-                        <select name="inherit_group"
-                                class="c-form-select">
+                        <label class="c-form-label"
+                               for="inherit_group">Rechte kopieren von...</label>
+                        <select id="inherit_group"
+                                name="inherit_group"
+                                class="c-form-select"
+                                autocomplete="off">
                             <option value="">(Keine Vorlage)</option>
                             <?php foreach ($roles as $id => $r) { ?>
                                 <option value="<?php echo $id; ?>">Kopie von: <?php echo \htmlspecialchars($r->name); ?></option>
@@ -199,11 +205,14 @@ if ($auth->hasPermission('system.roles.manage')) {
                                        value="<?php echo $roleId; ?>">
                                 <div class="c-form-group"
                                      style="flex-grow: 1;">
-                                    <label class="c-form-label">Anzeigename ändern</label>
+                                    <label class="c-form-label"
+                                           for="new_group_name_<?php echo $roleId; ?>">Anzeigename ändern</label>
                                     <input type="text"
+                                           id="new_group_name_<?php echo $roleId; ?>"
                                            name="new_group_name"
                                            class="c-form-input"
-                                           value="<?php echo \htmlspecialchars($rData->name); ?>">
+                                           value="<?php echo \htmlspecialchars($rData->name); ?>"
+                                           autocomplete="off">
                                 </div>
                                 <button type="submit"
                                         class="c-button--primary">Speichern</button>
