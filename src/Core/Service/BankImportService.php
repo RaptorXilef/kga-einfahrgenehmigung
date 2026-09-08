@@ -92,9 +92,10 @@ final readonly class BankImportService
         $skippedAlreadyPaid = [];
         $skippedNotInDb = [];
         $fehlerhaftPartial = [];
-        $fehlerhaftSammel = []; // Kategorie für Mehrfach-Codes
         $fehlerhaftStorage = [];
         $unlesbareZeilenDetails = [];
+
+        $sammelTransfers = []; // Strukturiertes Array für das UI-Tab
 
         $rowNumber = 1;
 
@@ -179,14 +180,21 @@ final readonly class BankImportService
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
             $matchMethodsForLine = \array_values(\array_unique($matchMethodsForLine));
 
-            // SECURITY GUARD: Verhindert den Exploit der doppelten Betragszuweisung
+            // SECURITY GUARD: Sammelüberweisungen für das Dashboard aufbereiten
             if (\count($gefundeneCodes) > 1) {
                 $codesStr = \implode(', ', $gefundeneCodes);
                 $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
 
-                $fehlerhaftSammel[] = "Zeile {$rowNumber}: {$codesStr} (" . \number_format($ueberwiesenerBetrag, 2, ',', '.') . ' €)';
+                // Wir speichern das komplette Paket für das Session-Dashboard!
+                $sammelTransfers[] = [
+                    'id' => \uniqid('sam_', true),
+                    'date' => $this->parseDate($datumRaw),
+                    'amount' => $ueberwiesenerBetrag,
+                    'purpose' => $verwendungszweck,
+                    'codes' => $gefundeneCodes,
+                ];
 
-                // Codes aus der "Fehlt auf Auszug" Liste entfernen, damit sie nicht doppelt im UI auftauchen
+                // Codes aus der "Fehlt auf Auszug" Liste entfernen, da sie ja eigentlich gefunden wurden
                 foreach ($gefundeneCodes as $c) {
                     unset($missingUnpaidCodes[$c]);
                 }
@@ -273,7 +281,6 @@ final readonly class BankImportService
         $skippedAlreadyPaid = \array_values(\array_unique($skippedAlreadyPaid));
         $skippedNotInDb = \array_values(\array_unique($skippedNotInDb));
         $fehlerhaftPartial = \array_values(\array_unique($fehlerhaftPartial));
-        $fehlerhaftSammel = \array_values(\array_unique($fehlerhaftSammel));
         $fehlerhaftStorage = \array_values(\array_unique($fehlerhaftStorage));
         $unlesbareZeilenDetails = \array_values(\array_unique($unlesbareZeilenDetails));
 
@@ -292,9 +299,6 @@ final readonly class BankImportService
         if (!empty($fehlerhaftPartial)) {
             $fehlerhaftDetails['Zu geringer Betrag'] = $fehlerhaftPartial;
         }
-        if (!empty($fehlerhaftSammel)) {
-            $fehlerhaftDetails['Sammelüberweisung (Manuell prüfen)'] = $fehlerhaftSammel;
-        }
         if (!empty($fehlerhaftStorage)) {
             $fehlerhaftDetails['Speicherfehler'] = $fehlerhaftStorage;
         }
@@ -304,7 +308,7 @@ final readonly class BankImportService
 
         $erfCount = \count($erfolgreichDetails);
         $uebCount = \count($skippedNotInCsv) + \count($skippedAlreadyPaid) + \count($skippedNotInDb);
-        $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails) + \count($fehlerhaftSammel);
+        $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails) + \count($sammelTransfers);
 
         $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 
@@ -324,6 +328,7 @@ final readonly class BankImportService
             'erfolgreich_details' => $erfolgreichDetails,
             'uebersprungen_details' => $uebersprungenDetails,
             'fehlerhaft_details' => $fehlerhaftDetails,
+            'sammel_transfers' => $sammelTransfers, // NEU übergeben
         ];
     }
 

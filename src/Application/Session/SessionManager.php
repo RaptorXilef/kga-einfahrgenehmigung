@@ -143,6 +143,23 @@ final class SessionManager implements AuthSessionInterface
         $_SESSION['admin_user'] = $newName;
     }
 
+    // --- NEU: AUFGABEN-SPEICHER FÜR SAMMELÜBERWEISUNGEN ---
+    public function addCollectiveTransfer(array $transfer): void
+    {
+        $_SESSION['collective_transfers'][$transfer['id']] = $transfer;
+    }
+
+    public function getCollectiveTransfers(): array
+    {
+        return $_SESSION['collective_transfers'] ?? [];
+    }
+
+    public function removeCollectiveTransfer(string $id): void
+    {
+        unset($_SESSION['collective_transfers'][$id]);
+    }
+    // -------------------------------------------------------
+
     // --- AUTH & SECURITY ---
     public function regenerate(): void
     {

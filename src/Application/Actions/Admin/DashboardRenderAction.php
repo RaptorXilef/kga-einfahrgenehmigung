@@ -152,7 +152,7 @@ final readonly class DashboardRenderAction implements ViewActionInterface
         $this->renderer->render('admin/dashboard', [
             'allowedLimits' => $paginationCfg['allowed_limits'] ?? [10, 25, 50, 100, 250],
             'allPermits' => $allHistoricalAndActive,
-            'allReleaseNotes' => $allReleaseNotes, // <--- NEU
+            'allReleaseNotes' => $allReleaseNotes,
             'auditFilter' => $auditFilter,
             'auditLogs' => $auditData['items'],
             'auditPage' => $auditPage,
@@ -181,6 +181,9 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'vouchers' => $vouchers,
             'voucherValidities' => $voucherValidities,
             'yearlyStats' => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
+
+            // NEU: Gib die Aufgabenliste an das View weiter
+            'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
 
         return null;

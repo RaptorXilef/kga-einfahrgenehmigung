@@ -47,6 +47,18 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
                 $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
 
+                // NEU: Sammelüberweisungen aus dem Service in die Session schieben
+                $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
+                if (!empty($res['sammel_transfers'])) {
+                    foreach ($res['sammel_transfers'] as $transfer) {
+                        $this->sessionManager->addCollectiveTransfer($transfer);
+                    }
+                    // Für das UI-Flash formatieren
+                    $fehlerhaftDetails['Sammelüberweisungen (Siehe Aufgabenliste im Tab Finanzen)'] = \array_map(function ($t) {
+                        return \implode(', ', $t['codes']) . ' (' . \number_format($t['amount'], 2, ',', '.') . ' €)';
+                    }, $res['sammel_transfers']);
+                }
+
                 // Doppelter Zeilenumbruch für saubere Trennung vom Hauptsatz
                 $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.<br><br>";
                 $htmlDetails = [];
@@ -98,9 +110,9 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 }
 
                 // 4. Formatierungsfehler in der CSV
-                if (!empty($res['fehlerhaft_details'])) {
-                    $htmlDetails[] = '<div style="margin-bottom: 12px;">❌ <strong>Fehlerhaft:</strong>' . $formatList($res['fehlerhaft_details']) . '</div>';
-                    $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($res['fehlerhaft_details']) . ']';
+                if (!empty($fehlerhaftDetails)) {
+                    $htmlDetails[] = '<div style="margin-bottom: 12px;">❌ <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
+                    $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($fehlerhaftDetails) . ']';
                 }
 
                 $fullMsg = $msg . \implode('', $htmlDetails);
