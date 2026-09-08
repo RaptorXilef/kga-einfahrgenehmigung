@@ -92,6 +92,7 @@ final readonly class BankImportService
         $skippedAlreadyPaid = [];
         $skippedNotInDb = [];
         $fehlerhaftPartial = [];
+        $fehlerhaftSammel = []; // Kategorie für Mehrfach-Codes
         $fehlerhaftStorage = [];
         $unlesbareZeilenDetails = [];
 
@@ -178,6 +179,22 @@ final readonly class BankImportService
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
             $matchMethodsForLine = \array_values(\array_unique($matchMethodsForLine));
 
+            // SECURITY GUARD: Verhindert den Exploit der doppelten Betragszuweisung
+            if (\count($gefundeneCodes) > 1) {
+                $codesStr = \implode(', ', $gefundeneCodes);
+                $this->writeLog("[Zeile {$rowNumber}] FEHLER: Mehrere Codes in einer Überweisung gefunden [{$codesStr}]. Wird zur manuellen Prüfung ausgesteuert.", $runLogs);
+
+                $fehlerhaftSammel[] = "Zeile {$rowNumber}: {$codesStr} (" . \number_format($ueberwiesenerBetrag, 2, ',', '.') . ' €)';
+
+                // Codes aus der "Fehlt auf Auszug" Liste entfernen, damit sie nicht doppelt im UI auftauchen
+                foreach ($gefundeneCodes as $c) {
+                    unset($missingUnpaidCodes[$c]);
+                }
+
+                // WICHTIG: Schleife hier abbrechen, damit die Zahlungen NICHT automatisiert verbucht werden!
+                continue;
+            }
+
             $codesStr = \implode(', ', $gefundeneCodes);
             $methodStr = \implode(' & ', $matchMethodsForLine);
 
@@ -211,7 +228,7 @@ final readonly class BankImportService
             $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.", $runLogs);
+                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
                 $skippedNotInDb[] = $permitId;
                 continue;
             }
@@ -219,7 +236,7 @@ final readonly class BankImportService
             $ownerName = $permit->getOwnerName();
 
             if ($permit->isPaid()) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.", $runLogs);
+                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
                 $skippedAlreadyPaid[] = "{$permitId} ({$ownerName})";
                 continue;
             }
@@ -238,14 +255,14 @@ final readonly class BankImportService
                 $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
 
                 if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
-                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.", $runLogs);
+                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } else {
-                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.", $runLogs);
+                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
             } else {
-                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)", $runLogs);
+                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
                 $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
             }
         }
@@ -256,6 +273,7 @@ final readonly class BankImportService
         $skippedAlreadyPaid = \array_values(\array_unique($skippedAlreadyPaid));
         $skippedNotInDb = \array_values(\array_unique($skippedNotInDb));
         $fehlerhaftPartial = \array_values(\array_unique($fehlerhaftPartial));
+        $fehlerhaftSammel = \array_values(\array_unique($fehlerhaftSammel));
         $fehlerhaftStorage = \array_values(\array_unique($fehlerhaftStorage));
         $unlesbareZeilenDetails = \array_values(\array_unique($unlesbareZeilenDetails));
 
@@ -274,6 +292,9 @@ final readonly class BankImportService
         if (!empty($fehlerhaftPartial)) {
             $fehlerhaftDetails['Zu geringer Betrag'] = $fehlerhaftPartial;
         }
+        if (!empty($fehlerhaftSammel)) {
+            $fehlerhaftDetails['Sammelüberweisung (Manuell prüfen)'] = $fehlerhaftSammel;
+        }
         if (!empty($fehlerhaftStorage)) {
             $fehlerhaftDetails['Speicherfehler'] = $fehlerhaftStorage;
         }
@@ -283,7 +304,7 @@ final readonly class BankImportService
 
         $erfCount = \count($erfolgreichDetails);
         $uebCount = \count($skippedNotInCsv) + \count($skippedAlreadyPaid) + \count($skippedNotInDb);
-        $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails);
+        $fehlCount = \count($fehlerhaftPartial) + \count($fehlerhaftStorage) + \count($unlesbareZeilenDetails) + \count($fehlerhaftSammel);
 
         $this->writeLog("Abgleich komplett. Resultat -> Erfolgreich: {$erfCount} | Übersprungen: {$uebCount} | Fehlerhaft: {$fehlCount}\n---", $runLogs);
 
