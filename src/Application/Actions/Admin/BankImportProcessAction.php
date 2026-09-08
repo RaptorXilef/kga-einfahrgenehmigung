@@ -47,7 +47,8 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
                 $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
 
-                $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
+                // Doppelter Zeilenumbruch für saubere Trennung vom Hauptsatz
+                $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.<br><br>";
                 $htmlDetails = [];
                 $logDetails = [];
 
@@ -59,8 +60,8 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                             // Flache Liste (z.B. bei Erfolgreich)
                             $html .= '<br>&nbsp;&nbsp;&bull; ' . \htmlspecialchars((string) $items);
                         } else {
-                            // Kategorisierte Liste (z.B. "Fehlt auf Auszug")
-                            $html .= '<br>&nbsp;&nbsp;&bull; <em>' . \htmlspecialchars((string) $cat) . '</em>:';
+                            // Kategorisierte Liste (z.B. "Fehlt auf Auszug") - FETT und KURSIV
+                            $html .= '<br>&nbsp;&nbsp;&bull; <strong><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
                             foreach ((array) $items as $item) {
                                 $html .= '<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- ' . \htmlspecialchars((string) $item);
                             }
@@ -86,19 +87,19 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
 
                 // 2. Übersprungene Datensätze
                 if (!empty($res['erfolgreich_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 10px;">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
+                    $htmlDetails[] = '<div style="margin-bottom: 12px;">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
                     $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
                 }
 
                 // 3. Fehlerhafte Datensätze
                 if (!empty($res['uebersprungen_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 10px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                    $htmlDetails[] = '<div style="margin-bottom: 12px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
                     $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
                 }
 
                 // 4. Formatierungsfehler in der CSV
                 if (!empty($res['fehlerhaft_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 10px;">❌ <strong>Fehlerhaft:</strong>' . $formatList($res['fehlerhaft_details']) . '</div>';
+                    $htmlDetails[] = '<div style="margin-bottom: 12px;">❌ <strong>Fehlerhaft:</strong>' . $formatList($res['fehlerhaft_details']) . '</div>';
                     $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($res['fehlerhaft_details']) . ']';
                 }
 
