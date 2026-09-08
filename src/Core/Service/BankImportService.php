@@ -211,7 +211,7 @@ final readonly class BankImportService
             $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank (Erkannt via: {$method}).", $runLogs);
+                $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.", $runLogs);
                 $skippedNotInDb[] = $permitId;
                 continue;
             }
@@ -219,7 +219,7 @@ final readonly class BankImportService
             $ownerName = $permit->getOwnerName();
 
             if ($permit->isPaid()) {
-                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert (Erkannt via: {$method}).", $runLogs);
+                $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.", $runLogs);
                 $skippedAlreadyPaid[] = "{$permitId} ({$ownerName})";
                 continue;
             }
@@ -238,14 +238,14 @@ final readonly class BankImportService
                 $codeToActivate = \is_string($permit->code) ? $permit->code : $permit->code->value;
 
                 if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
-                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht (Erkannt via: {$method}).", $runLogs);
+                    $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.", $runLogs);
                     $erfolgreichDetails[] = "{$permitId} ({$ownerName})";
                 } else {
-                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen (Erkannt via: {$method}).", $runLogs);
+                    $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.", $runLogs);
                     $fehlerhaftStorage[] = "{$permitId} ({$ownerName})";
                 }
             } else {
-                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €) (Erkannt via: {$method}).", $runLogs);
+                $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)", $runLogs);
                 $fehlerhaftPartial[] = "{$permitId} ({$ownerName}: {$istFormatted} statt {$sollFormatted})";
             }
         }
@@ -261,21 +261,24 @@ final readonly class BankImportService
 
         $uebersprungenDetails = [];
         if (!empty($skippedNotInCsv)) {
-            $uebersprungenDetails[] = 'Fehlt auf Auszug (in CSV): ' . \implode(', ', $skippedNotInCsv);
+            $uebersprungenDetails['Fehlt auf Auszug (in CSV)'] = $skippedNotInCsv;
         }
         if (!empty($skippedAlreadyPaid)) {
-            $uebersprungenDetails[] = 'Bereits verbucht: ' . \implode(', ', $skippedAlreadyPaid);
+            $uebersprungenDetails['Bereits verbucht'] = $skippedAlreadyPaid;
         }
         if (!empty($skippedNotInDb)) {
-            $uebersprungenDetails[] = 'Unbekannter Code in CSV (Tippfehler?): ' . \implode(', ', $skippedNotInDb);
+            $uebersprungenDetails['Unbekannter Code in CSV (Tippfehler?)'] = $skippedNotInDb;
         }
 
         $fehlerhaftDetails = [];
         if (!empty($fehlerhaftPartial)) {
-            $fehlerhaftDetails[] = 'Zu geringer Betrag: ' . \implode(', ', $fehlerhaftPartial);
+            $fehlerhaftDetails['Zu geringer Betrag'] = $fehlerhaftPartial;
         }
         if (!empty($fehlerhaftStorage)) {
-            $fehlerhaftDetails[] = 'Speicherfehler: ' . \implode(', ', $fehlerhaftStorage);
+            $fehlerhaftDetails['Speicherfehler'] = $fehlerhaftStorage;
+        }
+        if (!empty($unlesbareZeilenDetails)) {
+            $fehlerhaftDetails['CSV-Lesefehler'] = $unlesbareZeilenDetails;
         }
 
         $erfCount = \count($erfolgreichDetails);
@@ -300,7 +303,6 @@ final readonly class BankImportService
             'erfolgreich_details' => $erfolgreichDetails,
             'uebersprungen_details' => $uebersprungenDetails,
             'fehlerhaft_details' => $fehlerhaftDetails,
-            'unlesbare_zeilen_details' => $unlesbareZeilenDetails,
         ];
     }
 

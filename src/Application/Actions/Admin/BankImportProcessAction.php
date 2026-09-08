@@ -51,37 +51,55 @@ final readonly class BankImportProcessAction implements ActionInterface, Require
                 $htmlDetails = [];
                 $logDetails = [];
 
-                // Formatiert Arrays mit Kategorien sauber als HTML-Aufzählungen für das UI
-                $formatList = function (array $items): string {
-                    if (\count($items) === 1) {
-                        return ' ' . \htmlspecialchars($items[0]);
+                // Formatiert Arrays mit Kategorien sauber als strukturierte HTML-Liste
+                $formatList = function (array $categories): string {
+                    $html = '';
+                    foreach ($categories as $cat => $items) {
+                        if (\is_numeric($cat)) {
+                            // Flache Liste (z.B. bei Erfolgreich)
+                            $html .= '<br>&nbsp;&nbsp;&bull; ' . \htmlspecialchars((string) $items);
+                        } else {
+                            // Kategorisierte Liste (z.B. "Fehlt auf Auszug")
+                            $html .= '<br>&nbsp;&nbsp;&bull; <em>' . \htmlspecialchars((string) $cat) . '</em>:';
+                            foreach ((array) $items as $item) {
+                                $html .= '<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- ' . \htmlspecialchars((string) $item);
+                            }
+                        }
                     }
-                    $safeItems = \array_map('htmlspecialchars', $items);
 
-                    return '<br>&nbsp;&nbsp;&bull; ' . \implode('<br>&nbsp;&nbsp;&bull; ', $safeItems);
+                    return $html;
                 };
 
-                if (!empty($res['erfolgreich_details']) && \is_array($res['erfolgreich_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 6px;">✅ <strong>Freigeschaltet:</strong> ' . \htmlspecialchars(\implode(', ', $res['erfolgreich_details'])) . '</div>';
-                    $logDetails[] = 'Freigeschaltet: [' . \implode(' | ', $res['erfolgreich_details']) . ']';
-                }
+                // Flache Darstellung für die Log-Einträge ohne HTML-Tags
+                $flattenForLog = function (array $categories): string {
+                    $parts = [];
+                    foreach ($categories as $cat => $items) {
+                        if (\is_numeric($cat)) {
+                            $parts[] = (string) $items;
+                        } else {
+                            $parts[] = $cat . ': ' . \implode(', ', (array) $items);
+                        }
+                    }
+
+                    return \implode(' | ', $parts);
+                };
 
                 // 2. Übersprungene Datensätze
-                if (!empty($res['uebersprungen_details']) && \is_array($res['uebersprungen_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 4px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
-                    $logDetails[] = 'Übersprungen: [' . \implode(' | ', $res['uebersprungen_details']) . ']';
+                if (!empty($res['erfolgreich_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 10px;">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
+                    $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
                 }
 
                 // 3. Fehlerhafte Datensätze
-                if (!empty($res['fehlerhaft_details']) && \is_array($res['fehlerhaft_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 4px;">❌ <strong>Fehlerhaft:</strong>' . $formatList($res['fehlerhaft_details']) . '</div>';
-                    $logDetails[] = 'Fehlerhaft: [' . \implode(' | ', $res['fehlerhaft_details']) . ']';
+                if (!empty($res['uebersprungen_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 10px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                    $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
                 }
 
                 // 4. Formatierungsfehler in der CSV
-                if (!empty($res['unlesbare_zeilen_details']) && \is_array($res['unlesbare_zeilen_details'])) {
-                    $htmlDetails[] = '<div style="margin-top: 4px;">⚠️ <strong>CSV-Fehler:</strong>' . $formatList($res['unlesbare_zeilen_details']) . '</div>';
-                    $logDetails[] = 'CSV-Fehler: [' . \implode(' | ', $res['unlesbare_zeilen_details']) . ']';
+                if (!empty($res['fehlerhaft_details'])) {
+                    $htmlDetails[] = '<div style="margin-top: 10px;">❌ <strong>Fehlerhaft:</strong>' . $formatList($res['fehlerhaft_details']) . '</div>';
+                    $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($res['fehlerhaft_details']) . ']';
                 }
 
                 $fullMsg = $msg . \implode('', $htmlDetails);
