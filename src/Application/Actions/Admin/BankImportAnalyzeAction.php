@@ -107,16 +107,26 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             $uebersprungenCount = (int) ($res['uebersprungen_count'] ?? 0);
             $fehlerhaftCount = (int) ($res['fehlerhaft_count'] ?? 0);
 
-            // Sammelüberweisungen aus dem Service in die Session schieben
+            // Kennzeichen- und Sammelüberweisungen aus dem Service in die Session schieben
             $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
             if (!empty($res['sammel_transfers'])) {
+                $sammelList = [];
+                $kennzeichenList = [];
                 foreach ($res['sammel_transfers'] as $transfer) {
                     $this->sessionManager->addCollectiveTransfer($transfer);
+                    $entry = \implode(', ', $transfer['codes']) . ' (' . \number_format($transfer['amount'], 2, ',', '.') . ' €)';
+                    if (($transfer['type'] ?? 'sammel') === 'kennzeichen') {
+                        $kennzeichenList[] = $entry;
+                    } else {
+                        $sammelList[] = $entry;
+                    }
                 }
-                // Für das UI-Flash formatieren
-                $fehlerhaftDetails['Sammelüberweisungen (Siehe Aufgabenliste im Tab Finanzen)'] = \array_map(function ($t) {
-                    return \implode(', ', $t['codes']) . ' (' . \number_format($t['amount'], 2, ',', '.') . ' €)';
-                }, $res['sammel_transfers']);
+                if (!empty($sammelList)) {
+                    $fehlerhaftDetails['Sammelüberweisungen (Manuell prüfen)'] = $sammelList;
+                }
+                if (!empty($kennzeichenList)) {
+                    $fehlerhaftDetails['Kennzeichen erkannt (Manuell prüfen)'] = $kennzeichenList;
+                }
             }
 
             // Doppelter Zeilenumbruch für saubere Trennung vom Hauptsatz

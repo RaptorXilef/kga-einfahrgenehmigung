@@ -54,7 +54,6 @@ if ($auth->hasPermission('finance.view')) {
                 <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
-                        <!-- FIX: data-confirm-click anstatt onclick -->
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
@@ -69,7 +68,6 @@ if ($auth->hasPermission('finance.view')) {
                             <span id="bulkPayCount">0</span> als Bezahlt markieren
                         </button>
 
-                        <!-- FIX: data-confirm-click anstatt onclick -->
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
@@ -93,12 +91,13 @@ if ($auth->hasPermission('finance.view')) {
                         <div class="c-alert"
                              style="background: #fffbeb; border: 1px solid #fcd34d; color: #b45309; display: block; margin-bottom: 20px; text-align: left;">
                             <h4 class="u-margin-top-none u-margin-bottom-s u-flex u-align-center u-gap-s">
-                                <span style="font-size: 1.5rem;">⚠️</span> Sammelüberweisungen manuell prüfen
+                                <span style="font-size: 1.5rem;">⚠️</span> Manuelle Zahlungszuordnung erforderlich
                             </h4>
                             <p class="u-margin-top-none u-margin-bottom-m u-text-small">
-                                Das System hat in der Bankdatei Überweisungen mit mehreren Genehmigungs-Codes gefunden.
-                                Bitte gleichen Sie den Betrag manuell ab und setzen Sie die betroffenen Anträge unten in
-                                der Liste über den <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
+                                Das System hat in der Bankdatei Überweisungen gefunden, die entweder <strong>mehrere
+                                    Genehmigungs-Codes</strong> enthalten oder bei denen die ID fehlt, aber das
+                                <strong>Kennzeichen</strong> im Betreff stand. Bitte gleichen Sie den Betrag manuell ab
+                                und setzen Sie die betroffenen Anträge unten in der Liste über den <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
                                      style="width: 14px; vertical-align: middle; filter: brightness(0) invert(1); background: var(--success-color); border-radius: 4px; padding: 2px;">
                                 Button auf "bezahlt". Danach können Sie diesen Hinweis einfach schließen.
                             </p>
@@ -114,7 +113,11 @@ if ($auth->hasPermission('finance.view')) {
                                                  style="margin-top: 5px; font-family: monospace; font-size: 0.85rem; color: #78350f; word-break: break-all; background: #fef3c7; padding: 4px 8px; border-radius: 4px;">
                                                 <?php echo \htmlspecialchars($ct['purpose']); ?>
                                             </div>
-                                            <div style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
+                                            <div
+                                                 style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                                                <span style="font-size: 0.75rem; color: #b45309; font-weight: bold; text-transform: uppercase;">
+                                                    <?php echo ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:'; ?>
+                                                </span>
                                                 <?php foreach ($ct['codes'] as $c) { ?>
                                                     <span class="c-badge" style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main); font-family: monospace;"><?php echo $c; ?></span>
                                                 <?php } ?>

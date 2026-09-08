@@ -101,6 +101,7 @@ final readonly class BankImportService
 
         // Alle Codes vorab laden für präzisen Abgleich
         $unpaidCodes = [];
+        $unpaidPlates = []; // Speichert die Kennzeichen für den Notfall-Abgleich
         $allCodes = [];
         foreach ($this->storage->getAll() as $permit) {
             $c = $permit->code->value;
@@ -108,6 +109,7 @@ final readonly class BankImportService
             if (!$permit->isPaid()) {
                 // Merkt sich direkt den Namen für das Logging
                 $unpaidCodes[$c] = $permit->getOwnerName();
+                $unpaidPlates[$c] = $permit->getLicensePlate();
             }
         }
 
@@ -168,14 +170,55 @@ final readonly class BankImportService
                 }
             }
 
-            if (empty($gefundeneCodes)) {
-                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
-                continue;
-            }
-
             $cleanAmount = \str_replace('.', '', $betragRaw);
             $cleanAmount = \str_replace(',', '.', $cleanAmount);
             $ueberwiesenerBetrag = (float) $cleanAmount;
+
+            // 3. Fallback: Kennzeichen-Suche (Wenn ID vergessen wurde)
+            $gefundeneKennzeichen = [];
+            if (empty($gefundeneCodes)) {
+                $zweckNormalized = (string) \preg_replace('/[^A-Z0-9]/', '', $zweckUpper);
+                foreach ($unpaidPlates as $unpaidCode => $plate) {
+                    if (empty($plate)) {
+                        continue;
+                    }
+
+                    $plateNormalized = (string) \preg_replace('/[^A-Z0-9]/', '', \strtoupper($plate));
+                    // Nur nach Kennzeichen mit mindestens 4 Zeichen suchen, um False-Positives (z.B. "B1") in Rechnungsnummern zu vermeiden
+                    if (\strlen($plateNormalized) >= 4 && \str_contains($zweckNormalized, $plateNormalized)) {
+                        $gefundeneKennzeichen[$unpaidCode] = $plate;
+                    }
+                }
+            }
+
+            if (empty($gefundeneCodes) && empty($gefundeneKennzeichen)) {
+                $this->writeLog("[Zeile {$rowNumber}] Info: Kein System-Code und kein Kennzeichen gefunden. Rohdaten Zweck: '{$verwendungszweck}'", $runLogs);
+                continue;
+            }
+
+            // WENN NUR KENNZEICHEN GEFUNDEN WURDEN: Direkt in die manuelle Aufgabenliste aussteuern
+            if (empty($gefundeneCodes) && !empty($gefundeneKennzeichen)) {
+                $matchedCodes = \array_keys($gefundeneKennzeichen);
+                $codesStr = \implode(', ', $matchedCodes);
+                $platesStr = \implode(', ', \array_values($gefundeneKennzeichen));
+
+                $this->writeLog("[Zeile {$rowNumber}] HINWEIS: Kein Code, aber Kennzeichen [{$platesStr}] für Codes [{$codesStr}] gefunden. Ausgesteuert zur manuellen Prüfung.", $runLogs);
+
+                $sammelTransfers[] = [
+                    'id' => \uniqid('sam_', true),
+                    'date' => $this->parseDate($datumRaw),
+                    'amount' => $ueberwiesenerBetrag,
+                    'purpose' => $verwendungszweck,
+                    'codes' => $matchedCodes,
+                    'type' => 'kennzeichen', // Neuer Typ für das UI
+                ];
+
+                foreach ($matchedCodes as $c) {
+                    unset($missingUnpaidCodes[$c]);
+                }
+
+                continue;
+            }
 
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
             $matchMethodsForLine = \array_values(\array_unique($matchMethodsForLine));
@@ -192,6 +235,7 @@ final readonly class BankImportService
                     'amount' => $ueberwiesenerBetrag,
                     'purpose' => $verwendungszweck,
                     'codes' => $gefundeneCodes,
+                    'type' => 'sammel',
                 ];
 
                 // Codes aus der "Fehlt auf Auszug" Liste entfernen, da sie ja eigentlich gefunden wurden
@@ -328,7 +372,7 @@ final readonly class BankImportService
             'erfolgreich_details' => $erfolgreichDetails,
             'uebersprungen_details' => $uebersprungenDetails,
             'fehlerhaft_details' => $fehlerhaftDetails,
-            'sammel_transfers' => $sammelTransfers, // NEU übergeben
+            'sammel_transfers' => $sammelTransfers,
         ];
     }
 
