@@ -125,11 +125,13 @@ final readonly class BankImportService
 
             $zweckUpper = \strtoupper($verwendungszweck);
             $gefundeneCodes = [];
+            $matchMethods = [];
 
             // 1. Hauptverarbeitung: Suche aktiv nach unbezahlten IDs
             foreach ($unpaidCodes as $unpaidCode => $true) {
                 if (\str_contains($zweckUpper, $unpaidCode)) {
                     $gefundeneCodes[] = $unpaidCode;
+                    $matchMethods[] = 'Direktsuche (Unbezahlt)';
                 }
             }
 
@@ -140,10 +142,12 @@ final readonly class BankImportService
                         if (isset($allCodes[$m])) {
                             // Code existiert im System (wurde ggf. doppelt bezahlt)
                             $gefundeneCodes[] = $m;
+                            $matchMethods[] = 'Regex Fallback (Bereits im System)';
                         } elseif (\preg_match('/\b' . $m . '\b/', $zweckUpper)) {
                             // Wenn der Code nicht im System ist, aber freistehend (z.B. Tippfehler), nehmen wir ihn auf.
                             // SOMMERFEST wird ignoriert, da MMERFEST keine eigene Wortgrenze hat.
                             $gefundeneCodes[] = $m;
+                            $matchMethods[] = 'Regex Fallback (Unbekannter Code, isoliertes Wort)';
                         }
                     }
                 }
@@ -159,8 +163,12 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
+            $matchMethods = \array_values(\array_unique($matchMethods));
+
             $codesStr = \implode(', ', $gefundeneCodes);
-            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}]. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
+            $methodStr = \implode(' & ', $matchMethods);
+
+            $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
 
             foreach ($gefundeneCodes as $permitIdStr) {
                 $aggregierteZahlungen[$permitIdStr] ??= 0.0;
