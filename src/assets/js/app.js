@@ -70,6 +70,20 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href =
                 window.location.origin + window.location.pathname + window.location.search;
         }
+
+        // Globaler Close-Window Button (Druckansicht)
+        const closeWindowBtn = e.target.closest('.js-close-window');
+        if (closeWindowBtn) {
+            e.preventDefault();
+            window.close();
+        }
+
+        // Globaler Print-Window Button (Druckansicht)
+        const printWindowBtn = e.target.closest('.js-print-window');
+        if (printWindowBtn) {
+            e.preventDefault();
+            window.print();
+        }
     });
 
     // Auto-Submit für Select-Boxen (Admin Dashboard Filter)
@@ -118,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lazyMountSingle('#tab-stats', () => import('./modules/DashboardStats.js'), 'DashboardStats');
     lazyMountSingle('#tab-bank-import', () => import('./modules/BankImport.js'), 'BankImport');
 
-    // 4. Mini-Logiken (Events & Pings) zentralisieren
+    // Mini-Logiken (Events & Pings) zentralisieren
     document.querySelectorAll('.js-track-event').forEach((el) => {
         if (el.dataset.event && typeof window.dataLayer !== 'undefined') {
             window.dataLayer.push({ event: el.dataset.event });

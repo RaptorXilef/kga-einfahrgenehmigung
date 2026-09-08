@@ -13,6 +13,7 @@ use App\Contracts\System\AssetHelperInterface;
  * @var array $settings
  * @var string $appRoot
  * @var string $content  Der fertig gerenderte Inhalt der Unterseite.
+ * @var string $cspNonce
  * @var string $pageTitle
  * @var string|null $pageStateClass
  */
@@ -64,7 +65,6 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
     <?php include $appRoot . '/templates/partials/frontend/footer.phtml'; ?>
 
     <!-- SCHWEBENDER AKTUALISIEREN BUTTON (Bleibt immer sichtbar unten rechts) -->
-    <!-- FIX: onclick="..." entfernt und durch c-fab-refresh Klasse (via app.js) gesteuert -->
     <button class="c-fab-refresh"
             title="Aktuelle Daten neu laden (Filter bleiben erhalten)">
         <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"

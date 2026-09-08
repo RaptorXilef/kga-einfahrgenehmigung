@@ -11,6 +11,7 @@ use App\Core\Service\AuthService;
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var array $settings
+ * @var string $cspNonce
  * @var string $filterEnd
  * @var string $filterStart
  * @var string $filterType
@@ -26,18 +27,14 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-control-bar-wrapper">
         <section class="c-control-bar-section">
-
-            <!-- FIX: action Attribut hinzugefügt, damit der POST an die korrekte Route geht! -->
             <form method="POST"
                   action="<?php echo $settings['base_url']; ?>filter_dashboard"
                   id="dashboardFilterForm"
                   class="u-flex u-align-center u-gap-s u-flex-wrap u-width-100 u-justify-center"
                   style="margin: 0; background: transparent;">
-
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                <!-- Veraltetes Legacy action Feld entfernt -->
                 <input type="hidden"
                        name="page"
                        value="1">
@@ -69,7 +66,6 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
                         TYP:
                     </span>
-                    <!-- FIX: onchange="this.form.submit()" durch Klasse js-auto-submit-select ersetzt -->
                     <select name="type"
                             class="c-control-bar-input js-auto-submit-select"
                             style="width: auto !important; cursor: pointer;">
@@ -91,7 +87,6 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px;">
                         PRO SEITE:
                     </span>
-                    <!-- FIX: onchange="this.form.submit()" durch Klasse js-auto-submit-select ersetzt -->
                     <select name="limit"
                             class="c-control-bar-input js-auto-submit-select"
                             style="width: auto !important; cursor: pointer;">
@@ -136,7 +131,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
         </section>
     </div>
 
-    <script>
+    <script nonce="<?php echo $cspNonce; ?>">
     document.addEventListener('DOMContentLoaded', () => {
         const filterStart = document.getElementById('filter_start');
         const filterEnd = document.getElementById('filter_end');

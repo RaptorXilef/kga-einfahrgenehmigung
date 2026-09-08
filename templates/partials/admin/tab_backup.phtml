@@ -54,7 +54,6 @@ if ($auth->hasPermission('system.backup.manage')) {
                     <span class="c-badge" style="background: var(--bg-light); color: var(--text-muted);"><i class="fa-solid fa-hard-drive"></i> Nur lokale Backups</span>
                 <?php } ?>
             </header>
-
             <div class="u-grid"
                  style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
                 <div class="c-card"
@@ -99,7 +98,6 @@ if ($auth->hasPermission('system.backup.manage')) {
                               action="<?php echo $settings['base_url']; ?>truncate_target"
                               data-confirm="WARNUNG: Die gewählten Daten werden unwiderruflich GELÖSCHT! Fortfahren?"
                               class="u-margin-top-auto u-flex u-flex-column u-gap-s">
-                            <!-- FIX: onsubmit="..." entfernt -->
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -220,7 +218,6 @@ if ($auth->hasPermission('system.backup.manage')) {
                                             </div>
                                         </label>
                                     </div>
-
                                     <div class="u-flex u-gap-s">
                                         <select name="target"
                                                 class="c-form-select flex-1"
@@ -235,7 +232,6 @@ if ($auth->hasPermission('system.backup.manage')) {
                                                 data-confirm-click="Wiederherstellung im gewählten Modus starten? Ein Sicherheits-Backup des aktuellen Zustands wird automatisch angefertigt."
                                                 style="width: auto; padding: 0 16px; font-weight: 600;"> Restore
                                         </button>
-                                        <!-- FIX: onclick="return confirm(...)" entfernt -->
                                     </div>
                                 </form>
                             </div>

@@ -16,6 +16,7 @@ use App\Infrastructure\Config\Config;
  * @var array $settings Globale Einstellungen (z.B. base_url für Icons, vereins_name).
  * @var bool $isError  Gibt an, ob die Nachricht ein Fehlerzustand ist (steuert CSS-Alert-Klassen).
  * @var string $appRoot
+ * @var string $cspNonce
  */
 $layout = 'public';
 $pageTitle = 'E-Mail bestätigen - ' . ($settings['vereins_name'] ?? ''); ?>

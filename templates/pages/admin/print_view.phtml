@@ -4,13 +4,6 @@ use App\Contracts\Config\ConfigInterface;
 use App\Contracts\System\AssetHelperInterface;
 use App\Core\Entity\Permit;
 
-// SPDX-License-Identifier: LicenseRef-Proprietary
-// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
-// Usage without explicit permission is strictly prohibited.
-// See LICENSE.md for full license details.
-
-// Path: templates/pages/admin_print_view.phtml
-
 /**
  * Page: Print Preview (Admin)
  *
@@ -23,6 +16,7 @@ use App\Core\Entity\Permit;
  * @var array $settings Einstellungen für das Layout (z.B. jahresFarbe).
  * @var array|string $opening  Formatierter Text der allgemeinen Öffnungszeiten.
  * @var string $appRoot  Absoluter Pfad zum Root-Verzeichnis.
+ * @var string $cspNonce
  */
 ?>
 
@@ -32,11 +26,9 @@ use App\Core\Entity\Permit;
 <head>
     <meta charset="UTF-8">
     <title>Druckvorschau - <?php echo \htmlspecialchars($permit->code); ?></title>
-    <!-- FIX: Korrekter Pfad zum Favicon Partial -->
     <?php include_once $appRoot . '/templates/partials/frontend/favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-
     <script nonce="<?php echo $cspNonce; ?>">
     window.KGA_CONFIG = {
         baseUrl: '<?php echo \htmlspecialchars($settings['base_url'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>',
@@ -72,8 +64,8 @@ use App\Core\Entity\Permit;
         align-items: center;
     }
 
-    .c-button--primary {
-        background: var(--primary-color);
+    .c-button--primary,
+    .c-button--secondary {
         color: #fff;
         border: none;
         padding: 14px 24px;
@@ -87,26 +79,15 @@ use App\Core\Entity\Permit;
         /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
     }
 
-    .c-button--primary:hover {
-        background: #2980b9;
-        transform: translateY(-1px);
+    .c-button--primary {
+        background: var(--primary-color);
     }
 
     .c-button--secondary {
         background: var(--primary-color);
-        color: #fff;
-        border: none;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
-        display: block;
-        /* Neu: Damit der Button sich wie ein Block verhält */
-        margin: 0 auto;
-        /* Neu: Zentriert den Button selbst, falls er nicht 100% breit ist */
     }
 
+    .c-button--primary:hover,
     .c-button--secondary:hover {
         background: #2980b9;
         transform: translateY(-1px);
@@ -145,15 +126,15 @@ use App\Core\Entity\Permit;
 <body>
     <div class="print-toolbar u-no-print">
         <button type="button"
-                onclick="window.close()"
-                class="c-button c-button--secondary">✕ Druckansicht schließen</button>
+                class="c-button c-button--secondary js-close-window">✕ Druckansicht schließen</button>
         <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
-        <button onclick="window.print()"
-                class="c-button c-button--primary"><img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
+        <button type="button"
+                class="c-button c-button--primary js-print-window">
+            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                  class="c-icon"
-                 alt="Drucken"></a> Dokument jetzt drucken</button>
+                 alt="Drucken"> Dokument jetzt drucken
+        </button>
     </div>
-
     <?php
     // WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->getValidFrom()),
     // damit das A4-Template die Quartale berechnen kann!
@@ -179,11 +160,12 @@ use App\Core\Entity\Permit;
 // Variablen in den lokalen Scope extrahieren
 // TODO Prüfen ob lieber ohne EXTR_SKIP
 \extract($data, \EXTR_SKIP);
-
-// Das Sub-Template einbinden
 include $appRoot . '/templates/emails/permit_a4_document.phtml';
-// include $appRoot . '/templates/components/_footer.phtml';
 ?>
+    <!-- CSP konformes Event JS -->
+    <script type="module"
+            src="<?php echo $asset->url('assets/js/app.js'); ?>"
+            nonce="<?php echo $cspNonce; ?>"></script>
 </body>
 
 </html>

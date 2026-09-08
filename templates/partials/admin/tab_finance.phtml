@@ -52,7 +52,7 @@ if ($auth->hasPermission('finance.view')) {
                 <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
-                        <!-- FIX: onclick="return confirm(...)" durch data-confirm-click="..." ersetzt -->
+                        <!-- FIX: data-confirm-click anstatt onclick -->
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>mark_as_paid"
@@ -67,6 +67,7 @@ if ($auth->hasPermission('finance.view')) {
                             <span id="bulkPayCount">0</span> als Bezahlt markieren
                         </button>
 
+                        <!-- FIX: data-confirm-click anstatt onclick -->
                         <button type="submit"
                                 form="bulk-action-form"
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
@@ -77,6 +78,7 @@ if ($auth->hasPermission('finance.view')) {
                             🔔 <span id="bulkRemindCount">0</span> erinnern
                         </button>
                     <?php } ?>
+                    <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
                 </div>
             </header>
 
@@ -275,9 +277,10 @@ if ($auth->hasPermission('finance.view')) {
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                     <?php if ($is_suspended) { ?>
+                                                        <!-- FIX: onclick(...) submit ersetzt durch .js-submit-form und data-target -->
                                                         <button type="button"
-                                                                onclick="document.getElementById('form_unsuspend_<?php echo $permit->code; ?>').submit()"
-                                                                class="c-button c-button--success"
+                                                                class="c-button c-button--success js-submit-form"
+                                                                data-target="form_unsuspend_<?php echo $permit->code; ?>"
                                                                 style="width: 34px; height: 34px;"
                                                                 title="Wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
@@ -296,14 +299,14 @@ if ($auth->hasPermission('finance.view')) {
                                                         </button>
                                                     <?php } ?>
                                                 <?php } ?>
-                                                <!-- FIX: onclick="if(confirm(...)) document.getElementById(...).submit();" ersetzt durch Remote Submit Classes -->
                                                 <?php if ($hasBulkRight) { ?>
+                                                    <!-- FIX: onclick(...) ersetzt durch js-submit-form + data-confirm-click für die kombinierte Logik aus app.js -->
                                                     <button type="button"
                                                             class="c-button c-button--success js-submit-form"
-                                                            style="width: 34px; height: 34px;"
-                                                            title="Einzeln als Bezahlt markieren"
                                                             data-target="single_pay_<?php echo $permit->code; ?>"
-                                                            data-confirm-click="Zahlung für <?php echo $permit->code; ?> bestätigen?">
+                                                            data-confirm-click="Zahlung für <?php echo $permit->code; ?> bestätigen?"
+                                                            style="width: 34px; height: 34px;"
+                                                            title="Einzeln als Bezahlt markieren">
                                                         <img src="<?php echo $asset->url('assets/img/icons/icon-check-mark.webp'); ?>"
                                                              class="c-icon"
                                                              alt="">

@@ -159,7 +159,6 @@ if ($auth->hasPermission('system.roles.manage')) {
                      id="card-<?php echo $roleId; ?>">
                     <header class="category-header u-flex u-justify-between u-align-center"
                             style="background: #fff; padding: 12px 20px; border-radius: 12px;">
-                        <!-- FIX: onclick="this.parentElement..." ersetzt durch js-toggle-parent -->
                         <div class="u-flex u-align-center u-gap-m js-toggle-parent"
                              style="cursor: pointer; flex-grow: 1;">
                             <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
@@ -171,7 +170,6 @@ if ($auth->hasPermission('system.roles.manage')) {
                             </div>
                         </div>
                         <?php if ($roleId !== 'admin') { ?>
-                            <!-- FIX: onsubmit="return confirm(...)" ersetzt -->
                             <form method="POST"
                                   action="delete_role"
                                   data-confirm="Rolle löschen?"

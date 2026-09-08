@@ -11,6 +11,7 @@ use App\Contracts\System\AssetHelperInterface;
  * @var AssetHelperInterface $asset
  * @var array $settings Enthält Basis-Konfigurationen (z.B. vereins_name, base_url).
  * @var string $appRoot
+ * @var string $cspNonce
  */
 
 // Aktiviere das Public-Layout (weil der Body u-bg-light l-public-body benötigt)
@@ -66,7 +67,6 @@ unset($_SESSION['form_data']);
                                value="<?php echo \htmlspecialchars($formData['pass'] ?? ''); ?>"
                                required
                                style="padding-right: 40px; width: 100%;">
-                        <!-- FIX: Fehlerhaften Legacy Inline-Handler onclick="togglePassword(event)" entfernt -->
                         <button type="button"
                                 tabindex="-1"
                                 style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 0; outline: none; opacity: 0.5;">

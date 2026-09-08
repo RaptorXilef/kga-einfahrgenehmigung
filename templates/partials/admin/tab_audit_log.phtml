@@ -58,16 +58,14 @@ if ($auth->hasPermission('system.logs.view')) {
                     <p class="u-text-muted u-text-small u-margin-none">Protokolliert sicherheitsrelevante Änderungen
                         durch eingeloggte Nutzer.</p>
                 </div>
-
                 <form method="GET"
                       action="?"
                       class="u-flex u-align-center u-gap-s"
                       style="margin: 0;">
                     <span class="u-text-small u-font-bold u-text-muted">FILTER:</span>
                     <select name="audit_filter"
-                            class="c-form-select"
-                            style="width: auto; min-width: 200px; height: 34px; padding: 0 10px; font-size: 0.85rem;"
-                            onchange="this.form.submit()">
+                            class="c-form-select js-auto-submit-select"
+                            style="width: auto; min-width: 200px; height: 34px; padding: 0 10px; font-size: 0.85rem;">
                         <?php foreach ($filterOptions as $val => $label) { ?>
                             <option value="<?php echo $val; ?>"
                                     <?php echo $auditFilter === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>

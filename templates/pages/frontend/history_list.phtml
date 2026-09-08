@@ -23,6 +23,7 @@ use App\Core\Service\PermitService;
  * @var bool $isSuccess
  * @var int $currentArchiveYear
  * @var string $appRoot
+ * @var string $cspNonce
  * @var string $email
  */
 $layout = 'public';
@@ -195,7 +196,7 @@ $now = new \DateTimeImmutable('today');
                                     <div class="u-flex u-gap-xs u-justify-end">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
-                                            <!-- FIX: onsubmit="..." durch data-confirm="..." ersetzt -->
+                                            <!-- FIX: data-confirm anstelle onsubmit -->
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>history_cancel_permit"
                                                   style="margin: 0;"
@@ -289,6 +290,5 @@ if ($currentArchiveYear !== $lastYear) { ?>
                 </button>
             </form>
         </div>
-
     </div>
 </div>

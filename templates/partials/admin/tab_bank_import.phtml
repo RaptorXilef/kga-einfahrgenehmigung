@@ -10,6 +10,7 @@ use App\Contracts\Config\ConfigInterface;
  * @var ConfigInterface $config
  * @var array<string, mixed> $formData
  * @var array $settings
+ * @var string $cspNonce
  */
 $bankWizard = $formData['bank_wizard'] ?? null;
 $bank_headers = $bankWizard['headers'] ?? [];
@@ -63,7 +64,6 @@ if (!$headersExist) {
                             <?php } ?>
                         </div>
 
-                        <!-- FIX: Veraltetes und bei Drop fehlerhaftes onchange="..." Attribut entfernt -->
                         <input type="file"
                                name="bank_csv"
                                accept=".csv,text/csv"

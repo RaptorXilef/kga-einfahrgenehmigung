@@ -191,7 +191,6 @@ use App\Infrastructure\Config\Config;
                                                     <?php } ?>
 
                                                     <?php if ($auth->hasPermission('vouchers.delete')) { ?>
-                                                        <!-- FIX: onsubmit="..." entfernt -->
                                                         <form method="POST"
                                                               action="<?php echo $settings['base_url']; ?>delete_voucher"
                                                               style="margin:0;"

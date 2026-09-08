@@ -77,9 +77,10 @@ $crons = [
                          style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                         <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in Archiv-Einträgen,
                             die älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
+                        <!-- FIX: data-confirm statt onsubmit -->
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>anonymize_archive"
-                              onsubmit="return confirm('Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?')"
+                              data-confirm="Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?"
                               class="u-margin-top-auto">
                             <input type="hidden"
                                    name="csrf_token"
@@ -102,9 +103,10 @@ $crons = [
                          style="padding: 1.25rem 1.5rem; flex-grow: 1;">
                         <p class="u-text-small u-margin-none">Löscht temporäre Dateien, Routen-Caches und kompiliert die
                             System-Berechtigungen neu.</p>
+                        <!-- FIX: data-confirm statt onsubmit -->
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>clear_cache"
-                              onsubmit="return confirm('Cache jetzt leeren?')"
+                              data-confirm="Cache jetzt leeren?"
                               class="u-margin-top-auto">
                             <input type="hidden"
                                    name="csrf_token"
@@ -199,14 +201,12 @@ $crons = [
                                 <input type="text"
                                        readonly
                                        value="<?php echo \htmlspecialchars($cron['url']); ?>"
-                                       class="c-form-input u-text-small"
-                                       style="flex: 1; min-width: 0; background: #f8fafc; font-family: monospace; color: var(--text-muted);"
-                                       onclick="this.select()">
+                                       class="c-form-input u-text-small js-select-on-click"
+                                       style="flex: 1; min-width: 0; background: #f8fafc; font-family: monospace; color: var(--text-muted);">
                                 <button type="button"
                                         class="c-button c-button--secondary js-copy-btn"
                                         data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
-                                        title="In Zwischenablage kopieren">
-                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                                        title="In Zwischenablage kopieren"><img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
                                          class="c-icon"
                                          alt="">
                                 </button>
