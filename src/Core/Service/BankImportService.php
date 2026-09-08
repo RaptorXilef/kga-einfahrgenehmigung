@@ -84,6 +84,7 @@ final readonly class BankImportService
 
         $aggregierteZahlungen = [];
         $letztesDatumPerPermit = [];
+        $methodenPerPermit = []; // NEU: Merkt sich die Suchmethode pro Code für das Audit-Log
 
         // Wir sammeln jetzt detailliert die Codes anstatt nur hochzuzählen
         $erfolgreichDetails = [];
@@ -93,7 +94,7 @@ final readonly class BankImportService
 
         $rowNumber = 1;
 
-        // NEU: Alle Codes vorab laden für präzisen Abgleich
+        // Alle Codes vorab laden für präzisen Abgleich
         $unpaidCodes = [];
         $allCodes = [];
         foreach ($this->storage->getAll() as $permit) {
@@ -124,14 +125,17 @@ final readonly class BankImportService
             $datumRaw = (string) $row[$dateCol];
 
             $zweckUpper = \strtoupper($verwendungszweck);
+
             $gefundeneCodes = [];
-            $matchMethods = [];
+            $matchMethodsForLine = [];
+            $matchMethodsMap = [];
 
             // 1. Hauptverarbeitung: Suche aktiv nach unbezahlten IDs
             foreach ($unpaidCodes as $unpaidCode => $true) {
                 if (\str_contains($zweckUpper, $unpaidCode)) {
                     $gefundeneCodes[] = $unpaidCode;
-                    $matchMethods[] = 'Direktsuche (Unbezahlt)';
+                    $matchMethodsForLine[] = 'Direktsuche (Unbezahlt)';
+                    $matchMethodsMap[$unpaidCode] = 'Direktsuche';
                 }
             }
 
@@ -142,12 +146,14 @@ final readonly class BankImportService
                         if (isset($allCodes[$m])) {
                             // Code existiert im System (wurde ggf. doppelt bezahlt)
                             $gefundeneCodes[] = $m;
-                            $matchMethods[] = 'Regex Fallback (Bereits im System)';
+                            $matchMethodsForLine[] = 'Regex Fallback (Bereits im System)';
+                            $matchMethodsMap[$m] = 'Regex: Bezahlt';
                         } elseif (\preg_match('/\b' . $m . '\b/', $zweckUpper)) {
                             // Wenn der Code nicht im System ist, aber freistehend (z.B. Tippfehler), nehmen wir ihn auf.
                             // SOMMERFEST wird ignoriert, da MMERFEST keine eigene Wortgrenze hat.
                             $gefundeneCodes[] = $m;
-                            $matchMethods[] = 'Regex Fallback (Unbekannter Code, isoliertes Wort)';
+                            $matchMethodsForLine[] = 'Regex Fallback (Unbekannter Code, isoliertes Wort)';
+                            $matchMethodsMap[$m] = 'Regex: Unbekannt';
                         }
                     }
                 }
@@ -163,10 +169,10 @@ final readonly class BankImportService
             $ueberwiesenerBetrag = (float) $cleanAmount;
 
             $gefundeneCodes = \array_values(\array_unique($gefundeneCodes));
-            $matchMethods = \array_values(\array_unique($matchMethods));
+            $matchMethodsForLine = \array_values(\array_unique($matchMethodsForLine));
 
             $codesStr = \implode(', ', $gefundeneCodes);
-            $methodStr = \implode(' & ', $matchMethods);
+            $methodStr = \implode(' & ', $matchMethodsForLine);
 
             $this->writeLog("[Zeile {$rowNumber}] Info: Code(s) erkannt: [{$codesStr}] via {$methodStr}. Lese Betrag: {$ueberwiesenerBetrag} €", $runLogs);
 
@@ -174,6 +180,9 @@ final readonly class BankImportService
                 $aggregierteZahlungen[$permitIdStr] ??= 0.0;
                 $aggregierteZahlungen[$permitIdStr] += $ueberwiesenerBetrag;
                 $letztesDatumPerPermit[$permitIdStr] = $datumRaw;
+
+                // Speichere die Erkennungsmethode für diesen spezifischen Code
+                $methodenPerPermit[$permitIdStr] = $matchMethodsMap[$permitIdStr] ?? 'Unbekannt';
             }
         }
         \fclose($handle);
@@ -181,11 +190,12 @@ final readonly class BankImportService
         $this->writeLog('Dateidurchlauf beendet. Starte Datenbank-Abgleich...', $runLogs);
 
         foreach ($aggregierteZahlungen as $permitId => $gesamtsumme) {
+            $method = $methodenPerPermit[$permitId] ?? 'Unbekannt';
             $permit = $this->storage->findByHash($permitId);
 
             if (!$permit instanceof Permit) {
                 $this->writeLog("[Code {$permitId}] Übersprungen: Code existiert nicht in der Datenbank.", $runLogs);
-                $uebersprungenDetails[] = "{$permitId} (Nicht in Datenbank)";
+                $uebersprungenDetails[] = "{$permitId} (Nicht in DB | {$method})";
                 continue;
             }
 
@@ -193,7 +203,7 @@ final readonly class BankImportService
 
             if ($permit->isPaid()) {
                 $this->writeLog("[Code {$permitId}] Übersprungen: Genehmigung für '{$ownerName}' ist im System bereits als BEZAHLT markiert.", $runLogs);
-                $uebersprungenDetails[] = "{$permitId} (Bereits bezahlt - {$ownerName})";
+                $uebersprungenDetails[] = "{$permitId} (Bereits bezahlt - {$ownerName} | {$method})";
                 continue;
             }
 
@@ -212,14 +222,14 @@ final readonly class BankImportService
 
                 if ($this->permitService->manualActivate($codeToActivate, $grund, $formatierterTag)) {
                     $this->writeLog("[Code {$permitId}] ERFOLG: Zahlung von {$istBetrag} € für '{$ownerName}' (Soll: {$sollBetrag} €) verbucht.", $runLogs);
-                    $erfolgreichDetails[] = "{$permitId} ({$istFormatted} - {$ownerName})";
+                    $erfolgreichDetails[] = "{$permitId} ({$istFormatted} - {$ownerName} | {$method})";
                 } else {
                     $this->writeLog("[Code {$permitId}] KRITISCHER FEHLER: Konnte Status für '{$ownerName}' nicht auf Bezahlt setzen.", $runLogs);
-                    $fehlerhaftDetails[] = "{$permitId} (Speicherfehler - {$ownerName})";
+                    $fehlerhaftDetails[] = "{$permitId} (Speicherfehler - {$ownerName} | {$method})";
                 }
             } else {
                 $this->writeLog("[Code {$permitId}] FEHLER: Betrag reicht für '{$ownerName}' nicht aus. (Soll: {$sollBetrag} €, Ist: {$istBetrag} €)", $runLogs);
-                $fehlerhaftDetails[] = "{$permitId} ({$istFormatted} statt {$sollFormatted} - {$ownerName})";
+                $fehlerhaftDetails[] = "{$permitId} ({$istFormatted} statt {$sollFormatted} - {$ownerName} | {$method})";
             }
         }
 
