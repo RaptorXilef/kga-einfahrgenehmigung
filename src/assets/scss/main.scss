@@ -1,13 +1,55 @@
-@use '1-settings';
-@use '3-generic';
-@use '5-objects/container';
-@use '5-objects/grid';
-@use '6-components/alert';
-@use '6-components/box';
-@use '6-components/card';
-@use '6-components/form';
-@use '6-components/icon';
-@use '6-components/table';
-@use '6-components/voucher';
-@use '7-utilities/layout';
-@use '7-utilities/typography';
+/// SPDX-License-Identifier: LicenseRef-Proprietary
+/// Copyright (c) 2026 Felix Maywald alias RaptorXilef. All rights reserved.
+/// Usage without explicit permission is strictly prohibited.
+/// See LICENSE.md for full license details.
+
+///
+/// Haupt-Einstiegspunkt des Design-Systems (7-1 Pattern).
+///
+/// Kompiliert alle Module und generiert die Theme-Variablen.
+///
+///
+/// Path:      src/assets/scss/main.scss
+/// Path:      public/assets/css/main.css
+///
+/// @copyright (c) 2021-2026 Felix Maywald. All rights reserved.
+/// @license   https://github.com/RaptorXilef/kga-einfahrgenehmigung/blob/main/LICENSE.md
+///
+/// @author    Felix Maywald (@RaptorXilef)
+/// @link      https://github.com/RaptorXilef/kga-einfahrgenehmigung
+///
+
+@use '1-settings' as *;
+@use '3-generic' as *;
+@use '5-objects/container' as *;
+@use '5-objects/grid' as *;
+@use '6-components/alert' as *;
+@use '6-components/box' as *;
+@use '6-components/card' as *;
+@use '6-components/form' as *;
+@use '6-components/icon' as *;
+@use '6-components/table' as *;
+@use '6-components/voucher' as *;
+@use '7-utilities/layout' as *;
+@use '7-utilities/typography' as *;
+
+/* --- PHASE 3: SMART HONEYPOT --- */
+.c-form-group-hp {
+    position: absolute;
+    inset-inline-start: -9999px;
+    inset-block-start: -9999px;
+    opacity: 0;
+    z-index: -1;
+    pointer-events: none;
+    block-size: 0;
+    inline-size: 0;
+    overflow: hidden;
+
+    input {
+        inline-size: 1px;
+        block-size: 1px;
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+}
