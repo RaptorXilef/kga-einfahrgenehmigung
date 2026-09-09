@@ -1,0 +1,40 @@
+@layer components {
+    .c-alert {
+        padding: 16px 24px;
+        border-radius: 12px;
+        margin-block-end: 2rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        box-shadow: var(--shadow-sm);
+
+        &--success {
+            background-color: var(--color-success-soft);
+            color: color-mix(in oklch, var(--color-success) 60%, #000);
+            border-color: color-mix(
+                in oklch,
+                var(--color-success) 40%,
+                transparent
+            );
+        }
+
+        &--large {
+            flex-direction: column;
+            text-align: center;
+            padding: clamp(2rem, 5vw, 3rem) 2rem;
+            border: 2px solid var(--color-success);
+        }
+
+        &__footer {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            border-block-start: 1px solid
+                color-mix(in oklch, var(--color-text-main) 10%, transparent);
+            padding-block-start: var(--space-xl);
+            inline-size: 100%;
+        }
+    }
+}

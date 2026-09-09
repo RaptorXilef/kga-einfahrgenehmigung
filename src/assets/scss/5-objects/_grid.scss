@@ -1,0 +1,18 @@
+@layer objects {
+    .o-grid {
+        display: grid;
+        gap: var(--space-m);
+
+        &--2-cols {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        &--2-1 {
+            grid-template-columns: 2fr 1fr;
+        }
+
+        &--auto-right {
+            grid-template-columns: 1fr auto;
+        }
+    }
+}

@@ -1,0 +1,53 @@
+@layer utilities {
+    .u-text-xs {
+        font-size: 0.75rem !important;
+    }
+    .u-text-sm {
+        font-size: 0.95rem !important;
+    }
+    .u-text-lg {
+        font-size: 1.15rem !important;
+    }
+    .u-text-xl {
+        font-size: 1.3rem !important;
+    }
+    .u-text-2xl {
+        font-size: 2rem !important;
+    }
+
+    .u-font-semibold {
+        font-weight: 600 !important;
+    }
+    .u-font-extrabold {
+        font-weight: 800 !important;
+    }
+    .u-font-mono {
+        font-family: monospace !important;
+    }
+
+    .u-text-uppercase {
+        text-transform: uppercase !important;
+    }
+
+    .u-color-primary {
+        color: var(--color-primary) !important;
+    }
+    .u-color-success {
+        color: var(--color-success) !important;
+    }
+    .u-color-success-dark {
+        color: color-mix(in oklch, var(--color-success) 60%, #000) !important;
+    }
+    .u-color-dark {
+        color: var(--color-text-dark) !important;
+    }
+    .u-color-main {
+        color: var(--color-text-main) !important;
+    }
+    .u-color-muted {
+        color: var(--color-text-muted) !important;
+    }
+    .u-color-danger {
+        color: var(--color-danger) !important;
+    }
+}

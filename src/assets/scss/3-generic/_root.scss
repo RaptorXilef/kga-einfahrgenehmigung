@@ -1,0 +1,27 @@
+@use '../1-settings/tokens' as *;
+
+@layer generic {
+    :root {
+        // Semantic Custom Properties mapping
+        @each $name, $value in $tokens-color {
+            --color-#{$name}: #{$value};
+        }
+        @each $name, $value in $tokens-spacing {
+            --space-#{$name}: #{$value};
+        }
+
+        // Legacy Mappings for smooth migration
+        --primary-color: var(--color-primary);
+        --primary-soft: var(--color-primary-soft);
+        --success-color: var(--color-success);
+        --danger-color: var(--color-danger);
+        --text-main: var(--color-text-main);
+        --text-muted: var(--color-text-muted);
+        --text-dark: var(--color-text-dark);
+        --border-color: var(--color-border);
+        --bg-light: var(--color-bg-light);
+
+        --shadow-sm: 0 1px 3px color-mix(in oklch, #000 10%, transparent);
+        --shadow-md: 0 4px 6px -1px color-mix(in oklch, #000 10%, transparent);
+    }
+}

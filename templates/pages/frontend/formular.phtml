@@ -54,115 +54,9 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 }
 ?>
 
-<style>
-.c-form-section {
-    margin-bottom: 2.5rem;
-    padding: 1.5rem;
-    background: #fcfdfe;
-    border-radius: 12px;
-    border: 1px solid #f1f5f9;
-}
-
-.c-form-section-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 1.5rem;
-    color: #1e293b;
-}
-
-.c-form-section-title__step {
-    background: var(--primary-color);
-    color: #fff;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}
-
-input[readonly],
-select[readonly] {
-    background-color: #f8fafc;
-    cursor: not-allowed;
-    color: var(--text-muted);
-    border-color: #e2e8f0;
-}
-
-.c-button--wide {
-    width: auto !important;
-    height: auto !important;
-    padding: 12px 24px !important;
-    font-size: 1rem;
-    text-decoration: none;
-}
-
-.c-voucher-alert {
-    background: #10b981;
-    color: white;
-    padding: 16px;
-    border-radius: 12px;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-}
-
-.c-voucher-toggle {
-    cursor: pointer;
-    color: var(--primary-color);
-    font-weight: 600;
-    font-size: 0.95rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.c-voucher-toggle:hover {
-    text-decoration: underline;
-}
-
-#voucher-container {
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-}
-
-#voucher-container.is-open {
-    max-height: 200px;
-    opacity: 1;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-}
-
-.u-hidden {
-    display: none !important;
-}
-
-.c-price-original {
-    font-size: 0.9rem;
-    text-decoration: line-through;
-    opacity: 0.6;
-    margin-bottom: 2px;
-}
-
-.c-price-discount-hint {
-    font-size: 0.85rem;
-    color: #059669;
-    font-weight: 600;
-    margin-top: 4px;
-}
-
-</style>
-
-<div class="c-tab-content-container u-padding-y-l">
-    <div class="c-card u-margin-auto"
-         style="max-width: 750px; border-top: 5px solid var(--primary-color);">
-        <header class="c-card__header u-text-center u-padding-around-l">
+<div class="c-tab-content-container o-container o-container--large u-padding-y-l">
+    <div class="c-card c-card--primary u-margin-auto">
+        <header class="c-card__header u-text-center">
             <?php /* <div class="u-margin-bottom-m u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
                          alt="KGA Einfahrts-Manager Logo"
@@ -174,37 +68,36 @@ select[readonly] {
                 <div class="u-margin-bottom-m u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
                          alt="KGA Logo"
-                         style="max-width: 120px; max-height: 120px; object-fit: contain;">
+                         class="c-logo">
                 </div>
             <?php } ?>
             <p class="u-text-muted u-margin-top-s"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
         </header>
 
-        <div class="c-card__body u-padding-around-l">
+        <div class="c-card__body c-card__body--xl">
 
-            <!-- Bestätigungs Meldung - E-Mail versandt - und Weiterleitung -->
+            <!-- Bestätigungs Meldung - E-Mail versandt -->
             <?php if ($success) { ?>
-                <div class="c-alert c-alert--success u-margin-bottom-l"
-                     style="flex-direction: column; text-align: center; padding: 50px 30px; border: 2px solid #10b981;">
+                <div class="c-alert c-alert--success c-alert--large u-margin-bottom-l">
                     <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
-                         style="width: 64px; height: 64px;"
-                         class="u-margin-bottom-m"
+                         class="c-icon c-icon--lg u-margin-bottom-m"
                          alt="">
-                    <h2 class="u-margin-none"
-                        style="color: #065f46;">E-Mail bestätigen!</h2>
+                    <h2 class="u-margin-none u-color-success-dark">E-Mail bestätigen!</h2>
 
-                    <p class="u-margin-top-m"
-                       style="font-size: 1.15rem; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <p class="u-margin-top-m u-text-lg o-container o-container--small">
                         <?php echo \htmlspecialchars($message, \ENT_QUOTES, 'UTF-8'); ?>
                     </p>
 
-                    <div class="u-margin-top-xl"
-                         style="font-size: 0.95rem; opacity: 0.8; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 30px; width: 100%;">
+                    <div class="c-alert__footer u-margin-top-xl">
                         <p>Sie werden in
-                            <span id="countdown" style="font-weight: 800; font-size: 1.3rem; color: var(--primary-color);">60</span>
-                            Sekunden zur Code-Eingabe weitergeleitet...
+                            <span id="countdown"
+                                  class="u-font-extrabold u-text-xl u-color-primary"> 60</span>
+                                Sekunden zur Code-Eingabe weitergeleitet...
                         </p>
-                        <a href="verify" class="c-button c-button--success c-button--wide u-margin-top-m"> Jetzt direkt zur Eingabe </a>
+                        <a href="verify"
+                           class="c-button c-button--success c-button--wide u-margin-top-m">
+                            Jetzt direkt zur Eingabe
+                        </a>
                     </div>
                 </div>
 
@@ -228,15 +121,15 @@ select[readonly] {
 
                 <!-- Warnung-Box für Datumsfehler -->
                 <div id="date-warning"
-                     class="u-margin-bottom-m"
-                     style="display:none; background: #fffbeb; border-left: 4px solid #fcd34d; color: #92400e; padding: 12px; border-radius: 8px;">
+                     class="c-box c-box--warning u-margin-bottom-m"
+                     style="display:none;">
                     <span id="date-warning-text"></span>
                 </div>
 
                 <!-- GUTSCHEIN EINGABE / ANZEIGE -->
                 <?php if ($prefill) { ?>
                     <div class="c-voucher-alert">
-                        <span style="font-size: 1.5rem;"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
+                        <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
                         <div>
                             <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
                             <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
@@ -254,29 +147,25 @@ select[readonly] {
                     </div>
 
                     <div id="voucher-container"
-                         class="u-margin-auto"
-                         style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1; text-align: left; max-width: 500px;">
+                         class="c-box c-box--dashed o-container o-container--small u-margin-auto">
 
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"
                               action="index"
                               class="u-flex u-gap-s u-align-end">
-                            <div class="c-form-group"
-                                 style="flex-grow: 1;">
+                            <div class="c-form-group u-flex-grow-1">
                                 <label class="c-form-label"
                                        for="voucher_input">Code eingeben</label>
                                 <input type="text"
                                        id="voucher_input"
                                        name="voucher"
-                                       class="c-form-input"
+                                       class="c-form-input u-text-uppercase"
                                        placeholder="GUT-XXXX-XXXX"
-                                       style="text-transform: uppercase;"
                                        autocomplete="off"
                                        value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
                             </div>
                             <button type="submit"
-                                    class="c-button--primary"
-                                    style="padding: 11px 20px; border-radius: 8px;">Einlösen</button>
+                                    class="c-button--primary c-button--medium">Einlösen</button>
                         </form>
                     </div>
                 <?php } ?>
@@ -295,10 +184,8 @@ select[readonly] {
 
                     <!-- SCHRITT 1: PERSÖNLICH -->
                     <div class="c-form-section">
-                        <h4 class="c-form-section-title"><span class="c-form-section-title__step">1</span> Ihre Daten
-                        </h4>
-                        <div class="u-grid u-gap-m"
-                             style="grid-template-columns: 2fr 1fr;">
+                        <h4 class="c-form-section__title"><span class="c-form-section__step">1</span> Ihre Daten</h4>
+                        <div class="o-grid o-grid--2-1 u-gap-m">
                             <div class="c-form-group">
                                 <label class="c-form-label"
                                        for="name">Vollständiger Name</label>
@@ -345,10 +232,9 @@ select[readonly] {
 
                     <!-- SCHRITT 2: FAHRZEUG -->
                     <div class="c-form-section">
-                        <h4 class="c-form-section-title"><span class="c-form-section-title__step">2</span> Fahrzeug &
-                            Zweck</h4>
-                        <div class="u-grid u-gap-m"
-                             style="grid-template-columns: 1fr 1fr;">
+                        <h4 class="c-form-section__title"><span class="c-form-section__step">2</span> Fahrzeug & Zweck
+                        </h4>
+                        <div class="o-grid o-grid--2-cols u-gap-m">
                             <div class="c-form-group">
                                 <label class="c-form-label"
                                        for="typ">Fahrzeug-Typ</label>
@@ -421,8 +307,7 @@ select[readonly] {
 
                     <!-- SCHRITT 3: ZEITRAUM -->
                     <div class="c-form-section">
-                        <h4 class="c-form-section-title"><span class="c-form-section-title__step">3</span> Gültigkeit
-                        </h4>
+                        <h4 class="c-form-section__title"><span class="c-form-section__step">3</span> Gültigkeit</h4>
                         <?php if (\count($publicTemplates) > 1) { ?>
                             <!-- Mehrere Optionen: Auswahl anzeigen -->
                             <div class="c-form-group u-margin-bottom-m">
@@ -450,8 +335,7 @@ select[readonly] {
                                    value="<?php echo $singleKey; ?>">
                         <?php } ?>
 
-                        <div class="u-grid u-gap-m"
-                             style="grid-template-columns: 1fr 1fr;">
+                        <div class="o-grid o-grid--2-cols u-gap-m">
                             <div class="c-form-group">
                                 <label class="c-form-label"
                                        for="datum_von">Beginn ab</label>
@@ -479,41 +363,40 @@ select[readonly] {
                         </div>
 
                         <div id="dynamic-date-info"
-                             style="display:none; margin-top: 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid var(--primary-color); padding: 15px; border-radius: 8px; text-align: left; font-size: 0.9rem; line-height: 1.5;">
+                             class="c-box c-box--highlight u-margin-top-m u-text-sm"
+                             style="display:none; line-height: 1.5;">
                             <div id="dynamic-opening-hours"
-                                 style="margin-bottom: 8px;"></div>
+                                 class="u-margin-bottom-s"></div>
                             <div id="dynamic-holiday-notice"
-                                 style="color: var(--danger-color); font-weight: bold; background: rgba(225, 29, 72, 0.05); padding: 8px; border-radius: 4px; display: none;">
-                            </div>
+                                 class="c-box c-box--danger-soft"
+                                 style="display: none;"></div>
                         </div>
                     </div>
 
                     <!-- Preis-Anzeige mit Rabatt-Logik -->
                     <div id="price-display"
-                         class="u-text-center u-font-bold u-margin-top-m u-margin-bottom-l"
-                         style="font-size: 1.4rem; color: var(--primary-color); background: var(--primary-soft); padding: 18px; border-radius: 12px; border: 1px solid rgba(52, 152, 219, 0.2); box-shadow: var(--shadow-sm);">
+                         class="c-price-display u-margin-top-m u-margin-bottom-l">
                         Wird berechnet...
                     </div>
 
                     <?php if (!empty($agreements)) { ?>
-                        <div class="c-form-group u-margin-bottom-l"
-                             style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div class="c-form-group c-box c-box--subtle u-margin-bottom-l">
                             <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Rechtliches:</p>
                             <div class="u-flex u-flex-column u-gap-s">
                                 <?php foreach ($agreements as $key => $agree) { ?>
-                                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                    <div class="c-form-checkbox__wrapper">
                                         <input type="checkbox"
                                                name="agreements[<?php echo $key; ?>]"
                                                id="agree_<?php echo $key; ?>"
                                                value="1"
-                                               style="margin-top: 4px; transform: scale(1.2); cursor: pointer;"
+                                               class="c-form-checkbox"
                                                <?php echo $agree['required'] ? 'required' : ''; ?>
                                                <?php echo isset($formData['agreements'][$key]) ? 'checked' : ''; ?>>
                                         <label for="agree_<?php echo $key; ?>"
-                                               style="line-height: 1.4; cursor: pointer; font-size: 0.95rem;">
+                                               class="c-form-checkbox__label">
                                             <?php echo $agree['label_html']; ?>
                                             <?php if ($agree['required']) { ?>
-                                                <span style="color: var(--danger-color); font-weight: bold; margin-left: 2px;" title="Pflichtfeld">*</span>
+                                                <span class="c-form-checkbox__required" title="Pflichtfeld">*</span>
                                             <?php } ?>
                                         </label>
                                     </div>
@@ -535,16 +418,15 @@ select[readonly] {
                     </div>
 
                     <button type="submit"
-                            class="c-button--primary u-width-100 u-margin-top-l"
-                            style="font-size: 1.1rem; padding: 16px;">
+                            class="c-button--primary c-button--submit u-width-100 u-margin-top-l">
                         <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                     </button>
 
                     <?php if (!$prefill) { ?>
-                        <p class="u-text-small u-text-center u-text-muted u-margin-top-s">Die Auswahl der Zahlungsart
+                        <p class="u-text-sm u-text-center u-text-muted u-margin-top-s">Die Auswahl der Zahlungsart
                             erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
                         <div class="u-margin-top-m u-text-center">
-                            <a href="verify" class="u-text-small u-text-link" style="font-weight: 600;"> Ich habe bereits einen Bestätigungs-Code erhalten </a>
+                            <a href="verify" class="u-text-sm u-color-primary u-font-semibold"> Ich habe bereits einen Bestätigungs-Code erhalten </a>
                         </div>
                         <br>
                     <?php } ?>

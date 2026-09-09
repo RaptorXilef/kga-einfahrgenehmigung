@@ -1,0 +1,18 @@
+@layer objects {
+    .o-container {
+        margin-inline: auto;
+        inline-size: 100%;
+
+        &--small {
+            max-inline-size: 500px;
+        }
+
+        &--medium {
+            max-inline-size: 650px;
+        }
+
+        &--large {
+            max-inline-size: 750px;
+        }
+    }
+}

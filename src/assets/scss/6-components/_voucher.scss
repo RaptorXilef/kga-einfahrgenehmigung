@@ -1,0 +1,45 @@
+@layer components {
+    .c-voucher-alert {
+        background-color: var(--color-success);
+        color: var(--color-bg-white);
+        padding: 16px;
+        border-radius: 12px;
+        margin-block-end: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 6px
+            color-mix(in oklch, var(--color-success) 20%, transparent);
+    }
+
+    .c-voucher-toggle {
+        cursor: pointer;
+        color: var(--color-primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+
+        &:hover {
+            color: color-mix(in oklch, var(--color-primary) 80%, #000);
+            text-decoration: underline;
+        }
+    }
+
+    #voucher-container {
+        transition:
+            max-height 0.3s ease-out,
+            opacity 0.3s ease-out;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+
+        &.is-open {
+            max-height: 200px;
+            opacity: 1;
+            margin-block-start: 1rem;
+            margin-block-end: 2rem;
+        }
+    }
+}

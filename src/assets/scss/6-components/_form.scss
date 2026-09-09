@@ -1,0 +1,127 @@
+@layer components {
+    .c-form-section {
+        margin-block-end: 2.5rem;
+        padding: 1.5rem;
+        background-color: var(--color-bg-white);
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+    }
+
+    .c-form-section__title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-block-end: 1.5rem;
+        color: var(--color-text-main);
+    }
+
+    .c-form-section__step {
+        background-color: var(--color-primary);
+        color: var(--color-bg-white);
+        inline-size: 24px;
+        block-size: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .c-price-display {
+        font-size: clamp(1.2rem, 3vw, 1.4rem);
+        color: var(--color-primary);
+        background-color: var(--color-primary-soft);
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px solid
+            color-mix(in oklch, var(--color-primary) 20%, transparent);
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .c-price-display__original {
+        font-size: 0.9rem;
+        text-decoration: line-through;
+        opacity: 0.6;
+        margin-block-end: 2px;
+    }
+
+    .c-price-display__discount-hint {
+        font-size: 0.85rem;
+        color: var(--color-success);
+        font-weight: 600;
+        margin-block-start: 4px;
+    }
+
+    .c-form-checkbox {
+        margin-block-start: 4px;
+        transform: scale(1.2);
+        cursor: pointer;
+    }
+
+    .c-form-checkbox__wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .c-form-checkbox__label {
+        line-height: 1.4;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+
+    .c-form-checkbox__required {
+        color: var(--color-danger);
+        font-weight: 700;
+        margin-inline-start: 2px;
+    }
+
+    .c-form-group-hp {
+        position: absolute;
+        inset-inline-start: -9999px;
+        inset-block-start: -9999px;
+        opacity: 0;
+        z-index: -1;
+        pointer-events: none;
+        block-size: 0;
+        inline-size: 0;
+        overflow: hidden;
+    }
+
+    .c-form-group-hp input {
+        inline-size: 1px;
+        block-size: 1px;
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .c-button--medium {
+        padding-inline: 20px;
+        padding-block: 11px;
+        border-radius: 8px;
+    }
+
+    .c-button--submit {
+        padding-block: 16px;
+        font-size: 1.1rem;
+    }
+
+    .c-button--large {
+        padding-inline: 20px;
+        padding-block: 15px;
+        font-size: 1.1rem;
+        inline-size: 100%;
+        block-size: 100%;
+    }
+
+    input[readonly],
+    select[readonly] {
+        background-color: var(--color-bg-light);
+        cursor: not-allowed;
+        color: var(--color-text-muted);
+        border-color: var(--color-border);
+    }
+}
