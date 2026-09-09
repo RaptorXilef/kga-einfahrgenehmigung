@@ -50,4 +50,15 @@
     .u-color-danger {
         color: var(--color-danger) !important;
     }
+
+    .u-text-link {
+        color: var(--color-primary);
+        text-decoration: underline;
+        font-weight: 500;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: color-mix(in oklch, var(--color-primary) 80%, #000);
+        }
+    }
 }

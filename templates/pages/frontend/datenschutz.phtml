@@ -15,40 +15,39 @@ $layout = 'public';
 $pageTitle = ($legal['title'] ?? 'Datenschutz') . ' - ' . ($settings['vereins_name'] ?? '');
 ?>
 
-<div class="c-tab-content-container u-padding-y-xl"
-     style="max-width: 750px; background: #fff; padding: 40px; border-radius: 16px; border: 1px solid var(--border-color); margin: 40px auto;">
-    <h1 class="u-margin-top-none"
-        style="color: var(--primary-color); border-bottom: 2px solid var(--border-soft); padding-bottom: 10px;">
-        <?php echo \htmlspecialchars($legal['title']); ?>
-    </h1>
-    <p class="u-text-muted"
-       style="font-size: 0.85rem; margin-top: -5px;">Stand: <?php echo \htmlspecialchars($legal['letzte_aktualisierung']); ?></p>
+<div class="c-tab-content-container o-container o-container--large u-padding-y-xl">
+    <div class="c-document">
+        <h1 class="c-document__title">
+            <?php echo \htmlspecialchars($legal['title']); ?>
+        </h1>
+        <p class="c-document__meta">Stand: <?php echo \htmlspecialchars($legal['letzte_aktualisierung']); ?></p>
 
-    <div
-         style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid var(--primary-color);">
-        <p class="u-margin-none"><strong>Verantwortliche Stelle:</strong><br>
-            <?php echo \htmlspecialchars($legal['verantwortlich']['name']); ?>, <?php echo \htmlspecialchars($legal['verantwortlich']['adresse']); ?><br>
-            E-Mail: <?php echo \htmlspecialchars($legal['verantwortlich']['email']); ?></p>
+        <div class="c-box c-box--accent u-margin-bottom-l">
+            <p class="u-margin-none"><strong>Verantwortliche Stelle:</strong><br>
+                <?php echo \htmlspecialchars($legal['verantwortlich']['name']); ?>, <?php echo \htmlspecialchars($legal['verantwortlich']['adresse']); ?><br>
+                E-Mail: <?php echo \htmlspecialchars($legal['verantwortlich']['email']); ?></p>
+        </div>
+
+        <div class="u-flex u-flex-column u-gap-l">
+            <?php foreach ($legal['sections'] as $section) { ?>
+                <div class="c-document__section">
+                    <h3 class="c-document__subtitle u-margin-bottom-xs">
+                        <?php echo \htmlspecialchars($section['title']); ?>
+                    </h3>
+                    <p class="c-document__text">
+                        <?php echo \htmlspecialchars($section['text']); ?>
+                    </p>
+                </div>
+            <?php } ?>
+        </div>
+
+        <h3 class="c-document__subtitle u-margin-top-xl u-margin-bottom-xs">
+            9. Beschwerderecht bei der zuständigen Aufsichtsbehörde
+        </h3>
+        <p class="c-document__text">
+            Im Falle datenschutzrechtlicher Verstöße steht Ihnen ein Beschwerderecht bei der
+            zuständigen Aufsichtsbehörde zu. Für Berlin ist dies:<br>
+            <strong><?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['name']); ?></strong>, <?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['adresse']); ?>
+        </p>
     </div>
-
-    <div class="u-flex u-flex-column u-gap-l"
-         style="line-height: 1.6; color: var(--text-color);">
-        <?php foreach ($legal['sections'] as $section) { ?>
-            <div style="page-break-inside: avoid;">
-                <h3 class="u-margin-bottom-xs"
-                    style="color: var(--primary-color); font-size: 1.1rem;"><?php echo \htmlspecialchars($section['title']); ?></h3>
-                <p class="u-margin-top-none"
-                   style="text-align: justify; font-size: 0.95rem;"><?php echo \htmlspecialchars($section['text']); ?></p>
-            </div>
-        <?php } ?>
-    </div>
-
-    <h3 class="u-margin-top-xl u-margin-bottom-xs"
-        style="color: var(--text-color); font-size: 1.1rem;">9. Beschwerderecht bei der zuständigen Aufsichtsbehörde
-    </h3>
-    <p class="u-margin-top-none"
-       style="font-size: 0.95rem;">Im Falle datenschutzrechtlicher Verstöße steht Ihnen ein Beschwerderecht bei der
-        zuständigen Aufsichtsbehörde zu. Für Berlin ist dies:<br>
-        <strong><?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['name']); ?></strong>, <?php echo \htmlspecialchars($legal['aufsichtsbehoerde']['adresse']); ?>
-    </p>
 </div>
