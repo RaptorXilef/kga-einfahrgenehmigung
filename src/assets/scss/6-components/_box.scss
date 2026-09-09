@@ -56,4 +56,8 @@
         padding: 4px;
         background-color: var(--color-bg-white);
     }
+
+    .c-payment-gateway {
+        min-block-size: 150px;
+    }
 }

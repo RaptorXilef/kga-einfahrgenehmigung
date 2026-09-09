@@ -124,4 +124,39 @@
         color: var(--color-text-muted);
         border-color: var(--color-border);
     }
+    .c-form-input--code {
+        letter-spacing: 8px;
+        font-family: monospace;
+        block-size: 60px;
+        text-transform: uppercase;
+        font-size: var(--space-l);
+    }
+
+    .c-button--responsive {
+        flex: 1;
+        min-inline-size: 200px;
+        min-block-size: 48px;
+        margin: 0;
+        padding-inline: 15px;
+    }
+
+    .c-form-group-hp {
+        position: absolute;
+        inset-inline-start: -9999px;
+        inset-block-start: -9999px;
+        opacity: 0;
+        z-index: -1;
+        pointer-events: none;
+        block-size: 0;
+        inline-size: 0;
+        overflow: hidden;
+
+        input {
+            inline-size: 1px;
+            block-size: 1px;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+    }
 }

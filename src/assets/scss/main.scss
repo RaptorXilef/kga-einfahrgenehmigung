@@ -34,24 +34,3 @@
 @use '6-components/voucher' as *;
 @use '7-utilities/layout' as *;
 @use '7-utilities/typography' as *;
-
-/* --- PHASE 3: SMART HONEYPOT --- */
-.c-form-group-hp {
-    position: absolute;
-    inset-inline-start: -9999px;
-    inset-block-start: -9999px;
-    opacity: 0;
-    z-index: -1;
-    pointer-events: none;
-    block-size: 0;
-    inline-size: 0;
-    overflow: hidden;
-
-    input {
-        inline-size: 1px;
-        block-size: 1px;
-        border: none;
-        padding: 0;
-        margin: 0;
-    }
-}

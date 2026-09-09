@@ -30,4 +30,27 @@
         font-weight: 800;
         color: var(--color-danger);
     }
+    
+    .c-table__value--code {
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: monospace;
+        font-size: 1.05rem;
+    }
+
+    .c-table__label--total {
+        color: var(--color-text-main);
+        font-weight: 700;
+        font-size: 1.05rem;
+        padding-block: 18px;
+        border-block-start: 2px solid var(--color-border);
+    }
+
+    .c-table__value--total {
+        font-weight: 800;
+        color: var(--color-primary);
+        font-size: 1.4rem;
+        padding-block: 18px;
+        border-block-start: 2px solid var(--color-border);
+    }
 }
