@@ -1,0 +1,36 @@
+@layer components {
+    .c-modal {
+        position: fixed;
+        inset: 0;
+        background-color: color-mix(
+            in oklch,
+            var(--color-text-main) 70%,
+            transparent
+        );
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+
+        &__dialog {
+            background-color: var(--color-bg-white);
+            padding: 30px;
+            text-align: center;
+            max-inline-size: 400px;
+            inline-size: 90%;
+            border-block-start: 5px solid var(--color-warning);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px
+                color-mix(in oklch, #000 20%, transparent);
+        }
+
+        &__title {
+            margin-block-start: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+    }
+}

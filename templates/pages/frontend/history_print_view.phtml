@@ -35,95 +35,21 @@ use App\Core\Entity\Permit;
     };
 
     </script>
-    <style>
-    body {
-        background: #f1f5f9;
-    }
-
-    @media print {
-        .u-no-print {
-            display: none !important;
-        }
-
-        body {
-            background: #fff !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-    }
-
-    .print-toolbar {
-        background: #1e293b;
-        color: white;
-        padding: 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .c-button--primary,
-    .c-button--secondary {
-        color: #fff;
-        border: none;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
-        display: block;
-        margin: 0 auto;
-    }
-
-    .c-button--primary {
-        background: var(--primary-color);
-    }
-
-    .c-button--secondary {
-        background: var(--primary-color);
-    }
-
-    .c-button--primary:hover,
-    .c-button--secondary:hover {
-        background: #2980b9;
-        transform: translateY(-1px);
-    }
-
-    .c-icon {
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        vertical-align: middle;
-        margin-top: -2px;
-        object-fit: contain;
-    }
-
-    .c-button .c-icon {
-        width: 2.2em;
-        height: 2.2em;
-        margin: 0;
-    }
-
-    .c-tabs__btn .c-icon {
-        width: 1.4em;
-        height: 1.4em;
-        margin-right: 4px;
-    }
-
-    </style>
 </head>
 
 <body>
-    <div class="print-toolbar u-no-print">
+    <div class="c-print-toolbar u-no-print">
         <button type="button"
                 class="c-button c-button--secondary js-close-window">✕ Druckansicht schließen</button>
-        <div class="u-font-bold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
+        <div class="u-font-extrabold">Druckvorschau: <?php echo \htmlspecialchars($permit->code); ?></div>
         <button type="button"
                 class="c-button c-button--primary js-print-window">
             <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
                  class="c-icon"
-                 alt="Drucken"> Dokument jetzt drucken
+                 alt=""> Dokument jetzt drucken
         </button>
     </div>
+
     <?php
     // WICHTIG: Wir übergeben hier die DateTime-Objekte direkt ($permit->getValidFrom()),
     // damit das A4-Template die Quartale berechnen kann!

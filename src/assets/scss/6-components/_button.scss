@@ -1,0 +1,100 @@
+@layer components {
+    .c-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        inline-size: auto;
+        block-size: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-bg-white);
+        color: var(--color-text-main);
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        box-shadow: var(--shadow-sm);
+        gap: 6px;
+
+        &:hover {
+            background-color: var(--color-bg-light);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            border-color: color-mix(in oklch, var(--color-border) 80%, #000);
+        }
+
+        &--primary {
+            background-color: var(--color-primary);
+            color: var(--color-bg-white);
+            border: none;
+            padding-inline: 24px;
+            font-weight: 700;
+
+            &:hover {
+                background-color: color-mix(
+                    in oklch,
+                    var(--color-primary) 80%,
+                    #000
+                );
+            }
+        }
+
+        &--secondary {
+            padding-inline: 24px;
+        }
+
+        &--success {
+            background-color: var(--color-success-soft);
+            color: color-mix(in oklch, var(--color-success) 60%, #000);
+            border-color: color-mix(
+                in oklch,
+                var(--color-success) 40%,
+                transparent
+            );
+            padding-inline: 24px;
+
+            &:hover {
+                background-color: color-mix(
+                    in oklch,
+                    var(--color-success-soft) 80%,
+                    #000
+                );
+            }
+        }
+
+        &--danger {
+            background-color: var(--color-danger-soft);
+            color: var(--color-danger);
+            border-color: color-mix(
+                in oklch,
+                var(--color-danger) 40%,
+                transparent
+            );
+            padding-inline: 24px;
+
+            &:hover {
+                background-color: color-mix(
+                    in oklch,
+                    var(--color-danger-soft) 80%,
+                    #000
+                );
+            }
+        }
+
+        &--danger-outline {
+            background-color: transparent;
+            border-color: var(--color-danger);
+            color: var(--color-danger);
+            padding-inline: 24px;
+
+            &:hover {
+                background-color: var(--color-danger-soft);
+            }
+        }
+
+        &--icon-only {
+            inline-size: 42px;
+            padding-inline: 0;
+        }
+    }
+}

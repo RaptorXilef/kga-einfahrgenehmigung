@@ -1,0 +1,10 @@
+@layer components {
+    .c-print-toolbar {
+        background-color: var(--color-text-main);
+        color: var(--color-bg-white);
+        padding: var(--space-m);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}

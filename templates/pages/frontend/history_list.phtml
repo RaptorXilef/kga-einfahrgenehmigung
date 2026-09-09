@@ -33,29 +33,27 @@ $now = new \DateTimeImmutable('today');
 \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
 ?>
 
-<div class="c-tab-content-container u-padding-y-xl">
+<div class="c-tab-content-container o-container o-container--large u-padding-y-xl">
 
     <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
         <div>
             <h2 class="u-margin-none u-flex u-align-center u-gap-s">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                     class="c-icon"
-                     style="width: 32px; height: 32px;"
+                     class="c-icon c-icon--md"
                      alt=""> Meine Genehmigungen
             </h2>
             <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als: <strong
-                        style="color: var(--text-main);"><?php echo \htmlspecialchars($email); ?></strong></p>
+                        class="u-color-main"><?php echo \htmlspecialchars($email); ?></strong></p>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div title="Automatische Abmeldung bei Inaktivität"
-                 style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+        <div class="u-flex u-align-center u-gap-m">
+            <div class="c-session-pill"
+                 title="Automatische Abmeldung bei Inaktivität">
                 ⏳ <span id="ui-session-timer">20:00</span>
             </div>
             <button type="button"
                     id="btn-session-logout"
-                    class="c-button c-button--secondary"
-                    style="width: auto; padding: 0 15px; border-color: var(--danger-color); color: var(--danger-color); height: 42px; background: none; font-weight: 600; cursor: pointer;">
+                    class="c-button c-button--danger-outline">
                 Abmelden ✕
             </button>
         </div>
@@ -63,23 +61,22 @@ $now = new \DateTimeImmutable('today');
 
     <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
-    <section class="c-card"
-             style="border-top: 5px solid var(--primary-color);">
+    <section class="c-card c-card--primary">
         <div class="c-card__body u-padding-none"
              style="overflow-x: auto;">
-
+            <!-- Tabellen-Layout Fix für das SCSS System -->
             <table class="c-table js-sort-table"
-                   style="table-layout: fixed; width: 100%; min-width: 950px;">
+                   style="table-layout: fixed; width: 100%; min-inline-size: 950px;">
                 <thead>
-                    <tr style="background: #f8fafc;">
+                    <tr style="background: var(--color-bg-light);">
                         <th class="js-sort-header"
                             style="width: 250px;">Antragsteller & Kennung</th>
-                        <th class="js-sort-header"
-                            style="width: 150px; text-align: center;">Fahrzeug</th>
-                        <th class="js-sort-header"
-                            style="width: 180px; text-align: center;">Gültigkeit & Restzeit</th>
-                        <th class="js-sort-header"
-                            style="width: 140px; text-align: center;">Finanz-Status</th>
+                        <th class="js-sort-header u-text-center"
+                            style="width: 150px;">Fahrzeug</th>
+                        <th class="js-sort-header u-text-center"
+                            style="width: 180px;">Gültigkeit & Restzeit</th>
+                        <th class="js-sort-header u-text-center"
+                            style="width: 140px;">Finanz-Status</th>
                         <th class="u-text-right"
                             style="width: 150px; padding-right: 20px;">Aktion</th>
                     </tr>
@@ -89,7 +86,7 @@ $now = new \DateTimeImmutable('today');
                         <tr>
                             <td colspan="5"
                                 class="u-text-center u-padding-around-l u-text-muted">
-                                <span style="font-size: 2.5rem; opacity: 0.5;">📄</span><br>
+                                <span class="u-text-2xl u-opacity-50">📄</span><br>
                                 <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
                             </td>
@@ -115,10 +112,10 @@ $now = new \DateTimeImmutable('today');
                             // 2. Finanz-Berechnungen
                             $isPaid = $permit->getStatus() === PermitStatus::Bezahlt;
                             $statusText = \strtoupper($permit->getStatus()->value);
-                            $statusClass = 'danger'; // Default für alles was offen ist = Rot/Rosa
+                            $statusClass = 'c-badge--danger'; // Default für alles was offen ist
 
                             if ($isPaid) {
-                                $statusClass = 'success'; // Grün
+                                $statusClass = 'c-badge--success';
                             } else {
                                 // Überfälligkeit checken via Service (für den korrekten Text)
                                 $overdueLevel = $overdueLevels[$permit->code->value] ?? 0;
@@ -141,53 +138,55 @@ $now = new \DateTimeImmutable('today');
                                 <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                     style="vertical-align: middle;">
                                     <div class="u-flex u-flex-column">
-                                        <span style="font-weight: 700; color: #1e293b; font-size: 1rem; line-height: 1.2;">
+                                        <span class="u-font-semibold u-color-main u-text-sm">
                                             <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
                                         </span>
-                                        <code style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0;">
+                                        <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs">
                                             <?php echo $permit->code; ?>
                                         </code>
                                         <div>
-                                            <span style="font-size: 0.7rem; background: #fff; padding: 1px 6px; border-radius: 4px; font-weight: 800; color: #475569; border: 1px solid #e2e8f0;"> PARZELLE <?php echo $permit->getPlotNumber(); ?>
-                                        </span>
+                                            <span class="c-badge c-badge--outline">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
                                         </div>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                    style="text-align: center; vertical-align: middle;">
-                                    <div style="line-height: 1;">
+                                    class="u-text-center"
+                                    style="vertical-align: middle;">
+                                    <div>
                                         <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                             class="c-icon"
-                                             style="width: 24px; height: 24px; <?php echo $isExpired ? 'grayscale(1);' : ''; ?>"
+                                             class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
+                                             style="width: 24px; height: 24px;"
                                              title="<?php echo $vLabel; ?>">
                                     </div>
-                                    <div style="margin-top: 4px;">
-                                        <code style="font-size: 0.8rem; font-weight: 800; background: #fff; border: 1px solid #000; padding: 1px 4px; border-radius: 3px; color: #000; display: inline-block;">
+                                    <div class="u-margin-top-xs">
+                                        <span class="c-license-plate">
                                             <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                        </code>
+                                        </span>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
                                     class="u-text-center"
                                     style="vertical-align: middle;">
                                     <div style="line-height: 1.3;">
-                                        <strong style="color: #1e293b; font-size: 0.95rem;"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
-                                        <small class="u-text-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
-                                        <div style="margin-top: 6px;">
+                                        <strong class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
+                                        <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
+                                        <div class="u-margin-top-xs">
                                             <?php if ($isExpired) { ?>
-                                                <span style="color: var(--text-muted); font-size: 0.7rem; font-weight: 800; background: #e2e8f0; padding: 2px 8px; border-radius: 10px;">
+                                                <span class="c-badge c-badge--outline">
                                                     <?php echo $countdownText; ?>
                                                 </span>
                                             <?php } else { ?>
-                                                <span style="color: <?php echo ($remaining <= 1 && !$isFuture) ? 'var(--danger-color)' : 'var(--primary-color)'; ?>; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: <?php echo ($remaining <= 1 && !$isFuture) ? 'rgba(225, 29, 72, 0.1)' : 'var(--primary-soft)'; ?>; padding: 2px 8px; border-radius: 10px;"> ⏳ <?php echo $countdownText; ?>
+                                                <span class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
+                                                    ⏳ <?php echo $countdownText; ?>
                                                 </span>
                                             <?php } ?>
                                         </div>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
-                                    style="vertical-align: middle; text-align: center;">
-                                    <span class="c-badge c-badge--<?php echo $statusClass; ?>">
+                                    class="u-text-center"
+                                    style="vertical-align: middle;">
+                                    <span class="c-badge <?php echo $statusClass; ?>">
                                         <?php echo $statusText; ?>
                                     </span>
                                 </td>
@@ -196,7 +195,6 @@ $now = new \DateTimeImmutable('today');
                                     <div class="u-flex u-gap-xs u-justify-end">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
-                                            <!-- FIX: data-confirm anstelle onsubmit -->
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>history_cancel_permit"
                                                   style="margin: 0;"
@@ -208,8 +206,7 @@ $now = new \DateTimeImmutable('today');
                                                        name="code"
                                                        value="<?php echo $permit->code; ?>">
                                                 <button type="submit"
-                                                        class="c-button c-button--danger"
-                                                        style="width: auto; padding: 0 12px; height: 36px; font-size: 0.8rem; gap: 6px;"
+                                                        class="c-button c-button--danger-outline"
                                                         title="Antrag stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                          class="c-icon"
@@ -217,10 +214,10 @@ $now = new \DateTimeImmutable('today');
                                                 </button>
                                             </form>
                                         <?php } ?>
-                                        <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Status / Prüfseite öffnen">
+                                        <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Status / Prüfseite öffnen">
                                             <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
                                         </a>
-                                        <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary" style="width: 36px; height: 36px;" title="Dokument anzeigen">
+                                        <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Dokument anzeigen">
                                             <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
                                         </a>
                                     </div>
@@ -233,61 +230,49 @@ $now = new \DateTimeImmutable('today');
         </div>
 
         <div class="u-padding-around-m u-border-top u-text-center"
-             style="background: #fcfdfe;">
+             style="background-color: var(--color-bg-white);">
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
-                <a href="?load_archive=<?php echo $lastYear; ?>"
-                   class="c-button c-button--secondary"
-                   style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
+                <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
                     📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
                 </a>
             <?php } else { ?>
-                <p class="u-text-small u-text-muted u-margin-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
+                <p class="u-text-xs u-color-muted u-margin-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
             <?php } ?>
         </div>
     </section>
 
     <footer class="u-margin-top-l u-text-center">
-        <a href="index"
-           class="c-button c-button--primary"
-           style="width: auto; padding: 0 25px; height: 46px; font-size: 1rem;">
+        <a href="index" class="c-button c-button--primary c-button--submit">
             Neuen Antrag stellen
         </a>
     </footer>
 </div>
 
 <div id="session-warning-modal"
-     style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-    <div class="c-card"
-         style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
-        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
+     class="c-modal">
+    <div class="c-modal__dialog">
+        <h3 class="c-modal__title">
+            <span class="u-text-xl">⚠️</span> Inaktivität erkannt
         </h3>
-        <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong
-                    id="modal-session-countdown"
-                    style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
-            abgemeldet.</p>
+        <p class="u-color-muted"
+           style="line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong id="modal-session-countdown"
+                    class="u-color-danger u-text-xl">03:00</strong><br> Minuten automatisch abgemeldet.</p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
+        <div class="o-grid o-grid--2-cols u-margin-top-l">
             <!-- Button 1: Bleiben -->
             <button id="btn-session-stay"
-                    class="c-button c-button--primary"
-                    style="background: var(--success-color); border: 2px solid var(--success-color); font-size: 0.85rem; width: 100%; padding: 12px 0;">
-                Bleiben
-            </button>
+                    class="c-button c-button--success u-width-100">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
                   action="history_logout"
-                  style="margin: 0; width: 100%;">
+                  class="u-margin-none u-width-100">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <button type="submit"
-                        class="c-button c-button--danger"
-                        style="font-size: 0.85rem; width: 100%; padding: 12px 0; border: 2px solid var(--danger-color);">
-                    Abmelden
-                </button>
+                        class="c-button c-button--danger u-width-100">Abmelden</button>
             </form>
         </div>
     </div>

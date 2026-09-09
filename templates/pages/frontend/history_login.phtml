@@ -27,20 +27,18 @@ $layout = 'public';
 $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
 ?>
 
-<div class="c-tab-content-container u-padding-y-xl">
-    <div class="c-card u-margin-auto"
-         style="max-width: 450px; border-top: 5px solid var(--primary-color);">
-        <header class="c-card__header u-text-center u-padding-around-l">
+<div class="c-tab-content-container o-container o-container--small u-padding-y-xl">
+    <div class="c-card c-card--primary u-margin-auto">
+        <header class="c-card__header u-text-center">
             <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                 class="c-icon"
-                 style="width: 48px; height: 48px;"
+                 class="c-icon c-icon--md"
                  alt="">
-            <h2 class="u-margin-none">Meine Genehmigungen</h2>
+            <h2 class="u-margin-none u-margin-top-s">Meine Genehmigungen</h2>
             <p class="u-text-muted u-margin-top-s">Geben Sie Ihre E-Mail-Adresse ein, mit der Sie bereits eine
                 Genemigung beantragt haben, um einen sicheren Login-Link zu erhalten.</p>
         </header>
 
-        <div class="c-card__body u-padding-around-l">
+        <div class="c-card__body">
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
             <?php if ($step === 1) { ?>
@@ -65,15 +63,14 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                     </div>
                     <button type="submit"
                             name="request_link"
-                            class="c-button--primary u-width-100 u-margin-top-m"
-                            style="padding: 14px;">
+                            class="c-button c-button--primary c-button--submit u-width-100 u-margin-top-m">
                         Link anfordern
                         <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                              class="c-icon"
                              alt="">
                     </button>
                     <div class="u-margin-top-m u-text-center">
-                        <a href="history?sent=1" class="u-text-small u-text-muted">Ich habe bereits einen Code</a>
+                        <a href="history?sent=1" class="u-text-sm u-color-muted">Ich habe bereits einen Code</a>
                     </div>
                 </form>
             <?php } else { ?>
@@ -90,24 +87,22 @@ $pageTitle = 'Verlauf - ' . ($settings['vereins_name'] ?? '');
                         <input type="text"
                                id="login_code"
                                name="login_code"
-                               class="c-form-input u-text-center u-font-xl"
+                               class="c-form-input c-form-input--code u-text-center"
                                placeholder="______"
                                required
                                autofocus
                                maxlength="6"
-                               autocomplete="one-time-code"
-                               style="letter-spacing: 8px; font-family: monospace; height: 60px; text-transform: uppercase;">
+                               autocomplete="one-time-code">
                     </div>
                     <button type="submit"
                             name="submit_code"
-                            class="c-button--primary u-width-100 u-margin-top-m">
+                            class="c-button c-button--primary c-button--submit u-width-100 u-margin-top-m">
                         Einloggen 🔓
                     </button>
                 </form>
 
-                <div style="margin: 20px 0 0 0; text-align: center;">
-                    <a href="<?php echo $settings['base_url']; ?>history"
-                       style="color: var(--text-muted); text-decoration: underline; font-size: 0.85rem;">
+                <div class="u-margin-top-l u-text-center">
+                    <a href="<?php echo $settings['base_url']; ?>history" class="u-text-link u-text-sm">
                         &larr; E-Mail erneut eingeben / zurück
                     </a>
                 </div>

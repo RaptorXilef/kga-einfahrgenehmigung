@@ -1,0 +1,13 @@
+@layer utilities {
+    @media print {
+        .u-no-print {
+            display: none !important;
+        }
+
+        body {
+            background-color: var(--color-bg-white) !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+}

@@ -1,0 +1,14 @@
+@layer components {
+    .c-license-plate {
+        font-size: 0.8rem;
+        font-weight: 800;
+        background-color: var(--color-bg-white);
+        border: 1px solid var(--color-text-main);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--color-text-main);
+        display: inline-block;
+        font-family: monospace;
+        text-transform: uppercase;
+    }
+}
