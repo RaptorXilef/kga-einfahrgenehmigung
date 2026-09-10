@@ -43,6 +43,13 @@
             font-size: 0.85rem;
             white-space: nowrap;
 
+            /* Das hat im Menü gefehlt! */
+            .c-icon {
+                inline-size: 1.4em;
+                block-size: 1.4em;
+                margin-inline-end: 4px;
+            }
+
             &:hover {
                 color: var(--color-primary);
                 background-color: color-mix(

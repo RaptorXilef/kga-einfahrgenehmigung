@@ -1,23 +1,31 @@
 @layer components {
-    .c-icon--inline {
-        inline-size: 18px;
-        block-size: 18px;
+    .c-icon {
+        display: inline-block;
+        inline-size: 1em; /* Das hat gefehlt! Sichert ab, dass Icons standardmäßig Textgröße haben */
+        block-size: 1em;
         vertical-align: middle;
-        opacity: 0.7;
-    }
+        margin-block-start: -2px;
+        object-fit: contain;
 
-    .c-icon--md {
-        inline-size: 48px;
-        block-size: 48px;
-    }
+        &--inline {
+            inline-size: 18px;
+            block-size: 18px;
+            opacity: 0.7;
+        }
 
-    .c-icon--lg {
-        inline-size: 64px;
-        block-size: 64px;
-    }
+        &--md {
+            inline-size: 48px;
+            block-size: 48px;
+        }
 
-    .c-icon--xl {
-        inline-size: 80px;
-        block-size: 80px;
+        &--lg {
+            inline-size: 64px;
+            block-size: 64px;
+        }
+
+        &--xl {
+            inline-size: 80px;
+            block-size: 80px;
+        }
     }
 }
