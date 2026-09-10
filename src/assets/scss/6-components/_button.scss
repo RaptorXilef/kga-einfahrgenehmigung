@@ -18,129 +18,127 @@
         box-shadow: var(--shadow-sm);
         gap: 8px;
         white-space: nowrap;
+    }
 
-        .c-icon {
-            inline-size: 1.2em;
-            block-size: 1.2em;
-            flex-shrink: 0;
-            margin: 0;
-        }
+    .c-button .c-icon {
+        inline-size: 1.2em;
+        block-size: 1.2em;
+        flex-shrink: 0;
+        margin: 0;
+    }
 
-        &:hover {
-            background-color: var(--color-bg-light);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-            border-color: color-mix(in oklch, var(--color-border) 80%, #000);
-        }
+    .c-button:hover {
+        background-color: var(--color-bg-light);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        border-color: color-mix(
+            in oklch,
+            var(--color-border) 80%,
+            oklch(0 0 0)
+        );
+    }
 
-        &--primary {
-            background-color: var(--color-primary);
-            color: var(--color-bg-white);
-            border: none;
-            font-weight: 700;
+    .c-button--primary {
+        background-color: var(--color-primary);
+        color: var(--color-bg-white);
+        border: none;
+        font-weight: 700;
+    }
 
-            &:hover {
-                background-color: color-mix(
-                    in oklch,
-                    var(--color-primary) 80%,
-                    #000
-                );
-            }
-        }
+    .c-button--primary:hover {
+        background-color: color-mix(
+            in oklch,
+            var(--color-primary) 80%,
+            oklch(0 0 0)
+        );
+    }
 
-        &--secondary {
-            background-color: var(--color-bg-white);
-        }
+    .c-button--secondary {
+        background-color: var(--color-bg-white);
+    }
 
-        &--success {
-            background-color: var(--color-success-soft);
-            color: color-mix(in oklch, var(--color-success) 60%, #000);
-            border-color: color-mix(
-                in oklch,
-                var(--color-success) 40%,
-                transparent
-            );
+    .c-button--success {
+        background-color: var(--color-success-soft);
+        color: color-mix(in oklch, var(--color-success) 60%, oklch(0 0 0));
+        border-color: color-mix(
+            in oklch,
+            var(--color-success) 40%,
+            transparent
+        );
+    }
 
-            &:hover {
-                background-color: color-mix(
-                    in oklch,
-                    var(--color-success-soft) 80%,
-                    #000
-                );
-            }
-        }
+    .c-button--success:hover {
+        background-color: color-mix(
+            in oklch,
+            var(--color-success-soft) 80%,
+            oklch(0 0 0)
+        );
+    }
 
-        &--danger {
-            background-color: var(--color-danger-soft);
-            color: var(--color-danger);
-            border-color: color-mix(
-                in oklch,
-                var(--color-danger) 40%,
-                transparent
-            );
+    .c-button--danger {
+        background-color: var(--color-danger-soft);
+        color: var(--color-danger);
+        border-color: color-mix(in oklch, var(--color-danger) 40%, transparent);
+    }
 
-            &:hover {
-                background-color: color-mix(
-                    in oklch,
-                    var(--color-danger-soft) 80%,
-                    #000
-                );
-            }
-        }
+    .c-button--danger:hover {
+        background-color: color-mix(
+            in oklch,
+            var(--color-danger-soft) 80%,
+            oklch(0 0 0)
+        );
+    }
 
-        &--danger-outline {
-            background-color: transparent;
-            border-color: var(--color-danger);
-            color: var(--color-danger);
+    .c-button--danger-outline {
+        background-color: transparent;
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+    }
 
-            &:hover {
-                background-color: var(--color-danger-soft);
-            }
-        }
+    .c-button--danger-outline:hover {
+        background-color: var(--color-danger-soft);
+    }
 
-        /* Setzt das Padding zurück für exakte 42x42 Quadrate ohne Text */
-        &--icon-only {
-            padding-inline: 0;
-            inline-size: 42px;
-        }
+    .c-button--icon-only {
+        padding-inline: 0;
+        inline-size: 42px;
+    }
 
-        /* --- FIX: Kleiner Button für enge Tabellen --- */
-        &--small {
-            min-inline-size: 34px;
-            block-size: 34px;
-            padding-inline: 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
+    .c-button--small {
+        min-inline-size: 34px;
+        block-size: 34px;
+        padding-inline: 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
 
-            &.c-button--icon-only {
-                inline-size: 34px;
-                padding-inline: 0;
-            }
+    .c-button--small.c-button--icon-only {
+        inline-size: 34px;
+        padding-inline: 0;
+    }
 
-            .c-icon {
-                inline-size: 1.1em;
-                block-size: 1.1em;
-            }
-        }
+    .c-button--small .c-icon {
+        inline-size: 1.1em;
+        block-size: 1.1em;
+    }
 
-        &--submit {
-            padding-block: 16px;
-            block-size: auto;
-            font-size: 1.1rem;
-        }
+    .c-button--submit {
+        padding-block: 16px;
+        block-size: auto;
+        font-size: 1.1rem;
+    }
 
-        &--large {
-            padding-block: 15px;
-            block-size: auto;
-            font-size: 1.1rem;
-            inline-size: 100%;
-        }
+    .c-button--large {
+        padding-block: 15px;
+        block-size: auto;
+        font-size: 1.1rem;
+        inline-size: 100%;
+    }
 
-        &--responsive {
-            flex: 1;
-            min-inline-size: 200px;
-            min-block-size: 48px;
-            margin: 0;
-        }
+    .c-button--responsive {
+        flex: 1;
+        min-inline-size: 200px;
+        min-block-size: 48px;
+        margin: 0;
     }
 }

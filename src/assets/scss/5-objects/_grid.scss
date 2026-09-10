@@ -2,32 +2,29 @@
     .o-grid {
         display: grid;
         gap: var(--space-m);
+    }
 
-        &--2-cols {
-            grid-template-columns: 1fr 1fr;
-        }
+    .o-grid--2-cols {
+        grid-template-columns: 1fr 1fr;
+    }
 
-        &--2-1 {
-            grid-template-columns: 2fr 1fr;
-        }
+    .o-grid--2-1 {
+        grid-template-columns: 2fr 1fr;
+    }
 
-        &--auto-right {
-            grid-template-columns: 1fr auto;
-        }
+    .o-grid--auto-right {
+        grid-template-columns: 1fr auto;
+    }
 
-        /* Standard Auto-Fit für normale Karten */
-        &--auto-fit {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        }
+    .o-grid--auto-fit {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
 
-        /* Breiteres Auto-Fit für große Karten (z.B. Tools, Backups) */
-        &--auto-fit-lg {
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        }
+    .o-grid--auto-fit-lg {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
 
-        /* Asymmetrisches Layout für das Gutschein-Archiv */
-        &--sidebar {
-            grid-template-columns: 1.6fr 1fr;
-        }
+    .o-grid--sidebar {
+        grid-template-columns: 1.6fr 1fr;
     }
 }

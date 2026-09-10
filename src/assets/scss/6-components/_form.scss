@@ -1,5 +1,4 @@
 @layer components {
-    /* --- FEHLENDE BASIS STYLES FÜR FORMULARFELDER --- */
     .c-form-input,
     .c-form-select {
         background-color: var(--color-bg-white);
@@ -9,15 +8,16 @@
         font-size: 1rem;
         transition: all 0.2s ease-in-out;
         color: var(--color-text-main);
-        block-size: 46px; /* Touch-freundliche Höhe */
+        block-size: 46px;
         inline-size: 100%;
         display: block;
+    }
 
-        &:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 4px var(--color-primary-soft);
-            outline: none;
-        }
+    .c-form-input:focus,
+    .c-form-select:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px var(--color-primary-soft);
+        outline: none;
     }
 
     .c-form-select {
@@ -47,33 +47,32 @@
         font-size: var(--space-l);
     }
 
-    /* --- SEKTIONEN & PREIS --- */
     .c-form-section {
         margin-block-end: 2.5rem;
         padding: 1.5rem;
         background-color: var(--color-bg-white);
         border-radius: 12px;
         border: 1px solid var(--color-border);
+    }
 
-        &__title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-block-end: 1.5rem;
-            color: var(--color-text-main);
-        }
+    .c-form-section__title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-block-end: 1.5rem;
+        color: var(--color-text-main);
+    }
 
-        &__step {
-            background-color: var(--color-primary);
-            color: var(--color-bg-white);
-            inline-size: 24px;
-            block-size: 24px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-        }
+    .c-form-section__step {
+        background-color: var(--color-primary);
+        color: var(--color-bg-white);
+        inline-size: 24px;
+        block-size: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
     }
 
     .c-price-display {
@@ -87,79 +86,76 @@
         box-shadow: var(--shadow-sm);
         text-align: center;
         font-weight: 700;
-
-        &__original {
-            font-size: 0.9rem;
-            text-decoration: line-through;
-            opacity: 0.6;
-            margin-block-end: 2px;
-        }
-
-        &__discount-hint {
-            font-size: 0.85rem;
-            color: var(--color-success);
-            font-weight: 600;
-            margin-block-start: 4px;
-        }
     }
 
-    /* --- CHECKBOXEN --- */
+    .c-price-display__original {
+        font-size: 0.9rem;
+        text-decoration: line-through;
+        opacity: 0.6;
+        margin-block-end: 2px;
+    }
+
+    .c-price-display__discount-hint {
+        font-size: 0.85rem;
+        color: var(--color-success);
+        font-weight: 600;
+        margin-block-start: 4px;
+    }
+
     .c-form-checkbox {
         margin-block-start: 4px;
         transform: scale(1.2);
         cursor: pointer;
-
-        &__wrapper {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        &__label {
-            line-height: 1.4;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-
-        &__required {
-            color: var(--color-danger);
-            font-weight: 700;
-            margin-inline-start: 2px;
-        }
     }
 
-    /* --- PASSWORT TOGGLE --- */
+    .c-form-checkbox__wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .c-form-checkbox__label {
+        line-height: 1.4;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+
+    .c-form-checkbox__required {
+        color: var(--color-danger);
+        font-weight: 700;
+        margin-inline-start: 2px;
+    }
+
     .c-password-toggle {
         position: relative;
         display: flex;
         align-items: center;
-
-        &__input {
-            padding-inline-end: 40px;
-            inline-size: 100%;
-        }
-
-        &__btn {
-            position: absolute;
-            inset-inline-end: 10px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 0;
-            outline: none;
-            opacity: 0.5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            &:hover {
-                opacity: 1;
-            }
-        }
     }
 
-    /* --- HONEYPOT --- */
+    .c-password-toggle__input {
+        padding-inline-end: 40px;
+        inline-size: 100%;
+    }
+
+    .c-password-toggle__btn {
+        position: absolute;
+        inset-inline-end: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 0;
+        outline: none;
+        opacity: 0.5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .c-password-toggle__btn:hover {
+        opacity: 1;
+    }
+
     .c-form-group-hp {
         position: absolute;
         inset-inline-start: -9999px;
@@ -170,13 +166,13 @@
         block-size: 0;
         inline-size: 0;
         overflow: hidden;
+    }
 
-        input {
-            inline-size: 1px;
-            block-size: 1px;
-            border: none;
-            padding: 0;
-            margin: 0;
-        }
+    .c-form-group-hp input {
+        inline-size: 1px;
+        block-size: 1px;
+        border: none;
+        padding: 0;
+        margin: 0;
     }
 }

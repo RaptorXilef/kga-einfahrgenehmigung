@@ -10,31 +10,57 @@
         justify-content: center;
         gap: 12px;
         box-shadow: var(--shadow-sm);
+    }
 
-        &--success {
-            background-color: var(--color-success-soft);
-            color: color-mix(in oklch, var(--color-success) 60%, #000);
-            border-color: color-mix(
-                in oklch,
-                var(--color-success) 40%,
-                transparent
-            );
-        }
+    .c-alert--success {
+        background-color: var(--color-success-soft);
+        color: color-mix(in oklch, var(--color-success) 60%, oklch(0 0 0));
+        border-color: color-mix(
+            in oklch,
+            var(--color-success) 40%,
+            transparent
+        );
+    }
 
-        &--large {
-            flex-direction: column;
-            text-align: center;
-            padding: clamp(2rem, 5vw, 3rem) 2rem;
-            border: 2px solid var(--color-success);
-        }
+    .c-alert--danger {
+        background-color: var(--color-danger-soft);
+        color: color-mix(in oklch, var(--color-danger) 60%, oklch(0 0 0));
+        border-color: color-mix(in oklch, var(--color-danger) 40%, transparent);
+    }
 
-        &__footer {
-            font-size: 0.95rem;
-            opacity: 0.8;
-            border-block-start: 1px solid
-                color-mix(in oklch, var(--color-text-main) 10%, transparent);
-            padding-block-start: var(--space-xl);
-            inline-size: 100%;
-        }
+    .c-alert--warning {
+        background-color: var(--color-warning-soft);
+        color: color-mix(in oklch, var(--color-warning) 60%, oklch(0 0 0));
+        border-color: color-mix(
+            in oklch,
+            var(--color-warning) 40%,
+            transparent
+        );
+    }
+
+    .c-alert--info {
+        background-color: var(--color-primary-soft);
+        color: color-mix(in oklch, var(--color-primary) 60%, oklch(0 0 0));
+        border-color: color-mix(
+            in oklch,
+            var(--color-primary) 40%,
+            transparent
+        );
+    }
+
+    .c-alert--large {
+        flex-direction: column;
+        text-align: center;
+        padding: clamp(2rem, 5vw, 3rem) 2rem;
+        border: 2px solid var(--color-success);
+    }
+
+    .c-alert__footer {
+        font-size: 0.95rem;
+        opacity: 0.8;
+        border-block-start: 1px solid
+            color-mix(in oklch, var(--color-text-main) 10%, transparent);
+        padding-block-start: var(--space-xl);
+        inline-size: 100%;
     }
 }
