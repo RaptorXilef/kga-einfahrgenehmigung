@@ -159,4 +159,34 @@
             margin: 0;
         }
     }
+
+    .c-password-toggle {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        &__input {
+            padding-inline-end: 40px;
+            inline-size: 100%;
+        }
+
+        &__btn {
+            position: absolute;
+            inset-inline-end: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+            outline: none;
+            opacity: 0.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
 }
