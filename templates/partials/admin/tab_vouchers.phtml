@@ -80,8 +80,7 @@ use App\Infrastructure\Config\Config;
                                         <td style="vertical-align: middle;">
                                             <div class="u-text-center">
                                                 <button type="button"
-                                                        class="c-button c-button--secondary js-show-qr"
-                                                        style="padding-inline: 8px; block-size: 28px; font-size: 0.75rem;"
+                                                        class="c-button c-button--secondary c-button--small js-show-qr"
                                                         title="QR-Code anzeigen"
                                                         data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
                                                         data-url="<?php echo \htmlspecialchars($url); ?>">
@@ -89,9 +88,9 @@ use App\Infrastructure\Config\Config;
                                                          class="c-icon"
                                                          alt=""> QR
                                                 </button>
-                                                <code class="u-display-block u-margin-top-s u-text-xs u-font-bold">
-                                                <?php echo $vCodeStr; ?>
-                                            </code>
+                                                <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;">
+                                                    <?php echo $vCodeStr; ?>
+                                                </code>
                                             </div>
                                         </td>
                                         <td style="vertical-align: middle;">
@@ -142,8 +141,7 @@ use App\Infrastructure\Config\Config;
                                             </span>
                                             </div>
                                         </td>
-                                        <td class="u-text-right"
-                                            style="vertical-align: middle; padding-inline-end: 20px;">
+                                        <td class="u-text-right">
                                             <div class="u-flex u-gap-xs u-justify-end">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
@@ -160,13 +158,13 @@ use App\Infrastructure\Config\Config;
                                                                value="<?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>">
                                                         <?php if ($isDeactivated) { ?>
                                                             <button type="submit"
-                                                                    class="c-button c-button--success c-button--icon-only"
+                                                                    class="c-button c-button--success c-button--small c-button--icon-only"
                                                                     title="Aktivieren"><img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                      class="c-icon"
                                                                      alt=""></button>
                                                         <?php } else { ?>
                                                             <button type="submit"
-                                                                    class="c-button c-button--danger c-button--icon-only"
+                                                                    class="c-button c-button--danger c-button--small c-button--icon-only"
                                                                     title="Sperren"><img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                      class="c-icon"
                                                                      alt=""></button>
@@ -186,7 +184,7 @@ use App\Infrastructure\Config\Config;
                                                                name="code"
                                                                value="<?php echo $vCodeStr; ?>">
                                                         <button type="submit"
-                                                                class="c-button c-button--danger-outline c-button--icon-only"
+                                                                class="c-button c-button--danger-outline c-button--small c-button--icon-only"
                                                                 title="Löschen"><img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                                  class="c-icon"
                                                                  alt=""></button>
@@ -208,7 +206,8 @@ use App\Infrastructure\Config\Config;
                     <h3 class="u-margin-none">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                              class="c-icon"
-                             alt=""> Archiv</h3>
+                             alt=""> Archiv
+                    </h3>
                     <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Bereits vollständig eingelöste
                         Codes.</p>
                 </header>

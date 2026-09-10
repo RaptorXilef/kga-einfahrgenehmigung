@@ -121,7 +121,6 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                                  alt="">
                                             <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
                                         </span>
-
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>resend_mail"
                                                   class="u-margin-none"
@@ -133,8 +132,7 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                                        name="timestamp"
                                                        value="<?php echo $log->timestamp->format('Y-m-d H:i:s'); ?>">
                                                 <button type="submit"
-                                                        class="c-button c-button--primary c-button--icon-only"
-                                                        style="block-size: 32px; inline-size: 32px;"
+                                                        class="c-button c-button--primary c-button--small c-button--icon-only"
                                                         title="Erneut senden">🔄</button>
                                             </form>
                                         </div>

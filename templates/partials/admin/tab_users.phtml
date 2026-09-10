@@ -167,15 +167,12 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                            id="file-<?php echo \md5($userId); ?>"
                                            accept="image/*">
                                     <button type="button"
-                                            class="c-button c-button--secondary u-width-100 js-trigger-click"
-                                            data-target="file-<?php echo \md5($userId); ?>"
-                                            style="font-size: 0.75rem; block-size: 34px;">Bild ändern</button>
+                                            class="c-button c-button--secondary c-button--small u-width-100 js-trigger-click"
+                                            data-target="file-<?php echo \md5($userId); ?>">Bild ändern</button>
                                 </form>
-                            </div>
-                            <div class="u-flex u-flex-column u-gap-m">
+                                <hr style="border:none; border-top:1px solid #eee; margin:20px 0;">
                                 <form method="POST"
-                                      action="rename_user"
-                                      class="u-flex u-flex-column u-gap-s">
+                                      action="rename_user">
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -190,10 +187,12 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                                style="block-size:34px;"
                                                value="<?php echo \htmlspecialchars((string) $u->username); ?>">
                                         <button type="submit"
-                                                class="c-button c-button--primary"
-                                                style="block-size:34px; padding-inline: 10px;">OK</button>
+                                                class="c-button c-button--primary c-button--small">OK</button>
                                     </div>
                                 </form>
+
+                            </div>
+                            <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
                                       action="change_user_password"
                                       class="u-flex u-flex-column u-gap-s u-margin-top-m">
@@ -217,8 +216,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                            placeholder="Wiederholen"
                                            required>
                                     <button type="submit"
-                                            class="c-button c-button--danger"
-                                            style="block-size:34px;">Passwort setzen</button>
+                                            class="c-button c-button--danger c-button--small">Passwort setzen</button>
                                 </form>
                             </div>
                             <div class="u-flex u-flex-column u-gap-m">

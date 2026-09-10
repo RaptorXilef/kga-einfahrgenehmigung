@@ -178,30 +178,18 @@ if ($auth->hasPermission('permits.view')) {
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
                                     </td>
-
-                                    <td class="u-text-right"
-                                        style="vertical-align: middle; padding-inline-end: 20px;">
+                                    <td style="text-align: right; vertical-align: middle; padding-inline-end: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
-                                                <a href="admin_print?code=<?php echo $permit->code; ?>"
-                                                   target="_blank"
-                                                   class="c-button c-button--secondary c-button--icon-only"
-                                                   title="Drucken">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
-                                                     class="c-icon"
-                                                     alt="">
-                                            </a>
+                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
-                                                <a href="check?code=<?php echo $permit->code; ?>"
-                                                   target="_blank"
-                                                   class="c-button c-button--secondary c-button--icon-only"
-                                                   title="Details">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
-                                                     class="c-icon"
-                                                     alt="">
-                                            </a>
+                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('permits.suspend')) { ?>
@@ -219,7 +207,7 @@ if ($auth->hasPermission('permits.view')) {
                                                                name="action"
                                                                value="unsuspend_permit">
                                                         <button type="submit"
-                                                                class="c-button c-button--success c-button--icon-only"
+                                                                class="c-button c-button--success c-button--small c-button--icon-only"
                                                                 title="Wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                  class="c-icon"
@@ -227,7 +215,7 @@ if ($auth->hasPermission('permits.view')) {
                                                         </button>
                                                     </form>
                                                 <?php } else { ?>
-                                                    <button class="c-button c-button--danger c-button--icon-only js-suspend-btn"
+                                                    <button class="c-button c-button--danger c-button--small c-button--icon-only js-suspend-btn"
                                                             data-code="<?php echo $permit->code; ?>"
                                                             title="Sperren">
                                                         <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"

@@ -17,7 +17,7 @@
         text-decoration: none;
         box-shadow: var(--shadow-sm);
         gap: 8px;
-        white-space: nowrap; /* Hält Text & Icon zwingend auf einer Zeile! */
+        white-space: nowrap;
 
         .c-icon {
             inline-size: 1.2em;
@@ -102,6 +102,25 @@
         &--icon-only {
             padding-inline: 0;
             inline-size: 42px;
+        }
+
+        /* --- FIX: Kleiner Button für enge Tabellen --- */
+        &--small {
+            min-inline-size: 34px;
+            block-size: 34px;
+            padding-inline: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+
+            &.c-button--icon-only {
+                inline-size: 34px;
+                padding-inline: 0;
+            }
+
+            .c-icon {
+                inline-size: 1.1em;
+                block-size: 1.1em;
+            }
         }
 
         &--submit {
