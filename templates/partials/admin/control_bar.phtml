@@ -30,8 +30,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
             <form method="POST"
                   action="<?php echo $settings['base_url']; ?>filter_dashboard"
                   id="dashboardFilterForm"
-                  class="u-flex u-align-center u-gap-s u-flex-wrap u-width-100 u-justify-center"
-                  style="margin: 0; background: transparent;">
+                  class="u-flex u-align-center u-gap-s u-flex-wrap u-width-100 u-justify-center u-margin-none">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -39,106 +38,84 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        name="page"
                        value="1">
 
-                <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <label for="filter_start"
-                           class="u-text-muted u-font-bold"
-                           style="font-size: 0.8rem; letter-spacing: 0.05em; display:flex; align-items:center; gap:5px; cursor:pointer;">
-                        <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
-                             class="c-icon"
-                             alt="">
-                        ZEITRAUM:
-                    </label>
-                    <input type="date"
-                           id="filter_start"
-                           name="start"
-                           value="<?php echo \htmlspecialchars($currentStart); ?>"
-                           class="c-control-bar-input"
-                           autocomplete="off">
-                    <label for="filter_end"
-                           class="u-text-muted"
-                           style="font-size: 0.75rem; font-weight: 800; cursor:pointer;">
-                        BIS
-                    </label>
-                    <input type="date"
-                           id="filter_end"
-                           name="end"
-                           value="<?php echo \htmlspecialchars($currentEnd); ?>"
-                           class="c-control-bar-input"
-                           autocomplete="off">
+                <label for="filter_start"
+                       class="u-color-muted u-font-bold u-text-xs u-flex u-align-center u-gap-s u-cursor-pointer u-text-uppercase"
+                       style="letter-spacing: 0.05em;">
+                    <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
+                         class="c-icon"
+                         alt="">
+                    ZEITRAUM:
+                </label>
+                <input type="date"
+                       id="filter_start"
+                       name="start"
+                       value="<?php echo \htmlspecialchars($currentStart); ?>"
+                       class="c-control-bar-input"
+                       autocomplete="off">
 
-                    <label for="filter_type"
-                           class="u-text-muted u-font-bold"
-                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px; cursor:pointer;">
-                        TYP:
-                    </label>
-                    <select name="type"
-                            id="filter_type"
-                            class="c-control-bar-input js-auto-submit-select"
-                            style="width: auto !important; cursor: pointer;"
-                            autocomplete="off">
-                        <option value="all"
-                                <?php echo $currentType === 'all' ? 'selected' : ''; ?>>
-                            Alle Genehmigungen
-                        </option>
-                        <option value="standard"
-                                <?php echo $currentType === 'standard' ? 'selected' : ''; ?>>
-                            Nur Standard
-                        </option>
-                        <option value="permanent"
-                                <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>>
-                            Nur Dauerkarten
-                        </option>
-                    </select>
+                <label for="filter_end"
+                       class="u-color-muted u-text-xs u-font-extrabold u-cursor-pointer">BIS</label>
+                <input type="date"
+                       id="filter_end"
+                       name="end"
+                       value="<?php echo \htmlspecialchars($currentEnd); ?>"
+                       class="c-control-bar-input"
+                       autocomplete="off">
 
-                    <label for="filter_limit"
-                           class="u-text-muted u-font-bold"
-                           style="font-size: 0.8rem; letter-spacing: 0.05em; margin-left: 10px; cursor:pointer;">
-                        PRO SEITE:
-                    </label>
-                    <select name="limit"
-                            id="filter_limit"
-                            class="c-control-bar-input js-auto-submit-select"
-                            style="width: auto !important; cursor: pointer;"
-                            autocomplete="off">
-                        <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
-                            <option value="<?php echo $l; ?>"
-                                    <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                <?php } ?>
+                <label for="filter_type"
+                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase"
+                       style="letter-spacing: 0.05em;">TYP:</label>
+                <select name="type"
+                        id="filter_type"
+                        class="c-control-bar-input js-auto-submit-select u-cursor-pointer"
+                        style="inline-size: auto !important;"
+                        autocomplete="off">
+                    <option value="all"
+                            <?php echo $currentType === 'all' ? 'selected' : ''; ?>>Alle Genehmigungen</option>
+                    <option value="standard"
+                            <?php echo $currentType === 'standard' ? 'selected' : ''; ?>>Nur Standard</option>
+                    <option value="permanent"
+                            <?php echo $currentType === 'permanent' ? 'selected' : ''; ?>>Nur Dauerkarten</option>
+                </select>
 
-                <?php if ($auth->hasPermission('permits.view')) { ?>
-                    <div style="position: relative; min-width: 150px; max-width: 230px; margin-left: auto;">
-                        <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; z-index: 10;">
-                            <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
-                                 class="c-icon"
-                                 alt="">
-                        </span>
-                        <!-- name="q" und value aus PHP für Server-Side Search -->
-                        <input type="text"
-                               id="adminSearch"
-                               name="q"
-                               aria-label="Schnellsuche"
-                               autocomplete="off"
-                               value="<?php echo \htmlspecialchars($currentQ); ?>"
-                               placeholder="Schnellsuche..."
-                               title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                               class="c-form-input"
-                               style="padding-left: 42px; border-radius: 30px; height: 38px; border: 1px solid var(--border-color);">
-                    </div>
-                <?php } ?>
+                <label for="filter_limit"
+                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase"
+                       style="letter-spacing: 0.05em;">PRO SEITE:</label>
+                <select name="limit"
+                        id="filter_limit"
+                        class="c-control-bar-input js-auto-submit-select u-cursor-pointer"
+                        style="inline-size: auto !important;"
+                        autocomplete="off">
+                    <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
+                        <option value="<?php echo $l; ?>"
+                                <?php echo $currentLimit == $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
+                    <?php } ?>
+                </select>
+
+                <div class="u-position-relative u-margin-left-auto"
+                     style="min-inline-size: 150px; max-inline-size: 230px;">
+                    <span style="position: absolute; inset-inline-start: 15px; inset-block-start: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10;">
+                    <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
+                </span>
+                    <!-- name="q" und value aus PHP für Server-Side Search -->
+                    <input type="text"
+                           id="adminSearch"
+                           name="q"
+                           aria-label="Schnellsuche"
+                           autocomplete="off"
+                           value="<?php echo \htmlspecialchars($currentQ); ?>"
+                           placeholder="Schnellsuche..."
+                           title="Suchen Sie nach Namen, KFZ oder SmartCode"
+                           class="c-form-input"
+                           style="padding-inline-start: 42px; border-radius: 30px; block-size: 38px;">
+                </div>
 
                 <?php if (!empty($sessionFilters)) { ?>
-                    <a href="?reset_filters=1"
-                       class="c-tabs__btn"
-                       style="text-decoration:none; padding: 6px 12px; font-size:0.8rem; border:1px solid var(--border-color);">
-                        ✕ Filter aufheben
-                    </a>
+                    <a href="?reset_filters=1" class="c-button c-button--secondary u-text-xs" style="padding-inline: 12px; block-size: 34px;">✕ Filter aufheben</a>
                 <?php } ?>
                 <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
                 <button type="submit"
-                        style="display: none;"></button>
+                        class="u-hidden"></button>
             </form>
         </section>
     </div>

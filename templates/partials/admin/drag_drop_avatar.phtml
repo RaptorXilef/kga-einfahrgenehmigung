@@ -1,56 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Component: Drag & Drop Avatar Upload
  *
- * Stellt CSS und HTML für interaktive Bild-Uploads (Dropzones mit Preview) bereit.
- * Die JavaScript-Logik wird global über ESM (DragDropZone.js) angesteuert.
+ * Das HTML und CSS wurde in die SCSS Komponente .c-dropzone abstrahiert.
+ * Die Datei verbleibt als reiner JS-Einstiegspunkt für die DragDropZone.js Logik.
  */
-?>
-
-<style>
-.js-avatar-dropzone {
-    position: relative;
-    transition: all 0.2s ease;
-    border: 2px dashed transparent;
-}
-
-.js-avatar-dropzone.js-preview-only {
-    border-color: #cbd5e1;
-    cursor: pointer;
-}
-
-.js-avatar-dropzone.js-preview-only:hover {
-    border-color: var(--primary-color);
-    background: #f1f5f9;
-}
-
-.js-avatar-dropzone.is-dragover {
-    background-color: var(--primary-soft) !important;
-    border-color: var(--primary-color);
-}
-
-.drop-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(52, 152, 219, 0.9);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 0.9rem;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.js-avatar-dropzone.is-dragover .drop-overlay {
-    opacity: 1;
-}
-
-</style>

@@ -24,28 +24,25 @@ if (isset($roleRepository) && $auth->isLoggedIn()) {
     $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
 }
 $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : ''; ?>
-<nav
-     style="background: var(--bg-light); border-bottom: 1px solid var(--border-color); padding: 10px 0; margin-bottom: 2rem; position: relative; z-index: 100;">
-    <div class="c-tab-content-container"
-         style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+
+<nav class="c-header-nav"
+     style="position: relative; z-index: 100;">
+    <div class="c-tab-content-container c-header-nav__container">
 
         <!-- User Info & Group -->
-        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div class="c-header-nav__brand">
             <div class="c-user-pill">
-                <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
                     <img src="<?php echo $userImgUrl; ?>"
-                         style="width: 28px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);"
+                         style="inline-size: 28px; block-size: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border);"
                          alt="User Avatar">
-                    <a href="profile"
-                       style="text-decoration: none; color: inherit;"
-                       title="Zum Profil">
+                    <a href="profile" style="text-decoration: none; color: inherit;" title="Zum Profil">
                         <?php echo \htmlspecialchars($auth->getUsername()); ?>
                     </a>
                 </span>
                 <div class="c-group-badge">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                          class="c-icon"
-                         style="width: 18px; height: 18px; object-fit: contain;"
                          alt="Role Icon">
                     <span><?php echo \htmlspecialchars($roleName); ?></span>
                 </div>
@@ -53,59 +50,43 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
 
             <!-- User-Management über Permission absichern -->
             <?php if ($auth->hasPermission('system.manage')) { ?>
-                <a href="users"
-                   class="c-tabs__btn"
-                   style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
-                         class="c-icon"
-                         style="width:16px;"
-                         alt=""> Rechteverwaltung
+                <a href="users" class="c-tabs__btn">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Rechteverwaltung
                 </a>
             <?php } ?>
 
             <!-- Dashboard über Permission absichern -->
             <?php if ($auth->hasPermission('admin.access')) { ?>
-                <a href="admin"
-                   class="c-tabs__btn"
-                   style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
-                         class="c-icon"
-                         style="width:16px;"
-                         alt=""> Dashboard
+                <a href="admin" class="c-tabs__btn">
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
                 </a>
             <?php } ?>
-            <a href="check"
-               class="c-tabs__btn"
-               style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;"
-               target="_blank">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
-                     class="c-icon"
-                     style="width:16px;"
-                     alt=""> Check
+            <a href="check" class="c-tabs__btn" target="_blank">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
             </a>
         </div>
 
         <!-- Rechtsbündige Tools (Timer, What's New, Logout) -->
-        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div class="u-flex u-align-center u-gap-m u-flex-wrap">
 
             <!-- Der "Was ist neu" Button (Nur sichtbar wenn wir auf der Dashboard Action sind und Notes existieren) -->
             <?php if (!empty($allReleaseNotes)) { ?>
-                <!-- FIX: onmouseover="..." und onmouseout="..." komplett gelöscht. Styling passiert jetzt in inline_styles.phtml! -->
                 <button type="button"
                         class="js-show-all-release-notes">
                     🎁 Was ist neu?
                 </button>
             <?php } ?>
 
-            <div title="Automatische Abmeldung bei Inaktivität"
-                 style="font-family: monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 20px; font-weight: bold; color: var(--text-muted); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+            <div class="c-session-pill"
+                 title="Automatische Abmeldung bei Inaktivität">
                 ⏳ <span id="ui-session-timer">20:00</span>
             </div>
 
             <!-- Logout -->
             <button type="button"
                     id="btn-session-logout"
-                    style="background: none; border: none; padding: 0; color: var(--danger-color); font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                    class="c-button c-button--danger-outline u-text-sm"
+                    style="padding-inline: 12px; block-size: 34px;">
                 ✕ Abmelden
             </button>
         </div>
@@ -113,39 +94,34 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
 </nav>
 
 <div id="session-warning-modal"
-     style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-    <div class="c-card"
-         style="background: white; padding: 30px; text-align: center; max-width: 400px; border-top: 5px solid #f59e0b; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);">
-        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <span style="font-size: 1.5rem;">⚠️</span> Inaktivität erkannt
+     class="c-modal">
+    <div class="c-modal__dialog">
+        <h3 class="c-modal__title">
+            <span class="u-text-xl">⚠️</span> Inaktivität erkannt
         </h3>
-        <p style="color: var(--text-muted); line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong
-                    id="modal-session-countdown"
-                    style="color: var(--danger-color); font-size: 1.5rem;">03:00</strong><br> Minuten automatisch
-            abgemeldet.</p>
+        <p class="u-color-muted"
+           style="line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong id="modal-session-countdown"
+                    class="u-color-danger u-text-xl">03:00</strong><br> Minuten automatisch abgemeldet.</p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px;">
+        <div class="o-grid o-grid--2-cols u-margin-top-l">
             <!-- Button 1: Bleiben -->
             <button id="btn-session-stay"
-                    class="c-button c-button--primary"
-                    style="background: var(--success-color); border: 2px solid var(--success-color); font-size: 0.85rem; width: 100%; padding: 12px 0;">
+                    class="c-button c-button--success u-width-100">
                 Bleiben
             </button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
                   action="admin_logout"
-                  style="margin: 0; width: 100%;">
+                  class="u-margin-none u-width-100">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <button type="submit"
-                        class="c-button c-button--danger"
-                        style="font-size: 0.85rem; width: 100%; padding: 12px 0; border: 2px solid var(--danger-color);">
+                        class="c-button c-button--danger u-width-100">
                     Abmelden
                 </button>
             </form>
         </div>
-
     </div>
 </div>

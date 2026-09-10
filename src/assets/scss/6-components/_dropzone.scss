@@ -1,0 +1,47 @@
+@layer components {
+    .c-dropzone {
+        position: relative;
+        transition: all 0.2s ease;
+        border: 2px dashed transparent;
+
+        &--preview {
+            border-color: var(--color-border);
+            cursor: pointer;
+
+            &:hover {
+                border-color: var(--color-primary);
+                background-color: var(--color-bg-light);
+            }
+        }
+
+        &.is-dragover {
+            background-color: var(--color-primary-soft) !important;
+            border-color: var(--color-primary);
+
+            .c-dropzone__overlay {
+                opacity: 1;
+            }
+        }
+
+        &__overlay {
+            position: absolute;
+            inset: 0;
+            background-color: color-mix(
+                in oklch,
+                var(--color-primary) 90%,
+                transparent
+            );
+            color: var(--color-bg-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 10;
+            border-radius: inherit; /* Erbt automatisch, ob es rund (Avatar) oder eckig (Bank-CSV) ist */
+        }
+    }
+}
