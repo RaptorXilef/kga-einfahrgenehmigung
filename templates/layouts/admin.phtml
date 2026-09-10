@@ -31,11 +31,6 @@ $pageTitle ??= 'Admin - ' . ($settings['vereins_name'] ?? 'KGA');
     <?php include_once $appRoot . '/templates/partials/frontend/favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-
-    <!-- Bleibt vorerst, bis Admin-Tabs auch auf SCSS umgezogen wurden -->
-    <?php include $appRoot . '/templates/partials/admin/inline_styles.phtml'; ?>
-
-    <!-- FIX: ESM Module Preloading zur Verhinderung von Network Waterfalls -->
     <link rel="modulepreload"
           href="<?php echo $asset->url('assets/js/core/Bootstrapper.js'); ?>">
     <link rel="modulepreload"

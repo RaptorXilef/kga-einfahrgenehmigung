@@ -1,0 +1,34 @@
+@layer components {
+    .c-control-bar-wrapper {
+        display: flex;
+        justify-content: center;
+        inline-size: 100%;
+    }
+
+    .c-control-bar-section {
+        background-color: var(--color-bg-white);
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+        justify-content: center;
+        padding-block: 10px;
+        padding-inline: 25px;
+        margin-block-end: 2.5rem;
+        inline-size: 100%;
+        max-inline-size: 1100px;
+    }
+
+    .c-control-bar-input {
+        block-size: 34px !important;
+        border-radius: 6px !important;
+        padding-inline: 10px !important;
+        font-size: 0.85rem !important;
+        inline-size: 135px !important;
+        border: 1px solid var(--color-border) !important;
+        background-color: var(--color-bg-light) !important;
+        display: inline-block;
+    }
+}
