@@ -3,10 +3,10 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding-inline: 16px; /* Intelligenter Platz für Text */
+        padding-inline: 16px; /* Wächst intelligent mit dem Text mit */
         padding-block: 0;
         inline-size: auto;
-        min-inline-size: 42px;
+        min-inline-size: 42px; /* Sichert die 42x42px für reine Icon-Buttons ab */
         block-size: 42px;
         border-radius: 10px;
         border: 1px solid var(--color-border);
@@ -16,9 +16,9 @@
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         box-shadow: var(--shadow-sm);
-        gap: 8px; /* Sorgt für Abstand zwischen Icon und Text */
+        gap: 8px; /* Abstand zwischen Icon und Text */
 
-        /* Begrenzt Icons zwingend, damit sie niemals den Button sprengen */
+        /* Strenge Limitierung des Icons, um riesige Bilder (z.B. im Print) zu verhindern */
         .c-icon {
             inline-size: 1.2em;
             block-size: 1.2em;
@@ -98,7 +98,7 @@
             }
         }
 
-        /* Erzwingt eine strikte Quadratform für Buttons ohne Text */
+        /* Setzt das Padding zurück für exakte 42x42 Quadrate ohne Text */
         &--icon-only {
             padding-inline: 0;
             inline-size: 42px;

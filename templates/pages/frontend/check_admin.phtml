@@ -51,7 +51,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                 <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                      class="c-icon c-icon--lg"
                      alt="">
-                <h2 class="u-color-danger u-margin-top-s u-margin-bottom-xs">ZUTRITT VERWEIGERT </h2>
+                <h2 class="u-color-danger u-margin-top-s u-margin-bottom-xs">ZUTRITT VERWEIGERT</h2>
                 <p class="u-font-semibold u-margin-none">Diese Genehmigung ist gesperrt/widerrufen.</p>
             </div>
         <?php } elseif ($permit && $isDateValid && $isTimeAllowed) { ?>
@@ -91,11 +91,11 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
         </div>
         <div class="u-flex u-gap-s">
             <a href="check" class="c-button c-button--secondary">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="Neue Prüfung">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Neue Prüfung
             </a>
             <?php if ($permit && $auth->hasPermission('permits.print')) { ?>
                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--primary">
-                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="Drucken">
+                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt=""> Drucken
                 </a>
             <?php } ?>
         </div>

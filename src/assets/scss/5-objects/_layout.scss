@@ -1,0 +1,17 @@
+@layer objects {
+    .l-public-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-block-size: 100vh;
+    }
+
+    .c-tab-content-container {
+        max-inline-size: 1100px;
+        margin-inline: auto !important;
+        padding-inline: 20px;
+        inline-size: 100%;
+        display: block;
+    }
+}
