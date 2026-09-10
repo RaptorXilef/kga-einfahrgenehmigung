@@ -1,29 +1,23 @@
 @layer utilities {
-    .u-flex-grow-1 {
-        flex-grow: 1 !important;
-    }
-
     .u-display-block {
         display: block !important;
     }
-
     .u-display-inline-block {
         display: inline-block !important;
     }
-
-    .u-margin-auto {
-        margin-inline: auto !important;
-    }
-
     .u-width-100 {
         inline-size: 100% !important;
     }
-
-    .u-justify-center {
-        justify-content: center !important;
+    .u-height-100 {
+        block-size: 100% !important;
     }
-
+    .u-hidden {
+        display: none !important;
+    }
     .u-overflow-x-auto {
         overflow-x: auto !important;
+    }
+    .u-position-relative {
+        position: relative !important;
     }
 }

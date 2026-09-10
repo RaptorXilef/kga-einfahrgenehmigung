@@ -1,73 +1,86 @@
 @layer components {
     .c-table {
-        &--summary {
-            inline-size: 100%;
-            font-size: 0.95rem;
-            border-collapse: collapse;
-        }
-
-        /* Intelligenter Zeilenumbruch für E-Mail-Adressen in ALLEN Tabellen */
-        a[href^='mailto:'] {
-            overflow-wrap: anywhere; /* Bricht an normalen Wörtern, oder mittendrin, wenn der Platz fehlt */
-            word-break: break-word; /* Fallback für ältere Browser */
-            line-break: anywhere;
-            display: inline-block;
-            max-inline-size: 100%;
-        }
+        inline-size: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
     }
 
-    .c-table__row {
-        border-block-start: 1px solid var(--color-border);
+    .c-table th {
+        background-color: var(--color-bg-light);
+        color: var(--color-text-muted);
+        padding-block: 0.85rem;
+        padding-inline: 1rem;
+        border-block-end: 2px solid var(--color-border);
+        text-align: start;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
 
-        &--danger {
-            background-color: var(--color-danger-soft);
-        }
+    .c-table td {
+        padding-block: 1.25rem;
+        padding-inline: 1rem;
+        border-block-end: 1px solid var(--color-border);
+    }
 
-        &--warning {
-            background-color: var(--color-warning-soft);
-        }
+    .c-table__row--danger {
+        background-color: var(--color-danger-soft);
+    }
+
+    .c-table__row--warning {
+        background-color: var(--color-warning-soft);
     }
 
     .c-table__label {
         padding-block: 5px;
         color: var(--color-text-muted);
+    }
 
-        &--total {
-            color: var(--color-text-main);
-            font-weight: 700;
-            font-size: 1.05rem;
-            padding-block: 18px;
-            border-block-start: 2px solid var(--color-border);
-        }
+    .c-table__label--total {
+        color: var(--color-text-main);
+        font-weight: 700;
+        font-size: 1.05rem;
+        padding-block: 18px;
+        border-block-start: 2px solid var(--color-border);
     }
 
     .c-table__value {
         font-weight: 600;
+    }
 
-        &--highlight {
-            font-weight: 800;
-            font-size: 1.1rem;
-            color: var(--color-primary);
-        }
+    .c-table__value--highlight {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--color-primary);
+    }
 
-        &--danger {
-            font-weight: 800;
-            color: var(--color-danger);
-        }
+    .c-table__value--danger {
+        font-weight: 800;
+        color: var(--color-danger);
+    }
 
-        &--code {
-            font-weight: 700;
-            text-transform: uppercase;
-            font-family: monospace;
-            font-size: 1.05rem;
-        }
+    .c-table__value--code {
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: monospace;
+        font-size: 1.05rem;
+    }
 
-        &--total {
-            font-weight: 800;
-            color: var(--color-primary);
-            font-size: 1.4rem;
-            padding-block: 18px;
-            border-block-start: 2px solid var(--color-border);
-        }
+    .c-table__value--total {
+        font-weight: 800;
+        color: var(--color-primary);
+        font-size: 1.4rem;
+        padding-block: 18px;
+        border-block-start: 2px solid var(--color-border);
+    }
+
+    /* Intelligenter Zeilenumbruch für E-Mail-Adressen in ALLEN Tabellen */
+    .c-table a[href^='mailto:'] {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-break: anywhere;
+        display: inline-block;
+        max-inline-size: 100%;
     }
 }

@@ -8,16 +8,16 @@
         border-block-start: 1px solid var(--color-border);
         flex-wrap: wrap;
         gap: 10px;
+    }
 
-        &__info {
-            color: var(--color-text-muted);
-            font-size: 0.85rem;
-        }
+    .c-pagination__info {
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+    }
 
-        &__controls {
-            display: flex;
-            align-items: center;
-            gap: var(--space-xs);
-        }
+    .c-pagination__controls {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
     }
 }

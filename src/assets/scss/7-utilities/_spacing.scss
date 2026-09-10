@@ -1,8 +1,11 @@
 @layer utilities {
-    /* Margins */
     .u-margin-none {
         margin: 0 !important;
     }
+    .u-margin-auto {
+        margin-inline: auto !important;
+    }
+
     .u-margin-top-none {
         margin-block-start: 0 !important;
     }
@@ -28,11 +31,11 @@
     .u-margin-x-xs {
         margin-inline: 0.25rem !important;
     }
-    .u-margin-right-xs {
-        margin-inline-end: 0.25rem !important;
-    }
     .u-margin-left-xs {
         margin-inline-start: 0.25rem !important;
+    }
+    .u-margin-right-xs {
+        margin-inline-end: 0.25rem !important;
     }
 
     .u-margin-top-s {
@@ -46,6 +49,9 @@
     }
     .u-margin-x-s {
         margin-inline: 0.5rem !important;
+    }
+    .u-margin-left-s {
+        margin-inline-start: 0.5rem !important;
     }
 
     .u-margin-top-m {
@@ -87,7 +93,6 @@
         margin-inline: 3rem !important;
     }
 
-    /* Paddings */
     .u-padding-none {
         padding: 0 !important;
     }
