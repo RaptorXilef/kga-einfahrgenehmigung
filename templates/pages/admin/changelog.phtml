@@ -65,5 +65,5 @@ $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
     <script type="text/markdown"
             id="raw-markdown"
             nonce="<?php echo $cspNonce; ?>"
-            style="display:none;"><?php echo \htmlspecialchars($markdownContent); ?></script>
+            class="u-hidden"><?php echo \htmlspecialchars($markdownContent); ?></script>
 </div>

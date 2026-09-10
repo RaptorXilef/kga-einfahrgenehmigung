@@ -111,7 +111,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt=""> Finanzen
                         <?php $openCount = \count($permitGroups['unpaid'] ?? []);
                     if ($openCount > 0) {
-                        echo '<span class="c-badge c-badge--danger" style="padding-inline: 6px; padding-block: 2px; font-size: 10px; margin-inline-start: 5px;">' . $openCount . '</span>';
+                        echo '<span class="c-badge c-badge--danger u-margin-left-xs">' . $openCount . '</span>';
                     } ?>
                     </button>
                 <?php } ?>
@@ -306,33 +306,28 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </script>
 
     <div id="release-notes-modal"
-         class="c-modal"
-         style="display: none;">
-        <div class="c-modal__dialog c-card c-card--primary u-padding-none u-flex-column"
-             style="max-inline-size: 950px; max-block-size: 85vh;">
-            <header class="c-card__header u-flex u-justify-between u-align-center"
-                    style="background-color: var(--color-bg-light); padding: 15px 20px;">
+         class="c-modal u-hidden">
+        <div class="c-modal__dialog c-card c-card--primary u-padding-none u-flex-column o-container o-container--large">
+            <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
                     🚀 Neu seit Ihrem letzten Login <?php // TODO auf Icon ändern!?>
                 </h3>
                 <div class="u-flex u-align-center u-gap-s">
-                    <span class="c-badge c-badge--success js-release-notes-badge" style="display: none;">Updates verfügbar</span>
+                    <span class="c-badge c-badge--success js-release-notes-badge u-hidden">Updates verfügbar</span>
                     <button type="button"
                             class="c-button c-button--danger c-button--icon-only js-close-release-notes"
-                            style="border-radius: 50%; inline-size: 32px; block-size: 32px;"
                             title="Schließen & Gelesen">
                         &times;
                     </button>
                 </div>
             </header>
-            <div class="c-card__body u-padding-y-l u-text-left"
-                 style="overflow-y: auto;">
-                <div id="release-notes-content"></div>
+            <div class="c-card__body u-padding-y-l u-text-left u-overflow-x-auto">
+                <div id="release-notes-content"
+                     class="c-markdown"></div>
             </div>
             <footer class="c-card__footer u-text-center">
                 <button type="button"
-                        class="c-button c-button--primary js-close-release-notes"
-                        style="inline-size: 100%; max-inline-size: 400px; padding: 14px; font-size: 1.05rem;">
+                        class="c-button c-button--primary js-close-release-notes u-width-100 o-container o-container--small">
                     ✓ Alles klar, verstanden!
                 </button>
             </footer>
