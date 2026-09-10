@@ -24,277 +24,261 @@ use App\Infrastructure\Config\Config;
 ?>
 <?php if ($auth->hasPermission('vouchers.view')) { ?>
     <div class="c-tab-content-container">
-        <div class="u-grid u-gap-l"
-             style="grid-template-columns: 1.6fr 1fr;">
+        <div class="o-grid o-grid--sidebar u-align-start">
 
             <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
-            <?php if ($auth->hasPermission('vouchers.view')) { ?>
-                <section class="c-card">
-                    <header class="c-card__header">
-                        <h3 class="u-margin-none">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                                 class="c-icon"
-                                 alt=""> Offene Gutscheincodes
-                        </h3>
-                        <p class="u-text-muted">Noch nicht eingelöste Wertcodes für das System.</p>
-                    </header>
-                    <div class="u-padding-none"
-                         style="max-height: 650px; overflow-y: auto;">
-                        <table class="c-table">
-                            <thead>
+            <section class="c-card">
+                <header class="c-card__header">
+                    <h3 class="u-margin-none">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Offene Gutscheincodes
+                    </h3>
+                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Noch nicht eingelöste Wertcodes für
+                        das System.</p>
+                </header>
+                <div class="c-card__body u-padding-none"
+                     style="max-block-size: 650px; overflow-y: auto;">
+                    <table class="c-table">
+                        <thead>
+                            <tr style="background-color: var(--color-bg-light);">
+                                <th style="inline-size: 110px;">Code / QR</th>
+                                <th>Details & Konditionen</th>
+                                <th class="u-text-right"
+                                    style="padding-inline-end: 20px;">Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $activeVouchers = \array_filter($vouchers ?? [], function (Voucher $v): bool {
+                                return $v->status === 'aktiv' && !$v->isDepleted();
+                            });
+    if (empty($activeVouchers)) {
+        ?>
                                 <tr>
-                                    <th style="width: 110px;">Code / QR</th>
-                                    <th>Details & Konditionen</th>
-                                    <th class="u-text-right">Aktion</th>
+                                    <td colspan="3"
+                                        class="u-text-center u-padding-around-l u-color-muted">
+                                        Aktuell keine unbenutzten Gutscheincodes vorhanden.
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $activeVouchers = \array_filter($vouchers ?? [], function (Voucher $v): bool {
-                                    return $v->status === 'aktiv' && !$v->isDepleted();
-                                });
-                if (empty($activeVouchers)) {
-                    ?>
-                                    <tr>
-                                        <td colspan="3"
-                                            class="u-text-center u-padding-around-l u-text-muted">
-                                            Aktuell keine unbenutzten Gutscheincodes vorhanden.
+                            <?php } else { ?>
+                                <?php foreach ($vouchers as $v) {
+                                    $vCodeStr = $v->code->value;
+                                    $url = $config->getBaseUrl() . 'index?voucher=' . $vCodeStr;
+                                    $isValid = $voucherValidities[$vCodeStr] ?? false;
+                                    $isDeactivated = $v->isDeactivated();
+                                    $isExpired = $v->isExpired(new \DateTimeImmutable());
+                                    $discountText = 'Kostenlos';
+
+                                    if ($v->type === 'percent') {
+                                        $discountText = $v->value . '% Rabatt';
+                                    } elseif ($v->type === 'fixed') {
+                                        $discountText = \number_format($v->value, 2, ',', '.') . ' € Festpreis';
+                                    }
+                                    ?>
+                                    <tr class="u-hover-fade <?php echo !$isValid ? 'c-table__row--danger u-opacity-50' : ''; ?>">
+                                        <td style="vertical-align: middle;">
+                                            <div class="u-text-center">
+                                                <button type="button"
+                                                        class="c-button c-button--secondary js-show-qr"
+                                                        style="padding-inline: 8px; block-size: 28px; font-size: 0.75rem;"
+                                                        title="QR-Code anzeigen"
+                                                        data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
+                                                        data-url="<?php echo \htmlspecialchars($url); ?>">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
+                                                         class="c-icon"
+                                                         alt=""> QR
+                                                </button>
+                                                <code class="u-display-block u-margin-top-s u-text-xs u-font-bold">
+                                                <?php echo $vCodeStr; ?>
+                                            </code>
+                                            </div>
                                         </td>
-                                    </tr>
-                                <?php } else { ?>
-                                    <?php foreach ($vouchers as $v) {
-                                        $vCodeStr = $v->code->value;
-                                        $url = $config->getBaseUrl() . 'index?voucher=' . $vCodeStr;
-                                        $isValid = $voucherValidities[$vCodeStr] ?? false;
-                                        $isDeactivated = $v->isDeactivated();
-                                        $isExpired = $v->isExpired(new \DateTimeImmutable());
-                                        $discountText = 'Kostenlos';
+                                        <td style="vertical-align: middle;">
+                                            <strong class="u-display-block u-text-sm u-color-dark">
+                                                <?php echo \htmlspecialchars($v->reason); ?>
+                                                <?php if ($isExpired) {
+                                                    echo '<span class="u-color-danger u-text-xs u-margin-left-s">(Abgelaufen)</span>';
+                                                } ?>
+                                            </strong>
+                                            <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap">
+                                                <span class="c-badge"
+                                                      style="background-color: <?php echo $v->type === 'free' ? 'var(--color-success)' : 'var(--color-primary)'; ?>; color: white;">
+                                                <?php echo $discountText; ?>
+                                            </span>
+                                                <?php if ($v->multiUse) { ?>
+                                                    <span class="c-badge c-badge--outline">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                                                         class="c-icon"
+                                                         alt="">
+                                                    &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
+                                                </span>
+                                                <?php } else { ?>
+                                                    <span class="c-badge c-badge--outline">Einweg</span>
+                                                <?php } ?>
+                                                <?php if ($v->dateMode === 'flexible') { ?>
+                                                    <span class="c-badge c-badge--outline">Flexible Datenwahl</span>
+                                                <?php } else { ?>
+                                                    <span class="c-badge c-badge--outline">Gefixte Daten</span>
+                                                <?php } ?>
+                                            </div>
 
-                                        if ($v->type === 'percent') {
-                                            $discountText = $v->value . '% Rabatt';
-                                        } elseif ($v->type === 'fixed') {
-                                            $discountText = \number_format($v->value, 2, ',', '.') . ' € Festpreis';
-                                        }
-                                        ?>
-                                        <tr class="<?php echo !$isValid ? 'u-bg-suspended u-opacity-50' : ''; ?>">
-                                            <td>
-                                                <div class="u-text-center">
-                                                    <button type="button"
-                                                            class="c-button c-button--secondary js-show-qr"
-                                                            style="padding: 4px 8px; font-size: 0.75rem;"
-                                                            title="QR-Code anzeigen"
-                                                            data-code="<?php echo \htmlspecialchars($vCodeStr); ?>"
-                                                            data-url="<?php echo \htmlspecialchars($url); ?>">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
-                                                             class="c-icon"
-                                                             alt=""
-                                                             style="width: 14px;"> QR
-                                                    </button>
-                                                    <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;">
-                                                        <?php echo $vCodeStr; ?>
-                                                    </code>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <strong
-                                                        style="display:block; font-size: 1rem; color: var(--text-dark);">
-                                                    <?php echo \htmlspecialchars($v->reason); ?>
-                                                    <?php if ($isExpired) {
-                                                        echo '<span style="color: var(--danger-color); font-size: 0.8rem; margin-left: 10px;">(Abgelaufen)</span>';
-                                                    } ?>
-                                                </strong>
-                                                <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap"
-                                                     style="font-size: 0.8rem;">
-                                                    <span class="c-badge"
-                                                          style="background: <?php echo $v->type === 'free' ? 'var(--success-color)' : 'var(--primary-color)'; ?>; color: white;">
-                                                        <?php echo $discountText; ?>
-                                                    </span>
-                                                    <?php if ($v->multiUse) { ?>
-                                                        <span class="c-badge"
-                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                                                            <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                                                                 class="c-icon"
-                                                                 alt="">
-                                                            &nbsp;
-                                                            Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
-                                                        </span>
-                                                    <?php } else { ?>
-                                                        <span class="c-badge"
-                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                                                            Einweg
-                                                        </span>
-                                                    <?php } ?>
-                                                    <?php if ($v->dateMode === 'flexible') { ?>
-                                                        <span class="c-badge"
-                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                                                            Flexible Datenwahl
-                                                        </span>
-                                                    <?php } else { ?>
-                                                        <span class="c-badge"
-                                                              style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                                                            Gefixte Daten
-                                                        </span>
-                                                    <?php } ?>
-                                                </div>
+                                            <div class="u-margin-top-s u-text-xs u-color-muted">
+                                                <?php if (!empty($v->data['name'])) { ?>
+                                                    Vorbefüllt für: <strong><?php echo \htmlspecialchars($v->data['name']); ?></strong> (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
+                                                <?php } ?>
+                                                <?php if ($v->expiresAt) { ?>
+                                                    Gültig bis: <strong><?php echo $v->expiresAt->format('d.m.Y H:i'); ?> Uhr</strong>
+                                                <?php } ?>
+                                            </div>
 
-                                                <div class="u-margin-top-s"
-                                                     style="font-size: 0.8rem; color: var(--text-muted);">
-                                                    <?php if (!empty($v->data['name'])) { ?>
-                                                        Vorbefüllt für: <strong><?php echo \htmlspecialchars($v->data['name']); ?></strong> (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
-                                                    <?php } ?>
-                                                    <?php if ($v->expiresAt) { ?>
-                                                        Gültig bis: <strong><?php echo $v->expiresAt->format('d.m.Y H:i'); ?> Uhr</strong>
-                                                    <?php } ?>
-                                                </div>
-
-                                                <div class="u-margin-top-s">
-                                                    <span class="u-text-link js-copy-link"
-                                                          style="font-size: 0.75rem; font-weight: 600; cursor: pointer;"
-                                                          data-url="<?php echo $url; ?>">
-                                                        Link kopieren
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
-                                                             class="c-icon"
-                                                             alt="">
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="u-text-right">
-                                                <div class="u-flex u-gap-xs u-justify-end">
-                                                    <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
-                                                        <form method="POST"
-                                                              action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
-                                                              style="margin:0;">
-                                                            <input type="hidden"
-                                                                   name="csrf_token"
-                                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                            <input type="hidden"
-                                                                   name="code"
-                                                                   value="<?php echo $vCodeStr; ?>">
-                                                            <!-- FIX: Action Feld für DTO hinzugefügt -->
-                                                            <input type="hidden"
-                                                                   name="action"
-                                                                   value="<?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>">
-                                                            <?php if ($isDeactivated) { ?>
-                                                                <button type="submit"
-                                                                        class="c-button c-button--success c-button--small"
-                                                                        title="Aktivieren"><img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
-                                                                         class="c-icon"
-                                                                         alt=""></button>
-                                                            <?php } else { ?>
-                                                                <button type="submit"
-                                                                        class="c-button c-button--danger c-button--small"
-                                                                        title="Sperren"><img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
-                                                                         class="c-icon"
-                                                                         alt=""></button>
-                                                            <?php } ?>
-                                                        </form>
-                                                    <?php } ?>
-
-                                                    <?php if ($auth->hasPermission('vouchers.delete')) { ?>
-                                                        <form method="POST"
-                                                              action="<?php echo $settings['base_url']; ?>delete_voucher"
-                                                              style="margin:0;"
-                                                              data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
-                                                            <input type="hidden"
-                                                                   name="csrf_token"
-                                                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                            <input type="hidden"
-                                                                   name="code"
-                                                                   value="<?php echo $vCodeStr; ?>">
+                                            <div class="u-margin-top-s">
+                                                <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer"
+                                                      data-url="<?php echo $url; ?>">
+                                                Link kopieren
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                                                     class="c-icon"
+                                                     alt="">
+                                            </span>
+                                            </div>
+                                        </td>
+                                        <td class="u-text-right"
+                                            style="vertical-align: middle; padding-inline-end: 20px;">
+                                            <div class="u-flex u-gap-xs u-justify-end">
+                                                <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
+                                                    <form method="POST"
+                                                          action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
+                                                          class="u-margin-none">
+                                                        <input type="hidden"
+                                                               name="csrf_token"
+                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                        <input type="hidden"
+                                                               name="code"
+                                                               value="<?php echo $vCodeStr; ?>">
+                                                        <input type="hidden"
+                                                               name="action"
+                                                               value="<?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>">
+                                                        <?php if ($isDeactivated) { ?>
                                                             <button type="submit"
-                                                                    class="c-button c-button--small"
-                                                                    style="background: transparent; border-color: var(--danger-color);"
-                                                                    title="Löschen"><img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                                                    class="c-button c-button--success c-button--icon-only"
+                                                                    title="Aktivieren"><img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                      class="c-icon"
                                                                      alt=""></button>
-                                                        </form>
-                                                    <?php } ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php } ?>
+                                                        <?php } else { ?>
+                                                            <button type="submit"
+                                                                    class="c-button c-button--danger c-button--icon-only"
+                                                                    title="Sperren"><img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                                                                     class="c-icon"
+                                                                     alt=""></button>
+                                                        <?php } ?>
+                                                    </form>
+                                                <?php } ?>
+
+                                                <?php if ($auth->hasPermission('vouchers.delete')) { ?>
+                                                    <form method="POST"
+                                                          action="<?php echo $settings['base_url']; ?>delete_voucher"
+                                                          class="u-margin-none"
+                                                          data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
+                                                        <input type="hidden"
+                                                               name="csrf_token"
+                                                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                                                        <input type="hidden"
+                                                               name="code"
+                                                               value="<?php echo $vCodeStr; ?>">
+                                                        <button type="submit"
+                                                                class="c-button c-button--danger-outline c-button--icon-only"
+                                                                title="Löschen"><img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                                                 class="c-icon"
+                                                                 alt=""></button>
+                                                    </form>
+                                                <?php } ?>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 <?php } ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- RECHTER BLOCK: ARCHIV-->
-            <?php if ($auth->hasPermission('vouchers.view')) { ?>
-                <section class="c-card">
-                    <header class="c-card__header">
-                        <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                                 class="c-icon"
-                                 alt=""> Archiv</h3>
-                        <p class="u-text-muted">Bereits vollständig eingelöste Codes.</p>
-                    </header>
-                    <div class="u-padding-none"
-                         style="max-height: 650px; overflow-y: auto;">
-                        <table class="c-table c-table--small">
-                            <thead>
+            <section class="c-card c-card--dark">
+                <header class="c-card__header">
+                    <h3 class="u-margin-none">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Archiv</h3>
+                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Bereits vollständig eingelöste
+                        Codes.</p>
+                </header>
+                <div class="c-card__body u-padding-none"
+                     style="max-block-size: 650px; overflow-y: auto;">
+                    <table class="c-table c-table--summary">
+                        <thead>
+                            <tr style="background-color: var(--color-bg-light);">
+                                <th class="u-text-left u-padding-x-m">Datum</th>
+                                <th class="u-text-left">Nutzer</th>
+                                <th class="u-text-right u-padding-x-m">Code</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $archive = $voucherArchive ?? [];
+    if (empty($archive)) { ?>
                                 <tr>
-                                    <th>Datum</th>
-                                    <th>Nutzer</th>
-                                    <th class="u-text-right">Code</th>
+                                    <td colspan="3"
+                                        class="u-text-center u-padding-around-l u-color-muted">Noch keine Einlösungen
+                                        dokumentiert.</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php $archive = $voucherArchive ?? [];
-                if (empty($archive)) { ?>
-                                    <tr>
-                                        <td colspan="3"
-                                            class="u-text-center u-padding-around-l u-text-muted">Noch keine Einlösungen
-                                            dokumentiert.</td>
+                            <?php } else { ?>
+                                <?php foreach ($archive as $arc) { ?>
+                                    <tr class="u-hover-fade">
+                                        <td class="u-text-nowrap u-padding-x-m"
+                                            style="vertical-align: middle;">
+                                            <small class="u-font-bold u-color-muted"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
+                                        </td>
+                                        <td style="vertical-align: middle;">
+                                            <div style="line-height: 1.2;">
+                                                <span class="u-font-semibold"><?php echo \htmlspecialchars($arc['user_name']); ?></span><br>
+                                                <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
+                                            </div>
+                                        </td>
+                                        <td class="u-text-right u-padding-x-m"
+                                            style="vertical-align: middle;">
+                                            <code class="c-license-plate"><?php echo $arc['code']; ?></code>
+                                        </td>
                                     </tr>
-                                <?php } else { ?>
-                                    <?php foreach ($archive as $arc) { ?>
-                                        <tr>
-                                            <td style="white-space: nowrap;">
-                                                <small class="u-font-bold"
-                                                       style="color: var(--text-muted);"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
-                                            </td>
-                                            <td>
-                                                <div style="line-height: 1.2;">
-                                                    <span style="font-weight: 600;"><?php echo \htmlspecialchars($arc['user_name']); ?></span><br>
-                                                    <small class="u-text-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
-                                                </div>
-                                            </td>
-                                            <td class="u-text-right">
-                                                <code style="font-size: 0.75rem; background: var(--bg-light); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px;"><?php echo $arc['code']; ?></code>
-                                            </td>
-                                        </tr>
-                                    <?php } ?>
                                 <?php } ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            <?php } ?>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
         </div>
     </div>
 
     <div id="qrModal"
-         style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-        <div class="c-card"
-             style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 320px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
-            <h4 class="u-margin-top-none u-margin-bottom-s">QR-Code scannen</h4>
-            <code id="qrModalCode" style="display:inline-block; margin-bottom: 20px; padding: 4px 10px; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; font-size: 1rem;"></code>
+         class="c-modal">
+        <div class="c-modal__dialog">
+            <h4 class="c-modal__title u-margin-bottom-s">QR-Code scannen</h4>
+            <code id="qrModalCode"
+                  class="c-license-plate u-margin-bottom-m u-text-lg"
+                  style="padding-inline: 10px;"></code>
 
-            <div
-                 style="min-height: 220px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px;">
+            <div class="c-box u-margin-none u-flex u-align-center u-justify-center"
+                 style="min-block-size: 220px;">
                 <img id="qrModalImg"
                      src=""
                      alt="QR Code"
-                     style="display: none; max-width: 200px; height: auto;">
+                     style="display: none; max-inline-size: 200px; block-size: auto;">
                 <div id="qrModalLoader"
-                     class="u-text-muted">Wird generiert...</div>
+                     class="u-color-muted">Wird generiert...</div>
             </div>
 
             <button type="button"
-                    class="c-button c-button--primary u-width-100 u-margin-top-m js-close-modal"
-                    style="padding: 12px;">Schließen
+                    class="c-button c-button--primary u-width-100 u-margin-top-m js-close-modal">
+                Schließen
             </button>
         </div>
     </div>

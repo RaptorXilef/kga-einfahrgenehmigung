@@ -58,26 +58,20 @@ $crons = [
     <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
         <div class="u-margin-bottom-l">
             <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-font-xl">🛠️</span>
+                <span class="u-text-xl">🛠️</span>
                 <div>
                     <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
-                    <p class="u-text-muted u-text-small u-margin-none">Cache leeren und alte Daten anonymisieren.</p>
+                    <p class="u-color-muted u-text-sm u-margin-none">Cache leeren und alte Daten anonymisieren.</p>
                 </div>
             </header>
-            <div class="u-grid"
-                 style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                <div class="c-card"
-                     style="margin-bottom: 0; border-top: 4px solid var(--info-color); display: flex; flex-direction: column;">
-                    <div class="c-card__header u-flex u-align-center u-gap-s"
-                         style="padding: 1rem 1.5rem;">
-                        <h4 class="u-margin-none"
-                            style="font-size: 1.1rem;">🛡️ DSGVO-Anonymisierung</h4>
+            <div class="o-grid o-grid--auto-fit-lg">
+                <div class="c-card c-card--primary u-flex-column u-margin-none">
+                    <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
+                        <h4 class="u-margin-none u-text-lg">🛡️ DSGVO-Anonymisierung</h4>
                     </div>
-                    <div class="c-card__body u-flex u-flex-column u-gap-m"
-                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                        <p class="u-text-small u-margin-none">Anonymisiert personenbezogene Daten in Archiv-Einträgen,
-                            die älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
-                        <!-- FIX: data-confirm statt onsubmit -->
+                    <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
+                        <p class="u-text-sm u-margin-none">Anonymisiert personenbezogene Daten in Archiv-Einträgen, die
+                            älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>anonymize_archive"
                               data-confirm="Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?"
@@ -86,24 +80,18 @@ $crons = [
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <button type="submit"
-                                    class="c-button c-button--secondary u-width-100"
-                                    style="font-size: 0.9rem;"> Jetzt bereinigen </button>
+                                    class="c-button c-button--secondary u-width-100">Jetzt bereinigen</button>
                         </form>
                     </div>
                 </div>
 
-                <div class="c-card"
-                     style="margin-bottom: 0; border-top: 4px solid var(--danger-color); display: flex; flex-direction: column;">
-                    <div class="c-card__header u-flex u-align-center u-gap-s"
-                         style="padding: 1rem 1.5rem;">
-                        <h4 class="u-margin-none"
-                            style="font-size: 1.1rem;">🧹 System-Cache leeren</h4>
+                <div class="c-card c-card--danger u-flex-column u-margin-none">
+                    <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
+                        <h4 class="u-margin-none u-text-lg">🧹 System-Cache leeren</h4>
                     </div>
-                    <div class="c-card__body u-flex u-flex-column u-gap-m"
-                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                        <p class="u-text-small u-margin-none">Löscht temporäre Dateien, Routen-Caches und kompiliert die
+                    <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
+                        <p class="u-text-sm u-margin-none">Löscht temporäre Dateien, Routen-Caches und kompiliert die
                             System-Berechtigungen neu.</p>
-                        <!-- FIX: data-confirm statt onsubmit -->
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>clear_cache"
                               data-confirm="Cache jetzt leeren?"
@@ -112,8 +100,7 @@ $crons = [
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <button type="submit"
-                                    class="c-button c-button--secondary u-width-100"
-                                    style="font-size: 0.9rem;"> Cache leeren </button>
+                                    class="c-button c-button--secondary u-width-100">Cache leeren</button>
                         </form>
                     </div>
                 </div>
@@ -124,25 +111,20 @@ $crons = [
     <?php if ($auth->hasPermission('system.update.execute')) { ?>
         <div class="u-margin-bottom-l">
             <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-font-xl">🔄</span>
+                <span class="u-text-xl">🔄</span>
                 <div>
                     <h3 class="u-margin-none">System-Updates</h3>
-                    <p class="u-text-muted u-text-small u-margin-none">Verwalten Sie Datenbank-Updates und
+                    <p class="u-color-muted u-text-sm u-margin-none">Verwalten Sie Datenbank-Updates und
                         Schema-Erweiterungen.</p>
                 </div>
             </header>
-            <div class="u-grid"
-                 style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                <div class="c-card"
-                     style="margin-bottom: 0; border-top: 4px solid var(--primary-color); display: flex; flex-direction: column;">
-                    <div class="c-card__header u-flex u-align-center u-gap-s"
-                         style="padding: 1rem 1.5rem;">
-                        <h4 class="u-margin-none"
-                            style="font-size: 1.1rem;">⚡ Datenbank-Migrationen</h4>
+            <div class="o-grid o-grid--auto-fit-lg">
+                <div class="c-card c-card--success u-flex-column u-margin-none">
+                    <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
+                        <h4 class="u-margin-none u-text-lg">⚡ Datenbank-Migrationen</h4>
                     </div>
-                    <div class="c-card__body u-flex u-flex-column u-gap-m"
-                         style="padding: 1.25rem 1.5rem; flex-grow: 1;">
-                        <p class="u-text-small u-margin-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql Dateien)
+                    <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
+                        <p class="u-text-sm u-margin-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql Dateien)
                             manuell aus, falls dies nicht via Console geschehen ist.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>run_update_migrations"
@@ -151,8 +133,7 @@ $crons = [
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                             <button type="submit"
-                                    class="c-button c-button--primary u-width-100"
-                                    style="font-size: 0.9rem;"> Datenbank migrieren </button>
+                                    class="c-button c-button--primary u-width-100">Datenbank migrieren</button>
                         </form>
                     </div>
                 </div>
@@ -163,10 +144,10 @@ $crons = [
     <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
         <div class="u-margin-top-xl">
             <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-font-xl">⏱️</span>
+                <span class="u-text-xl">⏱️</span>
                 <div>
                     <h3 class="u-margin-none">Cronjobs & Automatisierung</h3>
-                    <p class="u-text-muted u-text-small u-margin-none">Rufen Sie diese URLs über Ihren Webhoster (z.B.
+                    <p class="u-color-muted u-text-sm u-margin-none">Rufen Sie diese URLs über Ihren Webhoster (z.B.
                         Strato, Ionos, oder cron-job.org) zyklisch per GET auf.</p>
                 </div>
             </header>
@@ -180,44 +161,37 @@ $crons = [
 
             <div class="u-flex u-flex-column u-gap-m">
                 <?php foreach ($crons as $cron) { ?>
-                    <div class="c-card u-margin-none"
-                         style="border-left: 4px solid var(--primary-color);">
-                        <div class="c-card__body u-padding-around-m u-flex u-flex-column u-gap-m">
-                            <div>
-                                <h4 class="u-margin-none"
-                                    style="font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-                                    <span><?php echo $cron['icon']; ?></span> <?php echo $cron['label']; ?>
-                                </h4>
-                                <p class="u-text-small u-text-muted u-margin-top-xs u-margin-bottom-none"><?php echo $cron['desc']; ?></p>
-                                <div class="u-margin-top-s">
-                                    <span class="c-badge" style="background: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-main);">
-                                        Empfohlen: <?php echo $cron['interval']; ?>
-                                    </span>
-                                </div>
+                    <div class="c-box c-box--highlight c-card__body u-flex u-flex-column u-gap-m u-margin-none">
+                        <div>
+                            <h4 class="u-margin-none u-flex u-align-center u-gap-s u-text-md">
+                                <span><?php echo $cron['icon']; ?></span> <?php echo $cron['label']; ?>
+                            </h4>
+                            <p class="u-text-sm u-color-muted u-margin-top-xs u-margin-bottom-none"><?php echo $cron['desc']; ?></p>
+                            <div class="u-margin-top-s">
+                                <span class="c-badge c-badge--outline">Empfohlen: <?php echo $cron['interval']; ?></span>
                             </div>
+                        </div>
 
-                            <!-- Das URL-Feld mit Buttons ist jetzt blockartig und passt sich zu 100% einheitlich an! -->
-                            <div class="u-flex u-align-center u-gap-s u-width-100">
-                                <input type="text"
-                                       readonly
-                                       value="<?php echo \htmlspecialchars($cron['url']); ?>"
-                                       class="c-form-input u-text-small js-select-on-click"
-                                       style="flex: 1; min-width: 0; background: #f8fafc; font-family: monospace; color: var(--text-muted);">
-                                <button type="button"
-                                        class="c-button c-button--secondary js-copy-btn"
-                                        data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
-                                        title="In Zwischenablage kopieren"><img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
-                                         class="c-icon"
-                                         alt="">
-                                </button>
-                                <button type="button"
-                                        class="c-button c-button--primary js-cron-btn"
-                                        data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
-                                        style="width: auto; padding: 0 15px; font-size: 0.85rem; font-weight: 600;"
-                                        title="Jetzt manuell ausführen">
-                                    ▶ Ausführen
-                                </button>
-                            </div>
+                        <div class="u-flex u-align-center u-gap-s u-width-100">
+                            <input type="text"
+                                   readonly
+                                   value="<?php echo \htmlspecialchars($cron['url']); ?>"
+                                   class="c-form-input u-text-sm js-select-on-click u-color-muted u-font-mono"
+                                   style="flex: 1; min-inline-size: 0; background-color: var(--color-bg-light);">
+                            <button type="button"
+                                    class="c-button c-button--secondary c-button--icon-only js-copy-btn"
+                                    data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
+                                    title="In Zwischenablage kopieren">
+                                <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                                     class="c-icon"
+                                     alt="">
+                            </button>
+                            <button type="button"
+                                    class="c-button c-button--primary js-cron-btn"
+                                    data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
+                                    title="Jetzt manuell ausführen">
+                                ▶ Ausführen
+                            </button>
                         </div>
                     </div>
                 <?php } ?>
