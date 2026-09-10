@@ -3,8 +3,10 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0;
+        padding-inline: 16px; /* Intelligenter Platz für Text */
+        padding-block: 0;
         inline-size: auto;
+        min-inline-size: 42px;
         block-size: 42px;
         border-radius: 10px;
         border: 1px solid var(--color-border);
@@ -14,7 +16,15 @@
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         box-shadow: var(--shadow-sm);
-        gap: 6px;
+        gap: 8px; /* Sorgt für Abstand zwischen Icon und Text */
+
+        /* Begrenzt Icons zwingend, damit sie niemals den Button sprengen */
+        .c-icon {
+            inline-size: 1.2em;
+            block-size: 1.2em;
+            flex-shrink: 0;
+            margin: 0;
+        }
 
         &:hover {
             background-color: var(--color-bg-light);
@@ -27,7 +37,6 @@
             background-color: var(--color-primary);
             color: var(--color-bg-white);
             border: none;
-            padding-inline: 24px;
             font-weight: 700;
 
             &:hover {
@@ -40,7 +49,7 @@
         }
 
         &--secondary {
-            padding-inline: 24px;
+            background-color: var(--color-bg-white);
         }
 
         &--success {
@@ -51,7 +60,6 @@
                 var(--color-success) 40%,
                 transparent
             );
-            padding-inline: 24px;
 
             &:hover {
                 background-color: color-mix(
@@ -70,7 +78,6 @@
                 var(--color-danger) 40%,
                 transparent
             );
-            padding-inline: 24px;
 
             &:hover {
                 background-color: color-mix(
@@ -85,16 +92,36 @@
             background-color: transparent;
             border-color: var(--color-danger);
             color: var(--color-danger);
-            padding-inline: 24px;
 
             &:hover {
                 background-color: var(--color-danger-soft);
             }
         }
 
+        /* Erzwingt eine strikte Quadratform für Buttons ohne Text */
         &--icon-only {
-            inline-size: 42px;
             padding-inline: 0;
+            inline-size: 42px;
+        }
+
+        &--submit {
+            padding-block: 16px;
+            block-size: auto;
+            font-size: 1.1rem;
+        }
+
+        &--large {
+            padding-block: 15px;
+            block-size: auto;
+            font-size: 1.1rem;
+            inline-size: 100%;
+        }
+
+        &--responsive {
+            flex: 1;
+            min-inline-size: 200px;
+            min-block-size: 48px;
+            margin: 0;
         }
     }
 }

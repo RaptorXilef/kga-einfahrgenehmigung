@@ -17,37 +17,37 @@ $path = \parse_url($requestUri, \PHP_URL_PATH);
 $path = \trim((string) $path, '/');
 $currentPage = $path === '' ? 'index' : $path;
 ?>
-<nav
-     style="background: #fff; border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
-    <div class="c-tab-content-container"
-         style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
 
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <div class="u-margin-bottom-m u-flex u-justify-center">
+<nav class="c-header-nav">
+    <div class="c-tab-content-container c-header-nav__container">
+
+        <div class="c-header-nav__brand">
+            <div class="u-flex u-justify-center">
                 <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
                      alt="KGA Einfahrts-Manager Logo"
-                     style="max-width: 40px; max-height: 40px; object-fit: contain;">
+                     class="c-logo"
+                     style="max-inline-size: 40px; max-block-size: 40px;">
             </div>
-            <span style="font-weight: 800; color: var(--primary-color); margin-right: 15px; letter-spacing: 0.5px;">
+            <span class="c-header-nav__title">
                 <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
             </span>
 
-            <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Antrag
+            <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
             </a>
 
-            <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Verlauf
+            <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
             </a>
 
-            <a href="check" class="c-tabs__btn <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Check
+            <a href="check" class="c-tabs__btn <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
             </a>
         </div>
 
         <div>
-            <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem;">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" style="width:16px;" alt=""> Verwaltung
+            <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
             </a>
         </div>
     </div>

@@ -21,14 +21,13 @@ if (empty($consentConfig['enabled'])) {
 }
 
 $baseUrl = $settings['base_url'] ?? '/';
-
 $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
 ?>
 
 <div id="kga-consent-banner"
-     class="js-consent-banner"
-     style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid var(--border-color); padding: 20px; z-index: 99999; box-shadow: 0 -5px 25px rgba(0,0,0,0.05);">
-    <div style="max-width: 800px; margin: 0 auto;">
+     class="c-consent-banner js-consent-banner"
+     style="display: none;">
+    <div class="o-container o-container--large">
 
         <script type="application/json"
                 id="consent-config"
@@ -40,59 +39,57 @@ $gaId = $settings['ga4_server_side']['measurement_id'] ?? '';
 
         </script>
 
-        <div
-             style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 300px;">
-                <h3 style="margin-top: 0; margin-bottom: 10px; color: var(--primary-color);"><?php echo \htmlspecialchars($consentConfig['texts']['title']); ?></h3>
-                <p style="margin-top: 0; font-size: 0.9rem; color: var(--text-color); line-height: 1.5;">
+        <div class="c-consent-banner__dialog">
+            <div class="c-consent-banner__content">
+                <h3 class="c-consent-banner__title"><?php echo \htmlspecialchars($consentConfig['texts']['title']); ?></h3>
+                <p class="c-consent-banner__text">
                     <?php echo \htmlspecialchars($consentConfig['texts']['description']); ?>
                 </p>
 
-                <div style="margin-top: 10px; font-size: 0.85rem;">
-                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>datenschutz"
-                       style="color: var(--primary-color); text-decoration: underline; margin-right: 15px;"><?php echo \htmlspecialchars($consentConfig['texts']['link_datenschutz']); ?></a>
-                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>impressum"
-                       style="color: var(--primary-color); text-decoration: underline;"><?php echo \htmlspecialchars($consentConfig['texts']['link_impressum']); ?></a>
+                <div class="c-consent-banner__links">
+                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>datenschutz" class="u-text-link u-margin-right-xs">
+                        <?php echo \htmlspecialchars($consentConfig['texts']['link_datenschutz']); ?>
+                    </a>
+                    <a href="<?php echo \htmlspecialchars($baseUrl); ?>impressum" class="u-text-link">
+                        <?php echo \htmlspecialchars($consentConfig['texts']['link_impressum']); ?>
+                    </a>
                 </div>
 
                 <div id="kga-consent-details"
-                     class="js-consent-details"
-                     style="display: none; margin-top: 20px; border-top: 1px solid var(--border-soft); padding-top: 15px;">
+                     class="c-consent-banner__details js-consent-details"
+                     style="display: none;">
                     <?php foreach ($consentConfig['groups'] as $group) { ?>
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: <?php echo $group['required'] ? 'not-allowed' : 'pointer'; ?>;">
+                        <div class="c-consent-banner__group">
+                            <div class="c-form-checkbox__wrapper">
                                 <input type="checkbox"
                                        id="consent-chk-<?php echo $group['id']; ?>"
                                        value="1"
-                                       style="margin-top: 3px; transform: scale(1.2);"
+                                       class="c-form-checkbox"
                                        <?php echo $group['required'] ? 'checked disabled' : ''; ?>>
                                 <div>
-                                    <strong style="display: block; font-size: 0.95rem;"><?php echo \htmlspecialchars($group['title']); ?></strong>
-                                    <span style = "font-size: 0.85rem; color: var(--text-muted);"><?php echo \htmlspecialchars($group['description']); ?></span>
+                                    <strong class="u-display-block u-text-sm"><?php echo \htmlspecialchars($group['title']); ?></strong>
+                                    <span class="u-text-xs u-color-muted"><?php echo \htmlspecialchars($group['description']); ?></span>
                                 </div>
-                            </label>
+                            </div>
                         </div>
                     <?php } ?>
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 10px; min-width: 220px;">
-                <button class="js-accept-all"
-                        style="background: var(--primary-color); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+            <div class="c-consent-banner__actions">
+                <button class="c-consent-banner__button c-consent-banner__button--primary js-accept-all">
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_all']); ?>
                 </button>
-                <button class="js-accept-essential"
-                        style="background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                <button class="c-consent-banner__button c-consent-banner__button--secondary js-accept-essential">
                     <?php echo \htmlspecialchars($consentConfig['texts']['accept_essential']); ?>
                 </button>
-                <button class="js-toggle-details"
-                        id="btn-toggle-details"
-                        style="background: transparent; color: var(--text-muted); border: none; padding: 8px; font-size: 0.85rem; cursor: pointer; text-decoration: underline;">
+                <button id="btn-toggle-details"
+                        class="c-consent-banner__button c-consent-banner__button--text js-toggle-details">
                     <?php echo \htmlspecialchars($consentConfig['texts']['show_details']); ?>
                 </button>
-                <button class="js-save-selection"
-                        id="btn-save-selection"
-                        style="display: none; background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                <button id="btn-save-selection"
+                        class="c-consent-banner__button c-consent-banner__button--secondary js-save-selection"
+                        style="display: none;">
                     <?php echo \htmlspecialchars($consentConfig['texts']['save_selection']); ?>
                 </button>
             </div>

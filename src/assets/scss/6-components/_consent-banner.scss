@@ -1,0 +1,89 @@
+@layer components {
+    .c-consent-banner {
+        position: fixed;
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        inline-size: 100%;
+        background-color: var(--color-bg-white);
+        border-block-start: 1px solid var(--color-border);
+        padding: 20px;
+        z-index: 99999;
+        box-shadow: 0 -5px 25px color-mix(in oklch, #000 5%, transparent);
+
+        &__dialog {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        &__content {
+            flex: 1;
+            min-inline-size: 300px;
+        }
+
+        &__title {
+            margin-block-start: 0;
+            margin-block-end: 10px;
+            color: var(--color-primary);
+        }
+
+        &__text {
+            margin-block-start: 0;
+            font-size: 0.9rem;
+            color: var(--color-text-main);
+            line-height: 1.5;
+        }
+
+        &__links {
+            margin-block-start: 10px;
+            font-size: 0.85rem;
+        }
+
+        &__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-inline-size: 220px;
+        }
+
+        &__details {
+            margin-block-start: 20px;
+            border-block-start: 1px solid
+                color-mix(in oklch, var(--color-border) 50%, transparent);
+            padding-block-start: 15px;
+        }
+
+        &__group {
+            margin-block-end: 15px;
+        }
+
+        &__button {
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+
+            &--primary {
+                background-color: var(--color-primary);
+                color: var(--color-bg-white);
+            }
+
+            &--secondary {
+                background-color: var(--color-bg-light);
+                color: var(--color-text-main);
+                border: 1px solid var(--color-border);
+            }
+
+            &--text {
+                background-color: transparent;
+                color: var(--color-text-muted);
+                padding: 8px;
+                font-size: 0.85rem;
+                text-decoration: underline;
+            }
+        }
+    }
+}

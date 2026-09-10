@@ -25,7 +25,7 @@ if (\file_exists($packageJsonPath) && isset($jsonHelper)) {
             $version = 'v' . $pkgData['version'];
         }
     } catch (\RuntimeException $e) {
-        // Ignorieren: Bleibt bei v0.0.0
+        // Fallback
     }
 }
 
@@ -36,7 +36,7 @@ $yearDisplay = $currentYear > $startYear ? "{$startYear} - {$currentYear}" : (st
 
 // 4. Software Details
 $developerName = 'Felix Maywald';
-$softwareName = 'KGA-Einfahrts-Manager'; // KGA-Einfahrgenehmigung
+$softwareName = 'KGA-Einfahrts-Manager';
 $githubUrl = 'https://github.com/RaptorXilef/kga-einfahrgenehmigung';
 $issuesUrl = $githubUrl . '/issues';
 
@@ -44,38 +44,21 @@ $issuesUrl = $githubUrl . '/issues';
 $baseUrl = $settings['base_url'] ?? '/';
 $impressumUrl = \rtrim($baseUrl, '/') . '/impressum';
 $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
-
 ?>
-<footer
-        style="padding: 25px 15px; margin-top: auto; border-top: 1px solid var(--border-color); background: transparent; text-align: center;">
-    <div
-         style="font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 8px;">
 
-        <?php /*<div>
-            &copy; <?php echo $yearDisplay; ?> <strong><?php echo \htmlspecialchars($developerName); ?></strong>
-        </div> */ ?>
+<footer class="c-footer">
+    <div class="c-footer__content">
+        <div class="c-footer__copyright">
+            &copy; <?php echo $yearDisplay; ?> <?php echo \htmlspecialchars($softwareName); ?>
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;">
-            &copy; <?php echo $yearDisplay; ?>
-            <?php /*<a href="<?php echo \htmlspecialchars($githubUrl); ?>"
-               target="_blank"
-               rel="noopener noreferrer"
-               style="color: var(--primary-color); text-decoration: none; font-weight: 600;"
-               title="Zum GitHub Repository"> */ ?>
-            <?php echo \htmlspecialchars($softwareName); ?>
-            <?php /* </a> */ ?>
-
-            <?php
-            // Changelog-Link nur für befugte Admins sichtbar machen
-            // Achtung: Da der Footer überall inkludiert wird, müssen wir sicherstellen, dass $auth existiert
-            if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
+            <?php if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
                 <a href="<?php echo \htmlspecialchars($baseUrl); ?>changelog"
-                   style="background: rgba(52, 152, 219, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid rgba(52, 152, 219, 0.2); text-decoration: none;"
+                   class="c-footer__version c-footer__version--admin"
                    title="Versionshistorie / Changelog ansehen">
                     <?php echo \htmlspecialchars($version); ?>
                 </a>
             <?php } else { ?>
-                <span style="background: #f1f5f9; color: var(--text-muted); padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid var(--border-color);">
+                <span class="c-footer__version">
                     <?php echo \htmlspecialchars($version); ?>
                 </span>
             <?php } ?>
@@ -84,32 +67,19 @@ $datenschutzUrl = \rtrim($baseUrl, '/') . '/datenschutz';
         <?php
         // Bug-Report-Link nur für eingeloggte Admins mit Dashboard-Rechten sichtbar machen
         if (isset($auth) && $auth->isLoggedIn() && $auth->hasPermission('admin.access')) { ?>
-            <div style="margin-top: 2px;">
-                <a href="<?php echo \htmlspecialchars($issuesUrl); ?>"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   style="color: var(--text-muted); text-decoration: underline; font-size: 0.8rem;">
+            <div class="u-margin-top-xs">
+                <a href="<?php echo \htmlspecialchars($issuesUrl); ?>" target="_blank" rel="noopener noreferrer" class="u-text-link u-text-xs">
                     Fehler melden / Bug Report
                 </a>
             </div>
         <?php } ?>
 
-        <div
-             style="margin-top: 10px; font-size: 0.8rem; display: flex; gap: 12px; justify-content: center; align-items: center;">
-            <!-- FIX: onmouseover entfernt, Klasse .c-footer-link hinzugefügt -->
-            <a href="<?php echo \htmlspecialchars($impressumUrl); ?>" class="c-footer-link">
-                Impressum
-            </a>
-            <span style="color: var(--border-color); font-size: 0.75rem;">&bull;</span>
-            <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>" class="c-footer-link">
-                Datenschutzerklärung
-            </a>
+        <div class="c-footer__links">
+            <a href="<?php echo \htmlspecialchars($impressumUrl); ?>" class="u-text-link">Impressum</a>
+            <span class="u-color-muted">&bull;</span>
+            <a href="<?php echo \htmlspecialchars($datenschutzUrl); ?>" class="u-text-link">Datenschutzerklärung</a>
         </div>
-
     </div>
 </footer>
 
-<?php
-// COOKIE-BANNER EINBINDEN
-include $appRoot . '/templates/partials/frontend/consent_banner.phtml';
-?>
+<?php include $appRoot . '/templates/partials/frontend/consent_banner.phtml'; ?>

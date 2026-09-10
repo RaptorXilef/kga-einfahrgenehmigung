@@ -31,7 +31,6 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
     <?php include_once $appRoot . '/templates/partials/frontend/favicon.phtml'; ?>
     <link rel="stylesheet"
           href="<?php echo $asset->url('assets/css/main.min.css'); ?>">
-    <?php include $appRoot . '/templates/partials/frontend/base_styles.phtml'; ?>
 
     <link rel="modulepreload"
           href="<?php echo $asset->url('assets/js/core/Bootstrapper.js'); ?>">
@@ -62,7 +61,7 @@ $pageTitle ??= $settings['vereins_name'] ?? 'KGA';
     </script>
 </head>
 
-<body class="u-bg-light l-public-body <?php echo $pageStateClass ?? ''; ?>">
+<body class="l-public-body <?php echo $pageStateClass ?? ''; ?>">
 
     <?php include $appRoot . '/templates/partials/frontend/test_mode_indicator.phtml'; ?>
     <?php include $appRoot . '/templates/partials/frontend/public_header_nav.phtml'; ?>

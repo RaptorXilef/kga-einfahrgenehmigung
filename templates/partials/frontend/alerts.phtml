@@ -3,24 +3,20 @@
 /** @var array $flashes */
 if (!empty($flashes)) {
     ?>
-    <div class="c-flash-container"
-         style="margin-bottom: 20px;">
+    <div class="u-margin-bottom-l">
         <?php foreach ($flashes as $type => $messages) { ?>
             <?php
-                // Optik je nach Typ anpassen (error -> rot, success -> grün)
-                $bgClass = match ($type) {
-                    'error' => 'background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;',
-                    'success' => 'background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;',
-                    'warning' => 'background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;',
-                    default => 'background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;',
+                // Maps flash type to BEM modifier
+                $modifier = match ($type) {
+                    'error' => 'danger',
+                    'success' => 'success',
+                    'warning' => 'warning',
+                    default => 'info',
                 };
             ?>
             <?php foreach ($messages as $msg) { ?>
-                <div style="padding: 15px; border-radius: 4px; margin-bottom: 10px; <?php echo $bgClass; ?>">
-                    <?php
-                    // FIX: Prevent XSS from backend exception messages while allowing basic typography formatting
-                    echo \strip_tags($msg, '<strong><em><b><i><br><ul><li>');
-                ?>
+                <div class="c-alert c-alert--<?php echo $modifier; ?> u-margin-bottom-s">
+                    <?php echo \strip_tags($msg, '<strong><em><b><i><br><ul><li>'); ?>
                 </div>
             <?php } ?>
         <?php } ?>
