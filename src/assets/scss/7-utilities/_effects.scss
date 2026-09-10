@@ -33,4 +33,8 @@
     body.state-bg-error .c-card {
         box-shadow: 0 10px 15px -3px color-mix(in oklch, #000 5%, transparent);
     }
+
+    .u-opacity-75 {
+        opacity: 0.75 !important;
+    }
 }

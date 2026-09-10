@@ -51,4 +51,31 @@
         color: var(--color-text-muted);
         box-shadow: inset 0 1px 2px color-mix(in oklch, #000 5%, transparent);
     }
+
+    .c-date-indicator {
+        background-color: var(--color-bg-white);
+        border: 2px solid var(--color-primary);
+        border-radius: 30px;
+        padding-block: 8px;
+        padding-inline: 20px;
+        box-shadow: var(--shadow-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+
+        &__label {
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            display: block;
+            line-height: 1;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        &__value {
+            color: var(--color-primary);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+    }
 }

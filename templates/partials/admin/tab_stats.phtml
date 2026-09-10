@@ -63,55 +63,50 @@ $chartDataPayload = [
     <div class="c-tab-content-container">
 
         <div class="u-flex u-align-center u-gap-s u-margin-bottom-m">
-            <div
-                 style="background: #fff; border: 2px solid var(--primary-color); border-radius: 30px; padding: 8px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 10px;">
+            <div class="c-date-indicator">
                 <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                      class="c-icon"
                      alt=""
-                     style="width: 20px; height: 20px;">
+                     style="inline-size: 20px; block-size: 20px;">
                 <div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; line-height: 1; font-weight: 800; text-transform: uppercase;">Berichtszeitraum</span>
-                    <strong style="color: var(--primary-color); font-size: 1rem;">
+                    <span class="c-date-indicator__label">Berichtszeitraum</span>
+                    <strong class="c-date-indicator__value">
                         <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> - <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
                     </strong>
                 </div>
             </div>
         </div>
 
-        <?php if ($auth->hasPermission('stats.view') && $auth->hasPermission('privacy.finance.view')) { ?>
-            <div class="u-grid u-gap-m u-margin-bottom-l"
+        <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
+            <div class="o-grid u-gap-m u-margin-bottom-l"
                  style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
 
-                <div class="c-card u-margin-none"
-                     style="border-top: 5px solid var(--success-color);">
-                    <div class="c-card__body u-text-center">
-                        <span class="u-text-muted u-text-small u-font-bold">BEREITS BEZAHLT</span>
-                        <div class="u-font-xl u-font-bold"
-                             style="color: var(--success-color); font-size: 2.2rem; margin-top: 5px;">
+                <div class="c-card c-card--success u-margin-none">
+                    <div class="c-stat-card c-card__body u-padding-around-m">
+                        <span class="c-stat-card__label">BEREITS BEZAHLT</span>
+                        <div class="c-stat-card__value c-stat-card__value--success">
                             <?php echo \number_format($periodStats['revenue_paid'] ?? 0, 2, ',', '.'); ?> €
                         </div>
                     </div>
                 </div>
 
-                <div class="c-card u-margin-none"
-                     style="border-top: 5px solid #f39c12;">
-                    <div class="c-card__body u-text-center">
-                        <span class="u-text-muted u-text-small u-font-bold">NOCH OFFEN</span>
-                        <div class="u-font-xl u-font-bold"
-                             style="color: #f39c12; font-size: 2.2rem; margin-top: 5px;">
+                <div class="c-card c-card--warning u-margin-none">
+                    <div class="c-stat-card c-card__body u-padding-around-m">
+                        <span class="c-stat-card__label">NOCH OFFEN</span>
+                        <div class="c-stat-card__value c-stat-card__value--warning">
                             <?php echo \number_format($periodStats['revenue_unpaid'] ?? 0, 2, ',', '.'); ?> €
                         </div>
                     </div>
                 </div>
 
-                <div class="c-card u-margin-none"
-                     style="border-top: 5px solid var(--primary-color);">
-                    <div class="c-card__body u-text-center">
-                        <span class="u-text-muted u-text-small u-font-bold">GENEHMIGUNGEN</span>
-                        <div class="u-font-xl u-font-bold"
-                             style="font-size: 2.2rem; margin: 5px 0;"><?php echo $periodStats['count'] ?? 0; ?></div>
+                <div class="c-card c-card--primary u-margin-none">
+                    <div class="c-stat-card c-card__body u-padding-around-m">
+                        <span class="c-stat-card__label">GENEHMIGUNGEN</span>
+                        <div class="c-stat-card__value c-stat-card__value--primary">
+                            <?php echo $periodStats['count'] ?? 0; ?>
+                        </div>
 
-                        <div class="u-flex u-justify-center u-gap-s u-flex-wrap">
+                        <div class="c-stat-card__footer">
                             <?php
                             $vConfig = $config->get('vehicle_types', []);
             foreach (($periodStats['types'] ?? []) as $typeKey => $count) {
@@ -127,23 +122,21 @@ $chartDataPayload = [
                     $icon = $vConfig[$typeKey]['icon'] ?? '';
                 } // Nur anzeigen wenn vorhanden
                 ?>
-                                <div
-                                     style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                                <div class="c-badge c-badge--success u-font-bold u-text-xs">
                                     <img src="<?php echo $settings['base_url'] . $icon; ?>"
-                                         style="width:14px; height:14px;"> <?php echo $count; ?> <small
-                                           style="font-weight: 400;"><?php echo $label; ?></small>
+                                         style="inline-size: 14px; block-size: 14px; margin-inline-end: 4px;"> <?php echo $count; ?>
+                                    <small class="u-font-semibold"
+                                           style="margin-inline-start: 4px;"><?php echo $label; ?></small>
                                 </div>
                             <?php } ?>
                         </div>
                     </div>
                 </div>
 
-                <div class="c-card u-margin-none"
-                     style="border-top: 5px solid #1e293b;">
-                    <div class="c-card__body u-text-center">
-                        <span class="u-text-muted u-text-small u-font-bold">GESAMTUMSATZ (SOLL)</span>
-                        <div class="u-font-xl u-font-bold"
-                             style="font-size: 2.2rem; margin-top: 5px;">
+                <div class="c-card c-card--dark u-margin-none">
+                    <div class="c-stat-card c-card__body u-padding-around-m">
+                        <span class="c-stat-card__label">GESAMTUMSATZ (SOLL)</span>
+                        <div class="c-stat-card__value c-stat-card__value--primary">
                             <?php echo \number_format(($periodStats['revenue_paid'] ?? 0) + ($periodStats['revenue_unpaid'] ?? 0), 2, ',', '.'); ?> €
                         </div>
                     </div>
@@ -161,107 +154,74 @@ $chartDataPayload = [
             </script>
 
             <section class="c-card u-margin-bottom-l"
-                     style="border-top-color: #6366f1;">
-                <details>
-                    <summary class="u-padding-around-m u-cursor-pointer u-font-bold"
-                             style="list-style: none; display: flex; align-items: center; gap: 10px;">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
-                             class="c-icon"
-                             alt="">
-                        Wachstums-Trend & Jahresvergleich (Grafik einblenden)
+                     style="border-block-start-color: #6366f1;">
+                <details class="c-accordion u-margin-none">
+                    <summary class="c-accordion__summary u-font-bold"
+                             style="border: none;">
+                        <span class="c-accordion__title">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Wachstums-Trend & Jahresvergleich
+                    </span>
                     </summary>
-                    <div class="u-padding-around-m"
-                         style="background: #fcfdfe; border-top: 1px solid var(--border-color);">
-
+                    <div class="c-accordion__body"
+                         style="background-color: var(--color-bg-white);">
                         <div class="u-flex u-gap-xs u-margin-bottom-m u-justify-end">
-                            <div
-                                 style="background: #fff; padding: 4px; border-radius: 6px; border: 1px solid var(--border-color); display: inline-flex;">
+                            <div class="c-box u-padding-around-s u-display-inline-flex"
+                                 style="padding-block: 4px;">
                                 <button id="chartToggleMonth"
                                         class="c-button c-button--primary"
-                                        style="padding: 4px 12px; font-size: 0.8rem;">
-                                    Monatlich
-                                </button>
+                                        style="padding-inline: 12px; block-size: 34px; font-size: 0.8rem;">Monatlich</button>
                                 <button id="chartToggleYear"
                                         class="c-button c-button--secondary"
-                                        style="padding: 4px 12px; font-size: 0.8rem;">
-                                    Jährlich
-                                </button>
+                                        style="padding-inline: 12px; block-size: 34px; font-size: 0.8rem;">Jährlich</button>
                             </div>
                         </div>
-
                         <canvas id="yearlyStatsChart"
-                                style="max-height: 350px; width: 100%;"></canvas>
+                                style="max-block-size: 350px; inline-size: 100%;"></canvas>
                     </div>
                 </details>
             </section>
         <?php } ?>
 
-        <?php if ($auth->hasPermission('stats.view') && $auth->hasPermission('privacy.finance.view')) { ?>
-            <h3 class="u-margin-bottom-m"
-                style="display: flex; align-items: center; gap: 10px;">
+        <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
+            <h3 class="u-margin-bottom-m u-flex u-align-center u-gap-s">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                     class="c-icon"
-                     alt=""
-                     style="width: 24px;">
-                Historische Jahresabschlüsse
+                     class="c-icon c-icon--inline"
+                     style="inline-size: 24px; block-size: 24px;"
+                     alt=""> Historische Jahresabschlüsse
             </h3>
 
             <?php foreach ($yearlyStats as $year => $data) { ?>
-                <details class="u-margin-bottom-s">
-                    <summary
-                             style="background: var(--bg-light); padding: 15px 20px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
-                        <span style="font-size: 1.1rem;">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>"
-                                 class="c-icon"
-                                 alt="">
-                            Geschäftsjahr <strong><?php echo $year; ?></strong>
-                        </span>
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <span style="font-size: 0.9rem; color: var(--success-color); font-weight: 700;">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
-                            <span class="c-badge"
-                                  style="background: #f1f5f9; color: #475569; font-weight: 800;">
-                                <?php echo $data['count']; ?> Anträge
-                            </span>
+                <details class="c-accordion">
+                    <summary class="c-accordion__summary">
+                        <span class="c-accordion__title">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>" class="c-icon" alt="">
+                        Geschäftsjahr <strong><?php echo $year; ?></strong>
+                    </span>
+                        <div class="c-accordion__meta">
+                            <span class="u-color-success u-font-bold">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
+                            <span class="c-badge c-badge--outline u-font-extrabold"><?php echo $data['count']; ?> Anträge</span>
                         </div>
                     </summary>
-                    <div class="u-grid u-gap-m u-padding-around-m"
-                         style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; margin-top: -5px;">
-                        <div class="c-card u-margin-none"
-                             style="border-top: 3px solid var(--success-color);">
-                            <div class="c-card__body u-text-center u-padding-around-s">
-                                <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">
-                                    BEREITS BEZAHLT
-                                </small>
-                                <div class="u-font-bold"
-                                     style="font-size: 1.2rem; color: var(--success-color);"><?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
+                    <div class="c-accordion__body o-grid u-gap-m"
+                         style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="c-card c-card--success u-margin-none">
+                            <div class="c-stat-card c-card__body u-padding-around-s">
+                                <span class="c-stat-card__label">BEREITS BEZAHLT</span>
+                                <div class="u-font-bold u-color-success u-text-lg"><?php echo \number_format($data['paid'], 2, ',', '.'); ?> €</div>
                             </div>
                         </div>
-                        <div class="c-card u-margin-none"
-                             style="border-top: 3px solid var(--danger-color);">
-                            <div class="c-card__body u-text-center u-padding-around-s">
-                                <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">
-                                    Noch offen
-                                </small>
-                                <div class="u-font-bold"
-                                     style="font-size: 1.2rem; color: var(--danger-color);"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
+                        <div class="c-card c-card--danger u-margin-none">
+                            <div class="c-stat-card c-card__body u-padding-around-s">
+                                <span class="c-stat-card__label">Noch offen</span>
+                                <div class="u-font-bold u-color-danger u-text-lg"><?php echo \number_format($data['unpaid'], 2, ',', '.'); ?> €</div>
                             </div>
                         </div>
-                        <div class="c-card u-margin-none"
-                             style="border-top: 3px solid var(--primary-color);">
-                            <div class="c-card__body u-text-center u-padding-around-s">
-                                <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">
-                                    GENEHMIGUNGEN
-                                </small>
-                                <div class="u-font-bold"
-                                     style="font-size: 1.1rem; margin-bottom: 2px;">
-                                    <?php echo $data['count']; ?>
-                                </div>
-
+                        <div class="c-card c-card--primary u-margin-none">
+                            <div class="c-stat-card c-card__body u-padding-around-s">
+                                <span class="c-stat-card__label">GENEHMIGUNGEN</span>
+                                <div class="u-font-bold u-text-lg u-margin-bottom-xs"><?php echo $data['count']; ?></div>
                                 <div
-                                     style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; align-items: center;">
+                                     class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                                     <?php
                         $vConfig = $config->get('vehicle_types', []);
                 $typeItems = [];
@@ -279,25 +239,18 @@ $chartDataPayload = [
                     }
 
                     // Wir bauen uns ein Array von HTML-Schnipseln
-                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="width:12px; height:12px; margin-right:2px;"> ' . $count . ' ' . $vLabel . '</span>';
+                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="inline-size: 12px; block-size: 12px; margin-inline-end: 2px;"> ' . $count . ' ' . $vLabel . '</span>';
                 }
                 // Wir verbinden die Schnipsel mit einem Trennstrich
-                echo \implode(' <span style="opacity:0.3;">|</span> ', $typeItems);
+                echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
                 ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="c-card u-margin-none"
-                             style="border-top: 3px solid var(--text-main);">
-                            <div class="c-card__body u-text-center u-padding-around-s">
-                                <small class="u-text-muted u-font-bold"
-                                       style="text-transform: uppercase; font-size: 0.65rem;">
-                                    Jahres-Umsatz (Soll)
-                                </small>
-                                <div class="u-font-bold"
-                                     style="font-size: 1.2rem;">
-                                    <?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €
-                                </div>
+                        <div class="c-card c-card--dark u-margin-none">
+                            <div class="c-stat-card c-card__body u-padding-around-s">
+                                <span class="c-stat-card__label">Jahres-Umsatz (Soll)</span>
+                                <div class="u-font-bold u-text-lg"><?php echo \number_format($data['paid'] + $data['unpaid'], 2, ',', '.'); ?> €</div>
                             </div>
                         </div>
                     </div>
@@ -312,17 +265,14 @@ $chartDataPayload = [
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
                 <a href="<?php echo $loadUrl; ?>"
-                   class="c-button c-button--secondary"
-                   style="width: auto; padding: 0 20px; font-size: 0.85rem; height: 38px;">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                         class="c-icon"
-                         alt="">
-                    &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-                </a>
+                   class="c-button c-button--secondary">
+                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                     class="c-icon"
+                     alt="">
+                &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+            </a>
             </div>
-
         <?php } ?>
-
     </div>
 
     <!-- https://cdnjs.com/libraries/Chart.js -->

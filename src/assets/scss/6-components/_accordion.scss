@@ -1,0 +1,50 @@
+@layer components {
+    .c-accordion {
+        margin-block-end: var(--space-s);
+
+        &__summary {
+            background-color: var(--color-bg-light);
+            padding-block: 15px;
+            padding-inline: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            list-style: none; /* Entfernt das Standard-Dreieck in den meisten Browsern */
+
+            &::-webkit-details-marker {
+                display: none; /* Entfernt das Standard-Dreieck in Webkit */
+            }
+        }
+
+        &__title {
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        &__meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        &__body {
+            background-color: color-mix(
+                in oklch,
+                var(--color-text-main) 2%,
+                transparent
+            );
+            border: 1px solid var(--color-border);
+            border-block-start: none;
+            border-end-start-radius: 12px;
+            border-end-end-radius: 12px;
+            margin-block-start: -5px; /* Überlappt den Summary-Rahmen leicht */
+            padding: var(--space-m);
+        }
+    }
+}

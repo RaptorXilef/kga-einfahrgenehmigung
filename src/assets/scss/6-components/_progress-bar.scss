@@ -1,0 +1,16 @@
+@layer components {
+    .c-progress-bar {
+        background-color: var(--color-bg-light);
+        block-size: 8px;
+        border-radius: 10px;
+        inline-size: 100%;
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+
+        &__fill {
+            background-color: var(--color-primary);
+            block-size: 100%;
+            transition: inline-size 0.6s ease-in-out;
+        }
+    }
+}

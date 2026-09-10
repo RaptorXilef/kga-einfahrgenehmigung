@@ -34,7 +34,7 @@ $futurePermits = \array_slice($allFuture, $offset, $limit);
 if ($auth->hasPermission('permits.view')) {
     ?>
     <div class="c-tab-content-container">
-        <section class="c-card">
+        <section class="c-card c-card--primary">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
                     <h3 class="u-margin-none">
@@ -42,34 +42,29 @@ if ($auth->hasPermission('permits.view')) {
                              class="c-icon"
                              alt=""> Anstehende Genehmigungen
                     </h3>
-                    <p class="u-text-muted u-text-small u-margin-none">Geplante Einfahrten in der Zukunft.</p>
+                    <p class="u-text-muted u-text-sm u-margin-none">Geplante Einfahrten in der Zukunft.</p>
                 </div>
-                <span class="c-badge"
-                      style="background: var(--primary-soft); color: var(--primary-color); border: 1px solid var(--primary-color);">
-                    DATENSÄTZE: <?php echo \count($allFuture); ?>
-                </span>
+                <span class="c-badge c-badge--primary">DATENSÄTZE: <?php echo \count($allFuture); ?></span>
             </header>
 
-            <div class="c-card__body u-padding-none"
-                 style="overflow-x: auto;">
-                <!-- table-layout: fixed verhindert den Versatz der Header -->
+            <div class="c-card__body u-padding-none u-overflow-x-auto">
                 <table class="c-table js-sort-table"
-                       style="table-layout: fixed; width: 100%; min-width: 950px;">
+                       style="table-layout: fixed; inline-size: 100%; min-inline-size: 950px;">
                     <thead>
-                        <tr style="background: rgba(0,0,0,0.02);">
-                            <th class="js-sort-header"
-                                style="width: 250px; text-align: left;">Antragsteller & Kennung</th>
-                            <th class="js-sort-header"
-                                style="width: 150px; text-align: center;">Fahrzeug</th>
+                        <tr style="background-color: var(--color-bg-light);">
+                            <th class="js-sort-header u-text-left"
+                                style="inline-size: 250px;">Antragsteller & Kennung</th>
+                            <th class="js-sort-header u-text-center"
+                                style="inline-size: 150px;">Fahrzeug</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="js-sort-header"
-                                    style="text-align: left;">Kontakt (E-Mail)</th>
+                                <th class="js-sort-header u-text-left">Kontakt (E-Mail)</th>
                             <?php } ?>
-                            <th class="js-sort-header"
-                                style="width: 180px; text-align: center;">Zeitraum & Countdown</th>
-                            <th class="js-sort-header"
-                                style="width: 130px; text-align: center;">Status</th>
-                            <th style="width: 150px; text-align: right; padding-right: 20px;">Verwaltung</th>
+                            <th class="js-sort-header u-text-center"
+                                style="inline-size: 180px;">Zeitraum & Countdown</th>
+                            <th class="js-sort-header u-text-center"
+                                style="inline-size: 130px;">Status</th>
+                            <th class="u-text-right"
+                                style="inline-size: 150px; padding-inline-end: 20px;">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,19 +89,19 @@ if ($auth->hasPermission('permits.view')) {
                                 $iconPath = $vCfg['icon'] ?? 'assets/img/icons/status-invalid.webp';
                                 $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                                 ?>
-                                <tr class="u-hover-fade <?php echo $is_suspended ? 'u-bg-suspended' : ''; ?>">
+                                <tr class="u-hover-fade <?php echo $is_suspended ? 'c-table__row--danger' : ''; ?>">
                                     <!-- 1. Antragsteller & Code -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
                                         style="vertical-align: middle;">
                                         <div class="u-flex u-flex-column">
-                                            <span style="font-weight: 700; color: var(--text-main);">
+                                            <span class="u-font-bold u-color-main">
                                                 <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
                                             </span>
-                                            <code style="color: var(--text-muted); font-size: 0.75rem; margin: 2px 0;">
+                                            <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs">
                                                 <?php echo $permit->code; ?>
                                             </code>
                                             <div>
-                                                <span style="font-size: 0.7rem; background: var(--primary-soft); color: var(--primary-color); padding: 1px 6px; border-radius: 4px; font-weight: 800;">
+                                                <span class="c-badge c-badge--primary">
                                                     PARZELLE <?php echo $permit->getPlotNumber(); ?>
                                                 </span>
                                             </div>
@@ -115,17 +110,18 @@ if ($auth->hasPermission('permits.view')) {
 
                                     <!-- 2. Fahrzeug (Icon + Kennzeichen darunter) -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                        style="text-align: center; vertical-align: middle;">
-                                        <div style="line-height: 1;">
+                                        class="u-text-center"
+                                        style="vertical-align: middle;">
+                                        <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                                  class="c-icon"
-                                                 style="width: 24px; height: 24px;"
+                                                 style="inline-size: 24px; block-size: 24px;"
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
-                                        <div style="margin-top: 4px;">
-                                            <code style="font-size: 0.8rem; font-weight: 800; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px;">
+                                        <div class="u-margin-top-xs">
+                                            <span class="c-license-plate">
                                                 <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                            </code>
+                                            </span>
                                         </div>
                                     </td>
 
@@ -136,8 +132,8 @@ if ($auth->hasPermission('permits.view')) {
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
                                                     <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
-                                                         class="c-icon"
-                                                         style="width: 14px; opacity: 0.6;">
+                                                         class="c-icon c-icon--inline"
+                                                         alt="">
                                                     <small>
                                                         <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>"
                                                            class="u-text-link">
@@ -153,17 +149,18 @@ if ($auth->hasPermission('permits.view')) {
 
                                     <!-- 4. Zeitraum & Countdown -->
                                     <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                        style="text-align: center; vertical-align: middle;">
+                                        class="u-text-center"
+                                        style="vertical-align: middle;">
                                         <div style="line-height: 1.2;">
-                                            <strong style="font-size: 0.95rem;"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
+                                            <strong class="u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
                                             <small class="u-text-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
-                                            <div style="margin-top: 6px;">
-                                                <span style="color: var(--primary-color); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: var(--primary-soft); padding: 2px 8px; border-radius: 10px;">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_stopwatch.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="">
-                                                    <?php echo $countdownText; ?>
-                                                </span>
+                                            <div class="u-margin-top-xs">
+                                                <span class="c-badge c-badge--primary">
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon_stopwatch.webp'); ?>"
+                                                     class="c-icon"
+                                                     alt="">
+                                                <?php echo $countdownText; ?>
+                                            </span>
                                             </div>
                                         </div>
                                     </td>
@@ -182,50 +179,47 @@ if ($auth->hasPermission('permits.view')) {
                                         <?php } ?>
                                     </td>
 
-                                    <!-- 6. Aktionen -->
-                                    <td style="text-align: right; vertical-align: middle; padding-right: 20px;">
+                                    <td class="u-text-right"
+                                        style="vertical-align: middle; padding-inline-end: 20px;">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>"
                                                    target="_blank"
-                                                   class="c-button c-button--secondary"
-                                                   style="width: 36px; height: 36px;"
+                                                   class="c-button c-button--secondary c-button--icon-only"
                                                    title="Drucken">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="">
-                                                </a>
+                                                <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
+                                                     class="c-icon"
+                                                     alt="">
+                                            </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
                                                 <a href="check?code=<?php echo $permit->code; ?>"
-                                                   target="_blank" class="c-button c-button--secondary"
-                                                   style="width: 36px; height: 36px;"
+                                                   target="_blank"
+                                                   class="c-button c-button--secondary c-button--icon-only"
                                                    title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="">
-                                                </a>
+                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
+                                                     class="c-icon"
+                                                     alt="">
+                                            </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                 <?php if ($is_suspended) { ?>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?>unsuspend_permit"
-                                                          style="margin:0;">
+                                                          class="u-margin-none">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                         <input type="hidden"
                                                                name="code"
                                                                value="<?php echo $permit->code; ?>">
-                                                        <!-- FIX: Action Feld hinzugefügt -->
                                                         <input type="hidden"
                                                                name="action"
                                                                value="unsuspend_permit">
                                                         <button type="submit"
-                                                                class="c-button c-button--success"
-                                                                style="width: 36px; height: 36px;"
+                                                                class="c-button c-button--success c-button--icon-only"
                                                                 title="Wieder freigeben">
                                                             <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                  class="c-icon"
@@ -233,8 +227,7 @@ if ($auth->hasPermission('permits.view')) {
                                                         </button>
                                                     </form>
                                                 <?php } else { ?>
-                                                    <button class="c-button c-button--danger js-suspend-btn"
-                                                            style="width: 36px; height: 36px;"
+                                                    <button class="c-button c-button--danger c-button--icon-only js-suspend-btn"
                                                             data-code="<?php echo $permit->code; ?>"
                                                             title="Sperren">
                                                         <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
@@ -244,14 +237,13 @@ if ($auth->hasPermission('permits.view')) {
                                                     <form id="form_suspend_<?php echo $permit->code; ?>"
                                                           method="POST"
                                                           action="<?php echo $settings['base_url']; ?>suspend_permit"
-                                                          style="display:none;">
+                                                          class="u-hidden">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                         <input type="hidden"
                                                                name="code"
                                                                value="<?php echo $permit->code; ?>">
-                                                        <!-- FIX: Action Feld hinzugefügt -->
                                                         <input type="hidden"
                                                                name="action"
                                                                value="suspend_permit">
@@ -270,6 +262,7 @@ if ($auth->hasPermission('permits.view')) {
                 </table>
 
                 <?php if ($totalPages > 1) {
+                    // Same Pagination block as in active...
                     $queryParams = $_GET;
                     unset($queryParams['page']);
                     $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
@@ -305,64 +298,50 @@ if ($auth->hasPermission('permits.view')) {
                         }
                     }
                     ?>
-                    <div class="u-flex u-justify-between u-align-center u-padding-around-m"
-                         style="background: var(--bg-light); border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <span class="u-text-muted"
-                                  style="font-size: 0.85rem;">
-                                Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
-                            </span>
+                    <div class="c-pagination">
+                        <div class="c-pagination__info">
+                            Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
                         </div>
-                        <div class="u-flex u-gap-xs u-align-center">
+                        <div class="c-pagination__controls">
                             <?php if ($page > 1) { ?>
                                 <a href="<?php echo $baseUrlStr . ($page - 1); ?>"
-                                   class="c-button c-button--secondary"
-                                   style="padding: 6px 10px; font-size: 0.85rem;">
-                                    &larr;
-                                </a>
+                                   class="c-button c-button--secondary c-button--icon-only">&larr;</a>
                             <?php } else { ?>
-                                <button class="c-button c-button--secondary"
-                                        style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
+                                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&larr;</button>
                             <?php } ?>
-
                             <?php foreach ($pagesToShow as $pageNum) {
                                 if ($pageNum === '...') { ?>
-                                    <span class="u-text-muted" style="padding: 4px 8px;">&hellip;</span>
+                                    <span class="u-text-muted u-padding-x-s">&hellip;</span>
                                 <?php } elseif ($pageNum === $page) { ?>
                                     <button class="c-button c-button--primary"
-                                            style="padding: 6px 12px; font-size: 0.85rem; pointer-events: none;">
+                                            style="pointer-events: none;">
                                         <?php echo $pageNum; ?>
                                     </button>
                                 <?php } else { ?>
                                     <a href="<?php echo $baseUrlStr . $pageNum; ?>"
-                                       class="c-button c-button--secondary"
-                                       style="padding: 6px 12px; font-size: 0.85rem;">
+                                       class="c-button c-button--secondary">
                                         <?php echo $pageNum; ?>
                                     </a>
                             <?php }
                                 } ?>
-
                             <?php if ($page < $totalPages) { ?>
                                 <a href="<?php echo $baseUrlStr . ($page + 1); ?>"
-                                   class="c-button c-button--secondary"
-                                   style="padding: 6px 10px; font-size: 0.85rem;">
+                                   class="c-button c-button--secondary c-button--icon-only">
                                     &rarr;
                                 </a>
                             <?php } else { ?>
-                                <button class="c-button c-button--secondary"
-                                        style="padding: 6px 10px; font-size: 0.85rem; opacity: 0.5;"
+                                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&rarr;</button>
                             <?php } ?>
                         </div>
                     </div>
                 <?php } elseif ($totalCount > 0) { ?>
-                    <div class="u-text-center u-padding-around-s u-text-muted"
-                         style="background: var(--bg-light); font-size: 0.85rem; border-top: 1px solid var(--border-color);">
+                    <div class="u-text-center u-padding-around-s u-text-muted u-text-sm u-border-top"
+                         style="background-color: var(--color-bg-light);">
                         Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
                     </div>
                 <?php } ?>
-
             </div>
         </section>
     </div>

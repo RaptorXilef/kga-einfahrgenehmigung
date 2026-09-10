@@ -33,4 +33,16 @@
         border-block-start: 1px solid var(--color-border);
         background-color: var(--color-bg-light);
     }
+
+    .c-card--warning {
+        border-block-start: 5px solid var(--color-warning);
+    }
+
+    .c-card--danger {
+        border-block-start: 5px solid var(--color-danger);
+    }
+
+    .c-card--dark {
+        border-block-start: 5px solid var(--color-text-main);
+    }
 }

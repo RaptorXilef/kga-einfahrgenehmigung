@@ -73,4 +73,8 @@
             color: color-mix(in oklch, var(--color-primary) 80%, #000);
         }
     }
+
+    .u-text-nowrap {
+        white-space: nowrap !important;
+    }
 }
