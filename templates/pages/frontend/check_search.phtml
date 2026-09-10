@@ -19,17 +19,20 @@ use App\Infrastructure\Config\Config;
  * @var string|null $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
 $layout = 'public';
-$pageTitle = 'Genehmigung prüfen'; ?>
-<div class="c-tab-content-container u-padding-y-xl">
-    <div class="c-card u-margin-auto"
-         style="max-width: 500px;">
-        <header class="c-card__header u-text-center u-padding-around-l">
-            <h2 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
-                     class="c-icon"
-                     alt=""> Manuelle Prüfung</h2>
-            <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen Gutscheincode ein.</p>
+$pageTitle = 'Genehmigung prüfen';
+?>
+
+<div class="c-tab-content-container o-container o-container--small u-padding-y-xl">
+    <div class="c-card c-card--primary u-margin-auto">
+        <header class="c-card__header u-text-center">
+            <h2 class="u-margin-none">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
+                     class="c-icon c-icon--md"
+                     alt=""> Manuelle Prüfung
+            </h2>
+            <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen SmartCode ein.</p>
         </header>
-        <div class="c-card__body u-padding-around-l">
+        <div class="c-card__body">
 
             <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
@@ -40,15 +43,14 @@ $pageTitle = 'Genehmigung prüfen'; ?>
                     <input type="text"
                            name="code"
                            aria-label="Gutscheincode eingeben"
-                           class="c-form-input u-text-center u-font-xl"
+                           class="c-form-input c-form-input--code u-text-center"
                            placeholder="z.B. 6Y5C"
                            required
                            autofocus
-                           autocomplete="off"
-                           style="letter-spacing: 5px; font-family: monospace; height: 60px;">
+                           autocomplete="off">
                 </div>
                 <button type="submit"
-                        class="c-button--primary u-width-100">Code jetzt prüfen</button>
+                        class="c-button--primary c-button--submit u-width-100">Code jetzt prüfen</button>
             </form>
         </div>
     </div>

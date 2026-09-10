@@ -14,6 +14,12 @@
     .u-text-2xl {
         font-size: 2rem !important;
     }
+    .u-text-3xl {
+        font-size: 3rem !important;
+    }
+    .u-text-4xl {
+        font-size: 4rem !important;
+    }
 
     .u-font-semibold {
         font-weight: 600 !important;
@@ -28,6 +34,9 @@
     .u-text-uppercase {
         text-transform: uppercase !important;
     }
+    .u-text-left {
+        text-align: left !important;
+    }
 
     .u-color-primary {
         color: var(--color-primary) !important;
@@ -37,6 +46,9 @@
     }
     .u-color-success-dark {
         color: color-mix(in oklch, var(--color-success) 60%, #000) !important;
+    }
+    .u-color-warning {
+        color: color-mix(in oklch, var(--color-warning) 70%, #000) !important;
     }
     .u-color-dark {
         color: var(--color-text-dark) !important;

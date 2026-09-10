@@ -10,17 +10,16 @@ use App\Core\Entity\Permit;
  * @var Permit $permit
  */
 ?>
-<div
-     style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: left; margin: 25px 0;">
+<div class="c-box u-text-left u-margin-y-l">
     <div class="u-margin-bottom-m">
-        <span class="u-text-muted u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px;">Fahrzeug</span><br>
-        <strong style="font-size: 1.15rem; color: #1e293b;">
+        <span class="u-color-muted u-text-xs u-font-bold u-text-uppercase" style="letter-spacing: 1px;">Fahrzeug</span><br>
+        <strong class="u-text-lg u-color-dark">
             <?php
             $info = [];
-if (! empty($permit->getLicensePlate())) {
+if (!empty($permit->getLicensePlate())) {
     $info[] = \htmlspecialchars($permit->getLicensePlate());
 }
-if (! empty($permit->getCompany())) {
+if (!empty($permit->getCompany())) {
     $info[] = 'Firma: ' . \htmlspecialchars($permit->getCompany());
 }
 echo \implode(' / ', $info);
@@ -29,17 +28,17 @@ echo \implode(' / ', $info);
     </div>
 
     <div class="u-border-top u-padding-top-m <?php echo $permit->isSuspended() ? 'u-margin-bottom-m' : ''; ?>">
-        <span class="u-text-muted u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px;">Gültigkeit</span><br>
-        <span style="font-size: 1.05rem; color: #334155;">
-            Von <strong><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong> bis <strong><?php echo $permit->getValidUntil()->format('d.m.Y'); ?></strong>
+        <span class="u-color-muted u-text-xs u-font-bold u-text-uppercase" style="letter-spacing: 1px;">Gültigkeit</span><br>
+        <span class="u-text-sm u-color-main">
+            Von <strong class="u-font-semibold"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong> bis <strong class="u-font-semibold"><?php echo $permit->getValidUntil()->format('d.m.Y'); ?></strong>
         </span>
     </div>
 
-    <?php if ($permit->isSuspended() && ! empty($permit->getSuspensionReason())) { ?>
+    <?php if ($permit->isSuspended() && !empty($permit->getSuspensionReason())) { ?>
         <div class="u-border-top u-padding-top-m"
-             style="border-top-color: #fee2e2;">
-            <span class="u-text-small u-font-bold" style="text-transform: uppercase; letter-spacing: 1px; color: var(--danger-color);">Sperrgrund</span><br>
-            <span style="font-size: 1rem; color: #991b1b; font-weight: 600;">
+             style="border-block-start-color: var(--color-danger-soft) !important;">
+            <span class="u-text-xs u-font-bold u-text-uppercase u-color-danger" style="letter-spacing: 1px;">Sperrgrund</span><br>
+            <span class="u-text-sm u-font-semibold u-color-danger">
                 <?php echo \htmlspecialchars($permit->getSuspensionReason()); ?>
             </span>
         </div>
