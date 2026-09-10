@@ -63,8 +63,7 @@ if ($auth->hasPermission('system.logs.view')) {
                       class="u-flex u-align-center u-gap-s u-margin-none">
                     <span class="u-text-sm u-font-bold u-color-muted">FILTER:</span>
                     <select name="audit_filter"
-                            class="c-form-select js-auto-submit-select"
-                            style="inline-size: auto; min-inline-size: 200px; block-size: 34px; padding-inline: 10px; font-size: 0.85rem;">
+                            class="c-form-select js-auto-submit-select c-button--small">
                         <?php foreach ($filterOptions as $val => $label) { ?>
                             <option value="<?php echo $val; ?>"
                                     <?php echo $auditFilter === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
@@ -72,63 +71,59 @@ if ($auth->hasPermission('system.logs.view')) {
                     </select>
                     <?php if ($auditFilter !== '') { ?>
                         <a href="?"
-                           class="c-button c-button--danger-outline c-button--icon-only"
-                           style="block-size: 34px; inline-size: 34px; font-size: 1.4rem;"
-                           title="Filter löschen">&times;
-                        </a>
+                           class="c-button c-button--danger-outline c-button--icon-only c-button--small u-text-xl"
+                           title="Filter löschen">&times;</a>
                     <?php } ?>
                 </form>
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table"
-                       style="table-layout: fixed; inline-size: 100%; min-inline-size: 950px;">
+                <table class="c-table u-text-nowrap">
                     <thead>
-                        <tr style="background-color: var(--color-bg-light);">
-                            <th class="u-text-left"
-                                style="inline-size: 140px;">Zeitpunkt</th>
-                            <th class="u-text-left"
-                                style="inline-size: 180px;">Aktion</th>
+                        <tr>
+                            <th class="u-text-left">Zeitpunkt</th>
+                            <th class="u-text-left">Aktion</th>
                             <th class="u-text-left">System-Details</th>
-                            <th class="u-text-left"
-                                style="inline-size: 200px; padding-inline-end: 20px;">Ausführender Benutzer</th>
+                            <th class="u-text-left">Ausführender Benutzer</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($auditLogs)) { ?>
                             <tr>
                                 <td colspan="4"
-                                    class="u-text-center u-padding-around-l u-color-muted">Keine Protokolleinträge für
-                                    diesen Filter gefunden.</td>
+                                    class="u-text-center u-padding-around-l u-color-muted">
+                                    Keine Protokolleinträge für diesen Filter gefunden.
+                                </td>
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($auditLogs as $log) {
                                 $avatar = $imageStorage->getImageUrl('user_images', $log->userId, 'icon-user-default.webp');
                                 ?>
                                 <tr class="u-hover-fade">
-                                    <td style="vertical-align: middle;">
-                                        <div style="line-height: 1.2;">
+                                    <td>
+                                        <div class="u-line-height-1-2">
                                             <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->createdAt->format('d.m.Y'); ?></span><br>
                                             <small class="u-color-muted"><?php echo $log->createdAt->format('H:i:s'); ?> Uhr</small>
                                         </div>
                                     </td>
-                                    <td style="vertical-align: middle;">
+                                    <td>
                                         <code class="c-badge c-badge--primary u-font-mono"><?php echo \htmlspecialchars($log->action); ?></code>
                                     </td>
-                                    <td style="vertical-align: middle; padding-inline-end: 15px;">
-                                        <span class="u-text-sm u-color-dark u-display-block"
-                                              style="line-height: 1.4;">
-                                        <?php echo \htmlspecialchars($log->details); ?>
-                                    </span>
+                                    <td>
+                                        <span class="u-text-sm u-color-dark u-display-block">
+                                            <?php echo \htmlspecialchars($log->details); ?>
+                                        </span>
                                     </td>
-                                    <td style="vertical-align: middle; padding-inline-end: 20px;">
+                                    <td>
                                         <div class="u-flex u-align-center u-gap-s">
                                             <img src="<?php echo $avatar; ?>"
-                                                 style="inline-size: 32px; block-size: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border);">
-                                            <div style="line-height: 1.1;">
+                                                 class="c-icon c-icon--md u-border-radius-circle">
+                                            <div>
                                                 <strong class="u-text-sm u-color-main"><?php echo \htmlspecialchars($log->username); ?></strong><br>
                                                 <small class="u-color-muted u-font-mono u-text-xs"
-                                                       title="IP-Adresse: <?php echo \htmlspecialchars($log->ipAddress); ?>"><?php echo \htmlspecialchars($log->userId); ?></small>
+                                                       title="IP-Adresse: <?php echo \htmlspecialchars($log->ipAddress); ?>">
+                                                    <?php echo \htmlspecialchars($log->userId); ?>
+                                                </small>
                                             </div>
                                         </div>
                                     </td>

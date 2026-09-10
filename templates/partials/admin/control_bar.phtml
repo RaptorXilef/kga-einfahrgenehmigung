@@ -39,8 +39,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        value="1">
 
                 <label for="filter_start"
-                       class="u-color-muted u-font-bold u-text-xs u-flex u-align-center u-gap-s u-cursor-pointer u-text-uppercase"
-                       style="letter-spacing: 0.05em;">
+                       class="u-color-muted u-font-bold u-text-xs u-flex u-align-center u-gap-s u-cursor-pointer u-text-uppercase">
                     <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                          class="c-icon"
                          alt="">
@@ -63,12 +62,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        autocomplete="off">
 
                 <label for="filter_type"
-                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase"
-                       style="letter-spacing: 0.05em;">TYP:</label>
+                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase">TYP:</label>
                 <select name="type"
                         id="filter_type"
                         class="c-control-bar-input js-auto-submit-select u-cursor-pointer"
-                        style="inline-size: auto !important;"
                         autocomplete="off">
                     <option value="all"
                             <?php echo $currentType === 'all' ? 'selected' : ''; ?>>Alle Genehmigungen</option>
@@ -79,12 +76,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 </select>
 
                 <label for="filter_limit"
-                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase"
-                       style="letter-spacing: 0.05em;">PRO SEITE:</label>
+                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase">PRO
+                    SEITE:</label>
                 <select name="limit"
                         id="filter_limit"
                         class="c-control-bar-input js-auto-submit-select u-cursor-pointer"
-                        style="inline-size: auto !important;"
                         autocomplete="off">
                     <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
                         <option value="<?php echo $l; ?>"
@@ -92,12 +88,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     <?php } ?>
                 </select>
 
-                <div class="u-position-relative u-margin-left-auto"
-                     style="min-inline-size: 150px; max-inline-size: 230px;">
-                    <span style="position: absolute; inset-inline-start: 15px; inset-block-start: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10;">
-                    <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
-                </span>
-                    <!-- name="q" und value aus PHP für Server-Side Search -->
+                <div class="u-position-relative u-margin-left-auto u-flex-grow-1">
+                    <span class="u-color-muted" style="position: absolute; inset-inline-start: 15px; inset-block-start: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10;">
+                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
+                    </span>
+<!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
                            id="adminSearch"
                            name="q"
@@ -111,7 +106,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 </div>
 
                 <?php if (!empty($sessionFilters)) { ?>
-                    <a href="?reset_filters=1" class="c-button c-button--secondary u-text-xs" style="padding-inline: 12px; block-size: 34px;">✕ Filter aufheben</a>
+                    <a href="?reset_filters=1" class="c-button c-button--secondary c-button--small u-text-xs">✕ Filter aufheben</a>
                 <?php } ?>
                 <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
                 <button type="submit"

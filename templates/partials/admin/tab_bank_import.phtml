@@ -44,16 +44,14 @@ if (!$headersExist) {
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                    <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l c-box c-box--dashed"
-                         id="csvDropzone"
-                         style="padding-block: 40px; border-width: 3px;">
+                    <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-y-xl c-box c-box--dashed"
+                         id="csvDropzone">
                         <span class="u-text-3xl u-display-block u-margin-bottom-s">📄</span>
                         <strong class="js-preview-text u-text-lg">CSV-Datei hierher ziehen oder klicken zum
                             Auswählen</strong>
 
                         <!-- Modus-Indikator für die Nutzer -->
-                        <div class="u-margin-top-m u-color-muted u-text-sm"
-                             style="line-height: 1.5;">
+                        <div class="u-margin-top-m u-color-muted u-text-sm">
                             Unterstützt Standard-Bank-CSV (Semikolon-getrennt).<br>
                             <?php if ($importMode === 'simple') { ?>
                                 <span class="u-color-success u-font-bold">Einfacher Modus aktiv:</span>
@@ -154,21 +152,16 @@ if (!$headersExist) {
                             </select>
                             <div class="c-box c-box--subtle u-margin-top-s u-padding-y-s u-padding-x-m u-text-xs">
                                 👁️ <strong id="preview_date"
-                                        style="color: #6366f1;">---</strong>
+                                        class="u-color-main">---</strong>
                             </div>
                         </div>
                     </div>
 
                     <div
                          class="u-margin-top-xl u-flex u-gap-m u-justify-between u-align-center u-border-top u-padding-top-l u-flex-wrap">
-                        <a href="admin"
-                           class="c-button c-button--secondary">
-                            ✕ Abbrechen
-                        </a>
+                        <a href="admin" class="c-button c-button--secondary">✕ Abbrechen</a>
                         <button type="submit"
-                                class="c-button c-button--primary">
-                            Abgleich starten & Permits aktivieren 🚀
-                        </button>
+                                class="c-button c-button--primary">Abgleich starten & Permits aktivieren 🚀</button>
                     </div>
                 </form>
             <?php } ?>

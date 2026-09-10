@@ -273,7 +273,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                                name="mark_as_paid"
                                                value="1"
                                                checked
-                                               class="c-form-checkbox">
+                                               class="c-form-checkbox"
+                                               style="margin-block-start: 3px;">
                                         <div>
                                             <strong class="u-text-sm u-color-main u-display-block"
                                                     style="line-height: 1.2;">Sofort als "Bezahlt" markieren</strong>
@@ -357,9 +358,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         <option value="fixed">Festbetrag (€)</option>
                                     </select>
                                 </div>
-                                <div class="c-form-group"
-                                     id="v_val_wrap"
-                                     style="display: none;">
+                                <div class="c-form-group u-hidden"
+                                     id="v_val_wrap">
                                     <label class="c-form-label"
                                            for="v_val">Wert (Zahl) *</label>
                                     <input type="number"
@@ -427,19 +427,23 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <div class="c-form-group u-margin-bottom-m">
                                         <label class="c-form-label">Zeitraum-Vorgabe *</label>
                                         <div class="u-flex u-gap-m u-margin-top-xs">
-                                            <label class="u-flex u-align-center u-gap-xs u-cursor-pointer">
+                                            <div class="c-form-checkbox__wrapper">
                                                 <input type="radio"
                                                        name="voucher_date_mode"
                                                        value="fixed"
-                                                       checked>
-                                                <span><strong>Fest</strong> (Erzwingt exakte Daten)</span>
-                                            </label>
-                                            <label class="u-flex u-align-center u-gap-xs u-cursor-pointer">
+                                                       checked
+                                                       class="c-form-checkbox"
+                                                       style="margin-block-start: 0;">
+                                                <span class="c-form-checkbox__label"><strong>Fest</strong> (Erzwingt exakte Daten)</span>
+                                            </div>
+                                            <div class="c-form-checkbox__wrapper">
                                                 <input type="radio"
                                                        name="voucher_date_mode"
-                                                       value="flexible">
-                                                <span><strong>Offen</strong> (Pächter wählt selbst)</span>
-                                            </label>
+                                                       value="flexible"
+                                                       class="c-form-checkbox"
+                                                       style="margin-block-start: 0;">
+                                                <span class="c-form-checkbox__label"><strong>Offen</strong> (Pächter wählt selbst)</span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -555,9 +559,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         <strong class="u-font-bold u-text-sm u-color-main">Mehrfach einlösbar?</strong>
                                     </label>
                                 </div>
-                                <div class="c-form-group"
-                                     id="v_max_wrap"
-                                     style="display: none;">
+                                <div class="c-form-group u-hidden"
+                                     id="v_max_wrap">
                                     <label class="c-form-label u-color-muted"
                                            for="v_max_uses">Maximale Nutzungen *</label>
                                     <input type="number"

@@ -161,9 +161,9 @@ $crons = [
 
             <div class="u-flex u-flex-column u-gap-m">
                 <?php foreach ($crons as $cron) { ?>
-                    <div class="c-box c-box--highlight c-card__body u-flex u-flex-column u-gap-m u-margin-none">
+                    <div class="c-box c-box--highlight u-flex u-flex-column u-gap-m u-margin-none">
                         <div>
-                            <h4 class="u-margin-none u-flex u-align-center u-gap-s u-text-md">
+                            <h4 class="u-margin-none u-flex u-align-center u-gap-s u-text-lg">
                                 <span><?php echo $cron['icon']; ?></span> <?php echo $cron['label']; ?>
                             </h4>
                             <p class="u-text-sm u-color-muted u-margin-top-xs u-margin-bottom-none"><?php echo $cron['desc']; ?></p>
@@ -172,12 +172,11 @@ $crons = [
                             </div>
                         </div>
 
-                        <div class="u-flex u-align-center u-gap-s u-width-100">
+                        <div class="u-flex u-align-center u-gap-s u-width-100 u-flex-wrap">
                             <input type="text"
                                    readonly
                                    value="<?php echo \htmlspecialchars($cron['url']); ?>"
-                                   class="c-form-input u-text-sm js-select-on-click u-color-muted u-font-mono"
-                                   style="flex: 1; min-inline-size: 0; background-color: var(--color-bg-light);">
+                                   class="c-form-input u-text-sm js-select-on-click u-color-muted u-font-mono u-flex-grow-1">
                             <button type="button"
                                     class="c-button c-button--secondary c-button--icon-only js-copy-btn"
                                     data-url="<?php echo \htmlspecialchars($cron['url']); ?>"

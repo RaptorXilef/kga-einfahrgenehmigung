@@ -27,7 +27,7 @@ use App\Infrastructure\Config\Config;
         <div class="o-grid o-grid--sidebar u-align-start">
 
             <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
-            <section class="c-card">
+            <section class="c-card c-card--primary">
                 <header class="c-card__header">
                     <h3 class="u-margin-none">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
@@ -88,30 +88,29 @@ use App\Infrastructure\Config\Config;
                                                          class="c-icon"
                                                          alt=""> QR
                                                 </button>
-                                                <code style="display:block; margin-top: 8px; font-size: 0.7rem; font-weight: bold;">
+                                                <code class="u-display-block u-margin-top-s u-text-xs u-font-bold">
                                                     <?php echo $vCodeStr; ?>
                                                 </code>
                                             </div>
                                         </td>
                                         <td style="vertical-align: middle;">
-                                            <strong class="u-display-block u-text-sm u-color-dark">
+                                            <strong class="u-display-block u-text-md u-color-dark">
                                                 <?php echo \htmlspecialchars($v->reason); ?>
                                                 <?php if ($isExpired) {
                                                     echo '<span class="u-color-danger u-text-xs u-margin-left-s">(Abgelaufen)</span>';
                                                 } ?>
                                             </strong>
                                             <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap">
-                                                <span class="c-badge"
-                                                      style="background-color: <?php echo $v->type === 'free' ? 'var(--color-success)' : 'var(--color-primary)'; ?>; color: white;">
-                                                <?php echo $discountText; ?>
-                                            </span>
+                                                <span class="c-badge <?php echo $v->type === 'free' ? 'c-badge--success' : 'c-badge--primary'; ?>">
+                                                    <?php echo $discountText; ?>
+                                                </span>
                                                 <?php if ($v->multiUse) { ?>
                                                     <span class="c-badge c-badge--outline">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="">
-                                                    &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
-                                                </span>
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                                                             class="c-icon"
+                                                             alt="">
+                                                        &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
+                                                    </span>
                                                 <?php } else { ?>
                                                     <span class="c-badge c-badge--outline">Einweg</span>
                                                 <?php } ?>
@@ -122,26 +121,28 @@ use App\Infrastructure\Config\Config;
                                                 <?php } ?>
                                             </div>
 
-                                            <div class="u-margin-top-s u-text-xs u-color-muted">
+                                            <div class="u-margin-top-s u-text-sm u-color-muted">
                                                 <?php if (!empty($v->data['name'])) { ?>
-                                                    Vorbefüllt für: <strong><?php echo \htmlspecialchars($v->data['name']); ?></strong> (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
+                                                    Vorbefüllt für: <strong class="u-color-dark"><?php echo \htmlspecialchars($v->data['name']); ?></strong>
+                                                    (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
                                                 <?php } ?>
                                                 <?php if ($v->expiresAt) { ?>
-                                                    Gültig bis: <strong><?php echo $v->expiresAt->format('d.m.Y H:i'); ?> Uhr</strong>
+                                                    Gültig bis: <strong class="u-color-dark"><?php echo $v->expiresAt->format('d.m.Y H:i'); ?> Uhr</strong>
                                                 <?php } ?>
                                             </div>
 
                                             <div class="u-margin-top-s">
                                                 <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer"
                                                       data-url="<?php echo $url; ?>">
-                                                Link kopieren
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
-                                                     class="c-icon"
-                                                     alt="">
-                                            </span>
+                                                    Link kopieren
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
+                                                         class="c-icon"
+                                                         alt="">
+                                                </span>
                                             </div>
                                         </td>
-                                        <td class="u-text-right">
+                                        <td class="u-text-right"
+                                            style="vertical-align: middle;">
                                             <div class="u-flex u-gap-xs u-justify-end">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
@@ -276,9 +277,7 @@ use App\Infrastructure\Config\Config;
             </div>
 
             <button type="button"
-                    class="c-button c-button--primary u-width-100 u-margin-top-m js-close-modal">
-                Schließen
-            </button>
+                    class="c-button c-button--primary u-width-100 u-margin-top-m js-close-modal">Schließen</button>
         </div>
     </div>
 <?php } ?>

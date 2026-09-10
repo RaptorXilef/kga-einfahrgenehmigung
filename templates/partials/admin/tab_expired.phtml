@@ -41,35 +41,30 @@ if ($auth->hasPermission('permits.view')) {
                              class="c-icon"
                              alt=""> Historisches Archiv
                     </h3>
-                    <p class="u-text-muted u-text-sm u-margin-none">Abgelaufene Genehmigungen aus dem gewählten
+                    <p class="u-color-muted u-text-sm u-margin-none">Abgelaufene Genehmigungen aus dem gewählten
                         Zeitraum.</p>
                 </div>
                 <span class="c-badge c-badge--outline">ARCHIV: <?php echo \count($allExpired); ?></span>
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table js-sort-table"
-                       style="table-layout: fixed; inline-size: 100%; min-inline-size: 950px;">
+                <table class="c-table js-sort-table u-text-nowrap">
                     <thead>
-                        <tr style="background-color: var(--color-bg-light);">
-                            <th class="js-sort-header u-text-left"
-                                style="inline-size: 250px;">Antragsteller & Kennung</th>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 150px;">Fahrzeug</th>
+                        <tr>
+                            <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
+                            <th class="js-sort-header u-text-center">Fahrzeug</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                                 <th class="js-sort-header u-text-left">Kontakt (E-Mail)</th>
                             <?php } ?>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 180px;">Zeitraum</th>
-                            <th class="u-text-right"
-                                style="inline-size: 140px; padding-inline-end: 20px;">Verwaltung</th>
+                            <th class="js-sort-header u-text-center">Zeitraum</th>
+                            <th class="u-text-right">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($expiredPermits)) { ?>
                             <tr>
                                 <td colspan="5"
-                                    class="u-text-center u-padding-around-l u-text-muted">
+                                    class="u-text-center u-padding-around-l u-color-muted">
                                     Keine abgelaufenen Einträge im gewählten Zeitraum.
                                 </td>
                             </tr>
@@ -82,8 +77,7 @@ if ($auth->hasPermission('permits.view')) {
                                 ?>
                                 <tr class="u-hover-fade u-opacity-75">
                                     <!-- 1. Pächter, Code & Parzelle -->
-                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
-                                        style="vertical-align: middle;">
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
                                         <div class="u-flex u-flex-column">
                                             <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></span>
                                             <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs"><?php echo $permit->code; ?></code>
@@ -95,12 +89,10 @@ if ($auth->hasPermission('permits.view')) {
 
                                     <!-- 2. Fahrzeug unter Icon (Nummernschild-Style) -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                        class="u-text-center"
-                                        style="vertical-align: middle;">
+                                        class="u-text-center">
                                         <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon u-grayscale u-opacity-50"
-                                                 style="inline-size: 24px; block-size: 24px;"
+                                                 class="c-icon c-icon--md u-grayscale u-opacity-50"
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div class="u-margin-top-xs">
@@ -109,8 +101,7 @@ if ($auth->hasPermission('permits.view')) {
                                     </td>
 
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                        <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>"
-                                            style="vertical-align: middle;">
+                                        <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
                                                     <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
@@ -121,16 +112,15 @@ if ($auth->hasPermission('permits.view')) {
                                                     </small>
                                                 </div>
                                             <?php } else { ?>
-                                                <small class="u-text-muted"><em>keine Angabe</em></small>
+                                                <small class="u-color-muted"><em>keine Angabe</em></small>
                                             <?php } ?>
                                         </td>
                                     <?php } ?>
 
                                     <!-- 4. Zeitraum -->
                                     <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                        class="u-text-center"
-                                        style="vertical-align: middle;">
-                                        <div style="line-height: 1.2;">
+                                        class="u-text-center">
+                                        <div>
                                             <small class="u-color-muted">
                                                 <?php echo $permit->getValidFrom()->format('d.m.Y'); ?> -<br>
                                                 <?php echo $permit->getValidUntil()->format('d.m.Y'); ?>
@@ -138,18 +128,17 @@ if ($auth->hasPermission('permits.view')) {
                                         </div>
                                     </td>
 
-                                    <td class="u-text-right"
-                                        style="vertical-align: middle; padding-inline-end: 20px;">
+                                    <td class="u-text-right">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
-                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Drucken">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
-                                            </a>
+                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
-                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Details">
-                                                <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-                                            </a>
+                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                             <?php } ?>
                                         </div>
                                     </td>
@@ -210,7 +199,7 @@ if ($auth->hasPermission('permits.view')) {
                             <?php } ?>
                             <?php foreach ($pagesToShow as $pageNum) {
                                 if ($pageNum === '...') { ?>
-                                    <span class="u-text-muted u-padding-x-s">&hellip;</span>
+                                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
                                 <?php } elseif ($pageNum === $page) { ?>
                                     <button class="c-button c-button--primary"
                                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
@@ -229,8 +218,7 @@ if ($auth->hasPermission('permits.view')) {
                         </div>
                     </div>
                 <?php } elseif ($totalCount > 0) { ?>
-                    <div class="u-text-center u-padding-around-s u-text-muted u-text-sm u-border-top"
-                         style="background-color: var(--color-bg-light);">
+                    <div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">
                         Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
                     </div>
                 <?php } ?>
@@ -244,11 +232,11 @@ if ($auth->hasPermission('permits.view')) {
     ?>
                 <a href="<?php echo $loadUrl; ?>"
                    class="c-button c-button--secondary">
-                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                     class="c-icon"
-                     alt="">
-                &nbsp; Daten aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-            </a>
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                         class="c-icon"
+                         alt="">
+                    &nbsp; Daten aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+                </a>
                 <p class="u-text-sm u-color-muted u-margin-top-s u-margin-bottom-none">
                     Aktuell im Speicher: Daten bis einschließlich <strong class="u-color-main"><?php echo $minArchiveYear; ?></strong>. <br>
                     <em>Aus Performance-Gründen werden ältere Archiv-Einträge nicht automatisch geladen.</em>

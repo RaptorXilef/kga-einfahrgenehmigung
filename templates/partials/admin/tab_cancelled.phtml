@@ -22,72 +22,62 @@ $cancelledPermits ??= [];
                              class="c-icon"
                              alt=""> Stornierte Anträge
                     </h3>
-                    <p class="u-text-muted u-text-sm u-margin-none">Übersicht aller durch Pächter zurückgezogenen
+                    <p class="u-color-muted u-text-sm u-margin-none">Übersicht aller durch Pächter zurückgezogenen
                         Anträge (DSGVO-konform anonymisiert).</p>
                 </div>
                 <span class="c-badge c-badge--danger">STORNIERT: <?php echo \count($cancelledPermits); ?></span>
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table js-sort-table"
-                       style="table-layout: fixed; inline-size: 100%; min-inline-size: 950px;">
+                <table class="c-table js-sort-table u-text-nowrap">
                     <thead>
-                        <tr style="background-color: var(--color-bg-light);">
-                            <th class="js-sort-header u-text-left"
-                                style="inline-size: 250px;">Antragsteller & Kennung</th>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 150px;">Fahrzeug</th>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 180px;">Zeitraum</th>
-                            <th class="js-sort-header u-text-right"
-                                style="inline-size: 120px;">Preis</th>
-                            <th class="js-sort-header u-text-right"
-                                style="inline-size: 140px; padding-inline-end: 20px;">Stornierungsdatum</th>
+                        <tr>
+                            <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
+                            <th class="js-sort-header u-text-center">Fahrzeug</th>
+                            <th class="js-sort-header u-text-center">Zeitraum</th>
+                            <th class="js-sort-header u-text-right">Preis</th>
+                            <th class="js-sort-header u-text-right">Stornierungsdatum</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($cancelledPermits)) { ?>
                             <tr>
                                 <td colspan="5"
-                                    class="u-text-center u-padding-around-l u-text-muted">
+                                    class="u-text-center u-padding-around-l u-color-muted">
                                     Keine stornierten Genehmigungen vorhanden.
                                 </td>
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($cancelledPermits as $permit) { ?>
                                 <tr class="u-hover-fade u-opacity-75">
-                                    <td style="vertical-align: middle;">
+                                    <td>
                                         <div class="u-flex u-flex-column">
                                             <span class="u-font-bold u-color-main">[ANONYMISIERT]</span>
                                             <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs"><?php echo $permit->code; ?></code>
                                         </div>
                                     </td>
-                                    <td class="u-text-center"
-                                        style="vertical-align: middle;">
-                                        <div style="line-height: 1;">
+                                    <td class="u-text-center">
+                                        <div>
                                             <img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>"
-                                                 class="c-icon u-grayscale u-opacity-50"
-                                                 style="inline-size: 24px; block-size: 24px;">
+                                                 class="c-icon c-icon--md u-grayscale u-opacity-50"
+                                                 alt="">
                                         </div>
                                         <div class="u-margin-top-xs">
                                             <span class="c-license-plate u-opacity-50">[ANONYM]</span>
                                         </div>
                                     </td>
-                                    <td class="u-text-center"
-                                        style="vertical-align: middle;">
-                                        <div style="line-height: 1.2;">
+                                    <td class="u-text-center">
+                                        <div>
                                             <small class="u-color-muted">
                                                 <?php echo $permit->getValidFrom()->format('d.m.Y'); ?> -<br>
                                                 <?php echo $permit->getValidUntil()->format('d.m.Y'); ?>
                                             </small>
                                         </div>
                                     </td>
-                                    <td class="u-text-right"
-                                        style="vertical-align: middle;">
+                                    <td class="u-text-right">
                                         <strong class="u-color-dark"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</strong>
                                     </td>
-                                    <td class="u-text-right"
-                                        style="vertical-align: middle; padding-inline-end: 20px;">
+                                    <td class="u-text-right">
                                         <strong class="u-color-danger"><?php echo $permit->getCreatedAt()->format('d.m.Y'); ?></strong><br>
                                         <small class="u-color-muted"><?php echo $permit->getCreatedAt()->format('H:i'); ?> Uhr</small>
                                     </td>

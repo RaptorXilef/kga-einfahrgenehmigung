@@ -65,9 +65,8 @@ $chartDataPayload = [
         <div class="u-flex u-align-center u-gap-s u-margin-bottom-m">
             <div class="c-date-indicator">
                 <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
-                     class="c-icon"
-                     alt=""
-                     style="inline-size: 20px; block-size: 20px;">
+                     class="c-icon c-icon--inline"
+                     alt="">
                 <div>
                     <span class="c-date-indicator__label">Berichtszeitraum</span>
                     <strong class="c-date-indicator__value">
@@ -80,7 +79,6 @@ $chartDataPayload = [
         <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
             <div class="o-grid u-gap-m u-margin-bottom-l"
                  style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
-
                 <div class="c-card c-card--success u-margin-none">
                     <div class="c-stat-card c-card__body u-padding-around-m">
                         <span class="c-stat-card__label">BEREITS BEZAHLT</span>
@@ -113,20 +111,17 @@ $chartDataPayload = [
                 if ($count === 0) {
                     continue;
                 }
-
                 if ($typeKey === '__legacy__') {
                     $label = 'Sonstige / Ehem.';
                     $icon = 'assets/img/icons/status-invalid.webp';
                 } else {
                     $label = $vConfig[$typeKey]['label'] ?? $typeKey;
                     $icon = $vConfig[$typeKey]['icon'] ?? '';
-                } // Nur anzeigen wenn vorhanden
-                ?>
+                } // Nur anzeigen wenn vorhanden?>
                                 <div class="c-badge c-badge--success u-font-bold u-text-xs">
                                     <img src="<?php echo $settings['base_url'] . $icon; ?>"
-                                         style="inline-size: 14px; block-size: 14px; margin-inline-end: 4px;"> <?php echo $count; ?>
-                                    <small class="u-font-semibold"
-                                           style="margin-inline-start: 4px;"><?php echo $label; ?></small>
+                                         class="c-icon c-icon--inline u-margin-right-xs"> <?php echo $count; ?>
+                                    <small class="u-font-semibold u-margin-left-xs"><?php echo $label; ?></small>
                                 </div>
                             <?php } ?>
                         </div>
@@ -159,20 +154,17 @@ $chartDataPayload = [
                     <summary class="c-accordion__summary u-font-bold"
                              style="border: none;">
                         <span class="c-accordion__title">
-                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Wachstums-Trend & Jahresvergleich
-                    </span>
+                            <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Wachstums-Trend & Jahresvergleich
+                        </span>
                     </summary>
-                    <div class="c-accordion__body"
-                         style="background-color: var(--color-bg-white);">
+                    <div class="c-accordion__body c-box c-box--subtle u-margin-none">
                         <div class="u-flex u-gap-xs u-margin-bottom-m u-justify-end">
                             <div class="c-box u-padding-around-s u-display-inline-flex"
                                  style="padding-block: 4px;">
                                 <button id="chartToggleMonth"
-                                        class="c-button c-button--primary"
-                                        style="padding-inline: 12px; block-size: 34px; font-size: 0.8rem;">Monatlich</button>
+                                        class="c-button c-button--primary c-button--small">Monatlich</button>
                                 <button id="chartToggleYear"
-                                        class="c-button c-button--secondary"
-                                        style="padding-inline: 12px; block-size: 34px; font-size: 0.8rem;">Jährlich</button>
+                                        class="c-button c-button--secondary c-button--small">Jährlich</button>
                             </div>
                         </div>
                         <canvas id="yearlyStatsChart"
@@ -185,8 +177,7 @@ $chartDataPayload = [
         <?php if ($auth->hasPermission('privacy.finance.view')) { ?>
             <h3 class="u-margin-bottom-m u-flex u-align-center u-gap-s">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
-                     class="c-icon c-icon--inline"
-                     style="inline-size: 24px; block-size: 24px;"
+                     class="c-icon c-icon--md"
                      alt=""> Historische Jahresabschlüsse
             </h3>
 
@@ -194,9 +185,9 @@ $chartDataPayload = [
                 <details class="c-accordion">
                     <summary class="c-accordion__summary">
                         <span class="c-accordion__title">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>" class="c-icon" alt="">
-                        Geschäftsjahr <strong><?php echo $year; ?></strong>
-                    </span>
+<img src="<?php echo $asset->url('assets/img/icons/icon-tear-off-calendar.webp'); ?>" class="c-icon" alt="">
+Geschäftsjahr <strong><?php echo $year; ?></strong>
+</span>
                         <div class="c-accordion__meta">
                             <span class="u-color-success u-font-bold">+ <?php echo \number_format($data['paid'], 0, ',', '.'); ?> €</span>
                             <span class="c-badge c-badge--outline u-font-extrabold"><?php echo $data['count']; ?> Anträge</span>
@@ -223,7 +214,7 @@ $chartDataPayload = [
                                 <div
                                      class="u-text-xs u-color-muted u-flex u-justify-center u-gap-s u-flex-wrap u-align-center">
                                     <?php
-                        $vConfig = $config->get('vehicle_types', []);
+                    $vConfig = $config->get('vehicle_types', []);
                 $typeItems = [];
                 foreach ($data['types'] as $tKey => $count) {
                     if ($count === 0) {
@@ -231,7 +222,7 @@ $chartDataPayload = [
                     } // Nur Typen anzeigen, die Daten haben
 
                     if ($tKey === '__legacy__') {
-                        $vLabel = 'Sonstige / Ehem.';
+                        $vLabel = 'Sonstige';
                         $vIcon = 'assets/img/icons/status-invalid.webp';
                     } else {
                         $vLabel = $vConfig[$tKey]['label'] ?? $tKey;
@@ -239,7 +230,7 @@ $chartDataPayload = [
                     }
 
                     // Wir bauen uns ein Array von HTML-Schnipseln
-                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon" style="inline-size: 12px; block-size: 12px; margin-inline-end: 2px;"> ' . $count . ' ' . $vLabel . '</span>';
+                    $typeItems[] = '<span><img src="' . $settings['base_url'] . $vIcon . '" class="c-icon c-icon--inline u-margin-right-xs"> ' . $count . ' ' . $vLabel . '</span>';
                 }
                 // Wir verbinden die Schnipsel mit einem Trennstrich
                 echo \implode(' <span class="u-opacity-50">|</span> ', $typeItems);
@@ -264,13 +255,12 @@ $chartDataPayload = [
             $queryParams['archive_depth'] = $minArchiveYear - 1;
             $loadUrl = '?' . \http_build_query($queryParams);
             ?>
-                <a href="<?php echo $loadUrl; ?>"
-                   class="c-button c-button--secondary">
-                <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                     class="c-icon"
-                     alt="">
-                &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
-            </a>
+                <a href="<?php echo $loadUrl; ?>" class="c-button c-button--secondary">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
+                        class="c-icon"
+                        alt="">
+                    &nbsp; Statistiken aus dem Jahr <?php echo $minArchiveYear - 1; ?> dazuladen
+                </a>
             </div>
         <?php } ?>
     </div>

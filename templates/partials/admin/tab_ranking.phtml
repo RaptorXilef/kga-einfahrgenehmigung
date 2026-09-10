@@ -22,14 +22,14 @@ $plots = $periodStats['plots'] ?? [];
                          class="c-icon"
                          alt=""> Parzellen-Ranking (Top 30)
                 </h3>
-                <p class="u-text-muted u-text-sm u-margin-none u-margin-top-xs">Auswertung basierend auf dem gewählten
+                <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Auswertung basierend auf dem gewählten
                     Zeitraum.</p>
             </header>
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table"
+                <table class="c-table u-text-nowrap"
                        style="table-layout: fixed; inline-size: 100%; min-inline-size: 900px;">
                     <thead>
-                        <tr style="background-color: var(--color-bg-light);">
+                        <tr>
                             <th class="u-text-center"
                                 style="inline-size: 70px;">Rang</th>
                             <th class="u-text-left"
@@ -53,7 +53,7 @@ $plots = $periodStats['plots'] ?? [];
                         <?php if (empty($plots)) { ?>
                             <tr>
                                 <td colspan="7"
-                                    class="u-text-center u-padding-around-l u-text-muted">Keine Daten im Zeitraum
+                                    class="u-text-center u-padding-around-l u-color-muted">Keine Daten im Zeitraum
                                     gefunden.</td>
                             </tr>
                             <?php } else {
@@ -64,7 +64,7 @@ $plots = $periodStats['plots'] ?? [];
                                 foreach (\array_slice($plots, 0, 30, true) as $pNum => $data) {
                                     $perc = ($data['count'] / $maxCount) * 100;
                                     ?>
-                                <tr>
+                                <tr class="u-hover-fade">
                                     <!-- RANG -->
                                     <td class="u-text-center"
                                         style="vertical-align: middle;">
@@ -100,11 +100,11 @@ $plots = $periodStats['plots'] ?? [];
                                             <?php if ($data['email']) { ?>
                                                 <small>
                                                     <a href="mailto:<?php echo \htmlspecialchars($data['email'], \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link">
-                                                <?php echo \htmlspecialchars($data['email']); ?>
-                                            </a>
+                                                        <?php echo \htmlspecialchars($data['email']); ?>
+                                                    </a>
                                                 </small>
                                             <?php } else { ?>
-                                                <small class="u-text-muted"><em>keine Angabe</em></small>
+                                                <small class="u-color-muted"><em>keine Angabe</em></small>
                                             <?php } ?>
                                         </td>
                                     <?php } ?>

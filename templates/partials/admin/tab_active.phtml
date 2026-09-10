@@ -42,7 +42,7 @@ if ($auth->hasPermission('permits.view')) {
                              class="c-icon"
                              alt=""> Aktive Genehmigungen
                     </h3>
-                    <p class="u-text-muted u-text-small u-margin-none">
+                    <p class="u-color-muted u-text-sm u-margin-none">
                         Alle aktuell gültigen Einfahrtsberechtigungen im System.
                     </p>
                 </div>
@@ -50,30 +50,24 @@ if ($auth->hasPermission('permits.view')) {
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table js-sort-table"
-                       style="table-layout: fixed; inline-size: 100%; min-inline-size: 1000px;">
+                <table class="c-table js-sort-table u-text-nowrap">
                     <thead>
-                        <tr style="background-color: var(--color-bg-light);">
-                            <th class="js-sort-header u-text-left"
-                                style="inline-size: 250px;">Antragsteller & Kennung</th>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 150px;">Fahrzeug</th>
+                        <tr>
+                            <th class="js-sort-header">Antragsteller & Kennung</th>
+                            <th class="js-sort-header u-text-center">Fahrzeug</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="js-sort-header u-text-left">Kontakt (E-Mail)</th>
+                                <th class="js-sort-header">Kontakt (E-Mail)</th>
                             <?php } ?>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 200px;">Gültigkeit & Restzeit</th>
-                            <th class="js-sort-header u-text-center"
-                                style="inline-size: 120px;">Status</th>
-                            <th class="u-text-right"
-                                style="inline-size: 150px; padding-inline-end: 20px;">Verwaltung</th>
+                            <th class="js-sort-header u-text-center">Gültigkeit & Restzeit</th>
+                            <th class="js-sort-header u-text-center">Status</th>
+                            <th class="u-text-right">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($activePermits)) { ?>
                             <tr>
                                 <td colspan="6"
-                                    class="u-text-center u-padding-around-l u-text-muted">
+                                    class="u-text-center u-padding-around-l u-color-muted">
                                     Aktuell keine aktiven Genehmigungen vorhanden.
                                 </td>
                             </tr>
@@ -91,8 +85,7 @@ if ($auth->hasPermission('permits.view')) {
                                 ?>
                                 <tr class="u-hover-fade <?php echo $is_suspended ? 'c-table__row--danger' : ''; ?>">
                                     <!-- 1. Pächter & Parzelle -->
-                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
-                                        style="vertical-align: middle;">
+                                    <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
                                         <div class="u-flex u-flex-column">
                                             <span class="u-font-bold u-color-main">
                                                 <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
@@ -110,12 +103,10 @@ if ($auth->hasPermission('permits.view')) {
 
                                     <!-- 2. Fahrzeug (Icon & Nummernschild-Kasten) -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                        class="u-text-center"
-                                        style="vertical-align: middle;">
+                                        class="u-text-center">
                                         <div>
                                             <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
-                                                 class="c-icon <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                                 style="inline-size: 24px; block-size: 24px;"
+                                                 class="c-icon c-icon--md <?php echo ($permit->getValidUntil() < $now) ? 'u-grayscale u-opacity-50' : ''; ?>"
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div class="u-margin-top-xs">
@@ -127,8 +118,7 @@ if ($auth->hasPermission('permits.view')) {
 
                                     <!-- 3. E-Mail -->
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                        <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>"
-                                            style="vertical-align: middle;">
+                                        <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
                                             <?php if ($permit->getOwnerEmail()) { ?>
                                                 <div class="u-flex u-align-center u-gap-xs">
                                                     <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
@@ -142,30 +132,28 @@ if ($auth->hasPermission('permits.view')) {
                                                     </small>
                                                 </div>
                                             <?php } else { ?>
-                                                <small class="u-text-muted"><em>Keine E-Mail</em></small>
+                                                <small class="u-color-muted"><em>Keine E-Mail</em></small>
                                             <?php } ?>
                                         </td>
                                     <?php } ?>
 
                                     <!-- 4. Zeitraum & Countdown -->
                                     <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                        class="u-text-center"
-                                        style="vertical-align: middle;">
-                                        <div style="line-height: 1.3;">
+                                        class="u-text-center">
+                                        <div>
                                             <strong class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
-                                            <small class="u-text-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
+                                            <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
                                             <div class="u-margin-top-xs">
                                                 <span class="c-badge <?php echo ($remaining <= 1) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon" alt=""> <?php echo $remainingText; ?>
-                                            </span>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-hourglass-not-done.webp'); ?>" class="c-icon" alt=""> <?php echo $remainingText; ?>
+                                                </span>
                                             </div>
                                         </div>
                                     </td>
 
                                     <!-- 5. Status -->
                                     <td data-sort-val="<?php echo $is_suspended ? '2' : ($permit->isValid((bool) $config->get('require_payment_for_validity', false)) ? '0' : '1'); ?>"
-                                        class="u-text-center"
-                                        style="vertical-align: middle;">
+                                        class="u-text-center">
                                         <?php if ($is_suspended) { ?>
                                             <span class="c-badge c-badge--danger" title="<?php echo \htmlspecialchars($permit->getSuspensionReason()); ?>">GESPERRT</span>
                                         <?php } elseif (!$permit->isValid((bool) $config->get('require_payment_for_validity', false))) { ?>
@@ -176,7 +164,7 @@ if ($auth->hasPermission('permits.view')) {
                                     </td>
 
                                     <!-- 6. Verwaltung (Buttons & Verstecktes Formular) -->
-                                    <td style="text-align: right; vertical-align: middle; padding-inline-end: 20px;">
+                                    <td class="u-text-right">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>"
@@ -310,7 +298,7 @@ if ($auth->hasPermission('permits.view')) {
 
                             <?php foreach ($pagesToShow as $pageNum) {
                                 if ($pageNum === '...') { ?>
-                                    <span class="u-text-muted u-padding-x-s">&hellip;</span>
+                                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
                                 <?php } elseif ($pageNum === $page) { ?>
                                     <button class="c-button c-button--primary"
                                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
@@ -330,7 +318,7 @@ if ($auth->hasPermission('permits.view')) {
                         </div>
                     </div>
                 <?php } elseif ($totalCount > 0) { ?>
-                    <div class="u-text-center u-padding-around-s u-text-muted u-text-sm u-border-top"
+                    <div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top"
                          style="background-color: var(--color-bg-light);">
                         Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
                     </div>

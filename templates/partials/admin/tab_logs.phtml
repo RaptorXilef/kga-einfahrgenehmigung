@@ -39,10 +39,10 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table"
+                <table class="c-table u-text-nowrap"
                        style="table-layout: fixed; inline-size: 100%; min-inline-size: 950px;">
                     <thead>
-                        <tr style="background-color: var(--color-bg-light);">
+                        <tr>
                             <th class="u-text-left"
                                 style="inline-size: 160px;">Zeitpunkt</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
@@ -82,17 +82,18 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                                 <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                                                      class="c-icon c-icon--inline"
                                                      alt="">
-                                                <span class="u-font-bold u-text-sm"
-                                                      style="word-break: break-all;">
-                                                <?php echo \htmlspecialchars($log->recipient); ?>
-                                            </span>
+                                                <span class="u-font-bold u-text-sm u-text-nowrap"
+                                                      style="white-space: normal; word-break: break-all;">
+                                                    <?php echo \htmlspecialchars($log->recipient); ?>
+                                                </span>
                                             </div>
                                         </td>
                                     <?php } ?>
 
                                     <!-- 3. Betreff & Fehlermeldung -->
                                     <td style="vertical-align: middle;">
-                                        <div class="u-margin-bottom-xs">
+                                        <div class="u-margin-bottom-xs u-text-nowrap"
+                                             style="white-space: normal;">
                                             <strong class="u-color-main u-text-sm"><?php echo \htmlspecialchars($log->subject); ?></strong>
                                         </div>
                                         <div class="u-flex u-align-center u-gap-s">
@@ -105,7 +106,8 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                                 <div
                                                      class="u-color-danger u-text-xs u-font-extrabold u-text-uppercase u-margin-bottom-xs">
                                                     Fehlermeldung:</div>
-                                                <div class="u-text-xs u-color-main"><?php echo \htmlspecialchars($log->status); ?></div>
+                                                <div class="u-text-xs u-color-main"
+                                                     style="white-space: normal;"><?php echo \htmlspecialchars($log->status); ?></div>
                                             </div>
                                         <?php } ?>
                                     </td>
@@ -115,12 +117,12 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center">
                                             <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>"
                                                   style="min-inline-size: 100px; block-size: 32px;">
-                                            <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
-                                            <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>"
-                                                 class="c-icon"
-                                                 alt="">
-                                            <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
-                                        </span>
+                                                <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
+                                                <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>"
+                                                    class="c-icon"
+                                                    alt="">
+                                                <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
+                                            </span>
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>resend_mail"
                                                   class="u-margin-none"
@@ -132,7 +134,7 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                                        name="timestamp"
                                                        value="<?php echo $log->timestamp->format('Y-m-d H:i:s'); ?>">
                                                 <button type="submit"
-                                                        class="c-button c-button--primary c-button--small c-button--icon-only"
+                                                        class="c-button c-button--primary c-button--icon-only"
                                                         title="Erneut senden">🔄</button>
                                             </form>
                                         </div>
