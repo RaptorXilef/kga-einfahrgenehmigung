@@ -14,5 +14,10 @@
         &--auto-right {
             grid-template-columns: 1fr auto;
         }
+
+        /* Flexibles Grid für Karten & Einstellungen (passt sich automatisch an) */
+        &--auto-fit {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
     }
 }

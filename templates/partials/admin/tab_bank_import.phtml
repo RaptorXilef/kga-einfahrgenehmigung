@@ -23,12 +23,11 @@ $guess_amount = (int) ($bankWizard['guessAmount'] ?? 14);
 $guess_date = (int) ($bankWizard['guessDate'] ?? 1);
 ?>
 <div class="c-tab-content-container">
-    <section class="c-card"
-             style="border-top-color: var(--success-color);">
+    <section class="c-card c-card--success">
         <header class="c-card__header u-text-center u-padding-y-l">
             <h3 class="u-margin-none">🏦 Automatischer Bank-Kontoauszugs-Abgleich</h3>
-            <p class="u-text-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene Permits automatisch auf "bezahlt"
-                zu setzen.</p>
+            <p class="u-color-muted">Laden Sie die CSV-Datei Ihrer Bank hoch, um offene Permits automatisch auf
+                "bezahlt" zu setzen.</p>
         </header>
         <div class="c-card__body u-padding-around-l">
             <?php
@@ -44,22 +43,23 @@ if (!$headersExist) {
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <!-- FIX: js-auto-submit Klasse hinzugefügt, damit das ESM-Modul den Submit übernimmt! -->
-                    <div class="js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l"
-                         style="border: 3px dashed var(--border-color); border-radius: 12px; background: rgba(0,0,0,0.01); padding: 40px 20px; cursor:pointer;"
-                         id="csvDropzone">
-                        <span style="font-size: 3rem; display:block; margin-bottom:10px;">📄</span>
-                        <strong class="js-preview-text">CSV-Datei hierher ziehen oder klicken zum Auswählen</strong>
+
+                    <div class="c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l c-box c-box--dashed"
+                         id="csvDropzone"
+                         style="padding-block: 40px; border-width: 3px;">
+                        <span class="u-text-3xl u-display-block u-margin-bottom-s">📄</span>
+                        <strong class="js-preview-text u-text-lg">CSV-Datei hierher ziehen oder klicken zum
+                            Auswählen</strong>
 
                         <!-- Modus-Indikator für die Nutzer -->
-                        <div class="u-margin-top-m u-text-muted u-text-small"
+                        <div class="u-margin-top-m u-color-muted u-text-sm"
                              style="line-height: 1.5;">
                             Unterstützt Standard-Bank-CSV (Semikolon-getrennt).<br>
                             <?php if ($importMode === 'simple') { ?>
-                                <span style="color: var(--success-color); font-weight: bold;">Einfacher Modus aktiv:</span>
+                                <span class="u-color-success u-font-bold">Einfacher Modus aktiv:</span>
                                 Der Daten-Abgleich und die Freischaltung starten sofort nach dem Hochladen!
                             <?php } else { ?>
-                                <span style="color: var(--primary-color); font-weight: bold;">Kontroll-Modus aktiv:</span>
+                                <span class="u-color-primary u-font-bold">Kontroll-Modus aktiv:</span>
                                 Sie können die Spaltenzuordnung nach dem Hochladen noch prüfen.
                             <?php } ?>
                         </div>
@@ -93,8 +93,8 @@ if (!$headersExist) {
                     <input type="hidden"
                            name="temp_file"
                            value="<?php echo \htmlspecialchars($bank_temp_file); ?>">
-                    <div class="u-grid u-gap-m"
-                         style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+
+                    <div class="o-grid o-grid--auto-fit u-gap-m">
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_id">Permit-ID / Verwendungszweck</label>
@@ -110,12 +110,12 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div
-                                 style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+                            <div class="c-box c-box--subtle u-margin-top-s u-padding-y-s u-padding-x-m u-text-xs">
                                 👁️ <strong id="preview_id"
-                                        style="color: var(--primary-color);">---</strong>
+                                        class="u-color-primary">---</strong>
                             </div>
                         </div>
+
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_amount">Zahlungsbetrag (€)</label>
@@ -131,12 +131,12 @@ if (!$headersExist) {
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div
-                                 style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+                            <div class="c-box c-box--subtle u-margin-top-s u-padding-y-s u-padding-x-m u-text-xs">
                                 👁️ <strong id="preview_amount"
-                                        style="color: #059669;">---</strong>
+                                        class="u-color-success">---</strong>
                             </div>
                         </div>
+
                         <div class="c-form-group">
                             <label class="c-form-label"
                                    for="col_date">Buchungstag / Datum</label>
@@ -147,27 +147,26 @@ if (!$headersExist) {
                                     autocomplete="off">
                                 <?php foreach ($bank_headers as $idx => $name) { ?>
                                     <option value="<?php echo $idx; ?>"
-                                            <?php echo $idx === $guess_date ? 'selected' : ''; ?>> Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
+                                            <?php echo $idx === $guess_date ? 'selected' : ''; ?>>
+                                        Spalte <?php echo $idx + 1; ?>: <?php echo \htmlspecialchars($name); ?>
                                     </option>
                                 <?php } ?>
                             </select>
-                            <div
-                                 style="margin-top: 8px; background: #f8fafc; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">
+                            <div class="c-box c-box--subtle u-margin-top-s u-padding-y-s u-padding-x-m u-text-xs">
                                 👁️ <strong id="preview_date"
                                         style="color: #6366f1;">---</strong>
                             </div>
                         </div>
                     </div>
-                    <div class="u-margin-top-xl u-flex u-gap-m u-justify-between u-align-center"
-                         style="border-top: 1px solid var(--border-color); padding-top: 20px; flex-wrap: wrap;">
+
+                    <div
+                         class="u-margin-top-xl u-flex u-gap-m u-justify-between u-align-center u-border-top u-padding-top-l u-flex-wrap">
                         <a href="admin"
-                           class="c-button c-button--secondary"
-                           style="width: auto; padding: 0 20px; height: 42px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none;">
+                           class="c-button c-button--secondary">
                             ✕ Abbrechen
                         </a>
                         <button type="submit"
-                                class="c-button c-button--primary"
-                                style="width: auto; min-width: 250px; padding: 0 24px; height: 42px; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); transition: all 0.2s;">
+                                class="c-button c-button--primary">
                             Abgleich starten & Permits aktivieren 🚀
                         </button>
                     </div>

@@ -5,6 +5,15 @@
             font-size: 0.95rem;
             border-collapse: collapse;
         }
+
+        /* Intelligenter Zeilenumbruch für E-Mail-Adressen in ALLEN Tabellen */
+        a[href^='mailto:'] {
+            overflow-wrap: anywhere; /* Bricht an normalen Wörtern, oder mittendrin, wenn der Platz fehlt */
+            word-break: break-word; /* Fallback für ältere Browser */
+            line-break: anywhere;
+            display: inline-block;
+            max-inline-size: 100%;
+        }
     }
 
     .c-table__row {

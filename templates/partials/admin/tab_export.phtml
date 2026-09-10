@@ -19,59 +19,60 @@ use App\Core\Service\AuthService;
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-text-center">
-                <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/nav-export.webp'); ?>"
-                         class="c-icon"
-                         alt=""> Daten-Export</h3>
-                <p class="u-text-muted">Laden Sie die Finanz-Daten für den oben eingestellten Zeitraum herunter.</p>
+                <h3 class="u-margin-none">
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-export.webp'); ?>"
+                         class="c-icon c-icon--md"
+                         alt=""> Daten-Export
+                </h3>
+                <p class="u-color-muted u-margin-top-s">Laden Sie die Finanz-Daten für den oben eingestellten Zeitraum
+                    herunter.</p>
             </header>
             <div class="c-card__body">
                 <!-- Modernes Action-Grid für Export -->
                 <div class="c-action-grid">
-
                     <!-- CSV Export Card (Transaktionen) -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                        class="c-action-card c-action-card--csv">
-                        <div class="c-action-card__icon">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
-                                 class="c-icon"
-                                 alt="">
-                        </div>
-                        <div>
-                            <span class="c-action-card__title">Excel / CSV Buchhaltung</span>
-                            <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Kassensoftware.</span>
-                        </div>
-                    </a>
+                    <div class="c-action-card__icon">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
+                             class="c-icon"
+                             alt="">
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">Excel / CSV Buchhaltung</span>
+                        <span class="c-action-card__desc">Ideal für Tabellenkalkulation und Kassensoftware.</span>
+                    </div>
+                </a>
 
                     <!-- CSV Export Card (Statistiken) -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=csv_stats&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                        class="c-action-card c-action-card--csv">
-                        <div class="c-action-card__icon">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
-                                 class="c-icon"
-                                 alt="Statistik">
-                        </div>
-                        <div>
-                            <span class="c-action-card__title">CSV Statistiken</span>
-                            <span class="c-action-card__desc">Aggregierte Summen, Umsätze und Vorlagen-Nutzung.</span>
-                        </div>
-                    </a>
+                    <div class="c-action-card__icon">
+                        <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
+                             class="c-icon"
+                             alt="Statistik">
+                    </div>
+                    <div>
+                        <span class="c-action-card__title">CSV Statistiken</span>
+                        <span class="c-action-card__desc">Aggregierte Summen, Umsätze und Vorlagen-Nutzung.</span>
+                    </div>
+                </a>
 
                     <!-- JSON Export Card -->
                     <a href="<?php echo $settings['base_url']; ?>dashboard_export?format=json&start=<?php echo $filterStart; ?>&end=<?php echo $filterEnd; ?>"
                        class="c-action-card c-action-card--json">
                     <div class="c-action-card__icon">⚙️</div>
-                        <div>
-                            <span class="c-action-card__title">JSON RAW-Daten</span>
-                            <span class="c-action-card__desc">Für technischen Datenimport und externe Backups.</span>
-                        </div>
-                    </a>
+                    <div>
+                        <span class="c-action-card__title">JSON RAW-Daten</span>
+                        <span class="c-action-card__desc">Für technischen Datenimport und externe Backups.</span>
+                    </div>
+                </a>
                 </div>
 
                 <!-- Zeitraum-Info-Box -->
-                <div class="u-margin-top-l u-padding-around-s u-text-center"
-                     style="background: #f8fafc; border-radius: 8px; border: 1px dashed var(--border-color);">
-                    <span class="u-text-muted">Gefilterter Zeitraum:</span><br>
-                    <strong style="color: var(--primary-color);">
+                <div class="c-box c-box--dashed u-margin-top-l u-text-center">
+                    <span class="u-color-muted">Gefilterter Zeitraum:</span><br>
+                    <strong class="u-color-primary">
                         <?php echo \date('d.m.Y', \strtotime($filterStart)); ?> bis <?php echo \date('d.m.Y', \strtotime($filterEnd)); ?>
                     </strong>
                 </div>
