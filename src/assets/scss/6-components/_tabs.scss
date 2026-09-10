@@ -9,11 +9,11 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             margin-block-start: 0;
-            margin-block-end: 3rem;
+            margin-block-end: 2rem;
             margin-inline: auto;
-            padding: 6px;
+            padding: 8px;
             background-color: color-mix(
                 in oklch,
                 var(--color-bg-light) 95%,
@@ -27,34 +27,34 @@
         }
 
         &__btn {
-            padding-block: 10px;
-            padding-inline: 18px;
-            border: none;
+            padding-block: 8px;
+            padding-inline: 16px;
+            border: 1px solid transparent; /* Verhindert Layout-Shift beim Hover */
             background-color: transparent;
             cursor: pointer;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 600;
-            color: var(--color-text-muted);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--color-text-main);
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             white-space: nowrap;
 
-            /* Das hat im Menü gefehlt! */
             .c-icon {
-                inline-size: 1.4em;
-                block-size: 1.4em;
-                margin-inline-end: 4px;
+                inline-size: 1.2em;
+                block-size: 1.2em;
             }
 
+            /* Hover ist jetzt sichtbar durch Primary-Soft Background */
             &:hover {
                 color: var(--color-primary);
-                background-color: color-mix(
+                background-color: var(--color-primary-soft);
+                border-color: color-mix(
                     in oklch,
-                    var(--color-bg-white) 70%,
+                    var(--color-primary) 20%,
                     transparent
                 );
             }
@@ -62,10 +62,8 @@
             &--active {
                 background-color: var(--color-bg-white) !important;
                 color: var(--color-primary) !important;
-                box-shadow:
-                    0 4px 12px color-mix(in oklch, #000 8%, transparent),
-                    0 1px 2px color-mix(in oklch, #000 5%, transparent) !important;
-                transform: scale(1.02);
+                box-shadow: var(--shadow-sm) !important;
+                border-color: var(--color-border) !important;
             }
         }
 

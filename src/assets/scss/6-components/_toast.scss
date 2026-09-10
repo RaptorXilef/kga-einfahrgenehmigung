@@ -1,0 +1,38 @@
+@layer components {
+    .c-toast {
+        position: fixed;
+        inset-block-end: 30px;
+        inset-inline-start: 50%;
+        transform: translateX(-50%);
+        background-color: var(--color-text-main);
+        color: var(--color-bg-white);
+        padding-block: 12px;
+        padding-inline: 24px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        box-shadow: 0 10px 15px -3px color-mix(in oklch, #000 30%, transparent);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: toastSlideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+
+        &--hide {
+            opacity: 0;
+            inset-block-end: 10px;
+            transition: all 0.5s ease;
+        }
+    }
+
+    @keyframes toastSlideUp {
+        from {
+            inset-block-end: 0;
+            opacity: 0;
+        }
+        to {
+            inset-block-end: 30px;
+            opacity: 1;
+        }
+    }
+}
