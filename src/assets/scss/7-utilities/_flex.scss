@@ -1,0 +1,56 @@
+@layer utilities {
+    .u-flex {
+        display: flex !important;
+    }
+    .u-flex-inline {
+        display: inline-flex !important;
+    }
+    .u-flex-column {
+        flex-direction: column !important;
+    }
+    .u-flex-wrap {
+        flex-wrap: wrap !important;
+    }
+
+    .u-align-start {
+        align-items: flex-start !important;
+    }
+    .u-align-center {
+        align-items: center !important;
+    }
+    .u-align-end {
+        align-items: flex-end !important;
+    }
+    .u-align-stretch {
+        align-items: stretch !important;
+    }
+
+    .u-justify-start {
+        justify-content: flex-start !important;
+    }
+    .u-justify-center {
+        justify-content: center !important;
+    }
+    .u-justify-between {
+        justify-content: space-between !important;
+    }
+    .u-justify-end {
+        justify-content: flex-end !important;
+    }
+
+    .u-gap-xs {
+        gap: 0.25rem !important;
+    }
+    .u-gap-s {
+        gap: 0.5rem !important;
+    }
+    .u-gap-m {
+        gap: 1rem !important;
+    }
+    .u-gap-l {
+        gap: 2rem !important;
+    }
+    .u-gap-xl {
+        gap: 3rem !important;
+    }
+}
