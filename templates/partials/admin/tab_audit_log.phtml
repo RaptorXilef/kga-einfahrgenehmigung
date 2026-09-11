@@ -78,13 +78,13 @@ if ($auth->hasPermission('system.logs.view')) {
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table u-text-nowrap">
+                <table class="c-table u-width-100">
                     <thead>
                         <tr>
                             <th class="u-text-left">Zeitpunkt</th>
                             <th class="u-text-left">Aktion</th>
                             <th class="u-text-left">System-Details</th>
-                            <th class="u-text-left">Ausführender Benutzer</th>
+                            <th class="u-text-left u-padding-right-m">Ausführender Benutzer</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,7 +100,7 @@ if ($auth->hasPermission('system.logs.view')) {
                                 $avatar = $imageStorage->getImageUrl('user_images', $log->userId, 'icon-user-default.webp');
                                 ?>
                                 <tr class="u-hover-fade">
-                                    <td>
+                                    <td class="u-text-nowrap">
                                         <div class="u-line-height-1-2">
                                             <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->createdAt->format('d.m.Y'); ?></span><br>
                                             <small class="u-color-muted"><?php echo $log->createdAt->format('H:i:s'); ?> Uhr</small>
@@ -111,8 +111,8 @@ if ($auth->hasPermission('system.logs.view')) {
                                     </td>
                                     <td>
                                         <span class="u-text-sm u-color-dark u-display-block">
-                                            <?php echo \htmlspecialchars($log->details); ?>
-                                        </span>
+<?php echo \htmlspecialchars($log->details); ?>
+</span>
                                     </td>
                                     <td>
                                         <div class="u-flex u-align-center u-gap-s">

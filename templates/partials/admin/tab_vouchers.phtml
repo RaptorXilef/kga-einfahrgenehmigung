@@ -11,8 +11,6 @@ use App\Infrastructure\Config\Config;
  *
  * Aktivierungscodes und Gutschein-Archiv verwalten.
  *
- * Path: templates/pages/admin_dashboard/_tab_vouchers.phtml
- *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
@@ -39,13 +37,12 @@ use App\Infrastructure\Config\Config;
                 </header>
                 <div class="c-card__body u-padding-none"
                      style="max-block-size: 650px; overflow-y: auto;">
-                    <table class="c-table">
+                    <table class="c-table u-width-100">
                         <thead>
-                            <tr style="background-color: var(--color-bg-light);">
-                                <th style="inline-size: 110px;">Code / QR</th>
+                            <tr>
+                                <th>Code / QR</th>
                                 <th>Details & Konditionen</th>
-                                <th class="u-text-right"
-                                    style="padding-inline-end: 20px;">Aktion</th>
+                                <th class="u-text-right u-padding-right-m">Aktion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,18 +129,15 @@ use App\Infrastructure\Config\Config;
                                             </div>
 
                                             <div class="u-margin-top-s">
-                                                <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer"
-                                                      data-url="<?php echo $url; ?>">
+                                                <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block" data-url="<?php echo $url; ?>">
                                                     Link kopieren
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" alt="">
                                                 </span>
                                             </div>
                                         </td>
-                                        <td class="u-text-right"
+                                        <td class="u-text-right u-padding-right-m"
                                             style="vertical-align: middle;">
-                                            <div class="u-flex u-gap-xs u-justify-end">
+                                            <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
@@ -212,14 +206,14 @@ use App\Infrastructure\Config\Config;
                     <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Bereits vollständig eingelöste
                         Codes.</p>
                 </header>
-                <div class="c-card__body u-padding-none"
-                     style="max-block-size: 650px; overflow-y: auto;">
-                    <table class="c-table c-table--summary">
+                <div class="c-card__body u-padding-none u-overflow-x-auto"
+                     style="max-block-size: 650px;">
+                    <table class="c-table c-table--summary u-width-100">
                         <thead>
-                            <tr style="background-color: var(--color-bg-light);">
+                            <tr>
                                 <th class="u-text-left u-padding-x-m">Datum</th>
                                 <th class="u-text-left">Nutzer</th>
-                                <th class="u-text-right u-padding-x-m">Code</th>
+                                <th class="u-text-right u-padding-right-m">Code</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -243,7 +237,7 @@ use App\Infrastructure\Config\Config;
                                                 <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
                                             </div>
                                         </td>
-                                        <td class="u-text-right u-padding-x-m"
+                                        <td class="u-text-right u-padding-right-m"
                                             style="vertical-align: middle;">
                                             <code class="c-license-plate"><?php echo $arc['code']; ?></code>
                                         </td>
@@ -262,9 +256,7 @@ use App\Infrastructure\Config\Config;
          class="c-modal">
         <div class="c-modal__dialog">
             <h4 class="c-modal__title u-margin-bottom-s">QR-Code scannen</h4>
-            <code id="qrModalCode"
-                  class="c-license-plate u-margin-bottom-m u-text-lg"
-                  style="padding-inline: 10px;"></code>
+            <code id="qrModalCode" class="c-license-plate u-margin-bottom-m u-text-lg" style="padding-inline: 10px;"></code>
 
             <div class="c-box u-margin-none u-flex u-align-center u-justify-center"
                  style="min-block-size: 220px;">

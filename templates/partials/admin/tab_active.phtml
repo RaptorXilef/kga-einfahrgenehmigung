@@ -50,13 +50,13 @@ if ($auth->hasPermission('permits.view')) {
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table js-sort-table u-text-nowrap">
+                <table class="c-table js-sort-table u-width-100">
                     <thead>
                         <tr>
-                            <th class="js-sort-header">Antragsteller & Kennung</th>
+                            <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
                             <th class="js-sort-header u-text-center">Fahrzeug</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="js-sort-header">Kontakt (E-Mail)</th>
+                                <th class="js-sort-header u-text-left">Kontakt (E-Mail)</th>
                             <?php } ?>
                             <th class="js-sort-header u-text-center">Gültigkeit & Restzeit</th>
                             <th class="js-sort-header u-text-center">Status</th>
@@ -110,7 +110,7 @@ if ($auth->hasPermission('permits.view')) {
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div class="u-margin-top-xs">
-                                            <span class="c-license-plate">
+                                            <span class="c-license-plate u-text-nowrap">
                                                 <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
                                             </span>
                                         </div>
@@ -164,8 +164,8 @@ if ($auth->hasPermission('permits.view')) {
                                     </td>
 
                                     <!-- 6. Verwaltung (Buttons & Verstecktes Formular) -->
-                                    <td class="u-text-right">
-                                        <div class="u-flex u-gap-xs u-justify-end">
+                                    <td class="u-text-right u-padding-right-m">
+                                        <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>"
                                                    target="_blank"

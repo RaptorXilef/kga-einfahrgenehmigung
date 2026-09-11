@@ -48,7 +48,7 @@ if ($auth->hasPermission('permits.view')) {
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table js-sort-table u-text-nowrap">
+                <table class="c-table js-sort-table u-width-100">
                     <thead>
                         <tr>
                             <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
@@ -57,7 +57,7 @@ if ($auth->hasPermission('permits.view')) {
                                 <th class="js-sort-header u-text-left">Kontakt (E-Mail)</th>
                             <?php } ?>
                             <th class="js-sort-header u-text-center">Zeitraum</th>
-                            <th class="u-text-right">Verwaltung</th>
+                            <th class="u-text-right u-padding-right-m">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,7 +96,7 @@ if ($auth->hasPermission('permits.view')) {
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div class="u-margin-top-xs">
-                                            <span class="c-license-plate"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                            <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                         </div>
                                     </td>
 
@@ -119,7 +119,7 @@ if ($auth->hasPermission('permits.view')) {
 
                                     <!-- 4. Zeitraum -->
                                     <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                        class="u-text-center">
+                                        class="u-text-center u-text-nowrap">
                                         <div>
                                             <small class="u-color-muted">
                                                 <?php echo $permit->getValidFrom()->format('d.m.Y'); ?> -<br>
@@ -128,7 +128,7 @@ if ($auth->hasPermission('permits.view')) {
                                         </div>
                                     </td>
 
-                                    <td class="u-text-right">
+                                    <td class="u-text-right u-text-nowrap u-padding-right-m">
                                         <div class="u-flex u-gap-xs u-justify-end">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
@@ -218,7 +218,7 @@ if ($auth->hasPermission('permits.view')) {
                         </div>
                     </div>
                 <?php } elseif ($totalCount > 0) { ?>
-                    <div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">
+                    <div class="c-card__footer u-text-center u-color-muted u-text-sm">
                         Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
                     </div>
                 <?php } ?>

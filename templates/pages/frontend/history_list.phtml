@@ -42,7 +42,7 @@ $now = new \DateTimeImmutable('today');
                      class="c-icon c-icon--md"
                      alt=""> Meine Genehmigungen
             </h2>
-            <p class="u-text-muted u-margin-top-xs u-margin-bottom-none">Angemeldet als: <strong
+            <p class="u-color-muted u-margin-top-xs u-margin-bottom-none u-text-sm">Angemeldet als: <strong
                         class="u-color-main"><?php echo \htmlspecialchars($email); ?></strong></p>
         </div>
 
@@ -53,7 +53,7 @@ $now = new \DateTimeImmutable('today');
             </div>
             <button type="button"
                     id="btn-session-logout"
-                    class="c-button c-button--danger-outline">
+                    class="c-button c-button--danger-outline u-text-sm">
                 Abmelden ✕
             </button>
         </div>
@@ -62,30 +62,22 @@ $now = new \DateTimeImmutable('today');
     <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
     <section class="c-card c-card--primary">
-        <div class="c-card__body u-padding-none"
-             style="overflow-x: auto;">
-            <!-- Tabellen-Layout Fix für das SCSS System -->
-            <table class="c-table js-sort-table"
-                   style="table-layout: fixed; width: 100%; min-inline-size: 950px;">
+        <div class="c-card__body u-padding-none u-overflow-x-auto">
+            <table class="c-table js-sort-table u-width-100">
                 <thead>
-                    <tr style="background: var(--color-bg-light);">
-                        <th class="js-sort-header"
-                            style="width: 250px;">Antragsteller & Kennung</th>
-                        <th class="js-sort-header u-text-center"
-                            style="width: 150px;">Fahrzeug</th>
-                        <th class="js-sort-header u-text-center"
-                            style="width: 180px;">Gültigkeit & Restzeit</th>
-                        <th class="js-sort-header u-text-center"
-                            style="width: 140px;">Finanz-Status</th>
-                        <th class="u-text-right"
-                            style="width: 150px; padding-right: 20px;">Aktion</th>
+                    <tr>
+                        <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
+                        <th class="js-sort-header u-text-center">Fahrzeug</th>
+                        <th class="js-sort-header u-text-center">Gültigkeit & Restzeit</th>
+                        <th class="js-sort-header u-text-center">Finanz-Status</th>
+                        <th class="u-text-right u-padding-right-m">Aktion</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($permits)) { ?>
                         <tr>
                             <td colspan="5"
-                                class="u-text-center u-padding-around-l u-text-muted">
+                                class="u-text-center u-padding-around-l u-color-muted">
                                 <span class="u-text-2xl u-opacity-50">📄</span><br>
                                 <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
@@ -155,7 +147,7 @@ $now = new \DateTimeImmutable('today');
                                     <div>
                                         <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                              class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
-                                             style="width: 24px; height: 24px;"
+                                             style="inline-size: 24px; block-size: 24px;"
                                              title="<?php echo $vLabel; ?>">
                                     </div>
                                     <div class="u-margin-top-xs">
@@ -191,8 +183,8 @@ $now = new \DateTimeImmutable('today');
                                     </span>
                                 </td>
                                 <td class="u-text-right"
-                                    style="vertical-align: middle; padding-right: 20px;">
-                                    <div class="u-flex u-gap-xs u-justify-end">
+                                    style="vertical-align: middle; padding-inline-end: 20px;">
+                                    <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
                                             <form method="POST"
@@ -206,7 +198,7 @@ $now = new \DateTimeImmutable('today');
                                                        name="code"
                                                        value="<?php echo $permit->code; ?>">
                                                 <button type="submit"
-                                                        class="c-button c-button--danger-outline"
+                                                        class="c-button c-button--danger-outline c-button--icon-only"
                                                         title="Antrag stornieren">
                                                     <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                          class="c-icon"
@@ -229,8 +221,7 @@ $now = new \DateTimeImmutable('today');
             </table>
         </div>
 
-        <div class="u-padding-around-m u-border-top u-text-center"
-             style="background-color: var(--color-bg-white);">
+        <div class="c-card__footer u-text-center">
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
                 <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
@@ -249,6 +240,7 @@ if ($currentArchiveYear !== $lastYear) { ?>
     </footer>
 </div>
 
+<?php /*
 <div id="session-warning-modal"
      class="c-modal">
     <div class="c-modal__dialog">
@@ -277,3 +269,4 @@ if ($currentArchiveYear !== $lastYear) { ?>
         </div>
     </div>
 </div>
+*/ ?>

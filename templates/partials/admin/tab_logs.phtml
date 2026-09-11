@@ -9,10 +9,6 @@ use App\Infrastructure\Config\Config;
  *
  * Protokoll und Status-Anzeige des SMTP-Versands, inkl. Resend-Option.
  *
- * Path: templates/pages/admin_dashboard/_tab_logs.phtml
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
@@ -39,19 +35,15 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table u-text-nowrap"
-                       style="table-layout: fixed; inline-size: 100%; min-inline-size: 950px;">
+                <table class="c-table u-width-100">
                     <thead>
                         <tr>
-                            <th class="u-text-left"
-                                style="inline-size: 160px;">Zeitpunkt</th>
+                            <th class="u-text-left">Zeitpunkt</th>
                             <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                <th class="u-text-left"
-                                    style="inline-size: 250px;">Empfänger</th>
+                                <th class="u-text-left">Empfänger</th>
                             <?php } ?>
                             <th class="u-text-left">Betreff & Details</th>
-                            <th class="u-text-right"
-                                style="inline-size: 180px; padding-inline-end: 20px;">Status</th>
+                            <th class="u-text-right u-padding-right-m">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,7 +60,8 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                 ?>
                                 <tr class="u-hover-fade <?php echo !$isSuccess ? 'c-table__row--danger' : ''; ?>">
                                     <!-- 1. Zeitpunkt -->
-                                    <td style="vertical-align: middle;">
+                                    <td style="vertical-align: middle;"
+                                        class="u-text-nowrap">
                                         <div style="line-height: 1.2;">
                                             <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->timestamp->format('d.m.Y'); ?></span><br>
                                             <small class="u-color-muted"><?php echo $log->timestamp->format('H:i'); ?> Uhr</small>
@@ -82,8 +75,7 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                                 <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                                                      class="c-icon c-icon--inline"
                                                      alt="">
-                                                <span class="u-font-bold u-text-sm u-text-nowrap"
-                                                      style="white-space: normal; word-break: break-all;">
+                                                <span class="u-font-bold u-text-sm" style="word-break: break-all;">
                                                     <?php echo \htmlspecialchars($log->recipient); ?>
                                                 </span>
                                             </div>
@@ -92,8 +84,7 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
 
                                     <!-- 3. Betreff & Fehlermeldung -->
                                     <td style="vertical-align: middle;">
-                                        <div class="u-margin-bottom-xs u-text-nowrap"
-                                             style="white-space: normal;">
+                                        <div class="u-margin-bottom-xs">
                                             <strong class="u-color-main u-text-sm"><?php echo \htmlspecialchars($log->subject); ?></strong>
                                         </div>
                                         <div class="u-flex u-align-center u-gap-s">
@@ -112,15 +103,12 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                         <?php } ?>
                                     </td>
 
-                                    <td class="u-text-right"
-                                        style="vertical-align: middle; padding-inline-end: 20px;">
-                                        <div class="u-flex u-gap-xs u-justify-end u-align-center">
-                                            <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>"
-                                                  style="min-inline-size: 100px; block-size: 32px;">
+                                    <td class="u-text-right u-padding-right-m"
+                                        style="vertical-align: middle;">
+                                        <div class="u-flex u-gap-xs u-justify-end u-align-center u-text-nowrap">
+                                            <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>" style="min-inline-size: 100px; block-size: 32px;">
                                                 <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
-                                                <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>"
-                                                    class="c-icon"
-                                                    alt="">
+                                                <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" alt="">
                                                 <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
                                             </span>
                                             <form method="POST"

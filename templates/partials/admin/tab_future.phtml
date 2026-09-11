@@ -48,7 +48,7 @@ if ($auth->hasPermission('permits.view')) {
             </header>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
-                <table class="c-table js-sort-table u-text-nowrap">
+                <table class="c-table js-sort-table u-width-100">
                     <thead>
                         <tr>
                             <th class="js-sort-header u-text-left">Antragsteller & Kennung</th>
@@ -58,7 +58,7 @@ if ($auth->hasPermission('permits.view')) {
                             <?php } ?>
                             <th class="js-sort-header u-text-center">Zeitraum & Countdown</th>
                             <th class="js-sort-header u-text-center">Status</th>
-                            <th class="u-text-right">Verwaltung</th>
+                            <th class="u-text-right u-padding-right-m">Verwaltung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,7 +102,7 @@ if ($auth->hasPermission('permits.view')) {
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div class="u-margin-top-xs">
-                                            <span class="c-license-plate"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                            <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                         </div>
                                     </td>
 
@@ -116,8 +116,8 @@ if ($auth->hasPermission('permits.view')) {
                                                          alt="">
                                                     <small>
                                                         <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link">
-<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>
-</a>
+                                                            <?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>
+                                                        </a>
                                                     </small>
                                                 </div>
                                             <?php } else { ?>
@@ -133,9 +133,9 @@ if ($auth->hasPermission('permits.view')) {
                                             <strong class="u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
                                             <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
                                             <div class="u-margin-top-xs">
-                                                <span class="c-badge c-badge--primary">
-<img src="<?php echo $asset->url('assets/img/icons/icon_stopwatch.webp'); ?>" class="c-icon" alt=""> <?php echo $countdownText; ?>
-</span>
+                                                <span class="c-badge c-badge--primary u-text-nowrap">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_stopwatch.webp'); ?>" class="c-icon" alt=""> <?php echo $countdownText; ?>
+                                                </span>
                                             </div>
                                         </div>
                                     </td>
@@ -149,19 +149,18 @@ if ($auth->hasPermission('permits.view')) {
                                             <span class="c-badge c-badge--success">AKTIV</span>
                                         <?php } ?>
                                     </td>
-
                                     <td class="u-text-right u-padding-right-m">
-                                        <div class="u-flex u-gap-xs u-justify-end">
+                                        <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
                                                 <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Drucken">
-<img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
-</a>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
                                                 <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-<img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-</a>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                             <?php } ?>
 
                                             <?php if ($auth->hasPermission('permits.suspend')) { ?>
@@ -264,8 +263,7 @@ if ($auth->hasPermission('permits.view')) {
                         </div>
                         <div class="c-pagination__controls">
                             <?php if ($page > 1) { ?>
-                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>"
-                                   class="c-button c-button--secondary c-button--icon-only">&larr;</a>
+                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
                             <?php } else { ?>
                                 <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&larr;</button>
@@ -277,13 +275,11 @@ if ($auth->hasPermission('permits.view')) {
                                     <button class="c-button c-button--primary"
                                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
                                 <?php } else { ?>
-                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>"
-                                       class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
+                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
                             <?php }
                                 } ?>
                             <?php if ($page < $totalPages) { ?>
-                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>"
-                                   class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
+                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
                             <?php } else { ?>
                                 <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&rarr;</button>
@@ -291,8 +287,7 @@ if ($auth->hasPermission('permits.view')) {
                         </div>
                     </div>
                 <?php } elseif ($totalCount > 0) { ?>
-                    <div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top"
-                         style="background-color: var(--color-bg-light);">
+                    <div class="c-card__footer u-text-center u-color-muted u-text-sm">
                         Gesamt: <strong><?php echo $totalCount; ?></strong> Einträge
                     </div>
                 <?php } ?>
