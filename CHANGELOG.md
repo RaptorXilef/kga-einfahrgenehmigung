@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.68.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.68.0...v0.68.1) (2026-09-11)
+
+### 🐛 Bug Fixes
+
+* **frontend:** Limit logo size in public forms ([8c10680](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/8c10680d3ef118260a1f4aaa0be6e7ccfef765aa))
+* **scss:** Add missing _index.scss to 3-generic layer ([ffc0c16](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/ffc0c16dcc38f3f56da5ed66b5f35ad931e4168c))
+* **scss:** Resolve invalid Sass namespace error in main.scss ([14a7940](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/14a79403bb7a3d1a8c35b8359df38493b1a8f9ca))
+
+### ⚙️ Refactoring
+
+* **admin:** Fix header UI, tab colors, and implement responsive table buttons ([7e776e7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7e776e7e9e11a2d4cd79b66be76d147f3904e555))
+* **admin:** Fix JS toggles, modal visibility, and table layouts ([b1ca4a7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b1ca4a7578125e4f337e55ba3bff0911ea3e61b0))
+* **admin:** Fix JS toggles, modal visibility, and table layouts ([c91efee](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c91efeefa06f5351345c0374b37f9726c730ee8b))
+* **admin:** Fix Release Notes modal layout and scrolling ([3316676](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/331667686ff43abc0b7285a8e04b108fa715eb17))
+* **admin:** Initiate Phase 1 - Core Layout and Profile Components ([abd1625](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/abd16256f76cfabbb5c431adfa94746e4caf3dd4))
+* **admin:** Initiate Phase 2 - Core Tables and Dashboard Statistics ([2e48d3c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2e48d3c42f346357710d293c3c15890b8ca52835))
+* **admin:** Initiate Phase 3 - Finance, Import & Export and apply layout fixes ([9d16f02](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9d16f02425acdd84fea14c6113ce9f0657794d97))
+* **admin:** Initiate Phase 4 - Tools, System and Vouchers ([7f74bb1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/7f74bb1981047f04905ec3f6a411b2a87e5b9065))
+* **frontend:** Migrate admin login, changelog and print view to BEM ([2f0d935](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/2f0d9353703cd9c55bf474d21c5abe3ce48bbbe2))
+* **frontend:** Migrate check and verification views to BEM components ([6a92ad3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6a92ad3724e0496fceb9b8d8cb1c76a296b6ab87))
+* **frontend:** Migrate checkout and verification to BEM components ([7269558](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/726955830fb753e647fbef578054486ffbce89e8))
+* **frontend:** Migrate history portal and print view to BEM architecture ([96c4ef3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/96c4ef38d297a977fbd906a6330123aac5729201))
+* **frontend:** Migrate inline CSS to ITCSS BEM architecture ([3e6ef00](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/3e6ef00e6969906d9427507f0b5d0239fa451497))
+* **frontend:** Migrate legal pages to BEM and logical properties ([97af1f9](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/97af1f9d840a7acdf5c103a812224c490760dab2))
+* **frontend:** Migrate partials, layouts and fix button sizing ([39ac82c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/39ac82c23dfb8603c1be8f3f134b864c9b1779ce))
+* **phtml:** Eliminate inline CSS and integrate BEM components in admin pages ([7042850](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/70428502a6a3bfe71ce108fa1ccc5df85e72568b))
+* **phtml:** Eliminate inline CSS and integrate BEM components in admin pages ([9527a3e](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9527a3ed3b0437bcecdff49f0397eac31ec85cda))
+* **scss:** Fix admin UI responsiveness and complete BEM components ([10bdabf](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/10bdabfbae554505b8fa9746aabee3e9773a63db))
+* **scss:** Fix BEM violations and modernize SCSS architecture ([0d82111](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/0d821113e9667af42d122c97fefe9cb1d3cdbb6a))
+* **scss:** Fix local scope issue of sass variables in tokens ([e6fb112](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e6fb112755a51219bf435c472aed5c498c7bc36f))
+* **scss:** Resolve CSS conflicts, fix button scaling, and enhance tab navigation ([1f8d7a7](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/1f8d7a785ccb92d5f609b793a5a5fbe2df718995))
+* **scss:** Resolve CSS conflicts, fix button scaling, and enhance tab navigation ([c496cc4](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c496cc45395d4aaebc016c0219da8bf21c15ddae))
+* **scss:** Restore missing base components and implement directory index files ([489e563](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/489e563cf9e6d714c506fba08acea32fb4e58d09))
+* **scss:** Restore missing global layouts and fix button/icon scaling ([fe3f6d2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/fe3f6d257d4e53e0610e123075783ae7bb8c213a))
+* **scss:** Restore missing utility classes and global layout resets ([5d954e5](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5d954e5d9994b0dd38b73676794a98097967c8d7))
+* **tables:** Fix overflowing tables and remove hardcoded widths ([45fc6ba](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/45fc6ba5a8cd515c3db92320187914a922efe448))
+
+### 📚 Dokumentation
+
+* **release:** Add release notes for v0.68.1 ([5676e03](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/5676e03e68c0e55159125744a1c7a90ba3c018ef))
+
+### 🧹 Chore / Maintenance
+
+* **infrastructure:** Enforce modern 2026 SCSS standards and logical properties ([bd27d5d](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/bd27d5d4904667b6a2cd3e542c2d7ea46314c7f2))
+* **security:** Resolve ReDoS vulnerability in postcss-selector-parser ([91ad311](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/91ad3118749befe4fc4c0cc8675d6547f9b50cd1))
+
 ## [0.68.0](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.67.4...v0.68.0) (2026-09-08)
 
 ### 🚀 Features
