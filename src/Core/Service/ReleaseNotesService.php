@@ -8,13 +8,12 @@ use App\Contracts\Config\ConfigInterface;
 
 /**
  * Service zum Einlesen und Vergleichen von benutzerfreundlichen Release-Notes (Markdown).
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 final readonly class ReleaseNotesService
 {
-    public function __construct(private ConfigInterface $config)
-    {
+    public function __construct(
+        private ConfigInterface $config,
+    ) {
     }
 
     /**
@@ -47,8 +46,12 @@ final readonly class ReleaseNotesService
             return [];
         }
 
-        $files = \glob($dir . '/*.md');
-        if ($files === false || $files === []) {
+        // FIX: Linux ist Case-Sensitive. Wir prüfen auf .md und .MD Dateien!
+        $filesMd = (array) \glob($dir . '/*.md');
+        $filesMD = (array) \glob($dir . '/*.MD');
+        $files = \array_values(\array_unique(\array_filter(\array_merge($filesMd, $filesMD))));
+
+        if ($files === []) {
             return [];
         }
 
@@ -57,6 +60,7 @@ final readonly class ReleaseNotesService
 
         foreach ($files as $file) {
             $ver = \basename($file, '.md');
+            $ver = \basename($ver, '.MD'); // Doppelt hält besser
             $cleanFileVer = \ltrim($ver, 'vV');
 
             // Wenn kein Limit gesetzt ist (alle laden) ODER die Datei neuer ist

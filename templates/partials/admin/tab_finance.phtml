@@ -145,7 +145,7 @@ if ($auth->hasPermission('finance.view')) {
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                    <table class="c-table js-sort-table">
+                    <table class="c-table js-sort-table u-width-100">
                         <thead>
                             <tr>
                                 <?php if ($hasBulkRight) { ?>
@@ -166,7 +166,7 @@ if ($auth->hasPermission('finance.view')) {
                                 <?php if ($privacyFinance) { ?>
                                     <th class="js-sort-header u-text-right">Betrag</th>
                                 <?php } ?>
-                                <th class="u-text-right">Verwaltung</th>
+                                <th class="u-text-right u-padding-right-m">Verwaltung</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -228,7 +228,7 @@ if ($auth->hasPermission('finance.view')) {
                                                      title="<?php echo $vLabel; ?>">
                                             </div>
                                             <div class="u-margin-top-xs">
-                                                <span class="c-license-plate"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                                <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                             </div>
                                         </td>
 
@@ -251,17 +251,17 @@ if ($auth->hasPermission('finance.view')) {
                                         <td data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>"
                                             class="u-text-center">
                                             <?php if ($overdueLevel === 2) { ?>
-                                                <span class="c-badge c-badge--danger">
+                                                <span class="c-badge c-badge--danger u-text-nowrap">
                                                     <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
                                                 </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
-                                                <span class="c-badge c-badge--warning">MAHNFRIST ABGELAUFEN</span>
+                                                <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
                                             <?php } else { ?>
-                                                <span class="c-badge c-badge--outline">Noch <?php echo $days; ?> Tage</span>
+                                                <span class="c-badge c-badge--outline u-text-nowrap">Noch <?php echo $days; ?> Tage</span>
                                             <?php } ?>
-                                            <br><small class="u-color-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
+                                            <br><small class="u-color-muted u-text-nowrap">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
                                             <?php if ($lastRem) { ?>
-                                                <br><small class="u-font-semibold <?php echo $isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>">
+                                                <br><small class="u-font-semibold u-text-nowrap <?php echo $isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>">
                                                     Erinnert: <?php echo $lastRem->format('d.m.Y'); ?>
                                                 </small>
                                             <?php } ?>
@@ -280,7 +280,8 @@ if ($auth->hasPermission('finance.view')) {
                                         <?php if ($privacyFinance) { ?>
                                             <td data-sort-val="<?php echo $permit->getPrice(); ?>"
                                                 class="u-text-right">
-                                                <strong class="u-color-danger u-text-md"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</strong>
+                                                <strong class="u-color-danger u-text-md u-text-nowrap"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?>
+                                                    €</strong>
                                             </td>
                                         <?php } ?>
 

@@ -16,7 +16,9 @@ if (!empty($flashes)) {
             ?>
             <?php foreach ($messages as $msg) { ?>
                 <div class="c-alert c-alert--<?php echo $modifier; ?> u-margin-bottom-s">
-                    <?php echo \strip_tags($msg, '<strong><em><b><i><br><ul><li>'); ?>
+                    <div class="u-width-100 u-text-left" style="line-height: 1.6;">
+                        <?php echo \strip_tags($msg, '<div><span><strong><em><b><i><br><ul><li>'); ?>
+                    </div>
                 </div>
             <?php } ?>
         <?php } ?>

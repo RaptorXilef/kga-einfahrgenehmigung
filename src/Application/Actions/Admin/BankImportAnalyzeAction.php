@@ -130,31 +130,29 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
                 }
             }
 
-            // Doppelter Zeilenumbruch für saubere Trennung vom Hauptsatz
-            // Umrandung als Flex-Kind-Block ergänzt für fehlerfreies CSS
-            $msg = "<div class=\"u-width-100 u-text-left\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.<br><br>";
-
-            $htmlDetails = [];
-            $logDetails = [];
-
+            // FIX: Baue semantische HTML-Listen anstelle von <br>&bull; für perfektes CSS
             // Formatiert Arrays mit Kategorien sauber als strukturierte HTML-Liste
             $formatList = function (array $categories): string {
-                $html = '';
+                $html = '<ul class="u-margin-y-xs" style="padding-inline-start: 20px;">';
                 foreach ($categories as $cat => $items) {
                     if (\is_numeric($cat)) {
-                        // Flache Liste (z.B. bei Erfolgreich)
-                        $html .= '<br>&nbsp;&nbsp;&bull; ' . \htmlspecialchars((string) $items);
+                        $html .= '<li>' . \htmlspecialchars((string) $items) . '</li>';
                     } else {
-                        // Kategorisierte Liste (z.B. "Fehlt auf Auszug") - FETT und KURSIV
-                        $html .= '<br>&nbsp;&nbsp;&bull; <strong><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
+                        $html .= '<li class="u-margin-bottom-xs"><strong><em>' . \htmlspecialchars((string) $cat) . '</em></strong>:';
+                        $html .= '<ul class="u-margin-top-none u-margin-bottom-xs" style="padding-inline-start: 20px;">';
                         foreach ((array) $items as $item) {
-                            $html .= '<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- ' . \htmlspecialchars((string) $item);
+                            $html .= '<li>' . \htmlspecialchars((string) $item) . '</li>';
                         }
+                        $html .= '</ul></li>';
                     }
                 }
+                $html .= '</ul>';
 
                 return $html;
             };
+
+            $htmlDetails = [];
+            $logDetails = [];
 
             // Flache Darstellung für die Log-Einträge ohne HTML-Tags
             $flattenForLog = function (array $categories): string {
@@ -171,22 +169,22 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             };
 
             if (!empty($res['erfolgreich_details'])) {
-                $htmlDetails[] = '<div style="margin-bottom: 12px;">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
+                $htmlDetails[] = '<div class="u-margin-bottom-s">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
                 $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
             }
 
             if (!empty($res['uebersprungen_details'])) {
-                $htmlDetails[] = '<div style="margin-bottom: 12px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
+                $htmlDetails[] = '<div class="u-margin-bottom-s">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
                 $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
             }
 
             if (!empty($fehlerhaftDetails)) {
-                $htmlDetails[] = '<div style="margin-bottom: 12px;">❌ <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
+                $htmlDetails[] = '<div class="u-margin-bottom-s">❌ <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
                 $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($fehlerhaftDetails) . ']';
             }
 
-            // Den u-width-100 Container wieder schließen
-            $fullMsg = $msg . \implode('', $htmlDetails) . '</div>';
+            $msg = "<div class=\"u-margin-bottom-m\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.</div>";
+            $fullMsg = $msg . \implode('', $htmlDetails);
 
             $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
             if ($logDetails !== []) {

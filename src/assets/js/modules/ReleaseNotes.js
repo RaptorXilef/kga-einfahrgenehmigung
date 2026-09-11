@@ -43,6 +43,9 @@ export class ReleaseNotes {
         this.closeBtns.forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+
+                // FIX: u-hidden Klasse setzen um das Modal wieder zu verstecken
+                this.container.classList.add('u-hidden');
                 this.container.style.display = 'none';
 
                 // Wenn wir gerade unread notes angezeigt haben, als gelesen in DB markieren!
@@ -79,7 +82,11 @@ export class ReleaseNotes {
                 : '📚 Release Notes Historie';
         }
         if (this.badgeElement) {
-            this.badgeElement.style.display = isUnread ? 'inline-flex' : 'none';
+            if (isUnread) {
+                this.badgeElement.classList.remove('u-hidden');
+            } else {
+                this.badgeElement.classList.add('u-hidden');
+            }
         }
 
         // Rendern des Markdowns (Mit Fallback falls CDN blockiert)
@@ -87,7 +94,7 @@ export class ReleaseNotes {
         if (typeof window.marked !== 'undefined' && typeof window.DOMPurify !== 'undefined') {
             if (notesArray.length === 0) {
                 html =
-                    '<div class="u-text-center u-text-muted u-padding-around-l">Keine Einträge vorhanden.</div>';
+                    '<div class="u-text-center u-color-muted u-padding-around-l">Keine Einträge vorhanden.</div>';
             } else {
                 notesArray.forEach((note) => {
                     // Auch die interpolierte Version muss zwingend durch den Sanitizer!
@@ -96,7 +103,7 @@ export class ReleaseNotes {
                         window.marked.parse(note.content)
                     );
 
-                    html += `<div class="rn-markdown u-margin-bottom-l">`;
+                    html += `<div class="c-markdown u-margin-bottom-l">`;
                     html += `<h1>Version ${safeVersion}</h1>`;
                     html += safeContent;
                     html += `</div>`;
@@ -108,6 +115,8 @@ export class ReleaseNotes {
                 '<div class="c-alert c-alert--danger">Fehler: Markdown Parser nicht geladen.</div>';
         }
 
+        // FIX: u-hidden Klasse entfernen (überschreibt sonst !important display blockierungen)
+        this.container.classList.remove('u-hidden');
         this.container.style.display = 'flex';
     }
 
