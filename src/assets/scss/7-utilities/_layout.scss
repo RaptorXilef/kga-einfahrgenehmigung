@@ -5,18 +5,25 @@
     .u-display-inline-block {
         display: inline-block !important;
     }
+
     .u-width-100 {
         inline-size: 100% !important;
     }
     .u-height-100 {
         block-size: 100% !important;
     }
+
     .u-hidden {
         display: none !important;
     }
+
     .u-overflow-x-auto {
         overflow-x: auto !important;
     }
+    .u-overflow-y-auto {
+        overflow-y: auto !important;
+    } /* Hinzugefügt für vertikales Scrollen */
+
     .u-position-relative {
         position: relative !important;
     }

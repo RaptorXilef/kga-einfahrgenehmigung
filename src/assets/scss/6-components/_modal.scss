@@ -13,30 +13,36 @@
         justify-content: center;
         backdrop-filter: blur(2px);
         padding: 20px;
-    }
 
-    .c-modal__dialog {
-        background-color: var(--color-bg-white);
-        padding: 30px;
-        text-align: center;
-        max-inline-size: 400px;
-        inline-size: 100%;
-        border-block-start: 5px solid var(--color-warning);
-        border-radius: 12px;
-        box-shadow: 0 20px 25px -5px
-            color-mix(in oklch, oklch(0 0 0) 20%, transparent);
-        display: flex;
-        flex-direction: column;
-    }
+        &__dialog {
+            background-color: var(--color-bg-white);
+            padding: 30px;
+            text-align: center;
+            max-inline-size: 400px;
+            inline-size: 100%;
+            border-block-start: 5px solid var(--color-warning);
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px
+                color-mix(in oklch, oklch(0 0 0) 20%, transparent);
+            display: flex;
+            flex-direction: column;
 
-    .c-modal__title {
-        margin-block-start: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--color-text-main);
+            /* Erweiterung für großflächige Modals (wie Release Notes) */
+            &--large {
+                max-inline-size: 1100px;
+                max-block-size: 90vh;
+            }
+        }
+
+        &__title {
+            margin-block-start: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-text-main);
+        }
     }
 }

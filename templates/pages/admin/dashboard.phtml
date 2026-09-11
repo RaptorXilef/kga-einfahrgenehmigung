@@ -306,14 +306,14 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     </script>
 
     <div id="release-notes-modal"
-         class="c-modal">
-        <div class="c-modal__dialog c-card c-card--primary u-padding-none u-flex-column o-container o-container--large">
+         class="c-modal u-hidden">
+        <div class="c-modal__dialog c-modal__dialog--large c-card c-card--primary u-padding-none u-flex-column">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <h3 class="u-margin-none u-flex u-align-center u-gap-s js-release-notes-title">
                     🚀 Neu seit Ihrem letzten Login <?php // TODO auf Icon ändern!?>
                 </h3>
                 <div class="u-flex u-align-center u-gap-s">
-                    <span class="c-badge c-badge--success js-release-notes-badge" style="display: none;">Updates verfügbar</span>
+                    <span class="c-badge c-badge--success js-release-notes-badge u-hidden">Updates verfügbar</span>
                     <button type="button"
                             class="c-button c-button--danger c-button--icon-only js-close-release-notes"
                             title="Schließen & Gelesen">
@@ -321,7 +321,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </button>
                 </div>
             </header>
-            <div class="c-card__body u-padding-y-l u-text-left u-overflow-x-auto">
+            <div class="c-card__body u-padding-y-l u-text-left u-overflow-y-auto u-flex-grow-1">
                 <div id="release-notes-content"
                      class="c-markdown"></div>
             </div>
