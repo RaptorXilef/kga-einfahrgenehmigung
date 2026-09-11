@@ -98,8 +98,8 @@ if ($auth->hasPermission('finance.view')) {
 
                             <div class="u-flex u-flex-column u-gap-s u-width-100">
                                 <?php foreach ($collectiveTransfers as $ct) { ?>
-                                    <div
-                                         class="c-box c-box--warning u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
+                                    <div class="c-box u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap"
+                                         style="border-inline-start: 4px solid var(--color-warning);">
                                         <div>
                                             <strong class="u-text-lg u-color-warning"><?php echo \number_format($ct['amount'], 2, ',', '.'); ?> €</strong>
                                             <span class="u-color-muted u-text-sm u-margin-left-s">am <?php echo \htmlspecialchars($ct['date']); ?></span>
@@ -145,7 +145,7 @@ if ($auth->hasPermission('finance.view')) {
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                    <table class="c-table js-sort-table u-width-100">
+                    <table class="c-table js-sort-table">
                         <thead>
                             <tr>
                                 <?php if ($hasBulkRight) { ?>
@@ -166,7 +166,7 @@ if ($auth->hasPermission('finance.view')) {
                                 <?php if ($privacyFinance) { ?>
                                     <th class="js-sort-header u-text-right">Betrag</th>
                                 <?php } ?>
-                                <th class="u-text-right u-padding-right-m">Verwaltung</th>
+                                <th class="u-text-right">Verwaltung</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -228,7 +228,7 @@ if ($auth->hasPermission('finance.view')) {
                                                      title="<?php echo $vLabel; ?>">
                                             </div>
                                             <div class="u-margin-top-xs">
-                                                <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
+                                                <span class="c-license-plate"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                             </div>
                                         </td>
 
@@ -251,17 +251,17 @@ if ($auth->hasPermission('finance.view')) {
                                         <td data-sort-val="<?php echo $deadline->format('Y-m-d'); ?>"
                                             class="u-text-center">
                                             <?php if ($overdueLevel === 2) { ?>
-                                                <span class="c-badge c-badge--danger u-text-nowrap">
+                                                <span class="c-badge c-badge--danger">
                                                     <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
                                                 </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
-                                                <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
+                                                <span class="c-badge c-badge--warning">MAHNFRIST ABGELAUFEN</span>
                                             <?php } else { ?>
-                                                <span class="c-badge c-badge--outline u-text-nowrap">Noch <?php echo $days; ?> Tage</span>
+                                                <span class="c-badge c-badge--outline">Noch <?php echo $days; ?> Tage</span>
                                             <?php } ?>
-                                            <br><small class="u-color-muted u-text-nowrap">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
+                                            <br><small class="u-color-muted">Ziel: <?php echo $deadline->format('d.m.Y'); ?></small>
                                             <?php if ($lastRem) { ?>
-                                                <br><small class="u-font-semibold u-text-nowrap <?php echo $isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>">
+                                                <br><small class="u-font-semibold <?php echo $isOnCooldown ? 'u-color-primary' : 'u-color-danger'; ?>">
                                                     Erinnert: <?php echo $lastRem->format('d.m.Y'); ?>
                                                 </small>
                                             <?php } ?>
@@ -280,14 +280,13 @@ if ($auth->hasPermission('finance.view')) {
                                         <?php if ($privacyFinance) { ?>
                                             <td data-sort-val="<?php echo $permit->getPrice(); ?>"
                                                 class="u-text-right">
-                                                <strong class="u-color-danger u-text-md u-text-nowrap"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?>
-                                                    €</strong>
+                                                <strong class="u-color-danger u-text-md"><?php echo \number_format($permit->getPrice(), 2, ',', '.'); ?> €</strong>
                                             </td>
                                         <?php } ?>
 
                                         <!-- 6. Aktionen (Inkl. Auge) -->
                                         <td class="u-text-right u-padding-right-m">
-                                            <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
+                                            <div class="u-flex u-gap-xs u-justify-end u-flex-wrap">
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
                                                         <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
@@ -445,6 +444,7 @@ if ($auth->hasPermission('finance.view')) {
                                 <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&larr;</button>
                             <?php } ?>
+
                             <?php foreach ($pagesToShow as $pageNum) {
                                 if ($pageNum === '...') { ?>
                                     <span class="u-color-muted u-padding-x-s">&hellip;</span>
@@ -455,6 +455,7 @@ if ($auth->hasPermission('finance.view')) {
                                     <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
                             <?php }
                                 } ?>
+
                             <?php if ($page < $totalPages) { ?>
                                 <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
                             <?php } else { ?>

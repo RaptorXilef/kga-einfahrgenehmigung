@@ -49,4 +49,39 @@
         border-block-start: 1px solid var(--color-border);
         background-color: var(--color-bg-light);
     }
+
+    /* Akkordeon-Karten für Benutzer- & Rollenverwaltung */
+    .c-category-card {
+        background-color: var(--color-bg-white);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+
+        &__header {
+            padding: 12px 20px;
+            background-color: color-mix(
+                in oklch,
+                var(--color-text-main) 2%,
+                transparent
+            );
+            border-radius: 12px;
+            transition: border-radius 0.2s;
+        }
+
+        &__body {
+            background-color: var(--color-bg-light);
+            padding: 20px;
+            border-block-start: 1px solid var(--color-border);
+            border-end-start-radius: 12px;
+            border-end-end-radius: 12px;
+        }
+
+        &:not(.is-closed) &__header {
+            border-end-start-radius: 0;
+            border-end-end-radius: 0;
+        }
+
+        &.is-closed &__body {
+            display: none;
+        }
+    }
 }

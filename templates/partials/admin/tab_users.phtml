@@ -106,10 +106,10 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                 $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
                 $roleData = $roles[$u->roleId] ?? null;
                 $displayLogin = $u->username ?? $userId; ?>
-                <div class="category-card is-closed"
+
+                <div class="c-category-card is-closed"
                      id="card-<?php echo $userId; ?>">
-                    <header class="category-header u-flex u-justify-between u-align-center c-box c-box--subtle u-margin-none"
-                            style="padding: 12px 20px; border-radius: 12px;">
+                    <header class="c-category-card__header u-flex u-justify-between u-align-center">
                         <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1">
                             <img src="<?php echo $userImage; ?>"
                                  style="inline-size: 38px; block-size: 38px; border-radius: 50%;">
@@ -139,8 +139,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                             </button>
                         </form>
                     </header>
-                    <div class="category-body c-box u-margin-none"
-                         style="background-color: var(--color-bg-light); border-block-start: none; border-start-start-radius: 0; border-start-end-radius: 0;">
+                    <div class="c-category-card__body">
                         <div class="o-grid u-gap-l"
                              style="grid-template-columns: 200px 1.2fr 1fr;">
                             <div class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only c-box c-box--dashed"
@@ -193,6 +192,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                     </div>
                                 </form>
                             </div>
+
                             <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
                                       action="change_user_password"
@@ -220,6 +220,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                             class="c-button c-button--danger c-button--small">Passwort setzen</button>
                                 </form>
                             </div>
+
                             <div class="u-flex u-flex-column u-gap-m">
                                 <form method="POST"
                                       action="change_user_role"

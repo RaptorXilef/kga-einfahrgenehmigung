@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Accordion-Karten einklappen (Admin-Rollen)
         const toggleBtn = e.target.closest('.js-toggle-parent');
         if (toggleBtn) {
-            toggleBtn.parentElement.parentElement.classList.toggle('is-closed');
+            const card = toggleBtn.closest('.c-category-card');
+            if (card) card.classList.toggle('is-closed');
         }
 
         // Globaler Reload-Button

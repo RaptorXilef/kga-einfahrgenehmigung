@@ -109,6 +109,7 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
 
             // Kennzeichen- und Sammelüberweisungen aus dem Service in die Session schieben
             $fehlerhaftDetails = $res['fehlerhaft_details'] ?? [];
+
             if (!empty($res['sammel_transfers'])) {
                 $sammelList = [];
                 $kennzeichenList = [];
@@ -130,7 +131,9 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
             }
 
             // Doppelter Zeilenumbruch für saubere Trennung vom Hauptsatz
-            $msg = "Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.<br><br>";
+            // Umrandung als Flex-Kind-Block ergänzt für fehlerfreies CSS
+            $msg = "<div class=\"u-width-100 u-text-left\">Bank-Abgleich beendet: <strong>{$erfolgreichCount}</strong> Permits freigeschaltet, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.<br><br>";
+
             $htmlDetails = [];
             $logDetails = [];
 
@@ -171,16 +174,20 @@ final readonly class BankImportAnalyzeAction implements ActionInterface, Require
                 $htmlDetails[] = '<div style="margin-bottom: 12px;">✅ <strong>Freigeschaltet:</strong>' . $formatList($res['erfolgreich_details']) . '</div>';
                 $logDetails[] = 'Freigeschaltet: [' . $flattenForLog($res['erfolgreich_details']) . ']';
             }
+
             if (!empty($res['uebersprungen_details'])) {
                 $htmlDetails[] = '<div style="margin-bottom: 12px;">⏭️ <strong>Übersprungen:</strong>' . $formatList($res['uebersprungen_details']) . '</div>';
                 $logDetails[] = 'Übersprungen: [' . $flattenForLog($res['uebersprungen_details']) . ']';
             }
+
             if (!empty($fehlerhaftDetails)) {
                 $htmlDetails[] = '<div style="margin-bottom: 12px;">❌ <strong>Fehlerhaft / Prüfen:</strong>' . $formatList($fehlerhaftDetails) . '</div>';
                 $logDetails[] = 'Fehlerhaft: [' . $flattenForLog($fehlerhaftDetails) . ']';
             }
 
-            $fullMsg = $msg . \implode('', $htmlDetails);
+            // Den u-width-100 Container wieder schließen
+            $fullMsg = $msg . \implode('', $htmlDetails) . '</div>';
+
             $logStr = "CSV-Import abgeschlossen: {$erfolgreichCount} erfolgreich, {$uebersprungenCount} übersprungen, {$fehlerhaftCount} fehlerhaft.";
             if ($logDetails !== []) {
                 $logStr .= ' | ' . \implode(' | ', $logDetails);
