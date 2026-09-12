@@ -1,23 +1,19 @@
 <?php
 
-use App\Contracts\Config\ConfigInterface;
-use App\Contracts\System\AssetHelperInterface;
-use App\Core\Service\AuthService;
-
 /**
  * Page: Changelog / Versionshistorie
  *
  * Rendert die CHANGELOG.md Datei im System-Layout mittels DOMPurify und marked.js.
  *
- * @var AssetHelperInterface $asset
- * @var AuthService $auth
- * @var ConfigInterface $config
+ * @var \AssetHelperInterface $asset
+ * @var \AuthService $auth
+ * @var \ConfigInterface $config
  * @var array $settings Globale Einstellungen inkl. base_url und vereins_name
  * @var string $appRoot Absoluter Pfad zum Installationsverzeichnis
  * @var string $cspNonce
  * @var string $markdownContent Der rohe Markdown-Inhalt der CHANGELOG.md
  */
-$layout = 'public';
+$layout = 'admin';
 $pageTitle = 'Versionshistorie - ' . ($settings['vereins_name'] ?? '');
 ?>
 

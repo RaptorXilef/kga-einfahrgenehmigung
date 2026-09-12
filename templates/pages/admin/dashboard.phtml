@@ -47,24 +47,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 }
 ?>
 
+<!-- FIX: Saubere UX Hierarchie: Tabs -> Filter -> Alerts -> Content -->
 <main class="c-tab-content-container u-padding-y-l">
-    <?php if ($auth->hasPermission('permits.view')) { ?>
-        <div class="u-margin-auto">
-            <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
-        </div>
-    <?php } ?>
-
-    <div class="u-flex u-justify-center u-align-center u-margin-bottom-l">
-        <h1 class="u-margin-none u-text-center">Dashboard & Statistiken</h1>
-    </div>
-
-    <?php if ($auth->hasPermission('permits.view')) { ?>
-        <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
-    <?php } ?>
 
     <div class="u-width-100">
+        <!-- 1. NAVIGATION (TABS) -->
         <div class="c-tabs">
-            <div class="c-tabs__nav">
+            <div class="c-tabs__nav u-margin-bottom-l">
                 <?php if ($auth->hasPermission('permits.view')) { ?>
                     <button class="c-tabs__btn c-tabs__btn--active"
                             data-tab-target="tab-active">
@@ -191,6 +180,22 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                 <?php } ?>
             </div>
 
+            <!-- 2. WERKZEUGE (FILTER) -->
+            <?php if ($auth->hasPermission('permits.view')) { ?>
+                <?php include $appRoot . '/templates/partials/admin/control_bar.phtml'; ?>
+            <?php } ?>
+
+            <!-- 3. TITLE (Ausgeblendet, da Platzverschwendung) -->
+            <!-- <h1 class="u-margin-none u-text-center u-margin-bottom-l">Dashboard & Statistiken</h1> -->
+
+            <!-- 4. ALERTS / INFOBOXEN -->
+            <?php if ($auth->hasPermission('permits.view')) { ?>
+                <div class="u-margin-auto u-margin-bottom-m">
+                    <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
+                </div>
+            <?php } ?>
+
+            <!-- 5. CONTENT (TABS) -->
             <?php if ($auth->hasPermission('permits.view')) { ?>
                 <div id="tab-active"
                      class="c-tabs__content c-tabs__content--active">

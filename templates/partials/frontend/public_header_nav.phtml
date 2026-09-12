@@ -11,7 +11,7 @@ use App\Contracts\System\AssetHelperInterface;
  * @var array $settings
  */
 
-// FIX: Wir lesen die URL aus, da PHP_SELF in der neuen Architektur immer "index.php" ist!
+// Wir lesen die URL aus, da PHP_SELF in der neuen Architektur immer "index.php" ist!
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $path = \parse_url($requestUri, \PHP_URL_PATH);
 $path = \trim((string) $path, '/');
@@ -19,46 +19,53 @@ $currentPage = $path === '' ? 'index' : $path;
 ?>
 
 <nav class="c-header-nav">
-    <div class="c-tab-content-container c-header-nav__container">
+    <div class="c-tab-content-container">
 
-        <div class="c-header-nav__brand">
-            <div class="u-flex u-justify-center">
-                <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
-                     alt="KGA Einfahrts-Manager Logo"
-                     class="c-logo"
-                     style="max-inline-size: 40px; max-block-size: 40px;">
+        <!-- ZEILE 1: Marke, Verwaltung & Dark Mode -->
+        <div class="c-header-nav__top">
+            <div class="c-header-nav__brand">
+                <div class="u-flex u-justify-center">
+                    <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
+                         alt="KGA Einfahrts-Manager Logo"
+                         class="c-logo"
+                         style="max-inline-size: 40px; max-block-size: 40px;">
+                </div>
+                <span class="c-header-nav__title">
+          <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
+        </span>
             </div>
-            <span class="c-header-nav__title">
-                <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
-            </span>
 
+            <div class="u-flex u-align-center u-gap-m">
+                <!-- Theme Toggle -->
+                <button type="button"
+                        class="c-theme-toggle js-theme-toggle"
+                        title="Design wechseln">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
+                         class="c-icon js-theme-icon"
+                         alt="">
+                    <span class="js-theme-text">Light</span>
+                </button>
+
+                <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
+          <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
+        </a>
+            </div>
+        </div>
+
+        <!-- ZEILE 2: Navigation -->
+        <div class="c-header-nav__bottom">
             <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
-            </a>
+        <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
+      </a>
 
             <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
-            </a>
+        <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
+      </a>
 
             <a href="check" class="c-tabs__btn <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
-            </a>
+        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
+      </a>
         </div>
 
-        <div class="u-flex u-align-center u-gap-m">
-            <!-- Theme Toggle Switch (NEU IM PUBLIC BEREICH) -->
-            <button type="button"
-                    class="c-theme-toggle js-theme-toggle"
-                    title="Design wechseln">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-moon.webp'); ?>"
-                     class="c-icon js-theme-icon"
-                     alt="">
-                <span class="js-theme-text">Dunkel</span>
-            </button>
-
-            <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
-            </a>
-        </div>
     </div>
 </nav>

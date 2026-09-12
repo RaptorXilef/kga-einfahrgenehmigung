@@ -38,7 +38,7 @@ $currentPage = $path === '' ? 'admin' : $path;
 <nav class="c-header-nav">
     <div class="c-tab-content-container">
 
-        <!-- ZEILE 1: Benutzer-Infos, Theme & Abmeldung -->
+        <!-- ZEILE 1: Benutzer-Infos, Rechte, Theme & Abmeldung -->
         <div class="c-header-nav__top">
             <div class="c-header-nav__brand">
                 <div class="c-user-pill">
@@ -55,6 +55,13 @@ $currentPage = $path === '' ? 'admin' : $path;
                         <span><?php echo \htmlspecialchars($roleName); ?></span>
                     </div>
                 </div>
+
+                <!-- Rechteverwaltung ist in die 1. Zeile gerutscht und heißt nur noch "Rechte" -->
+                <?php if ($auth->hasPermission('system.manage')) { ?>
+                    <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
+            <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Benutzer-Verwaltung
+          </a>
+                <?php } ?>
             </div>
 
             <div class="u-flex u-align-center u-gap-m u-flex-wrap">
@@ -96,12 +103,6 @@ $currentPage = $path === '' ? 'admin' : $path;
             <?php if ($auth->hasPermission('admin.access')) { ?>
                 <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
           <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
-        </a>
-            <?php } ?>
-
-            <?php if ($auth->hasPermission('system.manage')) { ?>
-                <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
-          <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Rechteverwaltung
         </a>
             <?php } ?>
 

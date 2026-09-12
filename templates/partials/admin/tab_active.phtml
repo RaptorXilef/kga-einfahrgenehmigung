@@ -87,17 +87,9 @@ if ($auth->hasPermission('permits.view')) {
                                     <!-- 1. Pächter & Parzelle -->
                                     <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
                                         <div class="u-flex u-flex-column">
-                                            <span class="u-font-bold u-color-main">
-                                                <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
-                                            </span>
-                                            <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs">
-                                                <?php echo $permit->code; ?>
-                                            </code>
-                                            <div>
-                                                <span class="c-badge c-badge--primary">
-                                                    PARZELLE <?php echo $permit->getPlotNumber(); ?>
-                                                </span>
-                                            </div>
+                                            <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></span>
+                                            <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs"><?php echo $permit->code; ?></code>
+                                            <div><span class="c-badge c-badge--primary">PARZELLE <?php echo $permit->getPlotNumber(); ?></span></div>
                                         </div>
                                     </td>
 
@@ -110,9 +102,7 @@ if ($auth->hasPermission('permits.view')) {
                                                  title="<?php echo $vLabel; ?>">
                                         </div>
                                         <div class="u-margin-top-xs">
-                                            <span class="c-license-plate u-text-nowrap">
-                                                <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                            </span>
+                                            <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                         </div>
                                     </td>
 
@@ -125,9 +115,9 @@ if ($auth->hasPermission('permits.view')) {
                                                          class="c-icon c-icon--inline"
                                                          alt="">
                                                     <small>
-                                                        <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>"
-                                                           class="u-text-link">
-                                                            <?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>
+                                                        <!-- FIX: Email sicher am @ umbrechen (ohne Whitespaces) -->
+                                                        <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link">
+                                                            <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
                                                         </a>
                                                     </small>
                                                 </div>
@@ -167,23 +157,13 @@ if ($auth->hasPermission('permits.view')) {
                                     <td class="u-text-right u-padding-right-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                             <?php if ($auth->hasPermission('permits.print')) { ?>
-                                                <a href="admin_print?code=<?php echo $permit->code; ?>"
-                                                   target="_blank"
-                                                   class="c-button c-button--secondary c-button--small c-button--icon-only"
-                                                   title="Druckvorschau">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="Drucken">
+                                                <a href="admin_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Druckvorschau">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="Drucken">
                                                 </a>
                                             <?php } ?>
                                             <?php if ($auth->hasPermission('permits.view')) { ?>
-                                                <a href="check?code=<?php echo $permit->code; ?>"
-                                                   target="_blank"
-                                                   class="c-button c-button--secondary c-button--small c-button--icon-only"
-                                                   title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>"
-                                                         class="c-icon"
-                                                         alt="Details">
+                                                <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="Details">
                                                 </a>
                                             <?php } ?>
 
@@ -289,8 +269,7 @@ if ($auth->hasPermission('permits.view')) {
                         </div>
                         <div class="c-pagination__controls">
                             <?php if ($page > 1) { ?>
-                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>"
-                                   class="c-button c-button--secondary c-button--icon-only">&larr;</a>
+                                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
                             <?php } else { ?>
                                 <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&larr;</button>
@@ -303,14 +282,12 @@ if ($auth->hasPermission('permits.view')) {
                                     <button class="c-button c-button--primary"
                                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
                                 <?php } else { ?>
-                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>"
-                                       class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
+                                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
                             <?php }
                                 } ?>
 
                             <?php if ($page < $totalPages) { ?>
-                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>"
-                                   class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
+                                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
                             <?php } else { ?>
                                 <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
                                         disabled>&rarr;</button>
