@@ -78,7 +78,7 @@ if ($totalPages > 1) {
 
             <?php foreach ($pagesToShow as $pageNum) {
                 if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
+                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
                 <?php } elseif ($pageNum === $page) { ?>
                     <button class="c-button c-button--primary"
                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
@@ -106,10 +106,10 @@ if ($auth->hasPermission('system.logs.view')) { ?>
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">
                 <div>
-                    <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
+                    <h3 class="u-margin-block-none"><img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
                              class="c-icon"
                              alt=""> E-Mail Versand-Log</h3>
-                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Verlauf der letzten
+                    <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">Verlauf der letzten
                         System-Nachrichten.</p>
                 </div>
                 <span class="c-badge c-badge--outline">EINTRÄGE: <?php echo \count($allLogs); ?></span>
@@ -117,7 +117,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
 
             <?php echo $paginationHtml; ?>
 
-            <div class="c-card__body u-padding-none u-overflow-x-auto">
+            <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
                 <table class="c-table u-width-100">
                     <thead>
                         <tr>
@@ -126,7 +126,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                 <th class="u-text-left">Empfänger</th>
                             <?php } ?>
                             <th class="u-text-left">Betreff & Details</th>
-                            <th class="u-text-right u-padding-right-m">Status</th>
+                            <th class="u-text-right u-padding-inline-end-m">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -143,31 +143,30 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                 ?>
                                 <tr class="u-hover-fade <?php echo !$isSuccess ? 'c-table__row--danger' : ''; ?>">
                                     <!-- 1. Zeitpunkt -->
-                                    <td style="vertical-align: middle;"
-                                        class="u-text-nowrap">
-                                        <div style="line-height: 1.2;">
-                                            <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->timestamp->format('d.m.Y'); ?></span><br>
+                                    <td class="u-text-nowrap">
+                                        <div class="u-flex u-flex-column">
+                                            <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->timestamp->format('d.m.Y'); ?></span>
                                             <small class="u-color-muted"><?php echo $log->timestamp->format('H:i'); ?> Uhr</small>
                                         </div>
                                     </td>
 
                                     <!-- 2. Empfänger -->
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
-                                        <td style="vertical-align: middle;">
+                                        <td>
                                             <div class="u-flex u-align-center u-gap-xs">
                                                 <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                                                      class="c-icon c-icon--inline"
                                                      alt="">
                                                 <span class="u-font-bold u-text-sm">
-                                                    <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($log->recipient)); ?>
-                                                </span>
+                                                <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($log->recipient)); ?>
+                                            </span>
                                             </div>
                                         </td>
                                     <?php } ?>
 
                                     <!-- 3. Betreff & Fehlermeldung -->
-                                    <td style="vertical-align: middle;">
-                                        <div class="u-margin-bottom-xs">
+                                    <td>
+                                        <div class="u-margin-block-end-xs">
                                             <strong class="u-color-main u-text-sm"><?php echo \htmlspecialchars($log->subject); ?></strong>
                                         </div>
                                         <div class="u-flex u-align-center u-gap-s">
@@ -176,27 +175,27 @@ if ($auth->hasPermission('system.logs.view')) { ?>
 
                                         <!-- FEHLERANZEIGE (Nur wenn Status nicht Erfolg) -->
                                         <?php if (!$isSuccess && !empty($log->status)) { ?>
-                                            <div class="c-box c-box--danger-soft u-margin-top-s u-padding-around-s">
-                                                <div
-                                                     class="u-color-danger u-text-xs u-font-extrabold u-text-uppercase u-margin-bottom-xs">
+                                            <div class="c-box c-box--danger-soft u-margin-block-start-s u-padding-around-s">
+                                                <div class="u-color-danger u-text-xs u-font-extrabold u-text-uppercase u-margin-block-end-xs">
                                                     Fehlermeldung:</div>
                                                 <div class="u-text-xs u-color-main"
-                                                     style="white-space: normal;"><?php echo \htmlspecialchars($log->status); ?></div>
+                                                     style="white-space: normal;">
+                                                    <?php echo \htmlspecialchars($log->status); ?>
+                                                </div>
                                             </div>
                                         <?php } ?>
                                     </td>
 
-                                    <td class="u-text-right u-padding-right-m"
-                                        style="vertical-align: middle;">
+                                    <td class="u-text-right u-padding-inline-end-m">
                                         <div class="u-flex u-gap-xs u-justify-end u-align-center u-text-nowrap">
                                             <span class="c-badge c-badge--<?php echo $isSuccess ? 'success' : 'danger'; ?>" style="min-inline-size: 100px; block-size: 32px;">
-                                                <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
-                                                <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" alt="">
-                                                <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
-                                            </span>
+                                            <?php $statusIcon = $isSuccess ? 'status-success' : 'status-invalid'; ?>
+                                            <img src="<?php echo $asset->url("assets/img/icons/{$statusIcon}.webp"); ?>" class="c-icon" alt="">
+                                            <?php echo $isSuccess ? 'GESENDET' : 'FEHLER'; ?>
+                                        </span>
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>resend_mail"
-                                                  class="u-margin-none"
+                                                  class="u-margin-block-none"
                                                   data-confirm="Möchten Sie diese E-Mail wirklich erneut versenden?">
                                                 <input type="hidden"
                                                        name="csrf_token"

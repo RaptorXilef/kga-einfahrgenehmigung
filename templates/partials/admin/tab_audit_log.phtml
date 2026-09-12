@@ -5,7 +5,7 @@ use App\Core\Service\AuthService;
 use App\Infrastructure\Storage\ImageStorageService;
 
 /**
- * Partial: Dashboard Tab - Audit Log (Nutzerprotokoll)
+ * Partial: Dashboard Tab - Audit Log
  *
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
@@ -98,7 +98,7 @@ if ($auditTotalPages > 1) {
 
             <?php foreach ($pagesToShow as $pageNum) {
                 if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
+                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
                 <?php } elseif ($pageNum === $auditPage) { ?>
                     <button class="c-button c-button--primary"
                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
@@ -127,17 +127,17 @@ if ($auth->hasPermission('system.logs.view')) {
         <section class="c-card c-card--dark">
             <header class="c-card__header u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
                 <div>
-                    <h3 class="u-margin-none">
+                    <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                              class="c-icon"
                              alt=""> Administrator-Aktivitäten
                     </h3>
-                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Protokolliert sicherheitsrelevante
-                        Änderungen durch eingeloggte Nutzer.</p>
+                    <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                        Protokolliert sicherheitsrelevante Änderungen durch eingeloggte Nutzer.</p>
                 </div>
                 <form method="GET"
                       action="?"
-                      class="u-flex u-align-center u-gap-s u-margin-none">
+                      class="u-flex u-align-center u-gap-s u-margin-block-none">
                     <span class="u-text-sm u-font-bold u-color-muted">FILTER:</span>
                     <select name="audit_filter"
                             class="c-form-select js-auto-submit-select c-button--small">
@@ -154,14 +154,14 @@ if ($auth->hasPermission('system.logs.view')) {
 
             <?php echo $paginationHtml; ?>
 
-            <div class="c-card__body u-padding-none u-overflow-x-auto">
+            <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
                 <table class="c-table u-width-100">
                     <thead>
                         <tr>
                             <th class="u-text-left">Zeitpunkt</th>
                             <th class="u-text-left">Aktion</th>
                             <th class="u-text-left">System-Details</th>
-                            <th class="u-text-left u-padding-right-m">Ausführender Benutzer</th>
+                            <th class="u-text-left u-padding-inline-end-m">Ausführender Benutzer</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -174,12 +174,12 @@ if ($auth->hasPermission('system.logs.view')) {
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($auditLogs as $log) {
-                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'icon-user-default.webp'); // FIX: 'user_images' -> 'user'
+                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'icon-user-default.webp');
                                 ?>
                                 <tr class="u-hover-fade">
                                     <td class="u-text-nowrap">
-                                        <div class="u-line-height-1-2">
-                                            <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->createdAt->format('d.m.Y'); ?></span><br>
+                                        <div class="u-flex u-flex-column">
+                                            <span class="u-text-sm u-color-main u-font-semibold"><?php echo $log->createdAt->format('d.m.Y'); ?></span>
                                             <small class="u-color-muted"><?php echo $log->createdAt->format('H:i:s'); ?> Uhr</small>
                                         </div>
                                     </td>
@@ -188,8 +188,8 @@ if ($auth->hasPermission('system.logs.view')) {
                                     </td>
                                     <td>
                                         <span class="u-text-sm u-color-dark u-display-block">
-                                            <?php echo \htmlspecialchars($log->details); ?>
-                                        </span>
+                                        <?php echo \htmlspecialchars($log->details); ?>
+                                    </span>
                                     </td>
                                     <td>
                                         <div class="u-flex u-align-center u-gap-s">

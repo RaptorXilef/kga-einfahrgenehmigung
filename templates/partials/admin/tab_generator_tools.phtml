@@ -52,9 +52,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php if (!$hasAnyTemplate) { ?>
         <div class="c-card c-card--danger u-text-center">
             <div class="c-card__body c-card__body--xl">
-                <div class="u-text-4xl u-margin-bottom-m">🚫</div>
-                <h3 class="u-margin-none">Keine Berechtigung</h3>
-                <p class="u-color-muted u-margin-auto u-margin-top-s"
+                <div class="u-text-4xl u-margin-block-end-m">🚫</div> <?php // ToDo Icon
+                                                                        ?>
+                <h3 class="u-margin-block-none">Keine Berechtigung</h3>
+                <p class="u-color-muted u-margin-inline-auto u-margin-block-start-s"
                    style="max-inline-size: 400px;">
                     Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
                     Bitte wenden Sie sich an den System-Administrator.
@@ -70,17 +71,17 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <!-- KARTE 1: MANUELLE GENEHMIGUNG AUSSTELLEN   -->
             <!-- ========================================== -->
             <?php if ($auth->hasPermission('permits.create')) { ?>
-                <section class="c-card c-card--success u-margin-none">
+                <section class="c-card c-card--success u-margin-block-none">
                     <header class="c-card__header"
                             style="background-color: var(--color-bg-light);">
-                        <h3 class="u-margin-none u-flex u-align-center u-gap-s u-text-lg">
+                        <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                  class="c-icon"
                                  alt="">
                             Genehmigung ausstellen
                         </h3>
-                        <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Direkter Systemeintrag (ohne
-                            Online-Zahlung).</p>
+                        <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                            Direkter Systemeintrag (ohne Online-Zahlung).</p>
                     </header>
                     <div class="c-card__body">
 
@@ -94,7 +95,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                    name="voucher"
                                    value=""> <!-- Dummy für API -->
 
-                            <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
                                     <label class="c-form-label"
                                            for="template_key">Gültig für Vorlage *</label>
@@ -124,7 +125,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
                             </div>
 
-                            <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
                                     <label class="c-form-label"
                                            for="datum_von">Gültig von *</label>
@@ -148,7 +149,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
                             </div>
 
-                            <div class="o-grid o-grid--2-1 u-margin-bottom-m">
+                            <div class="o-grid o-grid--2-1 u-margin-block-end-m">
                                 <div class="c-form-group">
                                     <label class="c-form-label"
                                            for="owner_name">Pächter Name *</label>
@@ -173,7 +174,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
                             </div>
 
-                            <div class="c-form-group u-margin-bottom-m">
+                            <div class="c-form-group u-margin-block-end-m">
                                 <label class="c-form-label"
                                        id="label_kennzeichen"
                                        for="kennzeichen">Amtl. Kennzeichen *</label>
@@ -186,8 +187,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                        autocomplete="off">
                             </div>
 
-                            <!-- Die u-hidden Klasse wird vom JS dynamisch getoggelt -->
-                            <div class="c-form-group u-margin-bottom-m u-hidden"
+                            <div class="c-form-group u-margin-block-end-m u-hidden"
                                  id="group_firma">
                                 <label class="c-form-label"
                                        for="firma">Firma / Lieferant (Optional)</label>
@@ -199,7 +199,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                        autocomplete="off">
                             </div>
 
-                            <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
                                     <label class="c-form-label"
                                            for="email">E-Mail (Optional)</label>
@@ -209,8 +209,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            class="c-form-input"
                                            placeholder="mail@example.com"
                                            autocomplete="off">
-                                    <small class="u-color-muted u-margin-top-xs u-display-block">Wird für PDF-Versand
-                                        benötigt.</small>
+                                    <small class="u-color-muted u-margin-block-start-xs u-display-block">
+                                        Wird für PDF-Versand benötigt.</small>
                                 </div>
                                 <div class="c-form-group">
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
@@ -249,8 +249,8 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </div>
 
                             <!-- Preis-Override & Submit -->
-                            <div class="c-box c-box--dashed u-margin-top-l">
-                                <div class="c-form-group u-margin-bottom-m">
+                            <div class="c-box c-box--dashed u-margin-block-start-l">
+                                <div class="c-form-group u-margin-block-end-m">
                                     <label class="c-form-label u-flex u-justify-between u-align-center"
                                            for="preis_override">
                                         <span>Sonderpreis (€)</span>
@@ -263,29 +263,29 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                            class="c-form-input"
                                            placeholder="Leer lassen für Standard"
                                            autocomplete="off">
-                                    <small class="u-color-muted u-margin-top-xs u-display-block">Nur ausfüllen für
-                                        Preis-Abweichungen.</small>
+                                    <small class="u-color-muted u-margin-block-start-xs u-display-block">
+                                        Nur ausfüllen für Preis-Abweichungen.</small>
                                 </div>
 
-                                <div class="c-box u-margin-bottom-m u-padding-around-s">
-                                    <label class="u-flex u-align-start u-gap-s u-cursor-pointer u-margin-none">
+                                <div class="c-box u-margin-block-end-m u-padding-around-s">
+                                    <label class="u-flex u-align-start u-gap-s u-cursor-pointer u-margin-block-none">
                                         <input type="checkbox"
                                                name="mark_as_paid"
                                                value="1"
                                                checked
-                                               class="c-form-checkbox"
-                                               style="margin-block-start: 3px;">
-                                        <div>
+                                               class="c-form-checkbox">
+                                        <div class="u-flex u-flex-column u-justify-center">
                                             <strong class="u-text-sm u-color-main u-display-block"
                                                     style="line-height: 1.2;">Sofort als "Bezahlt" markieren</strong>
-                                            <small class="u-color-muted u-margin-top-xs u-display-block"
-                                                   style="line-height: 1.3;">Häkchen entfernen, falls z.B. noch
-                                                überwiesen wird.</small>
+                                            <small class="u-color-muted u-margin-block-start-xs u-display-block"
+                                                   style="line-height: 1.3;">
+                                                Häkchen entfernen, falls z.B. noch überwiesen wird.</small>
                                         </div>
                                     </label>
                                 </div>
 
-                                <div class="u-flex u-justify-between u-align-center u-border-top u-padding-top-m">
+                                <div
+                                     class="u-flex u-justify-between u-align-center u-border-top u-padding-block-start-m">
                                     <div>
                                         <label class="u-flex u-align-center u-gap-s u-cursor-pointer"
                                                title="Soll dem Pächter eine PDF zugestellt werden?">
@@ -293,12 +293,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                                    name="send_email"
                                                    value="1"
                                                    checked
-                                                   class="c-form-checkbox"
-                                                   style="margin-block-start: 0;">
-                                            <strong class="u-font-bold u-text-sm u-color-main">PDF via E-Mail
-                                                senden</strong>
+                                                   class="c-form-checkbox">
+                                            <strong class="u-font-bold u-text-sm u-color-main">
+                                                PDF via E-Mail senden</strong>
                                         </label>
-                                        <div class="u-color-muted u-text-xs u-margin-top-s">* Pflichtfelder</div>
+                                        <div class="u-color-muted u-text-xs u-margin-block-start-s">* Pflichtfelder
+                                        </div>
                                     </div>
                                     <button type="submit"
                                             class="c-button c-button--success">Ausstellen</button>
@@ -313,17 +313,17 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <!-- KARTE 2: GUTSCHEIN GENERIEREN              -->
             <!-- ========================================== -->
             <?php if ($auth->hasPermission('vouchers.create')) { ?>
-                <section class="c-card c-card--voucher u-margin-none u-flex-grow-1">
+                <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
                     <header class="c-card__header"
                             style="background-color: var(--color-bg-light);">
-                        <h3 class="u-margin-none u-flex u-align-center u-gap-s u-text-lg">
+                        <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
                                  alt="">
                             Gutscheincode generieren
                         </h3>
-                        <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Erstellt Rabattcodes für das
-                            öffentliche Portal.</p>
+                        <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                            Erstellt Rabattcodes für das öffentliche Portal.</p>
                     </header>
                     <div class="c-card__body">
                         <form method="POST"
@@ -332,7 +332,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                            <div class="c-form-group u-margin-bottom-m">
+                            <div class="c-form-group u-margin-block-end-m">
                                 <label class="c-form-label"
                                        for="v_template_key">Gültig für Vorlage *</label>
                                 <select name="template_key"
@@ -345,7 +345,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </select>
                             </div>
 
-                            <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
                                     <label class="c-form-label"
                                            for="v_type">Rabatt-Art *</label>
@@ -372,7 +372,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
                             </div>
 
-                            <div class="c-form-group u-margin-bottom-m">
+                            <div class="c-form-group u-margin-block-end-m">
                                 <label class="c-form-label"
                                        for="v_reason">Interne Notiz / Grund * (Doppelklick öffnet
                                     Schnellauswahl)</label>
@@ -391,7 +391,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </datalist>
                             </div>
 
-                            <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                            <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                 <div class="c-form-group">
                                     <label class="c-form-label"
                                            for="v_custom_code">Eigener Code (Optional)</label>
@@ -414,40 +414,38 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                             </div>
 
                             <!-- Einklappbare Vorbefüllung (Prefill) -->
-                            <details class="c-box c-box--subtle u-margin-bottom-m">
+                            <details class="c-box c-box--subtle u-margin-block-end-m">
                                 <summary class="u-cursor-pointer u-font-semibold u-color-primary"
                                          style="outline: none;">
-                                    ➕ Vorgaben für Pächter (Vorbefüllung)
+                                    ➕ Vorgaben für Pächter (Vorbefüllung) <?php // ToDo Icon?>
                                 </summary>
-                                <div class="u-margin-top-m u-border-top u-padding-top-m">
-                                    <p class="u-color-muted u-text-sm u-margin-top-none u-margin-bottom-m">Daten, die
-                                        hier eingetragen werden, sind für den Pächter bei der Einlösung fest vorgegeben
-                                        und können von ihm nicht mehr geändert werden.</p>
+                                <div class="u-margin-block-start-m u-border-top u-padding-block-start-m">
+                                    <p class="u-color-muted u-text-sm u-margin-block-start-none u-margin-block-end-m">
+                                        Daten, die hier eingetragen werden, sind für den Pächter bei der Einlösung fest
+                                        vorgegeben und können von ihm nicht mehr geändert werden.</p>
 
-                                    <div class="c-form-group u-margin-bottom-m">
+                                    <div class="c-form-group u-margin-block-end-m">
                                         <label class="c-form-label">Zeitraum-Vorgabe *</label>
-                                        <div class="u-flex u-gap-m u-margin-top-xs">
+                                        <div class="u-flex u-gap-m u-margin-block-start-xs">
                                             <div class="c-form-checkbox__wrapper">
                                                 <input type="radio"
                                                        name="voucher_date_mode"
                                                        value="fixed"
                                                        checked
-                                                       class="c-form-checkbox"
-                                                       style="margin-block-start: 0;">
+                                                       class="c-form-checkbox">
                                                 <span class="c-form-checkbox__label"><strong>Fest</strong> (Erzwingt exakte Daten)</span>
                                             </div>
                                             <div class="c-form-checkbox__wrapper">
                                                 <input type="radio"
                                                        name="voucher_date_mode"
                                                        value="flexible"
-                                                       class="c-form-checkbox"
-                                                       style="margin-block-start: 0;">
+                                                       class="c-form-checkbox">
                                                 <span class="c-form-checkbox__label"><strong>Offen</strong> (Pächter wählt selbst)</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                         <div class="c-form-group">
                                             <label class="c-form-label"
                                                    for="v_datum_von">Gültig von</label>
@@ -468,7 +466,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         </div>
                                     </div>
 
-                                    <div class="o-grid o-grid--2-1 u-margin-bottom-m">
+                                    <div class="o-grid o-grid--2-1 u-margin-block-end-m">
                                         <div class="c-form-group">
                                             <label class="c-form-label"
                                                    for="v_name">Pächter Name</label>
@@ -491,7 +489,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                         </div>
                                     </div>
 
-                                    <div class="c-form-group u-margin-bottom-m">
+                                    <div class="c-form-group u-margin-block-end-m">
                                         <label class="c-form-label"
                                                for="v_kennzeichen">Amtl. Kennzeichen</label>
                                         <input type="text"
@@ -502,7 +500,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                                autocomplete="off">
                                     </div>
 
-                                    <div class="o-grid o-grid--2-cols u-margin-bottom-m">
+                                    <div class="o-grid o-grid--2-cols u-margin-block-end-m">
                                         <div class="c-form-group">
                                             <label class="c-form-label"
                                                    for="v_typ">Fahrzeugtyp</label>
@@ -549,13 +547,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
                             <!-- Abschluss Container -->
                             <div class="c-box c-box--dashed">
-                                <div class="c-form-group u-margin-bottom-s">
+                                <div class="c-form-group u-margin-block-end-s">
                                     <label class="u-flex u-align-center u-gap-s u-cursor-pointer">
                                         <input type="checkbox"
                                                name="voucher_multi_use"
                                                id="v_multi"
-                                               class="c-form-checkbox"
-                                               style="margin-block-start: 0;">
+                                               class="c-form-checkbox">
                                         <strong class="u-font-bold u-text-sm u-color-main">Mehrfach einlösbar?</strong>
                                     </label>
                                 </div>
@@ -574,7 +571,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
 
                                 <div
-                                     class="u-flex u-justify-between u-align-center u-border-top u-padding-top-m u-margin-top-m">
+                                     class="u-flex u-justify-between u-align-center u-border-top u-padding-block-start-m u-margin-block-start-m">
                                     <div class="u-color-muted u-text-xs">* Pflichtfelder</div>
                                     <button type="submit"
                                             class="c-button"
