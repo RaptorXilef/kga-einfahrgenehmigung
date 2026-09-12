@@ -33,30 +33,27 @@ if ($auth->hasPermission('system.roles.manage')) {
                 $key = $node['key'] ?? null;
                 $isAllowed = $key ? \in_array($key, $rolePerms, true) : false;
                 $hasChildren = !empty($node['children']);
-                // Durch die Verschachtelung reicht ein fester Margin statt eines Multiplikators
-                $marginLeft = $depth > 0 ? 28 : 0;
                 ?>
                 <div class="p-tree-node"
-                     style="margin-inline-start: <?php echo $marginLeft; ?>px;"
+                     style="--depth: <?php echo $depth; ?>;"
                      data-key="<?php echo $key ?? $id; ?>">
                     <div class="p-item <?php echo $depth === 0 ? 'is-root' : ''; ?> <?php echo !$key ? 'is-category' : ''; ?>">
                         <div class="p-label u-flex u-flex-column">
-                            <span class="main u-font-bold" style="font-size: <?php echo $depth === 0 ? '1.05rem' : '0.95rem'; ?>; color: var(--color-text-main);">
+                            <span class="p-label-main <?php echo $depth === 0 ? 'p-label-main--root' : ''; ?>">
                                 <?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?>
                             </span>
                             <?php if ($key) { ?>
-                                <span class="sub" style="font-size: 0.75rem; color: var(--color-text-muted); font-family: monospace; margin-block-start: 2px;">
+                                <span class="p-label-sub">
                                     <?php echo \htmlspecialchars((string) $key); ?>
                                 </span>
                             <?php } else { ?>
-                                <span class="sub" style="font-size: 0.75rem; font-style: italic; color: var(--color-text-muted); margin-block-start: 2px;">
+                                <span class="p-label-sub p-label-sub--category">
                                     Kategorie
                                 </span>
                             <?php } ?>
                         </div>
                         <div class="p-controls">
-                            <?php if ($key) { // Nur Schalter anzeigen, wenn ein Key existiert
-                                ?>
+                            <?php if ($key) { ?>
                                 <label class="c-switch">
                                     <input type="checkbox"
                                            name="perms[]"
@@ -82,17 +79,16 @@ if ($auth->hasPermission('system.roles.manage')) {
          class="u-flex u-flex-column u-gap-l">
         <section class="c-card c-card--primary">
             <header class="c-card__header">
-                <h3 class="u-margin-none">📦 Neue Rolle erstellen</h3>
+                <h3 class="u-margin-block-none">📦 Neue Rolle erstellen</h3> <?php // ToDo Icon?>
             </header>
             <div class="c-card__body u-padding-around-l">
                 <form method="POST"
                       action="save_role"
-                      class="o-grid u-gap-m u-align-end"
-                      style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;">
+                      class="o-grid o-grid--auto-fit u-gap-m u-align-end">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                    <div class="c-form-group u-margin-none">
+                    <div class="c-form-group u-margin-block-none u-flex-grow-1">
                         <label class="c-form-label"
                                for="group_name">Anzeigename</label>
                         <input type="text"
@@ -103,7 +99,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                placeholder="z.B. Vorstand"
                                autocomplete="off">
                     </div>
-                    <div class="c-form-group u-margin-none">
+                    <div class="c-form-group u-margin-block-none u-flex-grow-1">
                         <label class="c-form-label"
                                for="inherit_group">Rechte kopieren von...</label>
                         <select id="inherit_group"
@@ -117,8 +113,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                         </select>
                     </div>
                     <button type="submit"
-                            class="c-button c-button--primary"
-                            style="block-size: 46px;">Erstellen</button>
+                            class="c-button c-button--primary c-button--submit">Erstellen</button>
                 </form>
             </div>
         </section>
@@ -133,8 +128,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <header class="c-category-card__header u-flex u-justify-between u-align-center">
                         <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1">
                             <img src="<?php echo $roleImage; ?>"
-                                 class="c-avatar c-avatar--sm"
-                                 style="background-color: var(--color-bg-white); border-radius: 8px; border: 1px solid var(--color-border); padding: 5px;"
+                                 class="c-avatar c-avatar--sm c-avatar--role"
                                  alt="">
                             <div>
                                 <strong class="u-text-lg"><?php echo \htmlspecialchars($rData->name); ?></strong>
@@ -145,7 +139,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                             <form method="POST"
                                   action="delete_role"
                                   data-confirm="Rolle löschen?"
-                                  class="u-margin-none">
+                                  class="u-margin-block-none">
                                 <input type="hidden"
                                        name="csrf_token"
                                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -165,18 +159,17 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <div class="c-category-card__body">
 
                         <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
-                        <!-- FIX: Das gesamte Feld IST nun das Formular und hat Auto-Submit -->
                         <form method="POST"
                               action="upload_role_image"
                               enctype="multipart/form-data"
-                              class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-bottom-l">
+                              class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-block-end-l">
                             <label class="c-form-label u-justify-center">Rollen-Icon / Bild</label>
                             <div class="u-position-relative u-display-inline-block">
                                 <img src="<?php echo $roleImage; ?>"
-                                     class="c-avatar c-avatar--lg u-margin-bottom-s js-preview-img"
-                                     style="background-color: var(--color-bg-white); padding: 15px; object-fit: contain;"
+                                     class="c-avatar c-avatar--lg c-avatar--role u-margin-block-end-s js-preview-img"
                                      alt="">
-                                <div class="c-dropzone__overlay u-margin-bottom-s u-border-radius-m">Foto ablegen</div>
+                                <div class="c-dropzone__overlay u-margin-block-end-s u-border-radius-m">Foto ablegen
+                                </div>
                             </div>
                             <input type="hidden"
                                    name="csrf_token"
@@ -194,7 +187,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                     data-target="file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
                         </form>
 
-                        <div class="u-margin-bottom-l">
+                        <div class="u-margin-block-end-l">
                             <form method="POST"
                                   action="rename_role"
                                   class="u-flex u-gap-s u-align-end">
@@ -219,8 +212,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                             </form>
                         </div>
 
-                        <hr class="u-margin-bottom-l u-border-top"
-                            style="border: none;">
+                        <div class="u-border-top u-margin-block-end-l"></div>
 
                         <form method="POST"
                               action="save_role"
@@ -237,7 +229,7 @@ if ($auth->hasPermission('system.roles.manage')) {
 
                             <?php if ($auth->hasPermission('*')) { ?>
                                 <div
-                                     class="c-box c-box--danger-soft u-margin-bottom-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
+                                     class="c-box c-box--danger-soft u-margin-block-end-l u-padding-around-m u-flex u-justify-between u-align-center u-flex-wrap u-gap-m">
                                     <div class="u-flex u-align-center u-gap-m">
                                         <span class="u-text-2xl">👑</span>
                                         <div>
@@ -257,8 +249,8 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 </div>
                             <?php } ?>
 
-                            <div class="u-margin-bottom-m u-flex u-justify-between u-align-center u-flex-wrap">
-                                <h4 class="u-margin-none">Berechtigungs-Struktur</h4>
+                            <div class="u-margin-block-end-m u-flex u-justify-between u-align-center u-flex-wrap">
+                                <h4 class="u-margin-block-none">Berechtigungs-Struktur</h4>
                                 <div class="u-color-muted u-text-xs">Abhängigkeiten werden automatisch gesetzt. Wenn ein
                                     übergeordneter Punkt aktiviert wird, werden alle Unterpunkte mit eingeschlossen.
                                 </div>
@@ -268,10 +260,10 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 <?php \renderPermissionNode($structure, $rData->permissions); ?>
                             </div>
 
-                            <div class="u-margin-top-xl">
+                            <div class="u-margin-block-start-xl">
                                 <button type="submit"
                                         class="c-button c-button--primary c-button--large u-width-100 u-font-bold">
-                                    🛡️ RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN
+                                    🛡️ RECHTE FÜR <?php echo \strtoupper($rData->name); ?> SPEICHERN <?php // ToDo Icon?>
                                 </button>
                             </div>
                         </form>

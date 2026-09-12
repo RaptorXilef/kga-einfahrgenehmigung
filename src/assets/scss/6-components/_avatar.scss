@@ -37,6 +37,19 @@
         box-shadow: var(--shadow-md);
     }
 
+    /* Modifier für System-Rollen (Eckig, Padding, Hintergrund) */
+    .c-avatar--role {
+        background-color: var(--color-bg-white);
+        border-radius: 8px;
+        border: 1px solid var(--color-border);
+        padding: 5px;
+        object-fit: contain;
+
+        &.c-avatar--lg {
+            padding: 15px;
+        }
+    }
+
     .c-avatar-dropzone {
         inline-size: 60px;
         block-size: 60px;
@@ -49,7 +62,6 @@
         flex-shrink: 0;
     }
 
-    /* Variante für riesige Dropzones (wie im eigenen Profil) */
     .c-avatar-dropzone--large {
         inline-size: 150px;
         block-size: 150px;

@@ -2,6 +2,9 @@
     .u-bg-white {
         background-color: var(--color-bg-white) !important;
     }
+    .u-bg-light {
+        background-color: var(--color-bg-light) !important;
+    }
     .u-opacity-50 {
         opacity: 0.5 !important;
     }
@@ -10,6 +13,9 @@
     }
     .u-grayscale {
         filter: grayscale(100%) !important;
+    }
+    .u-filter-invert {
+        filter: brightness(0) invert(1) !important;
     }
     .u-cursor-pointer {
         cursor: pointer !important;

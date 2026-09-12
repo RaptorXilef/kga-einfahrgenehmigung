@@ -52,11 +52,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
     <?php if (!$hasAnyTemplate) { ?>
         <div class="c-card c-card--danger u-text-center">
             <div class="c-card__body c-card__body--xl">
-                <div class="u-text-4xl u-margin-block-end-m">🚫</div> <?php // ToDo Icon
-                                                                        ?>
+                <div class="u-text-4xl u-margin-block-end-m">🚫</div> <?php // ToDo Icon?>
                 <h3 class="u-margin-block-none">Keine Berechtigung</h3>
-                <p class="u-color-muted u-margin-inline-auto u-margin-block-start-s"
-                   style="max-inline-size: 400px;">
+                <p class="u-color-muted o-container--small u-margin-inline-auto u-margin-block-start-s">
                     Sie verfügen über keine Berechtigungen für die verfügbaren Genehmigungs-Vorlagen.
                     Bitte wenden Sie sich an den System-Administrator.
                 </p>
@@ -72,8 +70,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <!-- ========================================== -->
             <?php if ($auth->hasPermission('permits.create')) { ?>
                 <section class="c-card c-card--success u-margin-block-none">
-                    <header class="c-card__header"
-                            style="background-color: var(--color-bg-light);">
+                    <header class="c-card__header u-bg-light">
                         <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                                  class="c-icon"
@@ -268,17 +265,16 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                 </div>
 
                                 <div class="c-box u-margin-block-end-m u-padding-around-s">
-                                    <label class="u-flex u-align-start u-gap-s u-cursor-pointer u-margin-block-none">
+                                    <label class="c-form-checkbox__wrapper">
                                         <input type="checkbox"
                                                name="mark_as_paid"
                                                value="1"
                                                checked
                                                class="c-form-checkbox">
-                                        <div class="u-flex u-flex-column u-justify-center">
-                                            <strong class="u-text-sm u-color-main u-display-block"
-                                                    style="line-height: 1.2;">Sofort als "Bezahlt" markieren</strong>
-                                            <small class="u-color-muted u-margin-block-start-xs u-display-block"
-                                                   style="line-height: 1.3;">
+                                        <div>
+                                            <strong class="u-text-sm u-color-main u-display-block">
+                                                Sofort als "Bezahlt" markieren</strong>
+                                            <small class="u-color-muted u-margin-block-start-xs u-display-block">
                                                 Häkchen entfernen, falls z.B. noch überwiesen wird.</small>
                                         </div>
                                     </label>
@@ -314,8 +310,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
             <!-- ========================================== -->
             <?php if ($auth->hasPermission('vouchers.create')) { ?>
                 <section class="c-card c-card--voucher u-margin-block-none u-flex-grow-1">
-                    <header class="c-card__header"
-                            style="background-color: var(--color-bg-light);">
+                    <header class="c-card__header u-bg-light">
                         <h3 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
@@ -563,10 +558,9 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                     <input type="number"
                                            id="v_max_uses"
                                            name="voucher_max_uses"
-                                           class="c-form-input"
+                                           class="c-form-input c-form-input--short"
                                            value="10"
                                            min="1"
-                                           style="max-inline-size: 150px;"
                                            autocomplete="off">
                                 </div>
 
@@ -574,12 +568,10 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                                      class="u-flex u-justify-between u-align-center u-border-top u-padding-block-start-m u-margin-block-start-m">
                                     <div class="u-color-muted u-text-xs">* Pflichtfelder</div>
                                     <button type="submit"
-                                            class="c-button"
-                                            style="background-color: #6366f1; color: white; border: none; font-weight: 600;">
+                                            class="c-button c-button--primary">
                                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                                             class="c-icon"
-                                             alt=""
-                                             style="filter: brightness(0) invert(1);"> Code Generieren
+                                             class="c-icon u-filter-invert"
+                                             alt=""> Code Generieren
                                     </button>
                                 </div>
                             </div>

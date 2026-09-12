@@ -11,6 +11,8 @@
 
     .p-tree-node {
         transition: all 0.2s;
+        /* Berechnung der Einrückung auf Basis der injizierten CSS-Variable --depth */
+        margin-inline-start: calc(var(--depth, 0) * 28px);
     }
 
     .p-tree-node:last-child > .p-item {
@@ -32,7 +34,6 @@
     }
 
     .p-item.is-root {
-        font-weight: 700;
         background-color: transparent;
     }
 
@@ -54,16 +55,25 @@
 
     .p-label-main {
         display: block;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         color: var(--color-text-main);
+        font-weight: 700;
+
+        &--root {
+            font-size: 1.05rem;
+        }
     }
 
     .p-label-sub {
         display: block;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: var(--color-text-muted);
         font-family: monospace;
         margin-block-start: 2px;
+
+        &--category {
+            font-style: italic;
+        }
     }
 
     .c-switch {
