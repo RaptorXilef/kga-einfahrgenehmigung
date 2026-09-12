@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.68.3](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.68.2...v0.68.3) (2026-09-12)
+
+### ⚙️ Refactoring
+
+* **ui:** Fix avatar auto-submit, refine email word-breaks ([e8fce54](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e8fce54a73b0d87037098763a7045bef4ab105e1))
+* **ui:** Unify header navigation width and align "Check" to the right ([9a8bbd6](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/9a8bbd63059daa3d6ccf71658fc051dd5c42a6d3))
+* **ui:** Unify public header, add role icons, and enforce email word-breaks ([e6c5c3a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/e6c5c3a1f497adabc437590cc2982d8ff1a02fa7))
+
+### 🧹 Chore / Maintenance
+
+* **deps:** bump adm-zip in the npm_and_yarn group across 1 directory ([b74c2bb](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/b74c2bb2c2c51b33610f0640d2ca9d45349b87b2))
+
 ## [0.68.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.68.1...v0.68.2) (2026-09-12)
 
 ### ⚙️ Refactoring
