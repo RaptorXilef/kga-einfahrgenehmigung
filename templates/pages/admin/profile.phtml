@@ -24,8 +24,6 @@ use App\Core\Service\AuthService;
  * @var string $userId   Die aktive Benutzer-ID.
  * @var string $username Der aktuelle Anzeigename.
  */
-$layout = 'admin';
-$pageTitle = 'Mein Profil - ' . ($settings['vereins_name'] ?? '');
 $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp');
 ?>
 
@@ -48,33 +46,37 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
 
         <div class="o-grid o-grid--auto-fit-lg u-gap-l u-align-start">
             <aside class="u-flex-grow-1">
-                <section
-                         class="c-card c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only u-text-center u-padding-around-l">
-                    <div class="c-avatar-dropzone c-avatar-dropzone--large u-margin-auto u-margin-bottom-m u-position-relative">
+
+                <!-- FIX: Dropzone IST nun das Formular und hat js-auto-submit -->
+                <form method="POST"
+                      action="<?php echo $settings['base_url']; ?>change_own_avatar"
+                      enctype="multipart/form-data"
+                      class="c-card c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit u-text-center u-padding-around-l">
+                    <input type="hidden"
+                           name="csrf_token"
+                           value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                    <div
+                         class="c-avatar-dropzone c-avatar-dropzone--large u-margin-auto u-margin-bottom-m u-position-relative">
                         <img src="<?php echo $userImage; ?>"
                              class="c-avatar c-avatar--xl js-preview-img"
                              alt="">
                         <div class="c-dropzone__overlay u-border-radius-circle">Foto ablegen</div>
                     </div>
-                    <form method="POST"
-                          action="<?php echo $settings['base_url']; ?>change_own_avatar"
-                          enctype="multipart/form-data">
-                        <input type="hidden"
-                               name="csrf_token"
-                               value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                        <input type="file"
-                               name="avatar"
-                               id="avatar-input"
-                               class="u-hidden"
-                               accept="image/*">
-                        <button type="button"
-                                class="c-button c-button--primary u-width-100 js-trigger-click"
-                                data-target="avatar-input">
-                            <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
-                                 class="c-icon"
-                                 alt=""> Bild ändern
-                        </button>
-                    </form>
+
+                    <input type="file"
+                           name="avatar"
+                           id="avatar-input"
+                           class="u-hidden"
+                           accept="image/*">
+                    <button type="button"
+                            class="c-button c-button--primary u-width-100 js-trigger-click"
+                            data-target="avatar-input">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-camera.webp'); ?>"
+                             class="c-icon"
+                             alt=""> Bild ändern
+                    </button>
+
                     <div class="u-margin-top-l u-padding-top-m u-border-top">
                         <small class="u-color-muted u-font-bold u-text-uppercase"> Rolle </small>
                         <div class="u-margin-top-xs">
@@ -86,7 +88,8 @@ $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp
                             ID: <?php echo \htmlspecialchars((string) $userId, \ENT_QUOTES, 'UTF-8'); ?>
                         </code>
                     </div>
-                </section>
+                </form>
+
             </aside>
 
             <div class="u-flex u-flex-column u-gap-l u-flex-grow-1">

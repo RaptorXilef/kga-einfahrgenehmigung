@@ -140,18 +140,20 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                     <div class="c-category-card__body">
                         <div class="o-grid o-grid--user-management u-gap-l">
 
-                            <div class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only c-box c-box--dashed u-padding-around-s u-border-radius-m">
-                                <label class="c-form-label u-justify-center">Profilbild</label>
-                                <div class="u-position-relative u-display-inline-block">
-                                    <img src="<?php echo $userImage; ?>"
-                                         class="c-avatar c-avatar--lg u-margin-bottom-s js-preview-img"
-                                         alt="">
-                                    <div class="c-dropzone__overlay u-margin-bottom-s u-border-radius-m">Foto ablegen
-                                    </div>
-                                </div>
+                            <div class="c-box c-box--dashed u-padding-around-s u-border-radius-m">
+                                <!-- Dropzone Formular für das Bild -->
                                 <form method="POST"
                                       action="upload_avatar"
-                                      enctype="multipart/form-data">
+                                      enctype="multipart/form-data"
+                                      class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit">
+                                    <label class="c-form-label u-justify-center">Profilbild</label>
+                                    <div class="u-position-relative u-display-inline-block">
+                                        <img src="<?php echo $userImage; ?>"
+                                             class="c-avatar c-avatar--lg u-margin-bottom-s js-preview-img"
+                                             alt="">
+                                        <div class="c-dropzone__overlay u-margin-bottom-s u-border-radius-m">Foto
+                                            ablegen</div>
+                                    </div>
                                     <input type="hidden"
                                            name="csrf_token"
                                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -167,7 +169,9 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                                             class="c-button c-button--secondary c-button--small u-width-100 js-trigger-click"
                                             data-target="file-<?php echo \md5($userId); ?>">Bild ändern</button>
                                 </form>
+
                                 <hr class="u-border-top u-margin-y-m u-border-none">
+
                                 <form method="POST"
                                       action="rename_user">
                                     <input type="hidden"

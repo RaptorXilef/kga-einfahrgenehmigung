@@ -165,8 +165,11 @@ if ($auth->hasPermission('system.roles.manage')) {
                     <div class="c-category-card__body">
 
                         <!-- Avatar / Icon Dropzone analog zu Benutzerverwaltung -->
-                        <div
-                             class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-bottom-l">
+                        <!-- FIX: Das gesamte Feld IST nun das Formular und hat Auto-Submit -->
+                        <form method="POST"
+                              action="upload_role_image"
+                              enctype="multipart/form-data"
+                              class="u-text-center c-dropzone c-dropzone--preview js-avatar-dropzone js-preview-only js-auto-submit c-box c-box--dashed u-padding-around-s u-border-radius-m u-margin-bottom-l">
                             <label class="c-form-label u-justify-center">Rollen-Icon / Bild</label>
                             <div class="u-position-relative u-display-inline-block">
                                 <img src="<?php echo $roleImage; ?>"
@@ -175,25 +178,21 @@ if ($auth->hasPermission('system.roles.manage')) {
                                      alt="">
                                 <div class="c-dropzone__overlay u-margin-bottom-s u-border-radius-m">Foto ablegen</div>
                             </div>
-                            <form method="POST"
-                                  action="upload_role_image"
-                                  enctype="multipart/form-data">
-                                <input type="hidden"
-                                       name="csrf_token"
-                                       value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                <input type="hidden"
-                                       name="group_id"
-                                       value="<?php echo $roleId; ?>">
-                                <input type="file"
-                                       name="avatar"
-                                       class="u-hidden"
-                                       id="file-role-<?php echo \md5($roleId); ?>"
-                                       accept="image/*">
-                                <button type="button"
-                                        class="c-button c-button--secondary c-button--small u-width-100 js-trigger-click"
-                                        data-target="file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
-                            </form>
-                        </div>
+                            <input type="hidden"
+                                   name="csrf_token"
+                                   value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+                            <input type="hidden"
+                                   name="group_id"
+                                   value="<?php echo $roleId; ?>">
+                            <input type="file"
+                                   name="avatar"
+                                   class="u-hidden"
+                                   id="file-role-<?php echo \md5($roleId); ?>"
+                                   accept="image/*">
+                            <button type="button"
+                                    class="c-button c-button--secondary c-button--small u-width-100 js-trigger-click"
+                                    data-target="file-role-<?php echo \md5($roleId); ?>">Bild ändern</button>
+                        </form>
 
                         <div class="u-margin-bottom-l">
                             <form method="POST"
