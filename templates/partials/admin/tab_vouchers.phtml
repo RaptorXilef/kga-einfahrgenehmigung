@@ -27,22 +27,22 @@ use App\Infrastructure\Config\Config;
             <!-- LINKER BLOCK: OFFENE GUTSCHEINE / Aktivierungscodes -->
             <section class="c-card c-card--primary">
                 <header class="c-card__header">
-                    <h3 class="u-margin-none">
+                    <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                              class="c-icon"
                              alt=""> Offene Gutscheincodes
                     </h3>
-                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Noch nicht eingelöste Wertcodes für
-                        das System.</p>
+                    <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                        Noch nicht eingelöste Wertcodes für das System.</p>
                 </header>
-                <div class="c-card__body u-padding-none"
+                <div class="c-card__body u-padding-block-none u-padding-inline-none"
                      style="max-block-size: 650px; overflow-y: auto;">
                     <table class="c-table u-width-100">
                         <thead>
                             <tr>
                                 <th>Code / QR</th>
                                 <th>Details & Konditionen</th>
-                                <th class="u-text-right u-padding-right-m">Aktion</th>
+                                <th class="u-text-right u-padding-inline-end-m">Aktion</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,7 +74,7 @@ use App\Infrastructure\Config\Config;
                                     }
                                     ?>
                                     <tr class="u-hover-fade <?php echo !$isValid ? 'c-table__row--danger u-opacity-50' : ''; ?>">
-                                        <td style="vertical-align: middle;">
+                                        <td>
                                             <div class="u-text-center">
                                                 <button type="button"
                                                         class="c-button c-button--secondary c-button--small js-show-qr"
@@ -85,29 +85,29 @@ use App\Infrastructure\Config\Config;
                                                          class="c-icon"
                                                          alt=""> QR
                                                 </button>
-                                                <code class="u-display-block u-margin-top-s u-text-xs u-font-bold">
-                                                    <?php echo $vCodeStr; ?>
-                                                </code>
+                                                <code class="u-display-block u-margin-block-start-s u-text-xs u-font-bold">
+                                                <?php echo $vCodeStr; ?>
+                                            </code>
                                             </div>
                                         </td>
-                                        <td style="vertical-align: middle;">
+                                        <td>
                                             <strong class="u-display-block u-text-md u-color-dark">
                                                 <?php echo \htmlspecialchars($v->reason); ?>
                                                 <?php if ($isExpired) {
-                                                    echo '<span class="u-color-danger u-text-xs u-margin-left-s">(Abgelaufen)</span>';
+                                                    echo '<span class="u-color-danger u-text-xs u-margin-inline-start-s">(Abgelaufen)</span>';
                                                 } ?>
                                             </strong>
-                                            <div class="u-margin-top-xs u-flex u-gap-s u-flex-wrap">
+                                            <div class="u-margin-block-start-xs u-flex u-gap-s u-flex-wrap">
                                                 <span class="c-badge <?php echo $v->type === 'free' ? 'c-badge--success' : 'c-badge--primary'; ?>">
-                                                    <?php echo $discountText; ?>
-                                                </span>
+                                                <?php echo $discountText; ?>
+                                            </span>
                                                 <?php if ($v->multiUse) { ?>
                                                     <span class="c-badge c-badge--outline">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                                                             class="c-icon"
-                                                             alt="">
-                                                        &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
-                                                    </span>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
+                                                         class="c-icon"
+                                                         alt="">
+                                                    &nbsp;Mehrfach (<?php echo $v->usesCount; ?>/<?php echo $v->maxUses > 0 ? $v->maxUses : '&infin;'; ?>)
+                                                </span>
                                                 <?php } else { ?>
                                                     <span class="c-badge c-badge--outline">Einweg</span>
                                                 <?php } ?>
@@ -118,7 +118,7 @@ use App\Infrastructure\Config\Config;
                                                 <?php } ?>
                                             </div>
 
-                                            <div class="u-margin-top-s u-text-sm u-color-muted">
+                                            <div class="u-margin-block-start-s u-text-sm u-color-muted">
                                                 <?php if (!empty($v->data['name'])) { ?>
                                                     Vorbefüllt für: <strong class="u-color-dark"><?php echo \htmlspecialchars($v->data['name']); ?></strong>
                                                     (Parz: <?php echo $v->data['parzelle'] ?: '?'; ?>)<br>
@@ -128,20 +128,19 @@ use App\Infrastructure\Config\Config;
                                                 <?php } ?>
                                             </div>
 
-                                            <div class="u-margin-top-s">
+                                            <div class="u-margin-block-start-s">
                                                 <span class="u-text-link js-copy-link u-text-xs u-font-semibold u-cursor-pointer u-flex u-align-center u-gap-xs u-display-inline-block" data-url="<?php echo $url; ?>">
-                                                    Link kopieren
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" alt="">
-                                                </span>
+                                                Link kopieren
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon-clipboard.webp'); ?>" class="c-icon" alt="">
+                                            </span>
                                             </div>
                                         </td>
-                                        <td class="u-text-right u-padding-right-m"
-                                            style="vertical-align: middle;">
+                                        <td class="u-text-right u-padding-inline-end-m">
                                             <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                                 <?php if ($auth->hasPermission('vouchers.suspend')) { ?>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?><?php echo $isDeactivated ? 'activate_voucher' : 'deactivate_voucher'; ?>"
-                                                          class="u-margin-none">
+                                                          class="u-margin-block-none">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -154,15 +153,19 @@ use App\Infrastructure\Config\Config;
                                                         <?php if ($isDeactivated) { ?>
                                                             <button type="submit"
                                                                     class="c-button c-button--success c-button--small c-button--icon-only"
-                                                                    title="Aktivieren"><img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
+                                                                    title="Aktivieren">
+                                                                <img src="<?php echo $asset->url('assets/img/icons/action-unlock.webp'); ?>"
                                                                      class="c-icon"
-                                                                     alt=""></button>
+                                                                     alt="">
+                                                            </button>
                                                         <?php } else { ?>
                                                             <button type="submit"
                                                                     class="c-button c-button--danger c-button--small c-button--icon-only"
-                                                                    title="Sperren"><img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
+                                                                    title="Sperren">
+                                                                <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                                                                      class="c-icon"
-                                                                     alt=""></button>
+                                                                     alt="">
+                                                            </button>
                                                         <?php } ?>
                                                     </form>
                                                 <?php } ?>
@@ -170,7 +173,7 @@ use App\Infrastructure\Config\Config;
                                                 <?php if ($auth->hasPermission('vouchers.delete')) { ?>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?>delete_voucher"
-                                                          class="u-margin-none"
+                                                          class="u-margin-block-none"
                                                           data-confirm="Soll dieser Gutscheincode unwiderruflich gelöscht werden?">
                                                         <input type="hidden"
                                                                name="csrf_token"
@@ -180,9 +183,11 @@ use App\Infrastructure\Config\Config;
                                                                value="<?php echo $vCodeStr; ?>">
                                                         <button type="submit"
                                                                 class="c-button c-button--danger-outline c-button--small c-button--icon-only"
-                                                                title="Löschen"><img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
+                                                                title="Löschen">
+                                                            <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
                                                                  class="c-icon"
-                                                                 alt=""></button>
+                                                                 alt="">
+                                                        </button>
                                                     </form>
                                                 <?php } ?>
                                             </div>
@@ -198,22 +203,22 @@ use App\Infrastructure\Config\Config;
             <!-- RECHTER BLOCK: ARCHIV-->
             <section class="c-card c-card--dark">
                 <header class="c-card__header">
-                    <h3 class="u-margin-none">
+                    <h3 class="u-margin-block-none">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                              class="c-icon"
                              alt=""> Archiv
                     </h3>
-                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Bereits vollständig eingelöste
-                        Codes.</p>
+                    <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
+                        Bereits vollständig eingelöste Codes.</p>
                 </header>
-                <div class="c-card__body u-padding-none u-overflow-x-auto"
+                <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto"
                      style="max-block-size: 650px;">
                     <table class="c-table c-table--summary u-width-100">
                         <thead>
                             <tr>
-                                <th class="u-text-left u-padding-x-m">Datum</th>
+                                <th class="u-text-left u-padding-inline-m">Datum</th>
                                 <th class="u-text-left">Nutzer</th>
-                                <th class="u-text-right u-padding-right-m">Code</th>
+                                <th class="u-text-right u-padding-inline-end-m">Code</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -227,18 +232,16 @@ use App\Infrastructure\Config\Config;
                             <?php } else { ?>
                                 <?php foreach ($archive as $arc) { ?>
                                     <tr class="u-hover-fade">
-                                        <td class="u-text-nowrap u-padding-x-m"
-                                            style="vertical-align: middle;">
+                                        <td class="u-text-nowrap u-padding-inline-m">
                                             <small class="u-font-bold u-color-muted"><?php echo \date('d.m.y', \strtotime($arc['redeemed_at'])); ?></small>
                                         </td>
-                                        <td style="vertical-align: middle;">
+                                        <td>
                                             <div style="line-height: 1.2;">
                                                 <span class="u-font-semibold"><?php echo \htmlspecialchars($arc['user_name']); ?></span><br>
                                                 <small class="u-color-muted">Parzelle <?php echo $arc['user_plot']; ?></small>
                                             </div>
                                         </td>
-                                        <td class="u-text-right u-padding-right-m"
-                                            style="vertical-align: middle;">
+                                        <td class="u-text-right u-padding-inline-end-m">
                                             <code class="c-license-plate"><?php echo $arc['code']; ?></code>
                                         </td>
                                     </tr>
@@ -255,10 +258,10 @@ use App\Infrastructure\Config\Config;
     <div id="qrModal"
          class="c-modal">
         <div class="c-modal__dialog">
-            <h4 class="c-modal__title u-margin-bottom-s">QR-Code scannen</h4>
-            <code id="qrModalCode" class="c-license-plate u-margin-bottom-m u-text-lg" style="padding-inline: 10px;"></code>
+            <h4 class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
+            <code id="qrModalCode" class="c-license-plate u-margin-block-end-m u-text-lg" style="padding-inline: 10px;"></code>
 
-            <div class="c-box u-margin-none u-flex u-align-center u-justify-center"
+            <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center"
                  style="min-block-size: 220px;">
                 <img id="qrModalImg"
                      src=""
@@ -269,7 +272,7 @@ use App\Infrastructure\Config\Config;
             </div>
 
             <button type="button"
-                    class="c-button c-button--primary u-width-100 u-margin-top-m js-close-modal">Schließen</button>
+                    class="c-button c-button--primary u-width-100 u-margin-block-start-m js-close-modal">Schließen</button>
         </div>
     </div>
 <?php } ?>

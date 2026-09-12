@@ -46,7 +46,6 @@ $privacyEmail = $auth->hasPermission('privacy.emails.view');
 $privacyFinance = $auth->hasPermission('privacy.finance.view');
 $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRight ? 1 : 0);
 
-// Paginierung als HTML-String vorrendern
 $paginationHtml = '';
 if ($totalPages > 1) {
     $queryParams = $_GET;
@@ -99,7 +98,7 @@ if ($totalPages > 1) {
 
             <?php foreach ($pagesToShow as $pageNum) {
                 if ($pageNum === '...') { ?>
-                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
+                    <span class="u-color-muted u-padding-inline-s">&hellip;</span>
                 <?php } elseif ($pageNum === $page) { ?>
                     <button class="c-button c-button--primary"
                             style="pointer-events: none;"><?php echo $pageNum; ?></button>
@@ -127,7 +126,7 @@ if ($auth->hasPermission('finance.view')) {
     <div class="c-tab-content-container">
         <section class="c-card c-card--warning">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 class="u-margin-none">💰 Zahlungsüberwachung</h3>
+                <h3 class="u-margin-block-none">💰 Zahlungsüberwachung</h3> <?php // ToDo Icon?>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
                         <button type="submit"
@@ -148,7 +147,7 @@ if ($auth->hasPermission('finance.view')) {
                                 id="bulkRemindBtn"
                                 class="c-button c-button--danger c-button--small u-hidden"
                                 data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">
-                            🔔 <span id="bulkRemindCount">0</span> erinnern
+                            🔔 <span id="bulkRemindCount">0</span> erinnern <?php // ToDo Icon?>
                         </button>
                     <?php } ?>
                     <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
@@ -157,17 +156,17 @@ if ($auth->hasPermission('finance.view')) {
 
             <?php echo $paginationHtml; ?>
 
-            <div class="c-card__body u-padding-none u-overflow-x-auto">
+            <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
 
                 <!-- AUFGABEN-LISTE FÜR SAMMELÜBERWEISUNGEN -->
                 <?php if (!empty($collectiveTransfers)) { ?>
-                    <div class="u-padding-around-m u-padding-bottom-none">
+                    <div class="u-padding-around-m u-padding-block-end-none">
                         <div
-                             class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-left u-margin-bottom-l">
-                            <h4 class="u-margin-top-none u-margin-bottom-s u-flex u-align-center u-gap-s">
-                                <span class="u-text-xl">⚠️</span> Manuelle Zahlungszuordnung erforderlich
+                             class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-left u-margin-block-end-l">
+                            <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
+                                <span class="u-text-xl">⚠️</span> Manuelle Zahlungszuordnung erforderlich <?php // ToDo Icon?>
                             </h4>
-                            <p class="u-margin-top-none u-margin-bottom-m u-text-sm">
+                            <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
                                 Das System hat in der Bankdatei Überweisungen gefunden, die entweder <strong>mehrere
                                     Genehmigungs-Codes</strong> enthalten oder bei denen die ID fehlt, aber das
                                 <strong>Kennzeichen</strong> im Betreff stand. Bitte gleichen Sie den Betrag manuell ab
@@ -180,12 +179,12 @@ if ($auth->hasPermission('finance.view')) {
                                          style="border-inline-start: 4px solid var(--color-warning);">
                                         <div>
                                             <strong class="u-text-lg u-color-warning"><?php echo \number_format($ct['amount'], 2, ',', '.'); ?> €</strong>
-                                            <span class="u-color-muted u-text-sm u-margin-left-s">am <?php echo \htmlspecialchars($ct['date']); ?></span>
+                                            <span class="u-color-muted u-text-sm u-margin-inline-start-s">am <?php echo \htmlspecialchars($ct['date']); ?></span>
                                             <div
-                                                 class="c-box c-box--subtle u-margin-top-xs u-font-mono u-text-sm u-color-warning">
+                                                 class="c-box c-box--subtle u-margin-block-start-xs u-font-mono u-text-sm u-color-warning">
                                                 <?php echo \htmlspecialchars($ct['purpose']); ?>
                                             </div>
-                                            <div class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-top-s">
+                                            <div class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
                                                 <span class="u-text-xs u-font-bold u-color-warning u-text-uppercase">
                                                     <?php echo ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:'; ?>
                                                 </span>
@@ -196,7 +195,7 @@ if ($auth->hasPermission('finance.view')) {
                                         </div>
                                         <form method="POST"
                                               action="<?php echo $settings['base_url']; ?>dismiss_transfer"
-                                              class="u-margin-none">
+                                              class="u-margin-block-none">
                                             <input type="hidden"
                                                    name="csrf_token"
                                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -218,7 +217,7 @@ if ($auth->hasPermission('finance.view')) {
 
                 <form method="POST"
                       id="bulk-action-form"
-                      class="u-margin-none">
+                      class="u-margin-block-none">
                     <input type="hidden"
                            name="csrf_token"
                            value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -228,7 +227,7 @@ if ($auth->hasPermission('finance.view')) {
                             <tr>
                                 <?php if ($hasBulkRight) { ?>
                                     <th class="u-text-center"
-                                        style="width: 40px;">
+                                        style="inline-size: 40px;">
                                         <input type="checkbox"
                                                class="js-bulk-pay-toggle-all c-form-checkbox"
                                                title="Alle auswählen">
@@ -244,7 +243,7 @@ if ($auth->hasPermission('finance.view')) {
                                 <?php if ($privacyFinance) { ?>
                                     <th class="js-sort-header u-text-right">Betrag</th>
                                 <?php } ?>
-                                <th class="u-text-right u-padding-right-m">Verwaltung</th>
+                                <th class="u-text-right u-padding-inline-end-m">Verwaltung</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -271,8 +270,7 @@ if ($auth->hasPermission('finance.view')) {
                                     ?>
                                     <tr class="u-hover-fade <?php echo ($overdueLevel === 2 || $is_suspended) ? 'c-table__row--danger' : ''; ?>">
                                         <?php if ($hasBulkRight) { ?>
-                                            <td class="u-text-center"
-                                                style="vertical-align: middle;">
+                                            <td class="u-text-center">
                                                 <?php if (!$is_suspended) { ?>
                                                     <input type="checkbox"
                                                            name="codes[]"
@@ -280,8 +278,8 @@ if ($auth->hasPermission('finance.view')) {
                                                            class="js-bulk-pay-cb c-form-checkbox">
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" alt="">
-                                                    </span>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" alt="">
+                                                </span>
                                                 <?php } ?>
                                             </td>
                                         <?php } ?>
@@ -289,7 +287,7 @@ if ($auth->hasPermission('finance.view')) {
                                         <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
                                             <div class="u-flex u-flex-column">
                                                 <span class="u-font-bold u-color-main"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></span>
-                                                <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs"><?php echo $permit->code; ?></code>
+                                                <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs"><?php echo $permit->code; ?></code>
                                                 <div><span class="c-badge c-badge--primary">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
                                                 </div>
                                             </div>
@@ -303,7 +301,7 @@ if ($auth->hasPermission('finance.view')) {
                                                      class="c-icon c-icon--md"
                                                      title="<?php echo $vLabel; ?>">
                                             </div>
-                                            <div class="u-margin-top-xs">
+                                            <div class="u-margin-block-start-xs">
                                                 <span class="c-license-plate u-text-nowrap"><?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?></span>
                                             </div>
                                         </td>
@@ -314,8 +312,8 @@ if ($auth->hasPermission('finance.view')) {
                                                 <?php if ($permit->getOwnerEmail()) { ?>
                                                     <small>
                                                         <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link">
-                                                            <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
-                                                        </a>
+                                                        <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
+                                                    </a>
                                                     </small>
                                                 <?php } else { ?>
                                                     <small class="u-color-muted"><em>Keine Mail</em></small>
@@ -328,8 +326,8 @@ if ($auth->hasPermission('finance.view')) {
                                             class="u-text-center">
                                             <?php if ($overdueLevel === 2) { ?>
                                                 <span class="c-badge c-badge--danger u-text-nowrap">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
-                                                </span>
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
+                                            </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
                                                 <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
                                             <?php } else { ?>
@@ -362,12 +360,12 @@ if ($auth->hasPermission('finance.view')) {
                                         <?php } ?>
 
                                         <!-- 6. Aktionen (Inkl. Auge) -->
-                                        <td class="u-text-right u-padding-right-m">
+                                        <td class="u-text-right u-padding-inline-end-m">
                                             <div class="u-flex u-gap-xs u-justify-end u-flex-wrap">
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-                                                    </a>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                                </a>
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                     <?php if ($is_suspended) { ?>
@@ -402,7 +400,7 @@ if ($auth->hasPermission('finance.view')) {
                                                     </button>
                                                     <form method="POST"
                                                           action="<?php echo $settings['base_url']; ?>send_reminder"
-                                                          class="u-margin-none">
+                                                          class="u-margin-block-none">
                                                         <input type="hidden"
                                                                name="csrf_token"
                                                                value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -412,7 +410,7 @@ if ($auth->hasPermission('finance.view')) {
                                                         <button type="submit"
                                                                 class="c-button <?php echo $isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
                                                                 title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
-                                                            🔔
+                                                            🔔 <?php // ToDo Icon?>
                                                         </button>
                                                     </form>
                                                 <?php } ?>
@@ -425,7 +423,6 @@ if ($auth->hasPermission('finance.view')) {
                     </table>
                 </form>
 
-                <!-- Versteckte Einzel-Formulare für die Side-Buttons -->
                 <?php foreach ($unpaidPermits as $permit) { ?>
                     <?php if ($hasBulkRight) { ?>
                         <form id="single_pay_<?php echo $permit->code; ?>"
