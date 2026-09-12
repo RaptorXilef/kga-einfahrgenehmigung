@@ -114,7 +114,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $overdueLevels = [];
         foreach ($permitGroups['unpaid'] ?? [] as $permit) {
-            // Array keys require strict primitive strings, VO __toString does not auto-cast here.
             $overdueLevels[$permit->code->value] = $this->permitService->getOverdueLevel($permit);
         }
 
@@ -127,9 +126,10 @@ final readonly class DashboardRenderAction implements ViewActionInterface
 
         $cancelledPermits = $this->cancelledRepository->loadAll();
 
+        // Audit-Log nutzt nun die dynamische Limit-Angabe aus dem globalen Filter ($dto->limit)
         $auditPage = \max(1, (int) ($request->get['audit_page'] ?? 1));
         $auditFilter = (string) ($request->get['audit_filter'] ?? '');
-        $auditData = $this->auditLogRepository->getPaginated($auditPage, 50, $auditFilter);
+        $auditData = $this->auditLogRepository->getPaginated($auditPage, $dto->limit, $auditFilter);
 
         // Formulardaten (bei Fehlern) laden und Session leeren
         $formData = $this->sessionManager->getFormData() ?? [];
@@ -181,8 +181,6 @@ final readonly class DashboardRenderAction implements ViewActionInterface
             'vouchers' => $vouchers,
             'voucherValidities' => $voucherValidities,
             'yearlyStats' => $this->reportingService->calculateYearlyStats($allHistoricalAndActive),
-
-            // NEU: Gib die Aufgabenliste an das View weiter
             'collectiveTransfers' => $this->sessionManager->getCollectiveTransfers(),
         ]);
 

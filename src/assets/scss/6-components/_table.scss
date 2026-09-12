@@ -77,9 +77,9 @@
 
     /* Intelligenter Zeilenumbruch für E-Mail-Adressen in ALLEN Tabellen */
     .c-table a[href^='mailto:'] {
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        line-break: anywhere;
+        overflow-wrap: break-word !important;
+        word-break: break-all !important; // Zwingt zum Umbruch an jeder Stelle, falls nötig
+        line-break: anywhere !important;
         display: inline-block;
         max-inline-size: 100%;
     }

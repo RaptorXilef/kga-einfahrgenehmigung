@@ -15,12 +15,93 @@ use App\Infrastructure\Config\Config;
  * @var array $mailLogs
  * @var array $settings
  */
+$allLogs = $mailLogs ?? [];
+$limit = $itemsPerPage ?? 25;
+$page = $currentPage ?? 1;
+$totalCount = \count($allLogs);
+$totalPages = \max(1, (int) \ceil($totalCount / $limit));
+$page = \min($page, $totalPages);
+$offset = ($page - 1) * $limit;
 
-// Limit aus der Config holen
-$displayLimit = (int) $config->get('mail_log_display_limit', 50);
-$logs = \array_slice($mailLogs, 0, $displayLimit);
-?>
-<?php if ($auth->hasPermission('system.logs.view')) { ?>
+$logs = \array_slice($allLogs, $offset, $limit);
+
+// Paginierung als HTML-String vorrendern
+$paginationHtml = '';
+if ($totalPages > 1) {
+    $queryParams = $_GET;
+    unset($queryParams['page']);
+    $baseUrlStr = '?' . \http_build_query($queryParams) . '&page=';
+
+    $adjacents = 2;
+    $pagesToShow = [];
+    if ($totalPages <= (1 + ($adjacents * 2) + 2)) {
+        for ($i = 1; $i <= $totalPages; ++$i) {
+            $pagesToShow[] = $i;
+        }
+    } else {
+        if ($page <= $adjacents + 2) {
+            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
+                $pagesToShow[] = $i;
+            }
+            $pagesToShow[] = '...';
+            $pagesToShow[] = $totalPages;
+        } elseif ($totalPages - $page <= $adjacents + 1) {
+            $pagesToShow[] = 1;
+            $pagesToShow[] = '...';
+            for ($i = $totalPages - ($adjacents * 2); $i <= $totalPages; ++$i) {
+                $pagesToShow[] = $i;
+            }
+        } else {
+            $pagesToShow[] = 1;
+            $pagesToShow[] = '...';
+            for ($i = $page - $adjacents; $i <= $page + $adjacents; ++$i) {
+                $pagesToShow[] = $i;
+            }
+            $pagesToShow[] = '...';
+            $pagesToShow[] = $totalPages;
+        }
+    }
+
+    \ob_start();
+    ?>
+    <div class="c-pagination">
+        <div class="c-pagination__info">
+            Zeige <?php echo $offset + 1; ?> bis <?php echo \min($offset + $limit, $totalCount); ?> von <strong><?php echo $totalCount; ?></strong>
+        </div>
+        <div class="c-pagination__controls">
+            <?php if ($page > 1) { ?>
+                <a href="<?php echo $baseUrlStr . ($page - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
+            <?php } else { ?>
+                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
+                        disabled>&larr;</button>
+            <?php } ?>
+
+            <?php foreach ($pagesToShow as $pageNum) {
+                if ($pageNum === '...') { ?>
+                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
+                <?php } elseif ($pageNum === $page) { ?>
+                    <button class="c-button c-button--primary"
+                            style="pointer-events: none;"><?php echo $pageNum; ?></button>
+                <?php } else { ?>
+                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
+            <?php }
+                } ?>
+
+            <?php if ($page < $totalPages) { ?>
+                <a href="<?php echo $baseUrlStr . ($page + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
+            <?php } else { ?>
+                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
+                        disabled>&rarr;</button>
+            <?php } ?>
+        </div>
+    </div>
+<?php
+    $paginationHtml = \ob_get_clean();
+} elseif ($totalCount > 0) {
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top" style="background-color: var(--color-bg-light);">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
+}
+
+if ($auth->hasPermission('system.logs.view')) { ?>
     <div class="c-tab-content-container">
         <section class="c-card">
             <header class="c-card__header u-flex u-justify-between u-align-center">
@@ -28,11 +109,13 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                     <h3 class="u-margin-none"><img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
                              class="c-icon"
                              alt=""> E-Mail Versand-Log</h3>
-                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Verlauf der letzten <?php echo $displayLimit; ?>
+                    <p class="u-color-muted u-text-sm u-margin-none u-margin-top-xs">Verlauf der letzten
                         System-Nachrichten.</p>
                 </div>
-                <span class="c-badge c-badge--outline">EINTRÄGE: <?php echo \count($logs); ?></span>
+                <span class="c-badge c-badge--outline">EINTRÄGE: <?php echo \count($allLogs); ?></span>
             </header>
+
+            <?php echo $paginationHtml; ?>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
                 <table class="c-table u-width-100">
@@ -72,11 +155,12 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                                     <?php if ($auth->hasPermission('privacy.emails.view')) { ?>
                                         <td style="vertical-align: middle;">
                                             <div class="u-flex u-align-center u-gap-xs">
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
+                                                <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
                                                      class="c-icon c-icon--inline"
                                                      alt="">
-                                                <span class="u-font-bold u-text-sm" style="word-break: break-all;">
-                                                    <?php echo \htmlspecialchars($log->recipient); ?>
+                                                <span class="u-font-bold u-text-sm">
+                                                    <!-- FIX: Email am @ umbrechen -->
+                                                    <?php echo \str_replace('@', '&#8203;@&#8203;', \htmlspecialchars($log->recipient)); ?>
                                                 </span>
                                             </div>
                                         </td>
@@ -133,6 +217,9 @@ $logs = \array_slice($mailLogs, 0, $displayLimit);
                     </tbody>
                 </table>
             </div>
+
+            <?php echo $paginationHtml; ?>
+
         </section>
     </div>
 <?php } ?>

@@ -16,8 +16,9 @@ $auditLogs ??= [];
 $auditTotal ??= 0;
 $auditPage ??= 1;
 $auditFilter ??= '';
-$auditLimit = 50;
-$auditTotalPages = \max(1, (int) \ceil($auditTotal / $auditLimit));
+
+$limit = $itemsPerPage ?? 25;
+$auditTotalPages = \max(1, (int) \ceil($auditTotal / $limit));
 
 $filterOptions = [
     '' => 'Alle Aktionen',
@@ -43,6 +44,82 @@ $filterOptions = [
     'USER_HISTORY_LOGIN' => 'Pächter-Logins (Verlauf)',
     'USER_PERMIT_CANCEL' => 'Pächter-Stornos',
 ];
+
+// Paginierung als HTML-String vorrendern
+$paginationHtml = '';
+if ($auditTotalPages > 1) {
+    $queryParams = $_GET;
+    unset($queryParams['audit_page']);
+    $baseUrlStr = '?' . \http_build_query($queryParams) . '&audit_page=';
+
+    $adjacents = 2;
+    $pagesToShow = [];
+    if ($auditTotalPages <= (1 + ($adjacents * 2) + 2)) {
+        for ($i = 1; $i <= $auditTotalPages; ++$i) {
+            $pagesToShow[] = $i;
+        }
+    } else {
+        if ($auditPage <= $adjacents + 2) {
+            for ($i = 1; $i <= 1 + ($adjacents * 2); ++$i) {
+                $pagesToShow[] = $i;
+            }
+            $pagesToShow[] = '...';
+            $pagesToShow[] = $auditTotalPages;
+        } elseif ($auditTotalPages - $auditPage <= $adjacents + 1) {
+            $pagesToShow[] = 1;
+            $pagesToShow[] = '...';
+            for ($i = $auditTotalPages - ($adjacents * 2); $i <= $auditTotalPages; ++$i) {
+                $pagesToShow[] = $i;
+            }
+        } else {
+            $pagesToShow[] = 1;
+            $pagesToShow[] = '...';
+            for ($i = $auditPage - $adjacents; $i <= $auditPage + $adjacents; ++$i) {
+                $pagesToShow[] = $i;
+            }
+            $pagesToShow[] = '...';
+            $pagesToShow[] = $auditTotalPages;
+        }
+    }
+
+    \ob_start();
+    ?>
+    <div class="c-pagination">
+        <div class="c-pagination__info">
+            Zeige <?php echo (($auditPage - 1) * $limit) + 1; ?> bis <?php echo \min($auditPage * $limit, $auditTotal); ?> von <strong><?php echo $auditTotal; ?></strong>
+        </div>
+        <div class="c-pagination__controls">
+            <?php if ($auditPage > 1) { ?>
+                <a href="<?php echo $baseUrlStr . ($auditPage - 1); ?>" class="c-button c-button--secondary c-button--icon-only">&larr;</a>
+            <?php } else { ?>
+                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
+                        disabled>&larr;</button>
+            <?php } ?>
+
+            <?php foreach ($pagesToShow as $pageNum) {
+                if ($pageNum === '...') { ?>
+                    <span class="u-color-muted u-padding-x-s">&hellip;</span>
+                <?php } elseif ($pageNum === $auditPage) { ?>
+                    <button class="c-button c-button--primary"
+                            style="pointer-events: none;"><?php echo $pageNum; ?></button>
+                <?php } else { ?>
+                    <a href="<?php echo $baseUrlStr . $pageNum; ?>" class="c-button c-button--secondary"><?php echo $pageNum; ?></a>
+            <?php }
+                } ?>
+
+            <?php if ($auditPage < $auditTotalPages) { ?>
+                <a href="<?php echo $baseUrlStr . ($auditPage + 1); ?>" class="c-button c-button--secondary c-button--icon-only">&rarr;</a>
+            <?php } else { ?>
+                <button class="c-button c-button--secondary c-button--icon-only u-opacity-50"
+                        disabled>&rarr;</button>
+            <?php } ?>
+        </div>
+    </div>
+<?php
+    $paginationHtml = \ob_get_clean();
+} elseif ($auditTotal > 0) {
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top" style="background-color: var(--color-bg-light);">Gesamt: <strong>' . $auditTotal . '</strong> Einträge</div>';
+}
 
 if ($auth->hasPermission('system.logs.view')) {
     ?>
@@ -70,12 +147,12 @@ if ($auth->hasPermission('system.logs.view')) {
                         <?php } ?>
                     </select>
                     <?php if ($auditFilter !== '') { ?>
-                        <a href="?"
-                           class="c-button c-button--danger-outline c-button--icon-only c-button--small u-text-xl"
-                           title="Filter löschen">&times;</a>
+                        <a href="?" class="c-button c-button--danger-outline c-button--icon-only c-button--small u-text-xl" title="Filter löschen">&times;</a>
                     <?php } ?>
                 </form>
             </header>
+
+            <?php echo $paginationHtml; ?>
 
             <div class="c-card__body u-padding-none u-overflow-x-auto">
                 <table class="c-table u-width-100">
@@ -111,8 +188,8 @@ if ($auth->hasPermission('system.logs.view')) {
                                     </td>
                                     <td>
                                         <span class="u-text-sm u-color-dark u-display-block">
-<?php echo \htmlspecialchars($log->details); ?>
-</span>
+                                            <?php echo \htmlspecialchars($log->details); ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <div class="u-flex u-align-center u-gap-s">
@@ -132,34 +209,9 @@ if ($auth->hasPermission('system.logs.view')) {
                         <?php } ?>
                     </tbody>
                 </table>
-
-                <?php if ($auditTotalPages > 1) {
-                    $queryParams = $_GET;
-                    unset($queryParams['audit_page']);
-                    $baseUrlStr = '?' . \http_build_query($queryParams) . '&audit_page=';
-                    ?>
-                    <div class="c-pagination">
-                        <div class="c-pagination__info">
-                            Zeige <?php echo (($auditPage - 1) * $auditLimit) + 1; ?> bis <?php echo \min($auditPage * $auditLimit, $auditTotal); ?> von <strong><?php echo $auditTotal; ?></strong> Aktivitäten
-                        </div>
-                        <div class="c-pagination__controls">
-                            <?php if ($auditPage > 1) { ?>
-                                <a href="<?php echo $baseUrlStr . ($auditPage - 1); ?>"
-                                   class="c-button c-button--secondary"> &larr; Zurück
-                                </a>
-                            <?php } ?>
-
-                            <span class="u-color-muted u-text-sm u-padding-x-s">Seite <strong><?php echo $auditPage; ?></strong> von <?php echo $auditTotalPages; ?></span>
-
-                            <?php if ($auditPage < $auditTotalPages) { ?>
-                                <a href="<?php echo $baseUrlStr . ($auditPage + 1); ?>"
-                                   class="c-button c-button--secondary"> Vor &rarr;
-                                </a>
-                            <?php } ?>
-                        </div>
-                    </div>
-                <?php } ?>
             </div>
+
+            <?php echo $paginationHtml; ?>
         </section>
     </div>
 <?php } ?>
