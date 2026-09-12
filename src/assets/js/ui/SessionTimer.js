@@ -53,7 +53,7 @@ export class SessionTimer {
         try {
             localStorage.setItem('kga_last_activity', timestamp.toString());
         } catch {
-            // Ignorieren, da Fallback auf Instanz-Speicher `this.lastActivity` greift
+            // Ignore
         }
     }
 
@@ -102,7 +102,7 @@ export class SessionTimer {
             this.lastActivity = stored;
             if (this.isWarningActive) {
                 this.isWarningActive = false;
-                if (this.modal) this.modal.style.display = 'none';
+                if (this.modal) this.modal.classList.remove('is-open');
             }
         }
         this.tick();
@@ -131,8 +131,7 @@ export class SessionTimer {
         // Aktualisiere das Nav-Label
         if (this.container) {
             this.container.innerText = timeStr;
-            this.container.style.color =
-                remainingMs <= this.warningMs ? 'var(--danger-color)' : 'var(--text-muted)';
+            this.container.classList.toggle('is-danger-text', remainingMs <= this.warningMs);
         }
 
         // Aktualisiere Modal-Countdown
@@ -151,7 +150,7 @@ export class SessionTimer {
         // Warnung einblenden
         if (remainingMs <= this.warningMs && remainingMs > 0 && !this.isWarningActive) {
             this.isWarningActive = true;
-            if (this.modal) this.modal.style.display = 'flex';
+            if (this.modal) this.modal.classList.add('is-open');
         }
 
         // Zwangs-Logout
@@ -171,7 +170,7 @@ export class SessionTimer {
                 this.setStoredActivity(this.lastActivity);
                 this.isWarningActive = false;
 
-                if (this.modal) this.modal.style.display = 'none';
+                if (this.modal) this.modal.classList.remove('is-open');
                 this.updateDisplay(this.maxIdleMs);
                 notifier.show('Sitzung erfolgreich verlängert.');
             } else {

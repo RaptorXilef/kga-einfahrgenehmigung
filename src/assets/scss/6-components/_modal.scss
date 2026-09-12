@@ -8,11 +8,19 @@
             transparent
         );
         z-index: 10000;
-        display: none;
+        opacity: 0;
+        pointer-events: none;
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(2px);
         padding: var(--space-l);
+        display: flex;
+        transition: opacity 0.3s ease;
+
+        &.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
     }
 
     .c-modal__dialog {
@@ -29,7 +37,6 @@
         flex-direction: column;
     }
 
-    /* Erweiterung für großflächige Modals (wie Release Notes) */
     .c-modal__dialog--large {
         max-inline-size: 1100px;
         max-block-size: 90vh;

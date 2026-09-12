@@ -54,11 +54,15 @@ export class VoucherManager {
         if (!this.modal) return;
 
         this.modalCode.innerText = code;
-        this.modalImg.style.display = 'none';
-        this.modalLoader.style.display = 'block';
+
+        // FIX: Sichtbarkeit an CSS Utilities delegieren
+        this.modalImg.classList.add('u-hidden');
+        this.modalLoader.classList.remove('u-hidden', 'is-danger-text');
         // Loader Text zurücksetzen, falls er beim letzten Mal auf "Fehler" stand
         this.modalLoader.innerText = 'Wird generiert...';
-        this.modal.style.display = 'flex';
+
+        // FIX: Modal über State-Klasse öffnen
+        this.modal.classList.add('is-open');
 
         // Die QR-Code API url-encoded aufrufen
         const encodedUrl = encodeURIComponent(url);
@@ -72,16 +76,16 @@ export class VoucherManager {
 
         // Wir blenden das Bild erst ein, wenn die externe API es fertig gerendert hat
         this.modalImg.onload = () => {
-            this.modalLoader.style.display = 'none';
-            this.modalImg.style.display = 'block';
+            this.modalLoader.classList.add('u-hidden');
+            this.modalImg.classList.remove('u-hidden');
         };
 
         // Fehlerbehandlung, falls die externe API offline oder geblockt ist!
         this.modalImg.onerror = () => {
-            // "Broken Image" Icon des Browsers ausblenden, um das UI sauber zu halten
-            this.modalImg.style.display = 'none';
+            this.modalImg.classList.add('u-hidden');
+            this.modalLoader.classList.remove('u-hidden');
             this.modalLoader.innerText = 'Fehler: QR-Code API nicht erreichbar.';
-            this.modalLoader.style.color = 'var(--danger-color)';
+            this.modalLoader.classList.add('is-danger-text');
         };
 
         this.modalImg.src = qrUrl;
@@ -89,10 +93,10 @@ export class VoucherManager {
 
     closeQr() {
         if (!this.modal) return;
-        this.modal.style.display = 'none';
+        this.modal.classList.remove('is-open');
         this.modalImg.src = ''; // Leeren, damit beim nächsten Mal der Loader wieder erscheint
         // Loader-Style sicherheitshalber resetten
-        this.modalLoader.style.color = '';
+        this.modalLoader.classList.remove('is-danger-text');
     }
 
     async copyLink(url, element) {
@@ -104,13 +108,14 @@ export class VoucherManager {
 
         const successAction = () => {
             element.innerText = 'Kopiert! ✓';
-            element.style.color = 'var(--success-color)';
+            // FIX: Farbänderung als Klasse toggeln
+            element.classList.add('is-success-text');
             notifier.show('Gutschein-Link in die Zwischenablage kopiert!', 'success');
 
             // Reset nach 2 Sekunden
             setTimeout(() => {
                 element.innerHTML = originalHtml;
-                element.style.color = '';
+                element.classList.remove('is-success-text');
                 delete element.dataset.isCopying; // Lock wieder freigeben
             }, 2000);
         };
@@ -122,7 +127,6 @@ export class VoucherManager {
                 successAction();
             } catch (err) {
                 console.error('[VoucherManager] API-Clipboard fehlgeschlagen:', err);
-                // FIX: Element durchreichen, um ReferenceError zu vermeiden
                 this.fallbackCopyText(url, element, successAction);
             }
         } else {
@@ -131,15 +135,13 @@ export class VoucherManager {
         }
     }
 
-    // FIX: Element Parameter in der Methodensignatur ergänzt
+    // Element Parameter in der Methodensignatur ergänzt
     fallbackCopyText(text, element, callback) {
         const textArea = document.createElement('textarea');
         textArea.value = text;
 
         // Außerhalb des sichtbaren Bereichs positionieren
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '0';
+        textArea.className = 'u-visually-hidden';
 
         document.body.appendChild(textArea);
         textArea.focus();
@@ -150,7 +152,7 @@ export class VoucherManager {
             if (successful) {
                 callback();
             } else {
-                // FIX: Silent-Failures abfangen und Lock freigeben
+                // Silent-Failures abfangen und Lock freigeben
                 notifier.show('Fehler: Browser blockiert die Zwischenablage.', 'error');
                 if (element) delete element.dataset.isCopying;
             }
@@ -158,7 +160,6 @@ export class VoucherManager {
             console.error('[VoucherManager] Fallback-Kopieren fehlgeschlagen', err);
             notifier.show('Fehler beim Kopieren des Links.', 'error');
             // Bei Fehler auch das Lock freigeben
-            // FIX: Sicherer Zugriff, da element nun bekannt ist
             if (element) delete element.dataset.isCopying;
         }
 

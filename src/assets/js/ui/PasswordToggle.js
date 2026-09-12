@@ -18,10 +18,10 @@ export class PasswordToggle {
             e.preventDefault();
             if (this.input.type === 'password') {
                 this.input.type = 'text';
-                this.button.style.opacity = '1';
+                this.button.classList.add('is-active');
             } else {
                 this.input.type = 'password';
-                this.button.style.opacity = '0.5';
+                this.button.classList.remove('is-active');
             }
         });
     }

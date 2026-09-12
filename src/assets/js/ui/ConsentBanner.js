@@ -31,12 +31,12 @@ export class ConsentBanner {
         try {
             const cookieVal = this.getCookie();
             if (!cookieVal) {
-                this.container.style.display = 'block';
+                this.container.classList.remove('u-hidden');
             } else {
                 this.applyConsent(JSON.parse(cookieVal));
             }
         } catch {
-            this.container.style.display = 'block';
+            this.container.classList.remove('u-hidden');
         }
 
         // Event-Prevention hinzufügen, um unbeabsichtigte Form-Submits zu blockieren
@@ -71,7 +71,7 @@ export class ConsentBanner {
         } catch {
             console.warn('[ConsentBanner] Speichern von Cookies blockiert.');
         }
-        this.container.style.display = 'none';
+        this.container.classList.add('u-hidden');
         this.applyConsent(value);
     }
 
@@ -103,13 +103,14 @@ export class ConsentBanner {
     }
 
     toggleDetails() {
-        if (this.detailsContainer.style.display === 'none') {
-            this.detailsContainer.style.display = 'block';
-            this.btnSaveSelection.style.display = 'block';
+        const isHidden = this.detailsContainer.classList.contains('u-hidden');
+        if (isHidden) {
+            this.detailsContainer.classList.remove('u-hidden');
+            this.btnSaveSelection.classList.remove('u-hidden');
             this.btnToggleDetails.innerText = this.config.texts.hide_details;
         } else {
-            this.detailsContainer.style.display = 'none';
-            this.btnSaveSelection.style.display = 'none';
+            this.detailsContainer.classList.add('u-hidden');
+            this.btnSaveSelection.classList.add('u-hidden');
             this.btnToggleDetails.innerText = this.config.texts.show_details;
         }
     }

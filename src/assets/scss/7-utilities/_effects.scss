@@ -44,4 +44,11 @@
         box-shadow: 0 10px 15px -3px
             color-mix(in oklch, oklch(0 0 0) 5%, transparent);
     }
+
+    .is-success-text {
+        color: var(--color-success) !important;
+    }
+    .is-danger-text {
+        color: var(--color-danger) !important;
+    }
 }

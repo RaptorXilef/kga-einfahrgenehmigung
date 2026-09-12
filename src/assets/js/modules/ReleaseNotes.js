@@ -44,9 +44,8 @@ export class ReleaseNotes {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
 
-                // FIX: u-hidden Klasse setzen um das Modal wieder zu verstecken
-                this.container.classList.add('u-hidden');
-                this.container.style.display = 'none';
+                // FIX: Modal über State-Klasse schließen
+                this.container.classList.remove('is-open');
 
                 // Wenn wir gerade unread notes angezeigt haben, als gelesen in DB markieren!
                 if (this.showingUnread && this.unreadNotes.length > 0) {
@@ -82,11 +81,7 @@ export class ReleaseNotes {
                 : '📚 Release Notes Historie';
         }
         if (this.badgeElement) {
-            if (isUnread) {
-                this.badgeElement.classList.remove('u-hidden');
-            } else {
-                this.badgeElement.classList.add('u-hidden');
-            }
+            this.badgeElement.classList.toggle('u-hidden', !isUnread);
         }
 
         // Rendern des Markdowns (Mit Fallback falls CDN blockiert)
@@ -103,7 +98,7 @@ export class ReleaseNotes {
                         window.marked.parse(note.content)
                     );
 
-                    html += `<div class="c-markdown u-margin-bottom-l">`;
+                    html += `<div class="c-markdown u-margin-block-end-l">`;
                     html += `<h1>Version ${safeVersion}</h1>`;
                     html += safeContent;
                     html += `</div>`;
@@ -115,9 +110,8 @@ export class ReleaseNotes {
                 '<div class="c-alert c-alert--danger">Fehler: Markdown Parser nicht geladen.</div>';
         }
 
-        // FIX: u-hidden Klasse entfernen (überschreibt sonst !important display blockierungen)
         this.container.classList.remove('u-hidden');
-        this.container.style.display = 'flex';
+        this.container.classList.add('is-open');
     }
 
     async markAsRead(version) {
