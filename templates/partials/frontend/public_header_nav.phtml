@@ -31,8 +31,8 @@ $currentPage = $path === '' ? 'index' : $path;
                          style="max-inline-size: 40px; max-block-size: 40px;">
                 </div>
                 <span class="c-header-nav__title">
-          <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
-        </span>
+                    <?php echo \htmlspecialchars($settings['vereins_name'] ?? 'KGA'); ?>
+                </span>
             </div>
 
             <div class="u-flex u-align-center u-gap-m">
@@ -63,8 +63,7 @@ $currentPage = $path === '' ? 'index' : $path;
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
             </a>
 
-            <!-- u-margin-left-auto schiebt den Button im Flexbox-Layout komplett nach rechts! -->
-            <a href="check" class="c-tabs__btn u-margin-left-auto <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
+            <a href="check" class="c-tabs__btn u-margin-inline-start-auto <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
             </a>
         </div>

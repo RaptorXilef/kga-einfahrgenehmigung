@@ -3,7 +3,7 @@
 /** @var array $flashes */
 if (!empty($flashes)) {
     ?>
-    <div class="u-margin-bottom-l">
+    <div class="u-margin-block-end-l">
         <?php foreach ($flashes as $type => $messages) { ?>
             <?php
                 // Maps flash type to BEM modifier
@@ -15,8 +15,9 @@ if (!empty($flashes)) {
                 };
             ?>
             <?php foreach ($messages as $msg) { ?>
-                <div class="c-alert c-alert--<?php echo $modifier; ?> u-margin-bottom-s">
-                    <div class="u-width-100 u-text-left" style="line-height: 1.6;">
+                <div class="c-alert c-alert--<?php echo $modifier; ?> u-margin-block-end-s">
+                    <div class="u-width-100 u-text-left"
+                         style="line-height: 1.6;">
                         <?php echo \strip_tags($msg, '<div><span><strong><em><b><i><br><ul><li>'); ?>
                     </div>
                 </div>

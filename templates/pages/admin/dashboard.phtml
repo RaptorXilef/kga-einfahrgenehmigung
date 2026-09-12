@@ -47,13 +47,12 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 }
 ?>
 
-<!-- FIX: Saubere UX Hierarchie: Tabs -> Filter -> Alerts -> Content -->
-<main class="c-tab-content-container u-padding-y-l">
+<main class="c-tab-content-container u-padding-block-l">
 
     <div class="u-width-100">
         <!-- 1. NAVIGATION (TABS) -->
         <div class="c-tabs">
-            <div class="c-tabs__nav u-margin-bottom-l">
+            <div class="c-tabs__nav u-margin-block-end-l">
                 <?php if ($auth->hasPermission('permits.view')) { ?>
                     <button class="c-tabs__btn c-tabs__btn--active"
                             data-tab-target="tab-active">
@@ -98,7 +97,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                              alt=""> Finanzen
                         <?php $openCount = \count($permitGroups['unpaid'] ?? []);
                     if ($openCount > 0) {
-                        echo '<span class="c-badge c-badge--danger u-margin-left-xs">' . $openCount . '</span>';
+                        echo '<span class="c-badge c-badge--danger u-margin-inline-start-xs">' . $openCount . '</span>';
                     } ?>
                     </button>
                 <?php } ?>
@@ -190,7 +189,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
 
             <!-- 4. ALERTS / INFOBOXEN -->
             <?php if ($auth->hasPermission('permits.view')) { ?>
-                <div class="u-margin-auto u-margin-bottom-m">
+                <div class="u-margin-inline-auto u-margin-block-end-m">
                     <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
                 </div>
             <?php } ?>
@@ -326,7 +325,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     </button>
                 </div>
             </header>
-            <div class="c-card__body u-padding-y-l u-text-left u-overflow-y-auto u-flex-grow-1">
+            <div class="c-card__body u-padding-block-l u-text-left u-overflow-y-auto u-flex-grow-1">
                 <div id="release-notes-content"
                      class="c-markdown"></div>
             </div>
