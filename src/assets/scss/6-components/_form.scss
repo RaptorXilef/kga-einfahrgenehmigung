@@ -5,7 +5,7 @@
         border: 1.5px solid var(--color-border);
         border-radius: 10px;
         padding-inline: 14px;
-        font-size: 1rem;
+        font-size: clamp(0.9rem, 1vw, 1rem);
         transition:
             border-color 0.2s ease-in-out,
             box-shadow 0.2s ease-in-out;
@@ -26,14 +26,14 @@
     .c-form-select--small {
         block-size: 34px;
         padding-inline: 10px;
-        font-size: 0.85rem;
+        font-size: clamp(0.8rem, 1vw, 0.85rem);
     }
 
     .c-form-select {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 14px center;
+        background-position: inline-end 14px center;
         background-size: 16px;
         padding-inline-end: 40px;
     }
@@ -42,7 +42,6 @@
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     }
 
-    /* Weiterer Form-Code bleibt erhalten ... */
     .c-form-label {
         font-weight: 600;
         color: var(--color-text-muted);
@@ -50,7 +49,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.9rem;
+        font-size: clamp(0.85rem, 1vw, 0.9rem);
     }
 
     .c-form-input--code {
@@ -133,7 +132,7 @@
     .c-form-checkbox__label {
         line-height: 1.4;
         cursor: pointer;
-        font-size: 0.95rem;
+        font-size: clamp(0.9rem, 1vw, 0.95rem);
     }
 
     .c-form-checkbox__required {

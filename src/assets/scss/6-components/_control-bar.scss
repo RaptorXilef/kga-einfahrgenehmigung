@@ -5,32 +5,66 @@
         inline-size: 100%;
     }
 
-    .c-control-bar-section {
+    .c-control-bar {
         background-color: var(--color-bg-white);
         border-radius: 12px;
         border: 1px solid var(--color-border);
         display: inline-flex;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: var(--space-m);
         align-items: center;
         justify-content: center;
-        padding-block: 10px;
-        padding-inline: 25px;
-        margin-block-end: 2.5rem;
+        padding-block: var(--space-s);
+        padding-inline: var(--space-l);
+        margin-block-end: var(--space-xl);
         inline-size: 100%;
         max-inline-size: 1100px;
     }
 
-    .c-control-bar-input {
-        block-size: 34px !important;
-        border-radius: 6px !important;
-        padding-inline: 10px !important;
-        font-size: 0.85rem !important;
+    .c-control-bar__input {
+        block-size: 34px;
+        border-radius: 6px;
+        padding-inline: var(--space-s);
+        font-size: clamp(0.8rem, 1vw, 0.85rem);
         inline-size: auto;
         min-inline-size: 135px;
-        border: 1px solid var(--color-border) !important;
-        background-color: var(--color-bg-light) !important;
-        color: var(--color-text-main) !important;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-bg-light);
+        color: var(--color-text-main);
         display: inline-block;
+    }
+
+    .c-control-bar__label {
+        color: var(--color-text-muted);
+        font-weight: 700;
+        font-size: clamp(0.7rem, 1vw, 0.75rem);
+        cursor: pointer;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    .c-control-bar__search {
+        position: relative;
+        margin-inline-start: auto;
+        flex-grow: 1;
+    }
+
+    .c-control-bar__search-icon {
+        position: absolute;
+        inset-inline-start: 15px;
+        inset-block-start: 50%;
+        translate: 0 -50%;
+        pointer-events: none;
+        z-index: 10;
+        color: var(--color-text-muted);
+    }
+
+    .c-control-bar__search-input {
+        padding-inline-start: 42px;
+        border-radius: 30px;
+        block-size: 38px;
+        inline-size: 100%;
     }
 }

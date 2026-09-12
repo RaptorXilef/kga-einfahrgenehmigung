@@ -26,7 +26,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
 ?>
 <?php if ($auth->hasPermission('permits.view')) { ?>
     <div class="c-control-bar-wrapper">
-        <section class="c-control-bar-section">
+        <section class="c-control-bar">
             <form method="POST"
                   action="<?php echo $settings['base_url']; ?>filter_dashboard"
                   id="dashboardFilterForm"
@@ -39,7 +39,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        value="1">
 
                 <label for="filter_start"
-                       class="u-color-muted u-font-bold u-text-xs u-flex u-align-center u-gap-s u-cursor-pointer u-text-uppercase">
+                       class="c-control-bar__label">
                     <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
                          class="c-icon"
                          alt="">
@@ -49,23 +49,23 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                        id="filter_start"
                        name="start"
                        value="<?php echo \htmlspecialchars($currentStart); ?>"
-                       class="c-control-bar-input"
+                       class="c-control-bar__input"
                        autocomplete="off">
 
                 <label for="filter_end"
-                       class="u-color-muted u-text-xs u-font-extrabold u-cursor-pointer">BIS</label>
+                       class="c-control-bar__label">BIS</label>
                 <input type="date"
                        id="filter_end"
                        name="end"
                        value="<?php echo \htmlspecialchars($currentEnd); ?>"
-                       class="c-control-bar-input"
+                       class="c-control-bar__input"
                        autocomplete="off">
 
                 <label for="filter_type"
-                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase">TYP:</label>
+                       class="c-control-bar__label u-margin-inline-start-xs">TYP:</label>
                 <select name="type"
                         id="filter_type"
-                        class="c-control-bar-input js-auto-submit-select u-cursor-pointer"
+                        class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
                         autocomplete="off">
                     <option value="all"
                             <?php echo $currentType === 'all' ? 'selected' : ''; ?>>Alle Genehmigungen</option>
@@ -76,11 +76,10 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 </select>
 
                 <label for="filter_limit"
-                       class="u-color-muted u-font-bold u-text-xs u-cursor-pointer u-margin-left-xs u-text-uppercase">PRO
-                    SEITE:</label>
+                       class="c-control-bar__label u-margin-inline-start-xs">PRO SEITE:</label>
                 <select name="limit"
                         id="filter_limit"
-                        class="c-control-bar-input js-auto-submit-select u-cursor-pointer"
+                        class="c-control-bar__input js-auto-submit-select u-cursor-pointer"
                         autocomplete="off">
                     <?php foreach ($allowedLimits ?? [10, 25, 50, 100] as $l) { ?>
                         <option value="<?php echo $l; ?>"
@@ -88,11 +87,11 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                     <?php } ?>
                 </select>
 
-                <div class="u-position-relative u-margin-left-auto u-flex-grow-1">
-                    <span class="u-color-muted" style="position: absolute; inset-inline-start: 15px; inset-block-start: 50%; transform: translateY(-50%); pointer-events: none; z-index: 10;">
-                        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
-                    </span>
-<!-- name="q" und value aus PHP für Server-Side Search -->
+                <div class="c-control-bar__search">
+                    <span class="c-control-bar__search-icon">
+                    <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt="">
+                </span>
+                    <!-- name="q" und value aus PHP für Server-Side Search -->
                     <input type="text"
                            id="adminSearch"
                            name="q"
@@ -101,8 +100,7 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                            value="<?php echo \htmlspecialchars($currentQ); ?>"
                            placeholder="Schnellsuche..."
                            title="Suchen Sie nach Namen, KFZ oder SmartCode"
-                           class="c-form-input"
-                           style="padding-inline-start: 42px; border-radius: 30px; block-size: 38px;">
+                           class="c-form-input c-control-bar__search-input">
                 </div>
 
                 <?php if (!empty($sessionFilters)) { ?>
@@ -110,7 +108,8 @@ $currentLimit = $sessionFilters['limit'] ?? ($itemsPerPage ?? 25);
                 <?php } ?>
                 <!-- Versteckter Button, damit Formular via Enter absendbar ist -->
                 <button type="submit"
-                        class="u-hidden"></button>
+                        class="u-visually-hidden"
+                        aria-label="Filter anwenden"></button>
             </form>
         </section>
     </div>
