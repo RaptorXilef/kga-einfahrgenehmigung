@@ -6,7 +6,9 @@
         border-radius: 10px;
         padding-inline: 14px;
         font-size: 1rem;
-        transition: all 0.2s ease-in-out;
+        transition:
+            border-color 0.2s ease-in-out,
+            box-shadow 0.2s ease-in-out;
         color: var(--color-text-main);
         block-size: 46px;
         inline-size: 100%;
@@ -36,6 +38,11 @@
         padding-inline-end: 40px;
     }
 
+    :root[data-theme='dark'] .c-form-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    }
+
+    /* Weiterer Form-Code bleibt erhalten ... */
     .c-form-label {
         font-weight: 600;
         color: var(--color-text-muted);
@@ -93,20 +100,6 @@
         box-shadow: var(--shadow-sm);
         text-align: center;
         font-weight: 700;
-    }
-
-    .c-price-display__original {
-        font-size: 0.9rem;
-        text-decoration: line-through;
-        opacity: 0.6;
-        margin-block-end: 2px;
-    }
-
-    .c-price-display__discount-hint {
-        font-size: 0.85rem;
-        color: var(--color-success);
-        font-weight: 600;
-        margin-block-start: 4px;
     }
 
     .c-price-display.is-free {
@@ -173,7 +166,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        opacity: 0.5;
         transition: opacity 0.2s ease;
     }
 

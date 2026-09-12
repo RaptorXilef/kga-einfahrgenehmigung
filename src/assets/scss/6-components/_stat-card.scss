@@ -1,37 +1,40 @@
 @layer components {
     .c-stat-card {
         text-align: center;
+    }
 
-        &__label {
-            color: var(--color-text-muted);
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
+    .c-stat-card__label {
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
 
-        &__value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-block-start: 5px;
+    .c-stat-card__value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-block-start: 5px;
+        color: var(--color-text-main);
+    }
 
-            &--success {
-                color: var(--color-success);
-            }
-            &--warning {
-                color: var(--color-warning);
-            }
-            &--primary {
-                color: var(--color-text-main);
-            }
-        }
+    .c-stat-card__value--success {
+        color: var(--color-success);
+    }
 
-        &__footer {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-block-start: 10px;
-        }
+    .c-stat-card__value--warning {
+        color: var(--color-warning);
+    }
+
+    .c-stat-card__value--primary {
+        color: var(--color-primary);
+    }
+
+    .c-stat-card__footer {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-block-start: 10px;
     }
 }

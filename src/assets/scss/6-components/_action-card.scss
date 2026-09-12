@@ -17,7 +17,11 @@
         align-items: center;
         gap: var(--space-m);
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition:
+            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            box-shadow 0.3s ease,
+            background-color 0.3s ease,
+            border-color 0.3s ease;
         text-align: start;
         text-decoration: none;
         color: inherit;
@@ -52,17 +56,19 @@
         justify-content: center;
         background-color: var(--color-bg-light);
         border-radius: 10px;
-        transition: all 0.3s;
+        transition:
+            background-color 0.3s ease,
+            color 0.3s ease;
         flex-shrink: 0;
     }
 
     .c-action-card--voucher:hover {
-        border-color: oklch(0.6 0.15 280);
-        background-color: oklch(0.95 0.02 280);
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-soft);
     }
 
     .c-action-card--voucher:hover .c-action-card__icon {
-        background-color: oklch(0.6 0.15 280);
+        background-color: var(--color-primary);
         color: var(--color-bg-white);
     }
 

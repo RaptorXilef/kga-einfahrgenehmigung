@@ -17,18 +17,24 @@
         align-items: center;
         gap: var(--space-s);
         animation: toastSlideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
 
-        &--success {
-            background-color: var(--color-success);
-        }
+    .c-toast--success {
+        background-color: var(--color-success);
+    }
 
-        &--error {
-            background-color: var(--color-danger);
-        }
+    .c-toast--error {
+        background-color: var(--color-danger);
+    }
 
-        &--info {
-            background-color: var(--color-primary);
-        }
+    .c-toast--info {
+        background-color: var(--color-primary);
+    }
+
+    .c-toast--hide {
+        opacity: 0;
+        inset-block-end: var(--space-s);
+        transition: all 0.5s ease;
     }
 
     .c-toast__icon {
@@ -40,12 +46,6 @@
 
     .c-toast__msg {
         white-space: pre-line;
-    }
-
-    .c-toast--hide {
-        opacity: 0;
-        inset-block-end: var(--space-s);
-        transition: all 0.5s ease;
     }
 
     @keyframes toastSlideUp {

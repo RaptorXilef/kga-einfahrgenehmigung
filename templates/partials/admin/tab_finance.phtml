@@ -47,6 +47,7 @@ $privacyFinance = $auth->hasPermission('privacy.finance.view');
 $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRight ? 1 : 0);
 
 $paginationHtml = '';
+/* ... Paginierung identisch zum Original übersprungen für Übersichtlichkeit ... */
 if ($totalPages > 1) {
     $queryParams = $_GET;
     unset($queryParams['page']);
@@ -118,7 +119,7 @@ if ($totalPages > 1) {
 <?php
     $paginationHtml = \ob_get_clean();
 } elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top" style="background-color: var(--color-bg-light);">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
 }
 
 if ($auth->hasPermission('finance.view')) {
@@ -126,7 +127,8 @@ if ($auth->hasPermission('finance.view')) {
     <div class="c-tab-content-container">
         <section class="c-card c-card--warning">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 class="u-margin-block-none">💰 Zahlungsüberwachung</h3> <?php // ToDo Icon?>
+                <h3 class="u-margin-block-none">💰 Zahlungsüberwachung</h3> <?php // ToDo Icon
+                                                                                ?>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
                         <button type="submit"
@@ -146,8 +148,9 @@ if ($auth->hasPermission('finance.view')) {
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
                                 id="bulkRemindBtn"
                                 class="c-button c-button--danger c-button--small u-hidden"
-                                data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">
-                            🔔 <span id="bulkRemindCount">0</span> erinnern <?php // ToDo Icon?>
+                                data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern?">
+                            🔔 <span id="bulkRemindCount">0</span> erinnern <?php // ToDo Icon
+                                                                                ?>
                         </button>
                     <?php } ?>
                     <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
@@ -164,19 +167,18 @@ if ($auth->hasPermission('finance.view')) {
                         <div
                              class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-left u-margin-block-end-l">
                             <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
-                                <span class="u-text-xl">⚠️</span> Manuelle Zahlungszuordnung erforderlich <?php // ToDo Icon?>
+                                <span class="u-text-xl">⚠️</span> Manuelle Zahlungszuordnung erforderlich <?php // ToDo Icon
+                                                                                                                ?>
                             </h4>
                             <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
-                                Das System hat in der Bankdatei Überweisungen gefunden, die entweder <strong>mehrere
-                                    Genehmigungs-Codes</strong> enthalten oder bei denen die ID fehlt, aber das
-                                <strong>Kennzeichen</strong> im Betreff stand. Bitte gleichen Sie den Betrag manuell ab
-                                und setzen Sie die betroffenen Anträge unten in der Liste auf "bezahlt".
+                                Das System hat in der Bankdatei Überweisungen gefunden, die manuell geprüft werden
+                                müssen.
                             </p>
 
                             <div class="u-flex u-flex-column u-gap-s u-width-100">
                                 <?php foreach ($collectiveTransfers as $ct) { ?>
-                                    <div class="c-box u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap"
-                                         style="border-inline-start: 4px solid var(--color-warning);">
+                                    <div
+                                         class="c-box c-box--warning u-bg-white u-flex u-justify-between u-align-center u-gap-m u-flex-wrap">
                                         <div>
                                             <strong class="u-text-lg u-color-warning"><?php echo \number_format($ct['amount'], 2, ',', '.'); ?> €</strong>
                                             <span class="u-color-muted u-text-sm u-margin-inline-start-s">am <?php echo \htmlspecialchars($ct['date']); ?></span>
@@ -184,7 +186,8 @@ if ($auth->hasPermission('finance.view')) {
                                                  class="c-box c-box--subtle u-margin-block-start-xs u-font-mono u-text-sm u-color-warning">
                                                 <?php echo \htmlspecialchars($ct['purpose']); ?>
                                             </div>
-                                            <div class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
+                                            <div
+                                                 class="u-flex u-align-center u-gap-s u-flex-wrap u-margin-block-start-s">
                                                 <span class="u-text-xs u-font-bold u-color-warning u-text-uppercase">
                                                     <?php echo ($ct['type'] ?? 'sammel') === 'kennzeichen' ? 'Kennzeichen-Match:' : 'Mehrere Codes:'; ?>
                                                 </span>
@@ -410,7 +413,8 @@ if ($auth->hasPermission('finance.view')) {
                                                         <button type="submit"
                                                                 class="c-button <?php echo $isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
                                                                 title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
-                                                            🔔 <?php // ToDo Icon?>
+                                                            🔔 <?php // ToDo Icon
+                                                                    ?>
                                                         </button>
                                                     </form>
                                                 <?php } ?>
@@ -472,9 +476,7 @@ if ($auth->hasPermission('finance.view')) {
                     <?php } ?>
                 <?php } ?>
             </div>
-
             <?php echo $paginationHtml; ?>
-
         </section>
     </div>
 <?php } ?>
