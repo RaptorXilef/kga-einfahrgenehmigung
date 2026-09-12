@@ -3,6 +3,7 @@
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
+        max-inline-size: 100%;
     }
 
     .c-avatar--xs {
@@ -29,6 +30,13 @@
         box-shadow: var(--shadow-md);
     }
 
+    .c-avatar--xl {
+        inline-size: 150px;
+        block-size: 150px;
+        border: 5px solid var(--color-bg-white);
+        box-shadow: var(--shadow-md);
+    }
+
     .c-avatar-dropzone {
         inline-size: 60px;
         block-size: 60px;
@@ -39,6 +47,12 @@
         background-color: var(--color-bg-light);
         overflow: hidden;
         flex-shrink: 0;
+    }
+
+    /* Variante für riesige Dropzones (wie im eigenen Profil) */
+    .c-avatar-dropzone--large {
+        inline-size: 150px;
+        block-size: 150px;
     }
 
     .c-avatar-dropzone__img {

@@ -1,28 +1,33 @@
 @layer components {
     .c-theme-toggle {
-        background: var(--color-bg-light);
+        background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
         color: var(--color-text-main);
-        border-radius: 20px;
-        padding-block: 4px;
-        padding-inline: 12px;
+        border-radius: 30px;
+        padding-block: 6px;
+        padding-inline: 14px;
         display: flex;
         align-items: center;
         gap: 8px;
         cursor: pointer;
         font-size: 0.85rem;
-        font-weight: 700;
-        box-shadow: inset 0 1px 2px
-            color-mix(in oklch, oklch(0 0 0) 5%, transparent);
-        transition: all 0.2s ease;
+        font-weight: 800;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .c-theme-toggle:hover {
-        background-color: color-mix(
-            in oklch,
-            var(--color-bg-light) 90%,
-            oklch(0 0 0)
-        );
-        color: var(--color-primary);
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--color-bg-white);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Der Filter sorgt dafür, dass das Icon (Sonne/Mond) beim Hover weiß wird */
+    .c-theme-toggle:hover .c-icon {
+        filter: brightness(0) invert(1);
     }
 }

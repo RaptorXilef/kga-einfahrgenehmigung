@@ -45,7 +45,17 @@ $currentPage = $path === '' ? 'index' : $path;
             </a>
         </div>
 
-        <div>
+        <div class="u-flex u-align-center u-gap-m">
+            <!-- Theme Toggle Switch (NEU IM PUBLIC BEREICH) -->
+            <button type="button"
+                    class="c-theme-toggle js-theme-toggle"
+                    title="Design wechseln">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-moon.webp'); ?>"
+                     class="c-icon js-theme-icon"
+                     alt="">
+                <span class="js-theme-text">Dunkel</span>
+            </button>
+
             <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
             </a>

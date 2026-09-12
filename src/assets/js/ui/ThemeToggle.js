@@ -1,6 +1,6 @@
 /**
  * Modulares BEM-Toggle für den Hell/Dunkel Modus.
- * Beachtet System-Präferenzen und speichert die Auswahl persistent.
+ * Beachtet System-Präferenzen, speichert die Auswahl persistent und steuert das Icon-Feedback (Ziel-Status).
  */
 export class ThemeToggle {
     constructor(container) {
@@ -14,7 +14,10 @@ export class ThemeToggle {
 
     init() {
         const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+        // OS-Level Abfrage (Windows, Mac, iOS, Android System-Darkmode)
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        // Fallback: Wenn noch nie etwas geklickt wurde, richte dich nach dem System
         let activeTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
 
         this.applyTheme(activeTheme);
@@ -27,8 +30,9 @@ export class ThemeToggle {
             localStorage.setItem(this.STORAGE_KEY, activeTheme);
         });
 
-        // Lauscht auf Systemänderungen, falls der Nutzer nichts manuell überschrieben hat
+        // Wenn der Nutzer seine System-Einstellungen ändert, währen die Seite offen ist, reagieren wir!
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            // Aber nur, wenn der Nutzer das Theme nicht manuell überschrieben hat
             if (!localStorage.getItem(this.STORAGE_KEY)) {
                 this.applyTheme(e.matches ? 'dark' : 'light');
             }
@@ -37,13 +41,18 @@ export class ThemeToggle {
 
     applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
+
         if (this.icon && this.text) {
+            const baseUrl = window.KGA_CONFIG?.baseUrl || '/';
+
             if (theme === 'dark') {
-                this.icon.src = this.icon.src.replace('icon-sun', 'icon-moon');
-                this.text.innerText = 'Dark';
+                // Im Dark Mode zeigen wir die Sonne (als Hinweis: "Klick mich für Light Mode")
+                this.icon.src = `${baseUrl}assets/img/icons/icon-sun.webp`;
+                this.text.innerText = 'Hell';
             } else {
-                this.icon.src = this.icon.src.replace('icon-moon', 'icon-sun');
-                this.text.innerText = 'Light';
+                // Im Light Mode zeigen wir den Mond (als Hinweis: "Klick mich für Dark Mode")
+                this.icon.src = `${baseUrl}assets/img/icons/icon-moon.webp`;
+                this.text.innerText = 'Dunkel';
             }
         }
     }
