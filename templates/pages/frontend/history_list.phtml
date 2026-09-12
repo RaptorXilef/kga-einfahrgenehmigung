@@ -33,23 +33,23 @@ $now = new \DateTimeImmutable('today');
 \usort($permits, fn ($a, $b) => $b->erstellt <=> $a->erstellt);
 ?>
 
-<div class="c-tab-content-container o-container o-container--large u-padding-y-xl">
+<div class="c-tab-content-container o-container o-container--large u-padding-block-xl">
 
-    <header class="u-flex u-justify-between u-align-center u-margin-bottom-l u-flex-wrap u-gap-m">
+    <header class="u-flex u-justify-between u-align-center u-margin-block-end-l u-flex-wrap u-gap-m">
         <div>
-            <h2 class="u-margin-none u-flex u-align-center u-gap-s">
+            <h2 class="u-margin-block-none u-flex u-align-center u-gap-s">
                 <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>"
                      class="c-icon c-icon--md"
                      alt=""> Meine Genehmigungen
             </h2>
-            <p class="u-color-muted u-margin-top-xs u-margin-bottom-none u-text-sm">Angemeldet als: <strong
+            <p class="u-color-muted u-margin-block-start-xs u-margin-block-end-none u-text-sm">Angemeldet als: <strong
                         class="u-color-main"><?php echo \htmlspecialchars($email); ?></strong></p>
         </div>
 
         <div class="u-flex u-align-center u-gap-m">
             <div class="c-session-pill"
                  title="Automatische Abmeldung bei Inaktivität">
-                ⏳ <span id="ui-session-timer">20:00</span>
+                ⏳ <span id="ui-session-timer">20:00</span> <?php // ToDo Icon?>
             </div>
             <button type="button"
                     id="btn-session-logout"
@@ -62,7 +62,7 @@ $now = new \DateTimeImmutable('today');
     <?php require $appRoot . '/templates/partials/frontend/alerts.phtml'; ?>
 
     <section class="c-card c-card--primary">
-        <div class="c-card__body u-padding-none u-overflow-x-auto">
+        <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto">
             <table class="c-table js-sort-table u-width-100">
                 <thead>
                     <tr>
@@ -70,7 +70,7 @@ $now = new \DateTimeImmutable('today');
                         <th class="js-sort-header u-text-center">Fahrzeug</th>
                         <th class="js-sort-header u-text-center">Gültigkeit & Restzeit</th>
                         <th class="js-sort-header u-text-center">Finanz-Status</th>
-                        <th class="u-text-right u-padding-right-m">Aktion</th>
+                        <th class="u-text-right u-padding-inline-end-m">Aktion</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,8 +78,8 @@ $now = new \DateTimeImmutable('today');
                         <tr>
                             <td colspan="5"
                                 class="u-text-center u-padding-around-l u-color-muted">
-                                <span class="u-text-2xl u-opacity-50">📄</span><br>
-                                <p class="u-margin-top-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
+                                <span class="u-text-2xl u-opacity-50">📄</span><br> <?php // ToDo Icon?>
+                                <p class="u-margin-block-start-s">Keine abgeschlossenen Genehmigungen in diesem Zeitraum
                                     gefunden.</p>
                             </td>
                         </tr>
@@ -127,69 +127,64 @@ $now = new \DateTimeImmutable('today');
                             $vLabel = $vCfg['label'] ?? 'Ehem. ' . \strtoupper($vKey);
                             ?>
                             <tr class="u-hover-fade <?php echo $isExpired ? 'u-opacity-50' : ''; ?>">
-                                <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>"
-                                    style="vertical-align: middle;">
+                                <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerName()); ?>">
                                     <div class="u-flex u-flex-column">
                                         <span class="u-font-semibold u-color-main u-text-sm">
-                                            <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
-                                        </span>
-                                        <code class="u-text-xs u-color-muted u-font-mono u-margin-y-xs">
-                                            <?php echo $permit->code; ?>
-                                        </code>
+                                        <?php echo \htmlspecialchars($permit->getOwnerName()); ?>
+                                    </span>
+                                        <code class="u-text-xs u-color-muted u-font-mono u-margin-block-xs">
+                                        <?php echo $permit->code; ?>
+                                    </code>
                                         <div>
                                             <span class="c-badge c-badge--outline">PARZELLE <?php echo $permit->getPlotNumber(); ?></span>
                                         </div>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?php echo \htmlspecialchars($permit->getLicensePlate()); ?>"
-                                    class="u-text-center"
-                                    style="vertical-align: middle;">
+                                    class="u-text-center">
                                     <div>
                                         <img src="<?php echo $settings['base_url'] . $iconPath; ?>"
                                              class="c-icon <?php echo $isExpired ? 'u-grayscale u-opacity-50' : ''; ?>"
                                              style="inline-size: 24px; block-size: 24px;"
                                              title="<?php echo $vLabel; ?>">
                                     </div>
-                                    <div class="u-margin-top-xs">
+                                    <div class="u-margin-block-start-xs">
                                         <span class="c-license-plate">
-                                            <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
-                                        </span>
+                                        <?php echo \htmlspecialchars($permit->getLicensePlate() ?: '---'); ?>
+                                    </span>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?php echo $permit->getValidFrom()->format('Y-m-d'); ?>"
-                                    class="u-text-center"
-                                    style="vertical-align: middle;">
-                                    <div style="line-height: 1.3;">
+                                    class="u-text-center">
+                                    <div>
                                         <strong class="u-color-main u-text-sm"><?php echo $permit->getValidFrom()->format('d.m.Y'); ?></strong><br>
                                         <small class="u-color-muted">bis <?php echo $permit->getValidUntil()->format('d.m.Y'); ?></small>
-                                        <div class="u-margin-top-xs">
+                                        <div class="u-margin-block-start-xs">
                                             <?php if ($isExpired) { ?>
                                                 <span class="c-badge c-badge--outline">
-                                                    <?php echo $countdownText; ?>
-                                                </span>
+                                                <?php echo $countdownText; ?>
+                                            </span>
                                             <?php } else { ?>
                                                 <span class="c-badge <?php echo ($remaining <= 1 && !$isFuture) ? 'c-badge--danger' : 'c-badge--primary'; ?>">
-                                                    ⏳ <?php echo $countdownText; ?>
-                                                </span>
+                                                ⏳ <?php echo $countdownText; ?>
+                                            </span>
                                             <?php } ?>
                                         </div>
                                     </div>
                                 </td>
                                 <td data-sort-val="<?php echo $isPaid ? '1' : '0'; ?>"
-                                    class="u-text-center"
-                                    style="vertical-align: middle;">
+                                    class="u-text-center">
                                     <span class="c-badge <?php echo $statusClass; ?>">
-                                        <?php echo $statusText; ?>
-                                    </span>
+                                    <?php echo $statusText; ?>
+                                </span>
                                 </td>
-                                <td class="u-text-right"
-                                    style="vertical-align: middle; padding-inline-end: 20px;">
+                                <td class="u-text-right u-padding-inline-end-m">
                                     <div class="u-flex u-gap-xs u-justify-end u-text-nowrap">
                                         <?php $allowCancel = (bool) $config->get('allow_user_cancellation', true);
                             if ($allowCancel && $isFuture && !$isPaid && !$permit->isSuspended()) { ?>
                                             <form method="POST"
                                                   action="<?php echo $settings['base_url']; ?>history_cancel_permit"
-                                                  style="margin: 0;"
+                                                  class="u-margin-block-none"
                                                   data-confirm="Möchten Sie diesen Antrag wirklich zurückziehen und unwiderruflich stornieren?\n\nWICHTIG: Falls Sie den Betrag bereits überwiesen haben, wird dieser NICHT automatisch zurückerstattet.">
                                                 <input type="hidden"
                                                        name="csrf_token"
@@ -207,11 +202,11 @@ $now = new \DateTimeImmutable('today');
                                             </form>
                                         <?php } ?>
                                         <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Status / Prüfseite öffnen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-                                        </a>
+                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                    </a>
                                         <a href="history_print?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--icon-only" title="Dokument anzeigen">
-                                            <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
-                                        </a>
+                                        <img src="<?php echo $asset->url('assets/img/icons/action-print.webp'); ?>" class="c-icon" alt="">
+                                    </a>
                                     </div>
                                 </td>
                             </tr>
@@ -225,15 +220,15 @@ $now = new \DateTimeImmutable('today');
             <?php $lastYear = (int) \date('Y') - 1;
 if ($currentArchiveYear !== $lastYear) { ?>
                 <a href="?load_archive=<?php echo $lastYear; ?>" class="c-button c-button--secondary">
-                    📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen
+                    📥 Daten aus dem Jahr <?php echo $lastYear; ?> dazuladen <?php // ToDo Icon?>
                 </a>
             <?php } else { ?>
-                <p class="u-text-xs u-color-muted u-margin-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
+                <p class="u-text-xs u-color-muted u-margin-block-none">Archiv des Vorjahres (<?php echo $lastYear; ?>) ist geladen.</p>
             <?php } ?>
         </div>
     </section>
 
-    <footer class="u-margin-top-l u-text-center">
+    <footer class="u-margin-block-start-l u-text-center">
         <a href="index" class="c-button c-button--primary c-button--submit">
             Neuen Antrag stellen
         </a>

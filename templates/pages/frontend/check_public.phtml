@@ -50,8 +50,8 @@ $layout = 'public';
 $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
 ?>
 
-<main class="c-tab-content-container o-container o-container--small u-padding-y-l">
-    <div class="c-card c-card--primary u-margin-auto">
+<main class="c-tab-content-container o-container o-container--small u-padding-block-l">
+    <div class="c-card c-card--primary u-margin-inline-auto">
 
         <header class="c-card__header u-text-center">
             <?php if ($logoFile) { ?>
@@ -59,7 +59,7 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                      alt="Logo"
                      class="c-logo">
             <?php } ?>
-            <p class="u-color-muted u-text-sm u-margin-none"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
+            <p class="u-color-muted u-text-sm u-margin-block-none"><?php echo \htmlspecialchars($settings['vereins_name']); ?></p>
         </header>
 
         <div class="c-card__body u-text-center">
@@ -70,14 +70,14 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                         <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                              class="c-icon c-icon--xl"
                              alt="">
-                        <h2 class="u-color-danger u-margin-top-m">ZUTRITT VERWEIGERT</h2>
+                        <h2 class="u-color-danger u-margin-block-start-m">ZUTRITT VERWEIGERT</h2>
                         <p class="u-font-semibold">Diese Genehmigung wurde gesperrt/widerrufen.</p>
 
                         <?php if (!empty($permit->getSuspensionReason())) { ?>
-                            <div class="c-box c-box--danger-soft u-margin-top-m u-text-center">
+                            <div class="c-box c-box--danger-soft u-margin-block-start-m u-text-center">
                                 <strong class="u-text-xs u-text-uppercase"
                                         style="letter-spacing: 0.5px;">Grund der Sperrung:</strong><br>
-                                <span class="u-text-lg u-display-block u-margin-top-xs"><?php echo \htmlspecialchars($permit->getSuspensionReason()); ?></span>
+                                <span class="u-text-lg u-display-block u-margin-block-start-xs"><?php echo \htmlspecialchars($permit->getSuspensionReason()); ?></span>
                             </div>
                         <?php } ?>
                     </div>
@@ -86,13 +86,14 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                         <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                              class="c-icon c-icon--xl"
                              alt="">
-                        <h2 class="u-color-success-dark u-margin-top-m">GÜLTIG</h2>
+                        <h2 class="u-color-success-dark u-margin-block-start-m">GÜLTIG</h2>
                         <?php include $appRoot . '/templates/partials/frontend/check_details.phtml'; ?>
                     </div>
                 <?php } elseif ($isDateValid && !$isTimeAllowed) { ?>
                     <div class="u-color-warning">
                         <span class="u-text-4xl">⏳</span>
-                        <h2 class="u-color-warning u-margin-top-m">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!</h2>
+                        <h2 class="u-color-warning u-margin-block-start-m">AKTUELL RUHEZEIT<br>Keine Einfahrt erlaubt!
+                        </h2>
 
                         <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                             <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
@@ -109,7 +110,7 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
                         <img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>"
                              class="c-icon c-icon--xl"
                              alt="">
-                        <h2 class="u-margin-top-m">UNGÜLTIG</h2>
+                        <h2 class="u-margin-block-start-m">UNGÜLTIG</h2>
                         <p>Zahlung offen, Zeitraum abgelaufen oder noch nicht erreicht.</p>
                     </div>
                 <?php } ?>
@@ -118,7 +119,8 @@ $pageTitle = 'Status-Check - ' . ($settings['vereins_name'] ?? '');
 
         <?php if ($permit) { ?>
             <footer class="c-card__footer u-text-center">
-                <p class="u-color-muted u-margin-bottom-s">SmartCode: <strong class="u-color-dark"><?php echo $permit->code; ?></strong></p>
+                <p class="u-color-muted u-margin-block-end-s">SmartCode: <strong class="u-color-dark"><?php echo $permit->code; ?></strong>
+                </p>
                 <a href="admin?code=<?php echo $permit->code; ?>" class="u-text-link u-text-sm">Login für Details</a>
             </footer>
         <?php } ?>

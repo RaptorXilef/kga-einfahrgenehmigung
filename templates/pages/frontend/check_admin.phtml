@@ -18,7 +18,7 @@ use App\Infrastructure\Config\Config;
  * @var AssetHelperInterface $asset
  * @var AuthService $auth
  * @var Config $config
- * @var Permit|null $permit        Die gefundene Genehmigungs-Entität.
+ * @var Permit|null $permit  Die gefundene Genehmigungs-Entität.
  * @var array $settings
  * @var bool $isDateValid   Ob das Ticket im Datumsbereich liegt.
  * @var bool $isTimeAllowed Ob laut HolidayService jetzt geöffnet ist.
@@ -42,35 +42,36 @@ $layout = 'admin';
 $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
 ?>
 
-<main class="c-tab-content-container u-padding-y-l">
+<main class="c-tab-content-container u-padding-block-l">
 
     <!-- GROSSER STATUS-BANNER (Synchron zur öffentlichen Ansicht) -->
-    <div class="c-box u-margin-bottom-l u-text-center">
+    <div class="c-box u-margin-block-end-l u-text-center">
         <?php if ($permit && $permit->isSuspended()) { ?>
             <div class="u-color-danger">
                 <img src="<?php echo $asset->url('assets/img/icons/status-denied.webp'); ?>"
                      class="c-icon c-icon--lg"
                      alt="">
-                <h2 class="u-color-danger u-margin-top-s u-margin-bottom-xs">ZUTRITT VERWEIGERT</h2>
-                <p class="u-font-semibold u-margin-none">Diese Genehmigung ist gesperrt/widerrufen.</p>
+                <h2 class="u-color-danger u-margin-block-start-s u-margin-block-end-xs">ZUTRITT VERWEIGERT</h2>
+                <p class="u-font-semibold u-margin-block-none">Diese Genehmigung ist gesperrt/widerrufen.</p>
             </div>
         <?php } elseif ($permit && $isDateValid && $isTimeAllowed) { ?>
             <div class="u-color-success">
                 <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                      class="c-icon c-icon--lg"
                      alt="">
-                <h2 class="u-color-success-dark u-margin-top-s u-margin-bottom-none">GENEHMIGUNG GÜLTIG</h2>
+                <h2 class="u-color-success-dark u-margin-block-start-s u-margin-block-end-none">GENEHMIGUNG GÜLTIG</h2>
             </div>
         <?php } elseif ($permit && $isDateValid && !$isTimeAllowed) { ?>
             <div class="u-color-warning">
                 <span class="u-text-4xl">⏳</span>
-                <h2 class="u-color-warning u-margin-top-s">AKTUELL RUHEZEIT</h2>
+                <h2 class="u-color-warning u-margin-block-start-s">AKTUELL RUHEZEIT</h2>
                 <?php if (\str_contains($allowedToday, 'Gültigkeit')) { ?>
                     <!-- Sonderfall: Genehmigung läuft während der Ruhezeit ab -->
-                    <p class="u-margin-none u-font-semibold"><?php echo $allowedToday; ?></p>
+                    <p class="u-margin-block-none u-font-semibold"><?php echo $allowedToday; ?></p>
                 <?php } else { ?>
                     <!-- Normalfall: Nächste Zeit anzeigen -->
-                    <p class="u-margin-none">Nächste Einfahrt möglich: <strong class="u-font-semibold"><?php echo $allowedToday; ?></strong>
+                    <p class="u-margin-block-none">
+                        Nächste Einfahrt möglich: <strong class="u-font-semibold"><?php echo $allowedToday; ?></strong>
                     </p>
                 <?php } ?>
             </div>
@@ -79,14 +80,14 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                 <img src="<?php echo $asset->url('assets/img/icons/status-invalid.webp'); ?>"
                      class="c-icon c-icon--lg"
                      alt="">
-                <h2 class="u-margin-top-s u-margin-bottom-none">GENEHMIGUNG UNGÜLTIG</h2>
+                <h2 class="u-margin-block-start-s u-margin-block-end-none">GENEHMIGUNG UNGÜLTIG</h2>
             </div>
         <?php } ?>
     </div>
 
-    <header class="u-flex u-justify-between u-align-center u-margin-bottom-l">
+    <header class="u-flex u-justify-between u-align-center u-margin-block-end-l">
         <div>
-            <h1 class="u-margin-none u-text-left">Detailprüfung (Vorstand)</h1>
+            <h1 class="u-margin-block-none u-text-left">Detailprüfung (Vorstand)</h1>
             <p class="u-color-muted">Interne Daten für Code: <code><?php echo $permit ? $permit->code : '---'; ?></code></p>
         </div>
         <div class="u-flex u-gap-s">
@@ -104,13 +105,13 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
     <?php if ($permit) { ?>
         <section class="c-card c-card--primary">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 class="u-margin-none">📋 Pächter- & Fahrzeugdaten</h3>
+                <h3 class="u-margin-block-none">📋 Pächter- & Fahrzeugdaten</h3>
                 <span class="c-badge c-badge--<?php echo $permit->getStatus() === PermitStatus::Bezahlt ? 'success' : 'warning'; ?>">
                     FINANZ-STATUS: <?php echo \htmlspecialchars(\strtoupper($permit->getStatus()->value)); ?>
                 </span>
             </header>
 
-            <div class="c-card__body u-padding-none">
+            <div class="c-card__body u-padding-block-none u-padding-inline-none">
                 <table class="c-table">
                     <?php if ($permit->isSuspended() && !empty($permit->getSuspensionReason())) { ?>
                         <tr class="c-table__row c-table__row--danger">
@@ -120,7 +121,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                     <?php } ?>
                     <tr class="c-table__row">
                         <td class="c-table__label u-font-bold"
-                            style="width: 35%;">Pächter Name</td>
+                            style="inline-size: 35%;">Pächter Name</td>
                         <td class="c-table__value"><?php echo \htmlspecialchars($permit->getOwnerName()); ?></td>
                     </tr>
                     <tr class="c-table__row">
@@ -189,7 +190,7 @@ $pageTitle = 'Vorstands-Prüfung - ' . ($permit ? $permit->code : 'Fehler');
                     <footer class="c-card__footer u-text-center">
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>mark_as_paid"
-                              class="u-flex u-justify-center u-margin-none"
+                              class="u-flex u-justify-center u-margin-block-none"
                               data-confirm="Sind Sie sicher, dass Sie den Status auf Bezahlt ändern möchten?">
                             <input type="hidden"
                                    name="csrf_token"

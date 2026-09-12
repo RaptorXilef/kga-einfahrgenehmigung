@@ -28,32 +28,33 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
 <div class="js-track-event"
      data-event="permit_created_success"></div>
 
-<div class="c-tab-content-container o-container o-container--medium u-padding-y-xl">
+<div class="c-tab-content-container o-container o-container--medium u-padding-block-xl">
     <div class="c-card c-card--success u-text-center">
         <div class="c-card__body c-card__body--xl">
             <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
                  alt="Erfolg"
-                 class="c-icon c-icon--xl u-margin-bottom-l">
-            <h1 class="u-margin-top-none u-color-success u-text-2xl">Antrag erfolgreich!</h1>
+                 class="c-icon c-icon--xl u-margin-block-end-l">
+            <h1 class="u-margin-block-start-none u-color-success u-text-2xl">Antrag erfolgreich!</h1>
             <p class="u-color-muted u-text-lg">Ihr Antrag wurde sicher an uns übermittelt.</p>
 
-            <div class="c-box u-margin-y-l">
+            <div class="c-box u-margin-block-l">
                 <span class="u-color-muted u-text-sm u-font-semibold u-display-block">Ihre Vorgangs-Nummer:</span>
                 <code class="u-text-xl u-color-dark u-font-extrabold"><?php echo $permit->code; ?></code>
             </div>
 
             <?php if ($method === 'wire' && $permit->getStatus() !== PermitStatus::Bezahlt) { ?>
-                <div class="c-box c-box--dashed u-margin-top-l">
-                    <h3 class="u-margin-top-none u-color-main">Zahlungsinformationen</h3>
+                <div class="c-box c-box--dashed u-margin-block-start-l">
+                    <h3 class="u-margin-block-start-none u-color-main">Zahlungsinformationen</h3>
                     <?php if ($requirePayment) { ?>
                         <p class="u-color-danger u-font-semibold">Achtung: Ihre Genehmigung wird erst nach
                             Zahlungseingang freigeschaltet.</p>
                     <?php } else { ?>
                         <p class="u-color-dark">Bitte überweisen Sie den Betrag bis spätestens
-                            <strong><?php echo $dueDate; ?></strong>.</p>
+                            <strong><?php echo $dueDate; ?></strong>.
+                        </p>
                     <?php } ?>
 
-                    <div class="o-grid o-grid--auto-right u-align-center u-margin-top-m">
+                    <div class="o-grid o-grid--auto-right u-align-center u-margin-block-start-m">
                         <div>
                             <table class="c-table c-table--summary">
                                 <tr>
@@ -83,16 +84,17 @@ $pageTitle = 'Antrag erfolgreich - ' . ($settings['vereins_name'] ?? '');
                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=10&data=<?php echo $epcData; ?>"
                                  alt="GiroCode wird erstellt, bitte warten"
                                  class="c-qr-box">
-                            <div class="u-text-xs u-color-muted u-font-semibold u-margin-top-xs">Banking-App Scan</div>
+                            <div class="u-text-xs u-color-muted u-font-semibold u-margin-block-start-xs">Banking-App
+                                Scan</div>
                         </div>
                     </div>
                 </div>
             <?php } ?>
 
-            <div class="u-margin-top-xl u-padding-top-l u-border-top">
-                <p class="u-margin-bottom-m u-text-sm">
+            <div class="u-margin-block-start-xl u-padding-block-start-l u-border-top">
+                <p class="u-margin-block-end-m u-text-sm">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-envelope.webp'); ?>"
-                         class="c-icon c-icon--inline u-margin-right-xs"
+                         class="c-icon c-icon--inline u-margin-inline-end-xs"
                          alt="">
                     Wir haben Ihnen diese Informationen soeben auch an <strong class="u-color-dark"><?php echo \htmlspecialchars($permit->getOwnerEmail() ?: 'Ihre E-Mail-Adresse'); ?></strong>
                     gesendet.
