@@ -10,6 +10,7 @@ import { lazyMount, lazyMountSingle, mount, mountSingle } from './core/Bootstrap
 import { ConsentBanner } from './ui/ConsentBanner.js';
 import { PasswordToggle } from './ui/PasswordToggle.js';
 import { SessionTimer } from './ui/SessionTimer.js';
+import { ThemeToggle } from './ui/ThemeToggle.js';
 
 // Stelle sicher, dass Metadaten im DOMContentLoaded rechtzeitig global verfügbar sind.
 // Die Templates rendern das Array json_encode($tplMetadata) aus der Konfiguration.
@@ -19,12 +20,10 @@ if (typeof window.KGA_TEMPLATES === 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. GLOBAL UNOBTRUSIVE UI BEHAVIORS (CSP-COMPLIANT) ---
+    // Event Delegation Logik (Unverändert übernommen)
     document.body.addEventListener('submit', (e) => {
         const form = e.target;
-        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) {
-            e.preventDefault();
-        }
+        if (form.dataset.confirm && !window.confirm(form.dataset.confirm)) e.preventDefault();
     });
 
     document.body.addEventListener('click', (e) => {
@@ -53,9 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Text-Feld bei Klick markieren
-        if (e.target.classList.contains('js-select-on-click')) {
-            e.target.select();
-        }
+        if (e.target.classList.contains('js-select-on-click')) e.target.select();
 
         // Accordion-Karten einklappen (Admin-Rollen)
         const toggleBtn = e.target.closest('.js-toggle-parent');
@@ -93,18 +90,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.closest('form').requestSubmit();
         }
     });
-    // ----------------------------------------------------------
 
-    // 2. Core / UI mounten (Synchron)
+    // Core / UI mounten
     mountSingle('#ui-session-timer', SessionTimer);
     mount('.js-password-toggle', PasswordToggle);
     mountSingle('#kga-consent-banner', ConsentBanner);
+    mount('.js-theme-toggle', ThemeToggle); // NEU: Theme Toggle eingebunden
 
-    // 3. Komplexe UI-Elemente Lazy Loaden (Nur wenn sie im DOM existieren)
+    // Lazy Loading Module
     lazyMount('.js-avatar-dropzone', () => import('./ui/DragDropZone.js'), 'DragDropZone');
     lazyMount('.js-sort-table', () => import('./ui/TableSorter.js'), 'TableSorter');
 
-    // 4. Schwere Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
+    // Schwere Module Lazy Loaden (Spart hunderte KB beim initialen Seitenaufruf)
     lazyMount(
         '#permitForm, form[action*="create_voucher"]',
         () => import('./modules/PermitForm.js'),

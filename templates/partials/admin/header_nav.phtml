@@ -25,21 +25,18 @@ if (isset($roleRepository) && $auth->isLoggedIn()) {
 }
 $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : ''; ?>
 
-<nav class="c-header-nav"
-     style="position: relative; z-index: 100;">
+<nav class="c-header-nav">
     <div class="c-tab-content-container c-header-nav__container">
 
         <!-- User Info & Group -->
         <div class="c-header-nav__brand">
             <div class="c-user-pill">
                 <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
-                    <img src="<?php echo $userImgUrl; ?>"
-                         style="inline-size: 28px; block-size: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border);"
-                         alt="User Avatar">
-                    <a href="profile" style="text-decoration: none; color: inherit;" title="Zum Profil">
-                        <?php echo \htmlspecialchars($auth->getUsername()); ?>
-                    </a>
-                </span>
+          <img src="<?php echo $userImgUrl; ?>" class="c-avatar c-avatar--xs" alt="User Avatar">
+          <a href="profile" class="c-user-pill__link" title="Zum Profil">
+            <?php echo \htmlspecialchars($auth->getUsername()); ?>
+          </a>
+        </span>
                 <div class="c-group-badge">
                     <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                          class="c-icon"
@@ -77,6 +74,16 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                 </button>
             <?php } ?>
 
+            <!-- Theme Toggle Switch -->
+            <button type="button"
+                    class="c-theme-toggle js-theme-toggle"
+                    title="Design wechseln">
+                <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
+                     class="c-icon js-theme-icon"
+                     alt="">
+                <span class="js-theme-text">Light</span>
+            </button>
+
             <div class="c-session-pill"
                  title="Automatische Abmeldung bei Inaktivität">
                 ⏳ <span id="ui-session-timer">20:00</span>
@@ -85,8 +92,7 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
             <!-- Logout -->
             <button type="button"
                     id="btn-session-logout"
-                    class="c-button c-button--danger-outline u-text-sm"
-                    style="padding-inline: 12px; block-size: 34px;">
+                    class="c-button c-button--small c-button--danger-outline">
                 ✕ Abmelden
             </button>
         </div>
@@ -99,16 +105,14 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
         <h3 class="c-modal__title">
             <span class="u-text-xl">⚠️</span> Inaktivität erkannt
         </h3>
-        <p class="u-color-muted"
-           style="line-height: 1.5;">Aus Sicherheitsgründen werden Sie in <br><strong id="modal-session-countdown"
+        <p class="u-color-muted u-margin-top-s">Aus Sicherheitsgründen werden Sie in <br><strong
+                    id="modal-session-countdown"
                     class="u-color-danger u-text-xl">03:00</strong><br> Minuten automatisch abgemeldet.</p>
 
         <div class="o-grid o-grid--2-cols u-margin-top-l">
             <!-- Button 1: Bleiben -->
             <button id="btn-session-stay"
-                    class="c-button c-button--success u-width-100">
-                Bleiben
-            </button>
+                    class="c-button c-button--success u-width-100">Bleiben</button>
 
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
@@ -118,9 +122,7 @@ $userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <button type="submit"
-                        class="c-button c-button--danger u-width-100">
-                    Abmelden
-                </button>
+                        class="c-button c-button--danger u-width-100">Abmelden</button>
             </form>
         </div>
     </div>

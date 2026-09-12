@@ -5,6 +5,8 @@
         padding-block: 0.75rem;
         margin-block-end: 2rem;
         box-shadow: var(--shadow-sm);
+        position: relative;
+        z-index: 100;
     }
 
     .c-header-nav__container {
@@ -38,6 +40,14 @@
         display: flex;
         align-items: center;
         gap: 12px;
+    }
+
+    .c-user-pill__link {
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .c-group-badge {

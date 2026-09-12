@@ -16,6 +16,10 @@
         grid-template-columns: 1fr auto;
     }
 
+    .o-grid--auto-fit-sm {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
     .o-grid--auto-fit {
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
@@ -26,5 +30,9 @@
 
     .o-grid--sidebar {
         grid-template-columns: 1.6fr 1fr;
+    }
+
+    .o-grid--user-management {
+        grid-template-columns: 200px 1.2fr 1fr;
     }
 }

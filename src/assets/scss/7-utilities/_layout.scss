@@ -22,9 +22,25 @@
     }
     .u-overflow-y-auto {
         overflow-y: auto !important;
-    } /* Hinzugefügt für vertikales Scrollen */
+    }
 
     .u-position-relative {
         position: relative !important;
+    }
+
+    .u-grid-column-full {
+        grid-column: 1 / -1 !important;
+    }
+
+    .u-border-none {
+        border: none !important;
+    }
+
+    .u-border-radius-m {
+        border-radius: 12px !important;
+    }
+
+    .u-text-decoration-none {
+        text-decoration: none !important;
     }
 }
