@@ -12,9 +12,15 @@
         box-shadow: var(--shadow-sm);
     }
 
+    // FIX: Nutzen von var(--color-text-main) anstelle von hartem Schwarz,
+    // damit die Schrift im Dark Mode automatisch zu Weiß/Hellgrau wechselt.
     .c-alert--success {
         background-color: var(--color-success-soft);
-        color: color-mix(in oklch, var(--color-success) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-success) 40%,
+            var(--color-text-main)
+        );
         border-color: color-mix(
             in oklch,
             var(--color-success) 40%,
@@ -24,13 +30,21 @@
 
     .c-alert--danger {
         background-color: var(--color-danger-soft);
-        color: color-mix(in oklch, var(--color-danger) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-danger) 40%,
+            var(--color-text-main)
+        );
         border-color: color-mix(in oklch, var(--color-danger) 40%, transparent);
     }
 
     .c-alert--warning {
         background-color: var(--color-warning-soft);
-        color: color-mix(in oklch, var(--color-warning) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-warning) 40%,
+            var(--color-text-main)
+        );
         border-color: color-mix(
             in oklch,
             var(--color-warning) 40%,
@@ -40,7 +54,11 @@
 
     .c-alert--info {
         background-color: var(--color-primary-soft);
-        color: color-mix(in oklch, var(--color-primary) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-primary) 40%,
+            var(--color-text-main)
+        );
         border-color: color-mix(
             in oklch,
             var(--color-primary) 40%,

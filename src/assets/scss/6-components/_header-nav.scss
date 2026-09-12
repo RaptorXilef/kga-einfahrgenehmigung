@@ -2,19 +2,30 @@
     .c-header-nav {
         background-color: var(--color-bg-white);
         border-block-end: 1px solid var(--color-border);
-        padding-block: 0.75rem;
+        padding-block: 1rem;
         margin-block-end: 2rem;
         box-shadow: var(--shadow-sm);
         position: relative;
         z-index: 100;
     }
 
-    .c-header-nav__container {
+    // NEU: Zweigeteiltes Layout
+    .c-header-nav__top {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
+        padding-block-end: 1rem;
+        border-block-end: 1px solid var(--color-border);
+    }
+
+    .c-header-nav__bottom {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-block-start: 1rem;
     }
 
     .c-header-nav__brand {
@@ -22,13 +33,6 @@
         align-items: center;
         gap: 15px;
         flex-wrap: wrap;
-    }
-
-    .c-header-nav__title {
-        font-weight: 800;
-        color: var(--color-primary);
-        margin-inline-end: 15px;
-        letter-spacing: 0.5px;
     }
 
     .c-user-pill {

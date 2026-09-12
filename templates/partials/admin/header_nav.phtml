@@ -23,79 +23,93 @@ if (isset($roleRepository) && $auth->isLoggedIn()) {
     $roles = $roleRepository->loadAll();
     $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
 }
-$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : ''; ?>
+$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : '';
+
+// Ermittlung der aktiven Route für die Button-Highlights
+$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+$path = \parse_url($requestUri, \PHP_URL_PATH);
+$path = \trim((string) $path, '/');
+if (\str_ends_with($path, '.php')) {
+    $path = \substr($path, 0, -4);
+}
+$currentPage = $path === '' ? 'admin' : $path;
+?>
 
 <nav class="c-header-nav">
-    <div class="c-tab-content-container c-header-nav__container">
+    <div class="c-tab-content-container">
 
-        <!-- User Info & Group -->
-        <div class="c-header-nav__brand">
-            <div class="c-user-pill">
-                <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
-          <img src="<?php echo $userImgUrl; ?>" class="c-avatar c-avatar--xs" alt="User Avatar">
-          <a href="profile" class="c-user-pill__link" title="Zum Profil">
-            <?php echo \htmlspecialchars($auth->getUsername()); ?>
-          </a>
-        </span>
-                <div class="c-group-badge">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
-                         class="c-icon"
-                         alt="Role Icon">
-                    <span><?php echo \htmlspecialchars($roleName); ?></span>
+        <!-- ZEILE 1: Benutzer-Infos, Theme & Abmeldung -->
+        <div class="c-header-nav__top">
+            <div class="c-header-nav__brand">
+                <div class="c-user-pill">
+                    <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
+            <img src="<?php echo $userImgUrl; ?>" class="c-avatar c-avatar--xs" alt="User Avatar">
+            <a href="profile" class="c-user-pill__link" title="Zum Profil">
+              <?php echo \htmlspecialchars($auth->getUsername()); ?>
+            </a>
+          </span>
+                    <div class="c-group-badge">
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
+                             class="c-icon"
+                             alt="Role Icon">
+                        <span><?php echo \htmlspecialchars($roleName); ?></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- User-Management über Permission absichern -->
-            <?php if ($auth->hasPermission('system.manage')) { ?>
-                <a href="users" class="c-tabs__btn">
-                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Rechteverwaltung
-                </a>
-            <?php } ?>
+            <div class="u-flex u-align-center u-gap-m u-flex-wrap">
 
-            <!-- Dashboard über Permission absichern -->
-            <?php if ($auth->hasPermission('admin.access')) { ?>
-                <a href="admin" class="c-tabs__btn">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
-                </a>
-            <?php } ?>
-            <a href="check" class="c-tabs__btn" target="_blank">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
-            </a>
-        </div>
+                <!-- Der "Was ist neu" Button (Nur sichtbar wenn wir auf der Dashboard Action sind und Notes existieren) -->
+                <?php if (!empty($allReleaseNotes)) { ?>
+                    <button type="button"
+                            class="c-button c-button--secondary c-button--small js-show-all-release-notes">
+                        🎁 Was ist neu?
+                    </button>
+                <?php } ?>
 
-        <!-- Rechtsbündige Tools (Timer, What's New, Logout) -->
-        <div class="u-flex u-align-center u-gap-m u-flex-wrap">
-
-            <!-- Der "Was ist neu" Button (Nur sichtbar wenn wir auf der Dashboard Action sind und Notes existieren) -->
-            <?php if (!empty($allReleaseNotes)) { ?>
+                <!-- Theme Toggle Switch -->
                 <button type="button"
-                        class="js-show-all-release-notes">
-                    🎁 Was ist neu?
+                        class="c-theme-toggle js-theme-toggle"
+                        title="Design wechseln">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
+                         class="c-icon js-theme-icon"
+                         alt="">
+                    <span class="js-theme-text">Light</span>
                 </button>
+
+                <div class="c-session-pill"
+                     title="Automatische Abmeldung bei Inaktivität">
+                    ⏳ <span id="ui-session-timer">20:00</span>
+                </div>
+
+                <!-- Logout -->
+                <button type="button"
+                        id="btn-session-logout"
+                        class="c-button c-button--small c-button--danger-outline">
+                    ✕ Abmelden
+                </button>
+            </div>
+        </div>
+
+        <!-- ZEILE 2: Haupt-Navigation der App -->
+        <div class="c-header-nav__bottom">
+            <?php if ($auth->hasPermission('admin.access')) { ?>
+                <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
+          <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
+        </a>
             <?php } ?>
 
-            <!-- Theme Toggle Switch -->
-            <button type="button"
-                    class="c-theme-toggle js-theme-toggle"
-                    title="Design wechseln">
-                <img src="<?php echo $asset->url('assets/img/icons/icon-sun.webp'); ?>"
-                     class="c-icon js-theme-icon"
-                     alt="">
-                <span class="js-theme-text">Light</span>
-            </button>
+            <?php if ($auth->hasPermission('system.manage')) { ?>
+                <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
+          <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Rechteverwaltung
+        </a>
+            <?php } ?>
 
-            <div class="c-session-pill"
-                 title="Automatische Abmeldung bei Inaktivität">
-                ⏳ <span id="ui-session-timer">20:00</span>
-            </div>
-
-            <!-- Logout -->
-            <button type="button"
-                    id="btn-session-logout"
-                    class="c-button c-button--small c-button--danger-outline">
-                ✕ Abmelden
-            </button>
+            <a href="check" class="c-tabs__btn" target="_blank">
+        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
+      </a>
         </div>
+
     </div>
 </nav>
 

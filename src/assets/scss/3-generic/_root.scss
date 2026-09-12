@@ -2,7 +2,9 @@
 
 @layer generic {
     :root {
-        // Semantic Custom Properties mapping (Light Mode als Standard)
+        // Teilt dem Browser mit, dass er Standard-UI (Scrollbars, Selects, Datum) hell rendern soll
+        color-scheme: light;
+
         @each $name, $value in $tokens-color-light {
             --color-#{$name}: #{$value};
         }
@@ -19,6 +21,8 @@
 
     // Expliziter Dark Mode via Data-Attribut (JS Toggle)
     :root[data-theme='dark'] {
+        color-scheme: dark; // Zwingt den Browser, Kalender und Dropdowns dunkel zu rendern!
+
         @each $name, $value in $tokens-color-dark {
             --color-#{$name}: #{$value};
         }
@@ -27,6 +31,8 @@
     // Nativer Fallback für Systemeinstellungen (wird vom JS-Toggle überschrieben)
     @media (prefers-color-scheme: dark) {
         :root:not([data-theme='light']) {
+            color-scheme: dark;
+
             @each $name, $value in $tokens-color-dark {
                 --color-#{$name}: #{$value};
             }

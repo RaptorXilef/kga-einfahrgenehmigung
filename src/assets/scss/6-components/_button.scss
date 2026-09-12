@@ -34,13 +34,13 @@
         border-color: color-mix(
             in oklch,
             var(--color-border) 80%,
-            oklch(0 0 0)
+            var(--color-text-main)
         );
     }
 
     .c-button--primary {
         background-color: var(--color-primary);
-        color: var(--color-bg-white);
+        color: #fff; /* Primärfarbe ist meist so stark, dass Weiß immer lesbar bleibt */
         border: none;
         font-weight: 700;
     }
@@ -57,9 +57,14 @@
         background-color: var(--color-bg-white);
     }
 
+    // FIX: Textfarbe an Dark-Mode gekoppelt
     .c-button--success {
         background-color: var(--color-success-soft);
-        color: color-mix(in oklch, var(--color-success) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-success) 40%,
+            var(--color-text-main)
+        );
         border-color: color-mix(
             in oklch,
             var(--color-success) 40%,
@@ -71,13 +76,17 @@
         background-color: color-mix(
             in oklch,
             var(--color-success-soft) 80%,
-            oklch(0 0 0)
+            var(--color-text-main)
         );
     }
 
     .c-button--danger {
         background-color: var(--color-danger-soft);
-        color: var(--color-danger);
+        color: color-mix(
+            in oklch,
+            var(--color-danger) 20%,
+            var(--color-text-main)
+        );
         border-color: color-mix(in oklch, var(--color-danger) 40%, transparent);
     }
 
@@ -85,7 +94,7 @@
         background-color: color-mix(
             in oklch,
             var(--color-danger-soft) 80%,
-            oklch(0 0 0)
+            var(--color-text-main)
         );
     }
 

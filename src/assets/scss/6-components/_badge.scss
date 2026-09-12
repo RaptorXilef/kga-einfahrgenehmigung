@@ -17,22 +17,39 @@
 
     .c-badge--primary {
         background-color: var(--color-primary-soft);
-        color: var(--color-primary);
+        color: color-mix(
+            in oklch,
+            var(--color-primary) 20%,
+            var(--color-text-main)
+        );
     }
 
+    // FIX: Kontrast verbessert
     .c-badge--success {
         background-color: var(--color-success-soft);
-        color: color-mix(in oklch, var(--color-success) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-success) 30%,
+            var(--color-text-main)
+        );
     }
 
     .c-badge--warning {
         background-color: var(--color-warning-soft);
-        color: color-mix(in oklch, var(--color-warning) 60%, oklch(0 0 0));
+        color: color-mix(
+            in oklch,
+            var(--color-warning) 30%,
+            var(--color-text-main)
+        );
     }
 
     .c-badge--danger {
         background-color: var(--color-danger-soft);
-        color: var(--color-danger);
+        color: color-mix(
+            in oklch,
+            var(--color-danger) 20%,
+            var(--color-text-main)
+        );
     }
 
     .c-badge--outline {
