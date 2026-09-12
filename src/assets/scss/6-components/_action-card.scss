@@ -1,8 +1,8 @@
 @layer components {
     .c-action-grid {
         display: flex;
-        gap: 20px;
-        margin-block-start: 30px;
+        gap: var(--space-m);
+        margin-block-start: var(--space-l);
         flex-wrap: wrap;
     }
 
@@ -12,10 +12,10 @@
         background-color: var(--color-bg-white);
         border: 2px solid var(--color-border);
         border-radius: 14px;
-        padding: 20px;
+        padding: var(--space-m);
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: var(--space-m);
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         text-align: start;
@@ -63,7 +63,7 @@
 
     .c-action-card--voucher:hover .c-action-card__icon {
         background-color: oklch(0.6 0.15 280);
-        color: #fff;
+        color: var(--color-bg-white);
     }
 
     .c-action-card--manual:hover {
@@ -73,7 +73,7 @@
 
     .c-action-card--manual:hover .c-action-card__icon {
         background-color: var(--color-success);
-        color: #fff;
+        color: var(--color-bg-white);
     }
 
     .c-action-card--csv:hover {
@@ -83,7 +83,7 @@
 
     .c-action-card--csv:hover .c-action-card__icon {
         background-color: var(--color-primary);
-        color: #fff;
+        color: var(--color-bg-white);
     }
 
     .c-action-card--json:hover {
@@ -93,6 +93,6 @@
 
     .c-action-card--json:hover .c-action-card__icon {
         background-color: var(--color-warning);
-        color: #fff;
+        color: var(--color-bg-white);
     }
 }

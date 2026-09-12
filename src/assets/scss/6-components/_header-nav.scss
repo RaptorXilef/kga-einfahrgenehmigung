@@ -2,12 +2,12 @@
     .c-header-nav {
         background-color: var(--color-bg-white);
         border-block-end: 1px solid var(--color-border);
-        padding-block: 1rem;
-        margin-block-end: 2rem;
+        padding-block: var(--space-m);
+        margin-block-end: var(--space-l);
         box-shadow: var(--shadow-sm);
         position: relative;
         z-index: 100;
-        inline-size: 100%; /* FIX: Zwingt das Menü im Public-Bereich über die volle Breite! */
+        inline-size: 100%;
     }
 
     .c-header-nav__top {
@@ -15,8 +15,8 @@
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
-        padding-block-end: 1rem;
+        gap: var(--space-m);
+        padding-block-end: var(--space-m);
         border-block-end: 1px solid var(--color-border);
     }
 
@@ -24,21 +24,21 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 10px;
-        padding-block-start: 1rem;
+        gap: var(--space-s);
+        padding-block-start: var(--space-m);
     }
 
     .c-header-nav__brand {
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: var(--space-m);
         flex-wrap: wrap;
     }
 
     .c-header-nav__title {
         font-weight: 800;
         color: var(--color-primary);
-        margin-inline-end: 15px;
+        margin-inline-end: var(--space-m);
         letter-spacing: 0.5px;
     }
 
@@ -50,7 +50,7 @@
         border: 1px solid var(--color-border);
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: var(--space-s);
     }
 
     .c-user-pill__link {
@@ -58,20 +58,20 @@
         color: inherit;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-s);
     }
 
     .c-group-badge {
         background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
         padding-block: 3px;
-        padding-inline: 6px 10px;
+        padding-inline: 6px var(--space-s);
         border-radius: 20px;
         display: flex;
         align-items: center;
         gap: 6px;
         box-shadow: inset 0 1px 2px
-            color-mix(in oklch, oklch(0 0 0) 5%, transparent);
+            color-mix(in oklch, var(--color-text-main) 5%, transparent);
     }
 
     .c-group-badge span {
@@ -88,11 +88,11 @@
         background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
         padding-block: 4px;
-        padding-inline: 10px;
+        padding-inline: var(--space-s);
         border-radius: 20px;
         font-weight: 700;
         color: var(--color-text-muted);
         box-shadow: inset 0 1px 2px
-            color-mix(in oklch, oklch(0 0 0) 5%, transparent);
+            color-mix(in oklch, var(--color-text-main) 5%, transparent);
     }
 }

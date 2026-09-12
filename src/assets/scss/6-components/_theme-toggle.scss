@@ -8,7 +8,7 @@
         padding-inline: 14px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--space-s);
         cursor: pointer;
         font-size: 0.85rem;
         font-weight: 800;
@@ -26,7 +26,6 @@
         box-shadow: var(--shadow-md);
     }
 
-    /* Der Filter sorgt dafür, dass das Icon (Sonne/Mond) beim Hover weiß wird */
     .c-theme-toggle:hover .c-icon {
         filter: brightness(0) invert(1);
     }

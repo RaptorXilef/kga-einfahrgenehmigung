@@ -15,7 +15,7 @@ export class ChangelogRenderer {
     init() {
         if (this.rawMarkdown.trim() === 'Kein Changelog gefunden.') {
             this.contentArea.innerHTML =
-                '<div class="u-text-muted u-text-center u-padding-y-l u-font-bold">Keine CHANGELOG.md im System gefunden.</div>';
+                '<div class="u-text-muted u-text-center u-padding-block-l u-font-bold">Keine CHANGELOG.md im System gefunden.</div>';
             return;
         }
 
@@ -25,7 +25,7 @@ export class ChangelogRenderer {
             this.contentArea.innerHTML = DOMPurify.sanitize(html);
         } else {
             this.contentArea.innerHTML =
-                '<div class="u-color-error u-text-center">Fehler: Markdown Parser nicht geladen.</div>';
+                '<div class="c-alert c-alert--danger u-text-center">Fehler: Markdown Parser nicht geladen.</div>';
         }
     }
 }

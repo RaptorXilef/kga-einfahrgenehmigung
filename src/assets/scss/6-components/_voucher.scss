@@ -2,12 +2,12 @@
     .c-voucher-alert {
         background-color: var(--color-success);
         color: var(--color-bg-white);
-        padding: 16px;
+        padding: var(--space-m);
         border-radius: 12px;
-        margin-block-end: 2rem;
+        margin-block-end: var(--space-l);
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: var(--space-m);
         box-shadow: 0 4px 6px
             color-mix(in oklch, var(--color-success) 20%, transparent);
     }
@@ -22,7 +22,11 @@
         gap: 5px;
 
         &:hover {
-            color: color-mix(in oklch, var(--color-primary) 80%, #000);
+            color: color-mix(
+                in oklch,
+                var(--color-primary) 80%,
+                var(--color-text-main)
+            );
             text-decoration: underline;
         }
     }
@@ -38,8 +42,8 @@
         &.is-open {
             max-height: 200px;
             opacity: 1;
-            margin-block-start: 1rem;
-            margin-block-end: 2rem;
+            margin-block-start: var(--space-m);
+            margin-block-end: var(--space-l);
         }
     }
 }

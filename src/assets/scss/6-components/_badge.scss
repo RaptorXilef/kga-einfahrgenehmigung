@@ -3,7 +3,7 @@
         background-color: var(--color-border);
         color: var(--color-text-main);
         padding-block: 4px;
-        padding-inline: 10px;
+        padding-inline: var(--space-s);
         border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 700;
@@ -24,7 +24,6 @@
         );
     }
 
-    // FIX: Kontrast verbessert
     .c-badge--success {
         background-color: var(--color-success-soft);
         color: color-mix(
@@ -62,12 +61,12 @@
         background-color: var(--color-bg-white);
         border: 2px solid var(--color-primary);
         border-radius: 30px;
-        padding-block: 8px;
-        padding-inline: 20px;
+        padding-block: var(--space-s);
+        padding-inline: var(--space-m);
         box-shadow: var(--shadow-sm);
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        gap: var(--space-s);
     }
 
     .c-date-indicator__label {
