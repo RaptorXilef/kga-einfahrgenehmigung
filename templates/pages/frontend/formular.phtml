@@ -63,15 +63,16 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                          style="max-width: 280px; max-height: 220px; object-fit: contain;">
                 </div> */ ?>
             <!-- u-text-center für Überschrift und Text -->
-            <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
+            <!-- <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1> -->
             <?php if ($logoFile) { ?>
                 <div class="u-margin-bottom-m u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
-                         alt="KGA Logo"
+                         alt="<?php echo \htmlspecialchars($config->get('vereins_name')); ?>"
                          class="c-logo">
                 </div>
             <?php } ?>
-            <p class="u-text-muted u-margin-top-s u-text-center"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p>
+            <!-- <p class="u-text-muted u-margin-top-s u-text-center"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p> -->
+            <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
         </header>
 
         <div class="c-card__body c-card__body--xl">

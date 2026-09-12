@@ -6,6 +6,14 @@
         margin-inline: auto !important;
     }
 
+    /* NEU: Wichtig für Flexbox (z.B. um den Check Button nach rechts zu schieben) */
+    .u-margin-left-auto {
+        margin-inline-start: auto !important;
+    }
+    .u-margin-right-auto {
+        margin-inline-end: auto !important;
+    }
+
     .u-margin-top-none {
         margin-block-start: 0 !important;
     }

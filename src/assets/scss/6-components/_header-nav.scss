@@ -7,9 +7,9 @@
         box-shadow: var(--shadow-sm);
         position: relative;
         z-index: 100;
+        inline-size: 100%; /* FIX: Zwingt das Menü im Public-Bereich über die volle Breite! */
     }
 
-    // NEU: Zweigeteiltes Layout
     .c-header-nav__top {
         display: flex;
         justify-content: space-between;
@@ -33,6 +33,13 @@
         align-items: center;
         gap: 15px;
         flex-wrap: wrap;
+    }
+
+    .c-header-nav__title {
+        font-weight: 800;
+        color: var(--color-primary);
+        margin-inline-end: 15px;
+        letter-spacing: 0.5px;
     }
 
     .c-user-pill {

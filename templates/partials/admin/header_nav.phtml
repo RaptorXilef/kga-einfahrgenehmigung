@@ -106,7 +106,8 @@ $currentPage = $path === '' ? 'admin' : $path;
         </a>
             <?php } ?>
 
-            <a href="check" class="c-tabs__btn" target="_blank">
+            <!-- u-margin-left-auto schiebt den Button im Flexbox-Layout komplett nach rechts! -->
+            <a href="check" class="c-tabs__btn u-margin-left-auto" target="_blank">
         <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
       </a>
         </div>

@@ -36,6 +36,11 @@ $currentPage = $path === '' ? 'index' : $path;
             </div>
 
             <div class="u-flex u-align-center u-gap-m">
+                <!-- Zuerst Verwaltung, dann Theme Toggle -->
+                <a href="admin" class="c-button c-button--secondary c-button--small">
+                    <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
+                </a>
+
                 <!-- Theme Toggle -->
                 <button type="button"
                         class="c-theme-toggle js-theme-toggle"
@@ -45,24 +50,23 @@ $currentPage = $path === '' ? 'index' : $path;
                          alt="">
                     <span class="js-theme-text">Light</span>
                 </button>
-
-                <a href="admin" class="c-button c-button--secondary c-button--small">
-          <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
-        </a>
             </div>
         </div>
 
         <!-- ZEILE 2: Navigation -->
         <div class="c-header-nav__bottom">
             <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>">
-        <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
-      </a>
+                <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
+            </a>
+
             <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>">
-        <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
-      </a>
-            <a href="check" class="c-tabs__btn <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
-        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
-      </a>
+                <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
+            </a>
+
+            <!-- u-margin-left-auto schiebt den Button im Flexbox-Layout komplett nach rechts! -->
+            <a href="check" class="c-tabs__btn u-margin-left-auto <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
+            </a>
         </div>
 
     </div>

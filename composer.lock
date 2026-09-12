@@ -1365,16 +1365,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v3.95.24",
+            "version": "v3.95.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer.git",
-                "reference": "9a4b8050f8768646bf3693ee7416978ceeca6206"
+                "reference": "2cdfc1f3daf173d83a1ebb6177949b58c95de6ff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/9a4b8050f8768646bf3693ee7416978ceeca6206",
-                "reference": "9a4b8050f8768646bf3693ee7416978ceeca6206",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/2cdfc1f3daf173d83a1ebb6177949b58c95de6ff",
+                "reference": "2cdfc1f3daf173d83a1ebb6177949b58c95de6ff",
                 "shasum": ""
             },
             "require": {
@@ -1457,7 +1457,7 @@
             ],
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/issues",
-                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.24"
+                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.25"
             },
             "funding": [
                 {
@@ -1465,7 +1465,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-31T15:31:12+00:00"
+            "time": "2026-09-08T11:11:37+00:00"
         },
         {
             "name": "jean85/pretty-package-versions",
@@ -1929,12 +1929,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pdepend/pdepend.git",
-                "reference": "694c96539213fd390d151a519126b18fd5cc57c5"
+                "reference": "d9f193a9f8457fd8c05cb4478216f3da606449da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pdepend/pdepend/zipball/694c96539213fd390d151a519126b18fd5cc57c5",
-                "reference": "694c96539213fd390d151a519126b18fd5cc57c5",
+                "url": "https://api.github.com/repos/pdepend/pdepend/zipball/d9f193a9f8457fd8c05cb4478216f3da606449da",
+                "reference": "d9f193a9f8457fd8c05cb4478216f3da606449da",
                 "shasum": ""
             },
             "require": {
@@ -1953,7 +1953,7 @@
                 "easy-doc/easy-doc": "^1.2.3",
                 "friendsofphp/php-cs-fixer": "^3.57",
                 "gregwar/rst": "^1.0.6",
-                "phpstan/phpstan": "~2.1.32",
+                "phpstan/phpstan": "~2.2",
                 "phpunit/phpunit": "^10.5.20,<10.5.32 || ^11.0.0",
                 "squizlabs/php_codesniffer": "^3.8.0"
             },
@@ -1996,7 +1996,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-02T08:21:05+00:00"
+            "time": "2026-09-12T09:27:40+00:00"
         },
         {
             "name": "pestphp/pest",
@@ -3006,12 +3006,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpmd/phpmd.git",
-                "reference": "020ebd954b8343638b566815aec5044a2fff3441"
+                "reference": "dc4a22df38427187180d8e5500ec4ec1d9347f26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpmd/phpmd/zipball/020ebd954b8343638b566815aec5044a2fff3441",
-                "reference": "020ebd954b8343638b566815aec5044a2fff3441",
+                "url": "https://api.github.com/repos/phpmd/phpmd/zipball/dc4a22df38427187180d8e5500ec4ec1d9347f26",
+                "reference": "dc4a22df38427187180d8e5500ec4ec1d9347f26",
                 "shasum": ""
             },
             "require": {
@@ -3087,7 +3087,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-23T08:00:22+00:00"
+            "time": "2026-09-12T09:25:45+00:00"
         },
         {
             "name": "phpstan/extension-installer",
