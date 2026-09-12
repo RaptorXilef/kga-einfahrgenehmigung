@@ -21,61 +21,63 @@ $crons = [
         'desc' => 'Versendet zwischengespeicherte Mails (falls Queue-Limit im Web erreicht wird).',
         'url' => $baseUrl . '/api/process_mail_queue?token=' . $cronSecret,
         'interval' => 'Alle 1 - 5 Minuten',
-        'icon' => '📧',
+        'icon' => '📧', // ToDo Icon
     ],
     [
         'label' => 'Zahlungserinnerungen versenden',
         'desc' => 'Prüft auf überfällige Anträge und versendet Mahnungen.',
         'url' => $baseUrl . '/api/cron/reminders?token=' . $cronSecret,
         'interval' => 'Täglich (z.B. morgens um 08:00)',
-        'icon' => '🔔',
+        'icon' => '🔔', // ToDo Icon
     ],
     [
         'label' => 'Archivierung & DSGVO',
         'desc' => 'Verschiebt alte Genehmigungen ins Archiv und anonymisiert >10 Jahre alte Daten.',
         'url' => $baseUrl . '/api/cron/archive?token=' . $cronSecret,
         'interval' => 'Täglich (z.B. nachts um 02:00)',
-        'icon' => '🗄️',
+        'icon' => '🗄️', // ToDo Icon
     ],
     [
         'label' => 'Auto-Backup & Rotation',
         'desc' => 'Erstellt einen MySQL-Dump und löscht ältere Backups nach dem FIFO-Prinzip.',
         'url' => $baseUrl . '/api/cron/backup?token=' . $cronSecret,
         'interval' => 'Täglich (z.B. nachts um 03:00)',
-        'icon' => '📦',
+        'icon' => '📦', // ToDo Icon
     ],
     [
         'label' => 'Spam-Filter synchronisieren',
         'desc' => 'Lädt die tagesaktuellen Trashmail-Domains über GitHub in den Cache herunter.',
         'url' => $baseUrl . '/api/cron/spam_sync?token=' . $cronSecret,
         'interval' => 'Einmal Wöchentlich',
-        'icon' => '🛡️',
+        'icon' => '🛡️', // ToDo Icon
     ],
 ];
 ?>
 
 <div class="c-tab-content-container">
     <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
-        <div class="u-margin-bottom-l">
-            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">🛠️</span>
+        <div class="u-margin-block-end-l">
+            <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
+                <span class="u-text-xl">🛠️</span> <?php // ToDo Icon?>
                 <div>
-                    <h3 class="u-margin-none">Gefahrenzone: System-Werkzeuge</h3>
-                    <p class="u-color-muted u-text-sm u-margin-none">Cache leeren und alte Daten anonymisieren.</p>
+                    <h3 class="u-margin-block-none">Gefahrenzone: System-Werkzeuge</h3>
+                    <p class="u-color-muted u-text-sm u-margin-block-none">Cache leeren und alte Daten anonymisieren.
+                    </p>
                 </div>
             </header>
             <div class="o-grid o-grid--auto-fit-lg">
-                <div class="c-card c-card--primary u-flex-column u-margin-none">
+                <div class="c-card c-card--primary u-flex-column u-margin-block-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">🛡️ DSGVO-Anonymisierung</h4>
+                        <h4 class="u-margin-block-none u-text-lg">🛡️ DSGVO-Anonymisierung</h4> <?php // ToDo Icon?>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
-                        <p class="u-text-sm u-margin-none">Anonymisiert personenbezogene Daten in Archiv-Einträgen, die
+                        <p class="u-text-sm u-margin-block-none">Anonymisiert personenbezogene Daten in
+                            Archiv-Einträgen, die
                             älter als 10 Jahre sind. (Wird auch vom Cronjob erledigt).</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>anonymize_archive"
                               data-confirm="Sollen alte Archiv-Einträge jetzt DSGVO-konform anonymisiert werden?"
-                              class="u-margin-top-auto">
+                              class="u-margin-block-start-auto">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -85,17 +87,18 @@ $crons = [
                     </div>
                 </div>
 
-                <div class="c-card c-card--danger u-flex-column u-margin-none">
+                <div class="c-card c-card--danger u-flex-column u-margin-block-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">🧹 System-Cache leeren</h4>
+                        <h4 class="u-margin-block-none u-text-lg">🧹 System-Cache leeren</h4> <?php // ToDo Icon?>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
-                        <p class="u-text-sm u-margin-none">Löscht temporäre Dateien, Routen-Caches und kompiliert die
+                        <p class="u-text-sm u-margin-block-none">Löscht temporäre Dateien, Routen-Caches und kompiliert
+                            die
                             System-Berechtigungen neu.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>clear_cache"
                               data-confirm="Cache jetzt leeren?"
-                              class="u-margin-top-auto">
+                              class="u-margin-block-start-auto">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -109,26 +112,27 @@ $crons = [
     <?php } ?>
 
     <?php if ($auth->hasPermission('system.update.execute')) { ?>
-        <div class="u-margin-bottom-l">
-            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">🔄</span>
+        <div class="u-margin-block-end-l">
+            <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
+                <span class="u-text-xl">🔄</span> <?php // ToDo Icon?>
                 <div>
-                    <h3 class="u-margin-none">System-Updates</h3>
-                    <p class="u-color-muted u-text-sm u-margin-none">Verwalten Sie Datenbank-Updates und
+                    <h3 class="u-margin-block-none">System-Updates</h3>
+                    <p class="u-color-muted u-text-sm u-margin-block-none">Verwalten Sie Datenbank-Updates und
                         Schema-Erweiterungen.</p>
                 </div>
             </header>
             <div class="o-grid o-grid--auto-fit-lg">
-                <div class="c-card c-card--success u-flex-column u-margin-none">
+                <div class="c-card c-card--success u-flex-column u-margin-block-none">
                     <div class="c-card__header u-flex u-align-center u-gap-s u-padding-around-m">
-                        <h4 class="u-margin-none u-text-lg">⚡ Datenbank-Migrationen</h4>
+                        <h4 class="u-margin-block-none u-text-lg">⚡ Datenbank-Migrationen</h4>
                     </div>
                     <div class="c-card__body u-flex u-flex-column u-gap-m u-flex-grow-1">
-                        <p class="u-text-sm u-margin-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql Dateien)
+                        <p class="u-text-sm u-margin-block-none">Löst alle ausstehenden Tabellen-Anpassungen (.sql
+                            Dateien)
                             manuell aus, falls dies nicht via Console geschehen ist.</p>
                         <form method="POST"
                               action="<?php echo $settings['base_url']; ?>run_update_migrations"
-                              class="u-margin-top-auto">
+                              class="u-margin-block-start-auto">
                             <input type="hidden"
                                    name="csrf_token"
                                    value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
@@ -142,18 +146,19 @@ $crons = [
     <?php } ?>
 
     <?php if ($auth->hasPermission('system.maintenance.execute')) { ?>
-        <div class="u-margin-top-xl">
-            <header class="u-margin-bottom-m u-flex u-align-center u-gap-s">
-                <span class="u-text-xl">⏱️</span>
+        <div class="u-margin-block-start-xl">
+            <header class="u-margin-block-end-m u-flex u-align-center u-gap-s">
+                <span class="u-text-xl">⏱️</span> <?php // ToDo Icon?>
                 <div>
-                    <h3 class="u-margin-none">Cronjobs & Automatisierung</h3>
-                    <p class="u-color-muted u-text-sm u-margin-none">Rufen Sie diese URLs über Ihren Webhoster (z.B.
+                    <h3 class="u-margin-block-none">Cronjobs & Automatisierung</h3>
+                    <p class="u-color-muted u-text-sm u-margin-block-none">Rufen Sie diese URLs über Ihren Webhoster
+                        (z.B.
                         Strato, Ionos, oder cron-job.org) zyklisch per GET auf.</p>
                 </div>
             </header>
 
             <?php if ($cronSecret === '') { ?>
-                <div class="c-alert c-alert--danger u-margin-bottom-m">
+                <div class="c-alert c-alert--danger u-margin-block-end-m">
                     <strong>Achtung:</strong> Es wurde kein <code>cron_secret</code> in der Konfiguration definiert. Die
                     Automatisierung ist dadurch nicht abgesichert und wird fehlschlagen!
                 </div>
@@ -161,13 +166,14 @@ $crons = [
 
             <div class="u-flex u-flex-column u-gap-m">
                 <?php foreach ($crons as $cron) { ?>
-                    <div class="c-box c-box--highlight u-flex u-flex-column u-gap-m u-margin-none">
+                    <div class="c-box c-box--highlight u-flex u-flex-column u-gap-m u-margin-block-none">
                         <div>
-                            <h4 class="u-margin-none u-flex u-align-center u-gap-s u-text-lg">
+                            <h4 class="u-margin-block-none u-flex u-align-center u-gap-s u-text-lg">
                                 <span><?php echo $cron['icon']; ?></span> <?php echo $cron['label']; ?>
                             </h4>
-                            <p class="u-text-sm u-color-muted u-margin-top-xs u-margin-bottom-none"><?php echo $cron['desc']; ?></p>
-                            <div class="u-margin-top-s">
+                            <p class="u-text-sm u-color-muted u-margin-block-start-xs u-margin-block-end-none"><?php echo $cron['desc']; ?>
+                            </p>
+                            <div class="u-margin-block-start-s">
                                 <span class="c-badge c-badge--outline">Empfohlen: <?php echo $cron['interval']; ?></span>
                             </div>
                         </div>
@@ -189,7 +195,7 @@ $crons = [
                                     class="c-button c-button--primary js-cron-btn"
                                     data-url="<?php echo \htmlspecialchars($cron['url']); ?>"
                                     title="Jetzt manuell ausführen">
-                                ▶ Ausführen
+                                ▶ Ausführen <?php // ToDo Icon?>
                             </button>
                         </div>
                     </div>

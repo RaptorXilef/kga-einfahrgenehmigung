@@ -16,21 +16,21 @@ use App\Infrastructure\Config\Config;
  * @var Config $config
  * @var string $appRoot
  * @var string $cspNonce
- * @var string|null $error Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
+ * @var string|null $error  Optionale Fehlermeldung, wenn ein eingegebener Code nicht existiert.
  */
 $layout = 'public';
 $pageTitle = 'Genehmigung prüfen';
 ?>
 
-<div class="c-tab-content-container o-container o-container--small u-padding-y-xl">
-    <div class="c-card c-card--primary u-margin-auto">
+<div class="c-tab-content-container o-container o-container--small u-padding-block-xl">
+    <div class="c-card c-card--primary u-margin-inline-auto">
         <header class="c-card__header u-text-center">
-            <h2 class="u-margin-none">
+            <h2 class="u-margin-block-none">
                 <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>"
                      class="c-icon c-icon--md"
                      alt=""> Manuelle Prüfung
             </h2>
-            <p class="u-text-muted u-margin-top-s">Geben Sie den vollständigen SmartCode ein.</p>
+            <p class="u-text-muted u-margin-block-start-s">Geben Sie den vollständigen SmartCode ein.</p>
         </header>
         <div class="c-card__body">
 
@@ -39,7 +39,7 @@ $pageTitle = 'Genehmigung prüfen';
             <form action="check"
                   method="GET"
                   class="c-form">
-                <div class="c-form-group u-margin-bottom-l">
+                <div class="c-form-group u-margin-block-end-l">
                     <input type="text"
                            name="code"
                            aria-label="Gutscheincode eingeben"
