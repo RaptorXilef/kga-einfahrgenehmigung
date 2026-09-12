@@ -31,16 +31,16 @@
         }
     }
 
-    #voucher-container {
+    .c-voucher-container {
         transition:
-            max-height 0.3s ease-out,
+            max-block-size 0.3s ease-out,
             opacity 0.3s ease-out;
-        max-height: 0;
+        max-block-size: 0;
         opacity: 0;
         overflow: hidden;
 
         &.is-open {
-            max-height: 200px;
+            max-block-size: 200px;
             opacity: 1;
             margin-block-start: var(--space-m);
             margin-block-end: var(--space-l);

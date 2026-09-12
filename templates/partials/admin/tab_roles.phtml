@@ -34,20 +34,20 @@ if ($auth->hasPermission('system.roles.manage')) {
                 $isAllowed = $key ? \in_array($key, $rolePerms, true) : false;
                 $hasChildren = !empty($node['children']);
                 ?>
-                <div class="p-tree-node"
+                <div class="c-tree-node"
                      style="--depth: <?php echo $depth; ?>;"
                      data-key="<?php echo $key ?? $id; ?>">
-                    <div class="p-item <?php echo $depth === 0 ? 'is-root' : ''; ?> <?php echo !$key ? 'is-category' : ''; ?>">
-                        <div class="p-label u-flex u-flex-column">
-                            <span class="p-label-main <?php echo $depth === 0 ? 'p-label-main--root' : ''; ?>">
+                    <div class="c-tree-item <?php echo $depth === 0 ? 'c-tree-item--root' : ''; ?> <?php echo !$key ? 'is-category' : ''; ?>">
+                        <div class="c-tree-item__label-wrapper u-flex u-flex-column">
+                            <span class="c-tree-item__label <?php echo $depth === 0 ? 'c-tree-item__label--root' : ''; ?>">
                                 <?php echo \htmlspecialchars((string) ($node['label'] ?? $id)); ?>
                             </span>
                             <?php if ($key) { ?>
-                                <span class="p-label-sub">
+                                <span class="c-tree-item__sublabel">
                                     <?php echo \htmlspecialchars((string) $key); ?>
                                 </span>
                             <?php } else { ?>
-                                <span class="p-label-sub p-label-sub--category">
+                                <span class="c-tree-item__sublabel c-tree-item__sublabel--category">
                                     Kategorie
                                 </span>
                             <?php } ?>
@@ -59,9 +59,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                                            name="perms[]"
                                            value="<?php echo \htmlspecialchars((string) $key); ?>"
                                            data-perm-check="true"
-                                           data-key="<?php echo \htmlspecialchars((string) $key); ?>"
+                                           class="c-switch__input"
                                            <?php echo $isAllowed ? 'checked' : ''; ?>>
-                                    <span class="c-switch-label" data-on="ALLOW" data-off="NONE"></span>
+                                    <span class="c-switch__label" data-on="ALLOW" data-off="NONE"></span>
                                 </label>
                             <?php } ?>
                         </div>
@@ -120,7 +120,6 @@ if ($auth->hasPermission('system.roles.manage')) {
 
         <div class="u-flex u-flex-column u-gap-m">
             <?php foreach ($roles as $roleId => $rData) {
-                // NEU: Rolle Icon aus Ordner 'role' laden
                 $roleImage = $imageStorage->getImageUrl('role', $roleId, 'icon-shield.webp');
                 ?>
                 <div class="c-category-card is-closed"
@@ -243,8 +242,9 @@ if ($auth->hasPermission('system.roles.manage')) {
                                                name="perms[]"
                                                value="*"
                                                data-master-toggle="true"
+                                               class="c-switch__input"
                                                <?php echo \in_array('*', $rData->permissions, true) ? 'checked' : ''; ?>>
-                                        <span class="c-switch-label" data-on="MASTER" data-off="OFF"></span>
+                                        <span class="c-switch__label" data-on="MASTER" data-off="OFF"></span>
                                     </label>
                                 </div>
                             <?php } ?>
@@ -256,7 +256,7 @@ if ($auth->hasPermission('system.roles.manage')) {
                                 </div>
                             </div>
 
-                            <div class="p-tree-wrapper <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
+                            <div class="c-tree-wrapper <?php echo \in_array('*', $rData->permissions, true) ? 'is-master-active' : ''; ?>">
                                 <?php \renderPermissionNode($structure, $rData->permissions); ?>
                             </div>
 

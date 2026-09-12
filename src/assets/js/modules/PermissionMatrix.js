@@ -54,7 +54,7 @@ export class PermissionMatrix {
     }
 
     updateUiMode(mode) {
-        const wrappers = this.container.querySelectorAll('.p-tree-wrapper');
+        const wrappers = this.container.querySelectorAll('.c-tree-wrapper');
         wrappers.forEach((w) => {
             w.classList.remove('mode-hide', 'mode-grey');
             w.classList.add(`mode-${mode}`);
@@ -68,7 +68,7 @@ export class PermissionMatrix {
     }
 
     applyMasterState(container, isMaster) {
-        const treeWrapper = container.querySelector('.p-tree-wrapper');
+        const treeWrapper = container.querySelector('.c-tree-wrapper');
         if (!treeWrapper) return;
 
         if (isMaster) {
@@ -103,7 +103,7 @@ export class PermissionMatrix {
      */
     getNodeCheckbox(node) {
         if (!node) return null;
-        const pItem = Array.from(node.children).find((el) => el.classList.contains('p-item'));
+        const pItem = Array.from(node.children).find((el) => el.classList.contains('c-tree-item'));
         return pItem ? pItem.querySelector('input[data-perm-check="true"]') : null;
     }
 
@@ -116,7 +116,7 @@ export class PermissionMatrix {
 
         // Strenger Filter: Nur direkte HTML-Kinder (.p-tree-node), keine tieferen Suchen im DOM!
         const directChildNodes = Array.from(parentNode.children).filter((child) =>
-            child.classList.contains('p-tree-node')
+            child.classList.contains('c-tree-node')
         );
 
         directChildNodes.forEach((childNode) => {
@@ -135,7 +135,7 @@ export class PermissionMatrix {
      * 3. Bottom-Up: Klettert den Baum hoch und synchronisiert die Eltern-Knoten.
      */
     updateParents(node) {
-        let parentNode = node.parentElement ? node.parentElement.closest('.p-tree-node') : null;
+        let parentNode = node.parentElement ? node.parentElement.closest('.c-tree-node') : null;
 
         while (parentNode) {
             const parentCb = this.getNodeCheckbox(parentNode);
@@ -149,14 +149,14 @@ export class PermissionMatrix {
 
                     if (parentCb.checked !== allChecked) {
                         parentCb.checked = allChecked;
-                        this.triggerHighlight(parentCb.closest('.p-item'), allChecked);
+                        this.triggerHighlight(parentCb.closest('.c-tree-item'), allChecked);
                     }
                 }
             }
 
             // Klettere eine Ebene höher
             parentNode = parentNode.parentElement
-                ? parentNode.parentElement.closest('.p-tree-node')
+                ? parentNode.parentElement.closest('.c-tree-node')
                 : null;
         }
     }
@@ -165,7 +165,7 @@ export class PermissionMatrix {
      * 4. Die intelligente Logik - Adaptiert für n-Level Bäume!
      */
     handlePermissionChange(checkbox) {
-        const node = checkbox.closest('.p-tree-node');
+        const node = checkbox.closest('.c-tree-node');
         const isChecked = checkbox.checked;
 
         // A) TOP-DOWN: Wenn dieser Knoten geklickt wurde, müssen alle darunterliegenden Kinder denselben Status annehmen.
@@ -173,7 +173,7 @@ export class PermissionMatrix {
         descendantCheckboxes.forEach((cb) => {
             if (cb !== checkbox && cb.checked !== isChecked) {
                 cb.checked = isChecked;
-                this.triggerHighlight(cb.closest('.p-item'), isChecked);
+                this.triggerHighlight(cb.closest('.c-tree-item'), isChecked);
             }
         });
 
@@ -212,7 +212,6 @@ export class PermissionMatrix {
                 setTimeout(() => {
                     targetCard.classList.remove('is-closed');
                     targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
                     targetCard.classList.add('is-highlighted');
 
                     setTimeout(() => {

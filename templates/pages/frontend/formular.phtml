@@ -114,49 +114,47 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     <span id="date-warning-text"></span>
                 </div>
 
-                <!-- GUTSCHEIN EINGABE / ANZEIGE -->
-                <?php if ($prefill) { ?>
-                    <div class="c-voucher-alert">
-                        <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
-                        <div>
-                            <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
-                            <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
-                        </div>
-                    </div>
-                <?php } elseif ($hasActiveVouchers) { ?>
-                    <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
-                    <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
-                        <span class="c-voucher-toggle">
-                            <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                                 class="c-icon"
-                                 alt="">
-                            Sie haben einen Aktivierungscode? Dann hier klicken.
-                        </span>
-                    </div>
+        <!-- GUTSCHEIN EINGABE / ANZEIGE -->
+        <?php if ($prefill) { ?>
+            <div class="c-voucher-alert">
+                <span class="u-text-xl"><img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>" class="c-icon" alt=""></span>
+                <div>
+                    <strong>Aktivierungscode aktiv: <?php echo $prefill['code']; ?></strong><br>
+                    <small><?php echo \htmlspecialchars($prefill['reason']); ?></small>
+                </div>
+            </div>
+        <?php } elseif ($hasActiveVouchers) { ?>
+            <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
+            <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
+                <span class="c-voucher-toggle">
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
+                         class="c-icon"
+                         alt="">
+                    Sie haben einen Aktivierungscode? Dann hier klicken.
+                </span>
+            </div>
 
-                    <div id="voucher-container"
-                         class="c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
-
-                        <!-- Formular nur für den Gutschein-Check -->
-                        <form method="GET"
-                              action="index"
-                              class="u-flex u-gap-s u-align-end">
-                            <div class="c-form-group u-flex-grow-1">
-                                <label class="c-form-label"
-                                       for="voucher_input">Code eingeben</label>
-                                <input type="text"
-                                       id="voucher_input"
-                                       name="voucher"
-                                       class="c-form-input u-text-uppercase"
-                                       placeholder="GUT-XXXX-XXXX"
-                                       autocomplete="off"
-                                       value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
-                            </div>
-                            <button type="submit"
-                                    class="c-button--primary c-button--medium">Einlösen</button>
-                        </form>
+            <div class="c-voucher-container js-voucher-container c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
+                <!-- Formular nur für den Gutschein-Check -->
+                <form method="GET"
+                      action="index"
+                      class="u-flex u-gap-s u-align-end">
+                    <div class="c-form-group u-flex-grow-1">
+                        <label class="c-form-label"
+                               for="voucher_input">Code eingeben</label>
+                        <input type="text"
+                               id="voucher_input"
+                               name="voucher"
+                               class="c-form-input u-text-uppercase"
+                               placeholder="GUT-XXXX-XXXX"
+                               autocomplete="off"
+                               value="<?php echo \htmlspecialchars($_GET['voucher'] ?? ''); ?>">
                     </div>
-                <?php } ?>
+                    <button type="submit"
+                            class="c-button--primary c-button--medium">Einlösen</button>
+                </form>
+            </div>
+        <?php } ?>
 
                 <!-- HAUPT-FORMULAR -->
                 <form action="index"

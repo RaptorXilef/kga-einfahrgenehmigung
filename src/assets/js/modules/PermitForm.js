@@ -99,7 +99,7 @@ export class PermitForm {
 
         // Frontend: Gutschein-Toggle (Die Elemente liegen in der public View außerhalb des form-Tags!)
         const voucherToggle = document.querySelector('.c-voucher-toggle');
-        const voucherWrap = document.querySelector('#voucher-container');
+        const voucherWrap = document.querySelector('.js-voucher-container');
 
         if (voucherToggle && voucherWrap && !voucherToggle.dataset.bound) {
             voucherToggle.dataset.bound = 'true'; // Doppeltes Binden verhindern

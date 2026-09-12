@@ -1,5 +1,5 @@
 @layer components {
-    .p-tree-wrapper {
+    .c-tree-wrapper {
         transition: all 0.3s ease;
     }
 
@@ -9,19 +9,18 @@
         filter: grayscale(100%);
     }
 
-    .p-tree-node {
+    .c-tree-node {
         transition: all 0.2s;
-        /* Berechnung der Einrückung auf Basis der injizierten CSS-Variable --depth */
-        margin-inline-start: calc(var(--depth, 0) * 28px);
+        margin-inline-start: calc(var(--depth, 0) * var(--space-xl));
     }
 
     .p-tree-node:last-child > .p-item {
         border-block-end: none;
     }
 
-    .p-item {
+    .c-tree-item {
         transition: background-color 0.2s;
-        padding-block: 8px;
+        padding-block: var(--space-s);
         padding-inline: 0;
         border-block-end: 1px solid var(--color-bg-light);
         display: flex;
@@ -53,22 +52,22 @@
         ) !important;
     }
 
-    .p-label-main {
+    .c-tree-item__label {
         display: block;
-        font-size: 0.95rem;
+        font-size: clamp(0.9rem, 1vw, 0.95rem);
         color: var(--color-text-main);
         font-weight: 700;
     }
 
-    .p-label-main--root {
-        font-size: 1.05rem;
+    .c-tree-item__label--root {
+        font-size: clamp(1rem, 1.2vw, 1.05rem);
     }
 
-    .p-label-sub {
+    .c-tree-item__sublabel {
         display: block;
         font-size: 0.75rem;
         color: var(--color-text-muted);
-        font-family: monospace;
+        font-family: var(--font-mono, monospace);
         margin-block-start: 2px;
     }
 
@@ -76,20 +75,41 @@
         font-style: italic;
     }
 
+    /* Entkoppeltes, flaches Switch-Component via :has() */
     .c-switch {
         position: relative;
         display: inline-block;
         inline-size: 100px;
         block-size: 32px;
+
+        .c-switch:has(.c-switch__input:checked) .c-switch__label {
+            background-color: var(--color-success);
+
+            &::before {
+                transform: translateX(68px);
+            }
+
+            &::after {
+                content: attr(data-on);
+                inset-inline-start: 12px;
+                inset-inline-end: auto;
+                color: var(--color-bg-white);
+            }
+        }
+
+        &--danger:has(.c-switch__input:checked) .c-switch__label {
+            background-color: var(--color-danger);
+        }
     }
 
-    .c-switch input {
+    .c-switch__input {
         opacity: 0;
         inline-size: 0;
         block-size: 0;
+        position: absolute;
     }
 
-    .c-switch-label {
+    .c-switch__label {
         position: absolute;
         cursor: pointer;
         inset: 0;
@@ -104,41 +124,25 @@
         block-size: 24px;
         inline-size: 24px;
         inset-inline-start: 4px;
-        inset-block-end: 3px;
+        inset-block-start: 50%;
+        translate: 0 -50%;
         background-color: var(--color-bg-white);
         transition: 0.4s;
         border-radius: 50%;
         z-index: 5;
-        box-shadow: 0 2px 4px color-mix(in oklch, oklch(0 0 0) 20%, transparent);
+        box-shadow: 0 2px 4px
+            color-mix(in oklch, var(--color-text-dark) 20%, transparent);
     }
 
     .c-switch-label::after {
         content: attr(data-off);
         position: absolute;
         inset-inline-end: 12px;
-        inset-block-start: 7px;
+        inset-block-start: 50%;
+        translate: 0 -50%;
         font-size: 0.65rem;
         font-weight: 900;
         color: var(--color-text-muted);
         transition: all 0.3s;
-    }
-
-    .c-switch input:checked + .c-switch-label {
-        background-color: var(--color-success);
-    }
-
-    .c-switch input:checked + .c-switch-label::before {
-        transform: translateX(68px);
-    }
-
-    .c-switch input:checked + .c-switch-label::after {
-        content: attr(data-on);
-        inset-inline-start: 12px;
-        inset-inline-end: auto;
-        color: var(--color-bg-white);
-    }
-
-    .c-switch--danger input:checked + .c-switch-label {
-        background-color: var(--color-danger);
     }
 }
