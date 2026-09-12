@@ -28,24 +28,28 @@
     }
 
     .c-card--voucher {
-        border-block-start: 5px solid #6366f1;
+        border-block-start: 5px solid var(--color-primary-soft);
     }
 
     .c-card__header {
-        padding: var(--space-l);
+        padding-block: var(--space-l);
+        padding-inline: var(--space-l);
         border-block-end: 1px solid var(--color-border);
     }
 
     .c-card__body {
-        padding: var(--space-l);
+        padding-block: var(--space-l);
+        padding-inline: var(--space-l);
     }
 
     .c-card__body--xl {
-        padding: var(--space-xl);
+        padding-block: var(--space-xl);
+        padding-inline: var(--space-xl);
     }
 
     .c-card__footer {
-        padding: var(--space-m);
+        padding-block: var(--space-m);
+        padding-inline: var(--space-m);
         border-block-start: 1px solid var(--color-border);
         background-color: var(--color-bg-light);
     }
@@ -55,33 +59,35 @@
         background-color: var(--color-bg-white);
         border: 1px solid var(--color-border);
         border-radius: 12px;
+    }
 
-        &__header {
-            padding: 12px 20px;
-            background-color: color-mix(
-                in oklch,
-                var(--color-text-main) 2%,
-                transparent
-            );
-            border-radius: 12px;
-            transition: border-radius 0.2s;
-        }
+    .c-category-card__header {
+        padding-block: 12px;
+        padding-inline: 20px;
+        background-color: color-mix(
+            in oklch,
+            var(--color-text-main) 2%,
+            transparent
+        );
+        border-radius: 12px;
+        transition: border-radius 0.2s;
+    }
 
-        &__body {
-            background-color: var(--color-bg-light);
-            padding: 20px;
-            border-block-start: 1px solid var(--color-border);
-            border-end-start-radius: 12px;
-            border-end-end-radius: 12px;
-        }
+    .c-category-card__body {
+        background-color: var(--color-bg-light);
+        padding-block: var(--space-l);
+        padding-inline: var(--space-l);
+        border-block-start: 1px solid var(--color-border);
+        border-end-start-radius: 12px;
+        border-end-end-radius: 12px;
+    }
 
-        &:not(.is-closed) &__header {
-            border-end-start-radius: 0;
-            border-end-end-radius: 0;
-        }
+    .c-category-card:not(.is-closed) .c-category-card__header {
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+    }
 
-        &.is-closed &__body {
-            display: none;
-        }
+    .c-category-card.is-closed .c-category-card__body {
+        display: none;
     }
 }

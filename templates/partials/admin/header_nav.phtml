@@ -43,11 +43,11 @@ $currentPage = $path === '' ? 'admin' : $path;
             <div class="c-header-nav__brand">
                 <div class="c-user-pill">
                     <span class="u-font-bold u-text-sm u-flex u-align-center u-gap-s">
-            <img src="<?php echo $userImgUrl; ?>" class="c-avatar c-avatar--xs" alt="User Avatar">
-            <a href="profile" class="c-user-pill__link" title="Zum Profil">
-              <?php echo \htmlspecialchars($auth->getUsername()); ?>
-            </a>
-          </span>
+                        <img src="<?php echo $userImgUrl; ?>" class="c-avatar c-avatar--xs" alt="User Avatar">
+                        <a href="profile" class="c-user-pill__link" title="Zum Profil">
+                            <?php echo \htmlspecialchars($auth->getUsername()); ?>
+                        </a>
+                    </span>
                     <div class="c-group-badge">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                              class="c-icon"
@@ -102,14 +102,14 @@ $currentPage = $path === '' ? 'admin' : $path;
         <div class="c-header-nav__bottom">
             <?php if ($auth->hasPermission('admin.access')) { ?>
                 <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
-          <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
-        </a>
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
+                </a>
             <?php } ?>
 
-            <!-- u-margin-left-auto schiebt den Button im Flexbox-Layout komplett nach rechts! -->
-            <a href="check" class="c-tabs__btn u-margin-left-auto" target="_blank">
-        <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
-      </a>
+            <!-- Hier wurde die physische Margin-Klasse durch die logische ersetzt! -->
+            <a href="check" class="c-tabs__btn u-margin-inline-start-auto" target="_blank">
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
+            </a>
         </div>
 
     </div>
@@ -121,11 +121,11 @@ $currentPage = $path === '' ? 'admin' : $path;
         <h3 class="c-modal__title">
             <span class="u-text-xl">⚠️</span> Inaktivität erkannt
         </h3>
-        <p class="u-color-muted u-margin-top-s">Aus Sicherheitsgründen werden Sie in <br><strong
+        <p class="u-color-muted u-margin-block-start-s">Aus Sicherheitsgründen werden Sie in <br><strong
                     id="modal-session-countdown"
                     class="u-color-danger u-text-xl">03:00</strong><br> Minuten automatisch abgemeldet.</p>
 
-        <div class="o-grid o-grid--2-cols u-margin-top-l">
+        <div class="o-grid o-grid--2-cols u-margin-block-start-l">
             <!-- Button 1: Bleiben -->
             <button id="btn-session-stay"
                     class="c-button c-button--success u-width-100">Bleiben</button>
@@ -133,7 +133,7 @@ $currentPage = $path === '' ? 'admin' : $path;
             <!-- Button 2: Abmelden (Sicheres Formular) -->
             <form method="POST"
                   action="admin_logout"
-                  class="u-margin-none u-width-100">
+                  class="u-margin-block-none u-width-100">
                 <input type="hidden"
                        name="csrf_token"
                        value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
