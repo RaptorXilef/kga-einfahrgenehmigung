@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.68.2](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.68.1...v0.68.2) (2026-09-12)
+
+### ⚙️ Refactoring
+
+* **frontend:** Migrate inline CSS to BEM and implement Dark Mode ([c2e194c](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/c2e194cc564927f38831c5825347f616b51a13dc))
+* **ui:** Fix avatar sizes, fix missing SCSS forwards, improve dark mode logic ([dea5584](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/dea558492d621721b9b23cd422ceb50bcd095319))
+* **ui:** Improve dark mode contrast, fix inputs, restructure admin header ([a408003](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/a4080032aa3c4ea451ed7465052494b5e3b5018b))
+* **ui:** Reorder dashboard UX, improve header menus and fix email word-breaks ([6f74ea8](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/6f74ea8130205d60b564fcb02fcdd18671e602fd))
+* **ui:** Unify pagination, add top/bottom controls, fix email word-breaks ([f4e937a](https://github.com/RaptorXilef/kga-einfahrgenehmigung/commit/f4e937aab2240e0efd998d6fec9da2e7e9c86748)), references [#8203](https://github.com/RaptorXilef/kga-einfahrgenehmigung/issues/8203)
+
 ## [0.68.1](https://github.com/RaptorXilef/kga-einfahrgenehmigung/compare/v0.68.0...v0.68.1) (2026-09-11)
 
 ### 🐛 Bug Fixes
