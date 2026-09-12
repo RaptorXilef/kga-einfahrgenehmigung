@@ -39,7 +39,7 @@
     .c-form-label {
         font-weight: 600;
         color: var(--color-text-muted);
-        margin-block-end: 8px;
+        margin-block-end: var(--space-s);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -55,8 +55,8 @@
     }
 
     .c-form-section {
-        margin-block-end: 2.5rem;
-        padding: 1.5rem;
+        margin-block-end: var(--space-xl);
+        padding: var(--space-l);
         background-color: var(--color-bg-white);
         border-radius: 12px;
         border: 1px solid var(--color-border);
@@ -65,8 +65,8 @@
     .c-form-section__title {
         display: flex;
         align-items: center;
-        gap: 10px;
-        margin-block-end: 1.5rem;
+        gap: var(--space-s);
+        margin-block-end: var(--space-l);
         color: var(--color-text-main);
     }
 
@@ -86,7 +86,7 @@
         font-size: clamp(1.2rem, 3vw, 1.4rem);
         color: var(--color-primary);
         background-color: var(--color-primary-soft);
-        padding: 18px;
+        padding: var(--space-m);
         border-radius: 12px;
         border: 1px solid
             color-mix(in oklch, var(--color-primary) 20%, transparent);
