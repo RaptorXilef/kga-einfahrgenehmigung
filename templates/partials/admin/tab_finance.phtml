@@ -47,7 +47,6 @@ $privacyFinance = $auth->hasPermission('privacy.finance.view');
 $colspan = 5 + ($privacyEmail ? 1 : 0) + ($privacyFinance ? 1 : 0) + ($hasBulkRight ? 1 : 0);
 
 $paginationHtml = '';
-/* ... Paginierung identisch zum Original übersprungen für Übersichtlichkeit ... */
 if ($totalPages > 1) {
     $queryParams = $_GET;
     unset($queryParams['page']);
@@ -119,7 +118,7 @@ if ($totalPages > 1) {
 <?php
     $paginationHtml = \ob_get_clean();
 } elseif ($totalCount > 0) {
-    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top u-bg-light">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
+    $paginationHtml = '<div class="u-text-center u-padding-around-s u-color-muted u-text-sm u-border-top" style="background-color: var(--color-bg-light);">Gesamt: <strong>' . $totalCount . '</strong> Einträge</div>';
 }
 
 if ($auth->hasPermission('finance.view')) {
@@ -127,8 +126,7 @@ if ($auth->hasPermission('finance.view')) {
     <div class="c-tab-content-container">
         <section class="c-card c-card--warning">
             <header class="c-card__header u-flex u-justify-between u-align-center">
-                <h3 class="u-margin-block-none">💰 Zahlungsüberwachung</h3> <?php // ToDo Icon
-                                                                                ?>
+                <h3 class="u-margin-block-none">💰 Zahlungsüberwachung</h3> <?php // ToDo Icon?>
                 <div class="u-flex u-align-center u-gap-m">
                     <?php if ($hasBulkRight && $totalCount > 0) { ?>
                         <button type="submit"
@@ -148,9 +146,8 @@ if ($auth->hasPermission('finance.view')) {
                                 formaction="<?php echo $settings['base_url']; ?>send_reminder"
                                 id="bulkRemindBtn"
                                 class="c-button c-button--danger c-button--small u-hidden"
-                                data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern?">
-                            🔔 <span id="bulkRemindCount">0</span> erinnern <?php // ToDo Icon
-                                                                                ?>
+                                data-confirm-click="Ausgewählte Pächter jetzt an Zahlung erinnern (sofern kein Cooldown aktiv ist)?">
+                            🔔 <span id="bulkRemindCount">0</span> erinnern <?php // ToDo Icon?>
                         </button>
                     <?php } ?>
                     <span class="c-badge c-badge--danger">OFFEN: <?php echo \count($allUnpaid); ?></span>
@@ -167,8 +164,7 @@ if ($auth->hasPermission('finance.view')) {
                         <div
                              class="c-alert c-alert--warning c-alert--large u-flex-column u-align-start u-text-left u-margin-block-end-l">
                             <h4 class="u-margin-block-start-none u-margin-block-end-s u-flex u-align-center u-gap-s">
-                                <span class="u-text-xl">⚠️</span> Manuelle Zahlungszuordnung erforderlich <?php // ToDo Icon
-                                                                                                                ?>
+                                <span class="u-text-xl">⚠️</span> Manuelle Zahlungszuordnung erforderlich <?php // ToDo Icon?>
                             </h4>
                             <p class="u-margin-block-start-none u-margin-block-end-m u-text-sm">
                                 Das System hat in der Bankdatei Überweisungen gefunden, die manuell geprüft werden
@@ -216,7 +212,6 @@ if ($auth->hasPermission('finance.view')) {
                     </div>
                 <?php } ?>
                 <!-- ENDE AUFGABEN-LISTE -->
-
 
                 <form method="POST"
                       id="bulk-action-form"
@@ -281,8 +276,8 @@ if ($auth->hasPermission('finance.view')) {
                                                            class="js-bulk-pay-cb c-form-checkbox">
                                                 <?php } else { ?>
                                                     <span title="Gesperrt" class="u-opacity-50">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" alt="">
-                                                </span>
+                                                        <img src="<?php echo $asset->url('assets/img/icons/icon_prohibited.webp'); ?>" class="c-icon" alt="">
+                                                    </span>
                                                 <?php } ?>
                                             </td>
                                         <?php } ?>
@@ -309,14 +304,14 @@ if ($auth->hasPermission('finance.view')) {
                                             </div>
                                         </td>
 
-                                        <!-- 3. E-Mail (Anklickbar) mit Zeilenumbruch -->
+                                        <!-- 3. E-Mail -->
                                         <?php if ($privacyEmail) { ?>
                                             <td data-sort-val="<?php echo \htmlspecialchars($permit->getOwnerEmail()); ?>">
                                                 <?php if ($permit->getOwnerEmail()) { ?>
                                                     <small>
                                                         <a href="mailto:<?php echo \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8'); ?>" class="u-text-link">
-                                                        <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
-                                                    </a>
+                                                            <?php echo \str_replace('@', '<wbr>@', \htmlspecialchars($permit->getOwnerEmail(), \ENT_QUOTES, 'UTF-8')); ?>
+                                                        </a>
                                                     </small>
                                                 <?php } else { ?>
                                                     <small class="u-color-muted"><em>Keine Mail</em></small>
@@ -329,8 +324,8 @@ if ($auth->hasPermission('finance.view')) {
                                             class="u-text-center">
                                             <?php if ($overdueLevel === 2) { ?>
                                                 <span class="c-badge c-badge--danger u-text-nowrap">
-                                                <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
-                                            </span>
+                                                    <img src="<?php echo $asset->url('assets/img/icons/icon_police-car-light.webp'); ?>" class="c-icon" alt=""> <?php echo \abs($days); ?> TAGE ÜBERFÄLLIG
+                                                </span>
                                             <?php } elseif ($overdueLevel === 1) { ?>
                                                 <span class="c-badge c-badge--warning u-text-nowrap">MAHNFRIST ABGELAUFEN</span>
                                             <?php } else { ?>
@@ -362,13 +357,13 @@ if ($auth->hasPermission('finance.view')) {
                                             </td>
                                         <?php } ?>
 
-                                        <!-- 6. Aktionen (Inkl. Auge) -->
+                                        <!-- 6. Aktionen -->
                                         <td class="u-text-right u-padding-inline-end-m">
                                             <div class="u-flex u-gap-xs u-justify-end u-flex-wrap">
                                                 <?php if ($auth->hasPermission('finance.view')) { ?>
                                                     <a href="check?code=<?php echo $permit->code; ?>" target="_blank" class="c-button c-button--secondary c-button--small c-button--icon-only" title="Details">
-                                                    <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
-                                                </a>
+                                                        <img src="<?php echo $asset->url('assets/img/icons/action-view.webp'); ?>" class="c-icon" alt="">
+                                                    </a>
                                                 <?php } ?>
                                                 <?php if ($auth->hasPermission('permits.suspend')) { ?>
                                                     <?php if ($is_suspended) { ?>
@@ -413,8 +408,7 @@ if ($auth->hasPermission('finance.view')) {
                                                         <button type="submit"
                                                                 class="c-button <?php echo $isOnCooldown ? 'c-button--secondary' : 'c-button--danger'; ?> c-button--small c-button--icon-only"
                                                                 title="Zahlungserinnerung senden <?php echo $isOnCooldown ? '(Cooldown aktiv)' : ''; ?>">
-                                                            🔔 <?php // ToDo Icon
-                                                                    ?>
+                                                            🔔 <?php // ToDo Icon?>
                                                         </button>
                                                     </form>
                                                 <?php } ?>
@@ -476,7 +470,9 @@ if ($auth->hasPermission('finance.view')) {
                     <?php } ?>
                 <?php } ?>
             </div>
+
             <?php echo $paginationHtml; ?>
+
         </section>
     </div>
 <?php } ?>

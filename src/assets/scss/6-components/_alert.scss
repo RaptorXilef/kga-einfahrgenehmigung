@@ -1,6 +1,7 @@
 @layer components {
     .c-alert {
-        padding: 16px 24px;
+        padding-block: 16px;
+        padding-inline: 24px;
         border-radius: 12px;
         margin-block-end: 2rem;
         font-weight: 500;
@@ -8,12 +9,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
+        gap: var(--space-m);
         box-shadow: var(--shadow-sm);
     }
 
-    // FIX: Nutzen von var(--color-text-main) anstelle von hartem Schwarz,
-    // damit die Schrift im Dark Mode automatisch zu Weiß/Hellgrau wechselt.
     .c-alert--success {
         background-color: var(--color-success-soft);
         color: color-mix(
@@ -69,7 +68,8 @@
     .c-alert--large {
         flex-direction: column;
         text-align: center;
-        padding: clamp(2rem, 5vw, 3rem) 2rem;
+        padding-block: clamp(2rem, 5vw, 3rem);
+        padding-inline: 2rem;
         border: 2px solid var(--color-success);
     }
 

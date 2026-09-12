@@ -94,16 +94,18 @@
         &:hover {
             color: var(--color-text-dark);
         }
+    }
 
-        &[data-sort-dir='asc'],
-        &[data-sort-dir='desc'] {
-            color: var(--color-primary);
+    /* BEM Fix: Flaches Nesting (Maximal 2 Ebenen) für Sortable Icons */
+    .is-sortable[data-sort-dir='asc'],
+    .is-sortable[data-sort-dir='desc'] {
+        color: var(--color-primary);
+    }
 
-            .c-sort-icon {
-                opacity: 1;
-                color: var(--color-primary);
-            }
-        }
+    .is-sortable[data-sort-dir='asc'] .c-sort-icon,
+    .is-sortable[data-sort-dir='desc'] .c-sort-icon {
+        opacity: 1;
+        color: var(--color-primary);
     }
 
     .c-sort-icon {
