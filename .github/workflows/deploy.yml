@@ -34,7 +34,7 @@ jobs:
 
       - name: 📦 NPM Abhängigkeiten installieren
         # Nutzen install statt ci, da es fehlertoleranter bei asynchronen lock-Dateien ist
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --legacy-peer-deps
 
       - name: 🛠️ Frontend Assets kompilieren & minifizieren (CSS & JS)
         run: |
