@@ -11,7 +11,7 @@ export class PermissionMatrix {
 
     init() {
         // A. UI Modus (Fokus/Experte) wiederherstellen
-        // ry/Catch für localStorage, um Abstürze in Safari-Private-Mode zu verhindern
+        // try/Catch für localStorage, um Abstürze in Safari-Private-Mode zu verhindern
         let savedMode = 'hide';
         try {
             savedMode = localStorage.getItem('pref_perm_ui_mode') || 'hide';
@@ -213,11 +213,10 @@ export class PermissionMatrix {
                     targetCard.classList.remove('is-closed');
                     targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                    targetCard.style.outline = '3px solid var(--primary-color)';
-                    targetCard.style.outlineOffset = '2px';
+                    targetCard.classList.add('is-highlighted');
 
                     setTimeout(() => {
-                        targetCard.style.outline = 'none';
+                        targetCard.classList.remove('is-highlighted');
                     }, 2000);
                 }, 400);
             }

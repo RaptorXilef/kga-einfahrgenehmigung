@@ -44,4 +44,11 @@
         z-index: 10;
         border-radius: inherit;
     }
+
+    .js-preview-text.is-filled {
+        font-size: 1.2rem;
+        opacity: 1;
+        color: var(--color-primary);
+        transition: all 0.2s;
+    }
 }

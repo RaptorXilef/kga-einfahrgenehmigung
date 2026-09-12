@@ -98,9 +98,9 @@ export class AdminDashboard {
             if (this.countSpanPay) this.countSpanPay.innerText = checkedCount;
             if (this.countSpanRemind) this.countSpanRemind.innerText = checkedCount;
 
-            const displayStyle = checkedCount > 0 ? 'inline-flex' : 'none';
-            this.btnPay.style.display = displayStyle;
-            this.btnRemind.style.display = displayStyle;
+            const isHidden = checkedCount === 0;
+            this.btnPay.classList.toggle('u-hidden', isHidden);
+            this.btnRemind.classList.toggle('u-hidden', isHidden);
         }
     }
 
@@ -162,7 +162,7 @@ export class AdminDashboard {
             if (auditBtn) this.switchTab('tab-audit-log', auditBtn);
         }
 
-        // NEU: Globale Focus-Steuerung für Tabs
+        // Globale Focus-Steuerung für Tabs
         // Zwingt das UI, einen bestimmten Tab zu öffnen (überschreibt den LocalStorage)
         const focusId = urlParams.get('focus');
         if (focusId?.startsWith('tab-')) {

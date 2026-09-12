@@ -13,7 +13,7 @@ export class TableSorter {
     }
 
     init() {
-        // FIX: Idempotentes Mounting - Schützt vor doppelter Event-Bindung bei AJAX Tab-Wechseln
+        // Idempotentes Mounting - Schützt vor doppelter Event-Bindung bei AJAX Tab-Wechseln
         if (this.table.dataset.sorterBound === 'true') return;
         this.table.dataset.sorterBound = 'true';
 
@@ -25,15 +25,11 @@ export class TableSorter {
         this.originalRows = Array.from(this.tbody.querySelectorAll('tr'));
 
         this.headers.forEach((th, index) => {
-            th.style.cursor = 'pointer';
-            th.style.userSelect = 'none';
+            th.classList.add('is-sortable');
             th.title = 'Klicken zum Sortieren';
 
             // Non-destruktiver Insert verhindert das Löschen von Child-Event-Listenern
-            th.insertAdjacentHTML(
-                'beforeend',
-                ' <span class="sort-icon" style="opacity:0.3; font-size:1em; margin-left: 4px; display:inline-block; vertical-align:middle;">⇅</span>'
-            );
+            th.insertAdjacentHTML('beforeend', ' <span class="c-sort-icon">⇅</span>');
 
             th.addEventListener('click', () => this.sortTable(th, index));
         });
@@ -52,12 +48,8 @@ export class TableSorter {
         // Alle Icons & Stati zurücksetzen
         this.headers.forEach((header) => {
             header.setAttribute('data-sort-dir', 'none');
-            const icon = header.querySelector('.sort-icon');
-            if (icon) {
-                icon.innerHTML = '⇅';
-                icon.style.opacity = '0.3';
-                icon.style.color = 'inherit';
-            }
+            const icon = header.querySelector('.c-sort-icon');
+            if (icon) icon.innerHTML = '⇅';
         });
 
         // DocumentFragment verhindert 1000x Reflows/Repaints beim Rendern!
@@ -71,11 +63,9 @@ export class TableSorter {
         } else {
             // 1. oder 2. Klick: Sortieren
             th.setAttribute('data-sort-dir', nextSort);
-            const icon = th.querySelector('.sort-icon');
+            const icon = th.querySelector('.c-sort-icon');
             if (icon) {
                 icon.innerHTML = nextSort === 'asc' ? '↓' : '↑';
-                icon.style.opacity = '1';
-                icon.style.color = 'var(--primary-color)';
             }
 
             rows.sort((a, b) => {

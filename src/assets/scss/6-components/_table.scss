@@ -84,4 +84,37 @@
         display: inline-block;
         max-inline-size: 100%;
     }
+
+    /* TableSorter.js Extensions */
+    .is-sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.2s;
+
+        &:hover {
+            color: var(--color-text-dark);
+        }
+
+        &[data-sort-dir='asc'],
+        &[data-sort-dir='desc'] {
+            color: var(--color-primary);
+
+            .c-sort-icon {
+                opacity: 1;
+                color: var(--color-primary);
+            }
+        }
+    }
+
+    .c-sort-icon {
+        opacity: 0.3;
+        font-size: 1.1em;
+        margin-inline-start: 4px;
+        display: inline-block;
+        vertical-align: middle;
+        color: inherit;
+        transition:
+            opacity 0.2s,
+            color 0.2s;
+    }
 }

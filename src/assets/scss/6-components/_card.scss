@@ -90,4 +90,10 @@
     .c-category-card.is-closed .c-category-card__body {
         display: none;
     }
+
+    .c-category-card.is-highlighted {
+        outline: 3px solid var(--color-primary);
+        outline-offset: 2px;
+        transition: outline 0.3s;
+    }
 }

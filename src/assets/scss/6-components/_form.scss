@@ -109,6 +109,22 @@
         margin-block-start: 4px;
     }
 
+    .c-price-display.is-free {
+        color: var(--color-success);
+        background-color: var(--color-success-soft);
+        border-color: color-mix(
+            in oklch,
+            var(--color-success) 20%,
+            transparent
+        );
+    }
+
+    .c-price-display.is-error {
+        color: var(--color-danger);
+        background-color: var(--color-danger-soft);
+        border-color: color-mix(in oklch, var(--color-danger) 20%, transparent);
+    }
+
     .c-form-checkbox {
         margin-block-start: 4px;
         transform: scale(1.2);

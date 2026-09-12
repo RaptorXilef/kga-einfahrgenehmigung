@@ -311,6 +311,7 @@ export class PermitForm {
 
         // Stale Request ignorieren
         if (currentFetchId !== this.priceFetchId) return;
+        this.priceDisplay.classList.remove('is-free', 'is-error');
 
         if (res.success) {
             // "Fail-Safe" Sicherheitsmechanismus
@@ -340,16 +341,14 @@ export class PermitForm {
                 if (res.discountText) this.priceDisplay.title = res.discountText;
             }
 
-            this.priceDisplay.style.color = res.isFree ? '#059669' : 'var(--primary-color)';
-            this.priceDisplay.style.background = res.isFree ? '#ecfdf5' : 'var(--primary-soft)';
+            if (res.isFree) this.priceDisplay.classList.add('is-free');
         } else {
             // Silent-Failure beheben und UI Error-State setzen
             this.priceDisplay.innerText =
                 this.priceDisplay.tagName === 'SPAN'
                     ? 'Fehler'
                     : 'Gebühr: Berechnung fehlgeschlagen';
-            this.priceDisplay.style.color = 'var(--danger-color)';
-            this.priceDisplay.style.background = 'var(--danger-soft, #fee2e2)';
+            this.priceDisplay.classList.add('is-error');
             notifier.show(
                 'Preis konnte aufgrund eines Netzwerkfehlers nicht berechnet werden.',
                 'error'
