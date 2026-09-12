@@ -31,17 +31,12 @@ $prefill ??= null;
 $formData ??= [];
 $tplMetadata = [];
 
-// Zugriff auf $settings['public_templates'] (jetzt vom Controller geliefert)
 $publicTemplates = $settings['public_templates'] ?? [];
 
 foreach ($publicTemplates as $key => $tpl) {
     $tplMetadata[$key] = ['days' => $tpl['days'], 'type' => $tpl['type']];
 }
 
-/**
- * FIX: Prüft, ob ein Feld gesperrt werden soll.
- * Bei Daten aus Gutscheinen werden Felder nur gesperrt, wenn sie auch wirklich Inhalt haben.
- */
 $isLocked = fn ($fieldName) => ($prefill && isset($prefill['data'][$fieldName]) && $prefill['data'][$fieldName] !== '') ? 'readonly' : '';
 
 // Suche nach dem Logo mit verschiedenen Endungen
@@ -54,24 +49,16 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 }
 ?>
 
-<div class="c-tab-content-container o-container o-container--large u-padding-y-l">
-    <div class="c-card c-card--primary u-margin-auto">
+<div class="c-tab-content-container o-container o-container--large u-padding-block-l">
+    <div class="c-card c-card--primary u-margin-inline-auto">
         <header class="c-card__header u-text-center">
-            <?php /* <div class="u-margin-bottom-m u-flex u-justify-center">
-                    <img src="<?php echo $settings['base_url'] . 'assets/img/logo/kga-zm.webp'; ?>"
-                         alt="KGA Einfahrts-Manager Logo"
-                         style="max-width: 280px; max-height: 220px; object-fit: contain;">
-                </div> */ ?>
-            <!-- u-text-center für Überschrift und Text -->
-            <!-- <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1> -->
             <?php if ($logoFile) { ?>
-                <div class="u-margin-bottom-m u-flex u-justify-center">
+                <div class="u-margin-block-end-m u-flex u-justify-center">
                     <img src="<?php echo $settings['base_url'] . $logoFile; ?>"
                          alt="<?php echo \htmlspecialchars($config->get('vereins_name')); ?>"
                          class="c-logo">
                 </div>
             <?php } ?>
-            <!-- <p class="u-text-muted u-margin-top-s u-text-center"><?php echo \htmlspecialchars($config->get('vereins_name')); ?></p> -->
             <h1 class="u-margin-none u-text-center">Antrag auf Ausnahmegenehmigung zum Befahren der Anlage</h1>
         </header>
 
@@ -79,24 +66,24 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
             <!-- Bestätigungs Meldung - E-Mail versandt -->
             <?php if ($success) { ?>
-                <div class="c-alert c-alert--success c-alert--large u-margin-bottom-l">
+                <div class="c-alert c-alert--success c-alert--large u-margin-block-end-l">
                     <img src="<?php echo $asset->url('assets/img/icons/status-success.webp'); ?>"
-                         class="c-icon c-icon--lg u-margin-bottom-m"
+                         class="c-icon c-icon--lg u-margin-block-end-m"
                          alt="">
                     <h2 class="u-margin-none u-color-success-dark">E-Mail bestätigen!</h2>
 
-                    <p class="u-margin-top-m u-text-lg o-container o-container--small">
+                    <p class="u-margin-block-start-m u-text-lg o-container o-container--small">
                         <?php echo \htmlspecialchars($message, \ENT_QUOTES, 'UTF-8'); ?>
                     </p>
 
-                    <div class="c-alert__footer u-margin-top-xl">
+                    <div class="c-alert__footer u-margin-block-start-xl">
                         <p>Sie werden in
                             <span id="countdown"
                                   class="u-font-extrabold u-text-xl u-color-primary"> 60</span>
                             Sekunden zur Code-Eingabe weitergeleitet...
                         </p>
                         <a href="verify"
-                           class="c-button c-button--success c-button--wide u-margin-top-m">
+                           class="c-button c-button--success c-button--wide u-margin-block-start-m">
                             Jetzt direkt zur Eingabe
                         </a>
                     </div>
@@ -122,7 +109,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                 <!-- Warnung-Box für Datumsfehler -->
                 <div id="date-warning"
-                     class="c-box c-box--warning u-margin-bottom-m"
+                     class="c-box c-box--warning u-margin-block-end-m"
                      style="display:none;">
                     <span id="date-warning-text"></span>
                 </div>
@@ -138,7 +125,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     </div>
                 <?php } elseif ($hasActiveVouchers) { ?>
                     <!-- Gutschein Eingabefeld (Versteckt bis Klick) -->
-                    <div class="u-text-center u-margin-bottom-l u-flex u-justify-center">
+                    <div class="u-text-center u-margin-block-end-l u-flex u-justify-center">
                         <span class="c-voucher-toggle">
                             <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
                                  class="c-icon"
@@ -148,7 +135,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     </div>
 
                     <div id="voucher-container"
-                         class="c-box c-box--dashed o-container o-container--small u-margin-auto">
+                         class="c-box c-box--dashed o-container o-container--small u-margin-inline-auto">
 
                         <!-- Formular nur für den Gutschein-Check -->
                         <form method="GET"
@@ -214,7 +201,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                        <?php echo $isLocked('parzelle'); ?>>
                             </div>
                         </div>
-                        <div class="c-form-group u-margin-top-m">
+                        <div class="c-form-group u-margin-block-start-m">
                             <label class="c-form-label"
                                    for="email">E-Mail-Adresse</label>
                             <input type="email"
@@ -226,7 +213,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                    autocomplete="email"
                                    value="<?php echo \htmlspecialchars((string) ($formData['email'] ?? $prefill['data']['email'] ?? '')); ?>"
                                    <?php echo $isLocked('email'); ?>>
-                            <small class="u-text-muted u-margin-top-xs">An diese Adresse senden wir die
+                            <small class="u-text-muted u-margin-block-start-xs">An diese Adresse senden wir die
                                 Ausnahmegenehmigung.</small>
                         </div>
                     </div>
@@ -276,7 +263,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
 
                         <!-- Dynamisches Firmenfeld -->
-                        <div class="c-form-group u-margin-top-m u-hidden"
+                        <div class="c-form-group u-margin-block-start-m u-hidden"
                              id="u_firma_wrapper">
                             <label class="c-form-label"
                                    for="u_firma">Firma / Lieferant</label>
@@ -290,7 +277,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                                    <?php echo $isLocked('firma'); ?>>
                         </div>
 
-                        <div class="c-form-group u-margin-top-m">
+                        <div class="c-form-group u-margin-block-start-m">
                             <label class="c-form-label"
                                    for="zweck">Grund der Einfahrt</label>
                             <select name="zweck"
@@ -311,7 +298,7 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         <h4 class="c-form-section__title"><span class="c-form-section__step">3</span> Gültigkeit</h4>
                         <?php if (\count($publicTemplates) > 1) { ?>
                             <!-- Mehrere Optionen: Auswahl anzeigen -->
-                            <div class="c-form-group u-margin-bottom-m">
+                            <div class="c-form-group u-margin-block-end-m">
                                 <label class="c-form-label"
                                        for="template_key">Gewünschte Dauer</label>
                                 <select name="template_key"
@@ -364,10 +351,10 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                         </div>
 
                         <div id="dynamic-date-info"
-                             class="c-box c-box--highlight u-margin-top-l u-text-sm"
+                             class="c-box c-box--highlight u-margin-block-start-l u-text-sm"
                              style="display:none; line-height: 1.5;">
                             <div id="dynamic-opening-hours"
-                                 class="u-margin-bottom-s"></div>
+                                 class="u-margin-block-end-s"></div>
                             <div id="dynamic-holiday-notice"
                                  class="c-box c-box--danger-soft"
                                  style="display: none;"></div>
@@ -376,13 +363,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
 
                     <!-- Preis-Anzeige mit Rabatt-Logik -->
                     <div id="price-display"
-                         class="c-price-display u-margin-top-m u-margin-bottom-l">
+                         class="c-price-display u-margin-block-start-m u-margin-block-end-l">
                         Wird berechnet...
                     </div>
 
                     <?php if (!empty($agreements)) { ?>
-                        <div class="c-form-group c-box c-box--subtle u-margin-bottom-l">
-                            <p class="u-margin-top-none u-margin-bottom-s u-font-bold u-text-muted">Rechtliches:</p>
+                        <div class="c-form-group c-box c-box--subtle u-margin-block-end-l">
+                            <p class="u-margin-block-start-none u-margin-block-end-s u-font-bold u-text-muted">
+                                Rechtliches:</p>
                             <div class="u-flex u-flex-column u-gap-s">
                                 <?php foreach ($agreements as $key => $agree) { ?>
                                     <div class="c-form-checkbox__wrapper">
@@ -420,14 +408,14 @@ foreach (['png', 'webp', 'jpg', 'jpeg'] as $ext) {
                     </div>
 
                     <button type="submit"
-                            class="c-button--primary c-button--submit u-width-100 u-margin-top-l">
+                            class="c-button--primary c-button--submit u-width-100 u-margin-block-start-l">
                         <?php echo $prefill ? 'Genehmigung jetzt aktivieren' : 'E-Mail bestätigen & Antrag stellen'; ?>
                     </button>
 
                     <?php if (!$prefill) { ?>
-                        <p class="u-text-sm u-text-center u-text-muted u-margin-top-s">Die Auswahl der Zahlungsart
-                            erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
-                        <div class="u-margin-top-m u-text-center">
+                        <p class="u-text-sm u-text-center u-text-muted u-margin-block-start-s">Die Auswahl der
+                            Zahlungsart erfolgt erst nach erfolgreicher E-Mail-Bestätigung.</p>
+                        <div class="u-margin-block-start-m u-text-center">
                             <a href="verify" class="u-text-sm u-color-primary u-font-semibold"> Ich habe bereits einen Bestätigungs-Code erhalten </a>
                         </div>
                         <br>

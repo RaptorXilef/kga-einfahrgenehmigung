@@ -22,14 +22,14 @@ $formData = $_SESSION['form_data'] ?? [];
 unset($_SESSION['form_data']);
 ?>
 
-<div class="c-tab-content-container o-container o-container--small u-padding-y-xl">
-    <div class="c-card c-card--primary u-margin-auto">
+<div class="c-tab-content-container o-container o-container--small u-padding-block-xl">
+    <div class="c-card c-card--primary u-margin-inline-auto">
         <header class="c-card__header u-text-center">
             <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
                  class="c-icon c-icon--md u-opacity-50"
                  alt="">
-            <h2 class="u-margin-none u-margin-top-s">Vorstands-Login</h2>
-            <p class="u-color-muted u-margin-top-s">
+            <h2 class="u-margin-none u-margin-block-start-s">Vorstands-Login</h2>
+            <p class="u-color-muted u-margin-block-start-s">
                 Bitte loggen Sie sich ein, um den Verwaltungsbereich von <?php echo \htmlspecialchars($settings['vereins_name']); ?> zu betreten.
             </p>
         </header>
@@ -58,7 +58,7 @@ unset($_SESSION['form_data']);
                            autocomplete="username">
                 </div>
 
-                <div class="c-form-group u-margin-top-m">
+                <div class="c-form-group u-margin-block-start-m">
                     <label class="c-form-label"
                            for="login_pass">Passwort</label>
                     <div class="js-password-toggle c-password-toggle">
@@ -88,7 +88,7 @@ unset($_SESSION['form_data']);
                        value="<?php echo \htmlspecialchars($_GET['code'] ?? '', \ENT_QUOTES, 'UTF-8'); ?>">
 
                 <button type="submit"
-                        class="c-button c-button--primary c-button--submit u-width-100 u-margin-top-l">
+                        class="c-button c-button--primary c-button--submit u-width-100 u-margin-block-start-l">
                     Sicher einloggen &nbsp;
                     <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
                          class="c-icon"
