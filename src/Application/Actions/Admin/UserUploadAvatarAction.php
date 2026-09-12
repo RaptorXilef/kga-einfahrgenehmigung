@@ -41,7 +41,7 @@ final readonly class UserUploadAvatarAction implements ActionInterface, Requires
             return new RedirectResponse('users');
         }
 
-        if ($this->imageStorage->uploadImage('user_images', $dto->identifier, $dto->file)) {
+        if ($this->imageStorage->uploadImage('user', $dto->identifier, $dto->file)) {
             $this->auditLogger->log('USER_AVATAR_UPLOAD', "Neues Profilbild für Benutzer (ID: {$dto->identifier}) hochgeladen.");
             $this->sessionManager->addFlash('success', 'Profilbild aktualisiert.');
         } else {

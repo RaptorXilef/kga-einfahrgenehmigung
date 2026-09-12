@@ -174,7 +174,7 @@ if ($auth->hasPermission('system.logs.view')) {
                             </tr>
                         <?php } else { ?>
                             <?php foreach ($auditLogs as $log) {
-                                $avatar = $imageStorage->getImageUrl('user_images', $log->userId, 'icon-user-default.webp');
+                                $avatar = $imageStorage->getImageUrl('user', $log->userId, 'icon-user-default.webp'); // FIX: 'user_images' -> 'user'
                                 ?>
                                 <tr class="u-hover-fade">
                                     <td class="u-text-nowrap">

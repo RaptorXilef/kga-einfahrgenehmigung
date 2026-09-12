@@ -15,11 +15,6 @@ use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuditLoggerService;
 use App\Core\Service\AuthService;
 
-/**
- * TODO DOCBLOCK
- *
- * SPDX-License-Identifier: LicenseRef-Proprietary
- */
 #[Route('GET', '/change_own_avatar')]
 #[Route('POST', '/change_own_avatar')]
 final readonly class ProfileUploadAvatarAction implements ActionInterface
@@ -50,7 +45,7 @@ final readonly class ProfileUploadAvatarAction implements ActionInterface
             return new RedirectResponse('profile');
         }
 
-        if ($this->imageStorage->uploadImage('user_images', $userId, $dto->file)) {
+        if ($this->imageStorage->uploadImage('user', $userId, $dto->file)) {
             $this->auditLogger->log('PROFILE_AVATAR_UPLOAD', 'Eigenes Profilbild aktualisiert.');
             $this->sessionManager->addFlash('success', 'Erfolg: Profilbild wurde aktualisiert.');
         } else {

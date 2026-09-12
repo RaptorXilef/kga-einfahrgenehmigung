@@ -26,7 +26,7 @@ use App\Core\Service\AuthService;
  */
 $layout = 'admin';
 $pageTitle = 'Mein Profil - ' . ($settings['vereins_name'] ?? '');
-$userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
+$userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp');
 ?>
 
 <main class="o-container o-container--large u-padding-y-l">

@@ -65,7 +65,7 @@ final readonly class UserDeleteAction implements ActionInterface, RequiresPermis
                 unset($users[$dto->identifier]);
                 $this->userRepository->saveAll($users);
 
-                $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user_images/' . $dto->identifier . '.webp';
+                $avatarPath = \rtrim((string) $this->config->get('root_path'), '/\\') . '/public/assets/img/user/' . $dto->identifier . '.webp';
                 if (\file_exists($avatarPath)) {
                     @\unlink($avatarPath);
                 }

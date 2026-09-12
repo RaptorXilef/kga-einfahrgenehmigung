@@ -18,7 +18,7 @@ final readonly class DeleteGroupImageListener
         $iconPath = \rtrim(
             (string) $this->config->get('root_path'),
             '/\\',
-        ) . '/public/assets/img/group_images/' . $event->groupId . '.webp';
+        ) . '/public/assets/img/role/' . $event->groupId . '.webp';
 
         if (!\file_exists($iconPath)) {
             return;

@@ -246,6 +246,8 @@ ToDo*.md
 
 src/assets/img/**
 public/assets/img/role_images/*.webp
+public/assets/img/role/*.webp
+public/assets/img/user/*.webp
 
 # src/assets/img/test/**
 public/assets/img/test/**

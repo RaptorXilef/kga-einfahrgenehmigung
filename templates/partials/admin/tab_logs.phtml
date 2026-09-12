@@ -159,8 +159,7 @@ if ($auth->hasPermission('system.logs.view')) { ?>
                                                      class="c-icon c-icon--inline"
                                                      alt="">
                                                 <span class="u-font-bold u-text-sm">
-                                                    <!-- FIX: Email am @ umbrechen -->
-                                                    <?php echo \str_replace('@', '&#8203;@&#8203;', \htmlspecialchars($log->recipient)); ?>
+                                                    <?php echo \str_replace('@', '<wbr>@<wbr>', \htmlspecialchars($log->recipient)); ?>
                                                 </span>
                                             </div>
                                         </td>

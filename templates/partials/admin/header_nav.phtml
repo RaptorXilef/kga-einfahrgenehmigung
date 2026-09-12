@@ -23,7 +23,7 @@ if (isset($roleRepository) && $auth->isLoggedIn()) {
     $roles = $roleRepository->loadAll();
     $roleName = isset($roles[$roleId]) ? $roles[$roleId]->name : $roleId;
 }
-$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user_images', $auth->getUserId(), 'icon-user-default.webp') : '';
+$userImgUrl = isset($imageStorage) ? $imageStorage->getImageUrl('user', $auth->getUserId(), 'icon-user-default.webp') : '';
 
 // Ermittlung der aktiven Route für die Button-Highlights
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
@@ -59,8 +59,8 @@ $currentPage = $path === '' ? 'admin' : $path;
                 <!-- Rechteverwaltung ist in die 1. Zeile gerutscht und heißt nur noch "Rechte" -->
                 <?php if ($auth->hasPermission('system.manage')) { ?>
                     <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
-            <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Benutzer-Verwaltung
-          </a>
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Benutzer-Verwaltung
+                    </a>
                 <?php } ?>
             </div>
 

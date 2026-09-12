@@ -100,7 +100,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
         <div class="u-flex u-flex-column u-gap-m">
             <h3 class="u-margin-none u-margin-left-s">Registrierte Konten (<?php echo \count($users); ?>)</h3>
             <?php foreach ($users as $userId => $u) {
-                $userImage = $imageStorage->getImageUrl('user_images', $userId, 'icon-user-default.webp');
+                $userImage = $imageStorage->getImageUrl('user', $userId, 'icon-user-default.webp');
                 $roleData = $roles[$u->roleId] ?? null;
                 $displayLogin = $u->username ?? $userId; ?>
 

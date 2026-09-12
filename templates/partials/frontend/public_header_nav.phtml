@@ -46,7 +46,7 @@ $currentPage = $path === '' ? 'index' : $path;
                     <span class="js-theme-text">Light</span>
                 </button>
 
-                <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
+                <a href="admin" class="c-button c-button--secondary c-button--small">
           <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Verwaltung
         </a>
             </div>
@@ -57,11 +57,9 @@ $currentPage = $path === '' ? 'index' : $path;
             <a href="index" class="c-tabs__btn <?php echo $currentPage === 'index' ? 'c-tabs__btn--active' : ''; ?>">
         <img src="<?php echo $asset->url('assets/img/icons/icon-memo.webp'); ?>" class="c-icon" alt=""> Antrag
       </a>
-
             <a href="history" class="c-tabs__btn <?php echo $currentPage === 'history' ? 'c-tabs__btn--active' : ''; ?>">
         <img src="<?php echo $asset->url('assets/img/icons/icon-scroll.webp'); ?>" class="c-icon" alt=""> Verlauf
       </a>
-
             <a href="check" class="c-tabs__btn <?php echo $currentPage === 'check' ? 'c-tabs__btn--active' : ''; ?>">
         <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
       </a>

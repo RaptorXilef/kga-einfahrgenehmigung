@@ -15,9 +15,6 @@ use App\Application\Session\SessionManager;
 use App\Contracts\System\ImageStorageInterface;
 use App\Core\Service\AuditLoggerService;
 
-/**
- * TODO DOCBLOCK
- */
 #[Route('GET', '/upload_role_image')]
 #[Route('POST', '/upload_role_image')]
 final readonly class RoleUploadImageAction implements ActionInterface, RequiresPermissionInterface
@@ -50,7 +47,7 @@ final readonly class RoleUploadImageAction implements ActionInterface, RequiresP
             return new RedirectResponse('users');
         }
 
-        if ($this->imageStorage->uploadImage('role_images', $dto->identifier, $dto->file)) {
+        if ($this->imageStorage->uploadImage('role', $dto->identifier, $dto->file)) {
             $this->auditLogger->log('ROLE_ICON_UPLOAD', "Neues Icon für Rolle '{$dto->identifier}' hochgeladen.");
             $this->sessionManager->addFlash('success', 'Rollen-Icon aktualisiert.');
         } else {

@@ -85,6 +85,8 @@ jobs:
             public/assets/img/logo/**
             public/assets/img/role_images/**
             public/assets/img/user_images/**
+            public/assets/img/role/**
+            public/assets/img/user/**
             public/dev/**
             public/dist/**
             scripts/**
