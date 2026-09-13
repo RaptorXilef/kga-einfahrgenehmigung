@@ -85,8 +85,7 @@
         border-block-start: 2px solid var(--color-border);
     }
 
-    /* TableSorter.js Extensions strikt flach über CSS Variablen */
-    .is-sortable {
+    .c-table__header-cell.is-sortable {
         --sort-icon-opacity: 0.3;
         --sort-icon-color: inherit;
         --sortable-color: inherit;
@@ -97,12 +96,12 @@
         color: var(--sortable-color);
     }
 
-    .is-sortable:hover {
+    .c-table__header-cell.is-sortable:hover {
         --sortable-color: var(--color-text-dark);
     }
 
-    .is-sortable[data-sort-dir='asc'],
-    .is-sortable[data-sort-dir='desc'] {
+    .c-table__header-cell[data-sort-dir='asc'],
+    .c-table__header-cell[data-sort-dir='desc'] {
         --sortable-color: var(--color-primary);
         --sort-icon-opacity: 1;
         --sort-icon-color: var(--color-primary);

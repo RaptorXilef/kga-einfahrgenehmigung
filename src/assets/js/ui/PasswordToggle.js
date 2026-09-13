@@ -18,10 +18,10 @@ export class PasswordToggle {
             e.preventDefault();
             if (this.input.type === 'password') {
                 this.input.type = 'text';
-                this.button.classList.add('c-password-toggle__btn--active');
+                this.button.classList.add('is-active');
             } else {
                 this.input.type = 'password';
-                this.button.classList.remove('c-password-toggle__btn--active');
+                this.button.classList.remove('is-active');
             }
         });
     }
