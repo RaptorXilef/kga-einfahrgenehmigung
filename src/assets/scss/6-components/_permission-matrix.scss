@@ -3,7 +3,7 @@
         transition: all 0.3s ease;
     }
 
-    .p-tree-wrapper.is-master-active {
+    .c-tree-wrapper.is-master-active {
         opacity: 0.4;
         pointer-events: none;
         filter: grayscale(100%);
@@ -14,7 +14,7 @@
         margin-inline-start: calc(var(--depth, 0) * var(--space-xl));
     }
 
-    .p-tree-node:last-child > .p-item {
+    .c-tree-node:last-child > .c-tree-item {
         border-block-end: none;
     }
 
@@ -28,15 +28,15 @@
         align-items: center;
     }
 
-    .p-item:hover {
+    .c-tree-item:hover {
         background-color: var(--color-bg-light);
     }
 
-    .p-item.is-root {
+    .c-tree-item--root {
         background-color: transparent;
     }
 
-    .p-item.is-auto-active {
+    .c-tree-item.is-auto-active {
         background-color: color-mix(
             in oklch,
             var(--color-success) 10%,
@@ -44,7 +44,7 @@
         ) !important;
     }
 
-    .p-item.is-auto-inactive {
+    .c-tree-item.is-auto-inactive {
         background-color: color-mix(
             in oklch,
             var(--color-danger) 5%,
@@ -71,35 +71,15 @@
         margin-block-start: 2px;
     }
 
-    .p-label-sub--category {
+    .c-tree-item__sublabel--category {
         font-style: italic;
     }
 
-    /* Entkoppeltes, flaches Switch-Component via :has() */
     .c-switch {
         position: relative;
         display: inline-block;
         inline-size: 100px;
         block-size: 32px;
-
-        .c-switch:has(.c-switch__input:checked) .c-switch__label {
-            background-color: var(--color-success);
-
-            &::before {
-                transform: translateX(68px);
-            }
-
-            &::after {
-                content: attr(data-on);
-                inset-inline-start: 12px;
-                inset-inline-end: auto;
-                color: var(--color-bg-white);
-            }
-        }
-
-        &--danger:has(.c-switch__input:checked) .c-switch__label {
-            background-color: var(--color-danger);
-        }
     }
 
     .c-switch__input {
@@ -118,7 +98,7 @@
         border-radius: 30px;
     }
 
-    .c-switch-label::before {
+    .c-switch__label::before {
         position: absolute;
         content: '';
         block-size: 24px;
@@ -134,7 +114,7 @@
             color-mix(in oklch, var(--color-text-dark) 20%, transparent);
     }
 
-    .c-switch-label::after {
+    .c-switch__label::after {
         content: attr(data-off);
         position: absolute;
         inset-inline-end: 12px;
@@ -144,5 +124,25 @@
         font-weight: 900;
         color: var(--color-text-muted);
         transition: all 0.3s;
+    }
+
+    /* Sicherer Sibling-Selector (+) reagiert sofort auf JS cb.checked = true */
+    .c-switch__input:checked + .c-switch__label {
+        background-color: var(--color-success);
+    }
+
+    .c-switch__input:checked + .c-switch__label::before {
+        transform: translateX(68px);
+    }
+
+    .c-switch__input:checked + .c-switch__label::after {
+        content: attr(data-on);
+        inset-inline-start: 12px;
+        inset-inline-end: auto;
+        color: var(--color-bg-white);
+    }
+
+    .c-switch--danger .c-switch__input:checked + .c-switch__label {
+        background-color: var(--color-danger);
     }
 }

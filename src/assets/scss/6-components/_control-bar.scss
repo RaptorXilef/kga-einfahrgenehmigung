@@ -61,7 +61,8 @@
         color: var(--color-text-muted);
     }
 
-    .c-control-bar__search-input {
+    /* Spezifität erhöht, damit .c-form-input das Padding nicht überschreibt! */
+    .c-control-bar__search-input.c-form-input {
         padding-inline-start: 42px;
         border-radius: 30px;
         block-size: 38px;

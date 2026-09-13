@@ -90,20 +90,21 @@
         cursor: pointer;
         user-select: none;
         transition: color 0.2s;
+    }
 
-        &:hover {
-            color: var(--color-text-dark);
-        }
+    th.is-sortable:hover {
+        color: var(--color-text-dark);
+    }
 
-        /* BEM Fix: Flaches Nesting via :is() */
-        &:is([data-sort-dir='asc'], [data-sort-dir='desc']) {
-            color: var(--color-primary);
+    th.is-sortable[data-sort-dir='asc'],
+    th.is-sortable[data-sort-dir='desc'] {
+        color: var(--color-primary);
+    }
 
-            .c-sort-icon {
-                opacity: 1;
-                color: var(--color-primary);
-            }
-        }
+    th.is-sortable[data-sort-dir='asc'] .c-sort-icon,
+    th.is-sortable[data-sort-dir='desc'] .c-sort-icon {
+        opacity: 1;
+        color: var(--color-primary);
     }
 
     .c-sort-icon {

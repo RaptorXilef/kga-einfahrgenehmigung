@@ -16,11 +16,11 @@
         padding: var(--space-l);
         display: flex;
         transition: opacity 0.3s ease;
+    }
 
-        &.is-open {
-            opacity: 1;
-            pointer-events: auto;
-        }
+    .c-modal.is-open {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .c-modal__dialog {
@@ -38,10 +38,10 @@
         /* Verhindert Ruckeln beim Öffnen */
         translate: 0 10px;
         transition: translate 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
 
-        .c-modal.is-open & {
-            translate: 0 0;
-        }
+    .c-modal.is-open .c-modal__dialog {
+        translate: 0 0;
     }
 
     .c-modal__dialog--large {
