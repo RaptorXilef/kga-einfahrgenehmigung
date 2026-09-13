@@ -126,7 +126,7 @@ if ($auth->hasPermission('system.roles.manage')) {
             <?php foreach ($roles as $roleId => $rData) {
                 $roleImage = $imageStorage->getImageUrl('role', $roleId, 'icon-shield.webp');
                 ?>
-                <div class="c-category-card is-closed"
+                <div class="c-category-card c-category-card--closed"
                      id="card-<?php echo $roleId; ?>">
                     <header class="c-category-card__header u-flex u-justify-between u-align-center">
                         <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1">

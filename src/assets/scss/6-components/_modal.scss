@@ -1,5 +1,10 @@
 @layer components {
     .c-modal {
+        /* Variable-Driven-State: Der Parent diktiert nur Variablen, nicht die Klassen der Kinder! */
+        --modal-opacity: 0;
+        --modal-pointer: none;
+        --dialog-translate-y: 10px;
+
         position: fixed;
         inset: 0;
         background-color: color-mix(
@@ -7,9 +12,9 @@
             var(--color-text-main) 70%,
             transparent
         );
-        z-index: 10000; /* Definiertes Maximum für Overlay-Hierarchie */
-        opacity: 0;
-        pointer-events: none;
+        z-index: 10000;
+        opacity: var(--modal-opacity);
+        pointer-events: var(--modal-pointer);
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(2px);
@@ -18,9 +23,10 @@
         transition: opacity 0.3s ease;
     }
 
-    .c-modal.is-open {
-        opacity: 1;
-        pointer-events: auto;
+    .c-modal--open {
+        --modal-opacity: 1;
+        --modal-pointer: auto;
+        --dialog-translate-y: 0;
     }
 
     .c-modal__dialog {
@@ -35,13 +41,9 @@
             color-mix(in oklch, var(--color-text-main) 20%, transparent);
         display: flex;
         flex-direction: column;
-        /* Verhindert Ruckeln beim Öffnen */
-        translate: 0 10px;
+        translate: 0 var(--dialog-translate-y);
+        will-change: translate;
         transition: translate 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-    }
-
-    .c-modal.is-open .c-modal__dialog {
-        translate: 0 0;
     }
 
     .c-modal__dialog--large {

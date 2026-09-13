@@ -34,7 +34,7 @@ if ($auth->hasPermission('system.manage')) { ?>
                     <button class="c-tabs__btn c-tabs__btn--active"
                             data-tab-target="tab-users">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Benutzerverwaltung
                     </button>
                 <?php } ?>
@@ -42,7 +42,7 @@ if ($auth->hasPermission('system.manage')) { ?>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-roles">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-shield.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Rollen & Rechte
                     </button>
                 <?php } ?>

@@ -58,7 +58,7 @@ $currentPage = $path === '' ? 'admin' : $path;
 
                 <?php if ($auth->hasPermission('system.manage')) { ?>
                     <a href="users" class="c-tabs__btn <?php echo $currentPage === 'users' ? 'c-tabs__btn--active' : ''; ?>">
-                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon" alt=""> Benutzer-Verwaltung
+                        <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Benutzer-Verwaltung
                     </a>
                 <?php } ?>
             </div>
@@ -107,12 +107,12 @@ $currentPage = $path === '' ? 'admin' : $path;
         <div class="c-header-nav__bottom">
             <?php if ($auth->hasPermission('admin.access')) { ?>
                 <a href="admin" class="c-tabs__btn <?php echo $currentPage === 'admin' ? 'c-tabs__btn--active' : ''; ?>">
-                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon" alt=""> Dashboard
+                    <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Dashboard
                 </a>
             <?php } ?>
 
             <a href="check" class="c-tabs__btn u-margin-inline-start-auto" target="_blank">
-                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon" alt=""> Check
+                <img src="<?php echo $asset->url('assets/img/icons/action-search.webp'); ?>" class="c-icon c-tabs__icon" alt=""> Check
             </a>
         </div>
 

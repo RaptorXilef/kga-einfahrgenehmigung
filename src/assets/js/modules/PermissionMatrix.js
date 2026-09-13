@@ -210,12 +210,12 @@ export class PermissionMatrix {
 
                 // Karte aufklappen, scrollen & Highlight
                 setTimeout(() => {
-                    targetCard.classList.remove('is-closed');
+                    targetCard.classList.remove('c-category-card--closed');
                     targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetCard.classList.add('is-highlighted');
+                    targetCard.classList.add('c-category-card--highlighted');
 
                     setTimeout(() => {
-                        targetCard.classList.remove('is-highlighted');
+                        targetCard.classList.remove('c-category-card--highlighted');
                     }, 2000);
                 }, 400);
             }

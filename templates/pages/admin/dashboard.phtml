@@ -57,25 +57,25 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn c-tabs__btn--active"
                             data-tab-target="tab-active">
                         <img src="<?php echo $asset->url('assets/img/icons/status-active.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Aktiv (<?php echo \count($permitGroups['active'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-future">
                         <img src="<?php echo $asset->url('assets/img/icons/status-future.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Zukünftig (<?php echo \count($permitGroups['future'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-expired">
                         <img src="<?php echo $asset->url('assets/img/icons/status-expired.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Abgelaufen (<?php echo \count($permitGroups['expired'] ?? []); ?>)
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-cancelled">
                         <img src="<?php echo $asset->url('assets/img/icons/action-delete.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Storniert (<?php echo \count($cancelledPermits ?? []); ?>)
                     </button>
                 <?php } ?>
@@ -84,7 +84,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-ranking">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-ranking.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Ranking
                     </button>
                 <?php } ?>
@@ -93,7 +93,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-finance">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-card.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Finanzen
                         <?php $openCount = \count($permitGroups['unpaid'] ?? []);
                     if ($openCount > 0) {
@@ -106,7 +106,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-stats">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-stats.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Statistiken
                     </button>
                 <?php } ?>
@@ -115,7 +115,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn <?php echo isset($bank_headers) ? 'c-tabs__btn--active' : ''; ?>"
                             data-tab-target="tab-bank-import">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-bank.webp'); ?>"
-                             class="c-icon c-button__icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Bank-Abgleich
                     </button>
                 <?php } ?>
@@ -124,7 +124,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-export">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-export.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Daten & Export
                     </button>
                 <?php } ?>
@@ -133,7 +133,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-tools">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-create-permit-voucher.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Ausstellung
                     </button>
                 <?php } ?>
@@ -142,7 +142,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-vouchers">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-vouchers.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Gutscheincodes
                     </button>
                 <?php } ?>
@@ -151,13 +151,13 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-logs">
                         <img src="<?php echo $asset->url('assets/img/icons/nav-logs.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Mail Log
                     </button>
                     <button class="c-tabs__btn"
                             data-tab-target="tab-audit-log">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-user.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Audit-Log
                     </button>
                 <?php } ?>
@@ -166,7 +166,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-system">
                         <img src="<?php echo $asset->url('assets/img/icons/icon-sync.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> System
                     </button>
                 <?php } ?>
@@ -175,7 +175,7 @@ foreach ($config->get('permit_templates', []) as $key => $tpl) {
                     <button class="c-tabs__btn"
                             data-tab-target="tab-backup">
                         <img src="<?php echo $asset->url('assets/img/icons/icon_inbox-tray.webp'); ?>"
-                             class="c-icon"
+                             class="c-icon c-tabs__icon"
                              alt=""> Backups
                     </button>
                 <?php } ?>

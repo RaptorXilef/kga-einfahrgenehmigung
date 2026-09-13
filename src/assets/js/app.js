@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = e.target.closest('.js-toggle-parent');
         if (toggleBtn) {
             const card = toggleBtn.closest('.c-category-card');
-            if (card) card.classList.toggle('is-closed');
+            if (card) card.classList.toggle('c-category-card--closed');
         }
 
         // Globaler Reload-Button
