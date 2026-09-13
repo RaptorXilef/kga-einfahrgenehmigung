@@ -7,7 +7,7 @@
             var(--color-text-main) 70%,
             transparent
         );
-        z-index: 10000;
+        z-index: 10000; /* Definiertes Maximum für Overlay-Hierarchie */
         opacity: 0;
         pointer-events: none;
         align-items: center;
@@ -35,6 +35,13 @@
             color-mix(in oklch, var(--color-text-main) 20%, transparent);
         display: flex;
         flex-direction: column;
+        /* Verhindert Ruckeln beim Öffnen */
+        translate: 0 10px;
+        transition: translate 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+
+        .c-modal.is-open & {
+            translate: 0 0;
+        }
     }
 
     .c-modal__dialog--large {

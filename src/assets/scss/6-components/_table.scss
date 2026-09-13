@@ -25,6 +25,15 @@
         vertical-align: middle;
     }
 
+    /* Intelligenter Zeilenumbruch für E-Mail-Adressen */
+    .c-table a[href^='mailto:'] {
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        white-space: normal !important;
+        display: inline-block;
+        max-inline-size: 100%;
+    }
+
     .c-table__row--danger {
         background-color: var(--color-danger-soft);
     }
@@ -64,7 +73,7 @@
     .c-table__value--code {
         font-weight: 700;
         text-transform: uppercase;
-        font-family: monospace;
+        font-family: var(--font-mono, monospace);
         font-size: 1.05rem;
     }
 
@@ -76,17 +85,8 @@
         border-block-start: 2px solid var(--color-border);
     }
 
-    /* Intelligenter Zeilenumbruch für E-Mail-Adressen in ALLEN Tabellen */
-    .c-table a[href^='mailto:'] {
-        overflow-wrap: anywhere !important;
-        word-break: break-word !important;
-        white-space: normal !important;
-        display: inline-block;
-        max-inline-size: 100%;
-    }
-
-    /* TableSorter.js Extensions */
-    .is-sortable {
+    /* TableSorter.js Extensions strikt an Component gebunden */
+    th.is-sortable {
         cursor: pointer;
         user-select: none;
         transition: color 0.2s;
@@ -94,18 +94,16 @@
         &:hover {
             color: var(--color-text-dark);
         }
-    }
 
-    /* BEM Fix: Flaches Nesting (Maximal 2 Ebenen) für Sortable Icons */
-    .is-sortable[data-sort-dir='asc'],
-    .is-sortable[data-sort-dir='desc'] {
-        color: var(--color-primary);
-    }
+        /* BEM Fix: Flaches Nesting via :is() */
+        &:is([data-sort-dir='asc'], [data-sort-dir='desc']) {
+            color: var(--color-primary);
 
-    .is-sortable[data-sort-dir='asc'] .c-sort-icon,
-    .is-sortable[data-sort-dir='desc'] .c-sort-icon {
-        opacity: 1;
-        color: var(--color-primary);
+            .c-sort-icon {
+                opacity: 1;
+                color: var(--color-primary);
+            }
+        }
     }
 
     .c-sort-icon {
