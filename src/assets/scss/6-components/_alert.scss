@@ -13,6 +13,12 @@
         box-shadow: var(--shadow-sm);
     }
 
+    .c-alert__content {
+        inline-size: 100%;
+        text-align: start;
+        line-height: 1.6;
+    }
+
     .c-alert--success {
         background-color: var(--color-success-soft);
         color: color-mix(
