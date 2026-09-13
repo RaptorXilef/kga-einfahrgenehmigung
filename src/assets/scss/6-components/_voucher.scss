@@ -20,15 +20,15 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
+    }
 
-        &:hover {
-            color: color-mix(
-                in oklch,
-                var(--color-primary) 80%,
-                var(--color-text-main)
-            );
-            text-decoration: underline;
-        }
+    .c-voucher-toggle:hover {
+        color: color-mix(
+            in oklch,
+            var(--color-primary) 80%,
+            var(--color-text-main)
+        );
+        text-decoration: underline;
     }
 
     .c-voucher-container {
@@ -38,12 +38,37 @@
         max-block-size: 0;
         opacity: 0;
         overflow: hidden;
+    }
 
-        &.is-open {
-            max-block-size: 200px;
-            opacity: 1;
-            margin-block-start: var(--space-m);
-            margin-block-end: var(--space-l);
-        }
+    .c-voucher-container.is-open {
+        max-block-size: 200px;
+        opacity: 1;
+        margin-block-start: var(--space-m);
+        margin-block-end: var(--space-l);
+    }
+
+    .c-voucher-scroll-area {
+        max-block-size: 650px;
+        overflow-y: auto;
+    }
+
+    .c-voucher-qr-code {
+        font-size: clamp(1rem, 2vw + 0.5rem, 1.25rem);
+        padding-inline: var(--space-s);
+        margin-block-end: var(--space-m);
+        display: block;
+    }
+
+    .c-voucher-qr-box {
+        min-block-size: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .c-voucher-qr-img {
+        display: none;
+        max-inline-size: 200px;
+        block-size: auto;
     }
 }

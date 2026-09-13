@@ -4,89 +4,89 @@
         line-height: 1.6;
         color: var(--color-text-main);
         padding: clamp(var(--space-m), 3vw, var(--space-xl));
+    }
 
-        h1,
-        h2,
-        h3 {
-            margin-block-start: 1.5em;
-            margin-block-end: 0.5em;
-            border-block-end: 1px solid var(--color-border);
-            padding-block-end: 0.3em;
-            color: var(--color-text-dark);
-        }
+    .c-markdown h1,
+    .c-markdown h2,
+    .c-markdown h3 {
+        margin-block-start: 1.5em;
+        margin-block-end: 0.5em;
+        border-block-end: 1px solid var(--color-border);
+        padding-block-end: 0.3em;
+        color: var(--color-text-dark);
+    }
 
-        h1 {
-            color: var(--color-primary);
-            font-size: 1.8rem;
-            border-block-end: 2px solid var(--color-primary);
-        }
+    .c-markdown h1 {
+        color: var(--color-primary);
+        font-size: clamp(1.5rem, 2vw + 0.5rem, 1.8rem);
+        border-block-end: 2px solid var(--color-primary);
+    }
 
-        h2 {
-            font-size: 1.4rem;
-        }
+    .c-markdown h2 {
+        font-size: clamp(1.2rem, 1.5vw + 0.5rem, 1.4rem);
+    }
 
-        h3 {
-            font-size: 1.1rem;
-            border-block-end: none;
-        }
+    .c-markdown h3 {
+        font-size: clamp(1rem, 1vw + 0.5rem, 1.1rem);
+        border-block-end: none;
+    }
 
-        ul {
-            padding-inline-start: 2em;
-            margin-block-end: 1em;
-        }
+    .c-markdown ul {
+        padding-inline-start: 2em;
+        margin-block-end: 1em;
+    }
 
-        li {
-            margin-block-end: 0.4em;
-        }
+    .c-markdown li {
+        margin-block-end: 0.4em;
+    }
 
-        code {
-            background-color: var(--color-bg-light);
-            padding-block: 0.2em;
-            padding-inline: 0.4em;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.85em;
-            border: 1px solid var(--color-border);
-            color: var(--color-danger);
-        }
+    .c-markdown code {
+        background-color: var(--color-bg-light);
+        padding-block: 0.2em;
+        padding-inline: 0.4em;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.85em;
+        border: 1px solid var(--color-border);
+        color: var(--color-danger);
+    }
 
-        pre {
-            background-color: var(--color-text-main);
-            color: var(--color-bg-light);
-            padding: var(--space-m);
-            border-radius: 8px;
-            overflow-x: auto;
-            margin-block-end: 1em;
-            box-shadow: inset 0 2px 4px
-                color-mix(in oklch, var(--color-text-dark) 20%, transparent);
-        }
+    .c-markdown pre {
+        background-color: var(--color-text-main);
+        color: var(--color-bg-light);
+        padding: var(--space-m);
+        border-radius: 8px;
+        overflow-x: auto;
+        margin-block-end: 1em;
+        box-shadow: inset 0 2px 4px
+            color-mix(in oklch, var(--color-text-dark) 20%, transparent);
+    }
 
-        pre code {
-            background-color: transparent;
-            border: none;
-            color: inherit;
-            padding: 0;
-        }
+    .c-markdown pre code {
+        background-color: transparent;
+        border: none;
+        color: inherit;
+        padding: 0;
+    }
 
-        blockquote {
-            border-inline-start: 4px solid var(--color-primary);
-            padding-inline-start: var(--space-m);
-            color: var(--color-text-muted);
-            background-color: var(--color-primary-soft);
-            margin-block-start: 0;
-            margin-block-end: 1em;
-            padding-block: var(--space-s);
-            border-start-end-radius: 8px;
-            border-end-end-radius: 8px;
-        }
+    .c-markdown blockquote {
+        border-inline-start: 4px solid var(--color-primary);
+        padding-inline-start: var(--space-m);
+        color: var(--color-text-muted);
+        background-color: var(--color-primary-soft);
+        margin-block-start: 0;
+        margin-block-end: 1em;
+        padding-block: var(--space-s);
+        border-start-end-radius: 8px;
+        border-end-end-radius: 8px;
+    }
 
-        a {
-            color: var(--color-primary);
-            text-decoration: none;
+    .c-markdown a {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
 
-            &:hover {
-                text-decoration: underline;
-            }
-        }
+    .c-markdown a:hover {
+        text-decoration: underline;
     }
 }

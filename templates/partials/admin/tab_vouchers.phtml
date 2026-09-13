@@ -35,8 +35,7 @@ use App\Infrastructure\Config\Config;
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
                         Noch nicht eingelöste Wertcodes für das System.</p>
                 </header>
-                <div class="c-card__body u-padding-block-none u-padding-inline-none"
-                     style="max-block-size: 650px; overflow-y: auto;">
+                <div class="c-card__body u-padding-block-none u-padding-inline-none c-voucher-scroll-area">
                     <table class="c-table u-inline-size-100">
                         <thead>
                             <tr>
@@ -209,8 +208,7 @@ use App\Infrastructure\Config\Config;
                     <p class="u-color-muted u-text-sm u-margin-block-none u-margin-block-start-xs">
                         Bereits vollständig eingelöste Codes.</p>
                 </header>
-                <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto"
-                     style="max-block-size: 650px;">
+                <div class="c-card__body u-padding-block-none u-padding-inline-none u-overflow-x-auto c-voucher-scroll-area">
                     <table class="c-table c-table--summary u-inline-size-100">
                         <thead>
                             <tr>
@@ -257,14 +255,13 @@ use App\Infrastructure\Config\Config;
          class="c-modal">
         <div class="c-modal__dialog">
             <h4 class="c-modal__title u-margin-block-end-s">QR-Code scannen</h4>
-            <code id="qrModalCode" class="c-license-plate u-margin-block-end-m u-text-lg" style="padding-inline: 10px;"></code>
+            <code id="qrModalCode" class="c-license-plate u-margin-block-end-m c-voucher-qr-code"></code>
 
-            <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center"
-                 style="min-block-size: 220px;">
+            <div class="c-box u-margin-block-none u-flex u-align-center u-justify-center c-voucher-qr-box">
                 <img id="qrModalImg"
                      src=""
                      alt="QR Code"
-                     style="display: none; max-inline-size: 200px; block-size: auto;">
+                     class="c-voucher-qr-img">
                 <div id="qrModalLoader"
                      class="u-color-muted">Wird generiert...</div>
             </div>
