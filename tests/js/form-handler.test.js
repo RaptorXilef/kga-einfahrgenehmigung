@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-// Pfadkorrektur auf die neue ESM-Architektur
+import { notifier } from '../../src/assets/js/core/Notifier.js';
 import { PermitForm } from '../../src/assets/js/modules/PermitForm.js';
+
+// Notifier Singleton für Vitest mocken, da wir kein echtes DOM/CSS-Rendering für Toasts haben
+vi.mock('../../src/assets/js/core/Notifier.js', () => ({
+    notifier: { show: vi.fn() },
+}));
 
 describe('PermitFormHandler', () => {
     let handler;
@@ -17,19 +22,32 @@ describe('PermitFormHandler', () => {
         };
 
         document.body.innerHTML = `
-            <form id="permitForm">
-                <select id="typ">
-                    <option value="pkw">PKW</option>
-                    <option value="lkw">LKW</option>
-                </select>
-                <div id="u_firma_wrapper" class="u-hidden"> <input id="u_firma">
-                </div>
-            </form>
-        `;
+      <form id="permitForm">
+        <div class="c-form-group">
+          <label for="typ">Fahrzeugtyp</label>
+          <select id="typ" name="typ">
+            <option value="pkw">PKW</option>
+            <option value="lkw">LKW</option>
+          </select>
+        </div>
+        <div class="c-form-group">
+          <label id="label_kennzeichen" for="kennzeichen">Kennzeichen</label>
+          <input id="kennzeichen" name="kennzeichen">
+        </div>
+        <div class="c-form-group u-hidden" id="group_firma">
+          <label for="firma">Firma</label>
+          <input id="firma" name="firma">
+        </div>
+        <input id="parzelle" name="parzelle">
+        <input id="datum_von" name="datum_von">
+        <input id="datum_bis" name="datum_bis">
+        <select name="template_key"><option value="std_7">7 Tage</option></select>
+      </form>
+    `;
 
         // Instanziierung mit document.body (Da die Klasse nun ein Element erwartet)
         handler = new PermitForm(document.body);
-        vi.spyOn(window, 'alert').mockImplementation(() => {});
+        vi.clearAllMocks();
     });
 
     describe('Formatierung', () => {
@@ -51,13 +69,15 @@ describe('PermitFormHandler', () => {
     describe('Fahrzeug-Logik', () => {
         it('sollte das Firmenfeld bei LKW einblenden', () => {
             const groupFirma = document.getElementById('group_firma');
-            handler.toggleVehicleFields('lkw');
+            handler.typSelect.value = 'lkw';
+            handler.toggleVehicleFields();
             expect(groupFirma.classList.contains('u-hidden')).toBe(false);
         });
 
         it('sollte das Kennzeichen bei LKW optional machen', () => {
             const input = document.getElementById('kennzeichen');
-            handler.toggleVehicleFields('lkw');
+            handler.typSelect.value = 'lkw';
+            handler.toggleVehicleFields();
             expect(input.required).toBe(false);
         });
     });
@@ -85,13 +105,15 @@ describe('PermitFormHandler', () => {
     });
 
     describe('Validierung', () => {
-        it('sollte ein Alert auslösen, wenn ein gesperrtes Datum gewählt wird', () => {
-            // Da das Skript jetzt den Notifier verwendet, ignorieren wir dies
-            // oder du baust einen Mock für notifier.show() in Vitest.
+        it('sollte eine Notifier-Meldung auslösen, wenn ein gesperrtes Datum gewählt wird', () => {
             const dateInput = document.getElementById('datum_von');
             dateInput.value = '2026-04-26'; // Sonntag
             handler.validateBerlinRestrictions();
-            // expect(window.alert).toHaveBeenCalled(); // Alter Test
+
+            expect(notifier.show).toHaveBeenCalledWith(
+                expect.stringContaining('ist ein Sonn- oder Feiertag'),
+                'error'
+            );
         });
     });
 });

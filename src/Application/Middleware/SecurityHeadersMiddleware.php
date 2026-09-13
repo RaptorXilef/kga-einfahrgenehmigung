@@ -23,9 +23,8 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
         ServerRequest $request,
         callable $next,
     ): mixed {
-        // FIX: Generiere einen kryptografisch sicheren, einmaligen Nonce pro Request für die CSP
         if (!\defined('CSP_NONCE')) {
-            \define('CSP_NONCE', \base64_encode(\random_bytes(16)));
+            \define('CSP_NONCE', \rtrim(\base64_encode(\random_bytes(16)), '='));
         }
 
         if (!\headers_sent()) {
@@ -38,7 +37,7 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
             // Basis Security Header
             \header('X-Frame-Options: SAMEORIGIN');
             \header('X-Content-Type-Options: nosniff');
-            \header('X-XSS-Protection: 1; mode=block');
+            // X-XSS-Protection entfernt. Gilt wohl als veraltet und kann Sicherheitslücken verursachen!
             \header('Referrer-Policy: strict-origin-when-cross-origin');
             \header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
 
@@ -70,9 +69,8 @@ final readonly class SecurityHeadersMiddleware implements MiddlewareInterface
             'upgrade-insecure-requests' => [],
             'script-src' => [
                 "'self'",
-                "'nonce-" . CSP_NONCE . "'", // FIX: Erlaubt nur von uns signierte Skripte
-                // "'unsafe-inline'",         // ARCHITEKTUR: Abgeschaltet! Maximale XSS-Sicherheit.
-                "'unsafe-eval'",              // Nötig für Chart.js
+                "'nonce-" . CSP_NONCE . "'",
+                "'unsafe-eval'", // Nötig für Chart.js
                 'https://cdnjs.cloudflare.com',
                 'https://www.paypal.com',
                 'https://www.sandbox.paypal.com',
