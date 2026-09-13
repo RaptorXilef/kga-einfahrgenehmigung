@@ -6,14 +6,15 @@
             --c-input-pl,
             var(--c-input-padding-inline)
         );
+        --c-input-padding-end: var(--c-input-pr, var(--c-input-padding-inline));
         --c-input-radius-val: var(--c-input-radius, 10px);
         --c-input-height-val: var(--c-input-height, 46px);
 
         background-color: var(--color-bg-white);
         border: 2px solid var(--color-border);
         border-radius: var(--c-input-radius-val);
-        padding-inline: var(--c-input-padding-inline);
         padding-inline-start: var(--c-input-padding-start);
+        padding-inline-end: var(--c-input-padding-end);
         font-size: clamp(0.9rem, 0.8rem + 0.5vw, 1rem);
         transition:
             border-color 0.2s ease-in-out,

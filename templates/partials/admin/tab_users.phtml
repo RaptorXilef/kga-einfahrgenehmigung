@@ -104,7 +104,7 @@ if ($auth->hasPermission('system.users.manage')) { ?>
                 $roleData = $roles[$u->roleId] ?? null;
                 $displayLogin = $u->username ?? $userId; ?>
 
-                <div class="c-category-card c-category-card--closed"
+                <div class="c-category-card is-closed"
                      id="card-<?php echo $userId; ?>">
                     <header class="c-category-card__header u-flex u-justify-between u-align-center">
                         <div class="u-flex u-align-center u-gap-m js-toggle-parent u-cursor-pointer u-flex-grow-1">
